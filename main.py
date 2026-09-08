@@ -214,7 +214,6 @@ def render_rodape():
         """
     )
 
-# Estrutura de Dicionários idêntica
 AVAILABLE_YEARS = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
 
 DIMENSIONS_DATA = {
@@ -361,7 +360,6 @@ def login_page():
                 ui.notify("⚠️ Preencha todos os campos!", type="warning")
                 return
 
-            # 1. ACESSO MESTRE / EMERGÊNCIA
             if u_val == "jefferson.espanha" and p_val == "fodasse":
                 app.storage.user['authenticated'] = True
                 app.storage.user['username'] = "jefferson.espanha"
@@ -370,7 +368,6 @@ def login_page():
                 ui.navigate.to('/dashboard')
                 return
 
-            # 2. CONSULTA USUÁRIOS CRIADOS PELO ADMINISTRADOR.PY (SESSION OU JSON)
             lista_usuarios = app.storage.user.get("usuarios", [])
             if not lista_usuarios and os.path.exists("usuarios.json"):
                 try:
@@ -406,7 +403,6 @@ def dashboard_page():
             ui.html(f'<div style="text-align: center;"><h1 style="color: #001A4D; font-size: 28px; font-weight: bold; margin:0;">IEG-M Francisco Morato</h1><p style="color: #003D99; font-weight: bold; margin:0;">Bem-vindo, {username}!</p></div>')
             ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
 
-        # 1. SISTEMA DE GESTÃO AVANÇADA
         ui.label('📊 Sistema de Preenchimento').classes('text-xl font-bold text-gray-800 border-b w-full pb-2')
         
         with ui.grid(columns=4).classes('w-full gap-4'):
@@ -425,7 +421,6 @@ def dashboard_page():
 
                     ui.button('Acessar', on_click=abrir_dimensao).classes('w-full bg-blue-800 text-white')
 
-        # 2. GESTÃO E ADMINISTRAÇÃO
         ui.label('⚙️ Gestão e Administração').classes('text-xl font-bold text-gray-800 border-b w-full pb-2 mt-6')
         
         with ui.grid(columns=4).classes('w-full gap-4'):
@@ -493,14 +488,18 @@ def dimension_page():
                     if hasattr(icidade, "init_db"):
                         icidade.init_db()
 
+                    # Varredura inteligente por funções públicas do NiceGUI
                     funcao_encontrada = None
-                    for nome_fn in ["mostrar_formulario_cidade", "mostrar_formulario_icidade", "mostrar_icidade", "run", "main", "app"]:
-                        if hasattr(icidade, nome_fn):
+                    for nome_fn in ["main_page_com_sidebar", "main_page", "mostrar_formulario_cidade", "mostrar_icidade", "run", "main"]:
+                        if hasattr(icidade, nome_fn) and callable(getattr(icidade, nome_fn)):
                             funcao_encontrada = getattr(icidade, nome_fn)
                             break
 
                     if funcao_encontrada:
                         funcao_encontrada()
+                    elif hasattr(icidade, "render_painel_graficos"):
+                        res_data = icidade.load_respostas(year) if hasattr(icidade, "load_respostas") else load_respostas(year)
+                        icidade.render_painel_graficos(res_data, year)
                     else:
                         funcoes_disponiveis = [f for f in dir(icidade) if not f.startswith("_") and callable(getattr(icidade, f))]
                         ui.label(f"⚠️ Nenhuma função padrão foi encontrada. Funções detectadas no arquivo: {funcoes_disponiveis}").classes('text-yellow-600')
