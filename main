@@ -640,6 +640,204 @@ def login_page():
                     else:
                         st.error("❌ Usuário ou senha incorretos.")
 
+def dimension_page():
+    """Página de exibição dinâmica para módulos e dimensões do sistema."""
+    # Scroll automático para o topo ao carregar a página
+    st.markdown(
+        "<script>window.scrollTo(0, 0);</script>",
+        unsafe_allow_html=True,
+    )
+
+    dimension = st.session_state.get("selected_dimension")
+    year = st.session_state.get("ano_referencia_global", 2026)
+
+    # Cabeçalho da Dimensão com Navegação
+    col_back, col_title, col_logout = st.columns([1, 4, 1])
+    with col_back:
+        if st.button("⬅️ Voltar", key="back_to_dash", use_container_width=True):
+            st.session_state.current_page = "dashboard"
+            st.rerun()
+
+    with col_title:
+        st.markdown(
+            f"<div style='text-align: center;'><h2 style='color: #001A4D;'>{dimension} - {year}</h2></div>",
+            unsafe_allow_html=True,
+        )
+
+    with col_logout:
+        if st.button("🚪 Sair", key="logout_btn_dim", use_container_width=True):
+            st.session_state.authenticated = False
+            st.session_state.current_page = "login"
+            st.rerun()
+
+    st.markdown("---")
+
+    # =========================================================================
+    # ROTEAMENTO CENTRAL DAS SUBPÁGINAS DO ECOSSISTEMA
+    # =========================================================================
+    
+    # 1. Módulo Administrador
+    if dimension == "Administrador":
+        if "admin_core" in globals() and admin_core:
+            admin_core.mostrar_painel_admin(year)
+        else:
+            st.error("Erro técnico: O módulo 'administrador.py' não foi carregado corretamente.")
+
+    # 2. Biblioteca de Documentos
+    elif dimension == "Biblioteca":
+        st.subheader("📚 Biblioteca de Documentos")
+        st.markdown("Acesse o acervo documental completo e referências diretamente no Google Drive.")
+        st.link_button(
+            "🔗 Acessar Biblioteca no Google Drive",
+            "https://drive.google.com/drive/folders/1iwiuHHbQYZ-p6aEMB9oSjugDEvdB8GVK?usp=drive_link",
+            use_container_width=True,
+        )
+
+    # 3. Consulta Rápida / HAL 9000
+    elif dimension in ["Consulta Rápida", "HAL 9000"]:
+        st.subheader("🔴 Consulta Rápida")
+        if "hal_core" in globals() and hal_core:
+            if hasattr(hal_core, "mostrar_chat_hal"):
+                hal_core.mostrar_chat_hal()
+            elif hasattr(hal_core, "main"):
+                hal_core.main()
+            else:
+                st.warning("Módulo 'hal.py' carregado, mas nenhuma função de renderização foi encontrada.")
+                st.chat_input("Como posso ajudar hoje? (Modo de Segurança)")
+        else:
+            st.error("Erro técnico: O módulo 'hal.py' não foi localizado.")
+            st.chat_input("Como posso ajudar hoje? (Modo Offline)")
+
+    # 4. i-Cidade (Carregamento Dinâmico)
+    elif dimension == "i-Cidade":
+        if "icidade" not in globals() or icidade is None:
+            st.error("❌ O arquivo 'icidade_completo.py' não foi encontrado ou falhou ao ser importado.")
+        else:
+            try:
+                if hasattr(icidade, "init_db"):
+                    icidade.init_db()
+
+                funcao_encontrada = None
+                for nome_fn in [
+                    "mostrar_formulario_cidade",
+                    "mostrar_formulario_icidade",
+                    "mostrar_icidade",
+                    "run",
+                    "main",
+                    "app",
+                ]:
+                    if hasattr(icidade, nome_fn):
+                        funcao_encontrada = getattr(icidade, nome_fn)
+                        break
+
+                if funcao_encontrada:
+                    funcao_encontrada()
+                else:
+                    funcoes_disponiveis = [
+                        f for f in dir(icidade)
+                        if not f.startswith("_") and callable(getattr(icidade, f))
+                    ]
+                    st.warning(f"⚠️ Nenhuma função padrão foi encontrada. Funções disponíveis: {funcoes_disponiveis}")
+            except Exception as e:
+                st.error(f"❌ Erro ao executar o i-Cidade: {e}")
+
+    # 5. Dimensões do IEG-M (Formulários Específicos)
+    elif dimension == "i-Gov TI" and "igov" in globals() and igov:
+        igov.mostrar_formulario_igov()
+    elif dimension == "i-Amb" and "iamb" in globals() and iamb:
+        iamb.mostrar_formulario_iamb()
+    elif dimension == "i-Fiscal" and "ifiscal" in globals() and ifiscal:
+        ifiscal.mostrar_formulario_ifiscal()
+    elif dimension == "i-Plan" and "iplan" in globals() and iplan:
+        iplan.mostrar_formulario_plan()
+    elif dimension == "i-Educ" and "ieduc" in globals() and ieduc:
+        ieduc.mostrar_formulario_educ()
+    elif dimension == "i-Saúde" and "isaude" in globals() and isaude:
+        isaude.mostrar_formulario_saude()
+
+    # 6. Consolidação IEG-M
+    elif dimension == "ieg-m":
+        if "iegm_final" in globals() and iegm_final:
+            iegm_final.mostrar_painel_iegm_final(year)
+        else:
+            st.error("Erro: Módulo 'iegmfinal.py' não localizado.")
+
+    # 7. Relatório de Atividades
+    elif dimension == "Relatório de Atividades":
+        if "atividade" in globals() and atividade:
+            if hasattr(atividade, "mostrar_formulario_atividade"):
+                atividade.mostrar_formulario_atividade()
+            else:
+                st.warning("Módulo 'atividade.py' carregado, mas a função 'mostrar_formulario_atividade' não foi encontrada.")
+        else:
+            st.error("Erro: Módulo 'atividade.py' não localizado.")
+
+    # 8. Plano de Ação
+    elif dimension == "Plano de Ação":
+        if "plano_acao" in globals() and plano_acao:
+            if hasattr(plano_acao, "mostrar_formulario_plano_acao"):
+                plano_acao.mostrar_formulario_plano_acao()
+            elif hasattr(plano_acao, "mostrar_painel_plano_acao"):
+                plano_acao.mostrar_painel_plano_acao()
+            else:
+                st.warning("Módulo 'plano_acao.py' carregado, mas a função de renderização não foi encontrada.")
+        else:
+            st.error("Erro: Módulo 'plano_acao.py' não localizado.")
+
+    else:
+        st.info("Selecione um módulo válido no menu principal.")
+
+
+# =============================================================================
+# INICIALIZAÇÃO DE ESTADOS DE SESSÃO (EVITA KEYERROR)
+# =============================================================================
+session_defaults = {
+    "authenticated": False,
+    "current_page": "login",
+    "needs_password_change": False,
+    "selected_dimension": None,
+    "ano_referencia_global": 2026,
+    "role": "user",
+}
+
+for key, value in session_defaults.items():
+    if key not in st.session_state:
+        st.session_state[key] = value
+
+
+# =============================================================================
+# ROTEAMENTO ÚNICO E EXECUÇÃO PRINCIPAL
+# =============================================================================
+if not st.session_state.authenticated:
+    login_page()
+else:
+    # 1. Troca de senha obrigatória
+    if st.session_state.needs_password_change:
+        if "change_password_page" in globals():
+            change_password_page()
+        else:
+            st.session_state.needs_password_change = False
+            st.session_state.current_page = "dashboard"
+            st.rerun()
+
+    # 2. Tela de Dashboard Central
+    elif st.session_state.current_page == "dashboard":
+        dashboard_page()
+
+    # 3. Navegação de Dimensões / Módulos com verificação de nível de acesso (RBAC)
+    elif st.session_state.current_page == "dimension":
+        # Bloqueia acessos não autorizados ao módulo Admin
+        if (
+            st.session_state.selected_dimension == "Administrador"
+            and st.session_state.get("role") != "admin"
+        ):
+            st.error("⛔ Acesso Negado: Apenas Administradores podem acessar este módulo.")
+            if st.button("⬅️ Voltar ao Dashboard"):
+                st.session_state.current_page = "dashboard"
+                st.rerun()
+        else:
+            dimension_page()
+
         # ASSINATURA DE AUTORIA
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(
