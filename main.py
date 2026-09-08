@@ -32,7 +32,10 @@ def import_local_module(module_name):
     try:
         import importlib
         return importlib.import_module(module_name)
-    except Exception:
+    except Exception as e:
+        print(f"⚠️ ERRO DE IMPORTAÇÃO NO MÓDULO '{module_name}': {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 # Importação de Módulos IEG-M
