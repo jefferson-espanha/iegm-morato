@@ -804,41 +804,7 @@ for key, value in session_defaults.items():
     if key not in st.session_state:
         st.session_state[key] = value
 
-
-# =============================================================================
-# ROTEAMENTO ÚNICO E EXECUÇÃO PRINCIPAL
-# =============================================================================
-if not st.session_state.authenticated:
-    login_page()
-else:
-    # 1. Troca de senha obrigatória
-    if st.session_state.needs_password_change:
-        if "change_password_page" in globals():
-            change_password_page()
-        else:
-            st.session_state.needs_password_change = False
-            st.session_state.current_page = "dashboard"
-            st.rerun()
-
-    # 2. Tela de Dashboard Central
-    elif st.session_state.current_page == "dashboard":
-        dashboard_page()
-
-    # 3. Navegação de Dimensões / Módulos com verificação de nível de acesso (RBAC)
-    elif st.session_state.current_page == "dimension":
-        # Bloqueia acessos não autorizados ao módulo Admin
-        if (
-            st.session_state.selected_dimension == "Administrador"
-            and st.session_state.get("role") != "admin"
-        ):
-            st.error("⛔ Acesso Negado: Apenas Administradores podem acessar este módulo.")
-            if st.button("⬅️ Voltar ao Dashboard"):
-                st.session_state.current_page = "dashboard"
-                st.rerun()
-        else:
-            dimension_page()
-
-        # ASSINATURA DE AUTORIA
+# ASSINATURA DE AUTORIA
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown(
             """
@@ -849,4 +815,5 @@ else:
                 <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
             </div>
             """,
-            unsafe_allow_html=True
+            unsafe_allow_html=True,
+        )
