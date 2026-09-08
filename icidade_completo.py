@@ -1081,3 +1081,323 @@ def main_page():
                 
                 ui.plotly(fig).classes('w-full h-96')
 
+import plotly.graph_objects as go
+from datetime import date
+from nicegui import ui, app
+
+# =============================================================================
+# 4. SIDEBAR E PAINEL DE CONTROLE (NICEGUI)
+# =============================================================================
+
+def zerar_questionario_db(ano):
+    """Deleta todas as respostas do ano selecionado no Neon PostgreSQL."""
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM respostas WHERE ano = %s", (ano,))
+        ui.notify(f"✅ Questionário de {ano} foi zerado com sucesso!", type="positive")
+    except Exception as e:
+        ui.notify(f"Erro ao zerar questionário: {e}", type="negative")
+
+
+def abrir_modal_confirmar_zerar(ano, callback_refresh):
+    """Exibe uma caixa de diálogo nativa do NiceGUI para confirmação de segurança."""
+    with ui.dialog() as dialog, ui.card().classes('w-96 p-4'):
+        ui.label('🔒 Confirmação de Segurança').classes('font-bold text-lg text-slate-800')
+        ui.label(f"Você está prestes a apagar todas as respostas de {ano}. Esta ação é irreversível!").classes('text-sm text-rose-600')
+        
+        input_senha = ui.input("Senha de administrador", password=True).classes('w-full mt-2')
+        
+        with ui.row().classes('w-full justify-end gap-2 mt-4'):
+            ui.button("Cancelar", on_click=dialog.close).props('flat')
+            
+            def processar_zerar():
+                if input_senha.value == "fidelios":
+                    zerar_questionario_db(ano)
+                    dialog.close()
+                    callback_refresh()
+                else:
+                    ui.notify("❌ Senha incorreta!", type="negative")
+
+            ui.button("Confirmar e Zerar", color="negative", on_click=processar_zerar)
+            
+    dialog.open()
+
+
+def render_sidebar_nicegui(ano_sel, total_pts, faixa, cor_faixa, res_data, callback_refresh):
+    """Renderiza a gaveta lateral (Drawer/Sidebar) do NiceGUI."""
+    with ui.left_drawer(value=True).classes('bg-slate-50 border-r p-4 flex flex-col justify-between'):
+        with ui.column().classes('w-full gap-4'):
+            ui.label("🛠️ Painel de Controle").classes('text-lg font-bold text-slate-800')
+            
+            # Métrica de Pontuação na Sidebar
+            with ui.card().classes('w-full p-3 border shadow-none bg-white'):
+                ui.label("Pontuação Total").classes('text-xs text-slate-500 font-semibold')
+                ui.label(f"{total_pts:.1f} pts").classes('text-2xl font-bold text-slate-800')
+                
+                with ui.row().classes('items-center gap-2 mt-1'):
+                    ui.label("Faixa:").classes('text-sm text-slate-600')
+                    ui.html(f"<span style='color:{cor_faixa}; font-size:18px; font-weight:bold;'>{faixa}</span>")
+
+            ui.separator()
+
+            ui.label("⚙️ Gerenciamento").classes('text-sm font-bold text-slate-700')
+
+            # Botão de Atualizar Cache
+            def acao_atualizar():
+                ui.notify("Dados recarregados!", type="info", icon="refresh")
+                callback_refresh()
+
+            ui.button("🔄 Atualizar Questionário", on_click=acao_atualizar).props('outline').classes('w-full')
+
+            # Botões Relatório e Zerar
+            with ui.row().classes('w-full gap-2'):
+                ui.button(
+                    "📄 Baixar PDF", 
+                    on_click=lambda: disparar_download_pdf(res_data, ano_sel, total_pts, faixa)
+                ).props('color=primary dense').classes('flex-1 text-xs')
+
+                ui.button(
+                    "🗑️ Zerar", 
+                    on_click=lambda: abrir_modal_confirmar_zerar(ano_sel, callback_refresh)
+                ).props('color=negative dense').classes('flex-1 text-xs')
+
+        # Assinatura de Autoria
+        with ui.column().classes('w-full text-center text-xs text-slate-600 mt-auto pt-4 border-t'):
+            ui.html("""
+                <div style="text-align: center; color: #334155; font-weight: bold; font-style: italic; font-size: 11px; line-height: 1.4;">
+                    ⚙️ <b>Desenvolvido por:</b><br>
+                    <span style="font-size: 12px;">Jefferson Espanha</span><br>
+                    <span>Procuradoria do Município</span><br>
+                    <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
+                </div>
+            """)
+
+
+# =============================================================================
+# 5. GRÁFICOS COMPARATIVOS (PLOTLY + NICEGUI)
+# =============================================================================
+
+def get_faixa(total):
+    if total <= 500:   return "C"
+    if total <= 599:   return "C+"
+    if total <= 749:   return "B"
+    if total <= 899:   return "B+"
+    return "A"
+
+
+def calcular_pontos_por_categoria(res_data):
+    resultado = {}
+    for cat_key, cat_info in CATEGORIAS_MAP.items():
+        resultado[cat_key] = sum(
+            res_data.get(qid, {}).get("pontos", 0) for qid in cat_info["qids"]
+        )
+    return resultado
+
+
+def calcular_max_por_categoria():
+    resultado = {}
+    for cat_key, cat_info in CATEGORIAS_MAP.items():
+        resultado[cat_key] = sum(PONTUACOES_MAX.get(qid, 0) for qid in cat_info["qids"])
+    return resultado
+
+
+def grafico_comparativo_total(all_data):
+    anos = sorted(all_data.keys())
+    totais, faixas, cores = [], [], []
+    for ano in anos:
+        res = all_data[ano]
+        total = sum(v.get("pontos", 0) for k, v in res.items() if not k.startswith("COM_"))
+        faixa = get_faixa(total)
+        totais.append(total)
+        faixas.append(faixa)
+        cores.append(FAIXA_CORES[faixa])
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=[str(a) for a in anos],
+        y=totais,
+        marker_color=cores,
+        text=[f"{t:.1f} pts<br>Faixa {f}" for t, f in zip(totais, faixas)],
+        textposition="outside",
+        hovertemplate="<b>%{x}</b><br>%{text}<extra></extra>",
+    ))
+    for y_val, label, cor in [
+        (500, "C→C+", "#f97316"), (600, "C+→B", "#eab308"),
+        (750, "B→B+", "#22c55e"), (900, "B+→A", "#16a34a")
+    ]:
+        fig.add_hline(y=y_val, line_dash="dash", line_color=cor,
+                      annotation_text=label, annotation_position="right")
+    fig.update_layout(
+        title="Pontuação Total por Ano",
+        xaxis_title="Ano", yaxis_title="Pontos",
+        plot_bgcolor="white", paper_bgcolor="white",
+        showlegend=False, height=400,
+    )
+    return fig
+
+
+def grafico_evolucao_categorias(all_data):
+    anos = sorted(all_data.keys())
+    CORES_CAT = ["#1e3a5f","#0ea5e9","#22c55e","#f97316","#ef4444","#8b5cf6","#ec4899","#6b7280"]
+    fig = go.Figure()
+    for idx, (cat_key, cat_info) in enumerate(CATEGORIAS_MAP.items()):
+        valores = [
+            sum(all_data.get(ano, {}).get(qid, {}).get("pontos", 0) for qid in cat_info["qids"])
+            for ano in anos
+        ]
+        fig.add_trace(go.Scatter(
+            x=[str(a) for a in anos], y=valores,
+            mode="lines+markers", name=cat_info["label"],
+            line=dict(color=CORES_CAT[idx % len(CORES_CAT)], width=2),
+            marker=dict(size=7),
+        ))
+    fig.update_layout(
+        title="Evolução por Categoria ao Longo dos Anos",
+        xaxis_title="Ano", yaxis_title="Pontos",
+        plot_bgcolor="white", paper_bgcolor="white",
+        legend=dict(orientation="h", yanchor="bottom", y=-0.4),
+        height=450,
+    )
+    return fig
+
+
+def grafico_radar_categorias(res_data, ano):
+    maximos = calcular_max_por_categoria()
+    pontos  = calcular_pontos_por_categoria(res_data)
+    labels  = [CATEGORIAS_MAP[k]["label"] for k in CATEGORIAS_MAP]
+    valores_pct = [
+        round(max(0, pontos.get(k, 0) / maximos[k] * 100), 1) if maximos[k] > 0 else 0
+        for k in CATEGORIAS_MAP
+    ]
+    labels_fechado  = labels + [labels[0]]
+    valores_fechado = valores_pct + [valores_pct[0]]
+    fig = go.Figure(go.Scatterpolar(
+        r=valores_fechado, theta=labels_fechado,
+        fill="toself", fillcolor="rgba(30,58,95,0.15)",
+        line=dict(color="#1e3a5f", width=2),
+        hovertemplate="%{theta}: %{r:.1f}%<extra></extra>",
+    ))
+    fig.update_layout(
+        title=f"Radar de Categorias — {ano}",
+        polar=dict(radialaxis=dict(visible=True, range=[0, 100])),
+        showlegend=False, height=420, paper_bgcolor="white",
+    )
+    return fig
+
+
+def grafico_quesitos_barra(res_data, ano):
+    qids_pontuaveis = sorted([q for q, v in PONTUACOES_MAX.items() if v > 0])
+    qids, obtido, maximo, cores = [], [], [], []
+    for qid in qids_pontuaveis:
+        pts = res_data.get(qid, {}).get("pontos", 0)
+        mx  = PONTUACOES_MAX[qid]
+        qids.append(qid)
+        obtido.append(pts)
+        maximo.append(mx)
+        if pts == mx:   cores.append("#16a34a")
+        elif pts < 0:   cores.append("#ef4444")
+        elif pts == 0:  cores.append("#9ca3af")
+        else:           cores.append("#0ea5e9")
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        name="Máximo", x=maximo, y=qids, orientation="h",
+        marker_color="rgba(200,200,200,0.35)", hoverinfo="skip",
+    ))
+    fig.add_trace(go.Bar(
+        name="Obtido", x=obtido, y=qids, orientation="h",
+        marker_color=cores,
+        hovertemplate="<b>%{y}</b><br>Obtido: %{x} pts<extra></extra>",
+    ))
+    fig.update_layout(
+        title=f"Pontuação por Quesito — {ano}",
+        barmode="overlay", xaxis_title="Pontos",
+        plot_bgcolor="white", paper_bgcolor="white",
+        height=max(500, len(qids) * 22),
+        legend=dict(orientation="h"),
+        yaxis=dict(autorange="reversed"),
+    )
+    return fig
+
+
+def render_painel_graficos(res_data, ano_sel):
+    """Renderiza a aba/seção completa de gráficos analíticos dentro do NiceGUI."""
+    all_data = get_all_years_data()
+
+    if not all_data:
+        ui.label("Nenhum dado registrado ainda. Preencha os quesitos para gerar os gráficos.").classes('text-slate-500 italic p-4')
+        return
+
+    with ui.row().classes('w-full gap-6'):
+        with ui.column().classes('flex-1 min-w-[300px]'):
+            ui.plotly(grafico_comparativo_total(all_data)).classes('w-full h-96')
+        with ui.column().classes('flex-1 min-w-[300px]'):
+            ui.plotly(grafico_radar_categorias(res_data, ano_sel)).classes('w-full h-96')
+
+    with ui.row().classes('w-full gap-6 mt-6'):
+        with ui.column().classes('w-full'):
+            ui.plotly(grafico_evolucao_categorias(all_data)).classes('w-full h-96')
+
+    with ui.row().classes('w-full gap-6 mt-6'):
+        with ui.column().classes('w-full'):
+            ui.plotly(grafico_quesitos_barra(res_data, ano_sel)).classes('w-full')
+
+
+# =============================================================================
+# 6. INTEGRANDO COM A PÁGINA PRINCIPAL DO NICEGUI
+# =============================================================================
+
+@ui.page('/')
+def main_page_com_sidebar():
+    if 'ano_referencia_global' not in app.storage.user:
+        app.storage.user['ano_referencia_global'] = date.today().year
+
+    ano_sel = app.storage.user['ano_referencia_global']
+    res_data = load_respostas(ano_sel)
+
+    total_pts = sum(
+        v.get("pontos", 0.0) for k, v in res_data.items() 
+        if isinstance(v, dict) and not k.startswith("COM_")
+    )
+
+    faixa = get_faixa(total_pts)
+    cor_faixa = FAIXA_CORES.get(faixa, "#6c757d")
+
+    # Função para forçar refresh na aplicação
+    def recarregar_pagina():
+        ui.open('/')
+
+    # Renderiza a Sidebar lateral
+    render_sidebar_nicegui(ano_sel, total_pts, faixa, cor_faixa, res_data, recarregar_pagina)
+
+    # Conteúdo Central
+    with ui.column().classes('w-full max-w-7xl mx-auto p-4 gap-4'):
+        ui.label(f"🏙️ Preenchimento e Diagnóstico IEG-M — Exercício {ano_sel}").classes('text-2xl font-bold text-slate-800')
+
+        with ui.tabs().classes('w-full') as tabs:
+            tab_quest = ui.tab('📋 Questionário', icon='assignment')
+            tab_graficos = ui.tab('📊 Gráficos Analíticos', icon='bar_chart')
+
+        with ui.tab_panels(tabs, value=tab_quest).classes('w-full bg-transparent'):
+            
+            # Aba Questionário
+            with ui.tab_panel(tab_quest):
+                ui.label("Preencha os campos abaixo com as informações do seu município:").classes('text-slate-600 mb-4')
+                
+                @ui.refreshable
+                def render_lista_perguntas():
+                    for cat_key, cat_info in CATEGORIAS_MAP.items():
+                        with ui.expansion(f"📁 {cat_info['label']}", icon='folder').classes('w-full bg-white border rounded-lg mb-2'):
+                            for qid in cat_info["qids"]:
+                                renderizar_questao(qid, res_data, refresh_callback=render_lista_perguntas.refresh)
+
+                render_lista_perguntas()
+
+            # Aba Gráficos
+            with ui.tab_panel(tab_graficos):
+                render_painel_graficos(res_data, ano_sel)
+
+if __name__ in {"__main__", "__mp_main__"}:
+    ui.run(title="Diagnóstico I-Cidade", port=8080, storage_secret="SEU_SECRET_AQUI")
+
