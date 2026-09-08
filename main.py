@@ -1,6 +1,5 @@
 import base64
 from datetime import datetime, date
-from administrador import carregar_dados_json
 import json
 import os
 import sys
