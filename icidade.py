@@ -1408,6 +1408,101 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh,
     )
 
+    # =============================================================================
+    # QUESITO 11.0 • TRANSPORTE PÚBLICO COLETIVO
+    # =============================================================================
+    opcoes_110 = {
+        "Selecione...": 0.0,
+        "Sim": 0.0,
+        "Não": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="11.0",
+        titulo="Existência de Transporte Público Coletivo",
+        pergunta="No Município existe transporte público coletivo?",
+        opcoes=opcoes_110,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 11.1 • METAS DE QUALIDADE E DESEMPENHO
+    # =============================================================================
+    opts111 = {
+        "Selecione...": 0.0,
+        "Sim (00 pts)": 0.0,
+        "Não (-20 pts)": -20.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="11.1",
+        titulo="Metas de Qualidade e Desempenho",
+        pergunta="Foram estabelecidas metas de qualidade e desempenho para o transporte público coletivo municipal?",
+        opcoes=opts111,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 11.1.1 • ATENDIMENTO DAS METAS
+    # =============================================================================
+    opts1111 = {
+        "Selecione...": 0.0,
+        "Todas as metas foram atingidas (00 pts)": 0.0,
+        "A maior parte das metas foram atingidas (-05 pts)": -5.0,
+        "A menor parte das metas foram atingidas (-10 pts)": -10.0,
+        "As metas não foram atingidas (-20 pts)": -20.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="11.1.1",
+        titulo="Atingimento de Metas de Desempenho",
+        pergunta="As metas de qualidade e desempenho estão sendo atingidas?",
+        opcoes=opts1111,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 11.1.1.1 • APLICAÇÃO DE PENALIDADES
+    # =============================================================================
+    opcoes_11111 = {
+        "Selecione...": 0.0,
+        "Sim (00 pts)": 0.0,
+        "Não (-50 pts)": -50.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="11.1.1.1",
+        titulo="Aplicação de Sanções Administrativas",
+        pergunta="Foi aplicada penalidade pela meta não cumprida?",
+        opcoes=opcoes_11111,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 11.2 • PESQUISA DE SATISFAÇÃO DO USUÁRIO
+    # =============================================================================
+    ano_puro = "".join([c for c in str(ano_sel) if c.isdigit()])[:4]
+    ano_anterior = int(ano_puro) - 1 if ano_puro.isdigit() else "anterior"
+
+    opcoes_112 = {
+        "Selecione...": 0.0,
+        "Sim (00 pts)": 0.0,
+        "Não (-20 pts)": -20.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="11.2",
+        titulo="Pesquisa de Satisfação dos Usuários",
+        pergunta=f"Foi realizada pesquisa de satisfação dos usuários em {ano_anterior}?",
+        opcoes=opcoes_112,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
