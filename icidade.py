@@ -797,16 +797,14 @@ def container_formulario_icidade():
     # =============================================================================
     # QUESITO 3.1 • AÇÕES REALIZADAS PARA PARTICIPAÇÃO DA SOCIEDADE
     # =============================================================================
-    # Como render_quesito não possui o parâmetro 'tipo', passamos um dicionário de opções
     opcoes_31 = {
-        "Selecione...": 0.0,
-        "Workshop / Palestra (00 pts)": 0.0,
-        "Reunião (00 pts)": 0.0,
-        "Conferência (00 pts)": 0.0,
-        "Congresso (00 pts)": 0.0,
-        "Discussão na Câmara Municipal (00 pts)": 0.0,
-        "Treinamentos (00 pts)": 0.0,
-        "Outros (00 pts)": 0.0
+        "Workshop / Palestra": 0.0,
+        "Reunião": 0.0,
+        "Conferência": 0.0,
+        "Congresso": 0.0,
+        "Discussão na Câmara Municipal": 0.0,
+        "Treinamentos": 0.0,
+        "Outros": 0.0,
     }
 
     render_quesito(
@@ -814,9 +812,13 @@ def container_formulario_icidade():
         res_data=res_data,
         qid="3.1",
         titulo="3.1 • Ações Realizadas para Participação da Sociedade",
-        pergunta="Assinale quais ações foram realizadas:",
+        pergunta="Assinale quais ações foram realizadas para a participação da sociedade:",
+        tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
         opcoes=opcoes_31,
-        on_save_callback=container_formulario_icidade.refresh
+        pontuacao_maxima=0.0,
+        informativo=True,
+        placeholder_link="Caso selecione 'Outros' ou queira detalhar as ações, especifique aqui...",
+        on_save_callback=container_formulario_icidade.refresh,
     )
 
     # =============================================================================
