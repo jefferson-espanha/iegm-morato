@@ -32,7 +32,7 @@ def import_local_module(module_name):
         traceback.print_exc()
         return None
 
-# Importação de Módulos IEG-M (Corrigido para focar diretamente em icidade.py)
+# Importação de Módulos IEG-M
 icidade = import_local_module("icidade") or import_local_module("icidade_completo")
 igov = import_local_module("igov")
 iamb = import_local_module("iamb")
@@ -412,7 +412,13 @@ def dimension_page():
                 ui.label(f"⚠️ Módulo '{dimension}' não está disponível ou falhou ao carregar.").classes('text-yellow-700 text-lg font-bold')
 
         except Exception as e:
-            ui.label(f"❌ Erro ao renderizar módulo '{dimension}': {e}").classes('text-red-600 font-bold')
+            # RENDERIZAÇÃO COMPLETA DO TRACEBACK NA TELA DO NAVEGADOR
+            erro_detalhado = traceback.format_exc()
+            ui.notify(f"Erro ao carregar {dimension}", type="negative")
+            with ui.card().classes('w-full bg-red-100 border border-red-500 p-4 rounded'):
+                ui.label(f"❌ Erro na renderização do módulo '{dimension}':").classes('text-red-800 font-bold text-lg')
+                ui.label(str(e)).classes('text-red-600 font-semibold mb-2')
+                ui.textarea(value=erro_detalhado).classes('w-full font-mono text-xs bg-red-50 text-red-900 border p-2').props('readonly rows=15')
             print(f"Erro ao renderizar a dimensão {dimension}:")
             traceback.print_exc()
 
