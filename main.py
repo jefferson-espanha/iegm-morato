@@ -22,7 +22,7 @@ def get_secret(key, default=None):
         return os.environ.get("DATABASE_URL", NEON_URL)
     return default
 
-# --- CARREGAMENTO OTIMIZADO DE MÓDULOS ---
+# --- CARREGAMENTO DO MÓDULO ICIDADE ---
 def import_local_module(module_name):
     try:
         import importlib
@@ -32,8 +32,9 @@ def import_local_module(module_name):
         traceback.print_exc()
         return None
 
-# Importação de Módulos IEG-M
+# Importação direta e exclusiva de icidade.py
 icidade = import_local_module("icidade")
+
 igov = import_local_module("igov")
 iamb = import_local_module("iamb")
 ifiscal = import_local_module("ifiscal")
@@ -358,7 +359,7 @@ def dimension_page():
 
             elif dimension == "i-Cidade":
                 if icidade is None:
-                    ui.label("❌ O módulo 'icidade' falhou na importação inicial.").classes('text-red-600 font-bold')
+                    ui.label("❌ O módulo 'icidade.py' falhou na importação inicial.").classes('text-red-600 font-bold')
                 else:
                     if hasattr(icidade, "init_db"):
                         icidade.init_db()
@@ -375,7 +376,7 @@ def dimension_page():
                         res_data = icidade.load_respostas(year) if hasattr(icidade, "load_respostas") else load_respostas(year)
                         icidade.render_painel_graficos(res_data, year)
                     else:
-                        ui.label("⚠️ Nenhuma função de renderização conhecida foi encontrada em 'icidade'.").classes('text-yellow-600')
+                        ui.label("⚠️ Nenhuma função de renderização conhecida foi encontrada em 'icidade.py'.").classes('text-yellow-600')
 
             elif dimension == "i-Gov TI" and igov:
                 if hasattr(igov, "mostrar_formulario_igov"):
@@ -412,7 +413,6 @@ def dimension_page():
                 ui.label(f"⚠️ Módulo '{dimension}' não está disponível ou falhou ao carregar.").classes('text-yellow-700 text-lg font-bold')
 
         except Exception as e:
-            # RENDERIZAÇÃO COMPLETA DO TRACEBACK NA TELA DO NAVEGADOR
             erro_detalhado = traceback.format_exc()
             ui.notify(f"Erro ao carregar {dimension}", type="negative")
             with ui.card().classes('w-full bg-red-100 border border-red-500 p-4 rounded'):
