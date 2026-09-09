@@ -2725,3 +2725,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
     doc.build(elements)
     buffer.seek(0)
     return buffer
+
+# =============================================================================
+# 5. ENTRY POINT PRINCIPAL
+# =============================================================================
+@ui.page('/')
+def mostrar_formulario_icidade():
+    container_formulario_icidade()
+
+if __name__ in {"__main__", "__mp_main__"}:
+    ui.run(title="Indicador i-Cidade • Defesa Civil", storage_secret="sua_chave_secreta_aqui")
+
