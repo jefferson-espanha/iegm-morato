@@ -35,7 +35,7 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
     return conteudo.encode('utf-8')
 
 # =============================================================================
-# 1. SIDEBAR / PAINEL DE CONTROLE (2024 - 2030)
+# 1. RENDERIZADOR DA SIDEBAR (FORA DO REFRESHABLE)
 # =============================================================================
 def render_sidebar(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
@@ -133,10 +133,8 @@ def render_sidebar(on_refresh_callback=None):
             </div>
         """).classes('w-full mt-auto')
 
-    return total_pts, res_data, ano_atual
-
 # =============================================================================
-# 2. RENDERIZADOR COMPONONETIZADO DE QUESITOS
+# 2. RENDERIZADOR DE QUESITO
 # =============================================================================
 def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text="", on_save_callback=None):
     d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": ""}
@@ -214,12 +212,12 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes('bg-blue-800 text-white mt-4')
 
 # =============================================================================
-# 3. PÁGINA E FORMULÁRIO DO I-CIDADE
+# 3. ÁREA DE CONTEÚDO REFRESHABLE (SEM ELEMENTOS TOP-LEVEL DE LAYOUT)
 # =============================================================================
 @ui.refreshable
 def container_formulario_icidade():
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
-    total_pts, res_data, _ = render_sidebar(on_refresh_callback=container_formulario_icidade.refresh)
+    res_data = load_respostas(ano_sel)
 
     ui.label(f"Formulário COMPDEC - Defesa Civil ({ano_sel})").classes('text-h4 mb-2 font-bold text-blue-900')
     ui.label("Preencha as evidências e questões do indicador i-Cidade.").classes('text-gray-600 mb-6')
@@ -301,5 +299,11 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh
     )
 
+# =============================================================================
+# 4. PONTO DE ENTRADA PRINCIPAL
+# =============================================================================
 def mostrar_formulario_icidade():
+    # Renderiza a sidebar na estrutura da página
+    render_sidebar(on_refresh_callback=container_formulario_icidade.refresh)
+    # Renderiza o formulário dentro do contêiner
     container_formulario_icidade()
