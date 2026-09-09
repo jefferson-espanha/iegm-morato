@@ -1740,6 +1740,143 @@ def container_formulario_icidade():
     )
 
 # =============================================================================
+    # QUESITO 14.0 • ACESSIBILIDADE EM CALÇAMENTOS PÚBLICOS
+    # =============================================================================
+    opcoes_140 = {
+        "Selecione...": 0.0,
+        "Sim, integralmente - Todos os calçamentos públicos (00 pts)": 0.0,
+        "Sim, parcialmente - Em parte dos calçamentos públicos (-10 pts)": -10.0,
+        "Não possui acessibilidade em calçamentos públicos (-50 pts)": -50.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="14.0",
+        titulo="Adequação de Calçamentos Públicos para Acessibilidade",
+        pergunta="O Município adequou os calçamentos públicos para acessibilidade (PcD e restrição de mobilidade)?",
+        opcoes=opcoes_140,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 14.1 • RECURSOS DE ACESSIBILIDADE OFERECIDOS
+    # =============================================================================
+    opcoes_141 = {
+        "Calçadas com dimensões mínimas para a circulação": 0.0,
+        "Sinalização tátil em pisos": 0.0,
+        "Rampas de acesso": 0.0,
+        "Escadas com corrimão": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="14.1",
+        titulo="Detalhamento dos Recursos de Acessibilidade",
+        pergunta="Informe os recursos de acessibilidade oferecidos pela Prefeitura:",
+        opcoes=opcoes_141,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 15.0 • SINALIZAÇÃO VIÁRIA MUNICIPAL
+    # =============================================================================
+    opcoes_150 = {
+        "Selecione...": 0.0,
+        "Sim, integralmente - Todas as vias públicas municipais (50 pts)": 50.0,
+        "Sim, parcialmente - Em parte das vias municipais (10 pts)": 10.0,
+        "Não estão sinalizadas (00 pts)": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="15.0",
+        titulo="Condições de Sinalização Vertical e Horizontal",
+        pergunta="As vias públicas pavimentadas estão devidamente sinalizadas (vertical e horizontalmente) de forma a garantir as condições adequadas de segurança na circulação?",
+        opcoes=opcoes_150,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 16.0 • MANUTENÇÃO DE VIAS PÚBLICAS
+    # =============================================================================
+    opcoes_160 = {
+        "Selecione...": 0.0,
+        "Sim, integralmente - Todas as vias públicas municipais (50 pts)": 50.0,
+        "Sim, parcialmente - Em parte das vias municipais (10 pts)": 10.0,
+        "Não estão adequadas (00 pts)": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="16.0",
+        titulo="Condições de Manutenção Viária e Pavimentação",
+        pergunta="Há manutenção adequada das vias públicas no Município?",
+        opcoes=opcoes_160,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 17.1 • ENCERRAMENTO E FEEDBACK
+    # =============================================================================
+    opcoes_171 = {
+        "Selecione...": 0.0,
+        "Sim": 0.0,
+        "Não": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="17.1",
+        titulo="Registro de Impressões e Sugestões",
+        pergunta="Utilize o espaço abaixo para registrar suas impressões e sugestões sobre o questionário.",
+        opcoes=opcoes_171,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # SEÇÃO: DADOS EXTERNOS DO i-CIDADE
+    # =============================================================================
+    st.markdown("## 🌐 DADOS EXTERNOS DO i-CIDADE")
+
+    # =============================================================================
+    # QUESITO C1 • ONU MCR2030
+    # =============================================================================
+    opcoes_c1 = {
+        "Selecione...": 0.0,
+        "Sim": 0.0,
+        "Não": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="C1",
+        titulo="Programa Construindo Cidades Resilientes (MCR2030) da ONU",
+        pergunta="O Município estava inscrito no Programa Construindo Cidades Resilientes 2030 da ONU?",
+        opcoes=opcoes_c1,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO C1.1 • ESTÁGIO MCR2030 DA ONU
+    # =============================================================================
+    opcoes_c11 = {
+        "Selecione...": 0.0,
+        "Etapa A (10 pts)": 10.0,
+        "Etapa B (20 pts)": 20.0,
+        "Etapa C (50 pts)": 50.0,
+        "Não classificada (00 pts)": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="C1.1",
+        titulo="Estágio de Classificação no Programa MCR2030",
+        pergunta="O Município foi classificado em qual estágio do Programa?",
+        opcoes=opcoes_c11,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+# =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
 @ui.page('/')
