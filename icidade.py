@@ -340,12 +340,154 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
         ui.button("Postar Comentário", on_click=postar_comentario).classes('bg-blue-600 text-white mt-2')
 
+        # =============================================================================
+        # FUNÇÃO DE RENDERIZAÇÃO DE QUESITOS (NICEGUI)
+        # =============================================================================
+        import ast
+        from nicegui import ui
 
-# =============================================================================
-# 3. RENDERIZADOR DE QUESITO
-# =============================================================================
+        def render_quesito(
+            ano,
+            res_data,
+            qid,
+            titulo,
+            pergunta,
+            opcoes=None,
+            on_save_callback=None,
+            tipo="radio",  # 'radio', 'checkbox'
+            informativo=False,
+            placeholder_text="Cole os links das evidências aqui...",
+            placeholder_link=None,
+            pontuacao_maxima=None,
+            **kwargs,
+        ):
+            if opcoes is None:
+                opcoes = {}
 
-    
+            lista_opcoes = (
+                list(opcoes.keys())
+                if isinstance(opcoes, dict)
+                else (opcoes if isinstance(opcoes, list) else [])
+            )
+
+            d_data = res_data.get(qid) or {
+                "valor": "[]" if tipo == "checkbox" else "",
+                "pontos": 0.0,
+                "link": "",
+                "comentarios": [],
+            }
+
+            valor_salvo = d_data.get("valor", "")
+            ph_link = placeholder_link or placeholder_text
+
+            with ui.card().classes("w-full mb-4 p-4 border rounded-lg"):
+                with ui.expansion(
+                    f"📌 Quesito {qid} - {titulo}", value=True
+                ).classes("w-full"):
+                    ui.label(f"{qid} • {titulo}").classes("text-lg font-bold")
+                    ui.label(f"{pergunta}").classes("font-semibold mb-2")
+                    ui.label(
+                        "ℹ Preencha os campos abaixo e clique no botão de salvar para registrar."
+                    ).classes("text-sm text-gray-500 mb-4")
+
+                    with ui.row().classes("w-full gap-4"):
+                        with ui.column().classes("w-1/2"):
+                            checkbox_states = {}
+                            radio_element = None
+
+                            if tipo == "checkbox":
+                                if isinstance(valor_salvo, str):
+                                    try:
+                                        sel_list = ast.literal_eval(valor_salvo)
+                                        if not isinstance(sel_list, list):
+                                            sel_list = []
+                                    except Exception:
+                                        sel_list = []
+                                elif isinstance(valor_salvo, list):
+                                    sel_list = valor_salvo
+                                else:
+                                    sel_list = []
+
+                                for opt in lista_opcoes:
+                                    chk = ui.checkbox(
+                                        opt, value=(opt in sel_list)
+                                    ).classes("mb-1")
+                                    checkbox_states[opt] = chk
+
+                            elif tipo == "radio":
+                                val_init = (
+                                    valor_salvo
+                                    if valor_salvo in lista_opcoes
+                                    else (lista_opcoes[0] if lista_opcoes else "")
+                                )
+                                radio_element = ui.radio(
+                                    options=lista_opcoes, value=val_init
+                                ).classes("mb-2")
+
+                        with ui.column().classes("w-1/2"):
+                            link_input = (
+                                ui.textarea(
+                                    f"Evidências / Justificativa ({qid}):",
+                                    value=d_data.get("link", ""),
+                                    placeholder=ph_link,
+                                )
+                                .classes("w-full")
+                                .props("rows=6")
+                            )
+
+                    def salvar_dados():
+                        if tipo == "checkbox":
+                            selecionados = [
+                                opt
+                                for opt, chk_obj in checkbox_states.items()
+                                if chk_obj.value
+                            ]
+                            valor_final = str(selecionados)
+                        elif tipo == "radio":
+                            valor_final = (
+                                radio_element.value if radio_element else ""
+                            )
+                        else:
+                            valor_final = ""
+
+                        if informativo or pontuacao_maxima == 0.0:
+                            pts_calc = 0.0
+                        elif isinstance(opcoes, dict) and tipo == "radio":
+                            pts_calc = opcoes.get(valor_final, 0.0)
+                        else:
+                            pts_calc = 0.0
+
+                        if qid not in res_data:
+                            res_data[qid] = {}
+                        res_data[qid]["valor"] = valor_final
+                        res_data[qid]["pontos"] = pts_calc
+                        res_data[qid]["link"] = link_input.value
+
+                        if "save_resp" in globals():
+                            coments = d_data.get("comentarios", [])
+                            globals()["save_resp"](
+                                qid=qid,
+                                valor=valor_final,
+                                pontos=pts_calc,
+                                link=link_input.value,
+                                comentarios=coments,
+                            )
+
+                        ui.notify(
+                            f"Quesito {qid} salvo com sucesso!", type="positive"
+                        )
+
+                        if on_save_callback:
+                            on_save_callback()
+
+                    ui.button(
+                        f"💾 Salvar Quesito {qid}", on_click=salvar_dados
+                    ).props("color=primary").classes("mt-4")
+
+                    ui.label(
+                        f"📊 Impacto de Pontuação no Quesito {qid}: {d_data.get('pontos', 0.0)} pontos"
+                    ).classes("text-green-600 font-bold mt-2")
+                    
     with ui.card().classes('w-full mb-4 p-4 border rounded-lg shadow-sm'):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
             ui.label(f"{qid} • {titulo}").classes('text-h6 text-primary mt-2')
