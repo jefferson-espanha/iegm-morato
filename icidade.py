@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from nicegui import app, ui
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import RealDictCursor, Json
 
 # =============================================================================
 # EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
@@ -38,10 +38,14 @@ def load_respostas(ano):
                 cur.execute(query, (ano,))
                 rows = cur.fetchall()
                 for row in rows:
+                    link_val = row['link']
+                    if link_val is None or link_val == "EMPTY_STRING":
+                        link_val = ""
+
                     respostas[row['qid']] = {
                         "valor": row['valor'] if row['valor'] is not None else "",
                         "pontos": float(row['pontos']) if row['pontos'] is not None else 0.0,
-                        "link": row['link'] if row['link'] is not None else "",
+                        "link": link_val,
                         "comentarios": row['comentarios'] if isinstance(row['comentarios'], list) else [],
                         "status": row['status'] if row['status'] is not None else "Pendente"
                     }
@@ -62,11 +66,11 @@ def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pende
         comentarios = dados_atuais.get("comentarios", [])
 
     comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
-    comentarios_json = json.dumps(comentarios_validos)
+    link_final = link.strip() if link else ""
 
     query = """
         INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
-        VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (ano, qid) 
         DO UPDATE SET
             valor = EXCLUDED.valor,
@@ -79,7 +83,15 @@ def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pende
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano, qid, valor, pontos, link, comentarios_json, status))
+                cur.execute(query, (
+                    ano, 
+                    str(qid), 
+                    str(valor), 
+                    float(pontos), 
+                    link_final, 
+                    Json(comentarios_validos),  # Trata corretamente o JSONB para o PostgreSQL
+                    str(status)
+                ))
             conn.commit()
     except Exception as e:
         print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
@@ -333,7 +345,13 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 # 3. RENDERIZADOR DE QUESITO
 # =============================================================================
 def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text="", on_save_callback=None):
-    d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": "", "comentarios": [], "status": "Pendente"}
+    d_data = res_data.get(qid) or {
+        "valor": "Selecione..." if opcoes else "",
+        "pontos": 0.0,
+        "link": "",
+        "comentarios": [],
+        "status": "Pendente"
+    }
     
     with ui.card().classes('w-full mb-4 p-4 border rounded-lg shadow-sm'):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
@@ -369,7 +387,10 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
                     
                     def atualizar_links_visuais():
                         container_links.clear()
-                        txt_total = (input_valor.value if is_text_area else "") + " " + (input_link.value or "")
+                        val_txt = input_valor.value if (is_text_area and input_valor.value) else ""
+                        lnk_txt = input_link.value or ""
+                        txt_total = f"{val_txt} {lnk_txt}"
+                        
                         links = re.findall(REGEX_PURE_URL, txt_total)
                         if links:
                             with container_links:
@@ -395,20 +416,30 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
             atualizar_label_pontos(d_data.get("pontos", 0.0), d_data.get("valor", ""))
 
             def salvar():
-                val = input_valor.value
-                link = input_link.value
+                val = input_valor.value or ""
+                link = input_link.value or ""
                 pts = opcoes.get(val, 0.0) if opcoes else 0.0
                 st = d_data.get("status", "Pendente")
+                comms = d_data.get("comentarios", [])
                 
-                save_resposta(ano, qid, val, pts, link, status=st)
+                save_resposta(
+                    ano=ano, 
+                    qid=qid, 
+                    valor=val, 
+                    pontos=pts, 
+                    link=link, 
+                    comentarios=comms, 
+                    status=st
+                )
                 atualizar_label_pontos(pts, val)
                 ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive", icon="check_circle")
+                
                 if on_save_callback:
                     on_save_callback()
 
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes('bg-blue-800 text-white mt-4')
 
-            # Renderiza o bloco de comentários do quesito
+            # Renderiza o bloco de comentários
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
 
