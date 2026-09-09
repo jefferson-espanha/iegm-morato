@@ -350,20 +350,21 @@ def render_quesito(
     qid,
     titulo,
     pergunta,
-    opcoes=None,  # <--- Altere para '=None' para tornar o parâmetro opcional
+    opcoes=None,
     on_save_callback=None,
     tipo="radio",
     informativo=False,
     is_text_area=False,
+    placeholder_text="Cole os links das evidências aqui...",  # <--- ADICIONE ESTE PARÂMETRO COM VALOR PADRÃO
     calculo_pontos_customizado=None,
     instrucoes_calculo=None,
-    **kwargs
+    **kwargs  # <--- Captura outros parâmetros extras para evitar NameError/TypeError
 ):
-    # Trata 'opcoes' caso seja enviado None
+    # Garantia contra Nones em opções
     if opcoes is None:
         opcoes = {}
 
-    # Resgata o estado dos dados salvos
+    # Estado dos dados salvos
     d_data = res_data.get(qid) or {
         "valor": "Selecione..." if isinstance(opcoes, dict) and opcoes else "",
         "pontos": 0.0,
@@ -371,7 +372,16 @@ def render_quesito(
         "comentarios": []
     }
 
-    # ... Restante da sua implementação ...
+    # Exemplo de onde a variável é usada na área de texto de justificativa/evidência:
+    # link_input = st.text_area(
+    #     f"Evidências ({qid}):",
+    #     value=d_data.get("link", ""),
+    #     key=f"l_{qid}_txt_{ano}",
+    #     height=100,
+    #     placeholder=placeholder_text  # <-- Agora estará sempre definida!
+    # )
+
+    # ... Restante da implementação interna do render_quesito ...
     
     with ui.card().classes('w-full mb-4 p-4 border rounded-lg shadow-sm'):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
