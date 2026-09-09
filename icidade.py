@@ -1918,19 +1918,10 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh
     )
 
-# --- INICIALIZAÇÃO DO SCRIPT ---
 if __name__ in {"__main__", "__mp_main__"}:
-    # 1. Inicializa o banco de dados (se necessário)
-    # init_db()
-
-    # 2. Renderiza a interface usando a função correta que existe no seu arquivo
-    container_formulario_icidade()
-
-    # 3. Inicia o servidor NiceGUI
-    ui.run(
-        title="IEGM i-Cidade",
-        favicon="🏙️",
-        port=8080,
-        reload=False
-    )
+    @ui.page('/')
+    def standalone():
+        mostrar_formulario_cidade()
+        
+    ui.run(title="Painel IEG-M - i-Cidade", port=8080, reload=False)
    
