@@ -1876,68 +1876,6 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh
     )
 
-import json
-import logging
-import os
-from io import BytesIO
-
-import streamlit as st
-from reportlab.graphics.charts.barcharts import VerticalBarChart
-from reportlab.graphics.shapes import Drawing, String
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
-from reportlab.platypus import (
-    Image,
-    PageBreak,
-    Paragraph,
-    SimpleDocTemplate,
-    Spacer,
-    Table,
-    TableStyle,
-)
-
-# =============================================================================
-# 1. CONSTANTES E CONFIGURAÇÕES DE PONTUAÇÃO
-# =============================================================================
-
-PONTUACOES_MAX = {
-    "1.0": 40,
-    "1.3": 5,
-    "1.4": 50,
-    "2.0": 20,
-    "2.1": 30,
-    "2.2": 10,
-    "3.0": 10,
-    "3.1": 10,
-    "4.2": 10,
-    "5.0": 30,
-    "5.1.1": 20,
-    "5.2": 10,
-    "6.0": 30,
-    "7.0": 30,
-    "7.1": 10,
-    "7.2": 80,
-    "7.3": 10,
-    "7.4": 10,
-    "7.5": 10,
-    "7.6": 10,
-    "8.0": 30,
-    "8.1.1.1": 20,
-    "8.2": 10,
-    "9.0": 30,
-    "10.0": 0,
-    "11.1": 20,
-    "11.1.1": 10,
-    "11.2": 10,
-    "12.1": 20,
-    "12.1.3": 10,
-    "14.0": 30,
-    "15.0": 30,
-    "16.0": 30,
-    "C1.1": 0,
-}
-
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
