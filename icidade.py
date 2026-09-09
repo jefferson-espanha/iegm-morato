@@ -1,144 +1,307 @@
-import os
 import json
 import re
 from datetime import datetime
-from nicegui import app, ui
 import psycopg2
-from psycopg2.pool import SimpleConnectionPool
-from psycopg2.extras import RealDictCursor, Json
-from contextlib import contextmanager
+from psycopg2.extras import RealDictCursor
+from nicegui import app, ui
+
+# Regex para identificação visual de URLs nos campos de texto/links
+REGEX_PURE_URL = r'https?://[^\s,]+'
 
 # =============================================================================
-# CONFIGURAÇÃO DE SEGURANÇA E BANCO DE DADOS (NEON DB)
+# PERSISTÊNCIA E INFRAESTRUTURA DE BANCO DE DADOS
 # =============================================================================
-REGEX_PURE_URL = r'https?://[^\s]+'
-
-DATABASE_URL = os.getenv(
-    "NEON_DATABASE_URL",
-    "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
-)
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "fidelios")
-
-# Pool de conexões para otimizar desempenho e consumo no Neon
-pg_pool = None
-
-try:
-    pg_pool = SimpleConnectionPool(1, 10, dsn=DATABASE_URL)
-except Exception as e:
-    print(f"❌ Erro ao inicializar Pool do PostgreSQL: {e}")
-
-@contextmanager
 def get_db_connection():
-    """Gerenciador de contexto para obter conexões do pool com rollback/commit automático."""
-    if not pg_pool:
-        raise Exception("Pool de conexões com o banco não inicializado.")
-    conn = pg_pool.getconn()
-    try:
-        yield conn
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        raise e
-    finally:
-        pg_pool.putconn(conn)
+    """Retorna a conexão com o banco PostgreSQL. Ajuste suas credenciais aqui."""
+    return psycopg2.connect(
+        dbname="seu_banco",
+        user="seu_usuario",
+        password="sua_senha",
+        host="localhost",
+        port="5432"
+    )
 
-
-def load_respostas(ano):
-    """Carrega o dicionário de respostas salvas para o ano selecionado no Neon DB."""
-    query = """
-        SELECT qid, valor, pontos, link, comentarios, status
-        FROM respostas_icidade
-        WHERE ano = %s;
-    """
+def load_respostas(ano, dimensao="icidade"):
+    """Carrega as respostas salvas do banco de dados para o ano e dimensão especificados."""
+    query = "SELECT qid, valor, pontos, link, comentarios FROM respostas WHERE ano = %s AND dimensao = %s;"
     respostas = {}
     try:
         with get_db_connection() as conn:
             with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute(query, (ano,))
+                cur.execute(query, (ano, dimensao))
                 rows = cur.fetchall()
                 for row in rows:
-                    respostas[row['qid']] = {
-                        "valor": row['valor'] if row['valor'] is not None else "",
-                        "pontos": float(row['pontos']) if row['pontos'] is not None else 0.0,
-                        "link": row['link'] if row['link'] is not None else "",
-                        "comentarios": _obter_lista_comentarios(row),
-                        "status": row['status'] if row['status'] is not None else "Pendente"
+                    comentarios = row["comentarios"]
+                    if isinstance(comentarios, str):
+                        try:
+                            comentarios = json.loads(comentarios)
+                        except json.JSONDecodeError:
+                            comentarios = []
+                    respostas[row["qid"]] = {
+                        "valor": row["valor"],
+                        "pontos": float(row["pontos"] or 0.0),
+                        "link": row["link"] or "",
+                        "comentarios": comentarios or []
                     }
     except Exception as e:
-        print(f"❌ Erro ao carregar respostas do Neon DB: {e}")
-        ui.notify(f"Erro ao carregar dados do banco Neon: {e}", type="negative")
-
+        print(f"Erro ao carregar respostas do banco: {e}")
     return respostas
 
-
-def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pendente"):
-    """Salva/atualiza resposta no banco usando UPSERT."""
+def save_resposta(ano, qid, valor, pontos, link, comentarios=None, dimensao="icidade"):
+    """Salva a resposta e preserva o histórico de comentários existente."""
     if comentarios is None:
-        dados_atuais = load_respostas(ano).get(qid, {})
+        dados_atuais = load_respostas(ano, dimensao).get(qid, {})
         comentarios = dados_atuais.get("comentarios", [])
 
-    comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
-
     query = """
-        INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (ano, qid) 
-        DO UPDATE SET
-            valor = EXCLUDED.valor,
-            pontos = EXCLUDED.pontos,
-            link = EXCLUDED.link,
-            comentarios = EXCLUDED.comentarios,
-            status = EXCLUDED.status,
-            updated_at = CURRENT_TIMESTAMP;
+    INSERT INTO respostas (dimensao, ano, qid, valor, pontos, link, comentarios)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
+    ON CONFLICT (dimensao, ano, qid) 
+    DO UPDATE SET 
+        valor = EXCLUDED.valor,
+        pontos = EXCLUDED.pontos,
+        link = EXCLUDED.link,
+        comentarios = EXCLUDED.comentarios;
     """
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                # O wrapper Json do psycopg2 lida automaticamente com a conversão jsonb
-                cur.execute(query, (ano, qid, valor, pontos, link, Json(comentarios_validos), status))
+                cur.execute(query, (
+                    dimensao, ano, qid, valor, pontos, link, json.dumps(comentarios)
+                ))
+                conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
-        ui.notify(f"Erro ao salvar no banco Neon: {e}", type="negative")
+        print(f"Erro ao salvar resposta no banco: {e}")
 
-
-def zerar_questionario_db(ano):
-    """Limpa todas as respostas salvas do ano selecionado."""
-    query = "DELETE FROM respostas_icidade WHERE ano = %s;"
+def zerar_questionario_db(ano, dimensao="icidade"):
+    """Apaga todas as respostas gravadas no banco de dados para determinado ano."""
+    query = "DELETE FROM respostas WHERE ano = %s AND dimensao = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano,))
+                cur.execute(query, (ano, dimensao))
+                conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
-        ui.notify(f"Erro ao apagar dados no banco Neon: {e}", type="negative")
+        print(f"Erro ao zerar dados do banco: {e}")
 
-
-def _obter_lista_comentarios(dados_banco):
-    """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
-    raw = dados_banco.get("comentarios", [])
-    if isinstance(raw, str):
-        if raw in ["EMPTY_STRING", "", "null", "None"]:
-            return []
+def _obter_lista_comentarios(dados_q):
+    """Helper para tratamento defensivo do campo de comentários."""
+    coments = dados_q.get("comentarios", [])
+    if isinstance(coments, str):
         try:
-            raw = json.loads(raw)
+            coments = json.loads(coments)
         except Exception:
-            return []
-    if isinstance(raw, list):
-        return raw
-    return []
-
+            coments = []
+    return coments if isinstance(coments, list) else []
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
-    """Gera dados para download do relatório em PDF."""
-    conteudo = f"RELATÓRIO TÉCNICO i-Cidade ({ano})\n"
-    conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
-    for qid, dados in res_data.items():
-        conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
+    """Gera bytes para download de relatório PDF (Placeholder para integração ReportLab/fpdf)."""
+    conteudo = f"Relatorio iCidade {ano}\nPontuacao Total: {total_pts}\nFaixa: {faixa}"
     return conteudo.encode('utf-8')
 
+# =============================================================================
+# BLOCO DE COMENTÁRIOS INTERNOS
+# =============================================================================
+def bloco_comentarios(qid, res_data, on_save_callback=None):
+    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+    usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
+    
+    dados_q = res_data.get(qid, {})
+    historico = _obter_lista_comentarios(dados_q)
+    
+    status_global = "Pendente"
+    for com in reversed(historico):
+        if isinstance(com, dict) and "status_definido" in com:
+            status_global = com["status_definido"]
+            break
+            
+    badge_status = "🔴 PENDENTE" if status_global == "Pendente" else "🟢 RESOLVIDO"
+    
+    with ui.expansion(f"💬 Diálogo Interno {qid} | Status: {badge_status}", value=(status_global == "Pendente")).classes('w-full border rounded p-2 mt-3 bg-gray-50'):
+        
+        def alterar_status(e):
+            novo_st = e.value
+            log = {
+                "autor": "Sistema / " + usuario_atual,
+                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
+                "status_definido": novo_st
+            }
+            historico.append(log)
+            save_resposta(
+                ano=ano_sel, qid=qid, 
+                valor=dados_q.get("valor", ""), 
+                pontos=dados_q.get("pontos", 0.0), 
+                link=dados_q.get("link", ""), 
+                comentarios=historico
+            )
+            ui.notify(f"Status alterado para {novo_st}", type="info")
+            if on_save_callback:
+                on_save_callback()
+
+        ui.radio(["Resolvido", "Pendente"], value=status_global, on_change=alterar_status).props('inline')
+
+        if historico:
+            for idx, com in enumerate(historico):
+                if isinstance(com, str):
+                    com = {"autor": "Usuário", "data": "", "texto": com}
+
+                autor = com.get('autor', 'Anônimo')
+                data_com = com.get('data', '')
+                texto_com = com.get('texto', '')
+
+                def deletar_comentario(i=idx):
+                    historico.pop(i)
+                    save_resposta(
+                        ano=ano_sel, qid=qid, 
+                        valor=dados_q.get("valor", ""), 
+                        pontos=dados_q.get("pontos", 0.0), 
+                        link=dados_q.get("link", ""), 
+                        comentarios=historico
+                    )
+                    ui.notify("Comentário removido.", type="warning")
+                    if on_save_callback:
+                        on_save_callback()
+
+                with ui.row().classes('w-full items-center justify-between no-wrap mb-2'):
+                    if "Sistema /" in autor:
+                        ui.html(
+                            f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
+                                <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
+                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
+                            </div>"""
+                        ).classes('w-full')
+                    else:
+                        ui.html(
+                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
+                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
+                                <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
+                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
+                            </div>"""
+                        ).classes('w-full')
+                    
+                    ui.button('🗑️', on_click=deletar_comentario).props('flat dense')
+
+        input_novo_comentario = ui.textarea(placeholder="Novo comentário...").classes('w-full').props('outlined rows=2')
+        
+        def postar_comentario():
+            txt = input_novo_comentario.value.strip()
+            if txt:
+                historico.append({
+                    "autor": usuario_atual,
+                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "texto": txt,
+                    "status_definido": status_global
+                })
+                save_resposta(
+                    ano=ano_sel, qid=qid, 
+                    valor=dados_q.get("valor", ""), 
+                    pontos=dados_q.get("pontos", 0.0), 
+                    link=dados_q.get("link", ""), 
+                    comentarios=historico
+                )
+                ui.notify("Comentário publicado!", type="positive")
+                if on_save_callback:
+                    on_save_callback()
+
+        ui.button("Postar Comentário", on_click=postar_comentario).classes('bg-blue-600 text-white mt-2')
 
 # =============================================================================
-# 1. PAINEL LATERAL / CONTROLE
+# RENDERIZADOR DE QUESITO (CAPTURA DE VALORES E LINKS CORRIGIDA)
+# =============================================================================
+def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text="", on_save_callback=None):
+    d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": "", "comentarios": []}
+    
+    with ui.card().classes('w-full mb-4 p-4 border rounded-lg shadow-sm'):
+        with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
+            ui.label(f"{qid} • {titulo}").classes('text-h6 text-primary mt-2')
+            ui.label(pergunta).classes('text-body1 font-bold my-2')
+            ui.label("ℹ Preencha os campos abaixo e clique no botão de salvar.").classes('text-caption text-grey-6 mb-4')
+
+            with ui.row().classes('w-full gap-4 items-start'):
+                with ui.column().classes('flex-1'):
+                    if opcoes:
+                        lista_opcoes = list(opcoes.keys())
+                        v_salvo = d_data.get("valor", "Selecione...")
+                        valor_inicial = v_salvo if v_salvo in lista_opcoes else lista_opcoes[0]
+                        
+                        input_valor = ui.radio(
+                            options=lista_opcoes, 
+                            value=valor_inicial
+                        ).classes('gap-2')
+                    else:
+                        input_valor = ui.textarea(
+                            label="Dados do quesito:",
+                            placeholder=placeholder_text,
+                            value=d_data.get("valor", "") or ""
+                        ).classes('w-full').props('outlined rows=3')
+
+                with ui.column().classes('flex-1'):
+                    input_link = ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=d_data.get("link", "") or ""
+                    ).classes('w-full').props('outlined rows=3')
+
+                    container_links = ui.row().classes('mt-1')
+                    
+                    def atualizar_links_visuais():
+                        container_links.clear()
+                        txt_total = (str(input_valor.value) if is_text_area else "") + " " + (str(input_link.value) or "")
+                        links = re.findall(REGEX_PURE_URL, txt_total)
+                        if links:
+                            with container_links:
+                                ui.label("Links Ativos: ").classes('font-bold text-caption')
+                                for url in links:
+                                    ui.link(url, url=url, new_tab=True).classes('text-caption text-blue-6 mr-2')
+
+                    input_link.on('update:model-value', atualizar_links_visuais)
+                    if is_text_area:
+                        input_valor.on('update:model-value', atualizar_links_visuais)
+                    
+                    atualizar_links_visuais()
+
+            lbl_pontos = ui.html().classes('mt-3 font-bold')
+
+            def atualizar_label_pontos(pts, val):
+                if opcoes is None:
+                    lbl_pontos.set_content(f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>")
+                else:
+                    cor = "#28a745" if pts > 0 else ("#dc3545" if val != "Selecione..." else "#6c757d")
+                    lbl_pontos.set_content(f"<span style='color:{cor};'>📊 Impacto de Pontuação no Quesito {qid}: {pts:.1f} pontos</span>")
+
+            atualizar_label_pontos(d_data.get("pontos", 0.0), d_data.get("valor", ""))
+
+            def salvar():
+                val = input_valor.value
+                link = input_link.value
+                pts = opcoes.get(val, 0.0) if opcoes else 0.0
+                
+                # Obtém o histórico de comentários atual para garantir a persistência
+                comentarios_atuais = _obter_lista_comentarios(d_data)
+                
+                # Grava no banco passando todos os campos preenchidos
+                save_resposta(
+                    ano=ano, 
+                    qid=qid, 
+                    valor=val, 
+                    pontos=pts, 
+                    link=link, 
+                    comentarios=comentarios_atuais
+                )
+                
+                atualizar_label_pontos(pts, val)
+                ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive", icon="check_circle")
+                
+                if on_save_callback:
+                    on_save_callback()
+
+            ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes('bg-blue-800 text-white mt-4')
+
+            # Renderiza o bloco de comentários
+            bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
+
+# =============================================================================
+# PAINEL LATERAL / CONTROLE
 # =============================================================================
 def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
@@ -200,7 +363,7 @@ def render_painel_controle(on_refresh_callback=None):
             input_senha = ui.input("Digite a senha de administrador:", password=True).classes('w-full mb-4')
 
             def executar_zerar():
-                if input_senha.value == ADMIN_PASSWORD:
+                if input_senha.value == "fidelios":
                     zerar_questionario_db(ano_atual)
                     ui.notify(f"✅ Questionário de {ano_atual} foi zerado!", type="positive")
                     dialog_zerar.close()
@@ -228,229 +391,8 @@ def render_painel_controle(on_refresh_callback=None):
             </div>
         """).classes('w-full')
 
-
 # =============================================================================
-# 2. BLOCO DE COMENTÁRIOS INTERNOS
-# =============================================================================
-@ui.refreshable
-def bloco_comentarios(qid, res_data, on_save_callback=None):
-    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
-    usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
-    
-    dados_q = res_data.get(qid, {})
-    historico = _obter_lista_comentarios(dados_q)
-    
-    status_global = dados_q.get("status", "Pendente")
-    for com in reversed(historico):
-        if isinstance(com, dict) and "status_definido" in com:
-            status_global = com["status_definido"]
-            break
-            
-    badge_status = "🔴 PENDENTE" if status_global == "Pendente" else "🟢 RESOLVIDO"
-    
-    with ui.expansion(f"💬 Diálogo Interno {qid} | Status: {badge_status}", value=(status_global == "Pendente")).classes('w-full border rounded p-2 mt-3 bg-gray-50'):
-        
-        def alterar_status(e):
-            novo_st = e.value
-            log = {
-                "autor": "Sistema / " + usuario_atual,
-                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
-                "status_definido": novo_st
-            }
-            historico.append(log)
-            save_resposta(
-                ano=ano_sel, qid=qid, 
-                valor=dados_q.get("valor", ""), 
-                pontos=dados_q.get("pontos", 0.0), 
-                link=dados_q.get("link", ""), 
-                comentarios=historico,
-                status=novo_st
-            )
-            ui.notify(f"Status alterado para {novo_st}", type="info")
-            bloco_comentarios.refresh(qid, res_data, on_save_callback)
-            if on_save_callback:
-                on_save_callback()
-
-        ui.radio(["Resolvido", "Pendente"], value=status_global, on_change=alterar_status).props('inline')
-
-        if historico:
-            for idx, com in enumerate(historico):
-                if isinstance(com, str):
-                    com = {"autor": "Usuário", "data": "", "texto": com}
-
-                autor = com.get('autor', 'Anônimo')
-                data_com = com.get('data', '')
-                texto_com = com.get('texto', '')
-
-                def deletar_comentario(i=idx):
-                    historico.pop(i)
-                    save_resposta(
-                        ano=ano_sel, qid=qid, 
-                        valor=dados_q.get("valor", ""), 
-                        pontos=dados_q.get("pontos", 0.0), 
-                        link=dados_q.get("link", ""), 
-                        comentarios=historico,
-                        status=status_global
-                    )
-                    ui.notify("Comentário removido.", type="warning")
-                    bloco_comentarios.refresh(qid, res_data, on_save_callback)
-                    if on_save_callback:
-                        on_save_callback()
-
-                with ui.row().classes('w-full items-center justify-between no-wrap mb-2'):
-                    if "Sistema /" in autor:
-                        ui.html(
-                            f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
-                                <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
-                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
-                            </div>"""
-                        ).classes('w-full')
-                    else:
-                        ui.html(
-                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
-                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
-                                <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
-                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
-                            </div>"""
-                        ).classes('w-full')
-                    
-                    ui.button('🗑️', on_click=deletar_comentario).props('flat dense')
-
-        input_novo_comentario = ui.textarea(placeholder="Novo comentário...").classes('w-full').props('outlined rows=2')
-        
-        def postar_comentario():
-            txt = input_novo_comentario.value.strip()
-            if txt:
-                historico.append({
-                    "autor": usuario_atual,
-                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                    "texto": txt,
-                    "status_definido": status_global
-                })
-                save_resposta(
-                    ano=ano_sel, qid=qid, 
-                    valor=dados_q.get("valor", ""), 
-                    pontos=dados_q.get("pontos", 0.0), 
-                    link=dados_q.get("link", ""), 
-                    comentarios=historico,
-                    status=status_global
-                )
-                ui.notify("Comentário publicado!", type="positive")
-                bloco_comentarios.refresh(qid, res_data, on_save_callback)
-                if on_save_callback:
-                    on_save_callback()
-
-        ui.button("Postar Comentário", on_click=postar_comentario).classes('bg-blue-600 text-white mt-2')
-
-
-# =============================================================================
-# 3. RENDERIZADOR DE QUESITO
-# =============================================================================
-def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, tipo="radio", is_text_area=False, placeholder_text="", pontuacao_maxima=0.0, informativo=False, placeholder_link="", on_save_callback=None):
-    d_data = res_data.get(qid) or {"valor": "Selecione..." if (opcoes and tipo != "checkbox") else "", "pontos": 0.0, "link": "", "comentarios": [], "status": "Pendente"}
-    
-    with ui.card().classes('w-full mb-4 p-4 border rounded-lg shadow-sm'):
-        with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
-            ui.label(f"{qid} • {titulo}").classes('text-h6 text-primary mt-2')
-            ui.label(pergunta).classes('text-body1 font-bold my-2')
-            ui.label("ℹ Preencha os campos abaixo e clique no botão de salvar.").classes('text-caption text-grey-6 mb-4')
-
-            checkbox_ref = {}
-            input_valor = None
-
-            with ui.row().classes('w-full gap-4 items-start'):
-                with ui.column().classes('flex-1'):
-                    if tipo == "checkbox" and opcoes:
-                        val_salvo = d_data.get("valor", "[]")
-                        try:
-                            selecionados = json.loads(val_salvo) if val_salvo.startswith("[") else [val_salvo]
-                        except Exception:
-                            selecionados = []
-
-                        for op_k in opcoes.keys():
-                            chk = ui.checkbox(op_k, value=(op_k in selecionados))
-                            checkbox_ref[op_k] = chk
-
-                    elif opcoes:
-                        lista_opcoes = list(opcoes.keys())
-                        v_salvo = d_data.get("valor", "Selecione...")
-                        valor_inicial = v_salvo if v_salvo in lista_opcoes else lista_opcoes[0]
-                        
-                        input_valor = ui.radio(
-                            options=lista_opcoes, 
-                            value=valor_inicial
-                        ).classes('gap-2')
-                    else:
-                        input_valor = ui.textarea(
-                            label="Dados do quesito:",
-                            placeholder=placeholder_text,
-                            value=d_data.get("valor", "")
-                        ).classes('w-full').props('outlined rows=3')
-
-                with ui.column().classes('flex-1'):
-                    input_link = ui.textarea(
-                        label="Link de Evidência / Documento:",
-                        placeholder=placeholder_link if placeholder_link else "Insira o link aqui...",
-                        value=d_data.get("link", "")
-                    ).classes('w-full').props('outlined rows=3')
-
-                    container_links = ui.row().classes('mt-1')
-                    
-                    def atualizar_links_visuais():
-                        container_links.clear()
-                        txt_val = input_valor.value if (input_valor and is_text_area) else ""
-                        txt_total = txt_val + " " + (input_link.value or "")
-                        links = re.findall(REGEX_PURE_URL, txt_total)
-                        if links:
-                            with container_links:
-                                ui.label("Links Ativos: ").classes('font-bold text-caption')
-                                for url in links:
-                                    ui.link(url, url=url, new_tab=True).classes('text-caption text-blue-6 mr-2')
-
-                    input_link.on('update:model-value', atualizar_links_visuais)
-                    if input_valor and is_text_area:
-                        input_valor.on('update:model-value', atualizar_links_visuais)
-                    
-                    atualizar_links_visuais()
-
-            lbl_pontos = ui.html().classes('mt-3 font-bold')
-
-            def atualizar_label_pontos(pts, val):
-                if informativo or opcoes is None:
-                    lbl_pontos.set_content(f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>")
-                else:
-                    cor = "#28a745" if pts > 0 else ("#dc3545" if val != "Selecione..." else "#6c757d")
-                    lbl_pontos.set_content(f"<span style='color:{cor};'>📊 Impacto de Pontuação no Quesito {qid}: {pts:.1f} pontos</span>")
-
-            atualizar_label_pontos(d_data.get("pontos", 0.0), d_data.get("valor", ""))
-
-            def salvar():
-                if tipo == "checkbox":
-                    sel_keys = [k for k, chk in checkbox_ref.items() if chk.value]
-                    val = json.dumps(sel_keys)
-                    pts = sum(opcoes[k] for k in sel_keys) if (opcoes and not informativo) else 0.0
-                else:
-                    val = input_valor.value if input_valor else ""
-                    pts = opcoes.get(val, 0.0) if (opcoes and not informativo) else 0.0
-                
-                link = input_link.value
-                st = d_data.get("status", "Pendente")
-                
-                save_resposta(ano, qid, val, pts, link, status=st)
-                atualizar_label_pontos(pts, val)
-                ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive", icon="check_circle")
-                if on_save_callback:
-                    on_save_callback()
-
-            ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes('bg-blue-800 text-white mt-4')
-
-            # Renderiza o bloco de comentários atrelado a este quesito especificamente
-            bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
-
-
-# =============================================================================
-# 4. CONTAINER PRINCIPAL REFRESHABLE
+# CONTAINER PRINCIPAL REFRESHABLE
 # =============================================================================
 @ui.refreshable
 def container_formulario_icidade():
@@ -545,1175 +487,16 @@ def container_formulario_icidade():
                 on_save_callback=container_formulario_icidade.refresh
             )
 
-            # QUESITO 2.0
-            opcoes_20 = {
-                "Selecione...": 0.0,
-                "Sim, com curso presencial ou EAD de Proteção e Defesa Civil (10 pts)": 10.0,
-                "Não realizou capacitação/treinamento no ano (00 pts)": 0.0
-            }
-            render_quesito(
-                ano=ano_sel,
-                res_data=res_data,
-                qid="2.0",
-                titulo="• Capacitação da Equipe da COMPDEC",
-                pergunta="Os integrantes da COMPDEC participaram de cursos, treinamentos ou capacitações em Proteção e Defesa Civil no ano de referência?",
-                opcoes=opcoes_20,
-                on_save_callback=container_formulario_icidade.refresh
-            )
-
-            # =============================================================================
-            # QUESITO 2.1 • AÇÕES EDUCATIVAS E PREVENTIVAS
-            # =============================================================================
-            opcoes_21 = {
-                "Selecione...": 0.0,
-                "Sim, realizou palestras, oficinas ou campanhas de conscientização (10 pts)": 10.0,
-                "Não realizou ações educativas no ano (00 pts)": 0.0
-            }
-            render_quesito(
-                ano=ano_sel,
-                res_data=res_data,
-                qid="2.1",
-                titulo="• Ações Educativas e Preventivas na Comunidade",
-                pergunta="A COMPDEC promoveu ações educativas, campanhas de sensibilização ou oficinas sobre percepção de risco para a população no ano de referência?",
-                opcoes=opcoes_21,
-                on_save_callback=container_formulario_icidade.refresh
-            )
-
-            # =============================================================================
-            # QUESITO 2.2 • PÚBLICO-ALVO DOS CURSOS E TREINAMENTOS
-            # =============================================================================
-            opcoes_22 = {
-                "Apenas para escolas (05 pts)": 5.0,
-                "Apenas para outras secretarias / entidades municipais (03 pts)": 3.0,
-                "Apenas para munícipes ou empresas (02 pts)": 2.0,
-                "Não ofereceu nenhum curso/treinamento no ano (00 pts)": 0.0
-            }
-            render_quesito(
-                ano=ano_sel,
-                res_data=res_data,
-                qid="2.2",
-                titulo="• Público Alvo de Cursos e Treinamentos",
-                pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
-                opcoes=opcoes_22,
-                on_save_callback=container_formulario_icidade.refresh
-            )
-
-
-    # =============================================================================
-    # QUESITO 3.0 • PARTICIPAÇÃO DA SOCIEDADE CIVIL
-    # =============================================================================
-    opcoes_30 = {
-        "Selecione...": 0.0,
-        "Sim – 10 pts": 10.0,
-        "Não – 00 pts": 0.0
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="3.0",
-        titulo="3.0 • Sociedade Civil e Entidades",
-        pergunta=(
-            "O Município realiza ações para estabelecer a participação de entidades privadas, "
-            "associações de voluntários, clubes de serviços, organizações não governamentais e "
-            "associações de classe e comunitárias nas ações de proteção e defesa civil?"
-        ),
-        opcoes=opcoes_30,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 3.1 • AÇÕES REALIZADAS PARA PARTICIPAÇÃO DA SOCIEDADE
-    # =============================================================================
-    opcoes_31 = {
-        "Workshop / Palestra": 0.0,
-        "Reunião": 0.0,
-        "Conferência": 0.0,
-        "Congresso": 0.0,
-        "Discussão na Câmara Municipal": 0.0,
-        "Treinamentos": 0.0,
-        "Outros": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="3.1",
-        titulo="3.1 • Ações Realizadas para Participação da Sociedade",
-        pergunta="Assinale quais ações foram realizadas para a participação da sociedade:",
-        tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
-        opcoes=opcoes_31,
-        pontuacao_maxima=0.0,
-        informativo=True,
-        placeholder_link="Caso selecione 'Outros' ou queira detalhar as ações, especifique aqui...",
-        on_save_callback=container_formulario_icidade.refresh,
-    )
-
-    # =============================================================================
-    # QUESITO 3.1.1 • DATA DE TREINAMENTO
-    # =============================================================================
-    # Caso a render_quesito não suporte seletores de data ou callbacks customizados,
-    # mapeamos as faixas/regras diretamente no dicionário de opções:
-    opcoes_311 = {
-        "Selecione...": 0.0,
-        f"A partir de 01/01/{ano_sel} (10 pts)": 10.0,
-        f"Até 31/12/{ano_sel - 1} ou sem treinamento (00 pts)": 0.0
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="3.1.1",
-        titulo="3.1.1 • Data do Último Treinamento de Voluntários",
-        pergunta="Qual a data do último treinamento de associações de voluntários?",
-        opcoes=opcoes_311,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
 # =============================================================================
-    # QUESITO 4.0 • CARTA GEOTÉCNICA DE SUSCETIBILIDADE
-    # =============================================================================
-    opcoes_40 = {
-        "Selecione...": 0.0,
-        "Sim": 0.0,
-        "Não": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="4.0",
-        titulo="Carta Geotécnica de Suscetibilidade",
-        pergunta="O Município recebeu a Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco?",
-        opcoes=opcoes_40,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 4.1 • AMEAÇAS POTENCIAIS DA CARTA GEOTÉCNICA
-    # =============================================================================
-    opcoes_41 = {
-        "Riscos Geológicos": 0.0,
-        "Riscos Hidrológicos": 0.0,
-        "Riscos Meteorológicos": 0.0,
-        "Riscos Climatológicos": 0.0,
-        "Riscos Biológicos": 0.0,
-        "Riscos Tecnológicos": 0.0,
-        "Outros": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="4.1",
-        titulo="Ameaças Potenciais da Carta Geotécnica",
-        pergunta="Assinale quais os tipos de ameaças potenciais identificadas na Carta Geotécnica:",
-        tipo="checkbox",  # <--- Gera múltiplos ui.checkbox do NiceGUI!
-        opcoes=opcoes_41,
-        pontuacao_maxima=0.0,
-        informativo=True,
-        placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui...",
-        on_save_callback=container_formulario_icidade.refresh,
-    )
-    
-    # =============================================================================
-    # QUESITO 4.2 • CARTA GEOTÉCNICA NO PLANO DIRETOR
-    # =============================================================================
-    opcoes_42 = {
-        "Selecione...": 0.0,
-        "Sim (00 pts)": 0.0,
-        "Não (-50 pts)": -50.0,
-        "Não se aplica o Plano Diretor (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="4.2",
-        titulo="Carta Geotécnica no Plano Diretor",
-        pergunta="A Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco consta no Plano Diretor?",
-        opcoes=opcoes_42,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 5.0 • MAPEAMENTO PRÓPRIO DE AMEAÇAS
-    # =============================================================================
-    opcoes_50 = {
-        "Selecione...": 0.0,
-        "Sim (200 pts)": 200.0,
-        "Não (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="5.0",
-        titulo="Mapeamento Próprio de Ameaças",
-        pergunta="O Município realizou, por conta própria, o mapeamento e identificação das principais ameaças existentes em seu território?",
-        opcoes=opcoes_50,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 5.1 • PRINCIPAIS AMEAÇAS IDENTIFICADAS
-    # =============================================================================
-    opcoes_51 = {
-        "Epidemias": 0.0,
-        "Estiagem": 0.0,
-        "Incêndios (urbanos e florestais)": 0.0,
-        "Ondas de calor ou ondas de frio": 0.0,
-        "Inundações": 0.0,
-        "Infestações e Pragas": 0.0,
-        "Ameaças radioativas": 0.0,
-        "Deslizamentos": 0.0,
-        "Outros": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="5.1",
-        titulo="5.1 • Principais Ameaças Identificadas",
-        pergunta="Assinale as principais ameaças identificadas no município:",
-        tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
-        opcoes=opcoes_51,
-        pontuacao_maxima=0.0,
-        informativo=True,
-        placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui...",
-        on_save_callback=container_formulario_icidade.refresh,
-    )
-    # =============================================================================
-    # QUESITO 5.1.1 • FISCALIZAÇÃO DE ÁREAS DE RISCO
-    # =============================================================================
-    opcoes_511 = {
-        "Selecione...": 0.0,
-        "Sim, integralmente (00 pts)": 0.0,
-        "Sim, parcialmente (00 pts)": 0.0,
-        "Não houve fiscalização (-100 pts)": -100.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="5.1.1",
-        titulo="Fiscalização das Áreas de Risco",
-        pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
-        opcoes=opcoes_511,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 5.1.2 • ÁREAS DE RISCO COM RISCO DE INVASÃO
-    # =============================================================================
-    opcoes_512 = {
-        "Selecione...": 0.0,
-        "Sim": 0.0,
-        "Não": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="5.1.2",
-        titulo="Possibilidade de Ocupação/Invasão em Áreas de Risco",
-        pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
-        opcoes=opcoes_512,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 5.1.2.1 • MECANISMOS CONTRA NOVAS OCUPAÇÕES
-    # =============================================================================
-    opcoes_5121 = {
-        "Aplicação de sanções monetárias (multas)": 0.0,
-        "Monitoramento (fiscalização)": 0.0,
-        "Notificação dos infratores": 0.0,
-        "Interdição do local e remoção das famílias": 0.0,
-        "Demolição das ocupações": 0.0,
-        "Outros": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="5.1.2.1",
-        titulo="5.1.2.1 • Mecanismos para Vedar Novas Ocupações",
-        pergunta="Assinale os mecanismos para vedar novas ocupações nas áreas de riscos:",
-        tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
-        opcoes=opcoes_5121,
-        pontuacao_maxima=0.0,
-        informativo=True,
-        placeholder_link="Caso selecione 'Outros' ou queira detalhar os mecanismos, especifique aqui...",
-        on_save_callback=container_formulario_icidade.refresh,
-    )
-
-    # =============================================================================
-    # QUESITO 5.2 • INFORMAÇÃO À POPULAÇÃO SOBRE AMEAÇAS
-    # =============================================================================
-    opcoes_52 = {
-        "Selecione...": 0.0,
-        "Sim (00 pts)": 0.0,
-        "Parcialmente (00 pts)": 0.0,
-        "Não (-50 pts)": -50.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="5.2",
-        titulo="Informação à População sobre Ameaças",
-        pergunta="A população foi informada sobre todas as ameaças identificadas pelo município?",
-        opcoes=opcoes_52,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 6.0 • VISTORIAS EM EDIFICAÇÕES VULNERÁVEIS
-    # =============================================================================
-    opcoes_60 = {
-        "Selecione...": 0.0,
-        "Sim, de acordo com um cronograma preestabelecido (00 pts)": 0.0,
-        "Sim, de acordo com a demanda (00 pts)": 0.0,
-        "Não foram vistoriadas (-50 pts)": -50.0,
-        "Não houve casos de edificações vulneráveis (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="6.0",
-        titulo="Vistorias em Edificações Vulneráveis",
-        pergunta="A Secretaria responsável realizou vistorias em edificações vulneráveis com o objetivo de identificar a necessidade de intervenção preventiva nos imóveis?",
-        opcoes=opcoes_60,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
+# ENTRY POINT PRINCIPAL
 # =============================================================================
-    # QUESITO 7.0 • PLANCON DE DEFESA CIVIL
-    # =============================================================================
-    opcoes_70 = {
-        "Selecione...": 0.0,
-        "Sim (50 pts)": 50.0,
-        "Não (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="7.0",
-        titulo="Plano de Contingência Municipal (PLANCON)",
-        pergunta="O Município possui Plano de Contingência Municipal – PLANCON de Defesa Civil?",
-        opcoes=opcoes_70,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 7.1 • ABRANGÊNCIA DO PLANCON POR AMEAÇA
-    # =============================================================================
-    opcoes_71 = {
-        "Selecione...": 0.0,
-        "Sim, cada ameaça mapeada possui um PLANCON diferente (05 pts)": 5.0,
-        "Sim, parte das ameaças possuem PLANCON diferentes (03 pts)": 3.0,
-        "Existe apenas um PLANCON que abrange todas as ameaças (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="7.1",
-        titulo="Elaboração de PLANCON por Ameaça",
-        pergunta="Foi elaborado um PLANCON específico para cada ameaça identificada?",
-        opcoes=opcoes_71,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 7.2 • EXERCÍCIOS SIMULADOS DO PLANCON
-    # =============================================================================
-    opcoes_72 = {
-        "Selecione...": 0.0,
-        "Sim (80 pts)": 80.0,
-        "Não (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="7.2",
-        titulo="Exercícios Simulados para Contingências",
-        pergunta="São realizados regularmente exercícios simulados para as contingências previstas no PLANCON?",
-        opcoes=opcoes_72,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 7.3 • SISTEMA DE ALERTA PARA DESASTRES
-    # =============================================================================
-    opcoes_73 = {
-        "Selecione...": 0.0,
-        "Sim (50 pts)": 50.0,
-        "Não (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="7.3",
-        titulo="Sistema de Alerta para Desastres",
-        pergunta="O Município possui sistema de alerta para desastres?",
-        opcoes=opcoes_73,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 7.3.1 • TIPOS DE SISTEMAS DE ALERTA
-    # =============================================================================
-    opcoes_731 = {
-        "Alerta via SMS": 0.0,
-        "Anúncio por rádio/Televisão": 0.0,
-        "Placas de identificação de área de risco": 0.0,
-        "Aviso por telefone / Aplicativo de mensagens": 0.0,
-        "Aviso por email": 0.0,
-        "Aviso aos membros do Nupdec": 0.0,
-        "Outros": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="7.3.1",
-        titulo="7.3.1 • Tipos de Sistemas de Alerta Utilizados",
-        pergunta="Assinale os tipos de sistemas de alerta utilizados pelo Município:",
-        tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
-        opcoes=opcoes_731,
-        pontuacao_maxima=0.0,
-        informativo=True,
-        placeholder_link="Caso selecione 'Outros' ou queira detalhar os sistemas de alerta, especifique aqui...",
-        on_save_callback=container_formulario_icidade.refresh,
-    )
-
-    # =============================================================================
-    # QUESITO 7.4 • SISTEMA DE ALARME PARA DESASTRES
-    # =============================================================================
-    opcoes_74 = {
-        "Selecione...": 0.0,
-        "Sim (50 pts)": 50.0,
-        "Não (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="7.4",
-        titulo="Dispositivo ou Sistema de Alarme",
-        pergunta="O Município dispõe de sinal, dispositivo ou sistema de alarme para desastres?",
-        opcoes=opcoes_74,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 7.4.1 • TIPOS DE SISTEMAS DE ALARME
-    # =============================================================================
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="7.4.1",
-        titulo="Tipos de Sinais ou Alarmes Utilizados",
-        pergunta="Assinale os tipos de sinal, dispositivo ou sistema de alarme utilizado:",
-        tipo="checkbox",
-        opcoes=[
-            "Sinal sonoro (sirene)",
-            "Sinal luminoso",
-            "Carros de emergência com sirenes",
-            "Carros de emergência com alto-falantes",
-            "Aviso aos membros do Nupdec",
-            "Aviso por telefone / Aplicativo de mensagens",
-            "Uso da imprensa (TV, rádio, internet)",
-            "Outro"
-        ],
-        pontuacao_maxima=0.0,
-        informativo=True,
-        placeholder_link="Detalhamento sobre os tipos de alarme ou insira os links de comprovação...",
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 7.5 • CADASTRO DE ABRIGOS CEPDEC
-    # =============================================================================
-    opcoes_75 = {
-        "Selecione...": 0.0,
-        "Sim, atualizado (10 pts)": 10.0,
-        "Sim, mas não está atualizado (03 pts)": 3.0,
-        "Não (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="7.5",
-        titulo="Cadastro de Locais para Abrigo (CEPDEC)",
-        pergunta="Possui cadastro dos locais para abrigo à população em situação de desastre junto à Coordenadoria Estadual de Proteção e Defesa Civil (CEPDEC)?",
-        opcoes=opcoes_75,
-        placeholder_link="Descreva as evidências ou insira os links de comprovação do cadastro...",
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 7.6 • FORNECEDORES DE AJUDA HUMANITÁRIA
-    # =============================================================================
-    opcoes_76 = {
-        "Selecione...": 0.0,
-        "Sim, atualizado (10 pts)": 10.0,
-        "Sim, mas não está atualizado (03 pts)": 3.0,
-        "Não (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="7.6",
-        titulo="Cadastro de Fornecedores de Ajuda Humanitária",
-        pergunta="O Município possui cadastro da lista de fornecedores para coleta e distribuição de suprimentos de ajuda humanitária para o caso de desastre?",
-        opcoes=opcoes_76,
-        placeholder_link="Descreva as evidências ou insira os links de comprovação do cadastro de fornecedores...",
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 7.7 • DATA DA ÚLTIMA ATUALIZAÇÃO DO PLANCON
-    # =============================================================================
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="7.7",
-        titulo="Data da Última Atualização do PLANCON",
-        pergunta="Qual a data da última atualização do PLANCON? (Se não houve atualização, informar a data do início da vigência)",
-        tipo="text_input",
-        format_input="date",
-        pontuacao_maxima=0.0,
-        informativo=True,
-        placeholder_input="Ex: 15/05/2024",
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 8.0 • CANAL DE ATENDIMENTO DE EMERGÊNCIA
-    # =============================================================================
-    opcoes_80 = {
-        "Selecione...": 0.0,
-        "Sim (50 pts)": 50.0,
-        "Não (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="8.0",
-        titulo="Canal de Atendimento de Emergência",
-        pergunta="O Município possui um canal de atendimento de emergência à população para registro de ocorrências de desastres?",
-        opcoes=opcoes_80,
-        placeholder_link="Ex: Telefone 199, WhatsApp oficial, Site de chamados...",
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 8.1 • CANAIS DE ATENDIMENTO DISPONÍVEIS
-    # =============================================================================
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="8.1",
-        titulo="Canais de Comunicação Disponíveis",
-        pergunta="Assinale os canais que o município possui:",
-        tipo="checkbox",
-        opcoes=[
-            "Telefone de emergências",
-            "Aplicativo de mensagens",
-            "Correio eletrônico (e-mail)",
-            "Aplicativo da Prefeitura",
-            "Site da Prefeitura",
-            "Redes sociais",
-            "Outros"
-        ],
-        pontuacao_maxima=0.0,
-        informativo=True,
-        placeholder_link="Descreva os números, endereços eletrônicos ou insira os links dos canais...",
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-# =============================================================================
-    # QUESITO 8.1.1 • UTILIZAÇÃO DO NÚMERO 199
-    # =============================================================================
-    opcoes_811 = {
-        "Selecione...": 0.0,
-        "Sim": 0.0,
-        "Não": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="8.1.1",
-        titulo="8.1.1 • Linha Telefônica 199",
-        pergunta="Sobre o número de telefone de emergência, utiliza o número 199 da Defesa Civil?",
-        opcoes=opcoes_811,
-        pontuacao_maxima=0.0,
-        informativo=True,
-        placeholder_link="Ex: Decreto de criação, conta telefônica, print do painel...",
-        on_save_callback=container_formulario_icidade.refresh,
-    )
-
-    # =============================================================================
-    # QUESITO 8.1.1.1 • DISPONIBILIDADE 24 HORAS DO 199
-    # =============================================================================
-    opcoes_8111 = {
-        "Selecione...": 0.0,
-        "Sim (20 pts)": 20.0,
-        "Não (00 pts)": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="8.1.1.1",
-        titulo="8.1.1.1 • Regime de Operação (24h)",
-        pergunta="O telefone 199 tem atendimento 24 horas por dia?",
-        opcoes=opcoes_8111,
-        pontuacao_maxima=20.0,
-        placeholder_link="Ex: Escala de servidores, link do diário oficial...",
-        on_save_callback=container_formulario_icidade.refresh,
-    )
-
-    # =============================================================================
-    # QUESITO 8.2 • REGISTRO ELETRÔNICO DE OCORRÊNCIAS
-    # =============================================================================
-    opcoes_82 = {
-        "Selecione...": 0.0,
-        "Sim (50 pts)": 50.0,
-        "Não (00 pts)": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="8.2",
-        titulo="8.2 • Registro Eletrônico",
-        pergunta="O Município registra as ocorrências de Defesa Civil de forma eletrônica?",
-        opcoes=opcoes_82,
-        pontuacao_maxima=50.0,
-        placeholder_link="Ex: Link do sistema informatizado, prints das telas de cadastro, decreto de adoção...",
-        on_save_callback=container_formulario_icidade.refresh,
-    )
-
-    # =============================================================================
-    # QUESITO 9.0 • AVALIAÇÃO ESTRUTURAL DE ESCOLAS E SAÚDE
-    # =============================================================================
-    opcoes_90 = {
-        "Selecione...": 0.0,
-        "Sim, em todas as escolas e centros de saúde (100 pts)": 100.0,
-        "Sim, na maior parte das escolas e centros de saúde (50 pts)": 50.0,
-        "Sim, na menor parte das escolas e centros de saúde (20 pts)": 20.0,
-        "Não (00 pts)": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="9.0",
-        titulo="9.0 • Escolas e Saúde",
-        pergunta="O Município realizou um estudo de avaliação da estrutura de todas as escolas e unidades de saúde para garantir que, em caso de desastre, esses locais estejam preparados para abrigar e atender a população afetada?",
-        opcoes=opcoes_90,
-        pontuacao_maxima=100.0,
-        placeholder_link="Ex: Link do estudo, relatório estrutural, laudos das edificações...",
-        on_save_callback=container_formulario_icidade.refresh,
-    )
-
-    # =============================================================================
-    # QUESITO 10.0 • PLANO DE MOBILIDADE URBANA
-    # =============================================================================
-    opcoes_100 = {
-        "Selecione...": 0.0,
-        "Sim (00 pts)": 0.0,
-        "Não (-100 pts)": -100.0,
-        "Não se aplica (00 pts)": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="10.0",
-        titulo="10.0 • Mobilidade Urbana",
-        pergunta="O Município elaborou seu Plano de Mobilidade Urbana?",
-        opcoes=opcoes_100,
-        pontuacao_maxima=0.0,
-        placeholder_link="Ex: Link do plano publicado, lei municipal ou justificativa legal de não aplicabilidade...",
-        on_save_callback=container_formulario_icidade.refresh,
-    )
-
-    # =============================================================================
-    # QUESITO 11.0 • TRANSPORTE PÚBLICO COLETIVO
-    # =============================================================================
-    opcoes_110 = {
-        "Selecione...": 0.0,
-        "Sim": 0.0,
-        "Não": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="11.0",
-        titulo="Existência de Transporte Público Coletivo",
-        pergunta="No Município existe transporte público coletivo?",
-        opcoes=opcoes_110,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 11.1 • METAS DE QUALIDADE E DESEMPENHO
-    # =============================================================================
-    opts111 = {
-        "Selecione...": 0.0,
-        "Sim (00 pts)": 0.0,
-        "Não (-20 pts)": -20.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="11.1",
-        titulo="Metas de Qualidade e Desempenho",
-        pergunta="Foram estabelecidas metas de qualidade e desempenho para o transporte público coletivo municipal?",
-        opcoes=opts111,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 11.1.1 • ATENDIMENTO DAS METAS
-    # =============================================================================
-    opts1111 = {
-        "Selecione...": 0.0,
-        "Todas as metas foram atingidas (00 pts)": 0.0,
-        "A maior parte das metas foram atingidas (-05 pts)": -5.0,
-        "A menor parte das metas foram atingidas (-10 pts)": -10.0,
-        "As metas não foram atingidas (-20 pts)": -20.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="11.1.1",
-        titulo="Atingimento de Metas de Desempenho",
-        pergunta="As metas de qualidade e desempenho estão sendo atingidas?",
-        opcoes=opts1111,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 11.1.1.1 • APLICAÇÃO DE PENALIDADES
-    # =============================================================================
-    opcoes_11111 = {
-        "Selecione...": 0.0,
-        "Sim (00 pts)": 0.0,
-        "Não (-50 pts)": -50.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="11.1.1.1",
-        titulo="Aplicação de Sanções Administrativas",
-        pergunta="Foi aplicada penalidade pela meta não cumprida?",
-        opcoes=opcoes_11111,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 11.2 • PESQUISA DE SATISFAÇÃO DO USUÁRIO
-    # =============================================================================
-    ano_puro = "".join([c for c in str(ano_sel) if c.isdigit()])[:4]
-    ano_anterior = int(ano_puro) - 1 if ano_puro.isdigit() else "anterior"
-
-    opcoes_112 = {
-        "Selecione...": 0.0,
-        "Sim (00 pts)": 0.0,
-        "Não (-20 pts)": -20.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="11.2",
-        titulo="Pesquisa de Satisfação dos Usuários",
-        pergunta=f"Foi realizada pesquisa de satisfação dos usuários em {ano_anterior}?",
-        opcoes=opcoes_112,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-# =============================================================================
-    # QUESITO 11.2.1 • AÇÕES BASEADAS NA PESQUISA DE SATISFAÇÃO
-    # =============================================================================
-    opcoes_1121 = {
-        "Selecione...": 0.0,
-        "Sim (00 pts)": 0.0,
-        "Não (-20 pts)": -20.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="11.2.1",
-        titulo="Ações Pós-Pesquisa de Satisfação",
-        pergunta="Foram realizadas ações com base nesta pesquisa?",
-        opcoes=opcoes_1121,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 11.3 • RESULTADO FINANCEIRO DO TRANSPORTE
-    # =============================================================================
-    ano_puro = "".join([c for c in str(ano_sel) if c.isdigit()])[:4]
-    ano_anterior = int(ano_puro) - 1 if ano_puro.isdigit() else "anterior"
-
-    opcoes_113 = {
-        "Selecione...": 0.0,
-        "Déficit ou subsídio tarifário": 0.0,
-        "Superávit tarifário": 0.0,
-        "Não sabe informar": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="11.3",
-        titulo="Resultado Financeiro do Transporte Público",
-        pergunta=f"Quanto ao custo do transporte público (tarifa de remuneração) e o preço de passagem (tarifa pública), informe qual o resultado no ano de {ano_anterior}:",
-        opcoes=opcoes_113,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 11.3.1 • TRANSPARÊNCIA TARIFÁRIA
-    # =============================================================================
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="11.3.1",
-        titulo="Transparência dos Benefícios Tarifários",
-        pergunta="Informe a página eletrônica (link na internet) em que os benefícios tarifários foram divulgados. Caso não esteja disponível, informe 'XYZ':",
-        opcoes=None,  # Campo textual/link
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 12.0 • TRANSPORTE POR APLICATIVO
-    # =============================================================================
-    opcoes_120 = {
-        "Selecione...": 0.0,
-        "Sim": 0.0,
-        "Não": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="12.0",
-        titulo="Transporte Remunerado Privado Individual (App)",
-        pergunta="O Município possui transporte remunerado privado individual (App)?",
-        opcoes=opcoes_120,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 12.1 • REGULAMENTAÇÃO DE APP
-    # =============================================================================
-    opts121 = {
-        "Selecione...": 0.0,
-        "Sim (00 pts)": 0.0,
-        "Não (-50 pts)": -50.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="12.1",
-        titulo="Regulamentação do Transporte por Aplicativo",
-        pergunta="O Município regulamentou o transporte remunerado privado individual?",
-        opcoes=opts121,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 12.1.1 • IDENTIFICAÇÃO DA REGULAMENTAÇÃO
-    # =============================================================================
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="12.1.1",
-        titulo="Identificação do Instrumento Normativo",
-        pergunta="Informe o Instrumento normativo, Número e Data da publicação:",
-        opcoes=None,  # Campo textual
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 12.1.2 • ENDEREÇO ELETRÔNICO DA REGULAMENTAÇÃO
-    # =============================================================================
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="12.1.2",
-        titulo="Endereço Eletrônico da Norma",
-        pergunta="Informe a página eletrônica (link na internet) do instrumento:",
-        opcoes=None,  # Campo textual/link
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-# =============================================================================
-    # QUESITO 12.1.3 • FISCALIZAÇÃO DO SERVIÇO APP
-    # =============================================================================
-    opcoes_1213 = {
-        "Selecione...": 0.0,
-        "Sim (00 pts)": 0.0,
-        "Não (-50 pts)": -50.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="12.1.3",
-        titulo="Fiscalização Regular do Transporte por Aplicativo",
-        pergunta="O Município fiscaliza regularmente o transporte remunerado privado individual de passageiros (táxi por aplicativo)?",
-        opcoes=opcoes_1213,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 12.1.3.1 • PERIODICIDADE DA FISCALIZAÇÃO
-    # =============================================================================
-    opcoes_12131 = {
-        "Selecione...": 0.0,
-        "Diariamente": 0.0,
-        "Semanalmente": 0.0,
-        "Mensalmente": 0.0,
-        "Anualmente": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="12.1.3.1",
-        titulo="Periodicidade e Evidência das Ações",
-        pergunta="Informe a periodicidade da fiscalização realizada e anexe o comprovante correspondente:",
-        opcoes=opcoes_12131,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 13.0 • MOBILIDADE ATIVA
-    # =============================================================================
-    ano_puro = "".join([c for c in str(ano_sel) if c.isdigit()])[:4]
-    ano_anterior = int(ano_puro) - 1 if ano_puro.isdigit() else "anterior"
-
-    opcoes_130 = {
-        "Selecione...": 0.0,
-        "Sim": 0.0,
-        "Não": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="13.0",
-        titulo="Estímulo à Mobilidade Ativa e Não Motorizada",
-        pergunta=f"Foram realizadas ações para estimular a adoção/uso dos meios de transporte não motorizados em {ano_anterior}?",
-        opcoes=opcoes_130,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 13.1 • AÇÕES DE MOBILIDADE ATIVA REALIZADAS
-    # =============================================================================
-    ano_puro = "".join([c for c in str(ano_sel) if c.isdigit()])[:4]
-    ano_anterior = int(ano_puro) - 1 if ano_puro.isdigit() else "anterior"
-
-    # Opções em formato de dicionário para compatibilidade com o padrão
-    opcoes_131 = {
-        "Instalação/manutenção de ciclovias ou ciclofaixas": 0.0,
-        "Instalação/manutenção de pontos de locação de bicicletas": 0.0,
-        "Instalação/manutenção de pontos de locação de patinetes": 0.0,
-        "Outras": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="13.1",
-        titulo=f"Detalhamento das Ações Realizadas em {ano_anterior}",
-        pergunta=f"Assinale as ações realizadas para estimular a adoção/uso dos meios de transporte não motorizados em {ano_anterior}:",
-        opcoes=opcoes_131,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 13.1.1 • CRONOGRAMA DE MANUTENÇÃO
-    # =============================================================================
-    opcoes_1311 = {
-        "Selecione...": 0.0,
-        "Sim (00 pts)": 0.0,
-        "Não (-20 pts)": -20.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="13.1.1",
-        titulo="Cronograma de Manutenção da Infraestrutura",
-        pergunta="Possui um cronograma de manutenção da infraestrutura das ciclovias ou ciclofaixas?",
-        opcoes=opcoes_1311,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 13.1.1.1 • CUMPRIMENTO DAS MANUTENÇÕES PREVENTIVAS
-    # =============================================================================
-    opcoes_13111 = {
-        "Selecione...": 0.0,
-        "Sim, para todos os trechos (00 pts)": 0.0,
-        "Sim, para a maior parte dos trechos (-05 pts)": -5.0,
-        "Sim, para a menor parte dos trechos (-10 pts)": -10.0,
-        "Não foram realizadas dentro do prazo (-15 pts)": -15.0,
-        "Não foram realizadas manutenções preventivas no exercício (-20 pts)": -20.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="13.1.1.1",
-        titulo="Cumprimento e Execução das Manutenções Preventivas",
-        pergunta="As manutenções preventivas da infraestrutura das ciclovias ou ciclofaixas foram realizadas dentro do prazo?",
-        opcoes=opcoes_13111,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 14.0 • ACESSIBILIDADE EM CALÇAMENTOS PÚBLICOS
-    # =============================================================================
-    opcoes_140 = {
-        "Selecione...": 0.0,
-        "Sim, integralmente - Todos os calçamentos públicos (00 pts)": 0.0,
-        "Sim, parcialmente - Em parte dos calçamentos públicos (-10 pts)": -10.0,
-        "Não possui acessibilidade em calçamentos públicos (-50 pts)": -50.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="14.0",
-        titulo="Adequação de Calçamentos Públicos para Acessibilidade",
-        pergunta="O Município adequou os calçamentos públicos para acessibilidade (PcD e restrição de mobilidade)?",
-        opcoes=opcoes_140,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 14.1 • RECURSOS DE ACESSIBILIDADE OFERECIDOS
-    # =============================================================================
-    opcoes_141 = {
-        "Calçadas com dimensões mínimas para a circulação": 0.0,
-        "Sinalização tátil em pisos": 0.0,
-        "Rampas de acesso": 0.0,
-        "Escadas com corrimão": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="14.1",
-        titulo="Detalhamento dos Recursos de Acessibilidade",
-        pergunta="Informe os recursos de acessibilidade oferecidos pela Prefeitura:",
-        opcoes=opcoes_141,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 15.0 • SINALIZAÇÃO VIÁRIA MUNICIPAL
-    # =============================================================================
-    opcoes_150 = {
-        "Selecione...": 0.0,
-        "Sim, integralmente - Todas as vias públicas municipais (50 pts)": 50.0,
-        "Sim, parcialmente - Em parte das vias municipais (10 pts)": 10.0,
-        "Não estão sinalizadas (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="15.0",
-        titulo="Condições de Sinalização Vertical e Horizontal",
-        pergunta="As vias públicas pavimentadas estão devidamente sinalizadas (vertical e horizontalmente) de forma a garantir as condições adequadas de segurança na circulação?",
-        opcoes=opcoes_150,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 16.0 • MANUTENÇÃO DE VIAS PÚBLICAS
-    # =============================================================================
-    opcoes_160 = {
-        "Selecione...": 0.0,
-        "Sim, integralmente - Todas as vias públicas municipais (50 pts)": 50.0,
-        "Sim, parcialmente - Em parte das vias municipais (10 pts)": 10.0,
-        "Não estão adequadas (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="16.0",
-        titulo="Condições de Manutenção Viária e Pavimentação",
-        pergunta="Há manutenção adequada das vias públicas no Município?",
-        opcoes=opcoes_160,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO 17.1 • ENCERRAMENTO E FEEDBACK
-    # =============================================================================
-    opcoes_171 = {
-        "Selecione...": 0.0,
-        "Sim": 0.0,
-        "Não": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="17.1",
-        titulo="Registro de Impressões e Sugestões",
-        pergunta="Utilize o espaço abaixo para registrar suas impressões e sugestões sobre o questionário.",
-        opcoes=opcoes_171,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # SEÇÃO: DADOS EXTERNOS DO i-CIDADE
-    # =============================================================================
-    ui.markdown("## 🌐 DADOS EXTERNOS DO i-CIDADE")
-
-    # =============================================================================
-    # QUESITO C1 • ONU MCR2030
-    # =============================================================================
-    opcoes_c1 = {
-        "Selecione...": 0.0,
-        "Sim": 0.0,
-        "Não": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="C1",
-        titulo="Programa Construindo Cidades Resilientes (MCR2030) da ONU",
-        pergunta="O Município estava inscrito no Programa Construindo Cidades Resilientes 2030 da ONU?",
-        opcoes=opcoes_c1,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-    # =============================================================================
-    # QUESITO C1.1 • ESTÁGIO MCR2030 DA ONU
-    # =============================================================================
-    opcoes_c11 = {
-        "Selecione...": 0.0,
-        "Etapa A (10 pts)": 10.0,
-        "Etapa B (20 pts)": 20.0,
-        "Etapa C (50 pts)": 50.0,
-        "Não classificada (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="C1.1",
-        titulo="Estágio de Classificação no Programa MCR2030",
-        pergunta="O Município foi classificado em qual estágio do Programa?",
-        opcoes=opcoes_c11,
-        on_save_callback=container_formulario_icidade.refresh
-    )
-
-# =============================================================================
-# INICIALIZAÇÃO DA APLICAÇÃO NICEGUI
-# =============================================================================
-@ui.page('/')
-def main_page():
+def mostrar_formulario_icidade():
     container_formulario_icidade()
 
+# Exemplo para execução direta (NiceGUI)
 if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(
-        title="Indicador i-Cidade • Defesa Civil",
-        port=8080,
-        storage_secret="sua_chave_secreta_aqui"
-    )
+    @ui.page('/')
+    def main_page():
+        mostrar_formulario_icidade()
+        
+    ui.run(storage_secret="sua_chave_secreta_aqui", title="COMPDEC - iCidade")
