@@ -249,18 +249,21 @@ def render_painel_controle(on_refresh_callback=None):
                 )
 
         with ui.row().classes("w-full gap-2 no-wrap"):
-            pdf_bytes = gerar_relatorio_pdf_bytes(
-                res_data, ano_atual, total_pts, faixa
-            )
-            ui.button(
-                "📄 Relatório",
-                on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_iCidade_{ano_atual}.pdf"
-                ),
-            ).classes("flex-1 bg-green-700 text-white")
-            ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
-                "flex-1 bg-red-700 text-white"
-            )
+    # Função para gerar e baixar apenas quando o usuário clicar no botão
+    def baixar_pdf():
+        buffer = gerar_relatorio_pdf_bytes(res_data, ano_atual, total_pts, faixa)
+        ui.download(buffer.getvalue(), f"Relatorio_iCidade_{ano_atual}.pdf")
+
+    ui.button(
+        "📄 Relatório",
+        on_click=baixar_pdf
+    ).classes("flex-1 bg-green-700 text-white")
+
+    ui.button(
+        "🗑️ Zerar",
+        on_click=dialog_zerar.open
+    ).classes("flex-1 bg-red-700 text-white")
+    
 
         ui.separator().classes("my-4")
         ui.html("""
