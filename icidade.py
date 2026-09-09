@@ -1884,7 +1884,16 @@ def container_formulario_icidade():
     from reportlab.lib import colors
     from reportlab.graphics.shapes import Drawing, String
     from reportlab.graphics.charts.barcharts import VerticalBarChart
-
+    from reportlab.platypus import (
+    Image,
+    PageBreak,
+    Paragraph,
+    SimpleDocTemplate,
+    Spacer,
+    Table,
+    TableStyle,
+    )
+    
     # =============================================================================
     # 3. GERADOR DO RELATÓRIO PDF (INDENTAÇÃO DE 4 ESPAÇOS)
     # =============================================================================
@@ -2395,22 +2404,19 @@ def container_formulario_icidade():
                     st_p
                 ])
 
-            tabela_sp = Table(data_sp, colWidths=[70, 280, 135])
-            tabela_sp.setStyle(TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-                ("TOPPADDING", (0, 0), (-1, -1), 4),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ]))
+            tabela_sp.setStyle(
+                TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                    ("ALIGN", (0, 0), (0, -1), "CENTER"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ])
+            )
             elements.append(tabela_sp)
-
-        # Constrói o PDF final
-        doc.build(elements)
-        buffer.seek(0)
-        return buffer
-
+            elements.append(Spacer(1, 15))
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
