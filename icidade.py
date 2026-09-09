@@ -799,6 +799,127 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh
     )
 
+    # =============================================================================
+    # QUESITO 5.1 • PRINCIPAIS AMEAÇAS IDENTIFICADAS
+    # =============================================================================
+    opcoes_51 = {
+        "Epidemias": 0.0,
+        "Estiagem": 0.0,
+        "Incêndios (urbanos e florestais)": 0.0,
+        "Ondas de calor ou ondas de frio": 0.0,
+        "Inundações": 0.0,
+        "Infestações e Pragas": 0.0,
+        "Ameaças radioativas": 0.0,
+        "Deslizamentos": 0.0,
+        "Outros": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="5.1",
+        titulo="Principais Ameaças Identificadas",
+        pergunta="Assinale as principais ameaças identificadas no município:",
+        opcoes=opcoes_51,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 5.1.1 • FISCALIZAÇÃO DE ÁREAS DE RISCO
+    # =============================================================================
+    opcoes_511 = {
+        "Selecione...": 0.0,
+        "Sim, integralmente (00 pts)": 0.0,
+        "Sim, parcialmente (00 pts)": 0.0,
+        "Não houve fiscalização (-100 pts)": -100.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="5.1.1",
+        titulo="Fiscalização das Áreas de Risco",
+        pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
+        opcoes=opcoes_511,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 5.1.2 • ÁREAS DE RISCO COM RISCO DE INVASÃO
+    # =============================================================================
+    opcoes_512 = {
+        "Selecione...": 0.0,
+        "Sim": 0.0,
+        "Não": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="5.1.2",
+        titulo="Possibilidade de Ocupação/Invasão em Áreas de Risco",
+        pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
+        opcoes=opcoes_512,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 5.1.2.1 • MECANISMOS CONTRA NOVAS OCUPAÇÕES
+    # =============================================================================
+    opcoes_5121 = {
+        "Aplicação de sanções monetárias (multas)": 0.0,
+        "Monitoramento (fiscalização)": 0.0,
+        "Notificação dos infratores": 0.0,
+        "Interdição do local e remoção das famílias": 0.0,
+        "Demolição das ocupações": 0.0,
+        "Outros": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="5.1.2.1",
+        titulo="Mecanismos para Vedar Novas Ocupações",
+        pergunta="Assinale os mecanismos para vedar novas ocupações nas áreas de riscos:",
+        opcoes=opcoes_5121,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 5.2 • INFORMAÇÃO À POPULAÇÃO SOBRE AMEAÇAS
+    # =============================================================================
+    opcoes_52 = {
+        "Selecione...": 0.0,
+        "Sim (00 pts)": 0.0,
+        "Parcialmente (00 pts)": 0.0,
+        "Não (-50 pts)": -50.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="5.2",
+        titulo="Informação à População sobre Ameaças",
+        pergunta="A população foi informada sobre todas as ameaças identificadas pelo município?",
+        opcoes=opcoes_52,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 6.0 • VISTORIAS EM EDIFICAÇÕES VULNERÁVEIS
+    # =============================================================================
+    opcoes_60 = {
+        "Selecione...": 0.0,
+        "Sim, de acordo com um cronograma preestabelecido (00 pts)": 0.0,
+        "Sim, de acordo com a demanda (00 pts)": 0.0,
+        "Não foram vistoriadas (-50 pts)": -50.0,
+        "Não houve casos de edificações vulneráveis (00 pts)": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="6.0",
+        titulo="Vistorias em Edificações Vulneráveis",
+        pergunta="A Secretaria responsável realizou vistorias em edificações vulneráveis com o objetivo de identificar a necessidade de intervenção preventiva nos imóveis?",
+        opcoes=opcoes_60,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
 
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
