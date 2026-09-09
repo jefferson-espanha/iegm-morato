@@ -1,5 +1,4 @@
-
-             import re
+import re
 from nicegui import ui
 import icidade  # Módulo importado diretamente
 
