@@ -755,11 +755,6 @@ def container_formulario_icidade():
             # QUESITO 2.2 • PÚBLICO-ALVO DOS CURSOS E TREINAMENTOS
             # =============================================================================
             opcoes_22 = {
-                "Selecione...": 0.0,
-                "Para escolas, secretarias/entidades municipais e munícipes/empresas (10 pts)": 10.0,
-                "Para escolas e secretarias/entidades municipais (08 pts)": 8.0,
-                "Para escolas e munícipes/empresas (07 pts)": 7.0,
-                "Para secretarias/entidades municipais e munícipes/empresas (05 pts)": 5.0,
                 "Apenas para escolas (05 pts)": 5.0,
                 "Apenas para outras secretarias / entidades municipais (03 pts)": 3.0,
                 "Apenas para munícipes ou empresas (02 pts)": 2.0,
@@ -775,30 +770,6 @@ def container_formulario_icidade():
                 on_save_callback=container_formulario_icidade.refresh
             )
 
-# =============================================================================
-    # QUESITO 2.2 • PÚBLICO-ALVO DOS CURSOS E TREINAMENTOS
-    # =============================================================================
-    opcoes_22 = {
-        "Selecione...": 0.0,
-        "Para escolas, secretarias/entidades municipais e munícipes/empresas (10 pts)": 10.0,
-        "Para escolas e secretarias/entidades municipais (08 pts)": 8.0,
-        "Para escolas e munícipes/empresas (07 pts)": 7.0,
-        "Para secretarias/entidades municipais e munícipes/empresas (05 pts)": 5.0,
-        "Apenas para escolas (05 pts)": 5.0,
-        "Apenas para outras secretarias / entidades municipais (03 pts)": 3.0,
-        "Apenas para munícipes ou empresas (02 pts)": 2.0,
-        "Não ofereceu nenhum curso/treinamento no ano (00 pts)": 0.0
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="2.2",
-        titulo="2.2 • Público Alvo de Cursos e Treinamentos",
-        pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
-        opcoes=opcoes_22,
-        on_save_callback=container_formulario_icidade.refresh
-    )
 
     # =============================================================================
     # QUESITO 3.0 • PARTICIPAÇÃO DA SOCIEDADE CIVIL
