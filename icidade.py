@@ -352,22 +352,22 @@ def render_quesito(
     pergunta,
     opcoes,
     on_save_callback=None,
-    **kwargs
+    tipo="radio",
+    informativo=False,
+    is_text_area=False,  # <--- ADICIONE ESTE PARÂMETRO COM VALOR PADRÃO
+    calculo_pontos_customizado=None,
+    instrucoes_calculo=None,
+    **kwargs  # <--- Garante suporte a outros parâmetros extras
 ):
-    # 1. Recupera os dados salvos do quesito 'qid'
-    # Se 'd_data' estava sendo buscado aqui, substitua por esta inicialização:
+    # Recupera o estado salvo para o quesito atual
     d_data = res_data.get(qid) or {
-        "valor": "Selecione...",
+        "valor": "Selecione..." if isinstance(opcoes, dict) else "",
         "pontos": 0.0,
         "link": "",
         "comentarios": []
     }
-
-    # 2. Resgata o valor atualmente salvo
-    valor_salvo = d_data.get("valor", "Selecione...")
-    link_salvo = d_data.get("link", "")
     
-    # ... Restante da sua lógica do render_quesito ...
+    # ... Restante da sua implementação do render_quesito ...
     
     with ui.card().classes('w-full mb-4 p-4 border rounded-lg shadow-sm'):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
