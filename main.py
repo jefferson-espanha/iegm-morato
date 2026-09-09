@@ -1,3 +1,11 @@
+try:
+    import icidade
+    print("✅ icidade.py importado com sucesso!")
+except Exception as e:
+    print("❌ ERRO REAL AO IMPORTAR ICIDADE:")
+    import traceback
+    traceback.print_exc()
+
 import base64
 from datetime import datetime, date
 import json
