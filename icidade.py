@@ -751,7 +751,7 @@ def container_formulario_icidade():
         "Riscos Climatológicos": 0.0,
         "Riscos Biológicos": 0.0,
         "Riscos Tecnológicos": 0.0,
-        "Outro": 0.0
+        "Outros": 0.0
     }
 
     render_quesito(
@@ -764,7 +764,7 @@ def container_formulario_icidade():
         opcoes=opcoes_41,
         pontuacao_maxima=0.0,
         informativo=True,
-        placeholder_link="Caso selecione 'Outro' ou queira detalhar as ameaças, especifique aqui com os links de comprovação...",
+        placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui com os links de comprovação...",
         on_save_callback=container_formulario_icidade.refresh
     )
 
