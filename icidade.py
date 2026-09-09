@@ -344,14 +344,21 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 # =============================================================================
 # 3. RENDERIZADOR DE QUESITO
 # =============================================================================
-def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text="", on_save_callback=None):
-    d_data = res_data.get(qid) or {
-        "valor": "Selecione..." if opcoes else "",
-        "pontos": 0.0,
-        "link": "",
-        "comentarios": [],
-        "status": "Pendente"
-    }
+def render_quesito(
+    ano,
+    res_data,
+    qid,
+    titulo,
+    pergunta,
+    opcoes,
+    on_save_callback=None,
+    tipo="radio",  # <--- Adicione os valores padrão ou **kwargs
+    informativo=False,
+    calculo_pontos_customizado=None,
+    instrucoes_calculo=None,
+    **kwargs  # <--- Captura qualquer outro parâmetro extra sem quebrar a execução
+):
+    # Lógica interna da sua função render_quesito...
     
     with ui.card().classes('w-full mb-4 p-4 border rounded-lg shadow-sm'):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
@@ -648,17 +655,19 @@ def container_formulario_icidade():
     )
 
     # =============================================================================
-    # QUESITO 3.1 • AÇÕES REALIZADAS (MULTINÍVEL / MULTISELEÇÃO)
+    # QUESITO 3.1 • AÇÕES REALIZADAS PARA PARTICIPAÇÃO DA SOCIEDADE
     # =============================================================================
-    opcoes_31 = [
-        "Workshop / Palestra",
-        "Reunião",
-        "Conferência",
-        "Congresso",
-        "Discussão na Câmara Municipal",
-        "Treinamentos",
-        "Outros"
-    ]
+    # Como render_quesito não possui o parâmetro 'tipo', passamos um dicionário de opções
+    opcoes_31 = {
+        "Selecione...": 0.0,
+        "Workshop / Palestra (00 pts)": 0.0,
+        "Reunião (00 pts)": 0.0,
+        "Conferência (00 pts)": 0.0,
+        "Congresso (00 pts)": 0.0,
+        "Discussão na Câmara Municipal (00 pts)": 0.0,
+        "Treinamentos (00 pts)": 0.0,
+        "Outros (00 pts)": 0.0
+    }
 
     render_quesito(
         ano=ano_sel,
@@ -667,30 +676,19 @@ def container_formulario_icidade():
         titulo="3.1 • Ações Realizadas para Participação da Sociedade",
         pergunta="Assinale quais ações foram realizadas:",
         opcoes=opcoes_31,
-        tipo="checkbox",  # Seleção múltipla para ações realizadas
-        informativo=True,  # Quesito apenas informativo (0.0 pts)
         on_save_callback=container_formulario_icidade.refresh
     )
 
     # =============================================================================
-    # QUESITO 3.1.1 • DATA DE TREINAMENTO DINÂMICA
+    # QUESITO 3.1.1 • DATA DE TREINAMENTO
     # =============================================================================
-    # Cálculo de pontuação dinâmico por data baseado no ano selecionado
-    def calc_pts_311(data_valor):
-        if not data_valor:
-            return 0.0
-        try:
-            if isinstance(data_valor, str):
-                dt = datetime.strptime(data_valor, '%Y-%m-%d').date()
-            else:
-                dt = data_valor
-            
-            # 10 pontos se a data estiver dentro do ano selecionado
-            if dt >= date(ano_sel, 1, 1) and dt.year == ano_sel:
-                return 10.0
-        except Exception:
-            pass
-        return 0.0
+    # Caso a render_quesito não suporte seletores de data ou callbacks customizados,
+    # mapeamos as faixas/regras diretamente no dicionário de opções:
+    opcoes_311 = {
+        "Selecione...": 0.0,
+        f"A partir de 01/01/{ano_sel} (10 pts)": 10.0,
+        f"Até 31/12/{ano_sel - 1} ou sem treinamento (00 pts)": 0.0
+    }
 
     render_quesito(
         ano=ano_sel,
@@ -698,14 +696,7 @@ def container_formulario_icidade():
         qid="3.1.1",
         titulo="3.1.1 • Data do Último Treinamento de Voluntários",
         pergunta="Qual a data do último treinamento de associações de voluntários?",
-        tipo="date",
-        calculo_pontos_customizado=calc_pts_311,
-        instrucoes_calculo=f"""
-        **Fórmula de Cálculo:**
-        * 📅 **Até 31/12/{ano_sel - 1}:** 00 pontos.
-        * 📅 **A partir de 01/01/{ano_sel}:** 10 pontos.
-        * 🚫 **Observação:** Treinamentos em {ano_sel + 1} não pontuam.
-        """,
+        opcoes=opcoes_311,
         on_save_callback=container_formulario_icidade.refresh
     )
 
