@@ -12,7 +12,6 @@ from psycopg2.extras import Json, RealDictCursor
 # =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
 
-# Connection string configurada para o seu cluster no Neon
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -73,10 +72,7 @@ def load_respostas(ano):
 def save_resposta(
     ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
 ):
-    """Salva a resposta, link, pontos e o histórico de comentários de um quesito no Neon DB.
-
-    Utiliza UPSERT (ON CONFLICT) para atualizar se já existir.
-    """
+    """Salva a resposta, link, pontos e o histórico de comentários de um quesito no Neon DB."""
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(qid, {})
         comentarios = dados_atuais.get("comentarios", [])
@@ -172,7 +168,7 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # Cálculo de Pontuação e Faixa (busca direto do Neon)
+        # Cálculo de Pontuação e Faixa
         res_data = load_respostas(ano_atual)
         total_pts = sum(
             float(item.get("pontos", 0)) for item in res_data.values()
@@ -251,13 +247,13 @@ def render_painel_controle(on_refresh_callback=None):
 
         # Botões de Ação
         with ui.row().classes("w-full gap-2 no-wrap"):
-            # Função para gerar e baixar apenas quando o usuário clicar no botão
             def baixar_pdf():
-                buffer = gerar_relatorio_pdf_bytes(
+                # A função 'gerar_relatorio_pdf_bytes' já entrega os bytes diretos
+                pdf_bytes = gerar_relatorio_pdf_bytes(
                     res_data, ano_atual, total_pts, faixa
                 )
                 ui.download(
-                    buffer.getvalue(), f"Relatorio_iCidade_{ano_atual}.pdf"
+                    pdf_bytes, f"Relatorio_iCidade_{ano_atual}.pdf"
                 )
 
             ui.button("📄 Relatório", on_click=baixar_pdf).classes(
@@ -277,6 +273,56 @@ def render_painel_controle(on_refresh_callback=None):
                 <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
             </div>
         """).classes("w-full")
+
+
+# =============================================================================
+# 2. ROTA PRINCIPAL E EXECUÇÃO DO NICEGUI
+# =============================================================================
+@ui.page('/')
+def container_formulario_icidade():
+    """Ponto de entrada que o NiceGUI busca para desenhar a interface."""
+    with ui.row().classes('w-full no-wrap items-start gap-4 p-4'):
+        # Coluna Fixa com o Painel de Controle
+        with ui.column().classes('w-80 flex-none'):
+            render_painel_controle(on_refresh_callback=container_formulario_icidade.refresh)
+
+        # Coluna do Formulário
+        with ui.column().classes('flex-1'):
+            ui.label("Formulário i-Cidade").classes("text-2xl font-bold mb-4 text-blue-900")
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    ui.run(
+        title="IEGM i-Cidade",
+        favicon="🏙️",
+        port=8080,
+        reload=False
+    )
+
+
+# =============================================================================
+# 2. ROTA PRINCIPAL E EXECUÇÃO DO NICEGUI
+# =============================================================================
+@ui.page('/')
+def container_formulario_icidade():
+    """Ponto de entrada que o NiceGUI busca para desenhar a interface."""
+    with ui.row().classes('w-full no-wrap items-start gap-4 p-4'):
+        # Coluna Fixa com o Painel de Controle
+        with ui.column().classes('w-80 flex-none'):
+            render_painel_controle(on_refresh_callback=container_formulario_icidade.refresh)
+
+        # Coluna do Formulário
+        with ui.column().classes('flex-1'):
+            ui.label("Formulário i-Cidade").classes("text-2xl font-bold mb-4 text-blue-900")
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    ui.run(
+        title="IEGM i-Cidade",
+        favicon="🏙️",
+        port=8080,
+        reload=False
+    )
 
 
 # =============================================================================
