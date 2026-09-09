@@ -1619,6 +1619,65 @@ def container_formulario_icidade():
     )
 
 # =============================================================================
+    # QUESITO 12.1.3 • FISCALIZAÇÃO DO SERVIÇO APP
+    # =============================================================================
+    opcoes_1213 = {
+        "Selecione...": 0.0,
+        "Sim (00 pts)": 0.0,
+        "Não (-50 pts)": -50.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="12.1.3",
+        titulo="Fiscalização Regular do Transporte por Aplicativo",
+        pergunta="O Município fiscaliza regularmente o transporte remunerado privado individual de passageiros (táxi por aplicativo)?",
+        opcoes=opcoes_1213,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 12.1.3.1 • PERIODICIDADE DA FISCALIZAÇÃO
+    # =============================================================================
+    opcoes_12131 = {
+        "Selecione...": 0.0,
+        "Diariamente": 0.0,
+        "Semanalmente": 0.0,
+        "Mensalmente": 0.0,
+        "Anualmente": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="12.1.3.1",
+        titulo="Periodicidade e Evidência das Ações",
+        pergunta="Informe a periodicidade da fiscalização realizada e anexe o comprovante correspondente:",
+        opcoes=opcoes_12131,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 13.0 • MOBILIDADE ATIVA
+    # =============================================================================
+    ano_puro = "".join([c for c in str(ano_sel) if c.isdigit()])[:4]
+    ano_anterior = int(ano_puro) - 1 if ano_puro.isdigit() else "anterior"
+
+    opcoes_130 = {
+        "Selecione...": 0.0,
+        "Sim": 0.0,
+        "Não": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="13.0",
+        titulo="Estímulo à Mobilidade Ativa e Não Motorizada",
+        pergunta=f"Foram realizadas ações para estimular a adoção/uso dos meios de transporte não motorizados em {ano_anterior}?",
+        opcoes=opcoes_130,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+# =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
 @ui.page('/')
