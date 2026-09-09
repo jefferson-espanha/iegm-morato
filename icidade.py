@@ -1677,6 +1677,68 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh
     )
 
+    # =============================================================================
+    # QUESITO 13.1 • AÇÕES DE MOBILIDADE ATIVA REALIZADAS
+    # =============================================================================
+    ano_puro = "".join([c for c in str(ano_sel) if c.isdigit()])[:4]
+    ano_anterior = int(ano_puro) - 1 if ano_puro.isdigit() else "anterior"
+
+    # Opções em formato de dicionário para compatibilidade com o padrão
+    opcoes_131 = {
+        "Instalação/manutenção de ciclovias ou ciclofaixas": 0.0,
+        "Instalação/manutenção de pontos de locação de bicicletas": 0.0,
+        "Instalação/manutenção de pontos de locação de patinetes": 0.0,
+        "Outras": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="13.1",
+        titulo=f"Detalhamento das Ações Realizadas em {ano_anterior}",
+        pergunta=f"Assinale as ações realizadas para estimular a adoção/uso dos meios de transporte não motorizados em {ano_anterior}:",
+        opcoes=opcoes_131,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 13.1.1 • CRONOGRAMA DE MANUTENÇÃO
+    # =============================================================================
+    opcoes_1311 = {
+        "Selecione...": 0.0,
+        "Sim (00 pts)": 0.0,
+        "Não (-20 pts)": -20.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="13.1.1",
+        titulo="Cronograma de Manutenção da Infraestrutura",
+        pergunta="Possui um cronograma de manutenção da infraestrutura das ciclovias ou ciclofaixas?",
+        opcoes=opcoes_1311,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 13.1.1.1 • CUMPRIMENTO DAS MANUTENÇÕES PREVENTIVAS
+    # =============================================================================
+    opcoes_13111 = {
+        "Selecione...": 0.0,
+        "Sim, para todos os trechos (00 pts)": 0.0,
+        "Sim, para a maior parte dos trechos (-05 pts)": -5.0,
+        "Sim, para a menor parte dos trechos (-10 pts)": -10.0,
+        "Não foram realizadas dentro do prazo (-15 pts)": -15.0,
+        "Não foram realizadas manutenções preventivas no exercício (-20 pts)": -20.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="13.1.1.1",
+        titulo="Cumprimento e Execução das Manutenções Preventivas",
+        pergunta="As manutenções preventivas da infraestrutura das ciclovias ou ciclofaixas foram realizadas dentro do prazo?",
+        opcoes=opcoes_13111,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
