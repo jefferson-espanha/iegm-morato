@@ -1890,7 +1890,7 @@ def container_formulario_icidade():
     )
 
 
-    def gerar_relatorio_pdf_bytes(dados, ano, total, faixa):
+def gerar_relatorio_pdf_bytes(dados, ano, total, faixa):
     """Ponte para o NiceGUI: Chama o ReportLab e retorna os bytes do PDF."""
     buffer = gerar_relatorio_pdf(dados, ano, total, faixa)
     return buffer.getvalue()
