@@ -760,11 +760,11 @@ def container_formulario_icidade():
         qid="4.1",
         titulo="Ameaças Potenciais da Carta Geotécnica",
         pergunta="Assinale quais os tipos de ameaças potenciais identificadas na Carta Geotécnica:",
-        tipo="checkbox",
+        tipo="multiselect",  # Alterado para multiselect para permitir múltipla escolha
         opcoes=opcoes_41,
         pontuacao_maxima=0.0,
         informativo=True,
-        placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui com os links de comprovação...",
+        placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui...",
         on_save_callback=container_formulario_icidade.refresh
     )
 
