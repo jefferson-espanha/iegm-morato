@@ -1,37 +1,108 @@
 import json
 import re
 from datetime import datetime
+import psycopg2
+from psycopg2.extras import RealDictCursor
 from nicegui import app, ui
 
 # =============================================================================
-# EXPRESSÕES REGULARES E PERSISTÊNCIA LOCAL
+# CONEXÃO E PERSISTÊNCIA NO BANCO DE DADOS NEON POSTGRESQL
 # =============================================================================
+DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
+
 REGEX_PURE_URL = r'https?://[^\s]+'
 
-def load_respostas(ano):
-    """Carrega o dicionário de respostas salvas para o ano selecionado."""
-    return app.storage.user.get(f"respostas_icidade_{ano}", {})
+def get_db_connection():
+    """Retorna uma conexão ativa com o banco PostgreSQL da Neon via URI."""
+    return psycopg2.connect(dsn=DATABASE_URL)
 
-def save_resposta(ano, qid, valor, pontos, link, comentarios=None):
-    """Salva a resposta e o histórico de comentários de um quesito."""
-    chave = f"respostas_icidade_{ano}"
-    respostas = app.storage.user.get(chave, {})
-    
-    dados_existentes = respostas.get(qid, {})
+def init_db():
+    """Cria a tabela no PostgreSQL caso não exista."""
+    query = """
+    CREATE TABLE IF NOT EXISTS respostas (
+        id SERIAL PRIMARY KEY,
+        dimensao VARCHAR(20) NOT NULL DEFAULT 'icidade',
+        ano INT NOT NULL,
+        qid VARCHAR(20) NOT NULL,
+        valor TEXT,
+        pontos NUMERIC(10, 2) DEFAULT 0.0,
+        link TEXT,
+        comentarios JSONB DEFAULT '[]'::jsonb,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT unq_dimensao_ano_qid UNIQUE (dimensao, ano, qid)
+    );
+    """
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query)
+                conn.commit()
+    except Exception as e:
+        print(f"Erro ao inicializar tabela do banco de dados: {e}")
+
+# Inicializa a estrutura da tabela automaticamente
+init_db()
+
+def load_respostas(ano, dimensao="icidade"):
+    """Carrega o dicionário de respostas salvas no PostgreSQL para o ano selecionado."""
+    query = """
+    SELECT qid, valor, pontos, link, comentarios 
+    FROM respostas 
+    WHERE dimensao = %s AND ano = %s;
+    """
+    respostas = {}
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
+                cur.execute(query, (dimensao, ano))
+                rows = cur.fetchall()
+                for row in rows:
+                    respostas[row["qid"]] = {
+                        "valor": row["valor"],
+                        "pontos": float(row["pontos"]),
+                        "link": row["link"],
+                        "comentarios": row["comentarios"] if row["comentarios"] else []
+                    }
+    except Exception as e:
+        print(f"Erro ao carregar respostas do banco: {e}")
+    return respostas
+
+def save_resposta(ano, qid, valor, pontos, link, comentarios=None, dimensao="icidade"):
+    """Salva a resposta e o histórico de comentários no banco PostgreSQL via UPSERT."""
     if comentarios is None:
-        comentarios = dados_existentes.get("comentarios", [])
+        dados_atuais = load_respostas(ano, dimensao).get(qid, {})
+        comentarios = dados_atuais.get("comentarios", [])
 
-    respostas[qid] = {
-        "valor": valor,
-        "pontos": pontos,
-        "link": link,
-        "comentarios": comentarios
-    }
-    app.storage.user[chave] = respostas
+    query = """
+    INSERT INTO respostas (dimensao, ano, qid, valor, pontos, link, comentarios)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
+    ON CONFLICT (dimensao, ano, qid) 
+    DO UPDATE SET 
+        valor = EXCLUDED.valor,
+        pontos = EXCLUDED.pontos,
+        link = EXCLUDED.link,
+        comentarios = EXCLUDED.comentarios;
+    """
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (
+                    dimensao, ano, qid, valor, pontos, link, json.dumps(comentarios)
+                ))
+                conn.commit()
+    except Exception as e:
+        print(f"Erro ao salvar resposta no banco: {e}")
 
-def zerar_questionario_db(ano):
-    """Limpa todas as respostas salvas do ano selecionado."""
-    app.storage.user[f"respostas_icidade_{ano}"] = {}
+def zerar_questionario_db(ano, dimensao="icidade"):
+    """Limpa todas as respostas salvas do ano selecionado no banco."""
+    query = "DELETE FROM respostas WHERE dimensao = %s AND ano = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (dimensao, ano))
+                conn.commit()
+    except Exception as e:
+        print(f"Erro ao zerar o banco de dados: {e}")
 
 def _obter_lista_comentarios(dados_banco):
     """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
@@ -56,7 +127,7 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
     return conteudo.encode('utf-8')
 
 # =============================================================================
-# 1. PAINEL LATERAL / CONTROLE
+# PAINEL LATERAL / CONTROLE
 # =============================================================================
 def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
@@ -78,7 +149,6 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano
         ).classes('w-full mb-4')
 
-        # Cálculo de Pontuação e Faixa
         res_data = load_respostas(ano_atual)
         total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
 
@@ -93,7 +163,6 @@ def render_painel_controle(on_refresh_callback=None):
         else:
             faixa, cor = "A", "text-green-700"
 
-        # Card de Pontuação
         with ui.card().classes('w-full mb-4 p-3 bg-white shadow-sm border'):
             ui.label("Pontuação Total").classes('text-xs text-gray-500 font-bold uppercase')
             ui.label(f"{total_pts:.1f} pts").classes('text-2xl font-black text-gray-800')
@@ -113,7 +182,6 @@ def render_painel_controle(on_refresh_callback=None):
         ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes('w-full bg-blue-700 text-white mb-2')
         ui.separator().classes('my-2')
 
-        # Modal de Confirmação para Zerar
         with ui.dialog() as dialog_zerar, ui.card().classes('w-96 p-4'):
             ui.label("🔒 Confirmação de Segurança").classes('text-lg font-bold text-red-600')
             ui.label(f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!").classes('text-sm my-2')
@@ -150,7 +218,7 @@ def render_painel_controle(on_refresh_callback=None):
         """).classes('w-full')
 
 # =============================================================================
-# 2. BLOCO DE COMENTÁRIOS INTERNOS
+# BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
 def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
@@ -257,7 +325,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         ui.button("Postar Comentário", on_click=postar_comentario).classes('bg-blue-600 text-white mt-2')
 
 # =============================================================================
-# 3. RENDERIZADOR DE QUESITO
+# RENDERIZADOR DE QUESITO
 # =============================================================================
 def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text="", on_save_callback=None):
     d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": "", "comentarios": []}
@@ -334,11 +402,11 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
 
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes('bg-blue-800 text-white mt-4')
 
-            # Renderiza o bloco de comentários do quesito
+            # Renderiza o bloco de comentários
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL REFRESHABLE
+# CONTAINER PRINCIPAL REFRESHABLE
 # =============================================================================
 @ui.refreshable
 def container_formulario_icidade():
@@ -434,7 +502,7 @@ def container_formulario_icidade():
             )
 
 # =============================================================================
-# 5. ENTRY POINT PRINCIPAL
+# ENTRY POINT PRINCIPAL
 # =============================================================================
 def mostrar_formulario_icidade():
     container_formulario_icidade()
