@@ -744,21 +744,24 @@ def container_formulario_icidade():
     # =============================================================================
     # QUESITO 4.1 • AMEAÇAS POTENCIAIS DA CARTA GEOTÉCNICA
     # =============================================================================
-    opcoes_41 = {
-        "Riscos Geológicos": 0.0,
-        "Riscos Hidrológicos": 0.0,
-        "Riscos Meteorológicos": 0.0,
-        "Riscos Climatológicos": 0.0,
-        "Riscos Biológicos": 0.0,
-        "Riscos Tecnológicos": 0.0
-    }
     render_quesito(
         ano=ano_sel,
         res_data=res_data,
         qid="4.1",
         titulo="Ameaças Potenciais da Carta Geotécnica",
         pergunta="Assinale quais os tipos de ameaças potenciais identificadas na Carta Geotécnica:",
-        opcoes=opcoes_41,
+        tipo="checkbox",
+        opcoes=[
+            "Riscos Geológicos",
+            "Riscos Hidrológicos",
+            "Riscos Meteorológicos",
+            "Riscos Climatológicos",
+            "Riscos Biológicos",
+            "Riscos Tecnológicos"
+        ],
+        pontuacao_maxima=0.0,
+        informativo=True,
+        placeholder_link="Descreva detalhes sobre as ameaças identificadas ou insira os links de comprovação...",
         on_save_callback=container_formulario_icidade.refresh
     )
 
