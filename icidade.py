@@ -89,7 +89,7 @@ def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pende
                     str(valor), 
                     float(pontos), 
                     link_final, 
-                    Json(comentarios_validos),  # Trata corretamente o JSONB para o PostgreSQL
+                    Json(comentarios_validos),
                     str(status)
                 ))
             conn.commit()
@@ -396,7 +396,7 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
                             with container_links:
                                 ui.label("Links Ativos: ").classes('font-bold text-caption')
                                 for url in links:
-                                    ui.link(url, url=url, new_tab=True).classes('text-caption text-blue-6 mr-2')
+                                    ui.link(url, target=url, new_tab=True).classes('text-caption text-blue-6 mr-2')
 
                     input_link.on('update:model-value', atualizar_links_visuais)
                     if is_text_area:
@@ -543,5 +543,9 @@ def container_formulario_icidade():
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
+@ui.page('/')
 def mostrar_formulario_icidade():
     container_formulario_icidade()
+
+if __name__ in {"__main__", "__mp_main__"}:
+    ui.run(title="Indicador i-Cidade • Defesa Civil", storage_secret="sua_chave_secreta_aqui")
