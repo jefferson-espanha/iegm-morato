@@ -330,10 +330,10 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# 3. RENDERIZADOR DE QUESITO
+# 3. RENDERIZADOR DE QUESITO (ATUALIZADO COM SUPORTE A CHECKBOX)
 # =============================================================================
-def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text="", on_save_callback=None):
-    d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": "", "comentarios": [], "status": "Pendente"}
+def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, tipo="radio", is_text_area=False, placeholder_text="", pontuacao_maxima=0.0, informativo=False, placeholder_link="", on_save_callback=None):
+    d_data = res_data.get(qid) or {"valor": "Selecione..." if (opcoes and tipo != "checkbox") else "", "pontos": 0.0, "link": "", "comentarios": [], "status": "Pendente"}
     
     with ui.card().classes('w-full mb-4 p-4 border rounded-lg shadow-sm'):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
@@ -341,9 +341,24 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
             ui.label(pergunta).classes('text-body1 font-bold my-2')
             ui.label("ℹ Preencha os campos abaixo e clique no botão de salvar.").classes('text-caption text-grey-6 mb-4')
 
+            checkbox_ref = {}
+            input_valor = None
+
             with ui.row().classes('w-full gap-4 items-start'):
                 with ui.column().classes('flex-1'):
-                    if opcoes:
+                    if tipo == "checkbox" and opcoes:
+                        # Processa valores do checkbox salvos (em JSON ou string)
+                        val_salvo = d_data.get("valor", "[]")
+                        try:
+                            selecionados = json.loads(val_salvo) if val_salvo.startswith("[") else [val_salvo]
+                        except Exception:
+                            selecionados = []
+
+                        for op_k in opcoes.keys():
+                            chk = ui.checkbox(op_k, value=(op_k in selecionados))
+                            checkbox_ref[op_k] = chk
+
+                    elif opcoes:
                         lista_opcoes = list(opcoes.keys())
                         v_salvo = d_data.get("valor", "Selecione...")
                         valor_inicial = v_salvo if v_salvo in lista_opcoes else lista_opcoes[0]
@@ -362,6 +377,7 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
                 with ui.column().classes('flex-1'):
                     input_link = ui.textarea(
                         label="Link de Evidência / Documento:",
+                        placeholder=placeholder_link if placeholder_link else "Insira o link aqui...",
                         value=d_data.get("link", "")
                     ).classes('w-full').props('outlined rows=3')
 
@@ -369,7 +385,8 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
                     
                     def atualizar_links_visuais():
                         container_links.clear()
-                        txt_total = (input_valor.value if is_text_area else "") + " " + (input_link.value or "")
+                        txt_val = input_valor.value if (input_valor and is_text_area) else ""
+                        txt_total = txt_val + " " + (input_link.value or "")
                         links = re.findall(REGEX_PURE_URL, txt_total)
                         if links:
                             with container_links:
@@ -378,7 +395,7 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
                                     ui.link(url, url=url, new_tab=True).classes('text-caption text-blue-6 mr-2')
 
                     input_link.on('update:model-value', atualizar_links_visuais)
-                    if is_text_area:
+                    if input_valor and is_text_area:
                         input_valor.on('update:model-value', atualizar_links_visuais)
                     
                     atualizar_links_visuais()
@@ -386,7 +403,7 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
             lbl_pontos = ui.html().classes('mt-3 font-bold')
 
             def atualizar_label_pontos(pts, val):
-                if opcoes is None:
+                if informativo or opcoes is None:
                     lbl_pontos.set_content(f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>")
                 else:
                     cor = "#28a745" if pts > 0 else ("#dc3545" if val != "Selecione..." else "#6c757d")
@@ -395,9 +412,15 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
             atualizar_label_pontos(d_data.get("pontos", 0.0), d_data.get("valor", ""))
 
             def salvar():
-                val = input_valor.value
+                if tipo == "checkbox":
+                    sel_keys = [k for k, chk in checkbox_ref.items() if chk.value]
+                    val = json.dumps(sel_keys)
+                    pts = sum(opcoes[k] for k in sel_keys) if (opcoes and not informativo) else 0.0
+                else:
+                    val = input_valor.value if input_valor else ""
+                    pts = opcoes.get(val, 0.0) if (opcoes and not informativo) else 0.0
+                
                 link = input_link.value
-                pts = opcoes.get(val, 0.0) if opcoes else 0.0
                 st = d_data.get("status", "Pendente")
                 
                 save_resposta(ano, qid, val, pts, link, status=st)
