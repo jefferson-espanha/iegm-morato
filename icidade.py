@@ -1,14 +1,145 @@
 import re
-from nicegui import ui
+from datetime import datetime
+from nicegui import app, ui
 
-# Expressão regular para identificar links válidos
+# =============================================================================
+# EXPRESSÕES REGULARES E PERSISTÊNCIA LOCAL
+# =============================================================================
 REGEX_PURE_URL = r'https?://[^\s]+'
 
-# Dicionário de estado
-res_data = {}
+def load_respostas(ano):
+    """Carrega o dicionário de respostas salvas para o ano selecionado."""
+    return app.storage.user.get(f"respostas_icidade_{ano}", {})
 
-def render_quesito(qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text=""):
-    d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": "", "comentarios": []}
+def save_resposta(ano, qid, valor, pontos, link):
+    """Salva a resposta de um quesito específico para o ano selecionado."""
+    chave = f"respostas_icidade_{ano}"
+    respostas = app.storage.user.get(chave, {})
+    respostas[qid] = {
+        "valor": valor,
+        "pontos": pontos,
+        "link": link
+    }
+    app.storage.user[chave] = respostas
+
+def zerar_questionario_db(ano):
+    """Limpa todas as respostas salvas do ano selecionado."""
+    app.storage.user[f"respostas_icidade_{ano}"] = {}
+
+def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
+    """Gera dados para download do relatório em PDF."""
+    conteudo = f"RELATÓRIO TÉCNICO i-Cidade ({ano})\n"
+    conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
+    for qid, dados in res_data.items():
+        conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
+    return conteudo.encode('utf-8')
+
+# =============================================================================
+# 1. SIDEBAR / PAINEL DE CONTROLE (2024 - 2030)
+# =============================================================================
+def render_sidebar(on_refresh_callback=None):
+    anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    ano_atual = app.storage.user.get("ano_referencia_global", 2026)
+
+    with ui.left_drawer(value=True).classes('bg-slate-100 p-4 border-r'):
+        ui.label("🛠️ Painel de Controle").classes('text-lg font-bold mb-2')
+
+        # Seleção de Ano
+        def ao_mudar_ano(e):
+            app.storage.user["ano_referencia_global"] = e.value
+            ui.notify(f"Ano alterado para {e.value}", type="info")
+            if on_refresh_callback:
+                on_refresh_callback()
+
+        ui.select(
+            options=anos, 
+            value=ano_atual, 
+            label="Ano de Referência:",
+            on_change=ao_mudar_ano
+        ).classes('w-full mb-4')
+
+        # Cálculo de Pontuação e Faixa
+        res_data = load_respostas(ano_atual)
+        total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
+
+        if total_pts <= 500:
+            faixa, cor = "C", "text-red-600"
+        elif total_pts <= 599:
+            faixa, cor = "C+", "text-orange-500"
+        elif total_pts <= 749:
+            faixa, cor = "B", "text-yellow-600"
+        elif total_pts <= 899:
+            faixa, cor = "B+", "text-green-500"
+        else:
+            faixa, cor = "A", "text-green-700"
+
+        # Card de Pontuação na Sidebar
+        with ui.card().classes('w-full mb-4 p-3 bg-white shadow-sm'):
+            ui.label("Pontuação Total").classes('text-xs text-gray-500 font-bold uppercase')
+            ui.label(f"{total_pts:.1f} pts").classes('text-2xl font-black text-gray-800')
+            
+            with ui.row().classes('items-center gap-1 mt-1'):
+                ui.label("Faixa:").classes('font-bold text-sm')
+                ui.label(faixa).classes(f'text-xl font-bold {cor}')
+
+        ui.separator().classes('my-2')
+        ui.label("⚙️ Gerenciamento").classes('font-bold text-sm mb-2')
+
+        # Botão Atualizar
+        def atualizar_dados():
+            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
+            if on_refresh_callback:
+                on_refresh_callback()
+
+        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes('w-full bg-blue-700 text-white mb-2')
+
+        ui.separator().classes('my-2')
+
+        # Pop-up / Modal de Segurança para Zerar
+        with ui.dialog() as dialog_zerar, ui.card().classes('w-96 p-4'):
+            ui.label("🔒 Confirmação de Segurança").classes('text-lg font-bold text-red-600')
+            ui.label(f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!").classes('text-sm my-2')
+            
+            input_senha = ui.input("Digite a senha de administrador:", password=True).classes('w-full mb-4')
+
+            def executar_zerar():
+                if input_senha.value == "fidelios":
+                    zerar_questionario_db(ano_atual)
+                    ui.notify(f"✅ Questionário de {ano_atual} foi zerado!", type="positive")
+                    dialog_zerar.close()
+                    if on_refresh_callback:
+                        on_refresh_callback()
+                else:
+                    ui.notify("❌ Senha incorreta!", type="negative")
+
+            with ui.row().classes('w-full justify-end gap-2'):
+                ui.button("Cancelar", on_click=dialog_zerar.close).props('flat')
+                ui.button("Confirmar e Zerar", on_click=executar_zerar).classes('bg-red-600 text-white')
+
+        # Botões de Download e Zerar
+        with ui.row().classes('w-full gap-2 no-wrap'):
+            pdf_bytes = gerar_relatorio_pdf_bytes(res_data, ano_atual, total_pts, faixa)
+            ui.button("📄 Relatório", on_click=lambda: ui.download(pdf_bytes, f"Relatorio_iCidade_{ano_atual}.pdf")).classes('flex-1 bg-green-700 text-white')
+            ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes('flex-1 bg-red-700 text-white')
+
+        # Assinatura de Autoria
+        ui.separator().classes('my-4')
+        ui.html("""
+            <div style="text-align: center; color: #000000; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
+                ⚙️ <b>Desenvolvido por:</b><br>
+                <span style="font-size: 12px;">Jefferson Espanha</span><br>
+                <span>Procuradoria do Município</span><br>
+                <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
+            </div>
+        """).classes('w-full mt-auto')
+
+    return total_pts, res_data, ano_atual
+
+# =============================================================================
+# 2. RENDERIZADOR COMPONONETIZADO DE QUESITOS
+# =============================================================================
+def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text="", on_save_callback=None):
+    d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": ""}
     
     with ui.card().classes('w-full mb-4 p-4 shadow-1 border-1'):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
@@ -74,50 +205,66 @@ def render_quesito(qid, titulo, pergunta, opcoes=None, is_text_area=False, place
                 link = input_link.value
                 pts = opcoes.get(val, 0.0) if opcoes else 0.0
                 
-                res_data[qid] = {
-                    "valor": val,
-                    "pontos": pts,
-                    "link": link
-                }
-                
+                save_resposta(ano, qid, val, pts, link)
                 atualizar_label_pontos(pts, val)
                 ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive", icon="check_circle")
+                if on_save_callback:
+                    on_save_callback()
 
-            ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).props('color=primary').classes('mt-4')
+            ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes('bg-blue-800 text-white mt-4')
 
+# =============================================================================
+# 3. PÁGINA E FORMULÁRIO DO I-CIDADE
+# =============================================================================
+@ui.refreshable
+def container_formulario_icidade():
+    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+    total_pts, res_data, _ = render_sidebar(on_refresh_callback=container_formulario_icidade.refresh)
 
-# SUBSTITUÍDO: @ui.page('/') POR UMA FUNÇÃO NORMAL
-def mostrar_formulario_icidade():
-    ui.label("Formulário COMPDEC - Defesa Civil").classes('text-h4 mb-6')
+    ui.label(f"Formulário COMPDEC - Defesa Civil ({ano_sel})").classes('text-h4 mb-2 font-bold text-blue-900')
+    ui.label("Preencha as evidências e questões do indicador i-Cidade.").classes('text-gray-600 mb-6')
 
+    # QUESITO 1.0
     opcoes_10 = {
         "Selecione...": 0.0,
         "Sim (40 pts)": 40.0,
         "Não (00 pts)": 0.0
     }
     render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
         qid="1.0",
         titulo="Criação da COMPDEC ou Órgão Similar",
         pergunta="Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil-COMPDEC ou órgão similar responsável pela execução, coordenação e mobilização de todas as ações de defesa civil no município?",
-        opcoes=opcoes_10
+        opcoes=opcoes_10,
+        on_save_callback=container_formulario_icidade.refresh
     )
 
+    # QUESITO 1.1
     render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
         qid="1.1",
         titulo="Dados do Instrumento Normativo COMPDEC",
         pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
         is_text_area=True,
-        placeholder_text="Ex: Decreto nº 123 de 01/01/2025"
+        placeholder_text="Ex: Decreto nº 123 de 01/01/2025",
+        on_save_callback=container_formulario_icidade.refresh
     )
 
+    # QUESITO 1.2
     render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
         qid="1.2",
         titulo="Endereço Eletrônico do Instrumento Normativo",
         pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar:",
         is_text_area=True,
-        placeholder_text="https://www.municipio.sp.gov.br/legislacao"
+        placeholder_text="https://www.municipio.sp.gov.br/legislacao",
+        on_save_callback=container_formulario_icidade.refresh
     )
 
+    # QUESITO 1.3
     opcoes_13 = {
         "Selecione...": 0.0,
         "Gabinete do Prefeito (05 pts)": 5.0,
@@ -126,12 +273,16 @@ def mostrar_formulario_icidade():
         "Outra (00 pts)": 0.0
     }
     render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
         qid="1.3",
         titulo="Secretaria ou Diretoria de Subordinação",
         pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
-        opcoes=opcoes_13
+        opcoes=opcoes_13,
+        on_save_callback=container_formulario_icidade.refresh
     )
 
+    # QUESITO 1.4
     opcoes_14 = {
         "Selecione...": 0.0,
         "Sim, inclusive com a participação de entidades privadas e da comunidade (50 pts)": 50.0,
@@ -141,8 +292,14 @@ def mostrar_formulario_icidade():
         "Não atuam de forma sistêmica (00 pts)": 0.0
     }
     render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
         qid="1.4",
         titulo="Atuação Sistêmica e Articulação da Defesa Civil",
         pergunta="Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta e recuperação de acordo com a Política Nacional de Proteção e Defesa Civil - PNPDEC?",
-        opcoes=opcoes_14
+        opcoes=opcoes_14,
+        on_save_callback=container_formulario_icidade.refresh
     )
+
+def mostrar_formulario_icidade():
+    container_formulario_icidade()
