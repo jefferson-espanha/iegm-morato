@@ -43,7 +43,6 @@ def get_db_connection():
     return psycopg2.connect(get_db_url())
 
 def init_db():
-    """Garante que a tabela de respostas exista no banco de dados Neon."""
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
@@ -121,7 +120,7 @@ def zerar_ano_db(ano: int):
         ui.notify(f"Erro ao zerar ano: {e}", type="negative")
 
 # =============================================================================
-# INTERFACE GRÁFICA (RENDERIZAÇÃO)
+# INTERFACE GRÁFICA
 # =============================================================================
 
 def calcular_total():
@@ -138,7 +137,6 @@ def recarregar_dados():
     ESTADO["respostas"] = carregar_respostas(ESTADO["ano_selecionado"])
 
 def mostrar_formulario_cidade():
-    """Função chamada diretamente pelo main.py para desenhar a interface da dimensão."""
     init_db()
     recarregar_dados()
 
@@ -302,7 +300,7 @@ def mostrar_formulario_cidade():
                 
                 ui.plotly(fig).classes("w-full h-96")
 
-# Aliases de compatibilidade para garantir chamada por qualquer nome do main
+# Compatibilidade para chamada pelo main
 mostrar_icidade = mostrar_formulario_cidade
 main_page = mostrar_formulario_cidade
 
