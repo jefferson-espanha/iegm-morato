@@ -487,20 +487,13 @@ def dimension_page():
 
         elif dimension == "i-Cidade":
             if icidade is None:
-                ui.label("❌ O arquivo 'icidade_completo.py' não foi encontrado ou falhou ao ser importado.").classes('text-red-600 font-bold')
+                ui.label("❌ O arquivo 'icidade.py' não foi encontrado ou falhou ao ser importado.").classes('text-red-600 font-bold')
             else:
                 try:
-                    if hasattr(icidade, "init_db"):
-                        icidade.init_db()
-
-                    funcao_encontrada = None
-                    for nome_fn in ["mostrar_formulario_cidade", "mostrar_formulario_icidade", "mostrar_icidade", "run", "main", "app"]:
-                        if hasattr(icidade, nome_fn):
-                            funcao_encontrada = getattr(icidade, nome_fn)
-                            break
-
-                    if funcao_encontrada:
-                        funcao_encontrada()
+                    if hasattr(icidade, "mostrar_formulario_icidade"):
+                        icidade.mostrar_formulario_icidade()
+                    elif hasattr(icidade, "mostrar_formulario_cidade"):
+                        icidade.mostrar_formulario_cidade()
                     else:
                         funcoes_disponiveis = [f for f in dir(icidade) if not f.startswith("_") and callable(getattr(icidade, f))]
                         ui.label(f"⚠️ Nenhuma função padrão foi encontrada. Funções detectadas no arquivo: {funcoes_disponiveis}").classes('text-yellow-600')
