@@ -1504,6 +1504,121 @@ def container_formulario_icidade():
     )
 
 # =============================================================================
+    # QUESITO 11.2.1 • AÇÕES BASEADAS NA PESQUISA DE SATISFAÇÃO
+    # =============================================================================
+    opcoes_1121 = {
+        "Selecione...": 0.0,
+        "Sim (00 pts)": 0.0,
+        "Não (-20 pts)": -20.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="11.2.1",
+        titulo="Ações Pós-Pesquisa de Satisfação",
+        pergunta="Foram realizadas ações com base nesta pesquisa?",
+        opcoes=opcoes_1121,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 11.3 • RESULTADO FINANCEIRO DO TRANSPORTE
+    # =============================================================================
+    ano_puro = "".join([c for c in str(ano_sel) if c.isdigit()])[:4]
+    ano_anterior = int(ano_puro) - 1 if ano_puro.isdigit() else "anterior"
+
+    opcoes_113 = {
+        "Selecione...": 0.0,
+        "Déficit ou subsídio tarifário": 0.0,
+        "Superávit tarifário": 0.0,
+        "Não sabe informar": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="11.3",
+        titulo="Resultado Financeiro do Transporte Público",
+        pergunta=f"Quanto ao custo do transporte público (tarifa de remuneração) e o preço de passagem (tarifa pública), informe qual o resultado no ano de {ano_anterior}:",
+        opcoes=opcoes_113,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 11.3.1 • TRANSPARÊNCIA TARIFÁRIA
+    # =============================================================================
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="11.3.1",
+        titulo="Transparência dos Benefícios Tarifários",
+        pergunta="Informe a página eletrônica (link na internet) em que os benefícios tarifários foram divulgados. Caso não esteja disponível, informe 'XYZ':",
+        opcoes=None,  # Campo textual/link
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 12.0 • TRANSPORTE POR APLICATIVO
+    # =============================================================================
+    opcoes_120 = {
+        "Selecione...": 0.0,
+        "Sim": 0.0,
+        "Não": 0.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="12.0",
+        titulo="Transporte Remunerado Privado Individual (App)",
+        pergunta="O Município possui transporte remunerado privado individual (App)?",
+        opcoes=opcoes_120,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 12.1 • REGULAMENTAÇÃO DE APP
+    # =============================================================================
+    opts121 = {
+        "Selecione...": 0.0,
+        "Sim (00 pts)": 0.0,
+        "Não (-50 pts)": -50.0
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="12.1",
+        titulo="Regulamentação do Transporte por Aplicativo",
+        pergunta="O Município regulamentou o transporte remunerado privado individual?",
+        opcoes=opts121,
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 12.1.1 • IDENTIFICAÇÃO DA REGULAMENTAÇÃO
+    # =============================================================================
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="12.1.1",
+        titulo="Identificação do Instrumento Normativo",
+        pergunta="Informe o Instrumento normativo, Número e Data da publicação:",
+        opcoes=None,  # Campo textual
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+    # =============================================================================
+    # QUESITO 12.1.2 • ENDEREÇO ELETRÔNICO DA REGULAMENTAÇÃO
+    # =============================================================================
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="12.1.2",
+        titulo="Endereço Eletrônico da Norma",
+        pergunta="Informe a página eletrônica (link na internet) do instrumento:",
+        opcoes=None,  # Campo textual/link
+        on_save_callback=container_formulario_icidade.refresh
+    )
+
+# =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
 @ui.page('/')
