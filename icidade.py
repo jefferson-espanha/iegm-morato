@@ -123,77 +123,6 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
     return conteudo.encode('utf-8')
 
 
-def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pendente"):
-    """
-    Salva a resposta, link, pontos e o histórico de comentários de um quesito no Neon DB.
-    Utiliza UPSERT (ON CONFLICT) para inserir ou atualizar o registro existente.
-    """
-    if comentarios is None:
-        dados_atuais = load_respostas(ano).get(qid, {})
-        comentarios = dados_atuais.get("comentarios", [])
-
-    # Trata e garante que os comentários fiquem no formato JSON
-    comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
-    comentarios_json = json.dumps(comentarios_validos)
-
-    query = """
-        INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
-        VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s)
-        ON CONFLICT (ano, qid) 
-        DO UPDATE SET
-            valor = EXCLUDED.valor,
-            pontos = EXCLUDED.pontos,
-            link = EXCLUDED.link,
-            comentarios = EXCLUDED.comentarios,
-            status = EXCLUDED.status,
-            updated_at = CURRENT_TIMESTAMP;
-    """
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (ano, qid, valor, pontos, link, comentarios_json, status))
-            conn.commit()
-    except Exception as e:
-        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
-        ui.notify(f"Erro ao salvar no banco Neon: {e}", type="negative")
-
-
-def zerar_questionario_db(ano):
-    """Limpa todas as respostas salvas do ano selecionado na tabela do Neon DB."""
-    query = "DELETE FROM respostas_icidade WHERE ano = %s;"
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (ano,))
-            conn.commit()
-    except Exception as e:
-        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
-        ui.notify(f"Erro ao apagar dados no banco Neon: {e}", type="negative")
-
-
-def _obter_lista_comentarios(dados_banco):
-    """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
-    raw = dados_banco.get("comentarios", [])
-    if isinstance(raw, str):
-        if raw in ["EMPTY_STRING", "", "null", "None"]:
-            return []
-        try:
-            raw = json.loads(raw)
-        except Exception:
-            return []
-    if isinstance(raw, list):
-        return raw
-    return []
-
-
-def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
-    """Gera dados para download do relatório em PDF."""
-    conteudo = f"RELATÓRIO TÉCNICO i-Cidade ({ano})\n"
-    conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
-    for qid, dados in res_data.items():
-        conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
-    return conteudo.encode('utf-8')
-
 # =============================================================================
 # 1. PAINEL LATERAL / CONTROLE
 # =============================================================================
@@ -217,7 +146,7 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano
         ).classes('w-full mb-4')
 
-        # Cálculo de Pontuação e Faixa
+        # Cálculo de Pontuação e Faixa (busca direto do Neon)
         res_data = load_respostas(ano_atual)
         total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
 
@@ -288,6 +217,7 @@ def render_painel_controle(on_refresh_callback=None):
             </div>
         """).classes('w-full')
 
+
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
@@ -298,7 +228,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
     dados_q = res_data.get(qid, {})
     historico = _obter_lista_comentarios(dados_q)
     
-    status_global = "Pendente"
+    status_global = dados_q.get("status", "Pendente")
     for com in reversed(historico):
         if isinstance(com, dict) and "status_definido" in com:
             status_global = com["status_definido"]
@@ -322,7 +252,8 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                 valor=dados_q.get("valor", ""), 
                 pontos=dados_q.get("pontos", 0.0), 
                 link=dados_q.get("link", ""), 
-                comentarios=historico
+                comentarios=historico,
+                status=novo_st
             )
             ui.notify(f"Status alterado para {novo_st}", type="info")
             if on_save_callback:
@@ -346,7 +277,8 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                         valor=dados_q.get("valor", ""), 
                         pontos=dados_q.get("pontos", 0.0), 
                         link=dados_q.get("link", ""), 
-                        comentarios=historico
+                        comentarios=historico,
+                        status=status_global
                     )
                     ui.notify("Comentário removido.", type="warning")
                     if on_save_callback:
@@ -387,7 +319,8 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                     valor=dados_q.get("valor", ""), 
                     pontos=dados_q.get("pontos", 0.0), 
                     link=dados_q.get("link", ""), 
-                    comentarios=historico
+                    comentarios=historico,
+                    status=status_global
                 )
                 ui.notify("Comentário publicado!", type="positive")
                 if on_save_callback:
@@ -395,11 +328,12 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
         ui.button("Postar Comentário", on_click=postar_comentario).classes('bg-blue-600 text-white mt-2')
 
+
 # =============================================================================
 # 3. RENDERIZADOR DE QUESITO
 # =============================================================================
 def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text="", on_save_callback=None):
-    d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": "", "comentarios": []}
+    d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": "", "comentarios": [], "status": "Pendente"}
     
     with ui.card().classes('w-full mb-4 p-4 border rounded-lg shadow-sm'):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
@@ -464,8 +398,9 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
                 val = input_valor.value
                 link = input_link.value
                 pts = opcoes.get(val, 0.0) if opcoes else 0.0
+                st = d_data.get("status", "Pendente")
                 
-                save_resposta(ano, qid, val, pts, link)
+                save_resposta(ano, qid, val, pts, link, status=st)
                 atualizar_label_pontos(pts, val)
                 ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive", icon="check_circle")
                 if on_save_callback:
@@ -475,6 +410,7 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
 
             # Renderiza o bloco de comentários do quesito
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
+
 
 # =============================================================================
 # 4. CONTAINER PRINCIPAL REFRESHABLE
@@ -571,6 +507,7 @@ def container_formulario_icidade():
                 opcoes=opcoes_14,
                 on_save_callback=container_formulario_icidade.refresh
             )
+
 
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
