@@ -551,7 +551,7 @@ def container_formulario_icidade():
                 ano=ano_sel,
                 res_data=res_data,
                 qid="2.0",
-                titulo="2.0 • Capacitação da Equipe da COMPDEC",
+                titulo="• Capacitação da Equipe da COMPDEC",
                 pergunta="Os integrantes da COMPDEC participaram de cursos, treinamentos ou capacitações em Proteção e Defesa Civil no ano de referência?",
                 opcoes=opcoes_20,
                 on_save_callback=container_formulario_icidade.refresh
@@ -569,7 +569,7 @@ def container_formulario_icidade():
                 ano=ano_sel,
                 res_data=res_data,
                 qid="2.1",
-                titulo="2.1 • Ações Educativas e Preventivas na Comunidade",
+                titulo="• Ações Educativas e Preventivas na Comunidade",
                 pergunta="A COMPDEC promoveu ações educativas, campanhas de sensibilização ou oficinas sobre percepção de risco para a população no ano de referência?",
                 opcoes=opcoes_21,
                 on_save_callback=container_formulario_icidade.refresh
@@ -593,7 +593,7 @@ def container_formulario_icidade():
                 ano=ano_sel,
                 res_data=res_data,
                 qid="2.2",
-                titulo="2.2 • Público Alvo de Cursos e Treinamentos",
+                titulo="• Público Alvo de Cursos e Treinamentos",
                 pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
                 opcoes=opcoes_22,
                 on_save_callback=container_formulario_icidade.refresh
