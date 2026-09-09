@@ -1876,29 +1876,35 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh
     )
 
+   # =============================================================================
+    # 3. GERADOR DO RELATÓRIO PDF (INDENTAÇÃO DE 4 ESPAÇOS)
     # =============================================================================
-    # 3. GERADOR DO RELATÓRIO PDF
-    # =============================================================================
-
     def gerar_relatorio_pdf(dados, ano, total, faixa):
         buffer = BytesIO()
         doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
         elements = []
         styles = getSampleStyleSheet()
 
+        # Função auxiliar de higienização de texto
+        def tratar_texto(val):
+            if isinstance(val, list):
+                val = ", ".join(map(str, val))
+            val_str = str(val) if val is not None else ""
+            return val_str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").strip()
+
         # -------------------------------------------------------------------------
         # FOLHA 1: CAPA
         # -------------------------------------------------------------------------
         elements.append(Spacer(1, 100))
         
-        # --- TRATAMENTO SEGURO DA IMAGEM DA CAPA ---
         logo_path = "iegm.png"
         if os.path.exists(logo_path):
             try:
+                from reportlab.platypus import Image
                 logo = Image(logo_path, width=380, height=180)
                 logo.hAlign = 'CENTER'
                 elements.append(logo)
-            except Exception as e:
+            except Exception:
                 elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
         else:
             elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
@@ -1956,21 +1962,26 @@ def container_formulario_icidade():
         elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]))
         elements.append(Spacer(1, 8))
 
-        nota_atual = float(total)
+        nota_atual = float(total) if total else 0.0
         ano_atual = int(str(ano).strip()[:4])
         ano_ant = ano_atual - 1
 
         def converter_pontos_em_faixa_iegm(pontos):
             pts = float(pontos)
-            if pts < 500.0:              return "C"
-            elif 500.0 <= pts <= 599.9:  return "C+"
-            elif 600.0 <= pts <= 749.9:  return "B"
-            elif 750.0 <= pts <= 899.9:  return "B+"
-            else:                        return "A"
+            if pts < 500.0:
+                return "C"
+            elif 500.0 <= pts <= 599.9:
+                return "C+"
+            elif 600.0 <= pts <= 749.9:
+                return "B"
+            elif 750.0 <= pts <= 899.9:
+                return "B+"
+            else:
+                return "A"
 
         all_data = {}
         try:
-            all_data = get_all_years_data()
+            all_data = get_all_years_data()  # Presume-se a existência da função externa
         except Exception:
             all_data = {}
 
@@ -2017,10 +2028,14 @@ def container_formulario_icidade():
 
         tabela_comp = Table(dados_comparativos, colWidths=[80, 105, 95, 105, 105])
         tabela_comp.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")), ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")), 
-            ("TOPPADDING", (0, 0), (-1, -1), 8), ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
-            ("BACKGROUND", (0, 1), (-1, 1), colors.HexColor("#f8f9fa")), ("BACKGROUND", (0, 2), (-1, 2), colors.whitesmoke),          
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")), 
+            ("TOPPADDING", (0, 0), (-1, -1), 8),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+            ("BACKGROUND", (0, 1), (-1, 1), colors.HexColor("#f8f9fa")),
+            ("BACKGROUND", (0, 2), (-1, 2), colors.whitesmoke),          
         ]))
         elements.append(tabela_comp)
         elements.append(Spacer(1, 12))
@@ -2046,17 +2061,21 @@ def container_formulario_icidade():
         lista_pontos_fracos = []
         reincidencias_detectadas = []
 
+        pontuacoes_max = globals().get('PONTUACOES_MAX', {})
+
         for qid, info in dados.items():
-            if qid.startswith("COM_") or not isinstance(info, dict): continue
+            if qid.startswith("COM_") or not isinstance(info, dict):
+                continue
             pts_obtidos = float(info.get("pontos", 0))
-            valor_resposta = info.get("valor", "")
-            link_evidencia = info.get("link", "")
-            pts_maximo = float(PONTUACOES_MAX.get(qid, 0))
+            valor_resposta = tratar_texto(info.get("valor", ""))
+            link_evidencia = tratar_texto(info.get("link", ""))
+            pts_maximo = float(pontuacoes_max.get(qid, 0))
             
             if pts_maximo > 0:
                 eficiencia = (pts_obtidos / pts_maximo) * 100
                 item_data = {"qid": qid, "pts_obtidos": pts_obtidos, "pts_maximo": pts_maximo, "eficiencia": eficiencia, "valor": valor_resposta, "link": link_evidencia}
-                if eficiencia >= 70.0: lista_pontos_fortes.append(item_data)
+                if eficiencia >= 70.0: 
+                    lista_pontos_fortes.append(item_data)
                 elif eficiencia < 50.0:
                     lista_pontos_fracos.append(item_data)
                     if qid in dados_ano_anterior:
@@ -2102,7 +2121,7 @@ def container_formulario_icidade():
                 nota_real = float(info.get("pontos", 0))
                 nota_risco = nota_real if nota_real <= 0 else 0.0
                 eficiencia_preventiva = (1.0 - (nota_risco / pen_max)) * 100.0
-                lista_penalidades.append({"qid": qid, "nota_real": nota_real, "pen_max": pen_max, "eficiencia": eficiencia_preventiva, "valor": info.get("valor", ""), "link": info.get("link", "")})
+                lista_penalidades.append({"qid": qid, "nota_real": nota_real, "pen_max": pen_max, "eficiencia": eficiencia_preventiva, "valor": tratar_texto(info.get("valor", "")), "link": tratar_texto(info.get("link", ""))})
                 if eficiencia_preventiva < 100.0 and qid in dados_ano_anterior:
                     info_ant = dados_ano_anterior[qid]
                     nota_real_ant = float(info_ant.get("pontos", 0))
@@ -2113,9 +2132,12 @@ def container_formulario_icidade():
             data_penalidades = [["Quesito", "Penalidade Aplicada", "Pior Cenário", "Eficiência Preventiva", "Status de Risco"]]
             for item in sorted(lista_penalidades, key=lambda x: x["eficiencia"]):
                 nota_txt = f"{item['nota_real']:.1f} pts"; teto_txt = f"{item['pen_max']:.1f} pts"; ef_txt = f"{item['eficiencia']:.1f}%"
-                if item['eficiencia'] == 100.0: status = "<font color='#28a745'><b>Risco Mitigado</b></font>"
-                elif item['eficiencia'] <= 0.0: status = "<font color='#dc3545'><b>Impacto Máximo</b></font>"
-                else: status = "<font color='#ffc107'><b>Impacto Parcial</b></font>"
+                if item['eficiencia'] == 100.0:
+                    status = "<font color='#28a745'><b>Risco Mitigado</b></font>"
+                elif item['eficiencia'] <= 0.0:
+                    status = "<font color='#dc3545'><b>Impacto Máximo</b></font>"
+                else:
+                    status = "<font color='#ffc107'><b>Impacto Parcial</b></font>"
                 data_penalidades.append([item['qid'], nota_txt, teto_txt, ef_txt, Paragraph(status, styles["Normal"])])
             tabela_pen = Table(data_penalidades, colWidths=[65, 110, 80, 115, 120])
             tabela_pen.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1b4f72")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), ("ALIGN", (0, 0), (-1, -1), "CENTER"), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#1b4f72")), ("FONTSIZE", (0, 0), (-1, -1), 9), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
@@ -2129,86 +2151,99 @@ def container_formulario_icidade():
         elements.append(Spacer(1, 6))
         if reincidencias_detectadas:
             data_reinc = [["Quesito", "Origem da Falha", "Impacto Histórico", "Exercício Anterior", "Exercício Atual"]]
-            for reinc in reincidencias_detectadas: data_reinc.append([reinc["qid"], reinc["tipo"], Paragraph(f"<b>{reinc['detalhe']}</b>", styles["Normal"]), reinc["ant"], reinc["atual"]])
+            for reinc in reincidencias_detectadas:
+                data_reinc.append([reinc["qid"], reinc["tipo"], Paragraph(f"<b>{reinc['detalhe']}</b>", styles["Normal"]), reinc["ant"], reinc["atual"]])
             tabela_reinc = Table(data_reinc, colWidths=[65, 115, 170, 75, 65])
             tabela_reinc.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#c0392b")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#c0392b")), ("FONTSIZE", (0, 0), (-1, -1), 9), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
             elements.append(tabela_reinc)
-        else: elements.append(Paragraph("<font color='#28a745'><b>Nenhuma reincidência ativa detectada.</b></font>", styles["Normal"]))
+        else: 
+            elements.append(Paragraph("<font color='#28a745'><b>Nenhuma reincidência ativa detectada.</b></font>", styles["Normal"]))
         elements.append(Spacer(1, 15))
 
         # -------------------------------------------------------------------------
-    # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
-    # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
-    elements.append(Spacer(1, 6))
-    
-    def calcular_percentual_checklist(resposta_bruta, total_itens):
-        if not resposta_bruta: return 0.0
-        itens = [i.strip().lower() for i in str(resposta_bruta).split(",") if i.strip()]
-        itens_validos = [i for i in itens if "outros" not in i]
-        return min((len(itens_validos) / total_itens) * 100.0, 100.0) if total_itens > 0 else 0.0
+        # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
+        # -------------------------------------------------------------------------
+        elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
+        elements.append(Spacer(1, 6))
+        
+        def calcular_percentual_checklist(resposta_bruta, total_itens):
+            if not resposta_bruta:
+                return 0.0
+            resp_clean = tratar_texto(resposta_bruta)
+            itens = [i.strip().lower() for i in resp_clean.split(",") if i.strip()]
+            itens_validos = [i for i in itens if "outros" not in i]
+            return min((len(itens_validos) / total_itens) * 100.0, 100.0) if total_itens > 0 else 0.0
 
-    def chave_ordenacao_qid(qid_str):
-        partes = []
-        for p in str(qid_str).split('.'):
-            p_limpo = ''.join(filter(str.isdigit, p))
-            partes.append(int(p_limpo) if p_limpo else 0)
-        return partes
+        def chave_ordenacao_qid(qid_str):
+            partes = []
+            for p in str(qid_str).split('.'):
+                p_limpo = ''.join(filter(str.isdigit, p))
+                partes.append(int(p_limpo) if p_limpo else 0)
+            return partes
 
-    analise_ods = []
-    for qid, info in dados.items():
-        if qid.startswith("COM_") or not isinstance(info, dict): continue
-        resp = str(info.get("valor", "")).strip(); resp_l = resp.lower(); metas = ""; status = ""
-        if qid == "1.0": metas = "11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "1.4": metas = "11.5, 16.6"; status = "Não Atendido" if "não atuam de forma sistêmica" in resp_l else "Atendido"
-        elif qid == "2.0": metas = "11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "3.0": metas = "11.5, 16.7, 16.10, 17.0"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "3.1": metas = "11b, 11.5, 16.7, 16.10"; status = f"{calcular_percentual_checklist(resp, 6):.1f}% Atendido"
-        elif qid == "4.0": metas = "1.5, 11.5, 11b"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "5.0": metas = "1.5, 11.5, 16b"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "5.1": metas = "11b, 11.5, 16.7, 16.10"; status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
-        elif qid == "5.1.1": metas = "11b, 11.5, 16.6, 16.10"; status = "Atendido" if ("sim, integralmente" in resp_l or "sim, parcialmente" in resp_l) else "Não Atendido"
-        elif qid == "5.1.1.1": metas = "11b, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "5.1.2": metas = "11b, 11.5, 16.6"; status = "Atendido" if "não" in resp_l else "Não Atendido"
-        elif qid == "5.2": metas = "11b, 11.5, 16.6"; status = "Atendido" if ("sim" in resp_l or "parcialmente" in resp_l) else "Não Atendido"
-        elif qid == "7.0": metas = "11b, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "7.3": metas = "11b, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "7.3.1": metas = "11b, 11.5, 16.6"; status = f"{calcular_percentual_checklist(resp, 7):.1f}% Atendido"
-        elif qid == "7.4": metas = "11b, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "7.4.1": metas = "11.5, 16.6"; status = f"{calcular_percentual_checklist(resp, 7):.1f}% Atendido"
-        elif qid == "7.5": metas = "1.5, 11.5, 16.6"; status = "Atendido" if ("sim, atualizado" in resp_l or "sim, mas não está atualizado" in resp_l) else "Não Atendido"
-        elif qid == "7.6": metas = "1.5, 11.5, 16.6"; status = "Atendido" if ("sim, atualizado" in resp_l or "sim, mas não está atualizado" in resp_l) else "Não Atendido"
-        elif qid in ["8", "8.0"]: metas = "1.5, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "8.1": metas = "1.5, 11.5, 16.6"; status = f"{calcular_percentual_checklist(resp, 6):.1f}% Atendido"
-        elif qid == "8.1.1": metas = "1.5, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "8.1.1.1": metas = "1.5, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "8.2": metas = "1.5, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "9.0": metas = "1.5, 11.5, 16.6"; status = "Atendido" if ("todas as escolas" in resp_l or "maior parte" in resp_l) else "Não Atendido"
-        elif qid in ["10", "10.0"]: metas = "11.2, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid in ["11", "11.0"]: metas = "11.2, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "11.1": metas = "11.2, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "12.0": metas = "11.2, 17.0"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "12.1.3": metas = "11.2, 17.0"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid in ["13", "13.0"]: metas = "11.2, 11.7, 12.5"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "14.0": metas = "11.2, 17.14"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid in ["15", "15.0"]: metas = "11.2, 17.14"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid in ["16", "16.0"]: metas = "11.2, 17.14"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        analise_ods = []
+        for qid, info in dados.items():
+            if qid.startswith("COM_") or not isinstance(info, dict):
+                continue
+            resp = tratar_texto(info.get("valor", ""))
+            resp_l = resp.lower()
+            metas = ""
+            status = ""
 
-        if metas: analise_ods.append({"qid": qid, "status": status, "metas": metas, "resp": resp[:50]})
+            if qid == "1.0": metas = "11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "1.4": metas = "11.5, 16.6"; status = "Não Atendido" if "não atuam de forma sistêmica" in resp_l else "Atendido"
+            elif qid == "2.0": metas = "11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "3.0": metas = "11.5, 16.7, 16.10, 17.0"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "3.1": metas = "11b, 11.5, 16.7, 16.10"; status = f"{calcular_percentual_checklist(resp, 6):.1f}% Atendido"
+            elif qid == "4.0": metas = "1.5, 11.5, 11b"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "5.0": metas = "1.5, 11.5, 16b"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "5.1": metas = "11b, 11.5, 16.7, 16.10"; status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
+            elif qid == "5.1.1": metas = "11b, 11.5, 16.6, 16.10"; status = "Atendido" if ("sim, integralmente" in resp_l or "sim, parcialmente" in resp_l) else "Não Atendido"
+            elif qid == "5.1.1.1": metas = "11b, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "5.1.2": metas = "11b, 11.5, 16.6"; status = "Atendido" if "não" in resp_l else "Não Atendido"
+            elif qid == "5.2": metas = "11b, 11.5, 16.6"; status = "Atendido" if ("sim" in resp_l or "parcialmente" in resp_l) else "Não Atendido"
+            elif qid == "7.0": metas = "11b, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "7.3": metas = "11b, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "7.3.1": metas = "11b, 11.5, 16.6"; status = f"{calcular_percentual_checklist(resp, 7):.1f}% Atendido"
+            elif qid == "7.4": metas = "11b, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "7.4.1": metas = "11.5, 16.6"; status = f"{calcular_percentual_checklist(resp, 7):.1f}% Atendido"
+            elif qid == "7.5": metas = "1.5, 11.5, 16.6"; status = "Atendido" if ("sim, atualizado" in resp_l or "sim, mas não está atualizado" in resp_l) else "Não Atendido"
+            elif qid == "7.6": metas = "1.5, 11.5, 16.6"; status = "Atendido" if ("sim, atualizado" in resp_l or "sim, mas não está atualizado" in resp_l) else "Não Atendido"
+            elif qid in ["8", "8.0"]: metas = "1.5, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "8.1": metas = "1.5, 11.5, 16.6"; status = f"{calcular_percentual_checklist(resp, 6):.1f}% Atendido"
+            elif qid == "8.1.1": metas = "1.5, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "8.1.1.1": metas = "1.5, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "8.2": metas = "1.5, 11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "9.0": metas = "1.5, 11.5, 16.6"; status = "Atendido" if ("todas as escolas" in resp_l or "maior parte" in resp_l) else "Não Atendido"
+            elif qid in ["10", "10.0"]: metas = "11.2, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid in ["11", "11.0"]: metas = "11.2, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "11.1": metas = "11.2, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "12.0": metas = "11.2, 17.0"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "12.1.3": metas = "11.2, 17.0"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid in ["13", "13.0"]: metas = "11.2, 11.7, 12.5"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid == "14.0": metas = "11.2, 17.14"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid in ["15", "15.0"]: metas = "11.2, 17.14"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            elif qid in ["16", "16.0"]: metas = "11.2, 17.14"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
 
-    if analise_ods:
-        data_ods = [["Quesito", "Resposta Informada", "Vínculo Metas ODS", "Status de Cumprimento"]]
-        style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
-        for item in sorted(analise_ods, key=lambda x: chave_ordenacao_qid(x['qid'])):
-            st_txt = item["status"]
-            if "Não Atendido" in st_txt: st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
-            elif "Atendido" in st_txt and "%" not in st_txt: st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
-            else: st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
-            data_ods.append([item["qid"], Paragraph(item["resp"], styles["Normal"]), item["metas"], st_p])
-        tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
-        tabela_ods.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), ("ALIGN", (0, 0), (0, -1), "CENTER"), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
-        elements.append(tabela_ods)
-        elements.append(Spacer(1, 15))
+            if metas:
+                analise_ods.append({"qid": qid, "status": status, "metas": metas, "resp": resp[:50]})
+
+        if analise_ods:
+            data_ods = [["Quesito", "Resposta Informada", "Vínculo Metas ODS", "Status de Cumprimento"]]
+            style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
+            for item in sorted(analise_ods, key=lambda x: chave_ordenacao_qid(x['qid'])):
+                st_txt = item["status"]
+                if "Não Atendido" in st_txt:
+                    st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
+                elif "Atendido" in st_txt and "%" not in st_txt:
+                    st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
+                else:
+                    st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
+                data_ods.append([item["qid"], Paragraph(item["resp"], styles["Normal"]), item["metas"], st_p])
+            tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
+            tabela_ods.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), ("ALIGN", (0, 0), (0, -1), "CENTER"), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
+            elements.append(tabela_ods)
+            elements.append(Spacer(1, 15))
 
         # -------------------------------------------------------------------------
         # 6. SÉRIE HISTÓRICA DO I-CIDADE
@@ -2219,10 +2254,12 @@ def container_formulario_icidade():
         anos_serie = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
         valores_serie = []
         for a in anos_serie:
-            if a == ano_atual: valores_serie.append(nota_atual)
+            if a == ano_atual: 
+                valores_serie.append(nota_atual)
             elif a in all_data:
                 valores_serie.append(float(sum(info_h.get("pontos", 0) for qid_h, info_h in all_data[a].items() if isinstance(info_h, dict) and not qid_h.startswith("COM_"))))
-            else: valores_serie.append(0.0)
+            else: 
+                valores_serie.append(0.0)
 
         # Configuração do Gráfico
         desenho_grafico = Drawing(480, 165)
@@ -2234,7 +2271,6 @@ def container_formulario_icidade():
         
         bc.valueAxis.valueMin = 0; bc.valueAxis.valueMax = 1000; bc.valueAxis.valueStep = 200; bc.valueAxis.labels.fontSize = 8
         
-        # Rótulos (Pontuação em cima da barra)
         bc.barLabels.nudge = 8
         bc.barLabels.fontSize = 8
         bc.barLabels.fontName = 'Helvetica-Bold'
@@ -2256,7 +2292,6 @@ def container_formulario_icidade():
         elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE - CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
         elements.append(Spacer(1, 6))
 
-        # Lista dos quesitos a serem auditados dinamicamente no iCidade
         lista_alvo_sp = [
             "4.0", "11.0", "12.0", "13.0", "4.1", "5.1", 
             "5.1.2", "5.1.2.1", "7.3.1", "8.4.1", "8.1", "8.1.1", "12.1.3.1", "14.1"
@@ -2264,92 +2299,64 @@ def container_formulario_icidade():
 
         analise_sp = []
         
-        # Processa os dados extraídos dinamicamente do dicionário do exercício atual
         for qid in lista_alvo_sp:
             info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
             
             if isinstance(info, dict):
-                resp = str(info.get("valor", "")).strip()
+                resp = tratar_texto(info.get("valor", ""))
             else:
-                resp = str(info).strip()
+                resp = tratar_texto(info)
 
             resp_l = resp.lower()
             is_adequado = False
 
-            # Regras de validação por quesito
             if qid in ["4.0", "11.0", "12.0", "13.0", "8.1.1"]:
-                # Validação: Se for Sim
                 if any(x == resp_l or x in resp_l for x in ["sim", "1", "s", "true", "adequado"]):
                     is_adequado = True
 
             elif qid == "4.1":
-                # Validação: Riscos Geológicos, Hidrológicos, Meteorológicos ou Biológicos
                 opcoes = ["riscos geológicos", "riscos hidrológicos", "riscos meteorológicos", "riscos biológicos"]
                 if any(opt in resp_l for opt in opcoes):
                     is_adequado = True
 
             elif qid == "5.1":
-                # Validação: Epidemias, Estiagem, Incêndios, Ondas de Calor/Frio ou Inundações
                 opcoes = ["epidemias", "estiagem", "incêndios", "ondas de calor ou ondas de frio", "inundações"]
                 if any(opt in resp_l for opt in opcoes):
                     is_adequado = True
 
             elif qid == "5.1.2":
-                # Validação: Se for Não
                 if any(x == resp_l or x in resp_l for x in ["não", "nao", "0", "n", "false"]):
                     is_adequado = True
 
             elif qid == "5.1.2.1":
-                # Validação: Sanções monetárias, Fiscalização, Notificação ou Demolição
-                opcoes = [
-                    "aplicação de sanções monetárias (multas)",
-                    "monitoramento (fiscalização)",
-                    "notificação dos infratores",
-                    "demolição das ocupações"
-                ]
+                opcoes = ["aplicação de sanções monetárias (multas)", "monitoramento (fiscalização)", "notificação dos infratores", "demolição das ocupações"]
                 if any(opt in resp_l for opt in opcoes):
                     is_adequado = True
 
             elif qid == "7.3.1":
-                # Validação: Alerta SMS, Telefone, Email ou Rádio/TV
                 opcoes = ["alerta via sms", "aviso por telefone", "aviso por email", "anúncio por rádio/televisão"]
                 if any(opt in resp_l for opt in opcoes):
                     is_adequado = True
 
             elif qid == "7.4.1":
-                # Validação: Sirene, Sinal Luminoso, Carros de emergência ou Nupdec
-                opcoes = [
-                    "sinal sonoro (sirene)",
-                    "sinal luminoso",
-                    "carros de emergência com sirenes",
-                    "avisos aos membros do nupdec"
-                ]
+                opcoes = ["sinal sonoro (sirene)", "sinal luminoso", "carros de emergência com sirenes", "avisos aos membros do nupdec"]
                 if any(opt in resp_l for opt in opcoes):
                     is_adequado = True
 
             elif qid == "8.1":
-                # Validação: Telefone emergência, App mensagens, Site ou Redes sociais
                 opcoes = ["telefone de emergências", "aplicativo de mensagens", "site da prefeitura", "redes sociais"]
                 if any(opt in resp_l for opt in opcoes):
                     is_adequado = True
 
             elif qid == "12.1.3.1":
-                # Validação: Diariamente
                 if "diariamente" in resp_l:
                     is_adequado = True
 
             elif qid == "14.1":
-                # Validação: Calçadas, Sinalização tátil, Rampas ou Escadas com corrimão
-                opcoes = [
-                    "calçadas com dimensões mínimas para circulação",
-                    "sinalização tátil em pisos",
-                    "rampas de acesso",
-                    "escadas com corrimão"
-                ]
+                opcoes = ["calçadas com dimensões mínimas para circulação", "sinalização tátil em pisos", "rampas de acesso", "escadas com corrimão"]
                 if any(opt in resp_l for opt in opcoes):
                     is_adequado = True
 
-            # Define status com base na validação
             status_txt = "Adequado" if is_adequado else "Inadequado"
 
             analise_sp.append({
@@ -2367,10 +2374,8 @@ def container_formulario_icidade():
                 Paragraph("Situação / Conformidade", style_th)
             ]]
 
-            total_adequados = 0
             for item in analise_sp:
                 if item["status"] == "Adequado":
-                    total_adequados += 1
                     st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>", style_td_sp)
                 else:
                     st_p = Paragraph("<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
@@ -2387,26 +2392,15 @@ def container_formulario_icidade():
                 ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                 ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-                ("TOPPADDING", (0, 0), (-1, -1), 3),
-                ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-                ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ffffff")),
+                ("TOPPADDING", (0, 0), (-1, -1), 4),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
             ]))
             elements.append(tabela_sp)
-            elements.append(Spacer(1, 8))
 
-            pct_sp = (total_adequados / len(analise_sp)) * 100.0
-            texto_sp = (
-                f"A análise dinâmica dos quesitos de conformidade operacional do iCidade no exercício de <b>{ano_atual}</b> apontou "
-                f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
-                f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
-            )
-            elements.append(Paragraph(texto_sp, style_analise))
-            elements.append(Spacer(1, 15))
-
-        # Fechamento do documento
+        # Constrói o PDF final
         doc.build(elements)
         buffer.seek(0)
-        return buffer.getvalue()
+        return buffer
 
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
