@@ -1893,7 +1893,7 @@ def container_formulario_icidade():
 # =============================================================================
 # 3. GERADOR DO RELATÓRIO PDF (INDENTAÇÃO DE 4 ESPAÇOS)
 # =============================================================================
-def gerar_relatorio_pdf(dados, ano, total, faixa):
+def gerar_relatorio_pdf_bytes(dados, ano, total, faixa):
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
