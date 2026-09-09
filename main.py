@@ -1,11 +1,3 @@
-try:
-    import icidade
-    print("✅ icidade.py importado com sucesso!")
-except Exception as e:
-    print("❌ ERRO REAL AO IMPORTAR ICIDADE:")
-    import traceback
-    traceback.print_exc()
-
 import base64
 from datetime import datetime, date
 import json
@@ -23,6 +15,12 @@ current_dir = os.path.dirname(os.path.abspath(__file__)) if "__file__" in locals
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
+# Servir arquivos estáticos locais (para renderização direta de imagens se necessário)
+try:
+    app.add_static_files('/static', current_dir)
+except Exception:
+    pass
+
 def get_secret(key, default=None):
     if key in os.environ and os.environ[key]:
         return os.environ[key]
@@ -30,19 +28,20 @@ def get_secret(key, default=None):
         return os.environ.get("DATABASE_URL", NEON_URL)
     return default
 
-# --- CARREGAMENTO DO MÓDULO ICIDADE ---
+# --- CARREGAMENTO RESILIENTE DE MÓDULOS ---
 def import_local_module(module_name):
     try:
         import importlib
-        return importlib.import_module(module_name)
+        mod = importlib.import_module(module_name)
+        print(f"✅ Módulo '{module_name}' importado com sucesso!")
+        return mod
     except Exception as e:
-        print(f"⚠️ ERRO AO IMPORTAR MÓDULO '{module_name}': {e}")
+        print(f"❌ ERRO REAL AO IMPORTAR MÓDULO '{module_name}': {e}")
         traceback.print_exc()
         return None
 
-# Importação direta e exclusiva de icidade.py
+# Importação dos módulos do sistema
 icidade = import_local_module("icidade")
-
 igov = import_local_module("igov")
 iamb = import_local_module("iamb")
 ifiscal = import_local_module("ifiscal")
@@ -178,8 +177,13 @@ def cb_salvar_questao(qid, ano_sel, usuario_atual, novo_valor, novo_link, novos_
 def get_image_base64(filename):
     full_path = os.path.join(current_dir, filename)
     if os.path.exists(full_path):
-        with open(full_path, "rb") as img_file:
-            return f"data:image/png;base64,{base64.b64encode(img_file.read()).decode()}"
+        try:
+            with open(full_path, "rb") as img_file:
+                ext = filename.split('.')[-1].lower()
+                mime_type = "image/png" if ext == "png" else "image/jpeg" if ext in ["jpg", "jpeg"] else "image/svg+xml"
+                return f"data:{mime_type};base64,{base64.b64encode(img_file.read()).decode()}"
+        except Exception as e:
+            print(f"Erro ao carregar imagem {filename}: {e}")
     return None
 
 def render_rodape():
@@ -231,7 +235,7 @@ def login_page():
     with ui.column().classes('absolute-center w-full max-w-md p-4 items-center'):
         logo_b64 = get_image_base64("iegm.png")
         if logo_b64:
-            ui.html(f'<div style="text-align:center; margin-bottom:20px;"><img src="{logo_b64}" style="max-width:100%; height:auto;"></div>').classes('w-full')
+            ui.image(logo_b64).classes('w-full max-w-xs mb-4')
 
         ui.html('<div style="background: #001A4D; border: 2px solid #001A4D; border-radius: 4px; padding: 12px 20px; text-align: center; color: #FFFFFF; font-size: 16px; font-weight: bold; width: 100%;">Sistema de Preenchimento do IEG-M</div>').classes('w-full mb-4')
         
@@ -294,10 +298,13 @@ def dashboard_page():
         with ui.grid(columns=4).classes('w-full gap-4'):
             for dim_name, dim_info in DIMENSIONS_DATA.items():
                 img_b64 = get_image_base64(dim_info["img"])
-                img_html = f'<img src="{img_b64}" style="max-height:85px; max-width:100%; object-fit:contain;" />' if img_b64 else '<div style="font-size:42px;">📊</div>'
                 
                 with ui.card().classes('flex flex-col items-center text-center p-4 cursor-pointer hover:shadow-lg transition-all border rounded-lg h-64 justify-between'):
-                    ui.html(img_html)
+                    if img_b64:
+                        ui.image(img_b64).classes('h-20 object-contain')
+                    else:
+                        ui.label('📊').classes('text-4xl')
+                        
                     ui.label(dim_name).classes('text-blue-900 font-bold text-base')
                     ui.label(dim_info["desc"]).classes('text-gray-500 text-xs')
                     
@@ -312,10 +319,13 @@ def dashboard_page():
         with ui.grid(columns=4).classes('w-full gap-4'):
             for admin_name, admin_info in ADMIN_DATA.items():
                 img_b64 = get_image_base64(admin_info["img"])
-                img_html = f'<img src="{img_b64}" style="max-height:85px; max-width:100%; object-fit:contain;" />' if img_b64 else '<div style="font-size:42px;">⚙️</div>'
                 
                 with ui.card().classes('flex flex-col items-center text-center p-4 cursor-pointer hover:shadow-lg transition-all border-b-4 border-red-700 rounded-lg h-64 justify-between'):
-                    ui.html(img_html)
+                    if img_b64:
+                        ui.image(img_b64).classes('h-20 object-contain')
+                    else:
+                        ui.label('⚙️').classes('text-4xl')
+                        
                     ui.label(admin_name).classes('text-blue-900 font-bold text-base')
                     ui.label(admin_info["desc"]).classes('text-gray-500 text-xs')
                     
@@ -367,7 +377,7 @@ def dimension_page():
 
             elif dimension == "i-Cidade":
                 if icidade is None:
-                    ui.label("❌ O módulo 'icidade.py' falhou na importação inicial.").classes('text-red-600 font-bold')
+                    ui.label("❌ O módulo 'icidade.py' falhou na importação inicial. Verifique os logs do terminal para ver o erro exato.").classes('text-red-600 font-bold')
                 else:
                     if hasattr(icidade, "init_db"):
                         icidade.init_db()
