@@ -1868,12 +1868,11 @@ def container_formulario_icidade():
 
     import os
     from io import BytesIO
-    from reportlab.lib.pagesizes import A4
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib import colors
-    from reportlab.graphics.shapes import Drawing, String
     from reportlab.graphics.charts.barcharts import VerticalBarChart
+    from reportlab.graphics.shapes import Drawing, String
+    from reportlab.lib import colors
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
     from reportlab.platypus import (
     Image,
     PageBreak,
@@ -1883,22 +1882,41 @@ def container_formulario_icidade():
     Table,
     TableStyle,
     )
-    
-    # =============================================================================
-    # 3. GERADOR DO RELATÓRIO PDF (INDENTAÇÃO DE 4 ESPAÇOS)
-    # =============================================================================
-    def gerar_relatorio_pdf(dados, ano, total, faixa):
-        buffer = BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
-        elements = []
-        styles = getSampleStyleSheet()
 
-        # Função auxiliar de higienização de texto
-        def tratar_texto(val):
-            if isinstance(val, list):
-                val = ", ".join(map(str, val))
-            val_str = str(val) if val is not None else ""
-            return val_str.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").strip()
+
+    def gerar_relatorio_pdf_bytes(dados, ano, total, faixa):
+        """Ponte para o NiceGUI: Chama o ReportLab e retorna os bytes do PDF."""
+        buffer = gerar_relatorio_pdf(dados, ano, total, faixa)
+        return buffer.getvalue()
+
+
+# =============================================================================
+# 3. GERADOR DO RELATÓRIO PDF (INDENTAÇÃO DE 4 ESPAÇOS)
+# =============================================================================
+def gerar_relatorio_pdf(dados, ano, total, faixa):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=30,
+        leftMargin=30,
+        topMargin=30,
+        bottomMargin=30,
+    )
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Função auxiliar de higienização de texto
+    def tratar_texto(val):
+        if isinstance(val, list):
+            val = ", ".join(map(str, val))
+        val_str = str(val) if val is not None else ""
+        return (
+            val_str.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+            .strip()
+        )
 
         # -------------------------------------------------------------------------
         # FOLHA 1: CAPA
