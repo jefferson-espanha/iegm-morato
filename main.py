@@ -33,7 +33,7 @@ def import_local_module(module_name):
         return None
 
 # Importação de Módulos IEG-M
-icidade = import_local_module("icidade") or import_local_module("icidade_completo")
+icidade = import_local_module("icidade")
 igov = import_local_module("igov")
 iamb = import_local_module("iamb")
 ifiscal = import_local_module("ifiscal")
