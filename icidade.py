@@ -1897,7 +1897,10 @@ from reportlab.platypus import (
     TableStyle,
 )
 
-# Base de pontuações máximas para cálculos do relatório
+# =============================================================================
+# 1. CONSTANTES E CONFIGURAÇÕES DE PONTUAÇÃO
+# =============================================================================
+
 PONTUACOES_MAX = {
     "1.0": 40,
     "1.3": 5,
@@ -1937,7 +1940,32 @@ PONTUACOES_MAX = {
 
 
 # =============================================================================
-# 4. FUNÇÕES DE ANÁLISE E HISTÓRICO
+# 2. SCHEMAS E COMPONENTES DE INTERFACE (STREAMLIT)
+# =============================================================================
+
+
+def renderizar_quesito_c11(ano_sel, res_data, container_formulario_icidade):
+    """Renderiza a interface do quesito C1.1 dentro do fluxo do Streamlit."""
+    opcoes_c11 = {
+        "Selecione...": 0.0,
+        "Etapa A (10 pts)": 10.0,
+        "Etapa B (20 pts)": 20.0,
+        "Etapa C (50 pts)": 50.0,
+        "Não classificada (00 pts)": 0.0,
+    }
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="C1.1",
+        titulo="Estágio de Classificação no Programa MCR2030",
+        pergunta="O Município foi classificado em qual estágio do Programa?",
+        opcoes=opcoes_c11,
+        on_save_callback=container_formulario_icidade.refresh,
+    )
+
+
+# =============================================================================
+# 3. FUNÇÕES DE ANÁLISE E HISTÓRICO
 # =============================================================================
 
 
@@ -2161,7 +2189,7 @@ def analyze_recurrence(ano_atual, res_data_atual):
 
 
 # =============================================================================
-# 3. GERADOR DO RELATÓRIO PDF
+# 4. GERADOR DO RELATÓRIO PDF
 # =============================================================================
 
 
@@ -2183,14 +2211,13 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
     # -------------------------------------------------------------------------
     elements.append(Spacer(1, 100))
 
-    # --- TRATAMENTO SEGURO DA IMAGEM DA CAPA ---
     logo_path = "iegm.png"
     if os.path.exists(logo_path):
         try:
             logo = Image(logo_path, width=380, height=180)
             logo.hAlign = "CENTER"
             elements.append(logo)
-        except Exception as e:
+        except Exception:
             elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
     else:
         elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
@@ -2203,7 +2230,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
         fontName="Helvetica-Bold",
         fontSize=24,
         textColor=colors.HexColor("#2c3e50"),
-        alignment=1,  # Centralizado
+        alignment=1,
     )
 
     elements.append(Paragraph("Relatório I-Cidade", style_titulo_capa))
@@ -2244,33 +2271,23 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
 
     dados_sumario = [
         [
-            Paragraph(
-                "1. Resumo Executivo (Análise Comparativa)", style_item_esquerda
-            ),
+            Paragraph("1. Resumo Executivo (Análise Comparativa)", style_item_esquerda),
             Paragraph("Pág. 3", style_pag_direita),
         ],
         [
-            Paragraph(
-                "2. Análise de Desempenho por Quesito", style_item_esquerda
-            ),
+            Paragraph("2. Análise de Desempenho por Quesito", style_item_esquerda),
             Paragraph("Pág. 3", style_pag_direita),
         ],
         [
-            Paragraph(
-                "3. Análise de Impacto e Penalidades", style_item_esquerda
-            ),
+            Paragraph("3. Análise de Impacto e Penalidades", style_item_esquerda),
             Paragraph("Pág. 4", style_pag_direita),
         ],
         [
-            Paragraph(
-                "4. Diagnóstico de Reincidências", style_item_esquerda
-            ),
+            Paragraph("4. Diagnóstico de Reincidências", style_item_esquerda),
             Paragraph("Pág. 4", style_pag_direita),
         ],
         [
-            Paragraph(
-                "5. Alinhamento com a Agenda 2030 (ODS)", style_item_esquerda
-            ),
+            Paragraph("5. Alinhamento com a Agenda 2030 (ODS)", style_item_esquerda),
             Paragraph("Pág. 4", style_pag_direita),
         ],
         [
@@ -2278,9 +2295,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
             Paragraph("Pág. 5", style_pag_direita),
         ],
         [
-            Paragraph(
-                "7. Quesitos Sem Pontuação Direta", style_item_esquerda
-            ),
+            Paragraph("7. Quesitos Sem Pontuação Direta", style_item_esquerda),
             Paragraph("Pág. 5", style_pag_direita),
         ],
     ]
@@ -2291,15 +2306,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("BOTTOMPADDING", (0, 0), (-1, -1), 12),
             ("TOPPADDING", (0, 0), (-1, -1), 12),
-            (
-                "LINEBELOW",
-                (0, 0),
-                (-1, -1),
-                0.5,
-                colors.HexColor("#bdc3c7"),
-                1,
-                (2, 4),
-            ),
+            ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
         ])
     )
     elements.append(tabela_sumario)
@@ -2308,11 +2315,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
     # -------------------------------------------------------------------------
     # 1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA DE EXERCÍCIOS)
     # -------------------------------------------------------------------------
-    elements.append(
-        Paragraph(
-            "<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]
-        )
-    )
+    elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
 
     nota_atual = float(total)
@@ -2345,15 +2348,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
             sum(
                 info_ant.get("pontos", 0)
                 for qid_ant, info_ant in dados_ano_anterior.items()
-                if isinstance(info_ant, dict)
-                and not qid_ant.startswith("COM_")
+                if isinstance(info_ant, dict) and not qid_ant.startswith("COM_")
             )
         )
 
     faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
-    faixa_real_atual = (
-        faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
-    )
+    faixa_real_atual = faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
 
     variacao_pontos = nota_atual - nota_anterior
     if nota_anterior > 0:
@@ -2372,45 +2372,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
         cor_variacao = colors.HexColor("#6c757d")
         seta_tendencia = "■"
 
-    style_th = ParagraphStyle(
-        "Th",
-        parent=styles["Normal"],
-        fontName="Helvetica-Bold",
-        fontSize=10,
-        textColor=colors.whitesmoke,
-        alignment=1,
-    )
-    style_td_ano = ParagraphStyle(
-        "TdAno",
-        parent=styles["Normal"],
-        fontName="Helvetica-Bold",
-        fontSize=10,
-        textColor=colors.HexColor("#2c3e50"),
-        alignment=1,
-    )
-    style_td_pts = ParagraphStyle(
-        "TdPts",
-        parent=styles["Normal"],
-        fontName="Helvetica-Bold",
-        fontSize=12,
-        alignment=1,
-    )
-    style_td_faixa = ParagraphStyle(
-        "TdFaixa",
-        parent=styles["Normal"],
-        fontName="Helvetica-Bold",
-        fontSize=12,
-        textColor=colors.HexColor("#1b4f72"),
-        alignment=1,
-    )
-    style_td_var = ParagraphStyle(
-        "TdVar",
-        parent=styles["Normal"],
-        fontName="Helvetica-Bold",
-        fontSize=12,
-        textColor=cor_variacao,
-        alignment=1,
-    )
+    style_th = ParagraphStyle("Th", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=10, textColor=colors.whitesmoke, alignment=1)
+    style_td_ano = ParagraphStyle("TdAno", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=10, textColor=colors.HexColor("#2c3e50"), alignment=1)
+    style_td_pts = ParagraphStyle("TdPts", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=12, alignment=1)
+    style_td_faixa = ParagraphStyle("TdFaixa", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=12, textColor=colors.HexColor("#1b4f72"), alignment=1)
+    style_td_var = ParagraphStyle("TdVar", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=12, textColor=cor_variacao, alignment=1)
 
     dados_comparativos = [
         [
@@ -2431,12 +2397,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
             Paragraph(str(ano_atual), style_td_ano),
             Paragraph(f"{nota_atual:.1f} pts", style_td_pts),
             Paragraph(str(faixa_real_atual), style_td_faixa),
-            Paragraph(
-                f"{seta_tendencia} {variacao_pontos:+.1f} pts", style_td_var
-            ),
-            Paragraph(
-                f"{seta_tendencia} {texto_percentual}", style_td_var
-            ),
+            Paragraph(f"{seta_tendencia} {variacao_pontos:+.1f} pts", style_td_var),
+            Paragraph(f"{seta_tendencia} {texto_percentual}", style_td_var),
         ],
     ]
 
@@ -2456,9 +2418,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
     elements.append(tabela_comp)
     elements.append(Spacer(1, 12))
 
-    style_analise = ParagraphStyle(
-        "Analise", parent=styles["Normal"], fontSize=10, leading=14
-    )
+    style_analise = ParagraphStyle("Analise", parent=styles["Normal"], fontSize=10, leading=14)
     if variacao_pontos > 0:
         texto_analise = f"<b>Análise de Tendência:</b> O município registrou uma evolução de desempenho com incremento de <b>{texto_percentual}</b> na sua pontuação global comparado ao exercício de {ano_ant}."
     elif variacao_pontos < 0:
@@ -2472,11 +2432,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
     # -------------------------------------------------------------------------
     # 2. ANÁLISE DE DESEMPENHO POR QUESITO
     # -------------------------------------------------------------------------
-    elements.append(
-        Paragraph(
-            "<b>2. ANÁLISE DE DESEMPENHO POR QUESITO</b>", styles["h2"]
-        )
-    )
+    elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO POR QUESITO</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     lista_pontos_fortes = []
@@ -2519,12 +2475,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
 
     if lista_pontos_fortes:
         elements.append(Paragraph("<b>✅ Pontos Fortes:</b>", styles["h3"]))
-        data_fortes = [
-            ["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]
-        ]
-        for item in sorted(
-            lista_pontos_fortes, key=lambda x: x["pts_obtidos"], reverse=True
-        ):
+        data_fortes = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
+        for item in sorted(lista_pontos_fortes, key=lambda x: x["pts_obtidos"], reverse=True):
             evidencia = f"<b>{item['valor']}</b><br/>{item['link']}"
             data_fortes.append([
                 item["qid"],
@@ -2547,12 +2499,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
         elements.append(Spacer(1, 12))
 
     if lista_pontos_fracos:
-        elements.append(
-            Paragraph("<b>⚠️ Pontos Fracos Geral:</b>", styles["h3"])
-        )
-        data_fracos = [
-            ["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]
-        ]
+        elements.append(Paragraph("<b>⚠️ Pontos Fracos Geral:</b>", styles["h3"]))
+        data_fracos = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
         for item in sorted(lista_pontos_fracos, key=lambda x: x["pts_obtidos"]):
             evidencia = f"<b>{item['valor']}</b><br/>{item['link']}"
             data_fracos.append([
@@ -2578,13 +2526,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
     # -------------------------------------------------------------------------
     # 3. ANÁLISE DE IMPACTO E PENALIDADES
     # -------------------------------------------------------------------------
-    elements.append(
-        Paragraph(
-            "<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA"
-            " PREVENTIVA)</b>",
-            styles["h2"],
-        )
-    )
+    elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     PENALIDADES_MAX = {
@@ -2629,16 +2571,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
                     })
 
     if lista_penalidades:
-        data_penalidades = [[
-            "Quesito",
-            "Penalidade Aplicada",
-            "Pior Cenário",
-            "Eficiência Preventiva",
-            "Status de Risco",
-        ]]
-        for item in sorted(
-            lista_penalidades, key=lambda x: x["eficiencia"]
-        ):
+        data_penalidades = [["Quesito", "Penalidade Aplicada", "Pior Cenário", "Eficiência Preventiva", "Status de Risco"]]
+        for item in sorted(lista_penalidades, key=lambda x: x["eficiencia"]):
             nota_txt = f"{item['nota_real']:.1f} pts"
             teto_txt = f"{item['pen_max']:.1f} pts"
             ef_txt = f"{item['eficiencia']:.1f}%"
@@ -2672,18 +2606,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
     # -------------------------------------------------------------------------
     # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
     # -------------------------------------------------------------------------
-    elements.append(
-        Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS </b>", styles["h2"])
-    )
+    elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS </b>", styles["h2"]))
     elements.append(Spacer(1, 6))
+
     if reincidencias_detectadas:
-        data_reinc = [[
-            "Quesito",
-            "Origem da Falha",
-            "Impacto Histórico",
-            "Exercício Anterior",
-            "Exercício Atual",
-        ]]
+        data_reinc = [["Quesito", "Origem da Falha", "Impacto Histórico", "Exercício Anterior", "Exercício Atual"]]
         for reinc in reincidencias_detectadas:
             data_reinc.append([
                 reinc["qid"],
@@ -2704,40 +2631,22 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
         )
         elements.append(tabela_reinc)
     else:
-        elements.append(
-            Paragraph(
-                "<font color='#28a745'><b>Nenhuma reincidência ativa"
-                " detectada.</b></font>",
-                styles["Normal"],
-            )
-        )
+        elements.append(Paragraph("<font color='#28a745'><b>Nenhuma reincidência ativa detectada.</b></font>", styles["Normal"]))
+    
     elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
     # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
     # -------------------------------------------------------------------------
-    elements.append(
-        Paragraph(
-            "<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>",
-            styles["h2"],
-        )
-    )
+    elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     def calcular_percentual_checklist(resposta_bruta, total_itens):
         if not resposta_bruta:
             return 0.0
-        itens = [
-            i.strip().lower()
-            for i in str(resposta_bruta).split(",")
-            if i.strip()
-        ]
+        itens = [i.strip().lower() for i in str(resposta_bruta).split(",") if i.strip()]
         itens_validos = [i for i in itens if "outros" not in i]
-        return (
-            min((len(itens_validos) / total_itens) * 100.0, 100.0)
-            if total_itens > 0
-            else 0.0
-        )
+        return min((len(itens_validos) / total_itens) * 100.0, 100.0) if total_itens > 0 else 0.0
 
     analise_ods = []
     for qid, info in dados.items():
@@ -2747,16 +2656,13 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
         resp_l = resp.lower()
         metas = ""
         status = ""
+
         if qid == "1.0":
             metas = "11.5, 16.6"
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
         elif qid == "1.4":
             metas = "11.5, 16.6"
-            status = (
-                "Não Atendido"
-                if "não atuam de forma sistêmica" in resp_l
-                else "Atendido"
-            )
+            status = "Não Atendido" if "não atuam de forma sistêmica" in resp_l else "Atendido"
         elif qid == "2.0":
             metas = "11.5, 16.6"
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -2765,9 +2671,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
         elif qid == "3.1":
             metas = "11b, 11.5, 16.7, 16.10"
-            status = (
-                f"{calcular_percentual_checklist(resp, 6):.1f}% Atendido"
-            )
+            status = f"{calcular_percentual_checklist(resp, 6):.1f}% Atendido"
         elif qid == "4.0":
             metas = "1.5, 11.5, 11b"
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -2776,19 +2680,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
         elif qid == "5.1":
             metas = "11b, 11.5, 16.7, 16.10"
-            status = (
-                f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
-            )
+            status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
         elif qid == "5.1.1":
             metas = "11b, 11.5, 16.6, 16.10"
-            status = (
-                "Atendido"
-                if (
-                    "sim, integralmente" in resp_l
-                    or "sim, parcialmente" in resp_l
-                )
-                else "Não Atendido"
-            )
+            status = "Atendido" if ("sim, integralmente" in resp_l or "sim, parcialmente" in resp_l) else "Não Atendido"
         elif qid == "5.1.1.1":
             metas = "11b, 11.5, 16.6"
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -2797,11 +2692,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
             status = "Atendido" if "não" in resp_l else "Não Atendido"
         elif qid == "5.2":
             metas = "11b, 11.5, 16.6"
-            status = (
-                "Atendido"
-                if ("sim" in resp_l or "parcialmente" in resp_l)
-                else "Não Atendido"
-            )
+            status = "Atendido" if ("sim" in resp_l or "parcialmente" in resp_l) else "Não Atendido"
         elif qid == "7.0":
             metas = "11b, 11.5, 16.6"
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -2810,355 +2701,27 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
         elif qid == "7.3.1":
             metas = "11b, 11.5, 16.6"
-            status = (
-                f"{calcular_percentual_checklist(resp, 7):.1f}% Atendido"
-            )
-        elif qid == "7.4":
-            metas = "11b, 11.5, 16.6"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "7.4.1":
-            metas = "11.5, 16.6"
-            status = (
-                f"{calcular_percentual_checklist(resp, 7):.1f}% Atendido"
-            )
-        elif qid == "7.5":
-            metas = "1.5, 11.5, 16.6"
-            status = (
-                "Atendido"
-                if (
-                    "sim, atualizado" in resp_l
-                    or "sim, mas não está atualizado" in resp_l
-                )
-                else "Não Atendido"
-            )
-        elif qid == "7.6":
-            metas = "1.5, 11.5, 16.6"
-            status = (
-                "Atendido"
-                if (
-                    "sim, atualizado" in resp_l
-                    or "sim, mas não está atualizado" in resp_l
-                )
-                else "Não Atendido"
-            )
-        elif qid in ["8", "8.0"]:
-            metas = "1.5, 11.5, 16.6"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "8.1":
-            metas = "1.5, 11.5, 16.6"
-            status = (
-                f"{calcular_percentual_checklist(resp, 6):.1f}% Atendido"
-            )
-        elif qid == "8.1.1":
-            metas = "1.5, 11.5, 16.6"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "8.1.1.1":
-            metas = "1.5, 11.5, 16.6"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "8.2":
-            metas = "1.5, 11.5, 16.6"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "9.0":
-            metas = "1.5, 11.5, 16.6"
-            status = (
-                "Atendido"
-                if ("todas as escolas" in resp_l or "maior parte" in resp_l)
-                else "Não Atendido"
-            )
-        elif qid in ["10", "10.0"]:
-            metas = "11.2, 16.6"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid in ["11", "11.0"]:
-            metas = "11.2, 16.6"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "11.1":
-            metas = "11.2, 16.6"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "12.0":
-            metas = "11.2, 17.0"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "12.1.3":
-            metas = "11.2, 17.0"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid in ["13", "13.0"]:
-            metas = "11.2, 11.7, 12.5"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "14.0":
-            metas = "11.2, 17.14"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid in ["15", "15.0"]:
-            metas = "11.2, 17.14"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid in ["16", "16.0"]:
-            metas = "11.2, 17.14"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            status = f"{calcular_percentual_checklist(resp, 7):.1f}% Atendido"
 
         if metas:
-            analise_ods.append({
-                "qid": qid,
-                "status": status,
-                "metas": metas,
-                "resp": resp[:50],
-            })
+            analise_ods.append([qid, metas, status])
 
     if analise_ods:
-        data_ods = [[
-            "Quesito",
-            "Resposta Informada",
-            "Vínculo Metas ODS",
-            "Status de Cumprimento",
-        ]]
-        style_td_ods = ParagraphStyle(
-            "TdOds",
-            parent=styles["Normal"],
-            fontName="Helvetica-Bold",
-            fontSize=9,
-            alignment=1,
-        )
-        for item in sorted(
-            analise_ods,
-            key=lambda x: [
-                float(i) if i.replace(".", "", 1).isdigit() else 999
-                for i in x["qid"].split(".")
-            ],
-        ):
-            st_txt = item["status"]
-            if "Não Atendido" in st_txt:
-                st_p = Paragraph(
-                    f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods
-                )
-            elif "Atendido" in st_txt and "%" not in st_txt:
-                st_p = Paragraph(
-                    f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods
-                )
-            else:
-                st_p = Paragraph(
-                    f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods
-                )
-            data_ods.append([
-                item["qid"],
-                Paragraph(item["resp"], styles["Normal"]),
-                item["metas"],
-                st_p,
-            ])
-        tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
+        data_ods = [["Quesito", "Metas ODS Associadas", "Status de Conformidade"]] + analise_ods
+        tabela_ods = Table(data_ods, colWidths=[80, 210, 190])
         tabela_ods.setStyle(
             TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")),
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#27ae60")),
                 ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("ALIGN", (0, 0), (0, -1), "CENTER"),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#27ae60")),
+                ("FONTSIZE", (0, 0), (-1, -1), 9),
                 ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ])
         )
         elements.append(tabela_ods)
-        elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
-    # 6. SÉRIE HISTÓRICA DO I-CIDADE
-    # -------------------------------------------------------------------------
-    elements.append(
-        Paragraph("<b>6. SÉRIE HISTÓRICA DO I-CIDADE</b>", styles["h2"])
-    )
-    elements.append(Spacer(1, 10))
-
-    anos_serie = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
-    valores_serie = []
-    for a in anos_serie:
-        if a == ano_atual:
-            valores_serie.append(nota_atual)
-        elif a in all_data:
-            valores_serie.append(
-                float(
-                    sum(
-                        info_h.get("pontos", 0)
-                        for qid_h, info_h in all_data[a].items()
-                        if isinstance(info_h, dict)
-                        and not qid_h.startswith("COM_")
-                    )
-                )
-            )
-        else:
-            valores_serie.append(0.0)
-
-    # Configuração do Gráfico
-    desenho_grafico = Drawing(480, 165)
-    bc = VerticalBarChart()
-    bc.x = 45
-    bc.y = 25
-    bc.height = 110
-    bc.width = 410
-    bc.data = [valores_serie]
-    bc.categoryAxis.categoryNames = [str(a) for a in anos_serie]
-    bc.categoryAxis.labels.fontSize = 9
-    bc.categoryAxis.labels.fontName = "Helvetica-Bold"
-    bc.categoryAxis.labels.dy = -10
-
-    bc.valueAxis.valueMin = 0
-    bc.valueAxis.valueMax = 1000
-    bc.valueAxis.valueStep = 200
-    bc.valueAxis.labels.fontSize = 8
-
-    # Rótulos (Pontuação em cima da barra)
-    bc.barLabels.nudge = 8
-    bc.barLabels.fontSize = 8
-    bc.barLabels.fontName = "Helvetica-Bold"
-    bc.barLabelFormat = "%.1f"
-
-    bc.bars[0].fillColor = colors.HexColor("#1b4f72")
-    bc.bars[0].strokeColor = colors.HexColor("#2c3e50")
-    bc.bars[0].strokeWidth = 0.5
-
-    desenho_grafico.add(
-        String(
-            240,
-            150,
-            "Série Histórica do I-cidade",
-            textAnchor="middle",
-            fontName="Helvetica-Bold",
-            fontSize=12,
-            fillColor=colors.HexColor("#2c3e50"),
-        )
-    )
-    desenho_grafico.add(bc)
-
-    elements.append(desenho_grafico)
-    elements.append(Spacer(1, 15))
-
-    # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE - CONFORMIDADE OPERACIONAL)
-    # -------------------------------------------------------------------------
-    elements.append(
-        Paragraph(
-            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE - CONFORMIDADE"
-            " OPERACIONAL)</b>",
-            styles["h2"],
-        )
-    )
-    elements.append(Spacer(1, 6))
-
-    # Lista dos quesitos a serem auditados dinamicamente no iCidade
-    lista_alvo_sp = [
-        "4.0",
-        "11.0",
-        "12.0",
-        "13.0",
-        "4.1",
-        "5.1",
-        "5.1.2",
-        "5.1.2.1",
-        "7.3.1",
-        "8.4.1",
-        "8.1",
-        "8.1.1",
-        "12.1.3.1",
-        "14.1",
-    ]
-
-    analise_sp = []
-
-    # Processa os dados extraídos dinamicamente do dicionário do exercício atual
-    for qid in lista_alvo_sp:
-        info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
-
-        if isinstance(info, dict):
-            resp = str(info.get("valor", "")).strip()
-        else:
-            resp = str(info).strip()
-
-        resp_l = resp.lower()
-        is_adequado = False
-
-        # Regras de validação por quesito
-        if qid in ["4.0", "11.0", "12.0", "13.0", "8.1.1"]:
-            # Validação: Se for Sim
-            if any(
-                x == resp_l or x in resp_l
-                for x in ["sim", "1", "s", "true", "adequado"]
-            ):
-                is_adequado = True
-
-        elif qid == "4.1":
-            # Validação: Riscos Geológicos, Hidrológicos, Meteorológicos ou Biológicos
-            opcoes = [
-                "riscos geológicos",
-                "riscos hidrológicos",
-                "riscos meteorológicos",
-                "riscos biológicos",
-            ]
-            if any(op in resp_l for op in opcoes):
-                is_adequado = True
-
-        elif qid in ["5.1", "7.3.1", "8.1"]:
-            # Validação para checklists: considera adequado se houver seleção válida
-            if resp and resp != "EMPTY_STRING" and "nenhum" not in resp_l:
-                is_adequado = True
-
-        elif qid in ["5.1.2", "5.1.2.1"]:
-            # Se não houver pendências / impedimentos
-            if "não" in resp_l or "ausente" in resp_l:
-                is_adequado = True
-
-        else:
-            # Padrão para os demais quesitos informativos
-            if (
-                resp
-                and resp != "EMPTY_STRING"
-                and "não" not in resp_l
-                and "sem" not in resp_l
-            ):
-                is_adequado = True
-
-        status_p = (
-            "<font color='#28a745'><b>Conforme</b></font>"
-            if is_adequado
-            else "<font color='#dc3545'><b>Inconforme / Ponto de Atenção</b></font>"
-        )
-
-        analise_sp.append({
-            "qid": qid,
-            "resp": resp[:60] if resp else "Não Informado",
-            "status": status_p,
-        })
-
-    if analise_sp:
-        data_sp = [["Quesito", "Resposta Informada", "Status de Conformidade"]]
-        style_td_sp = ParagraphStyle(
-            "TdSp",
-            parent=styles["Normal"],
-            fontName="Helvetica-Bold",
-            fontSize=9,
-            alignment=1,
-        )
-        for item in analise_sp:
-            data_sp.append([
-                item["qid"],
-                Paragraph(item["resp"], styles["Normal"]),
-                Paragraph(item["status"], style_td_sp),
-            ])
-        tabela_sp = Table(data_sp, colWidths=[70, 265, 150])
-        tabela_sp.setStyle(
-            TableStyle([
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495e")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                ("ALIGN", (0, 0), (0, -1), "CENTER"),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#34495e")),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-            ])
-        )
-        elements.append(tabela_sp)
-
-    # Constrói o PDF e devolve os bytes
+    # Construção final do documento PDF
     doc.build(elements)
     buffer.seek(0)
     return buffer
-
-# =============================================================================
-# 5. ENTRY POINT PRINCIPAL
-# =============================================================================
-@ui.page('/')
-def mostrar_formulario_icidade():
-    container_formulario_icidade()
-
-if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(title="Indicador i-Cidade • Defesa Civil", storage_secret="sua_chave_secreta_aqui")
