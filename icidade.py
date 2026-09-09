@@ -1299,6 +1299,114 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh
     )
 
+# =============================================================================
+    # QUESITO 8.1.1 • UTILIZAÇÃO DO NÚMERO 199
+    # =============================================================================
+    opcoes_811 = {
+        "Selecione...": 0.0,
+        "Sim": 0.0,
+        "Não": 0.0,
+    }
+
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="8.1.1",
+        titulo="8.1.1 • Linha Telefônica 199",
+        pergunta="Sobre o número de telefone de emergência, utiliza o número 199 da Defesa Civil?",
+        opcoes=opcoes_811,
+        pontuacao_maxima=0.0,
+        informativo=True,
+        placeholder_link="Ex: Decreto de criação, conta telefônica, print do painel...",
+        on_save_callback=container_formulario_icidade.refresh,
+    )
+
+    # =============================================================================
+    # QUESITO 8.1.1.1 • DISPONIBILIDADE 24 HORAS DO 199
+    # =============================================================================
+    opcoes_8111 = {
+        "Selecione...": 0.0,
+        "Sim (20 pts)": 20.0,
+        "Não (00 pts)": 0.0,
+    }
+
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="8.1.1.1",
+        titulo="8.1.1.1 • Regime de Operação (24h)",
+        pergunta="O telefone 199 tem atendimento 24 horas por dia?",
+        opcoes=opcoes_8111,
+        pontuacao_maxima=20.0,
+        placeholder_link="Ex: Escala de servidores, link do diário oficial...",
+        on_save_callback=container_formulario_icidade.refresh,
+    )
+
+    # =============================================================================
+    # QUESITO 8.2 • REGISTRO ELETRÔNICO DE OCORRÊNCIAS
+    # =============================================================================
+    opcoes_82 = {
+        "Selecione...": 0.0,
+        "Sim (50 pts)": 50.0,
+        "Não (00 pts)": 0.0,
+    }
+
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="8.2",
+        titulo="8.2 • Registro Eletrônico",
+        pergunta="O Município registra as ocorrências de Defesa Civil de forma eletrônica?",
+        opcoes=opcoes_82,
+        pontuacao_maxima=50.0,
+        placeholder_link="Ex: Link do sistema informatizado, prints das telas de cadastro, decreto de adoção...",
+        on_save_callback=container_formulario_icidade.refresh,
+    )
+
+    # =============================================================================
+    # QUESITO 9.0 • AVALIAÇÃO ESTRUTURAL DE ESCOLAS E SAÚDE
+    # =============================================================================
+    opcoes_90 = {
+        "Selecione...": 0.0,
+        "Sim, em todas as escolas e centros de saúde (100 pts)": 100.0,
+        "Sim, na maior parte das escolas e centros de saúde (50 pts)": 50.0,
+        "Sim, na menor parte das escolas e centros de saúde (20 pts)": 20.0,
+        "Não (00 pts)": 0.0,
+    }
+
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="9.0",
+        titulo="9.0 • Escolas e Saúde",
+        pergunta="O Município realizou um estudo de avaliação da estrutura de todas as escolas e unidades de saúde para garantir que, em caso de desastre, esses locais estejam preparados para abrigar e atender a população afetada?",
+        opcoes=opcoes_90,
+        pontuacao_maxima=100.0,
+        placeholder_link="Ex: Link do estudo, relatório estrutural, laudos das edificações...",
+        on_save_callback=container_formulario_icidade.refresh,
+    )
+
+    # =============================================================================
+    # QUESITO 10.0 • PLANO DE MOBILIDADE URBANA
+    # =============================================================================
+    opcoes_100 = {
+        "Selecione...": 0.0,
+        "Sim (00 pts)": 0.0,
+        "Não (-100 pts)": -100.0,
+        "Não se aplica (00 pts)": 0.0,
+    }
+
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="10.0",
+        titulo="10.0 • Mobilidade Urbana",
+        pergunta="O Município elaborou seu Plano de Mobilidade Urbana?",
+        opcoes=opcoes_100,
+        pontuacao_maxima=0.0,
+        placeholder_link="Ex: Link do plano publicado, lei municipal ou justificativa legal de não aplicabilidade...",
+        on_save_callback=container_formulario_icidade.refresh,
+    )
 
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
