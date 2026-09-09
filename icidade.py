@@ -1,4 +1,5 @@
-import os
+
+  import os
 import json
 import re
 from datetime import datetime
@@ -11,9 +12,11 @@ from psycopg2.extras import RealDictCursor
 # =============================================================================
 REGEX_PURE_URL = r'https?://[^\s]+'
 
-# Configure a URL de Conexão do Neon na variável de ambiente NEON_DATABASE_URL
-# Exemplo: postgresql://usuario:senha@ep-xyz.us-east-2.aws.neon.tech/neondb?sslmode=require
-DATABASE_URL = os.getenv("NEON_DATABASE_URL", "postgresql://usuario:senha@seuhost.neon.tech/neondb?sslmode=require")
+# Connection string configurada para o seu cluster no Neon
+DATABASE_URL = os.getenv(
+    "NEON_DATABASE_URL",
+    "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
+)
 
 def get_db_connection():
     """Cria e retorna uma conexão ativa com a base de dados do Neon."""
@@ -23,7 +26,6 @@ def get_db_connection():
 def load_respostas(ano):
     """
     Carrega o dicionário de respostas salvas para o ano selecionado no Neon DB.
-    Mantém a mesma estrutura de dicionário esperada pela interface NiceGUI.
     """
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
@@ -49,6 +51,77 @@ def load_respostas(ano):
         ui.notify(f"Erro ao carregar dados do banco Neon: {e}", type="negative")
 
     return respostas
+
+
+def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pendente"):
+    """
+    Salva a resposta, link, pontos e o histórico de comentários de um quesito no Neon DB.
+    Utiliza UPSERT (ON CONFLICT) para atualizar se já existir.
+    """
+    if comentarios is None:
+        dados_atuais = load_respostas(ano).get(qid, {})
+        comentarios = dados_atuais.get("comentarios", [])
+
+    comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
+    comentarios_json = json.dumps(comentarios_validos)
+
+    query = """
+        INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
+        VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s)
+        ON CONFLICT (ano, qid) 
+        DO UPDATE SET
+            valor = EXCLUDED.valor,
+            pontos = EXCLUDED.pontos,
+            link = EXCLUDED.link,
+            comentarios = EXCLUDED.comentarios,
+            status = EXCLUDED.status,
+            updated_at = CURRENT_TIMESTAMP;
+    """
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (ano, qid, valor, pontos, link, comentarios_json, status))
+            conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
+        ui.notify(f"Erro ao salvar no banco Neon: {e}", type="negative")
+
+
+def zerar_questionario_db(ano):
+    """Limpa todas as respostas salvas do ano selecionado na tabela do Neon DB."""
+    query = "DELETE FROM respostas_icidade WHERE ano = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (ano,))
+            conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
+        ui.notify(f"Erro ao apagar dados no banco Neon: {e}", type="negative")
+
+
+def _obter_lista_comentarios(dados_banco):
+    """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
+    raw = dados_banco.get("comentarios", [])
+    if isinstance(raw, str):
+        if raw in ["EMPTY_STRING", "", "null", "None"]:
+            return []
+        try:
+            raw = json.loads(raw)
+        except Exception:
+            return []
+    if isinstance(raw, list):
+        return raw
+    return []
+
+
+def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
+    """Gera dados para download do relatório em PDF."""
+    conteudo = f"RELATÓRIO TÉCNICO i-Cidade ({ano})\n"
+    conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
+    for qid, dados in res_data.items():
+        conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
+    return conteudo.encode('utf-8')
 
 
 def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pendente"):
