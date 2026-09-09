@@ -1876,7 +1876,16 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh
     )
 
-   # =============================================================================
+    import os
+    from io import BytesIO
+    from reportlab.lib.pagesizes import A4
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib import colors
+    from reportlab.graphics.shapes import Drawing, String
+    from reportlab.graphics.charts.barcharts import VerticalBarChart
+
+    # =============================================================================
     # 3. GERADOR DO RELATÓRIO PDF (INDENTAÇÃO DE 4 ESPAÇOS)
     # =============================================================================
     def gerar_relatorio_pdf(dados, ano, total, faixa):
