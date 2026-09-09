@@ -1872,21 +1872,19 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh
     )
 
-# --- INICIALIZAÇÃO DO SCRIPT (NICEGUI) ---
+# --- INICIALIZAÇÃO DO SCRIPT ---
 if __name__ in {"__main__", "__mp_main__"}:
-    # 1. Inicializa o banco de dados
-    init_db()
+    # 1. Inicializa o banco de dados (se necessário)
+    # init_db()
 
-    # 2. Configura e carrega a interface do NiceGUI
-    mostrar_formulario_cidade()
+    # 2. Renderiza a interface usando a função correta que existe no seu arquivo
+    container_formulario_icidade()
 
-    # 3. Executa o servidor NiceGUI com as configurações de página
+    # 3. Inicia o servidor NiceGUI
     ui.run(
         title="IEGM i-Cidade",
         favicon="🏙️",
-        dark=False,
         port=8080,
-        reload=False  # Altere para True durante o desenvolvimento local
+        reload=False
     )
-
    
