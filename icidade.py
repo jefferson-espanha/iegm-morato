@@ -144,16 +144,6 @@ def _obter_lista_comentarios(dados_banco):
         return raw
     return []
 
-
-def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
-    """Gera dados para download do relatório em PDF."""
-    conteudo = f"RELATÓRIO TÉCNICO i-Cidade ({ano})\n"
-    conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
-    for qid, dados in res_data.items():
-        conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
-    return conteudo.encode("utf-8")
-
-
 # =============================================================================
 # 1. PAINEL LATERAL / CONTROLE
 # =============================================================================
