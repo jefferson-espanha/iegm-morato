@@ -1,14 +1,9 @@
-import os
-import json
-import logging
 from datetime import datetime
-import psycopg2
-from psycopg2.extras import RealDictCursor
 import plotly.graph_objects as go
-from nicegui import ui, app
+from nicegui import ui
 
 # =============================================================================
-# CONSTANTES GLOBAIS E CONFIGURAÇÕES
+# CONSTANTES GLOBAIS E ESTADO LOCAL
 # =============================================================================
 
 PONTUACOES = {
@@ -26,101 +21,7 @@ ESTADO = {
 }
 
 # =============================================================================
-# BANCO DE DADOS (NEON / POSTGRESQL)
-# =============================================================================
-
-def get_db_url():
-    db_url = os.environ.get("DATABASE_URL", "")
-    if not db_url:
-        db_url = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
-    if "channel_binding=" in db_url:
-        db_url = db_url.split("&channel_binding=")[0].split("?channel_binding=")[0]
-    if "sslmode=require" not in db_url and "localhost" not in db_url:
-        db_url += ("&" if "?" in db_url else "?") + "sslmode=require"
-    return db_url
-
-def get_db_connection():
-    return psycopg2.connect(get_db_url())
-
-def init_db():
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS respostas (
-                        id VARCHAR(50),
-                        ano INT,
-                        valor TEXT,
-                        pontos FLOAT,
-                        link TEXT,
-                        comentarios JSONB,
-                        atualizado_em TIMESTAMP,
-                        PRIMARY KEY (id, ano)
-                    );
-                """)
-            conn.commit()
-    except Exception as e:
-        logging.error(f"Erro ao inicializar tabela de respostas: {e}")
-
-def carregar_respostas(ano: int) -> dict:
-    respostas = {}
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-                cursor.execute("SELECT id, valor, pontos, link, comentarios FROM respostas WHERE ano = %s", (ano,))
-                rows = cursor.fetchall()
-                for row in rows:
-                    comentarios = row.get("comentarios") or []
-                    if isinstance(comentarios, str):
-                        try:
-                            comentarios = json.loads(comentarios)
-                        except Exception:
-                            comentarios = []
-                    respostas[str(row["id"])] = {
-                        "valor": row["valor"] or "",
-                        "pontos": float(row["pontos"] or 0.0),
-                        "link": row["link"] or "",
-                        "comentarios": comentarios
-                    }
-    except Exception as e:
-        logging.error(f"Erro ao carregar do banco no icidade: {e}")
-    return respostas
-
-def salvar_resposta_db(qid, valor, pontos, link, comentarios):
-    ano = ESTADO["ano_selecionado"]
-    comentarios_json = json.dumps(comentarios, ensure_ascii=False)
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    INSERT INTO respostas (id, ano, valor, pontos, link, comentarios, atualizado_em)
-                    VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s)
-                    ON CONFLICT (id, ano) DO UPDATE SET
-                        valor = EXCLUDED.valor,
-                        pontos = EXCLUDED.pontos,
-                        link = EXCLUDED.link,
-                        comentarios = EXCLUDED.comentarios,
-                        atualizado_em = EXCLUDED.atualizado_em;
-                """, (str(qid), int(ano), str(valor), float(pontos), str(link), comentarios_json, timestamp))
-            conn.commit()
-        ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
-    except Exception as e:
-        ui.notify(f"Erro ao salvar quesito {qid}: {e}", type="negative")
-
-def zerar_ano_db(ano: int):
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("DELETE FROM respostas WHERE ano = %s", (ano,))
-            conn.commit()
-        ui.notify(f"Respostas de {ano} foram apagadas.", type="warning")
-    except Exception as e:
-        ui.notify(f"Erro ao zerar ano: {e}", type="negative")
-
-# =============================================================================
-# INTERFACE GRÁFICA
+# FUNÇÕES DE CÁLCULO E LÓGICA
 # =============================================================================
 
 def calcular_total():
@@ -133,13 +34,12 @@ def obter_faixa_cor(total):
     elif total <= 899: return "B+", "#22c55e"
     else:              return "A", "#16a34a"
 
-def recarregar_dados():
-    ESTADO["respostas"] = carregar_respostas(ESTADO["ano_selecionado"])
+# =============================================================================
+# INTERFACE GRÁFICA
+# =============================================================================
 
-def mostrar_formulario_cidade():
-    init_db()
-    recarregar_dados()
-
+@ui.page("/")
+def main_page():
     # --- SIDEBAR / PAINEL LATERAL ---
     with ui.left_drawer().classes("bg-slate-800 text-white p-4 w-64"):
         ui.label("🛠️ Painel i-Cidade").classes("text-xl font-bold mb-4")
@@ -164,24 +64,23 @@ def mostrar_formulario_cidade():
 
         def ao_mudar_ano(e):
             ESTADO["ano_selecionado"] = e.value
-            recarregar_dados()
             atualizar_placar()
 
         select_ano.on_value_change(ao_mudar_ano)
 
-        ui.button("🔄 Atualizar Dados", on_click=lambda: (recarregar_dados(), atualizar_placar())).classes("w-full bg-blue-600 mb-2")
+        ui.button("🔄 Recarregar", on_click=lambda: ui.navigate.reload()).classes("w-full bg-blue-600 mb-2")
         
         with ui.dialog() as dialog_zerar, ui.card():
             ui.label("⚠️ Confirmar exclusão?").classes("font-bold text-lg text-red-600")
-            ui.label(f"Isso irá apagar permanentemente os dados do ano {ESTADO['ano_selecionado']}.")
+            ui.label(f"Isso irá apagar as respostas do ano {ESTADO['ano_selecionado']}.")
             input_senha = ui.input("Senha de Administrador", password=True)
             
             def processar_zerar():
                 if input_senha.value == "fidelios":
-                    zerar_ano_db(ESTADO["ano_selecionado"])
+                    ESTADO["respostas"].clear()
                     dialog_zerar.close()
-                    recarregar_dados()
                     atualizar_placar()
+                    ui.notify("Dados limpos!", type="warning")
                 else:
                     ui.notify("Senha incorreta!", type="negative")
 
@@ -189,7 +88,7 @@ def mostrar_formulario_cidade():
                 ui.button("Confirmar", on_click=processar_zerar).classes("bg-red-600 text-white")
                 ui.button("Cancelar", on_click=dialog_zerar.close)
 
-        ui.button("🗑️ Zerar Ano", on_click=dialog_zerar.open).classes("w-full bg-red-600 mb-6")
+        ui.button("🗑️ Zerar Respostas", on_click=dialog_zerar.open).classes("w-full bg-red-600 mb-6")
 
         ui.markdown("""
         <div style="font-size: 11px; text-align: center; color: #94a3b8; margin-top: auto;">
@@ -230,9 +129,14 @@ def mostrar_formulario_cidade():
                             def salvar():
                                 val = radio_val.value
                                 pts = opcoes.get(val, 0.0)
-                                salvar_resposta_db(qid, val, pts, input_link.value, comentarios)
-                                recarregar_dados()
+                                ESTADO["respostas"][qid] = {
+                                    "valor": val,
+                                    "pontos": pts,
+                                    "link": input_link.value,
+                                    "comentarios": comentarios
+                                }
                                 atualizar_placar()
+                                ui.notify(f"Quesito {qid} salvo!", type="positive")
 
                             ui.button("💾 Salvar", on_click=salvar).classes("bg-green-600 text-white")
 
@@ -274,7 +178,7 @@ def mostrar_formulario_cidade():
 
                 # Lista de Quesitos
                 render_card_quesito("1.0", "Criação da COMPDEC / Defesa Civil", "Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil?", PONTUACOES["1.0"])
-                render_card_quesito("1.3", "Plano de Contingência", "O município possui Plano de Contingência formalmente instituído?", PONTUACOES["1.3"])
+                render_card_quesito("1.3", "Plano de Contingência", "O município possui Plano de Contingência formalmente institutedo?", PONTUACOES["1.3"])
                 render_card_quesito("1.4", "Mapeamento de Áreas de Risco", "Existe mapeamento oficial das áreas de risco de desastres?", PONTUACOES["1.4"])
                 render_card_quesito("2.0", "Capacitação da Equipe Técnico-Operacional", "Os servidores participaram de treinamentos em gestão de riscos?", PONTUACOES["2.0"])
                 render_card_quesito("3.0", "Sistema de Alerta Precoce", "O município conta com sistema para emissão de alertas precoces?", PONTUACOES["3.0"])
@@ -300,13 +204,8 @@ def mostrar_formulario_cidade():
                 
                 ui.plotly(fig).classes("w-full h-96")
 
-# Compatibilidade para chamada pelo main
-mostrar_icidade = mostrar_formulario_cidade
-main_page = mostrar_formulario_cidade
+# =============================================================================
+# EXECUÇÃO DIRETA DA APLICAÇÃO
+# =============================================================================
 
-if __name__ in {"__main__", "__mp_main__"}:
-    @ui.page('/')
-    def standalone():
-        mostrar_formulario_cidade()
-        
-    ui.run(title="Painel IEG-M - i-Cidade", port=8080, reload=False)
+ui.run(title="Painel IEG-M - i-Cidade", port=8080, reload=False)
