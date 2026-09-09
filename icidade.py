@@ -1712,4 +1712,8 @@ def main_page():
     container_formulario_icidade()
 
 if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(title="Indicador i-Cidade • Defesa Civil", port=8080, storage_secret="sua_chave_secreta_aqui")
+    ui.run(
+        title="Indicador i-Cidade • Defesa Civil",
+        port=8080,
+        storage_secret="sua_chave_secreta_aqui"
+    )
