@@ -1668,10 +1668,12 @@ def container_formulario_icidade():
         on_save_callback=container_formulario_icidade.refresh
     )
 
+# =============================================================================
+# INICIALIZAÇÃO DA APLICAÇÃO NICEGUI
+# =============================================================================
+@ui.page('/')
+def main_page():
+    container_formulario_icidade()
+
 if __name__ in {"__main__", "__mp_main__"}:
-    @ui.page('/')
-    def standalone():
-        mostrar_formulario_cidade()
-        
-    ui.run(title="Painel IEG-M - i-Cidade", port=8080, reload=False)
-   
+    ui.run(title="Indicador i-Cidade • Defesa Civil", port=8080, storage_secret="sua_chave_secreta_aqui")
