@@ -32,8 +32,8 @@ def import_local_module(module_name):
         traceback.print_exc()
         return None
 
-# Importação de Módulos IEG-M
-icidade = import_local_module("icidade_completo") or import_local_module("icidade")
+# Importação de Módulos IEG-M (Corrigido para focar diretamente em icidade.py)
+icidade = import_local_module("icidade") or import_local_module("icidade_completo")
 igov = import_local_module("igov")
 iamb = import_local_module("iamb")
 ifiscal = import_local_module("ifiscal")
@@ -364,7 +364,7 @@ def dimension_page():
                         icidade.init_db()
 
                     funcao_encontrada = None
-                    for nome_fn in ["main_page_com_sidebar", "main_page", "mostrar_formulario_cidade", "mostrar_icidade", "run", "main"]:
+                    for nome_fn in ["mostrar_formulario_cidade", "main_page_com_sidebar", "main_page", "mostrar_icidade", "run", "main"]:
                         if hasattr(icidade, nome_fn) and callable(getattr(icidade, nome_fn)):
                             funcao_encontrada = getattr(icidade, nome_fn)
                             break
