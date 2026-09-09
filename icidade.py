@@ -1,37 +1,103 @@
+import os
 import json
 import re
 from datetime import datetime
 from nicegui import app, ui
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 # =============================================================================
-# EXPRESSÕES REGULARES E PERSISTÊNCIA LOCAL
+# EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
 # =============================================================================
 REGEX_PURE_URL = r'https?://[^\s]+'
 
+# Configure a URL de Conexão do Neon na variável de ambiente NEON_DATABASE_URL
+# Exemplo: postgresql://usuario:senha@ep-xyz.us-east-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL = os.getenv("NEON_DATABASE_URL", "postgresql://usuario:senha@seuhost.neon.tech/neondb?sslmode=require")
+
+def get_db_connection():
+    """Cria e retorna uma conexão ativa com a base de dados do Neon."""
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+
+
 def load_respostas(ano):
-    """Carrega o dicionário de respostas salvas para o ano selecionado."""
-    return app.storage.user.get(f"respostas_icidade_{ano}", {})
+    """
+    Carrega o dicionário de respostas salvas para o ano selecionado no Neon DB.
+    Mantém a mesma estrutura de dicionário esperada pela interface NiceGUI.
+    """
+    query = """
+        SELECT qid, valor, pontos, link, comentarios, status
+        FROM respostas_icidade
+        WHERE ano = %s;
+    """
+    respostas = {}
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (ano,))
+                rows = cur.fetchall()
+                for row in rows:
+                    respostas[row['qid']] = {
+                        "valor": row['valor'] if row['valor'] is not None else "",
+                        "pontos": float(row['pontos']) if row['pontos'] is not None else 0.0,
+                        "link": row['link'] if row['link'] is not None else "",
+                        "comentarios": row['comentarios'] if isinstance(row['comentarios'], list) else [],
+                        "status": row['status'] if row['status'] is not None else "Pendente"
+                    }
+    except Exception as e:
+        print(f"❌ Erro ao carregar respostas do Neon DB: {e}")
+        ui.notify(f"Erro ao carregar dados do banco Neon: {e}", type="negative")
 
-def save_resposta(ano, qid, valor, pontos, link, comentarios=None):
-    """Salva a resposta e o histórico de comentários de um quesito."""
-    chave = f"respostas_icidade_{ano}"
-    respostas = app.storage.user.get(chave, {})
-    
-    dados_existentes = respostas.get(qid, {})
+    return respostas
+
+
+def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pendente"):
+    """
+    Salva a resposta, link, pontos e o histórico de comentários de um quesito no Neon DB.
+    Utiliza UPSERT (ON CONFLICT) para inserir ou atualizar o registro existente.
+    """
     if comentarios is None:
-        comentarios = dados_existentes.get("comentarios", [])
+        dados_atuais = load_respostas(ano).get(qid, {})
+        comentarios = dados_atuais.get("comentarios", [])
 
-    respostas[qid] = {
-        "valor": valor,
-        "pontos": pontos,
-        "link": link,
-        "comentarios": comentarios
-    }
-    app.storage.user[chave] = respostas
+    # Trata e garante que os comentários fiquem no formato JSON
+    comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
+    comentarios_json = json.dumps(comentarios_validos)
+
+    query = """
+        INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
+        VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s)
+        ON CONFLICT (ano, qid) 
+        DO UPDATE SET
+            valor = EXCLUDED.valor,
+            pontos = EXCLUDED.pontos,
+            link = EXCLUDED.link,
+            comentarios = EXCLUDED.comentarios,
+            status = EXCLUDED.status,
+            updated_at = CURRENT_TIMESTAMP;
+    """
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (ano, qid, valor, pontos, link, comentarios_json, status))
+            conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
+        ui.notify(f"Erro ao salvar no banco Neon: {e}", type="negative")
+
 
 def zerar_questionario_db(ano):
-    """Limpa todas as respostas salvas do ano selecionado."""
-    app.storage.user[f"respostas_icidade_{ano}"] = {}
+    """Limpa todas as respostas salvas do ano selecionado na tabela do Neon DB."""
+    query = "DELETE FROM respostas_icidade WHERE ano = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (ano,))
+            conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
+        ui.notify(f"Erro ao apagar dados no banco Neon: {e}", type="negative")
+
 
 def _obter_lista_comentarios(dados_banco):
     """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
@@ -46,6 +112,7 @@ def _obter_lista_comentarios(dados_banco):
     if isinstance(raw, list):
         return raw
     return []
+
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
     """Gera dados para download do relatório em PDF."""
