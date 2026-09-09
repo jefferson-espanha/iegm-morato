@@ -35,14 +35,14 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
     return conteudo.encode('utf-8')
 
 # =============================================================================
-# 1. RENDERIZADOR DA SIDEBAR (FORA DO REFRESHABLE)
+# 1. RENDERIZADOR DO PAINEL LATERAL (SEM LEFT_DRAWER PARA EVITAR ANINHAMENTO)
 # =============================================================================
-def render_sidebar(on_refresh_callback=None):
+def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
-    with ui.left_drawer(value=True).classes('bg-slate-100 p-4 border-r'):
-        ui.label("🛠️ Painel de Controle").classes('text-lg font-bold mb-2')
+    with ui.card().classes('w-full bg-slate-100 p-4 border rounded-lg shadow-sm'):
+        ui.label("🛠️ Painel de Controle").classes('text-lg font-bold mb-2 text-blue-900')
 
         # Seleção de Ano
         def ao_mudar_ano(e):
@@ -73,8 +73,8 @@ def render_sidebar(on_refresh_callback=None):
         else:
             faixa, cor = "A", "text-green-700"
 
-        # Card de Pontuação na Sidebar
-        with ui.card().classes('w-full mb-4 p-3 bg-white shadow-sm'):
+        # Card de Pontuação
+        with ui.card().classes('w-full mb-4 p-3 bg-white shadow-sm border'):
             ui.label("Pontuação Total").classes('text-xs text-gray-500 font-bold uppercase')
             ui.label(f"{total_pts:.1f} pts").classes('text-2xl font-black text-gray-800')
             
@@ -131,7 +131,7 @@ def render_sidebar(on_refresh_callback=None):
                 <span>Procuradoria do Município</span><br>
                 <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
             </div>
-        """).classes('w-full mt-auto')
+        """).classes('w-full')
 
 # =============================================================================
 # 2. RENDERIZADOR DE QUESITO
@@ -139,7 +139,7 @@ def render_sidebar(on_refresh_callback=None):
 def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text="", on_save_callback=None):
     d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": ""}
     
-    with ui.card().classes('w-full mb-4 p-4 shadow-1 border-1'):
+    with ui.card().classes('w-full mb-4 p-4 border rounded-lg shadow-sm'):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes('w-full font-bold'):
             ui.label(f"{qid} • {titulo}").classes('text-h6 text-primary mt-2')
             ui.label(pergunta).classes('text-body1 font-bold my-2')
@@ -212,98 +212,104 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes('bg-blue-800 text-white mt-4')
 
 # =============================================================================
-# 3. ÁREA DE CONTEÚDO REFRESHABLE (SEM ELEMENTOS TOP-LEVEL DE LAYOUT)
+# 3. CONTAINER REFRESHABLE GRID (PAINEL + FORMULÁRIO)
 # =============================================================================
 @ui.refreshable
 def container_formulario_icidade():
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     res_data = load_respostas(ano_sel)
 
-    ui.label(f"Formulário COMPDEC - Defesa Civil ({ano_sel})").classes('text-h4 mb-2 font-bold text-blue-900')
-    ui.label("Preencha as evidências e questões do indicador i-Cidade.").classes('text-gray-600 mb-6')
+    # Layout em 2 colunas responsivas: Painel à esquerda (col-span-1) e Quesitos à direita (col-span-3)
+    with ui.grid(columns=4).classes('w-full gap-6 items-start'):
+        
+        # Coluna da Esquerda (Painel de Controle)
+        with ui.column().classes('col-span-1 w-full'):
+            render_painel_controle(on_refresh_callback=container_formulario_icidade.refresh)
 
-    # QUESITO 1.0
-    opcoes_10 = {
-        "Selecione...": 0.0,
-        "Sim (40 pts)": 40.0,
-        "Não (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.0",
-        titulo="Criação da COMPDEC ou Órgão Similar",
-        pergunta="Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil-COMPDEC ou órgão similar responsável pela execução, coordenação e mobilização de todas as ações de defesa civil no município?",
-        opcoes=opcoes_10,
-        on_save_callback=container_formulario_icidade.refresh
-    )
+        # Coluna da Direita (Quesitos do Formulário)
+        with ui.column().classes('col-span-3 w-full'):
+            ui.label(f"Formulário COMPDEC - Defesa Civil ({ano_sel})").classes('text-h4 mb-1 font-bold text-blue-900')
+            ui.label("Preencha as evidências e questões do indicador i-Cidade.").classes('text-gray-600 mb-6')
 
-    # QUESITO 1.1
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.1",
-        titulo="Dados do Instrumento Normativo COMPDEC",
-        pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
-        is_text_area=True,
-        placeholder_text="Ex: Decreto nº 123 de 01/01/2025",
-        on_save_callback=container_formulario_icidade.refresh
-    )
+            # QUESITO 1.0
+            opcoes_10 = {
+                "Selecione...": 0.0,
+                "Sim (40 pts)": 40.0,
+                "Não (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.0",
+                titulo="Criação da COMPDEC ou Órgão Similar",
+                pergunta="Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil-COMPDEC ou órgão similar responsável pela execução, coordenação e mobilização de todas as ações de defesa civil no município?",
+                opcoes=opcoes_10,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-    # QUESITO 1.2
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.2",
-        titulo="Endereço Eletrônico do Instrumento Normativo",
-        pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar:",
-        is_text_area=True,
-        placeholder_text="https://www.municipio.sp.gov.br/legislacao",
-        on_save_callback=container_formulario_icidade.refresh
-    )
+            # QUESITO 1.1
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.1",
+                titulo="Dados do Instrumento Normativo COMPDEC",
+                pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
+                is_text_area=True,
+                placeholder_text="Ex: Decreto nº 123 de 01/01/2025",
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-    # QUESITO 1.3
-    opcoes_13 = {
-        "Selecione...": 0.0,
-        "Gabinete do Prefeito (05 pts)": 5.0,
-        "Segurança Pública (00 pts)": 0.0,
-        "Controladoria (00 pts)": 0.0,
-        "Outra (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.3",
-        titulo="Secretaria ou Diretoria de Subordinação",
-        pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
-        opcoes=opcoes_13,
-        on_save_callback=container_formulario_icidade.refresh
-    )
+            # QUESITO 1.2
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.2",
+                titulo="Endereço Eletrônico do Instrumento Normativo",
+                pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar:",
+                is_text_area=True,
+                placeholder_text="https://www.municipio.sp.gov.br/legislacao",
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-    # QUESITO 1.4
-    opcoes_14 = {
-        "Selecione...": 0.0,
-        "Sim, inclusive com a participação de entidades privadas e da comunidade (50 pts)": 50.0,
-        "Sim, com participação de entidades privadas (20 pts)": 20.0,
-        "Sim, com participação da comunidade (20 pts)": 20.0,
-        "Sim, apenas com representantes da administração municipal (10 pts)": 10.0,
-        "Não atuam de forma sistêmica (00 pts)": 0.0
-    }
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.4",
-        titulo="Atuação Sistêmica e Articulação da Defesa Civil",
-        pergunta="Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta e recuperação de acordo com a Política Nacional de Proteção e Defesa Civil - PNPDEC?",
-        opcoes=opcoes_14,
-        on_save_callback=container_formulario_icidade.refresh
-    )
+            # QUESITO 1.3
+            opcoes_13 = {
+                "Selecione...": 0.0,
+                "Gabinete do Prefeito (05 pts)": 5.0,
+                "Segurança Pública (00 pts)": 0.0,
+                "Controladoria (00 pts)": 0.0,
+                "Outra (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.3",
+                titulo="Secretaria ou Diretoria de Subordinação",
+                pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
+                opcoes=opcoes_13,
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # QUESITO 1.4
+            opcoes_14 = {
+                "Selecione...": 0.0,
+                "Sim, inclusive com a participação de entidades privadas e da comunidade (50 pts)": 50.0,
+                "Sim, com participação de entidades privadas (20 pts)": 20.0,
+                "Sim, com participação da comunidade (20 pts)": 20.0,
+                "Sim, apenas com representantes da administração municipal (10 pts)": 10.0,
+                "Não atuam de forma sistêmica (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.4",
+                titulo="Atuação Sistêmica e Articulação da Defesa Civil",
+                pergunta="Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta e recuperação de acordo com a Política Nacional de Proteção e Defesa Civil - PNPDEC?",
+                opcoes=opcoes_14,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
 # =============================================================================
 # 4. PONTO DE ENTRADA PRINCIPAL
 # =============================================================================
 def mostrar_formulario_icidade():
-    # Renderiza a sidebar na estrutura da página
-    render_sidebar(on_refresh_callback=container_formulario_icidade.refresh)
-    # Renderiza o formulário dentro do contêiner
     container_formulario_icidade()
