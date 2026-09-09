@@ -1,27 +1,17 @@
-import re
+
+             import re
 from nicegui import ui
+import icidade  # Módulo importado diretamente
 
-# Simuladores das funções e dados do seu backend
+# Expressão regular para identificar links válidos
 REGEX_PURE_URL = r'https?://[^\s]+'
-res_data = {}  # Seu dicionário de dados persistentes
 
-def save_resp(qid, valor, pontos, link, comentarios):
-    """Sua função de salvamento no banco de dados/estado"""
-    res_data[qid] = {
-        "valor": valor,
-        "pontos": pontos,
-        "link": link,
-        "comentarios": comentarios
-    }
-
-def bloco_comentarios(qid, res_data):
-    """Substitua pela sua lógica/componente de comentários no NiceGUI"""
-    ui.label(f"💬 Bloco de Comentários do Quesito {qid}").classes('text-caption text-grey-7 mt-2')
-
+# Dicionário de estado para carregamento inicial de dados
+res_data = {}
 
 def render_quesito(qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text=""):
     """
-    Função reutilizável para renderizar cada bloco de quesito no NiceGUI.
+    Função reutilizável para renderizar cada bloco de quesito no NiceGUI usando icidade.py.
     """
     d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": "", "comentarios": []}
     
@@ -57,7 +47,7 @@ def render_quesito(qid, titulo, pergunta, opcoes=None, is_text_area=False, place
                         value=d_data.get("link", "")
                     ).classes('w-full').props('outlined rows=3')
 
-                    # Visualizador reativo de links
+                    # Visualizador de links
                     container_links = ui.row().classes('mt-1')
                     
                     def atualizar_links_visuais():
@@ -74,13 +64,12 @@ def render_quesito(qid, titulo, pergunta, opcoes=None, is_text_area=False, place
                     if is_text_area:
                         input_valor.on('update:model-value', atualizar_links_visuais)
                     
-                    # Chamada inicial para carregar links salvos
                     atualizar_links_visuais()
 
-            # Renderiza Comentários
-            bloco_comentarios(qid, res_data)
+            # Renderiza o bloco de comentários diretamente via icidade.py
+            icidade.bloco_comentarios(qid, res_data)
 
-            # Rótulo de Pontuação Reativo
+            # Indicador dinâmico de pontuação
             lbl_pontos = ui.html().classes('mt-3 font-bold')
 
             def atualizar_label_pontos(pts, val):
@@ -92,16 +81,92 @@ def render_quesito(qid, titulo, pergunta, opcoes=None, is_text_area=False, place
 
             atualizar_label_pontos(d_data.get("pontos", 0.0), d_data.get("valor", ""))
 
-            # Ação de Salvamento
+            # Ação de Salvamento utilizando o salvamento do icidade.py
             def salvar():
                 val = input_valor.value
                 link = input_link.value
                 pts = opcoes.get(val, 0.0) if opcoes else 0.0
                 coments = res_data.get(qid, {}).get("comentarios", [])
 
-                save_resp(qid=qid, valor=val, pontos=pts, link=link, comentarios=coments)
+                # Chamada da função de salvamento do icidade.py
+                icidade.save_resp(
+                    qid=qid, 
+                    valor=val, 
+                    pontos=pts, 
+                    link=link, 
+                    comentarios=coments
+                )
                 
                 atualizar_label_pontos(pts, val)
                 ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive", icon="check_circle")
 
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).props('color=primary').classes('mt-4')
+
+
+@ui.page('/')
+def main_page():
+    ui.label("Formulário COMPDEC - Defesa Civil").classes('text-h4 mb-6')
+
+    # QUESITO 1.0
+    opcoes_10 = {
+        "Selecione...": 0.0,
+        "Sim (40 pts)": 40.0,
+        "Não (00 pts)": 0.0
+    }
+    render_quesito(
+        qid="1.0",
+        titulo="Criação da COMPDEC ou Órgão Similar",
+        pergunta="Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil-COMPDEC ou órgão similar responsável pela execução, coordenação e mobilização de todas as ações de defesa civil no município?",
+        opcoes=opcoes_10
+    )
+
+    # QUESITO 1.1
+    render_quesito(
+        qid="1.1",
+        titulo="Dados do Instrumento Normativo COMPDEC",
+        pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
+        is_text_area=True,
+        placeholder_text="Ex: Decreto nº 123 de 01/01/2025"
+    )
+
+    # QUESITO 1.2
+    render_quesito(
+        qid="1.2",
+        titulo="Endereço Eletrônico do Instrumento Normativo",
+        pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar:",
+        is_text_area=True,
+        placeholder_text="https://www.municipio.sp.gov.br/legislacao"
+    )
+
+    # QUESITO 1.3
+    opcoes_13 = {
+        "Selecione...": 0.0,
+        "Gabinete do Prefeito (05 pts)": 5.0,
+        "Segurança Pública (00 pts)": 0.0,
+        "Controladoria (00 pts)": 0.0,
+        "Outra (00 pts)": 0.0
+    }
+    render_quesito(
+        qid="1.3",
+        titulo="Secretaria ou Diretoria de Subordinação",
+        pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
+        opcoes=opcoes_13
+    )
+
+    # QUESITO 1.4
+    opcoes_14 = {
+        "Selecione...": 0.0,
+        "Sim, inclusive com a participação de entidades privadas e da comunidade (50 pts)": 50.0,
+        "Sim, com participação de entidades privadas (20 pts)": 20.0,
+        "Sim, com participação da comunidade (20 pts)": 20.0,
+        "Sim, apenas com representantes da administração municipal (10 pts)": 10.0,
+        "Não atuam de forma sistêmica (00 pts)": 0.0
+    }
+    render_quesito(
+        qid="1.4",
+        titulo="Atuação Sistêmica e Articulação da Defesa Civil",
+        pergunta="Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta e recuperação de acordo com a Política Nacional de Proteção e Defesa Civil - PNPDEC?",
+        opcoes=opcoes_14
+    )
+
+ui.run(port=8080, title="COMPDEC - Defesa Civil")
