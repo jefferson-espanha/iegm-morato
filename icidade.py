@@ -32,8 +32,7 @@ ESTADO = {
 def get_db_url():
     db_url = os.environ.get("DATABASE_URL", "")
     if not db_url:
-        # Fallback local para desenvolvimento se a variável não estiver no ambiente
-        db_url = "postgresql://user:pass@localhost:5432/dbname?sslmode=require"
+        db_url = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
     if "channel_binding=" in db_url:
         db_url = db_url.split("&channel_binding=")[0].split("?channel_binding=")[0]
     if "sslmode=require" not in db_url and "localhost" not in db_url:
@@ -42,6 +41,27 @@ def get_db_url():
 
 def get_db_connection():
     return psycopg2.connect(get_db_url())
+
+def init_db():
+    """Garante que a tabela de respostas exista no banco de dados Neon."""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS respostas (
+                        id VARCHAR(50),
+                        ano INT,
+                        valor TEXT,
+                        pontos FLOAT,
+                        link TEXT,
+                        comentarios JSONB,
+                        atualizado_em TIMESTAMP,
+                        PRIMARY KEY (id, ano)
+                    );
+                """)
+            conn.commit()
+    except Exception as e:
+        logging.error(f"Erro ao inicializar tabela de respostas: {e}")
 
 def carregar_respostas(ano: int) -> dict:
     respostas = {}
@@ -64,7 +84,7 @@ def carregar_respostas(ano: int) -> dict:
                         "comentarios": comentarios
                     }
     except Exception as e:
-        logging.error(f"Erro ao carregar do banco: {e}")
+        logging.error(f"Erro ao carregar do banco no icidade: {e}")
     return respostas
 
 def salvar_resposta_db(qid, valor, pontos, link, comentarios):
@@ -101,11 +121,11 @@ def zerar_ano_db(ano: int):
         ui.notify(f"Erro ao zerar ano: {e}", type="negative")
 
 # =============================================================================
-# INTERFACE GRÁFICA (NICEGUI)
+# INTERFACE GRÁFICA (RENDERIZAÇÃO)
 # =============================================================================
 
 def calcular_total():
-    return sum(v.get("pontos", 0.0) for v.get in ESTADO["respostas"].values())
+    return sum(v.get("pontos", 0.0) for v in ESTADO["respostas"].values())
 
 def obter_faixa_cor(total):
     if total <= 500:   return "C", "#ef4444"
@@ -117,13 +137,14 @@ def obter_faixa_cor(total):
 def recarregar_dados():
     ESTADO["respostas"] = carregar_respostas(ESTADO["ano_selecionado"])
 
-@ui.page("/")
-def main_page():
+def mostrar_formulario_cidade():
+    """Função chamada diretamente pelo main.py para desenhar a interface da dimensão."""
+    init_db()
     recarregar_dados()
 
     # --- SIDEBAR / PAINEL LATERAL ---
     with ui.left_drawer().classes("bg-slate-800 text-white p-4 w-64"):
-        ui.label("🛠️ Painel IEG-M").classes("text-xl font-bold mb-4")
+        ui.label("🛠️ Painel i-Cidade").classes("text-xl font-bold mb-4")
         
         ui.label("Ano de Referência:")
         select_ano = ui.select(
@@ -131,7 +152,6 @@ def main_page():
             value=ESTADO["ano_selecionado"]
         ).classes("w-full bg-white rounded p-1 text-black mb-4")
 
-        # Container do Placar
         placar_container = ui.column().classes("w-full bg-slate-700 p-3 rounded mb-4")
         
         def atualizar_placar():
@@ -148,13 +168,11 @@ def main_page():
             ESTADO["ano_selecionado"] = e.value
             recarregar_dados()
             atualizar_placar()
-            ui.navigate.reload()
 
         select_ano.on_value_change(ao_mudar_ano)
 
-        ui.button("🔄 Atualizar Dados", on_click=lambda: ui.navigate.reload()).classes("w-full bg-blue-600 mb-2")
+        ui.button("🔄 Atualizar Dados", on_click=lambda: (recarregar_dados(), atualizar_placar())).classes("w-full bg-blue-600 mb-2")
         
-        # Diálogo de Confirmação para Zerar
         with ui.dialog() as dialog_zerar, ui.card():
             ui.label("⚠️ Confirmar exclusão?").classes("font-bold text-lg text-red-600")
             ui.label(f"Isso irá apagar permanentemente os dados do ano {ESTADO['ano_selecionado']}.")
@@ -166,7 +184,6 @@ def main_page():
                     dialog_zerar.close()
                     recarregar_dados()
                     atualizar_placar()
-                    ui.navigate.reload()
                 else:
                     ui.notify("Senha incorreta!", type="negative")
 
@@ -187,7 +204,7 @@ def main_page():
 
     # --- CORPO PRINCIPAL COM ABAS ---
     with ui.column().classes("w-full p-6"):
-        ui.label("🏙️ Sistema de Gestão IEG-M").classes("text-3xl font-bold mb-4")
+        ui.label("🏙️ i-Cidade - Defesa Civil e Infraestrutura").classes("text-3xl font-bold mb-4")
 
         with ui.tabs().classes("w-full") as tabs:
             tab_quest = ui.tab("📋 Questionário")
@@ -221,7 +238,6 @@ def main_page():
 
                             ui.button("💾 Salvar", on_click=salvar).classes("bg-green-600 text-white")
 
-                        # Seção de Comentários / Diálogo Interno
                         with ui.expansion("💬 Diálogo Interno / Comentários").classes("w-full mt-2"):
                             container_com = ui.column().classes("w-full my-2")
                             
@@ -269,7 +285,6 @@ def main_page():
             with ui.tab_panel(tab_graf):
                 ui.label("Evolução Histórica").classes("text-xl font-bold mb-2")
                 
-                # Montar gráfico Plotly
                 fig = go.Figure()
                 fig.add_trace(go.Bar(
                     x=[str(ESTADO["ano_selecionado"])],
@@ -287,13 +302,13 @@ def main_page():
                 
                 ui.plotly(fig).classes("w-full h-96")
 
-# =============================================================================
-# INICIALIZAÇÃO DA APLICAÇÃO
-# =============================================================================
+# Aliases de compatibilidade para garantir chamada por qualquer nome do main
+mostrar_icidade = mostrar_formulario_cidade
+main_page = mostrar_formulario_cidade
 
 if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(
-        title="Painel IEG-M",
-        port=8080,
-        reload=False
-    )
+    @ui.page('/')
+    def standalone():
+        mostrar_formulario_cidade()
+        
+    ui.run(title="Painel IEG-M - i-Cidade", port=8080, reload=False)
