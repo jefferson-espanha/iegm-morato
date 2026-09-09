@@ -4,28 +4,47 @@ import re
 from datetime import datetime
 from nicegui import app, ui
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2.pool import SimpleConnectionPool
+from psycopg2.extras import RealDictCursor, Json
+from contextlib import contextmanager
 
 # =============================================================================
-# EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
+# CONFIGURAÇÃO DE SEGURANÇA E BANCO DE DADOS (NEON DB)
 # =============================================================================
 REGEX_PURE_URL = r'https?://[^\s]+'
 
-# Connection string configurada para o seu cluster no Neon
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
 )
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "fidelios")
 
+# Pool de conexões para otimizar desempenho e consumo no Neon
+pg_pool = None
+
+try:
+    pg_pool = SimpleConnectionPool(1, 10, dsn=DATABASE_URL)
+except Exception as e:
+    print(f"❌ Erro ao inicializar Pool do PostgreSQL: {e}")
+
+@contextmanager
 def get_db_connection():
-    """Cria e retorna uma conexão ativa com a base de dados do Neon."""
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    """Gerenciador de contexto para obter conexões do pool com rollback/commit automático."""
+    if not pg_pool:
+        raise Exception("Pool de conexões com o banco não inicializado.")
+    conn = pg_pool.getconn()
+    try:
+        yield conn
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        raise e
+    finally:
+        pg_pool.putconn(conn)
 
 
 def load_respostas(ano):
-    """
-    Carrega o dicionário de respostas salvas para o ano selecionado no Neon DB.
-    """
+    """Carrega o dicionário de respostas salvas para o ano selecionado no Neon DB."""
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
         FROM respostas_icidade
@@ -34,7 +53,7 @@ def load_respostas(ano):
     respostas = {}
     try:
         with get_db_connection() as conn:
-            with conn.cursor() as cur:
+            with conn.cursor(cursor_factory=RealDictCursor) as cur:
                 cur.execute(query, (ano,))
                 rows = cur.fetchall()
                 for row in rows:
@@ -42,7 +61,7 @@ def load_respostas(ano):
                         "valor": row['valor'] if row['valor'] is not None else "",
                         "pontos": float(row['pontos']) if row['pontos'] is not None else 0.0,
                         "link": row['link'] if row['link'] is not None else "",
-                        "comentarios": row['comentarios'] if isinstance(row['comentarios'], list) else [],
+                        "comentarios": _obter_lista_comentarios(row),
                         "status": row['status'] if row['status'] is not None else "Pendente"
                     }
     except Exception as e:
@@ -53,20 +72,16 @@ def load_respostas(ano):
 
 
 def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pendente"):
-    """
-    Salva a resposta, link, pontos e o histórico de comentários de um quesito no Neon DB.
-    Utiliza UPSERT (ON CONFLICT) para atualizar se já existir.
-    """
+    """Salva/atualiza resposta no banco usando UPSERT."""
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(qid, {})
         comentarios = dados_atuais.get("comentarios", [])
 
     comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
-    comentarios_json = json.dumps(comentarios_validos)
 
     query = """
         INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
-        VALUES (%s, %s, %s, %s, %s, %s::jsonb, %s)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (ano, qid) 
         DO UPDATE SET
             valor = EXCLUDED.valor,
@@ -79,21 +94,20 @@ def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pende
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano, qid, valor, pontos, link, comentarios_json, status))
-            conn.commit()
+                # O wrapper Json do psycopg2 lida automaticamente com a conversão jsonb
+                cur.execute(query, (ano, qid, valor, pontos, link, Json(comentarios_validos), status))
     except Exception as e:
         print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
         ui.notify(f"Erro ao salvar no banco Neon: {e}", type="negative")
 
 
 def zerar_questionario_db(ano):
-    """Limpa todas as respostas salvas do ano selecionado na tabela do Neon DB."""
+    """Limpa todas as respostas salvas do ano selecionado."""
     query = "DELETE FROM respostas_icidade WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(query, (ano,))
-            conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
         ui.notify(f"Erro ao apagar dados no banco Neon: {e}", type="negative")
@@ -146,7 +160,6 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano
         ).classes('w-full mb-4')
 
-        # Cálculo de Pontuação e Faixa (busca direto do Neon)
         res_data = load_respostas(ano_atual)
         total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
 
@@ -161,7 +174,6 @@ def render_painel_controle(on_refresh_callback=None):
         else:
             faixa, cor = "A", "text-green-700"
 
-        # Card de Pontuação
         with ui.card().classes('w-full mb-4 p-3 bg-white shadow-sm border'):
             ui.label("Pontuação Total").classes('text-xs text-gray-500 font-bold uppercase')
             ui.label(f"{total_pts:.1f} pts").classes('text-2xl font-black text-gray-800')
@@ -181,7 +193,6 @@ def render_painel_controle(on_refresh_callback=None):
         ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes('w-full bg-blue-700 text-white mb-2')
         ui.separator().classes('my-2')
 
-        # Modal de Confirmação para Zerar
         with ui.dialog() as dialog_zerar, ui.card().classes('w-96 p-4'):
             ui.label("🔒 Confirmação de Segurança").classes('text-lg font-bold text-red-600')
             ui.label(f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!").classes('text-sm my-2')
@@ -189,7 +200,7 @@ def render_painel_controle(on_refresh_callback=None):
             input_senha = ui.input("Digite a senha de administrador:", password=True).classes('w-full mb-4')
 
             def executar_zerar():
-                if input_senha.value == "fidelios":
+                if input_senha.value == ADMIN_PASSWORD:
                     zerar_questionario_db(ano_atual)
                     ui.notify(f"✅ Questionário de {ano_atual} foi zerado!", type="positive")
                     dialog_zerar.close()
@@ -221,6 +232,7 @@ def render_painel_controle(on_refresh_callback=None):
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
+@ui.refreshable
 def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
@@ -256,6 +268,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                 status=novo_st
             )
             ui.notify(f"Status alterado para {novo_st}", type="info")
+            bloco_comentarios.refresh(qid, res_data, on_save_callback)
             if on_save_callback:
                 on_save_callback()
 
@@ -281,6 +294,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                         status=status_global
                     )
                     ui.notify("Comentário removido.", type="warning")
+                    bloco_comentarios.refresh(qid, res_data, on_save_callback)
                     if on_save_callback:
                         on_save_callback()
 
@@ -323,6 +337,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                     status=status_global
                 )
                 ui.notify("Comentário publicado!", type="positive")
+                bloco_comentarios.refresh(qid, res_data, on_save_callback)
                 if on_save_callback:
                     on_save_callback()
 
@@ -330,7 +345,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# 3. RENDERIZADOR DE QUESITO (ATUALIZADO COM SUPORTE A CHECKBOX)
+# 3. RENDERIZADOR DE QUESITO
 # =============================================================================
 def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, tipo="radio", is_text_area=False, placeholder_text="", pontuacao_maxima=0.0, informativo=False, placeholder_link="", on_save_callback=None):
     d_data = res_data.get(qid) or {"valor": "Selecione..." if (opcoes and tipo != "checkbox") else "", "pontos": 0.0, "link": "", "comentarios": [], "status": "Pendente"}
@@ -347,7 +362,6 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, tipo="radi
             with ui.row().classes('w-full gap-4 items-start'):
                 with ui.column().classes('flex-1'):
                     if tipo == "checkbox" and opcoes:
-                        # Processa valores do checkbox salvos (em JSON ou string)
                         val_salvo = d_data.get("valor", "[]")
                         try:
                             selecionados = json.loads(val_salvo) if val_salvo.startswith("[") else [val_salvo]
@@ -431,8 +445,9 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, tipo="radi
 
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes('bg-blue-800 text-white mt-4')
 
-            # Renderiza o bloco de comentários do quesito
+            # Renderiza o bloco de comentários atrelado a este quesito especificamente
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
+
 
 # =============================================================================
 # 4. CONTAINER PRINCIPAL REFRESHABLE
@@ -530,9 +545,7 @@ def container_formulario_icidade():
                 on_save_callback=container_formulario_icidade.refresh
             )
 
-            # =============================================================================
-            # QUESITO 2.0 • CAPACITAÇÃO DA EQUIPE DA COMPDEC
-            # =============================================================================
+            # QUESITO 2.0
             opcoes_20 = {
                 "Selecione...": 0.0,
                 "Sim, com curso presencial ou EAD de Proteção e Defesa Civil (10 pts)": 10.0,
