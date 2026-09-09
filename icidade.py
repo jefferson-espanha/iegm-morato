@@ -1,106 +1,156 @@
 import json
 import re
 from datetime import datetime
-import psycopg2
-from psycopg2.extras import RealDictCursor
 from nicegui import app, ui
 
-# Regex para identificação visual de URLs nos campos de texto/links
-REGEX_PURE_URL = r'https?://[^\s,]+'
-
 # =============================================================================
-# PERSISTÊNCIA E INFRAESTRUTURA DE BANCO DE DADOS
+# EXPRESSÕES REGULARES E PERSISTÊNCIA LOCAL
 # =============================================================================
-def get_db_connection():
-    """Retorna a conexão com o banco PostgreSQL. Ajuste suas credenciais aqui."""
-    return psycopg2.connect(
-        dbname="seu_banco",
-        user="seu_usuario",
-        password="sua_senha",
-        host="localhost",
-        port="5432"
-    )
+REGEX_PURE_URL = r'https?://[^\s]+'
 
-def load_respostas(ano, dimensao="icidade"):
-    """Carrega as respostas salvas do banco de dados para o ano e dimensão especificados."""
-    query = "SELECT qid, valor, pontos, link, comentarios FROM respostas WHERE ano = %s AND dimensao = %s;"
-    respostas = {}
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor(cursor_factory=RealDictCursor) as cur:
-                cur.execute(query, (ano, dimensao))
-                rows = cur.fetchall()
-                for row in rows:
-                    comentarios = row["comentarios"]
-                    if isinstance(comentarios, str):
-                        try:
-                            comentarios = json.loads(comentarios)
-                        except json.JSONDecodeError:
-                            comentarios = []
-                    respostas[row["qid"]] = {
-                        "valor": row["valor"],
-                        "pontos": float(row["pontos"] or 0.0),
-                        "link": row["link"] or "",
-                        "comentarios": comentarios or []
-                    }
-    except Exception as e:
-        print(f"Erro ao carregar respostas do banco: {e}")
-    return respostas
+def load_respostas(ano):
+    """Carrega o dicionário de respostas salvas para o ano selecionado."""
+    return app.storage.user.get(f"respostas_icidade_{ano}", {})
 
-def save_resposta(ano, qid, valor, pontos, link, comentarios=None, dimensao="icidade"):
-    """Salva a resposta e preserva o histórico de comentários existente."""
+def save_resposta(ano, qid, valor, pontos, link, comentarios=None):
+    """Salva a resposta e o histórico de comentários de um quesito."""
+    chave = f"respostas_icidade_{ano}"
+    respostas = app.storage.user.get(chave, {})
+    
+    dados_existentes = respostas.get(qid, {})
     if comentarios is None:
-        dados_atuais = load_respostas(ano, dimensao).get(qid, {})
-        comentarios = dados_atuais.get("comentarios", [])
+        comentarios = dados_existentes.get("comentarios", [])
 
-    query = """
-    INSERT INTO respostas (dimensao, ano, qid, valor, pontos, link, comentarios)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
-    ON CONFLICT (dimensao, ano, qid) 
-    DO UPDATE SET 
-        valor = EXCLUDED.valor,
-        pontos = EXCLUDED.pontos,
-        link = EXCLUDED.link,
-        comentarios = EXCLUDED.comentarios;
-    """
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (
-                    dimensao, ano, qid, valor, pontos, link, json.dumps(comentarios)
-                ))
-                conn.commit()
-    except Exception as e:
-        print(f"Erro ao salvar resposta no banco: {e}")
+    respostas[qid] = {
+        "valor": valor,
+        "pontos": pontos,
+        "link": link,
+        "comentarios": comentarios
+    }
+    app.storage.user[chave] = respostas
 
-def zerar_questionario_db(ano, dimensao="icidade"):
-    """Apaga todas as respostas gravadas no banco de dados para determinado ano."""
-    query = "DELETE FROM respostas WHERE ano = %s AND dimensao = %s;"
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (ano, dimensao))
-                conn.commit()
-    except Exception as e:
-        print(f"Erro ao zerar dados do banco: {e}")
+def zerar_questionario_db(ano):
+    """Limpa todas as respostas salvas do ano selecionado."""
+    app.storage.user[f"respostas_icidade_{ano}"] = {}
 
-def _obter_lista_comentarios(dados_q):
-    """Helper para tratamento defensivo do campo de comentários."""
-    coments = dados_q.get("comentarios", [])
-    if isinstance(coments, str):
+def _obter_lista_comentarios(dados_banco):
+    """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
+    raw = dados_banco.get("comentarios", [])
+    if isinstance(raw, str):
+        if raw in ["EMPTY_STRING", "", "null", "None"]:
+            return []
         try:
-            coments = json.loads(coments)
+            raw = json.loads(raw)
         except Exception:
-            coments = []
-    return coments if isinstance(coments, list) else []
+            return []
+    if isinstance(raw, list):
+        return raw
+    return []
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
-    """Gera bytes para download de relatório PDF (Placeholder para integração ReportLab/fpdf)."""
-    conteudo = f"Relatorio iCidade {ano}\nPontuacao Total: {total_pts}\nFaixa: {faixa}"
+    """Gera dados para download do relatório em PDF."""
+    conteudo = f"RELATÓRIO TÉCNICO i-Cidade ({ano})\n"
+    conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
+    for qid, dados in res_data.items():
+        conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode('utf-8')
 
 # =============================================================================
-# BLOCO DE COMENTÁRIOS INTERNOS
+# 1. PAINEL LATERAL / CONTROLE
+# =============================================================================
+def render_painel_controle(on_refresh_callback=None):
+    anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    ano_atual = app.storage.user.get("ano_referencia_global", 2026)
+
+    with ui.card().classes('w-full bg-slate-100 p-4 border rounded-lg shadow-sm'):
+        ui.label("🛠️ Painel de Controle").classes('text-lg font-bold mb-2 text-blue-900')
+
+        def ao_mudar_ano(e):
+            app.storage.user["ano_referencia_global"] = e.value
+            ui.notify(f"Ano alterado para {e.value}", type="info")
+            if on_refresh_callback:
+                on_refresh_callback()
+
+        ui.select(
+            options=anos, 
+            value=ano_atual, 
+            label="Ano de Referência:",
+            on_change=ao_mudar_ano
+        ).classes('w-full mb-4')
+
+        # Cálculo de Pontuação e Faixa
+        res_data = load_respostas(ano_atual)
+        total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
+
+        if total_pts <= 500:
+            faixa, cor = "C", "text-red-600"
+        elif total_pts <= 599:
+            faixa, cor = "C+", "text-orange-500"
+        elif total_pts <= 749:
+            faixa, cor = "B", "text-yellow-600"
+        elif total_pts <= 899:
+            faixa, cor = "B+", "text-green-500"
+        else:
+            faixa, cor = "A", "text-green-700"
+
+        # Card de Pontuação
+        with ui.card().classes('w-full mb-4 p-3 bg-white shadow-sm border'):
+            ui.label("Pontuação Total").classes('text-xs text-gray-500 font-bold uppercase')
+            ui.label(f"{total_pts:.1f} pts").classes('text-2xl font-black text-gray-800')
+            
+            with ui.row().classes('items-center gap-1 mt-1'):
+                ui.label("Faixa:").classes('font-bold text-sm')
+                ui.label(faixa).classes(f'text-xl font-bold {cor}')
+
+        ui.separator().classes('my-2')
+        ui.label("⚙️ Gerenciamento").classes('font-bold text-sm mb-2')
+
+        def atualizar_dados():
+            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
+            if on_refresh_callback:
+                on_refresh_callback()
+
+        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes('w-full bg-blue-700 text-white mb-2')
+        ui.separator().classes('my-2')
+
+        # Modal de Confirmação para Zerar
+        with ui.dialog() as dialog_zerar, ui.card().classes('w-96 p-4'):
+            ui.label("🔒 Confirmação de Segurança").classes('text-lg font-bold text-red-600')
+            ui.label(f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!").classes('text-sm my-2')
+            
+            input_senha = ui.input("Digite a senha de administrador:", password=True).classes('w-full mb-4')
+
+            def executar_zerar():
+                if input_senha.value == "fidelios":
+                    zerar_questionario_db(ano_atual)
+                    ui.notify(f"✅ Questionário de {ano_atual} foi zerado!", type="positive")
+                    dialog_zerar.close()
+                    if on_refresh_callback:
+                        on_refresh_callback()
+                else:
+                    ui.notify("❌ Senha incorreta!", type="negative")
+
+            with ui.row().classes('w-full justify-end gap-2'):
+                ui.button("Cancelar", on_click=dialog_zerar.close).props('flat')
+                ui.button("Confirmar e Zerar", on_click=executar_zerar).classes('bg-red-600 text-white')
+
+        with ui.row().classes('w-full gap-2 no-wrap'):
+            pdf_bytes = gerar_relatorio_pdf_bytes(res_data, ano_atual, total_pts, faixa)
+            ui.button("📄 Relatório", on_click=lambda: ui.download(pdf_bytes, f"Relatorio_iCidade_{ano_atual}.pdf")).classes('flex-1 bg-green-700 text-white')
+            ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes('flex-1 bg-red-700 text-white')
+
+        ui.separator().classes('my-4')
+        ui.html("""
+            <div style="text-align: center; color: #000000; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
+                ⚙️ <b>Desenvolvido por:</b><br>
+                <span style="font-size: 12px;">Jefferson Espanha</span><br>
+                <span>Procuradoria do Município</span><br>
+                <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
+            </div>
+        """).classes('w-full')
+
+# =============================================================================
+# 2. BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
 def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
@@ -207,7 +257,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         ui.button("Postar Comentário", on_click=postar_comentario).classes('bg-blue-600 text-white mt-2')
 
 # =============================================================================
-# RENDERIZADOR DE QUESITO (CAPTURA DE VALORES E LINKS CORRIGIDA)
+# 3. RENDERIZADOR DE QUESITO
 # =============================================================================
 def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_area=False, placeholder_text="", on_save_callback=None):
     d_data = res_data.get(qid) or {"valor": "Selecione..." if opcoes else "", "pontos": 0.0, "link": "", "comentarios": []}
@@ -233,20 +283,20 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
                         input_valor = ui.textarea(
                             label="Dados do quesito:",
                             placeholder=placeholder_text,
-                            value=d_data.get("valor", "") or ""
+                            value=d_data.get("valor", "")
                         ).classes('w-full').props('outlined rows=3')
 
                 with ui.column().classes('flex-1'):
                     input_link = ui.textarea(
                         label="Link de Evidência / Documento:",
-                        value=d_data.get("link", "") or ""
+                        value=d_data.get("link", "")
                     ).classes('w-full').props('outlined rows=3')
 
                     container_links = ui.row().classes('mt-1')
                     
                     def atualizar_links_visuais():
                         container_links.clear()
-                        txt_total = (str(input_valor.value) if is_text_area else "") + " " + (str(input_link.value) or "")
+                        txt_total = (input_valor.value if is_text_area else "") + " " + (input_link.value or "")
                         links = re.findall(REGEX_PURE_URL, txt_total)
                         if links:
                             with container_links:
@@ -276,123 +326,19 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
                 link = input_link.value
                 pts = opcoes.get(val, 0.0) if opcoes else 0.0
                 
-                # Obtém o histórico de comentários atual para garantir a persistência
-                comentarios_atuais = _obter_lista_comentarios(d_data)
-                
-                # Grava no banco passando todos os campos preenchidos
-                save_resposta(
-                    ano=ano, 
-                    qid=qid, 
-                    valor=val, 
-                    pontos=pts, 
-                    link=link, 
-                    comentarios=comentarios_atuais
-                )
-                
+                save_resposta(ano, qid, val, pts, link)
                 atualizar_label_pontos(pts, val)
                 ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive", icon="check_circle")
-                
                 if on_save_callback:
                     on_save_callback()
 
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes('bg-blue-800 text-white mt-4')
 
-            # Renderiza o bloco de comentários
+            # Renderiza o bloco de comentários do quesito
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
 # =============================================================================
-# PAINEL LATERAL / CONTROLE
-# =============================================================================
-def render_painel_controle(on_refresh_callback=None):
-    anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
-    ano_atual = app.storage.user.get("ano_referencia_global", 2026)
-
-    with ui.card().classes('w-full bg-slate-100 p-4 border rounded-lg shadow-sm'):
-        ui.label("🛠️ Painel de Controle").classes('text-lg font-bold mb-2 text-blue-900')
-
-        def ao_mudar_ano(e):
-            app.storage.user["ano_referencia_global"] = e.value
-            ui.notify(f"Ano alterado para {e.value}", type="info")
-            if on_refresh_callback:
-                on_refresh_callback()
-
-        ui.select(
-            options=anos, 
-            value=ano_atual, 
-            label="Ano de Referência:",
-            on_change=ao_mudar_ano
-        ).classes('w-full mb-4')
-
-        res_data = load_respostas(ano_atual)
-        total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
-
-        if total_pts <= 500:
-            faixa, cor = "C", "text-red-600"
-        elif total_pts <= 599:
-            faixa, cor = "C+", "text-orange-500"
-        elif total_pts <= 749:
-            faixa, cor = "B", "text-yellow-600"
-        elif total_pts <= 899:
-            faixa, cor = "B+", "text-green-500"
-        else:
-            faixa, cor = "A", "text-green-700"
-
-        with ui.card().classes('w-full mb-4 p-3 bg-white shadow-sm border'):
-            ui.label("Pontuação Total").classes('text-xs text-gray-500 font-bold uppercase')
-            ui.label(f"{total_pts:.1f} pts").classes('text-2xl font-black text-gray-800')
-            
-            with ui.row().classes('items-center gap-1 mt-1'):
-                ui.label("Faixa:").classes('font-bold text-sm')
-                ui.label(faixa).classes(f'text-xl font-bold {cor}')
-
-        ui.separator().classes('my-2')
-        ui.label("⚙️ Gerenciamento").classes('font-bold text-sm mb-2')
-
-        def atualizar_dados():
-            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
-            if on_refresh_callback:
-                on_refresh_callback()
-
-        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes('w-full bg-blue-700 text-white mb-2')
-        ui.separator().classes('my-2')
-
-        with ui.dialog() as dialog_zerar, ui.card().classes('w-96 p-4'):
-            ui.label("🔒 Confirmação de Segurança").classes('text-lg font-bold text-red-600')
-            ui.label(f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!").classes('text-sm my-2')
-            
-            input_senha = ui.input("Digite a senha de administrador:", password=True).classes('w-full mb-4')
-
-            def executar_zerar():
-                if input_senha.value == "fidelios":
-                    zerar_questionario_db(ano_atual)
-                    ui.notify(f"✅ Questionário de {ano_atual} foi zerado!", type="positive")
-                    dialog_zerar.close()
-                    if on_refresh_callback:
-                        on_refresh_callback()
-                else:
-                    ui.notify("❌ Senha incorreta!", type="negative")
-
-            with ui.row().classes('w-full justify-end gap-2'):
-                ui.button("Cancelar", on_click=dialog_zerar.close).props('flat')
-                ui.button("Confirmar e Zerar", on_click=executar_zerar).classes('bg-red-600 text-white')
-
-        with ui.row().classes('w-full gap-2 no-wrap'):
-            pdf_bytes = gerar_relatorio_pdf_bytes(res_data, ano_atual, total_pts, faixa)
-            ui.button("📄 Relatório", on_click=lambda: ui.download(pdf_bytes, f"Relatorio_iCidade_{ano_atual}.pdf")).classes('flex-1 bg-green-700 text-white')
-            ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes('flex-1 bg-red-700 text-white')
-
-        ui.separator().classes('my-4')
-        ui.html("""
-            <div style="text-align: center; color: #000000; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
-                ⚙️ <b>Desenvolvido por:</b><br>
-                <span style="font-size: 12px;">Jefferson Espanha</span><br>
-                <span>Procuradoria do Município</span><br>
-                <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
-            </div>
-        """).classes('w-full')
-
-# =============================================================================
-# CONTAINER PRINCIPAL REFRESHABLE
+# 4. CONTAINER PRINCIPAL REFRESHABLE
 # =============================================================================
 @ui.refreshable
 def container_formulario_icidade():
@@ -488,15 +434,7 @@ def container_formulario_icidade():
             )
 
 # =============================================================================
-# ENTRY POINT PRINCIPAL
+# 5. ENTRY POINT PRINCIPAL
 # =============================================================================
 def mostrar_formulario_icidade():
     container_formulario_icidade()
-
-# Exemplo para execução direta (NiceGUI)
-if __name__ in {"__main__", "__mp_main__"}:
-    @ui.page('/')
-    def main_page():
-        mostrar_formulario_icidade()
-        
-    ui.run(storage_secret="sua_chave_secreta_aqui", title="COMPDEC - iCidade")
