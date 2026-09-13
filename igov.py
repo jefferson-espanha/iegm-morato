@@ -595,15 +595,31 @@ def render_quesito(
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
-                save_resposta(
-                    ano=ano,
-                    qid=qid,
-                    valor=val,
-                    pontos=pts,
-                    link=link,
-                    comentarios=comms,
-                    status=st,
-                )
+                # Tenta chamar save_resp do main se existir, senão usa local
+                if "save_resp" in globals():
+                    try:
+                        save_resp(qid, val, pts, link, comms, ano)
+                    except TypeError:
+                        save_resposta(
+                            ano=ano,
+                            qid=qid,
+                            valor=val,
+                            pontos=pts,
+                            link=link,
+                            comentarios=comms,
+                            status=st,
+                        )
+                else:
+                    save_resposta(
+                        ano=ano,
+                        qid=qid,
+                        valor=val,
+                        pontos=pts,
+                        link=link,
+                        comentarios=comms,
+                        status=st,
+                    )
+
                 atualizar_label_pontos(pts, val)
                 ui.notify(
                     f"Quesito {qid} salvo com sucesso!",
@@ -665,12 +681,17 @@ def container_formulario_igov_ti():
             )
 
 
-# =============================================================================
-# ENTRYPOINT DA APLICAÇÃO
-# =============================================================================
-@ui.page("/")
-def main_page():
+# Ponte universal de execução para importação do main.py
+def render_igovti():
     container_formulario_igov_ti()
 
 
-ui.run(storage_secret="chave_secreta_igovti_2026", title="iGov-TI - Governança")
+# =============================================================================
+# ENTRYPOINT DA APLICAÇÃO (Execução direta deste arquivo)
+# =============================================================================
+if __name__ in {"__main__", "__mp_main__"}:
+    @ui.page("/")
+    def main_page():
+        container_formulario_igov_ti()
+
+    ui.run(storage_secret="chave_secreta_igovti_2026", title="iGov-TI - Governança")
