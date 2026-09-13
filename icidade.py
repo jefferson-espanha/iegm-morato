@@ -1296,29 +1296,31 @@ def container_formulario_icidade():
                 on_save_callback=container_formulario_icidade.refresh
             )
 
-            # =============================================================================
+           # =============================================================================
             # QUESITO 8.1 • CANAIS DE ATENDIMENTO DISPONÍVEIS
             # =============================================================================
+            opcoes_81 = {
+                "Telefone de emergências": 0.0,
+                "Aplicativo de mensagens": 0.0,
+                "Correio eletrônico (e-mail)": 0.0,
+                "Aplicativo da Prefeitura": 0.0,
+                "Site da Prefeitura": 0.0,
+                "Redes sociais": 0.0,
+                "Outros": 0.0,
+            }
+
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
                 qid="8.1",
-                titulo="Canais de Comunicação Disponíveis",
-                pergunta="Assinale os canais que o município possui:",
-                tipo="checkbox",
-                opcoes=[
-                    "Telefone de emergências",
-                    "Aplicativo de mensagens",
-                    "Correio eletrônico (e-mail)",
-                    "Aplicativo da Prefeitura",
-                    "Site da Prefeitura",
-                    "Redes sociais",
-                    "Outros"
-                ],
+                titulo="8.1 • Canais de Comunicação Disponíveis",
+                pergunta="Assinale os canais de comunicação que o município possui:",
+                tipo="checkbox",  # <--- Habilita a seleção múltipla em NiceGUI
+                opcoes=opcoes_81,
                 pontuacao_maxima=0.0,
                 informativo=True,
                 placeholder_link="Descreva os números, endereços eletrônicos ou insira os links dos canais...",
-                on_save_callback=container_formulario_icidade.refresh
+                on_save_callback=container_formulario_icidade.refresh,
             )
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
