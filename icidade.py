@@ -837,6 +837,82 @@ def container_formulario_icidade():
                 """,
                 on_save_callback=container_formulario_icidade.refresh
             )
+
+# =============================================================================
+            # QUESITO 4.0 • CARTA GEOTÉCNICA DE SUSCETIBILIDADE
+            # =============================================================================
+            opcoes_40 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="4.0",
+                titulo="Carta Geotécnica de Suscetibilidade",
+                pergunta="O Município recebeu a Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco?",
+                opcoes=opcoes_40,
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 4.1 • AMEAÇAS POTENCIAIS DA CARTA GEOTÉCNICA
+            # =============================================================================
+            opcoes_41 = {
+                "Riscos Geológicos": 0.0,
+                "Riscos Hidrológicos": 0.0,
+                "Riscos Meteorológicos": 0.0,
+                "Riscos Climatológicos": 0.0,
+                "Riscos Biológicos": 0.0,
+                "Riscos Tecnológicos": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="4.1",
+                titulo="Ameaças Potenciais da Carta Geotécnica",
+                pergunta="Assinale quais os tipos de ameaças potenciais identificadas na Carta Geotécnica:",
+                opcoes=opcoes_41,
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 4.2 • CARTA GEOTÉCNICA NO PLANO DIRETOR
+            # =============================================================================
+            opcoes_42 = {
+                "Selecione...": 0.0,
+                "Sim (00 pts)": 0.0,
+                "Não (-50 pts)": -50.0,
+                "Não se aplica o Plano Diretor (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="4.2",
+                titulo="Carta Geotécnica no Plano Diretor",
+                pergunta="A Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco consta no Plano Diretor?",
+                opcoes=opcoes_42,
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 5.0 • MAPEAMENTO PRÓPRIO DE AMEAÇAS
+            # =============================================================================
+            opcoes_50 = {
+                "Selecione...": 0.0,
+                "Sim (200 pts)": 200.0,
+                "Não (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="5.0",
+                titulo="Mapeamento Próprio de Ameaças",
+                pergunta="O Município realizou, por conta própria, o mapeamento e identificação das principais ameaças existentes em seu território?",
+                opcoes=opcoes_50,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
