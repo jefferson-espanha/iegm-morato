@@ -881,6 +881,148 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
+# =============================================================================
+            # QUESITO 1.3.1 • ÁREAS DE CAPACITAÇÃO EM TIC
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                # Cabeçalho do Quesito
+                ui.label("📌 Quesito 1.3.1 - Áreas de Capacitação em TIC").classes("text-lg font-bold text-blue-900 mb-1")
+                
+                # Enunciado
+                ui.label("Informe em quais áreas houve capacitação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                
+                # Bloco Informativo da Fórmula de Cálculo
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "Somatório das 4 primeiras opções (a opção 'Outros' não entra na contagem da pontuação)."
+                    ).classes("text-sm text-blue-800 font-medium mb-1")
+                    ui.label(
+                        "• 3 ou 4 itens marcados = 30 pontos\n"
+                        "• 2 itens marcados = 15 pontos\n"
+                        "• 1 item marcado = 5 pontos\n"
+                        "• Somente a opção 'Outros' = 0 pontos"
+                    ).classes("text-xs text-blue-900 whitespace-pre-line font-mono")
+
+                # Função local de persistência
+                def salvar_no_banco_131(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                # Recuperação do Banco de Dados
+                d131 = res_data.get("1.3.1") or {}
+                if not isinstance(d131, dict):
+                    d131 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                # Parse das opções previamente marcadas (armazenadas separadas por vírgula no campo 'valor')
+                valor_salvo = str(d131.get("valor") or "")
+                itens_salvos = [i.strip() for i in valor_salvo.split(",") if i.strip()]
+                evidencia_131_salva = str(d131.get("link") or "")
+
+                # Estado Reativo das Checkboxes
+                state_131 = {
+                    "infra": "Infraestrutura e Redes" in itens_salvos,
+                    "dev": "Desenvolvimento e Software" in itens_salvos,
+                    "dados": "Análise de Dados" in itens_salvos,
+                    "gestao": "Gestão e Segurança" in itens_salvos,
+                    "outros": "Outros" in itens_salvos,
+                    "link": evidencia_131_salva
+                }
+
+                # Callback do Botão de Salvar
+                def cb_processa_e_salva_131():
+                    try:
+                        # Identifica os marcados
+                        marcados = []
+                        if state_131["infra"]:
+                            marcados.append("Infraestrutura e Redes")
+                        if state_131["dev"]:
+                            marcados.append("Desenvolvimento e Software")
+                        if state_131["dados"]:
+                            marcados.append("Análise de Dados")
+                        if state_131["gestao"]:
+                            marcados.append("Gestão e Segurança")
+
+                        # Contagem das 4 opções válidas para pontuação
+                        qtd_validos = len(marcados)
+
+                        if state_131["outros"]:
+                            marcados.append("Outros")
+
+                        # Cálculo de Pontuação
+                        if qtd_validos >= 3:
+                            pts_calculados = 30.0
+                        elif qtd_validos == 2:
+                            pts_calculados = 15.0
+                        elif qtd_validos == 1:
+                            pts_calculados = 5.0
+                        else:
+                            pts_calculados = 0.0
+
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_131["link"] or "").strip()
+
+                        # Salva no PostgreSQL
+                        salvar_no_banco_131("1.3.1", valor_string, pts_calculados, lnk_val)
+
+                        # Atualiza em memória
+                        res_data["1.3.1"] = {
+                            "valor": valor_string,
+                            "pontos": pts_calculados,
+                            "link": lnk_val
+                        }
+
+                        ui.notify("Quesito 1.3.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 1.3.1: {err}", type="negative")
+
+                # Checkboxes
+                with ui.column().classes("w-full gap-2 mb-4"):
+                    ui.checkbox("Infraestrutura e Redes").bind_value(state_131, "infra")
+                    ui.checkbox("Desenvolvimento e Software").bind_value(state_131, "dev")
+                    ui.checkbox("Análise de Dados").bind_value(state_131, "dados")
+                    ui.checkbox("Gestão e Segurança").bind_value(state_131, "gestao")
+                    ui.checkbox("Outros").bind_value(state_131, "outros")
+
+                # Campo de Link / Evidência
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência das Capacitações):",
+                    value=evidencia_131_salva,
+                    placeholder="Insira o link dos certificados, plano de capacitação, relatório de treinamentos..."
+                ).classes("w-full mb-4").bind_value(state_131, "link")
+
+                # Rodapé com Indicador e Botão
+                pts_atuais_131 = float(d131.get("pontos") or 0.0)
+                cor_txt_131 = "text-green-600" if pts_atuais_131 > 0 else "text-gray-500"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"📋 Opções selecionadas: {valor_salvo if valor_salvo else 'Nenhuma'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Impacto de Pontuação no Quesito 1.3.1: +{pts_atuais_131:.1f} pontos").classes(f"text-sm font-bold {cor_txt_131}")
+
+                    ui.button("Salvar Quesito 1.3.1", on_click=cb_processa_e_salva_131, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+
+                # Bloco de Comentários
+                bloco_comentarios("1.3.1", res_data, ano_sel)
+
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
