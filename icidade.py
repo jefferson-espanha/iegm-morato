@@ -410,9 +410,6 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 # =============================================================================
 # 3. RENDERIZADOR DE QUESITO
 # =============================================================================
-import re
-
-
 def render_quesito(
     ano,
     res_data,
@@ -421,133 +418,119 @@ def render_quesito(
     pergunta,
     opcoes=None,
     on_save_callback=None,
-    tipo="radio",
+    tipo="radio",  # 'radio', 'checkbox', ou 'text'
     informativo=False,
     is_text_area=False,
-    placeholder_text="",
-    calculo_pontos_customizado=None,
-    instrucoes_calculo=None,
+    placeholder_text="Cole os links ou informações aqui...",
+    placeholder_link="Link de Evidência / Documento:",
+    pontuacao_maxima=None,
     **kwargs,
 ):
-    d_data = res_data.get(qid) or {
-        "valor": "Selecione..." if isinstance(opcoes, dict) else "",
-        "pontos": 0.0,
-        "link": "",
-        "comentarios": [],
-    }
+    d_data = res_data.get(qid, {})
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
-        with ui.expansion(
-            f"📌 Quesito {qid} - {titulo}", value=True
-        ).classes("w-full font-bold"):
+        with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes(
+            "w-full font-bold"
+        ):
             ui.label(f"{qid} • {titulo}").classes("text-h6 text-primary mt-2")
             ui.label(pergunta).classes("text-body1 font-bold my-2")
-
-            if instrucoes_calculo:
-                ui.markdown(instrucoes_calculo).classes(
-                    "bg-blue-50 p-3 rounded text-sm text-gray-700 mb-3 border border-blue-200"
-                )
-
             ui.label(
                 "ℹ Preencha os campos abaixo e clique no botão de salvar."
             ).classes("text-caption text-grey-6 mb-4")
 
             with ui.row().classes("w-full gap-4 items-start"):
+                # Coluna das Opções / Entrada
                 with ui.column().classes("flex-1"):
-                    if tipo == "date":
-                        val_date = d_data.get("valor", "")
-                        input_valor = (
-                            ui.input(
-                                label="Selecione a Data:",
-                                value=val_date,
-                                placeholder="YYYY-MM-DD",
-                            )
-                            .classes("w-full")
-                            .props("outlined")
+                    checkbox_dict = {}
+                    input_valor = None
+
+                    if tipo == "checkbox" and opcoes:
+                        lista_opcoes = (
+                            list(opcoes.keys())
+                            if isinstance(opcoes, dict)
+                            else opcoes
                         )
-                        with input_valor:
-                            with ui.menu() as menu_date:
-                                ui.date().bind_value(input_valor)
-                            ui.button(
-                                icon="event", on_click=menu_date.open
-                            ).props("flat round dense")
+                        v_salvo = d_data.get("valor", "[]")
+
+                        if isinstance(v_salvo, str):
+                            try:
+                                sel_list = ast.literal_eval(v_salvo)
+                                if not isinstance(sel_list, list):
+                                    sel_list = []
+                            except Exception:
+                                sel_list = []
+                        elif isinstance(v_salvo, list):
+                            sel_list = v_salvo
+                        else:
+                            sel_list = []
+
+                        for opt in lista_opcoes:
+                            chk = ui.checkbox(
+                                opt, value=(opt in sel_list)
+                            ).classes("mb-1")
+                            checkbox_dict[opt] = chk
 
                     elif opcoes:
-                        lista_opcoes = list(opcoes.keys())
+                        lista_opcoes = (
+                            list(opcoes.keys())
+                            if isinstance(opcoes, dict)
+                            else opcoes
+                        )
                         v_salvo = d_data.get("valor", "Selecione...")
                         valor_inicial = (
                             v_salvo
                             if v_salvo in lista_opcoes
-                            else lista_opcoes[0]
+                            else (lista_opcoes[0] if lista_opcoes else "")
                         )
 
                         input_valor = ui.radio(
                             options=lista_opcoes, value=valor_inicial
                         ).classes("gap-2")
-
                     else:
-                        input_valor = (
-                            ui.textarea(
-                                label="Dados do quesito:",
-                                placeholder=placeholder_text,
-                                value=d_data.get("valor", ""),
-                            )
-                            .classes("w-full")
-                            .props("outlined rows=3")
-                        )
+                        input_valor = ui.textarea(
+                            label="Dados do quesito:",
+                            placeholder=placeholder_text,
+                            value=d_data.get("valor", ""),
+                        ).classes("w-full").props("outlined rows=3")
 
+                # Coluna de Links / Evidências
                 with ui.column().classes("flex-1"):
-                    input_link = (
-                        ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=d_data.get("link", ""),
-                        )
-                        .classes("w-full")
-                        .props("outlined rows=3")
-                    )
+                    input_link = ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=d_data.get("link", ""),
+                        placeholder=placeholder_link,
+                    ).classes("w-full").props("outlined rows=3")
 
                     container_links = ui.row().classes("mt-1")
 
                     def atualizar_links_visuais():
                         container_links.clear()
-                        val_txt = (
-                            input_valor.value
-                            if (
-                                is_text_area
-                                and hasattr(input_valor, "value")
-                                and input_valor.value
+                        val_txt = ""
+                        if input_valor and hasattr(input_valor, "value"):
+                            val_txt = (
+                                input_valor.value
+                                if (is_text_area and input_valor.value)
+                                else ""
                             )
-                            else ""
-                        )
+
                         lnk_txt = input_link.value or ""
                         txt_total = f"{val_txt} {lnk_txt}"
 
-                        regex_url = (
-                            r"https?://[^\s/$.?#].[^\s]*|www\.[^\s/$.?#].[^\s]*"
-                        )
-                        links = re.findall(
-                            globals().get("REGEX_PURE_URL", regex_url),
-                            txt_total,
-                        )
+                        links = re.findall(REGEX_PURE_URL, txt_total)
                         if links:
                             with container_links:
                                 ui.label("Links Ativos: ").classes(
                                     "font-bold text-caption"
                                 )
                                 for url in links:
-                                    href = (
-                                        url
-                                        if url.startswith("http")
-                                        else f"http://{url}"
+                                    ui.link(url, target=url, new_tab=True).classes(
+                                        "text-caption text-blue-6 mr-2"
                                     )
-                                    ui.link(
-                                        url, target=href, new_tab=True
-                                    ).classes("text-caption text-blue-6 mr-2")
 
                     input_link.on(
                         "update:model-value", atualizar_links_visuais
                     )
-                    if is_text_area:
+                    if is_text_area and input_valor:
                         input_valor.on(
                             "update:model-value", atualizar_links_visuais
                         )
@@ -556,17 +539,8 @@ def render_quesito(
 
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
-            def calcular_pontuacao_atual(valor_selecionado):
-                if calculo_pontos_customizado:
-                    return float(
-                        calculo_pontos_customizado(valor_selecionado, ano)
-                    )
-                elif opcoes and valor_selecionado in opcoes:
-                    return float(opcoes[valor_selecionado])
-                return 0.0
-
             def atualizar_label_pontos(pts, val):
-                if opcoes is None and not calculo_pontos_customizado:
+                if informativo or pontuacao_maxima == 0.0 or not opcoes:
                     lbl_pontos.set_content(
                         f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>"
                     )
@@ -575,9 +549,7 @@ def render_quesito(
                         "#28a745"
                         if pts > 0
                         else (
-                            "#dc3545"
-                            if val != "Selecione..."
-                            else "#6c757d"
+                            "#dc3545" if val != "Selecione..." else "#6c757d"
                         )
                     )
                     lbl_pontos.set_content(
@@ -589,23 +561,38 @@ def render_quesito(
             )
 
             def salvar():
-                val = input_valor.value or ""
+                if tipo == "checkbox" and opcoes:
+                    selecionados = [
+                        opt
+                        for opt, chk_obj in checkbox_dict.items()
+                        if chk_obj.value
+                    ]
+                    val = str(selecionados)
+                    pts = 0.0
+                elif opcoes:
+                    val = input_valor.value if input_valor else ""
+                    pts = (
+                        opcoes.get(val, 0.0)
+                        if isinstance(opcoes, dict)
+                        else 0.0
+                    )
+                else:
+                    val = input_valor.value if input_valor else ""
+                    pts = 0.0
+
                 link = input_link.value or ""
-                pts = calcular_pontuacao_atual(val)
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
-                if "save_resposta" in globals():
-                    globals()["save_resposta"](
-                        ano=ano,
-                        qid=qid,
-                        valor=val,
-                        pontos=pts,
-                        link=link,
-                        comentarios=comms,
-                        status=st,
-                    )
-
+                save_resposta(
+                    ano=ano,
+                    qid=qid,
+                    valor=val,
+                    pontos=pts,
+                    link=link,
+                    comentarios=comms,
+                    status=st,
+                )
                 atualizar_label_pontos(pts, val)
                 ui.notify(
                     f"Quesito {qid} salvo com sucesso!",
@@ -620,10 +607,8 @@ def render_quesito(
                 "bg-blue-800 text-white mt-4"
             )
 
-            if "bloco_comentarios" in globals():
-                globals()["bloco_comentarios"](
-                    qid, res_data, on_save_callback=on_save_callback
-                )
+            # Renderiza o bloco de comentários
+            bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
 
 # =============================================================================
