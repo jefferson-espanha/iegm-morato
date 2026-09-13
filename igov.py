@@ -724,8 +724,16 @@ def container_formulario_igov_ti():
                     pts_calculados = 30.0 if total_p > 0 else 0.0
                     composite_string = f"C:{c_val},Co:{co_val},E:{e_val},O:{o_val}|LINK:{lnk_val}"
 
-                    save_resp("1.1", str(total_p), pts_calculados, composite_string)
-                    res_data["1.1"] = {"valor": str(total_p), "pontos": pts_calculados, "link": composite_string}
+                    # Persistência explícita no dicionário de dados do formulário
+                    res_data["1.1"] = {
+                        "valor": str(total_p), 
+                        "pontos": pts_calculados, 
+                        "link": composite_string
+                    }
+                    
+                    # Chamada global de persistência do formulário (igual ao padrão render_quesito)
+                    salvar_resposta_db(ano_sel, "1.1", str(total_p), pts_calculados, composite_string)
+                    
                     ui.notify("Quesito 1.1 salvo com sucesso!", type="positive")
                     container_formulario_igov_ti.refresh()
 
