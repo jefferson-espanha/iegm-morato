@@ -1767,8 +1767,9 @@ def container_formulario_icidade():
                 opcoes=opcoes_13111,
                 on_save_callback=container_formulario_icidade.refresh,
             )
+from nicegui import ui
 
-# =============================================================================
+            # =============================================================================
             # QUESITO 14.0 • ACESSIBILIDADE EM CALÇAMENTOS PÚBLICOS
             # =============================================================================
             opcoes_140 = {
@@ -1865,7 +1866,7 @@ def container_formulario_icidade():
             # =============================================================================
             # SEÇÃO: DADOS EXTERNOS DO i-CIDADE
             # =============================================================================
-            st.markdown("## 🌐 DADOS EXTERNOS DO i-CIDADE")
+            ui.markdown("## 🌐 DADOS EXTERNOS DO i-CIDADE")
 
             # =============================================================================
             # QUESITO C1 • ONU MCR2030
