@@ -708,13 +708,62 @@ def container_formulario_igov_ti():
                 "Preencha as evidências e questões do indicador iGov-TI aqui."
             ).classes("text-gray-600 mb-6")
 
-            # AQUI VOCÊ PODE CHAMAR OS SEUS QUESITOS DO IGOV-TI. EXEMPLO:
-            # render_quesito(
-            #     ano=ano_sel,
-            #     res_data=res_data,
-            #     qid="1.1",
-            #     titulo="Plano Diretor de Tecnologia da Informação (PDTI)",
-            #     pergunta="O município possui PDTI vigente?",
-            #     opcoes={"Sim": 10.0, "Não": 0.0},
-            #     on_save_callback=container_formulario_igov_ti.refresh,
-            # )
+            # --- SEÇÃO 1: INFRAESTRUTURA E SETOR ---
+            ui.label("1.0 Estrutura de TIC").classes(
+                "text-h5 font-bold my-4 text-blue-900"
+            )
+
+            # =============================================================================
+            # QUESITO 1.0 • SETOR DE TIC
+            # =============================================================================
+            opcoes_10 = {
+                "Selecione...": 0.0,
+                "Sim – 30 pts": 30.0,
+                "Não – 00 pts": 0.0,
+            }
+
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.0",
+                titulo="Setor de Tecnologia da Informação e Comunicação",
+                pergunta="A Prefeitura possui uma área ou setor que cuida de Tecnologia da Informação e Comunicação (TIC)?",
+                opcoes=opcoes_10,
+                placeholder_link="Insira o link da lei de estrutura administrativa, organograma oficial ou portaria de nomeação da equipe de TIC...",
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 1.1 • QUANTIDADE DA EQUIPE DE TIC
+            # =============================================================================
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.1",
+                titulo="Composição de Recursos Humanos do Setor de TIC",
+                pergunta="Informe a quantidade da equipe que atua no suporte e atendimento de primeiro nível (Concursados, Comissionados, Estagiários e Outros):",
+                is_text_area=True,
+                placeholder_text="Informe a composição (ex: Concursados: 2, Comissionados: 1, Estagiários: 2, Outros: 0)...",
+                placeholder_link="Cole aqui o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI...",
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 1.2 • ATRIBUIÇÕES DO SETOR DE TIC
+            # =============================================================================
+            opcoes_12 = {
+                "Selecione...": 0.0,
+                "Sim – 30 pts": 30.0,
+                "Não – 00 pts": 0.0,
+            }
+
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.2",
+                titulo="Definição de Atribuições Formais da Equipe",
+                pergunta="A prefeitura municipal definiu formalmente as atribuições do pessoal do setor de Tecnologia da Informação e Comunicação (TIC)?",
+                opcoes=opcoes_12,
+                placeholder_link="Insira o link do manual de cargos, decreto de atribuições de secretarias ou manual interno de procedimentos...",
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
