@@ -681,13 +681,24 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
-            # QUESITO 1.1 (Customizado com Inputs Numéricos, Botão Salvar e Comentários)
-            with ui.card().classes("w-full p-4 mb-4 border border-gray-200 shadow-sm"):
-                ui.label("📌 Quesito 1.1 - Composição de Recursos Humanos do Setor de TIC").classes("text-lg font-bold text-blue-900 mb-1")
-                ui.label("1.1 • Recursos Humanos em TIC").classes("text-md font-bold mb-1")
-                ui.label("Informe a quantidade da equipe que atua no suporte e atendimento de primeiro nível:").classes("text-sm text-gray-700 font-medium mb-1")
-                ui.label("ℹ Regra: (Concursados + Comissionados + Estagiários) > 0 garante +30 pontos.").classes("text-xs text-gray-500 mb-4")
+            # =============================================================================
+            # QUESITO 1.1 • COMPOSIÇÃO DA EQUIPE DE TIC
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                # Cabeçalho do Quesito
+                ui.label("📌 Quesito 1.1 - Recursos Humanos em TIC").classes("text-lg font-bold text-blue-900 mb-1")
+                
+                # Texto do Enunciado e Instruções
+                ui.label("Informe a quantidade:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                
+                # Bloco Informativo da Fórmula de Cálculo (Estilo Notificação/Highlight)
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "Funcionários concursados + Funcionários comissionados + Estagiários no suporte e atendimento de primeiro nível > 0 — 30 pontos"
+                    ).classes("text-sm text-blue-800 font-medium")
 
+                # Recuperação do Estado Inicial dos Dados
                 d11 = res_data.get("1.1", {"valor": "0", "pontos": 0.0, "link": ""}) or {"valor": "0", "pontos": 0.0, "link": ""}
                 
                 v_conc_i, v_comi_i, v_esta_i, v_outr_i = 0, 0, 0, 0
@@ -705,6 +716,7 @@ def container_formulario_igov_ti():
                     except Exception:
                         v_conc_i, v_comi_i, v_esta_i, v_outr_i = 0, 0, 0, 0
 
+                # Estado reativo local do formulário
                 state_11 = {
                     "conc": v_conc_i,
                     "comi": v_comi_i,
@@ -713,6 +725,7 @@ def container_formulario_igov_ti():
                     "link": evidencia_11_salva
                 }
 
+                # Callback para Processar e Salvar os dados
                 def cb_processa_e_salva_11():
                     c_val = int(state_11["conc"] or 0)
                     co_val = int(state_11["comi"] or 0)
@@ -724,46 +737,64 @@ def container_formulario_igov_ti():
                     pts_calculados = 30.0 if total_p > 0 else 0.0
                     composite_string = f"C:{c_val},Co:{co_val},E:{e_val},O:{o_val}|LINK:{lnk_val}"
 
-                    # Persistência explícita no dicionário de dados do formulário
-                    res_data["1.1"] = {
-                        "valor": str(total_p), 
-                        "pontos": pts_calculados, 
-                        "link": composite_string
-                    }
-                    
-                    # Chamada global de persistência do formulário (igual ao padrão render_quesito)
-                    salvar_resposta_db(ano_sel, "1.1", str(total_p), pts_calculados, composite_string)
+                    save_resp("1.1", str(total_p), pts_calculados, composite_string)
+                    res_data["1.1"] = {"valor": str(total_p), "pontos": pts_calculados, "link": composite_string}
                     
                     ui.notify("Quesito 1.1 salvo com sucesso!", type="positive")
                     container_formulario_igov_ti.refresh()
 
-                with ui.grid(columns=4).classes("w-full gap-4 mb-4"):
-                    ui.number("Concursados", value=v_conc_i, min=0, step=1).bind_value(state_11, "conc")
-                    ui.number("Comissionados", value=v_comi_i, min=0, step=1).bind_value(state_11, "comi")
-                    ui.number("Estagiários", value=v_esta_i, min=0, step=1).bind_value(state_11, "esta")
-                    ui.number("Outros", value=v_outr_i, min=0, step=1).bind_value(state_11, "outr")
+                # Grid com os 4 Inputs de Pessoal
+                with ui.grid(columns=2).classes("w-full gap-4 mb-4 md:grid-cols-4"):
+                    ui.number(
+                        "Funcionários concursados:", 
+                        value=v_conc_i, 
+                        min=0, 
+                        step=1
+                    ).classes("w-full").bind_value(state_11, "conc")
+                    
+                    ui.number(
+                        "Funcionários comissionados:", 
+                        value=v_comi_i, 
+                        min=0, 
+                        step=1
+                    ).classes("w-full").bind_value(state_11, "comi")
+                    
+                    ui.number(
+                        "Estagiários no suporte e atendimento de primeiro nível:", 
+                        value=v_esta_i, 
+                        min=0, 
+                        step=1
+                    ).classes("w-full").bind_value(state_11, "esta")
+                    
+                    ui.number(
+                        "Outros:", 
+                        value=v_outr_i, 
+                        min=0, 
+                        step=1
+                    ).classes("w-full").bind_value(state_11, "outr")
 
+                # Área de Link e Evidências
                 ui.textarea(
-                    "Link/Evidência da composição da equipe (1.1):",
+                    "Página Eletrônica (Link / Evidência da Composição):",
                     value=evidencia_11_salva,
-                    placeholder="Cole aqui o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI..."
+                    placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI..."
                 ).classes("w-full mb-4").bind_value(state_11, "link")
 
+                # Rodapé com Indicador de Pontuação e Botão de Salvar
                 total_pessoal = int(d11.get("valor", "0"))
                 pts_atuais_11 = d11.get("pontos", 0.0)
                 cor_txt_11 = "text-green-600" if pts_atuais_11 == 30.0 else "text-gray-500"
 
                 with ui.row().classes("w-full justify-between items-center mb-4"):
                     with ui.column().classes("gap-0"):
-                        ui.label(f"👥 Total de Pessoal Efetivo Computado (C+Co+E): {total_pessoal} funcionário(s)").classes("text-sm font-semibold")
+                        ui.label(f"👥 Total de Pessoal Efetivo Computado (Concursados + Comissionados + Estagiários): {total_pessoal} funcionário(s)").classes("text-sm font-semibold text-gray-700")
                         ui.label(f"📊 Impacto de Pontuação no Quesito 1.1: +{pts_atuais_11:.1f} pontos").classes(f"text-sm font-bold {cor_txt_11}")
                     
-                    # BOTÃO DE SALVAR
-                    ui.button("Salvar Quesito 1.1", on_click=cb_processa_e_salva_11, icon="save").classes("bg-blue-800 text-white")
+                    ui.button("Salvar Quesito 1.1", on_click=cb_processa_e_salva_11, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
 
                 ui.separator().classes("my-2")
 
-                # ÁREA DE COMENTÁRIOS DA QUESTÃO
+                # Bloco de Comentários Integrado ao Quesito
                 bloco_comentarios("1.1", res_data, ano_sel)
 
             # QUESITO 1.2
