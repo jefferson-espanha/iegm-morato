@@ -1704,8 +1704,8 @@ def container_formulario_icidade():
                 on_save_callback=container_formulario_icidade.refresh,
             )
 
-# =============================================================================
-            # QUESITO 13.1 • AÇÕES DE MOBILIDADE ATIVA REALIZADAS
+            # =============================================================================
+            # QUESITO 13.1 • AÇÕES DE MOBILIDADE ATIVA REALIZADAS (CHECKBOXES)
             # =============================================================================
             ano_puro = "".join([c for c in str(ano_sel) if c.isdigit()])[:4]
             ano_anterior = (
@@ -1726,9 +1726,9 @@ def container_formulario_icidade():
                 titulo=f"Detalhamento das Ações Realizadas em {ano_anterior}",
                 pergunta=f"Assinale as ações realizadas para estimular a adoção/uso dos meios de transporte não motorizados em {ano_anterior}:",
                 opcoes=opcoes_131,
+                tipo="checkbox",  # <--- Define o tipo de componente para Checkbox
                 on_save_callback=container_formulario_icidade.refresh,
             )
-
             # =============================================================================
             # QUESITO 13.1.1 • CRONOGRAMA DE MANUTENÇÃO
             # =============================================================================
