@@ -1501,6 +1501,322 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
+# =============================================================================
+            # QUESITO 3.1 • TERMO DE RESPONSABILIDADE / COMPROMISSO
+            # =============================================================================
+            opcoes_31 = {
+                "Selecione...": 0.0,
+                "Sim (20 pts)": 20.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.1",
+                titulo="Termo de Responsabilidade / Compromisso",
+                pergunta="A Prefeitura estabelece procedimentos e responsabilidades quanto ao uso da tecnologia da informação pelos funcionários municipais, conhecido como Termo de Responsabilidade/Compromisso?",
+                opcoes=opcoes_31,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 3.1.1 • USO DE ASSINATURA ELETRÔNICA NO TERMO
+            # =============================================================================
+            opcoes_311 = {
+                "Selecione...": 0.0,
+                "Sim (40 pts)": 40.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.1.1",
+                titulo="Uso da Assinatura Eletrônica no Termo",
+                pergunta="O Termo de Responsabilidade/Compromisso dispõe sobre o uso da assinatura eletrônica pelos funcionários municipais?",
+                opcoes=opcoes_311,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 3.1.1.1 • TIPO DE ASSINATURA ELETRÔNICA UTILIZADA
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 3.1.1.1 - Tipo de Assinatura Eletrônica").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Informe o tipo de assinatura eletrônica utilizada nos documentos digitais:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Critérios de pontuação:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "• Assinatura eletrônica de uso gratuito — 10 pontos\n"
+                        "• Assinatura eletrônica onerosa — 0 pontos"
+                    ).classes("text-xs text-blue-900 font-mono mt-1")
+
+                def salvar_no_banco_3111(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d3111 = res_data.get("3.1.1.1") or {}
+                if not isinstance(d3111, dict):
+                    d3111 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_3111 = str(d3111.get("valor") or "")
+                itens_salvos_3111 = [i.strip() for i in valor_salvo_3111.split(",") if i.strip()]
+                evidencia_3111_salva = str(d3111.get("link") or "")
+
+                state_3111 = {
+                    "gratuita": "Assinatura eletrônica de uso gratuito" in itens_salvos_3111,
+                    "onerosa": "Assinatura eletrônica onerosa" in itens_salvos_3111,
+                    "link": evidencia_3111_salva
+                }
+
+                def cb_processa_e_salva_3111():
+                    try:
+                        marcados = []
+                        pts_acumulados = 0.0
+
+                        if state_3111["gratuita"]:
+                            marcados.append("Assinatura eletrônica de uso gratuito")
+                            pts_acumulados += 10.0
+                        if state_3111["onerosa"]:
+                            marcados.append("Assinatura eletrônica onerosa")
+                            pts_acumulados += 0.0
+
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_3111["link"] or "").strip()
+
+                        salvar_no_banco_3111("3.1.1.1", valor_string, pts_acumulados, lnk_val)
+                        res_data["3.1.1.1"] = {"valor": valor_string, "pontos": pts_acumulados, "link": lnk_val}
+                        ui.notify("Quesito 3.1.1.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 3.1.1.1: {err}", type="negative")
+
+                with ui.column().classes("w-full gap-2 mb-4"):
+                    ui.checkbox("Assinatura eletrônica de uso gratuito (10 pts)").bind_value(state_3111, "gratuita")
+                    ui.checkbox("Assinatura eletrônica onerosa (00 pts)").bind_value(state_3111, "onerosa")
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência da Assinatura):",
+                    value=evidencia_3111_salva,
+                    placeholder="Link da ferramenta ou contrato da solução..."
+                ).classes("w-full mb-4").bind_value(state_3111, "link")
+
+                pts_atuais_3111 = float(d3111.get("pontos") or 0.0)
+                cor_txt_3111 = "text-green-600" if pts_atuais_3111 > 0 else "text-gray-500"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"📋 Selecionados: {valor_salvo_3111 if valor_salvo_3111 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Impacto de Pontuação no Quesito 3.1.1.1: +{pts_atuais_3111:.1f} pontos").classes(f"text-sm font-bold {cor_txt_3111}")
+
+                    ui.button("Salvar Quesito 3.1.1.1", on_click=cb_processa_e_salva_3111, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("3.1.1.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 3.2 • IDENTIFICAÇÃO DE RISCOS (ISO/IEC 27000)
+            # =============================================================================
+            opcoes_32 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.2",
+                titulo="Identificação de Riscos de TIC (ISO/IEC 27000)",
+                pergunta="Os riscos de TIC são identificados de acordo com as normas brasileiras da família ISO/IEC 27000?",
+                opcoes=opcoes_32,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 3.2.1 • NORMAS ISO/IEC 27000 UTILIZADAS
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 3.2.1 - Normas ISO/IEC 27000 Aplicadas").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Informe quais normas da família ISO/IEC 27000 são utilizadas nos processos de segurança no uso de TIC:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Pontuação por norma selecionada:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "• ISO/IEC 27000 — 1,5 pontos\n"
+                        "• ISO/IEC 27001 — 1,5 pontos\n"
+                        "• ISO/IEC 27002 — 1,5 pontos\n"
+                        "• ISO/IEC 27003 — 1,5 pontos\n"
+                        "• ISO/IEC 27004 — 2,0 pontos\n"
+                        "• ISO/IEC 27005 — 2,0 pontos"
+                    ).classes("text-xs text-blue-900 font-mono mt-1")
+
+                def salvar_no_banco_321(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d321 = res_data.get("3.2.1") or {}
+                if not isinstance(d321, dict):
+                    d321 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_321 = str(d321.get("valor") or "")
+                itens_salvos_321 = [i.strip() for i in valor_salvo_321.split(",") if i.strip()]
+                evidencia_321_salva = str(d321.get("link") or "")
+
+                state_321 = {
+                    "27000": "ISO/IEC 27000" in itens_salvos_321,
+                    "27001": "ISO/IEC 27001" in itens_salvos_321,
+                    "27002": "ISO/IEC 27002" in itens_salvos_321,
+                    "27003": "ISO/IEC 27003" in itens_salvos_321,
+                    "27004": "ISO/IEC 27004" in itens_salvos_321,
+                    "27005": "ISO/IEC 27005" in itens_salvos_321,
+                    "link": evidencia_321_salva
+                }
+
+                def cb_processa_e_salva_321():
+                    try:
+                        marcados = []
+                        pts_acumulados = 0.0
+
+                        if state_321["27000"]:
+                            marcados.append("ISO/IEC 27000")
+                            pts_acumulados += 1.5
+                        if state_321["27001"]:
+                            marcados.append("ISO/IEC 27001")
+                            pts_acumulados += 1.5
+                        if state_321["27002"]:
+                            marcados.append("ISO/IEC 27002")
+                            pts_acumulados += 1.5
+                        if state_321["27003"]:
+                            marcados.append("ISO/IEC 27003")
+                            pts_acumulados += 1.5
+                        if state_321["27004"]:
+                            marcados.append("ISO/IEC 27004")
+                            pts_acumulados += 2.0
+                        if state_321["27005"]:
+                            marcados.append("ISO/IEC 27005")
+                            pts_acumulados += 2.0
+
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_321["link"] or "").strip()
+
+                        salvar_no_banco_321("3.2.1", valor_string, pts_acumulados, lnk_val)
+                        res_data["3.2.1"] = {"valor": valor_string, "pontos": pts_acumulados, "link": lnk_val}
+                        ui.notify("Quesito 3.2.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 3.2.1: {err}", type="negative")
+
+                with ui.column().classes("w-full gap-2 mb-4"):
+                    ui.checkbox("ISO/IEC 27000 (1,5 pts)").bind_value(state_321, "27000")
+                    ui.checkbox("ISO/IEC 27001 (1,5 pts)").bind_value(state_321, "27001")
+                    ui.checkbox("ISO/IEC 27002 (1,5 pts)").bind_value(state_321, "27002")
+                    ui.checkbox("ISO/IEC 27003 (1,5 pts)").bind_value(state_321, "27003")
+                    ui.checkbox("ISO/IEC 27004 (2,0 pts)").bind_value(state_321, "27004")
+                    ui.checkbox("ISO/IEC 27005 (2,0 pts)").bind_value(state_321, "27005")
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência da Adoção das Normas):",
+                    value=evidencia_321_salva,
+                    placeholder="Insira o link para relatórios de auditoria, políticas ou mapeamento de processos..."
+                ).classes("w-full mb-4").bind_value(state_321, "link")
+
+                pts_atuais_321 = float(d321.get("pontos") or 0.0)
+                cor_txt_321 = "text-green-600" if pts_atuais_321 > 0 else "text-gray-500"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"📋 Normas Aplicadas: {valor_salvo_321 if valor_salvo_321 else 'Nenhuma'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Impacto de Pontuação no Quesito 3.2.1: +{pts_atuais_321:.1f} pontos").classes(f"text-sm font-bold {cor_txt_321}")
+
+                    ui.button("Salvar Quesito 3.2.1", on_click=cb_processa_e_salva_321, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("3.2.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 3.3 • IDENTIFICAÇÃO DE RISCOS (ABNT NBR ISO/IEC 31000)
+            # =============================================================================
+            opcoes_33 = {
+                "Selecione...": 0.0,
+                "Sim (30 pts)": 30.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.3",
+                titulo="Identificação de Riscos (ISO/IEC 31000)",
+                pergunta="Os riscos de TIC são identificados de acordo com as normas da ABNT NBR ISO/IEC 31000? (Nota: Se tiver apenas antivírus e firewall, a resposta é NÃO)",
+                opcoes=opcoes_33,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 3.4 • PLANO DE CONTINUIDADE DOS SERVIÇOS DE TIC
+            # =============================================================================
+            opcoes_34 = {
+                "Selecione...": 0.0,
+                "Sim (30 pts)": 30.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.4",
+                titulo="Plano de Continuidade dos Serviços de TIC",
+                pergunta="A Prefeitura possui um Plano de Continuidade dos Serviços de Tecnologia da Informação e Comunicação (TIC)?",
+                opcoes=opcoes_34,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 3.5 • POLÍTICA DE CÓPIAS DE SEGURANÇA (BACKUP)
+            # =============================================================================
+            opcoes_35 = {
+                "Selecione...": 0.0,
+                "Sim (30 pts)": 30.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.5",
+                titulo="Política de Cópias de Segurança (Backup)",
+                pergunta="A Prefeitura dispõe de política de cópias de segurança (backup) formalmente instituída como norma de cumprimento obrigatório?",
+                opcoes=opcoes_35,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
