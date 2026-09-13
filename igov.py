@@ -768,18 +768,27 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
-
 # =============================================================================
 # INICIALIZAÇÃO DA PÁGINA PRINCIPAL DO NICEGUI
 # =============================================================================
 @ui.page("/")
 def page_main():
-    container_formulario_igov_ti()
+    # Cabeçalho da página alinhado com a imagem (Botões Voltar e Sair)
+    with ui.row().classes("w-full items-center justify-between p-4 bg-white shadow-sm border-b"):
+        ui.button("⬅ VOLTAR", on_click=lambda: ui.navigate.to("/")).classes("bg-blue-600 text-white font-bold")
+        ui.label(f"i-Gov TI - {app.storage.user.get('ano_referencia_global', 2026)}").classes("text-xl font-bold text-blue-900")
+        ui.button("🚪 SAIR", on_click=lambda: ui.notify("Sessão encerrada")).classes("bg-orange-500 text-white font-bold")
 
+    # Renderiza o container principal com o formulário e o painel lateral
+    with ui.column().classes("w-full p-4"):
+        container_formulario_igov_ti()
 
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run(
         title="Formulário iGov-TI",
         storage_secret="chave_secreta_igov_ti_morato",
         port=8080,
+        reload=False
     )
+
+
