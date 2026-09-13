@@ -698,7 +698,27 @@ def container_formulario_igov_ti():
                         "Funcionários concursados + Funcionários comissionados + Estagiários no suporte e atendimento de primeiro nível > 0 — 30 pontos"
                     ).classes("text-sm text-blue-800 font-medium")
 
-                # Conversor ultraforte contra valores vazios ('', None, texto)
+                # Função local de persistência para evitar 'save_resp is not defined'
+                def salvar_no_banco_11(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                # Conversor seguro para prevenir crash com strings vazias
                 def parse_int_seguro(val):
                     if val is None:
                         return 0
@@ -718,7 +738,7 @@ def container_formulario_igov_ti():
                 evidencia_11_salva = ""
                 raw_link = str(d11.get("link") or "")
 
-                # Extração segura dos contadores do banco
+                # Extração dos contadores armazenados
                 if raw_link:
                     if "|LINK:" in raw_link:
                         contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1)
@@ -736,7 +756,7 @@ def container_formulario_igov_ti():
                     v_esta_i = int(match_e.group(1)) if match_e else 0
                     v_outr_i = int(match_o.group(1)) if match_o else 0
 
-                # Estado reativo local do formulário
+                # Estado reativo do formulário
                 state_11 = {
                     "conc": v_conc_i,
                     "comi": v_comi_i,
@@ -745,7 +765,7 @@ def container_formulario_igov_ti():
                     "link": evidencia_11_salva
                 }
 
-                # Callback para Processar e Salvar os dados
+                # Callback do Botão de Salvar
                 def cb_processa_e_salva_11():
                     try:
                         c_val = parse_int_seguro(state_11["conc"])
@@ -758,23 +778,22 @@ def container_formulario_igov_ti():
                         pts_calculados = 30.0 if total_p > 0 else 0.0
                         composite_string = f"C:{c_val},Co:{co_val},E:{e_val},O:{o_val}|LINK:{lnk_val}"
 
-                        # Grava no banco de dados
-                        save_resp("1.1", str(total_p), pts_calculados, composite_string)
+                        # Executa salvamento persistente no PostgreSQL
+                        salvar_no_banco_11("1.1", str(total_p), pts_calculados, composite_string)
                         
-                        # Atualiza a memória local da página
+                        # Atualiza dict local em memória
                         res_data["1.1"] = {
                             "valor": str(total_p), 
                             "pontos": pts_calculados, 
                             "link": composite_string
                         }
                         
-                        ui.notify("Quesito 1.1 salvo com sucesso no banco!", type="positive")
+                        ui.notify("Quesito 1.1 salvo com sucesso!", type="positive")
                         container_formulario_igov_ti.refresh()
                     except Exception as err:
                         ui.notify(f"Erro ao salvar Quesito 1.1: {err}", type="negative")
-                        print(f"❌ Erro interno no callback do 1.1: {err}")
 
-                # Grid com os 4 Inputs de Pessoal
+                # Grid com os Inputs Numéricos
                 with ui.grid(columns=2).classes("w-full gap-4 mb-4 md:grid-cols-4"):
                     ui.number(
                         "Funcionários concursados:", 
@@ -804,14 +823,14 @@ def container_formulario_igov_ti():
                         step=1
                     ).classes("w-full").bind_value(state_11, "outr")
 
-                # Área de Link e Evidências
+                # Área do Link / Evidência
                 ui.textarea(
                     "Página Eletrônica (Link / Evidência da Composição):",
                     value=evidencia_11_salva,
                     placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI..."
                 ).classes("w-full mb-4").bind_value(state_11, "link")
 
-                # Rodapé com Indicador de Pontuação e Botão de Salvar
+                # Rodapé do Quesito
                 total_pessoal = parse_int_seguro(d11.get("valor"))
                 pts_atuais_11 = float(d11.get("pontos") or 0.0)
                 cor_txt_11 = "text-green-600" if pts_atuais_11 == 30.0 else "text-gray-500"
