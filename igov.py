@@ -1,16 +1,27 @@
-import ast
 from datetime import datetime
 import json
 import os
 import re
-import sqlite3
 from nicegui import app, ui
+import psycopg2
+from psycopg2.extras import Json, RealDictCursor
 
 # =============================================================================
-# EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (SQLITE - iGov-TI)
+# EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
 # =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
-DB_NAME = "dados_igov_ti.db"
+
+# Connection string configurada para o seu cluster no Neon
+DATABASE_URL = os.getenv(
+    "NEON_DATABASE_URL",
+    "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
+)
+
+
+def get_db_connection():
+    """Cria e retorna uma conexão ativa com a base de dados do Neon."""
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+
 
 
 def get_db_connection():
