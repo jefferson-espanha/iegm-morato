@@ -23,41 +23,26 @@ def get_db_connection():
 
 
 def init_db():
+    """Garante que a tabela respostas_igovti exista com as colunas certas."""
     try:
         with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute("""
-                    CREATE TABLE IF NOT EXISTS respostas (
-                        id VARCHAR(50) NOT NULL,
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS respostas_igovti (
+                        qid VARCHAR(50) NOT NULL,
                         ano INTEGER NOT NULL,
                         valor TEXT,
                         pontos REAL DEFAULT 0,
                         link TEXT,
-                        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        comentarios TEXT,
+                        comentarios JSONB DEFAULT '[]'::jsonb,
                         status VARCHAR(20) DEFAULT 'Pendente',
-                        PRIMARY KEY (id, ano)
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (ano, qid)
                     );
-                """)
-                cursor.execute("""
-                    DO $$ 
-                    BEGIN 
-                        BEGIN
-                            ALTER TABLE respostas ADD COLUMN comentarios TEXT;
-                        EXCEPTION
-                            WHEN duplicate_column THEN NULL;
-                        END;
-                        BEGIN
-                            ALTER TABLE respostas ADD COLUMN status VARCHAR(20) DEFAULT 'Pendente';
-                        EXCEPTION
-                            WHEN duplicate_column THEN NULL;
-                        END;
-                    END $$;
                 """)
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao inicializar o banco de dados Neon: {e}")
+        print(f"❌ Erro ao inicializar tabela respostas_igovti: {e}")
 
 
 init_db()
@@ -65,29 +50,22 @@ init_db()
 
 def load_respostas(ano):
     query = """
-        SELECT id, valor, pontos, link, comentarios, status
-        FROM respostas
+        SELECT qid, valor, pontos, link, comentarios, status
+        FROM respostas_igovti
         WHERE ano = %s;
     """
     respostas = {}
     try:
         with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (ano,))
-                rows = cursor.fetchall()
+            with conn.cursor() as cur:
+                cur.execute(query, (ano,))
+                rows = cur.fetchall()
                 for row in rows:
                     link_val = row["link"]
                     if link_val is None or link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    comentarios_lista = []
-                    if row["comentarios"]:
-                        try:
-                            comentarios_lista = json.loads(row["comentarios"])
-                        except Exception:
-                            comentarios_lista = []
-
-                    respostas[row["id"]] = {
+                    respostas[row["qid"]] = {
                         "valor": row["valor"] if row["valor"] is not None else "",
                         "pontos": (
                             float(row["pontos"])
@@ -95,7 +73,11 @@ def load_respostas(ano):
                             else 0.0
                         ),
                         "link": link_val,
-                        "comentarios": comentarios_lista,
+                        "comentarios": (
+                            row["comentarios"]
+                            if isinstance(row["comentarios"], list)
+                            else []
+                        ),
                         "status": (
                             row["status"]
                             if row["status"] is not None
@@ -103,7 +85,7 @@ def load_respostas(ano):
                         ),
                     }
     except Exception as e:
-        print(f"❌ Erro ao carregar respostas do Neon DB: {e}")
+        print(f"❌ Erro ao carregar respostas do Neon DB (iGov-TI): {e}")
 
     return respostas
 
@@ -119,42 +101,43 @@ def save_resposta(
     link_final = link.strip() if link else ""
 
     query = """
-        INSERT INTO respostas (id, ano, valor, pontos, link, comentarios, status, atualizado_em)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-        ON CONFLICT(id, ano) DO UPDATE SET
+        INSERT INTO respostas_igovti (ano, qid, valor, pontos, link, comentarios, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (ano, qid) 
+        DO UPDATE SET
             valor = EXCLUDED.valor,
             pontos = EXCLUDED.pontos,
             link = EXCLUDED.link,
             comentarios = EXCLUDED.comentarios,
             status = EXCLUDED.status,
-            atualizado_em = CURRENT_TIMESTAMP;
+            updated_at = CURRENT_TIMESTAMP;
     """
     try:
         with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(
+            with conn.cursor() as cur:
+                cur.execute(
                     query,
                     (
+                        ano,
                         str(qid),
-                        int(ano),
                         str(valor),
                         float(pontos),
                         link_final,
-                        json.dumps(comentarios_validos, ensure_ascii=False),
+                        Json(comentarios_validos),
                         str(status),
                     ),
                 )
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
+        print(f"❌ Erro ao salvar resposta no Neon DB (iGov-TI): {e}")
 
 
 def zerar_questionario_db(ano):
-    query = "DELETE FROM respostas WHERE ano = %s;"
+    query = "DELETE FROM respostas_igovti WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
-            with conn.cursor() as cursor:
-                cursor.execute(query, (ano,))
+            with conn.cursor() as cur:
+                cur.execute(query, (ano,))
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
@@ -243,7 +226,7 @@ def render_painel_controle(on_refresh_callback=None):
             if on_refresh_callback:
                 on_refresh_callback()
 
-        ui.button("🔄 Atualizar", on_click=atualizar_dados).classes(
+        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
             "w-full bg-blue-700 text-white mb-2"
         )
         ui.separator().classes("my-2")
@@ -400,7 +383,9 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                             </div>"""
                         ).classes("w-full")
 
-                    ui.button("🗑️", on_click=deletar_comentario).props("flat dense")
+                    ui.button("🗑️", on_click=deletar_comentario).props(
+                        "flat dense"
+                    )
 
         input_novo_comentario = (
             ui.textarea(placeholder="Novo comentário...")
@@ -637,7 +622,7 @@ def render_quesito(
 
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL REFRESHABLE (iGov-TI)
+# 4. CONTAINER PRINCIPAL REFRESHABLE
 # =============================================================================
 @ui.refreshable
 def container_formulario_igov_ti():
@@ -655,7 +640,7 @@ def container_formulario_igov_ti():
                 f"Formulário iGov-TI - Governança de TI ({ano_sel})"
             ).classes("text-h4 mb-1 font-bold text-blue-900")
             ui.label(
-                "Preencha as evidências e questões do indicador iGov-TI aqui."
+                "Preencha as evidências e questões do indicador iGov-TI."
             ).classes("text-gray-600 mb-6")
 
             ui.label("1.0 Estrutura de TIC").classes(
@@ -675,57 +660,17 @@ def container_formulario_igov_ti():
                 titulo="Setor de Tecnologia da Informação e Comunicação",
                 pergunta="A Prefeitura possui uma área ou setor que cuida de Tecnologia da Informação e Comunicação (TIC)?",
                 opcoes=opcoes_10,
-                placeholder_link="Insira o link da lei de estrutura administrativa, organograma oficial ou portaria de nomeação...",
-                on_save_callback=container_formulario_igov_ti.refresh,
-            )
-
-            render_quesito(
-                ano=ano_sel,
-                res_data=res_data,
-                qid="1.1",
-                titulo="Composição de Recursos Humanos do Setor de TIC",
-                pergunta="Informe a quantidade da equipe que atua no suporte e atendimento de primeiro nível (Concursados, Comissionados, Estagiários e Outros):",
-                is_text_area=True,
-                placeholder_text="Informe a composição (ex: Concursados: 2, Comissionados: 1, Estagiários: 2, Outros: 0)...",
-                placeholder_link="Cole aqui o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada...",
-                on_save_callback=container_formulario_igov_ti.refresh,
-            )
-
-            opcoes_12 = {
-                "Selecione...": 0.0,
-                "Sim – 30 pts": 30.0,
-                "Não – 00 pts": 0.0,
-            }
-
-            render_quesito(
-                ano=ano_sel,
-                res_data=res_data,
-                qid="1.2",
-                titulo="Definição de Atribuições Formais da Equipe",
-                pergunta="A prefeitura municipal definiu formalmente as atribuições do pessoal do setor de Tecnologia da Informação e Comunicação (TIC)?",
-                opcoes=opcoes_12,
-                placeholder_link="Insira o link do manual de cargos, decreto de atribuições de secretarias ou manual interno...",
+                placeholder_link="Insira o link da lei de estrutura administrativa...",
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
 
 # =============================================================================
-# INICIALIZAÇÃO DA PÁGINA PRINCIPAL DO NICEGUI
+# ENTRYPOINT DA APLICAÇÃO
 # =============================================================================
 @ui.page("/")
-def page_main():
-    ano_atual = app.storage.user.get("ano_referencia_global", 2026)
-
-    # Barra de Navegação Superior
-    with ui.row().classes("w-full items-center justify-between p-4 bg-white shadow-sm border-b mb-4"):
-        ui.button("🔄 RECARREGAR", on_click=container_formulario_igov_ti.refresh).classes("bg-blue-600 text-white font-bold")
-        ui.label(f"i-Gov TI - {ano_atual}").classes("text-xl font-bold text-blue-900")
-        ui.button("🚪 SAIR", on_click=lambda: ui.notify("Sessão encerrada")).classes("bg-orange-500 text-white font-bold")
-
-    # Container de Conteúdo Principal
-    with ui.column().classes("w-full px-4"):
-        container_formulario_igov_ti()
+def main_page():
+    container_formulario_igov_ti()
 
 
-# Habilita o uso de storage do usuário e inicia a aplicação
-ui.run(storage_secret="sua_chave_secreta_aqui", title="iGov-TI System")
+ui.run(storage_secret="chave_secreta_igovti_2026", title="iGov-TI - Governança")
