@@ -681,7 +681,7 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
-            # QUESITO 1.1 (Customizado com Inputs Numéricos)
+            # QUESITO 1.1 (Customizado com Inputs Numéricos, Botão Salvar e Comentários)
             with ui.card().classes("w-full p-4 mb-4 border border-gray-200 shadow-sm"):
                 ui.label("📌 Quesito 1.1 - Composição de Recursos Humanos do Setor de TIC").classes("text-lg font-bold text-blue-900 mb-1")
                 ui.label("1.1 • Recursos Humanos em TIC").classes("text-md font-bold mb-1")
@@ -714,10 +714,10 @@ def container_formulario_igov_ti():
                 }
 
                 def cb_processa_e_salva_11():
-                    c_val = int(state_11["conc"])
-                    co_val = int(state_11["comi"])
-                    e_val = int(state_11["esta"])
-                    o_val = int(state_11["outr"])
+                    c_val = int(state_11["conc"] or 0)
+                    co_val = int(state_11["comi"] or 0)
+                    e_val = int(state_11["esta"] or 0)
+                    o_val = int(state_11["outr"] or 0)
                     lnk_val = state_11["link"].strip()
 
                     total_p = c_val + co_val + e_val
@@ -726,27 +726,37 @@ def container_formulario_igov_ti():
 
                     save_resp("1.1", str(total_p), pts_calculados, composite_string)
                     res_data["1.1"] = {"valor": str(total_p), "pontos": pts_calculados, "link": composite_string}
+                    ui.notify("Quesito 1.1 salvo com sucesso!", type="positive")
                     container_formulario_igov_ti.refresh()
 
                 with ui.grid(columns=4).classes("w-full gap-4 mb-4"):
-                    ui.number("Concursados", value=v_conc_i, min=0, step=1, on_change=cb_processa_e_salva_11).bind_value(state_11, "conc")
-                    ui.number("Comissionados", value=v_comi_i, min=0, step=1, on_change=cb_processa_e_salva_11).bind_value(state_11, "comi")
-                    ui.number("Estagiários", value=v_esta_i, min=0, step=1, on_change=cb_processa_e_salva_11).bind_value(state_11, "esta")
-                    ui.number("Outros", value=v_outr_i, min=0, step=1, on_change=cb_processa_e_salva_11).bind_value(state_11, "outr")
+                    ui.number("Concursados", value=v_conc_i, min=0, step=1).bind_value(state_11, "conc")
+                    ui.number("Comissionados", value=v_comi_i, min=0, step=1).bind_value(state_11, "comi")
+                    ui.number("Estagiários", value=v_esta_i, min=0, step=1).bind_value(state_11, "esta")
+                    ui.number("Outros", value=v_outr_i, min=0, step=1).bind_value(state_11, "outr")
 
                 ui.textarea(
                     "Link/Evidência da composição da equipe (1.1):",
                     value=evidencia_11_salva,
-                    placeholder="Cole aqui o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI...",
-                    on_change=cb_processa_e_salva_11
+                    placeholder="Cole aqui o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI..."
                 ).classes("w-full mb-4").bind_value(state_11, "link")
 
                 total_pessoal = int(d11.get("valor", "0"))
                 pts_atuais_11 = d11.get("pontos", 0.0)
                 cor_txt_11 = "text-green-600" if pts_atuais_11 == 30.0 else "text-gray-500"
 
-                ui.label(f"👥 Total de Pessoal Efetivo Computado (C+Co+E): {total_pessoal} funcionário(s)").classes("text-sm font-semibold mb-1")
-                ui.label(f"📊 Impacto de Pontuação no Quesito 1.1: +{pts_atuais_11:.1f} pontos").classes(f"text-sm font-bold {cor_txt_11}")
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"👥 Total de Pessoal Efetivo Computado (C+Co+E): {total_pessoal} funcionário(s)").classes("text-sm font-semibold")
+                        ui.label(f"📊 Impacto de Pontuação no Quesito 1.1: +{pts_atuais_11:.1f} pontos").classes(f"text-sm font-bold {cor_txt_11}")
+                    
+                    # BOTÃO DE SALVAR
+                    ui.button("Salvar Quesito 1.1", on_click=cb_processa_e_salva_11, icon="save").classes("bg-blue-800 text-white")
+
+                ui.separator().classes("my-2")
+
+                # ÁREA DE COMENTÁRIOS DA QUESTÃO
+                bloco_comentarios("1.1", res_data, ano_sel)
 
             # QUESITO 1.2
             opcoes_12 = {
