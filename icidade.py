@@ -1788,7 +1788,7 @@ def container_formulario_icidade():
             )
 
             # =============================================================================
-            # QUESITO 14.1 • RECURSOS DE ACESSIBILIDADE OFERECIDOS
+            # QUESITO 14.1 • RECURSOS DE ACESSIBILIDADE OFERECIDOS (CHECKBOXES)
             # =============================================================================
             opcoes_141 = {
                 "Calçadas com dimensões mínimas para a circulação": 0.0,
@@ -1803,9 +1803,9 @@ def container_formulario_icidade():
                 titulo="Detalhamento dos Recursos de Acessibilidade",
                 pergunta="Informe os recursos de acessibilidade oferecidos pela Prefeitura:",
                 opcoes=opcoes_141,
+                tipo="checkbox",  # <--- Define o tipo de componente para Checkbox
                 on_save_callback=container_formulario_icidade.refresh,
             )
-
             # =============================================================================
             # QUESITO 15.0 • SINALIZAÇÃO VIÁRIA MUNICIPAL
             # =============================================================================
