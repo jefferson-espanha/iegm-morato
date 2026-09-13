@@ -416,26 +416,22 @@ def render_quesito(
     qid,
     titulo,
     pergunta,
-    opcoes,
+    opcoes=None,
     on_save_callback=None,
     tipo="radio",
     informativo=False,
-    is_text_area=False,  # <--- ADICIONE ESTE PARÂMETRO COM VALOR PADRÃO
+    is_text_area=False,
+    placeholder_text="",
     calculo_pontos_customizado=None,
     instrucoes_calculo=None,
-    **kwargs  # <--- Garante suporte a outros parâmetros extras
+    **kwargs
 ):
-    # Recupera o estado salvo para o quesito atual
     d_data = res_data.get(qid) or {
         "valor": "Selecione..." if isinstance(opcoes, dict) else "",
         "pontos": 0.0,
         "link": "",
         "comentarios": []
     }
-    
-    # ... Restante da sua implementação do render_quesito ...
-    
-    # ... Restante da sua implementação do render_quesito ...
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
         with ui.expansion(
@@ -443,13 +439,31 @@ def render_quesito(
         ).classes("w-full font-bold"):
             ui.label(f"{qid} • {titulo}").classes("text-h6 text-primary mt-2")
             ui.label(pergunta).classes("text-body1 font-bold my-2")
+
+            if instrucoes_calculo:
+                ui.markdown(instrucoes_calculo).classes(
+                    "bg-blue-50 p-3 rounded text-sm text-gray-700 mb-3 border border-blue-200"
+                )
+
             ui.label(
                 "ℹ Preencha os campos abaixo e clique no botão de salvar."
             ).classes("text-caption text-grey-6 mb-4")
 
             with ui.row().classes("w-full gap-4 items-start"):
                 with ui.column().classes("flex-1"):
-                    if opcoes:
+                    if tipo == "date":
+                        val_date = d_data.get("valor", "")
+                        input_valor = ui.input(
+                            label="Selecione a Data:",
+                            value=val_date,
+                            placeholder="YYYY-MM-DD"
+                        ).classes("w-full").props("outlined")
+                        with input_valor:
+                            with ui.menu() as menu_date:
+                                ui.date().bind_value(input_valor)
+                            ui.button(icon="event", on_click=menu_date.open).props("flat round dense")
+
+                    elif opcoes:
                         lista_opcoes = list(opcoes.keys())
                         v_salvo = d_data.get("valor", "Selecione...")
                         valor_inicial = (
@@ -461,6 +475,7 @@ def render_quesito(
                         input_valor = ui.radio(
                             options=lista_opcoes, value=valor_inicial
                         ).classes("gap-2")
+
                     else:
                         input_valor = (
                             ui.textarea(
@@ -488,7 +503,7 @@ def render_quesito(
                         container_links.clear()
                         val_txt = (
                             input_valor.value
-                            if (is_text_area and input_valor.value)
+                            if (is_text_area and hasattr(input_valor, 'value') and input_valor.value)
                             else ""
                         )
                         lnk_txt = input_link.value or ""
@@ -517,8 +532,15 @@ def render_quesito(
 
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
+            def calcular_pontuacao_atual(valor_selecionado):
+                if calculo_pontos_customizado:
+                    return float(calculo_pontos_customizado(valor_selecionado, ano))
+                elif opcoes and valor_selecionado in opcoes:
+                    return float(opcoes[valor_selecionado])
+                return 0.0
+
             def atualizar_label_pontos(pts, val):
-                if opcoes is None:
+                if opcoes is None and not calculo_pontos_customizado:
                     lbl_pontos.set_content(
                         f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>"
                     )
@@ -541,7 +563,7 @@ def render_quesito(
             def salvar():
                 val = input_valor.value or ""
                 link = input_link.value or ""
-                pts = opcoes.get(val, 0.0) if opcoes else 0.0
+                pts = calcular_pontuacao_atual(val)
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
@@ -570,6 +592,25 @@ def render_quesito(
 
             # Renderiza o bloco de comentários
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
+
+
+# =============================================================================
+# FUNÇÃO DE CÁLCULO CUSTOMIZADO (QUESITO 3.1.1)
+# =============================================================================
+def calc_pts_311(data_str, ano_sel):
+    """Calcula a pontuação para a data do último treinamento."""
+    if not data_str:
+        return 0.0
+    try:
+        dt = datetime.strptime(data_str, "%Y-%m-%d")
+        if dt.year < ano_sel:
+            return 0.0
+        elif dt.year == ano_sel:
+            return 10.0
+        else:
+            return 0.0
+    except ValueError:
+        return 0.0
 
 
 # =============================================================================
@@ -733,6 +774,7 @@ def container_formulario_icidade():
                 opcoes=opcoes_22,
                 on_save_callback=container_formulario_icidade.refresh
             )
+
             # =============================================================================
             # QUESITO 3.0 • PARTICIPAÇÃO DA SOCIEDADE CIVIL
             # =============================================================================
@@ -741,7 +783,6 @@ def container_formulario_icidade():
                 "Sim – 10 pts": 10.0,
                 "Não – 00 pts": 0.0
             }
-
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
@@ -756,32 +797,27 @@ def container_formulario_icidade():
                 on_save_callback=container_formulario_icidade.refresh
             )
 
-           # =============================================================================
+            # =============================================================================
             # QUESITO 3.1 • AÇÕES REALIZADAS PARA PARTICIPAÇÃO DA SOCIEDADE
             # =============================================================================
-            # Como render_quesito não possui o parâmetro 'tipo', passamos um dicionário de opções
             opcoes_31 = {
                 "Selecione...": 0.0,
                 "Workshop / Palestra (00 pts)": 0.0,
-                "Reunião (00 pts)": 0.0,
-                "Conferência (00 pts)": 0.0,
-                "Congresso (00 pts)": 0.0,
-                "Discussão na Câmara Municipal (00 pts)": 0.0,
-                "Treinamentos (00 pts)": 0.0,
-                "Outros (00 pts)": 0.0
+                "Treinamento de Voluntários (00 pts)": 0.0,
+                "Reuniões Comunitárias (00 pts)": 0.0,
+                "Outras Ações (00 pts)": 0.0
             }
-
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
                 qid="3.1",
-                titulo="3.1 • Ações Realizadas para Participação da Sociedade",
-                pergunta="Assinale quais ações foram realizadas:",
+                titulo="3.1 • Ações para Participação da Sociedade",
+                pergunta="Quais ações foram promovidas para incentivar a participação da sociedade civil?",
                 opcoes=opcoes_31,
                 on_save_callback=container_formulario_icidade.refresh
             )
 
-             =============================================================================
+            # =============================================================================
             # QUESITO 3.1.1 • DATA DE TREINAMENTO DINÂMICA
             # =============================================================================
             render_quesito(
@@ -790,7 +826,7 @@ def container_formulario_icidade():
                 qid="3.1.1",
                 titulo="3.1.1 • Data do Último Treinamento de Voluntários",
                 pergunta="Qual a data do último treinamento de associações de voluntários?",
-                opcoes=None,  # <--- ADICIONE ESTA LINHA PARA EVITAR O ERRO
+                opcoes=None,
                 tipo="date",
                 calculo_pontos_customizado=calc_pts_311,
                 instrucoes_calculo=f"""
