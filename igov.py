@@ -2762,6 +2762,340 @@ def container_formulario_igov_ti():
                 ui.separator().classes("my-2")
                 bloco_comentarios("8.4", res_data, ano_sel)
 
+# =============================================================================
+            # QUESITO 9.0 • SERVIÇOS OFERECIDOS DE FORMA ONLINE
+            # =============================================================================
+            opcoes_90 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="9.0",
+                titulo="Oferta de Serviços Online",
+                pergunta="A Prefeitura ofereceu serviços de forma online? (Ex: alvarás, certidões, licenças, consulta de protocolos, ouvidoria, débitos municipais, etc.)",
+                opcoes=opcoes_90,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 9.1 • TIPOS DE SERVIÇOS ONLINE (7,5 PONTOS POR ITEM)
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 9.1 - Tipos de Serviços Online Prestados").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Quais tipos de serviços são oferecidos de forma online?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Regra de Pontuação:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label("• Cada opção assinalada soma 7,5 pontos na avaliação final do quesito.").classes("text-xs text-blue-900 font-medium mt-1")
+
+                def salvar_no_banco_91(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d91 = res_data.get("9.1") or {}
+                if not isinstance(d91, dict):
+                    d91 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_91 = str(d91.get("valor") or "")
+                itens_salvos_91 = [i.strip() for i in valor_salvo_91.split(",") if i.strip()]
+                evidencia_91_salva = str(d91.get("link") or "")
+
+                opcoes_servicos_91 = [
+                    "Alvarás / licenças de funcionamento", "Certidões", "Licenças / autorizações",
+                    "Ouvidoria", "Consulta de débitos municipais", "Emissão de guias/boletos dos débitos municipais",
+                    "Solicitação de serviços de zeladoria", "Solicitação de obras e serviços de urbanização",
+                    "Inscrições em oficinas, cursos, eventos e vagas", "Nota fiscal eletrônica",
+                    "Canal de denúncias", "Cadastro de fornecedores", "Agendamento de consultas na rede pública de saúde",
+                    "Agendamento de exames em relação a doenças crônicas na rede pública de saúde",
+                    "Pesquisa de satisfação em relação aos serviços prestados pela Prefeitura",
+                    "Consulta a status de protocolos de todos os atendimentos dos serviços assinalados acima"
+                ]
+
+                state_91 = {item: item in itens_salvos_91 for item in opcoes_servicos_91}
+                state_91["link"] = evidencia_91_salva
+
+                def cb_processa_e_salva_91():
+                    try:
+                        marcados = [item for item in opcoes_servicos_91 if state_91[item]]
+                        pts_totais = 7.5 * len(marcados)
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_91["link"] or "").strip()
+
+                        salvar_no_banco_91("9.1", valor_string, pts_totais, lnk_val)
+                        res_data["9.1"] = {"valor": valor_string, "pontos": pts_totais, "link": lnk_val}
+                        ui.notify("Quesito 9.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 9.1: {err}", type="negative")
+
+                with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
+                    for item in opcoes_servicos_91:
+                        ui.checkbox(f"{item} (+7.5 pts)").bind_value(state_91, item)
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência dos Serviços Online):",
+                    value=evidencia_91_salva,
+                    placeholder="Link da carta de serviços, portal do cidadão..."
+                ).classes("w-full mb-4").bind_value(state_91, "link")
+
+                pts_atuais_91 = float(d91.get("pontos") or 0.0)
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"📋 Serviços Selecionados ({len([i for i in opcoes_servicos_91 if state_91[i]])}): {valor_salvo_91 if valor_salvo_91 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Pontuação Total no Quesito 9.1: {pts_atuais_91:.1f} pontos").classes("text-sm font-bold text-green-700")
+
+                    ui.button("Salvar Quesito 9.1", on_click=cb_processa_e_salva_91, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("9.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 9.2 • FORMAS DE ATENDIMENTO À DISTÂNCIA
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 9.2 - Formas de Atendimento à Distância").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Quais as formas de atendimento à distância disponibilizadas ao público pela Prefeitura?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                def salvar_no_banco_92(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d92 = res_data.get("9.2") or {}
+                if not isinstance(d92, dict):
+                    d92 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_92 = str(d92.get("valor") or "")
+                itens_salvos_92 = [i.strip() for i in valor_salvo_92.split(",") if i.strip()]
+                evidencia_92_salva = str(d92.get("link") or "")
+
+                opcoes_atendimento_92 = [
+                    "Telefone", "Site da Prefeitura", "Aplicativo de mensagens",
+                    "Redes sociais", "Aplicativo da Prefeitura", "Correio eletrônico (e-mail)", "Outros"
+                ]
+
+                state_92 = {item: item in itens_salvos_92 for item in opcoes_atendimento_92}
+                state_92["link"] = evidencia_92_salva
+
+                def cb_processa_e_salva_92():
+                    try:
+                        marcados = [item for item in opcoes_atendimento_92 if state_92[item]]
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_92["link"] or "").strip()
+
+                        salvar_no_banco_92("9.2", valor_string, 0.0, lnk_val)
+                        res_data["9.2"] = {"valor": valor_string, "pontos": 0.0, "link": lnk_val}
+                        ui.notify("Quesito 9.2 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 9.2: {err}", type="negative")
+
+                with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
+                    for item in opcoes_atendimento_92:
+                        ui.checkbox(item).bind_value(state_92, item)
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência dos Canais de Atendimento):",
+                    value=evidencia_92_salva,
+                    placeholder="Link dos contatos oficiais, lista de ramais..."
+                ).classes("w-full mb-4").bind_value(state_92, "link")
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    ui.label(f"📋 Canais Assinalados ({len([i for i in opcoes_atendimento_92 if state_92[i]])}): {valor_salvo_92 if valor_salvo_92 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                    ui.button("Salvar Quesito 9.2", on_click=cb_processa_e_salva_92, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("9.2", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 10.0 • REGULAMENTAÇÃO DA LGPD
+            # =============================================================================
+            opcoes_100 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="10.0",
+                titulo="Regulamentação da LGPD",
+                pergunta="A Prefeitura Municipal regulamentou o tratamento de dados pessoais, inclusive nos meios digitais, segundo a LGPD (Lei Federal nº 13.709/2018)?",
+                opcoes=opcoes_100,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 10.1 • INSTRUMENTO NORMATIVO LGPD
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 10.1 - Instrumento Normativo da LGPD").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                d101 = res_data.get("10.1") or {}
+                if not isinstance(d101, dict):
+                    d101 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                val_101_salvo = str(d101.get("valor") or "")
+
+                state_101 = {"texto": val_101_salvo}
+
+                def cb_processa_e_salva_101():
+                    try:
+                        txt_val = str(state_101["texto"] or "").strip()
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, ("10.1", ano_sel, txt_val, 0.0, ""))
+                                conn.commit()
+
+                        res_data["10.1"] = {"valor": txt_val, "pontos": 0.0, "link": ""}
+                        ui.notify("Quesito 10.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 10.1: {err}", type="negative")
+
+                ui.input(
+                    "Instrumento Normativo, Número e Data:",
+                    value=val_101_salvo,
+                    placeholder="Ex: Decreto Municipal nº 1.234, de 10 de maio de 2022"
+                ).classes("w-full mb-4").bind_value(state_101, "texto")
+
+                with ui.row().classes("w-full justify-end items-center mb-4"):
+                    ui.button("Salvar Quesito 10.1", on_click=cb_processa_e_salva_101, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("10.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 10.2 • PÁGINA ELETRÔNICA DA NORMA LGPD
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 10.2 - Link da Norma da LGPD").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Informe a página eletrônica (link na internet):").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                ui.label("Nota: Se não estiver disponível na internet, inserir no campo de resposta o texto XYZ").classes("text-xs text-gray-500 italic mb-2")
+
+                d102 = res_data.get("10.2") or {}
+                if not isinstance(d102, dict):
+                    d102 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                val_102_salvo = str(d102.get("valor") or "")
+
+                state_102 = {"link": val_102_salvo}
+
+                def cb_processa_e_salva_102():
+                    try:
+                        lnk_val = str(state_102["link"] or "").strip()
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        link = EXCLUDED.link,
+                                        pontos = EXCLUDED.pontos,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, ("10.2", ano_sel, lnk_val, 0.0, lnk_val))
+                                conn.commit()
+
+                        res_data["10.2"] = {"valor": lnk_val, "pontos": 0.0, "link": lnk_val}
+                        ui.notify("Quesito 10.2 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 10.2: {err}", type="negative")
+
+                ui.input(
+                    "Link da publicação da LGPD (ou XYZ se indisponível):",
+                    value=val_102_salvo,
+                    placeholder="https://... ou XYZ"
+                ).classes("w-full mb-4").bind_value(state_102, "link")
+
+                with ui.row().classes("w-full justify-end items-center mb-4"):
+                    ui.button("Salvar Quesito 10.2", on_click=cb_processa_e_salva_102, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("10.2", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 10.3 • CLÁUSULAS DE LGPD EM CONTRATOS
+            # =============================================================================
+            opcoes_103 = {
+                "Selecione...": 0.0,
+                "Todos os contratos vigentes": 0.0,
+                "A maior parte dos contratos vigentes": 0.0,
+                "A menor parte dos contratos vigentes": 0.0,
+                "Não": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="10.3",
+                titulo="Cláusulas de LGPD nos Contratos com Prestadores",
+                pergunta="Os contratos com os prestadores de serviços contêm cláusulas de observância à LGPD?",
+                opcoes=opcoes_103,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 10.4 • MAPEAMENTO DE DADOS (DATA MAPPING)
+            # =============================================================================
+            opcoes_104 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="10.4",
+                titulo="Mapeamento de Dados (Data Mapping)",
+                pergunta="A Prefeitura Municipal realizou mapeamento de dados (data mapping)?",
+                opcoes=opcoes_104,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
