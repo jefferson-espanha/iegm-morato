@@ -1149,6 +1149,133 @@ def container_formulario_icidade():
                 opcoes=opcoes_74,
                 on_save_callback=container_formulario_icidade.refresh
             )
+
+# =============================================================================
+            # QUESITO 7.4.1 • TIPOS DE SISTEMAS DE ALARME
+            # =============================================================================
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.4.1",
+                titulo="Tipos de Sinais ou Alarmes Utilizados",
+                pergunta="Assinale os tipos de sinal, dispositivo ou sistema de alarme utilizado:",
+                tipo="checkbox",
+                opcoes=[
+                    "Sinal sonoro (sirene)",
+                    "Sinal luminoso",
+                    "Carros de emergência com sirenes",
+                    "Carros de emergência com alto-falantes",
+                    "Aviso aos membros do Nupdec",
+                    "Aviso por telefone / Aplicativo de mensagens",
+                    "Uso da imprensa (TV, rádio, internet)",
+                    "Outro"
+                ],
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_link="Detalhamento sobre os tipos de alarme ou insira os links de comprovação...",
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 7.5 • CADASTRO DE ABRIGOS CEPDEC
+            # =============================================================================
+            opcoes_75 = {
+                "Selecione...": 0.0,
+                "Sim, atualizado (10 pts)": 10.0,
+                "Sim, mas não está atualizado (03 pts)": 3.0,
+                "Não (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.5",
+                titulo="Cadastro de Locais para Abrigo (CEPDEC)",
+                pergunta="Possui cadastro dos locais para abrigo à população em situação de desastre junto à Coordenadoria Estadual de Proteção e Defesa Civil (CEPDEC)?",
+                opcoes=opcoes_75,
+                placeholder_link="Descreva as evidências ou insira os links de comprovação do cadastro...",
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 7.6 • FORNECEDORES DE AJUDA HUMANITÁRIA
+            # =============================================================================
+            opcoes_76 = {
+                "Selecione...": 0.0,
+                "Sim, atualizado (10 pts)": 10.0,
+                "Sim, mas não está atualizado (03 pts)": 3.0,
+                "Não (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.6",
+                titulo="Cadastro de Fornecedores de Ajuda Humanitária",
+                pergunta="O Município possui cadastro da lista de fornecedores para coleta e distribuição de suprimentos de ajuda humanitária para o caso de desastre?",
+                opcoes=opcoes_76,
+                placeholder_link="Descreva as evidências ou insira os links de comprovação do cadastro de fornecedores...",
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 7.7 • DATA DA ÚLTIMA ATUALIZAÇÃO DO PLANCON
+            # =============================================================================
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.7",
+                titulo="Data da Última Atualização do PLANCON",
+                pergunta="Qual a data da última atualização do PLANCON? (Se não houve atualização, informar a data do início da vigência)",
+                tipo="text_input",
+                format_input="date",
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_input="Ex: 15/05/2024",
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 8.0 • CANAL DE ATENDIMENTO DE EMERGÊNCIA
+            # =============================================================================
+            opcoes_80 = {
+                "Selecione...": 0.0,
+                "Sim (50 pts)": 50.0,
+                "Não (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="8.0",
+                titulo="Canal de Atendimento de Emergência",
+                pergunta="O Município possui um canal de atendimento de emergência à população para registro de ocorrências de desastres?",
+                opcoes=opcoes_80,
+                placeholder_link="Ex: Telefone 199, WhatsApp oficial, Site de chamados...",
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 8.1 • CANAIS DE ATENDIMENTO DISPONÍVEIS
+            # =============================================================================
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="8.1",
+                titulo="Canais de Comunicação Disponíveis",
+                pergunta="Assinale os canais que o município possui:",
+                tipo="checkbox",
+                opcoes=[
+                    "Telefone de emergências",
+                    "Aplicativo de mensagens",
+                    "Correio eletrônico (e-mail)",
+                    "Aplicativo da Prefeitura",
+                    "Site da Prefeitura",
+                    "Redes sociais",
+                    "Outros"
+                ],
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_link="Descreva os números, endereços eletrônicos ou insira os links dos canais...",
+                on_save_callback=container_formulario_icidade.refresh
+            )
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
