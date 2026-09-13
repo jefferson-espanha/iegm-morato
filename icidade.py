@@ -1034,6 +1034,121 @@ def container_formulario_icidade():
                 opcoes=opcoes_60,
                 on_save_callback=container_formulario_icidade.refresh
             )
+
+# =============================================================================
+            # QUESITO 7.0 • PLANCON DE DEFESA CIVIL
+            # =============================================================================
+            opcoes_70 = {
+                "Selecione...": 0.0,
+                "Sim (50 pts)": 50.0,
+                "Não (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.0",
+                titulo="Plano de Contingência Municipal (PLANCON)",
+                pergunta="O Município possui Plano de Contingência Municipal – PLANCON de Defesa Civil?",
+                opcoes=opcoes_70,
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 7.1 • ABRANGÊNCIA DO PLANCON POR AMEAÇA
+            # =============================================================================
+            opcoes_71 = {
+                "Selecione...": 0.0,
+                "Sim, cada ameaça mapeada possui um PLANCON diferente (05 pts)": 5.0,
+                "Sim, parte das ameaças possuem PLANCON diferentes (03 pts)": 3.0,
+                "Existe apenas um PLANCON que abrange todas as ameaças (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.1",
+                titulo="Elaboração de PLANCON por Ameaça",
+                pergunta="Foi elaborado um PLANCON específico para cada ameaça identificada?",
+                opcoes=opcoes_71,
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 7.2 • EXERCÍCIOS SIMULADOS DO PLANCON
+            # =============================================================================
+            opcoes_72 = {
+                "Selecione...": 0.0,
+                "Sim (80 pts)": 80.0,
+                "Não (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.2",
+                titulo="Exercícios Simulados para Contingências",
+                pergunta="São realizados regularmente exercícios simulados para as contingências previstas no PLANCON?",
+                opcoes=opcoes_72,
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 7.3 • SISTEMA DE ALERTA PARA DESASTRES
+            # =============================================================================
+            opcoes_73 = {
+                "Selecione...": 0.0,
+                "Sim (50 pts)": 50.0,
+                "Não (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.3",
+                titulo="Sistema de Alerta para Desastres",
+                pergunta="O Município possui sistema de alerta para desastres?",
+                opcoes=opcoes_73,
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 7.3.1 • TIPOS DE SISTEMAS DE ALERTA (Informativo)
+            # =============================================================================
+            # Nota: Caso a função render_quesito suporte opções com pontuação 0.0 ou múltipla escolha
+            opcoes_731 = {
+                "Selecione...": 0.0,
+                "Alerta via SMS": 0.0,
+                "Anúncio por rádio/Televisão": 0.0,
+                "Placas de identificação de área de risco": 0.0,
+                "Aviso por telefone / Aplicativo de mensagens": 0.0,
+                "Aviso por email": 0.0,
+                "Aviso aos membros do Nupdec": 0.0,
+                "Outro": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.3.1",
+                titulo="Tipos de Sistemas de Alerta Utilizados",
+                pergunta="Assinale os tipos de sistemas de alerta utilizados pelo Município:",
+                opcoes=opcoes_731,
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 7.4 • SISTEMA DE ALARME PARA DESASTRES
+            # =============================================================================
+            opcoes_74 = {
+                "Selecione...": 0.0,
+                "Sim (50 pts)": 50.0,
+                "Não (00 pts)": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.4",
+                titulo="Dispositivo ou Sistema de Alarme",
+                pergunta="O Município dispõe de sinal, dispositivo ou sistema de alarme para desastres?",
+                opcoes=opcoes_74,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
