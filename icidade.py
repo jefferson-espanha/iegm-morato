@@ -1018,16 +1018,21 @@ def container_formulario_icidade():
                 "Notificação dos infratores": 0.0,
                 "Interdição do local e remoção das famílias": 0.0,
                 "Demolição das ocupações": 0.0,
-                "Outros": 0.0
+                "Outros": 0.0,
             }
+
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
                 qid="5.1.2.1",
-                titulo="Mecanismos para Vedar Novas Ocupações",
+                titulo="5.1.2.1 • Mecanismos para Vedar Novas Ocupações",
                 pergunta="Assinale os mecanismos para vedar novas ocupações nas áreas de riscos:",
+                tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
                 opcoes=opcoes_5121,
-                on_save_callback=container_formulario_icidade.refresh
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_link="Caso selecione 'Outros' ou queira detalhar os mecanismos, especifique aqui...",
+                on_save_callback=container_formulario_icidade.refresh,
             )
 
             # =============================================================================
