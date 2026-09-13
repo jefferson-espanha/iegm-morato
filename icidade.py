@@ -781,24 +781,24 @@ def container_formulario_icidade():
                 on_save_callback=container_formulario_icidade.refresh
             )
 
+             =============================================================================
+            # QUESITO 3.1.1 • DATA DE TREINAMENTO DINÂMICA
             # =============================================================================
-            # QUESITO 3.1.1 • DATA DE TREINAMENTO
-            # =============================================================================
-            # Caso a render_quesito não suporte seletores de data ou callbacks customizados,
-            # mapeamos as faixas/regras diretamente no dicionário de opções:
-            opcoes_311 = {
-                "Selecione...": 0.0,
-                f"A partir de 01/01/{ano_sel} (10 pts)": 10.0,
-                f"Até 31/12/{ano_sel - 1} ou sem treinamento (00 pts)": 0.0
-            }
-
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
                 qid="3.1.1",
                 titulo="3.1.1 • Data do Último Treinamento de Voluntários",
                 pergunta="Qual a data do último treinamento de associações de voluntários?",
-                opcoes=opcoes_311,
+                opcoes=None,  # <--- ADICIONE ESTA LINHA PARA EVITAR O ERRO
+                tipo="date",
+                calculo_pontos_customizado=calc_pts_311,
+                instrucoes_calculo=f"""
+                **Fórmula de Cálculo:**
+                * 📅 **Até 31/12/{ano_sel - 1}:** 00 pontos.
+                * 📅 **A partir de 01/01/{ano_sel}:** 10 pontos.
+                * 🚫 **Observação:** Treinamentos em {ano_sel + 1} não pontuam.
+                """,
                 on_save_callback=container_formulario_icidade.refresh
             )
 # =============================================================================
