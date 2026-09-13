@@ -19,6 +19,7 @@ DATABASE_URL = os.getenv(
 
 
 def get_db_connection():
+    """Retorna uma conexão ativa com o PostgreSQL/Neon DB."""
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
@@ -49,6 +50,7 @@ init_db()
 
 
 def load_respostas(ano):
+    """Carrega as respostas do banco Neon para o ano especificado."""
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
         FROM respostas_iamb
@@ -58,14 +60,25 @@ def load_respostas(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano,))
+                cur.execute(query, (int(ano),))
                 rows = cur.fetchall()
                 for row in rows:
                     link_val = row["link"]
                     if link_val is None or link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    respostas[row["qid"]] = {
+                    raw_coment = row["comentarios"]
+                    if isinstance(raw_coment, str):
+                        try:
+                            coments_list = json.loads(raw_coment)
+                        except Exception:
+                            coments_list = []
+                    elif isinstance(raw_coment, list):
+                        coments_list = raw_coment
+                    else:
+                        coments_list = []
+
+                    respostas[str(row["qid"])] = {
                         "valor": row["valor"] if row["valor"] is not None else "",
                         "pontos": (
                             float(row["pontos"])
@@ -73,11 +86,7 @@ def load_respostas(ano):
                             else 0.0
                         ),
                         "link": link_val,
-                        "comentarios": (
-                            row["comentarios"]
-                            if isinstance(row["comentarios"], list)
-                            else []
-                        ),
+                        "comentarios": coments_list,
                         "status": (
                             row["status"]
                             if row["status"] is not None
@@ -90,19 +99,58 @@ def load_respostas(ano):
     return respostas
 
 
-def save_resposta(
-    ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
-):
+def save_resposta(*args, **kwargs):
+    """
+    Salva ou atualiza uma resposta no banco de dados Neon.
+    Aceita chamadas posicionais ou por argumentos nomeados flexíveis:
+    - save_resposta(qid, valor, pontos, link, comentarios, ano, status)
+    - save_resposta(ano, qid, valor, pontos, link, comentarios, status)
+    """
+    # Flexibilidade para interpretar argumentos posicionais
+    if len(args) >= 5:
+        # Se o 1º argumento for inteiro ou converter para tal (ex: 2026), é o 'ano'
+        first_arg = str(args[0])
+        if first_arg.isdigit() and len(first_arg) == 4:
+            ano = int(args[0])
+            qid = str(args[1])
+            valor = args[2]
+            pontos = args[3]
+            link = args[4]
+            comentarios = args[5] if len(args) > 5 else kwargs.get("comentarios")
+            status = args[6] if len(args) > 6 else kwargs.get("status", "Pendente")
+        else:
+            qid = str(args[0])
+            valor = args[1]
+            pontos = args[2]
+            link = args[3]
+            comentarios = args[4] if len(args) > 4 else kwargs.get("comentarios")
+            ano = args[5] if len(args) > 5 else kwargs.get("ano")
+            status = args[6] if len(args) > 6 else kwargs.get("status", "Pendente")
+    else:
+        qid = str(kwargs.get("qid", ""))
+        valor = kwargs.get("valor", "")
+        pontos = kwargs.get("pontos", 0.0)
+        link = kwargs.get("link", "")
+        comentarios = kwargs.get("comentarios")
+        ano = kwargs.get("ano")
+        status = kwargs.get("status", "Pendente")
+
+    # Recupera ano global do NiceGUI se não tiver sido passado
+    if ano is None:
+        ano = app.storage.user.get("ano_referencia_global", 2026)
+    ano = int(ano)
+
+    # Tratamento dos comentários
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(qid, {})
         comentarios = dados_atuais.get("comentarios", [])
 
     comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
-    link_final = link.strip() if link else ""
+    link_final = str(link).strip() if link else ""
 
     query = """
-        INSERT INTO respostas_iamb (ano, qid, valor, pontos, link, comentarios, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO respostas_iamb (ano, qid, valor, pontos, link, comentarios, status, updated_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
         ON CONFLICT (ano, qid) 
         DO UPDATE SET
             valor = EXCLUDED.valor,
@@ -128,22 +176,30 @@ def save_resposta(
                     ),
                 )
                 conn.commit()
+        print(f"✅ Quesito {qid} ({ano}) gravado com SUCESSO no Neon DB!")
     except Exception as e:
         print(f"❌ Erro ao salvar resposta no Neon DB (iAmb): {e}")
+        raise e  # Propaga o erro para o NiceGUI exibir no ui.notify se necessário
 
 
 def zerar_questionario_db(ano):
+    """Apaga todas as respostas de determinado ano do banco de dados."""
     query = "DELETE FROM respostas_iamb WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano,))
+                cur.execute(query, (int(ano),))
                 conn.commit()
+        print(f"✅ Questionário do ano {ano} foi zerado com sucesso!")
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB (iAmb): {e}")
 
 
 def _obter_lista_comentarios(dados_banco):
+    """Garante o retorno de uma lista limpa de comentários em Python."""
+    if not isinstance(dados_banco, dict):
+        return []
+
     raw = dados_banco.get("comentarios", [])
     if isinstance(raw, str):
         if raw in ["EMPTY_STRING", "", "null", "None"]:
@@ -158,12 +214,12 @@ def _obter_lista_comentarios(dados_banco):
 
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
+    """Gera um relatório simples em texto encodado como bytes para download."""
     conteudo = f"RELATÓRIO TÉCNICO iAmb ({ano})\n"
     conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
     for qid, dados in res_data.items():
         conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode("utf-8")
-
 
 # =============================================================================
 # 1. PAINEL LATERAL / CONTROLE
