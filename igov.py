@@ -2371,6 +2371,212 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
+# =============================================================================
+            # QUESITO 8.0 • SOFTWARES PARA GESTÃO DE PROCESSOS
+            # =============================================================================
+            opcoes_80 = {
+                "Selecione...": 0.0,
+                "Sim (40 pts)": 40.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="8.0",
+                titulo="Softwares para Gestão de Processos",
+                pergunta="A Prefeitura possui programas de computador (softwares) para gestão de processos? (Ex: Contabilidade, Tributos, Dívida Ativa, etc. Próprio ou terceirizado)",
+                opcoes=opcoes_80,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 8.1 • SETORES ENGLOBADOS PELOS SOFTWARES
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 8.1 - Processos e Setores Englobados por Softwares").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Os programas de computador (softwares) englobam quais processos/setores?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                def salvar_no_banco_81(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d81 = res_data.get("8.1") or {}
+                if not isinstance(d81, dict):
+                    d81 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_81 = str(d81.get("valor") or "")
+                itens_salvos_81 = [i.strip() for i in valor_salvo_81.split(",") if i.strip()]
+                evidencia_81_salva = str(d81.get("link") or "")
+
+                opcoes_setores_81 = [
+                    "Contabilidade", "Gestão de tributos (arrecadação)", "Dívida Ativa", "Precatórios",
+                    "Gestão patrimonial (bens e equipamentos)", "Gestão de negócios (Business Intelligence)",
+                    "Planejamento", "Recursos humanos / Departamento pessoal", "Almoxarifado",
+                    "Controle de frotas", "Controle Interno", "Saúde", "Ensino (educação)",
+                    "Compras, licitações e contratos", "Certidões e alvarás", "Saneamento", "Cemitérios"
+                ]
+
+                state_81 = {item: item in itens_salvos_81 for item in opcoes_setores_81}
+                state_81["link"] = evidencia_81_salva
+
+                def cb_processa_e_salva_81():
+                    try:
+                        marcados = [item for item in opcoes_setores_81 if state_81[item]]
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_81["link"] or "").strip()
+
+                        salvar_no_banco_81("8.1", valor_string, 0.0, lnk_val)
+                        res_data["8.1"] = {"valor": valor_string, "pontos": 0.0, "link": lnk_val}
+                        ui.notify("Quesito 8.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 8.1: {err}", type="negative")
+
+                with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
+                    for item in opcoes_setores_81:
+                        ui.checkbox(item).bind_value(state_81, item)
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência dos Softwares):",
+                    value=evidencia_81_salva,
+                    placeholder="Link dos manuais, contratos ou telas dos sistemas..."
+                ).classes("w-full mb-4").bind_value(state_81, "link")
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    ui.label(f"📋 Selecionados ({len([i for i in opcoes_setores_81 if state_81[i]])}): {valor_salvo_81 if valor_salvo_81 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                    ui.button("Salvar Quesito 8.1", on_click=cb_processa_e_salva_81, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("8.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 8.2 • SISTEMAS INTEGRADOS À CONTABILIDADE
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 8.2 - Sistemas Integrados ao Sistema de Contabilidade").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Informe quais sistemas encontram-se integrados ao Sistema de Contabilidade do município:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                def salvar_no_banco_82(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d82 = res_data.get("8.2") or {}
+                if not isinstance(d82, dict):
+                    d82 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_82 = str(d82.get("valor") or "")
+                itens_salvos_82 = [i.strip() for i in valor_salvo_82.split(",") if i.strip()]
+                evidencia_82_salva = str(d82.get("link") or "")
+
+                opcoes_integracao_82 = [
+                    "Gestão de tributos (arrecadação)", "Dívida Ativa", "Precatórios",
+                    "Gestão patrimonial (bens e equipamentos)", "Gestão de negócios (Business Intelligence)",
+                    "Planejamento", "Recursos humanos / Departamento pessoal", "Almoxarifado",
+                    "Controle de frotas", "Controle Interno", "Saúde", "Ensino (educação)",
+                    "Compras, licitações e contratos", "Certidões e alvarás", "Saneamento", "Cemitérios"
+                ]
+
+                state_82 = {item: item in itens_salvos_82 for item in opcoes_integracao_82}
+                state_82["link"] = evidencia_82_salva
+
+                def cb_processa_e_salva_82():
+                    try:
+                        marcados = [item for item in opcoes_integracao_82 if state_82[item]]
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_82["link"] or "").strip()
+
+                        salvar_no_banco_82("8.2", valor_string, 0.0, lnk_val)
+                        res_data["8.2"] = {"valor": valor_string, "pontos": 0.0, "link": lnk_val}
+                        ui.notify("Quesito 8.2 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 8.2: {err}", type="negative")
+
+                with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
+                    for item in opcoes_integracao_82:
+                        ui.checkbox(item).bind_value(state_82, item)
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência da Integração):",
+                    value=evidencia_82_salva,
+                    placeholder="Link da documentação de integração ou declaração..."
+                ).classes("w-full mb-4").bind_value(state_82, "link")
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    ui.label(f"📋 Integrados ({len([i for i in opcoes_integracao_82 if state_82[i]])}): {valor_salvo_82 if valor_salvo_82 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                    ui.button("Salvar Quesito 8.2", on_click=cb_processa_e_salva_82, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("8.2", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 8.2.1 • NÍVEL DE INTEGRAÇÃO DÍVIDA ATIVA X CONTABILIDADE
+            # =============================================================================
+            opcoes_821 = {
+                "Selecione...": 0.0,
+                "Totalmente integrado (Inscrição / Atualização e Baixa) (50 pts)": 50.0,
+                "Somente as Inscrições / Atualizações estão integradas (10 pts)": 10.0,
+                "Somente as Baixas estão integradas (10 pts)": 10.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="8.2.1",
+                titulo="Nível de Integração: Dívida Ativa x Contabilidade",
+                pergunta="Informe o nível de integração entre o Sistema da Dívida Ativa e o de Contabilidade:",
+                opcoes=opcoes_821,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 8.2.2 • NÍVEL DE INTEGRAÇÃO PRECATÓRIOS X CONTABILIDADE
+            # =============================================================================
+            opcoes_822 = {
+                "Selecione...": 0.0,
+                "Totalmente integrado (Provisão e Baixa) (30 pts)": 30.0,
+                "Somente as Provisões estão integradas (05 pts)": 5.0,
+                "Somente as Baixas estão integradas (05 pts)": 5.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="8.2.2",
+                titulo="Nível de Integração: Precatórios x Contabilidade",
+                pergunta="Informe o nível de integração entre o Sistema de Precatórios e o de Contabilidade:",
+                opcoes=opcoes_822,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
