@@ -12,7 +12,6 @@ from psycopg2.extras import Json, RealDictCursor
 # =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
 
-# Connection string configurada para o seu cluster no Neon
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -20,12 +19,10 @@ DATABASE_URL = os.getenv(
 
 
 def get_db_connection():
-    """Cria e retorna uma conexão ativa com a base de dados do Neon (PostgreSQL)."""
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
 def init_db():
-    """Inicializa a tabela de respostas e ajusta colunas necessárias no PostgreSQL."""
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cursor:
@@ -43,7 +40,6 @@ def init_db():
                         PRIMARY KEY (id, ano)
                     );
                 """)
-                # Garantir colunas adicionais se não existirem (Sintaxe PostgreSQL)
                 cursor.execute("""
                     DO $$ 
                     BEGIN 
@@ -64,12 +60,10 @@ def init_db():
         print(f"❌ Erro ao inicializar o banco de dados Neon: {e}")
 
 
-# Inicializa a estrutura da base de dados PostgreSQL ao carregar o módulo
 init_db()
 
 
 def load_respostas(ano):
-    """Carrega o dicionário de respostas salvas para o ano selecionado no PostgreSQL DB."""
     query = """
         SELECT id, valor, pontos, link, comentarios, status
         FROM respostas
@@ -86,7 +80,6 @@ def load_respostas(ano):
                     if link_val is None or link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    # Tratamento do histórico de comentários em formato JSON
                     comentarios_lista = []
                     if row["comentarios"]:
                         try:
@@ -111,9 +104,6 @@ def load_respostas(ano):
                     }
     except Exception as e:
         print(f"❌ Erro ao carregar respostas do Neon DB: {e}")
-        ui.notify(
-            f"Erro ao carregar dados do banco Neon: {e}", type="negative"
-        )
 
     return respostas
 
@@ -121,7 +111,6 @@ def load_respostas(ano):
 def save_resposta(
     ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
 ):
-    """Salva a resposta, link, pontos e comentários no PostgreSQL usando UPSERT."""
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(qid, {})
         comentarios = dados_atuais.get("comentarios", [])
@@ -158,11 +147,9 @@ def save_resposta(
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
-        ui.notify(f"Erro ao salvar no banco Neon: {e}", type="negative")
 
 
 def zerar_questionario_db(ano):
-    """Limpa todas as respostas salvas do ano selecionado na tabela do PostgreSQL."""
     query = "DELETE FROM respostas WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
@@ -171,13 +158,9 @@ def zerar_questionario_db(ano):
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
-        ui.notify(
-            f"Erro ao apagar dados no banco Neon: {e}", type="negative"
-        )
 
 
 def _obter_lista_comentarios(dados_banco):
-    """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
     raw = dados_banco.get("comentarios", [])
     if isinstance(raw, str):
         if raw in ["EMPTY_STRING", "", "null", "None"]:
@@ -192,7 +175,6 @@ def _obter_lista_comentarios(dados_banco):
 
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
-    """Gera dados para download do relatório em PDF."""
     conteudo = f"RELATÓRIO TÉCNICO iGov-TI ({ano})\n"
     conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
     for qid, dados in res_data.items():
@@ -225,7 +207,6 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # Cálculo de Pontuação e Faixa
         res_data = load_respostas(ano_atual)
         total_pts = sum(
             float(item.get("pontos", 0)) for item in res_data.values()
@@ -242,7 +223,6 @@ def render_painel_controle(on_refresh_callback=None):
         else:
             faixa, cor = "A", "text-green-700"
 
-        # Card de Pontuação
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
             ui.label("Pontuação Total").classes(
                 "text-xs text-gray-500 font-bold uppercase"
@@ -259,18 +239,15 @@ def render_painel_controle(on_refresh_callback=None):
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
         def atualizar_dados():
-            ui.notify(
-                "Questionário atualizado!", type="positive", icon="refresh"
-            )
+            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
             if on_refresh_callback:
                 on_refresh_callback()
 
-        ui.button(
-            "🔄 Atualizar Questionário", on_click=atualizar_dados
-        ).classes("w-full bg-blue-700 text-white mb-2")
+        ui.button("🔄 Atualizar", on_click=atualizar_dados).classes(
+            "w-full bg-blue-700 text-white mb-2"
+        )
         ui.separator().classes("my-2")
 
-        # Modal de Confirmação para Zerar
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
@@ -423,9 +400,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                             </div>"""
                         ).classes("w-full")
 
-                    ui.button("🗑️", on_click=deletar_comentario).props(
-                        "flat dense"
-                    )
+                    ui.button("🗑️", on_click=deletar_comentario).props("flat dense")
 
         input_novo_comentario = (
             ui.textarea(placeholder="Novo comentário...")
@@ -471,7 +446,7 @@ def render_quesito(
     pergunta,
     opcoes=None,
     on_save_callback=None,
-    tipo="radio",  # 'radio', 'checkbox', ou 'text'
+    tipo="radio",
     informativo=False,
     is_text_area=False,
     placeholder_text="Cole os links ou informações aqui...",
@@ -492,7 +467,6 @@ def render_quesito(
             ).classes("text-caption text-grey-6 mb-4")
 
             with ui.row().classes("w-full gap-4 items-start"):
-                # Coluna das Opções / Entrada
                 with ui.column().classes("flex-1"):
                     checkbox_dict = {}
                     input_valor = None
@@ -546,7 +520,6 @@ def render_quesito(
                             value=d_data.get("valor", ""),
                         ).classes("w-full").props("outlined rows=3")
 
-                # Coluna de Links / Evidências
                 with ui.column().classes("flex-1"):
                     input_link = ui.textarea(
                         label="Link de Evidência / Documento:",
@@ -660,27 +633,7 @@ def render_quesito(
                 "bg-blue-800 text-white mt-4"
             )
 
-            # Renderiza o bloco de comentários
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
-
-
-# =============================================================================
-# FUNÇÃO DE CÁLCULO CUSTOMIZADO (EXEMPLO DE QUESITO 3.1.1)
-# =============================================================================
-def calc_pts_311(data_str, ano_sel):
-    """Calcula a pontuação para a data do último treinamento de TI."""
-    if not data_str:
-        return 0.0
-    try:
-        dt = datetime.strptime(data_str, "%Y-%m-%d")
-        if dt.year < ano_sel:
-            return 0.0
-        elif dt.year == ano_sel:
-            return 10.0
-        else:
-            return 0.0
-    except ValueError:
-        return 0.0
 
 
 # =============================================================================
@@ -692,14 +645,11 @@ def container_formulario_igov_ti():
     res_data = load_respostas(ano_sel)
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
-
-        # Coluna da Esquerda (Painel de Controle)
         with ui.column().classes("col-span-1 w-full"):
             render_painel_controle(
                 on_refresh_callback=container_formulario_igov_ti.refresh
             )
 
-        # Coluna da Direita (Quesitos do Formulário iGov-TI)
         with ui.column().classes("col-span-3 w-full"):
             ui.label(
                 f"Formulário iGov-TI - Governança de TI ({ano_sel})"
@@ -708,14 +658,10 @@ def container_formulario_igov_ti():
                 "Preencha as evidências e questões do indicador iGov-TI aqui."
             ).classes("text-gray-600 mb-6")
 
-            # --- SEÇÃO 1: INFRAESTRUTURA E SETOR ---
             ui.label("1.0 Estrutura de TIC").classes(
                 "text-h5 font-bold my-4 text-blue-900"
             )
 
-            # =============================================================================
-            # QUESITO 1.0 • SETOR DE TIC
-            # =============================================================================
             opcoes_10 = {
                 "Selecione...": 0.0,
                 "Sim – 30 pts": 30.0,
@@ -729,13 +675,10 @@ def container_formulario_igov_ti():
                 titulo="Setor de Tecnologia da Informação e Comunicação",
                 pergunta="A Prefeitura possui uma área ou setor que cuida de Tecnologia da Informação e Comunicação (TIC)?",
                 opcoes=opcoes_10,
-                placeholder_link="Insira o link da lei de estrutura administrativa, organograma oficial ou portaria de nomeação da equipe de TIC...",
+                placeholder_link="Insira o link da lei de estrutura administrativa, organograma oficial ou portaria de nomeação...",
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
-            # =============================================================================
-            # QUESITO 1.1 • QUANTIDADE DA EQUIPE DE TIC
-            # =============================================================================
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
@@ -744,13 +687,10 @@ def container_formulario_igov_ti():
                 pergunta="Informe a quantidade da equipe que atua no suporte e atendimento de primeiro nível (Concursados, Comissionados, Estagiários e Outros):",
                 is_text_area=True,
                 placeholder_text="Informe a composição (ex: Concursados: 2, Comissionados: 1, Estagiários: 2, Outros: 0)...",
-                placeholder_link="Cole aqui o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI...",
+                placeholder_link="Cole aqui o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada...",
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
-            # =============================================================================
-            # QUESITO 1.2 • ATRIBUIÇÕES DO SETOR DE TIC
-            # =============================================================================
             opcoes_12 = {
                 "Selecione...": 0.0,
                 "Sim – 30 pts": 30.0,
@@ -764,7 +704,7 @@ def container_formulario_igov_ti():
                 titulo="Definição de Atribuições Formais da Equipe",
                 pergunta="A prefeitura municipal definiu formalmente as atribuições do pessoal do setor de Tecnologia da Informação e Comunicação (TIC)?",
                 opcoes=opcoes_12,
-                placeholder_link="Insira o link do manual de cargos, decreto de atribuições de secretarias ou manual interno de procedimentos...",
+                placeholder_link="Insira o link do manual de cargos, decreto de atribuições de secretarias ou manual interno...",
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
@@ -775,24 +715,17 @@ def container_formulario_igov_ti():
 @ui.page("/")
 def page_main():
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
-    
-    # Barra de Navegação Superior (Header)
-    with ui.row().classes("w-full items-center justify-between p-4 bg-white shadow-sm border-b"):
-        ui.button("⬅ VOLTAR", on_click=lambda: ui.navigate.to("/")).classes("bg-blue-600 text-white font-bold")
+
+    # Barra de Navegação Superior
+    with ui.row().classes("w-full items-center justify-between p-4 bg-white shadow-sm border-b mb-4"):
+        ui.button("🔄 RECARREGAR", on_click=container_formulario_igov_ti.refresh).classes("bg-blue-600 text-white font-bold")
         ui.label(f"i-Gov TI - {ano_atual}").classes("text-xl font-bold text-blue-900")
         ui.button("🚪 SAIR", on_click=lambda: ui.notify("Sessão encerrada")).classes("bg-orange-500 text-white font-bold")
 
-    # Área de Conteúdo
-    with ui.column().classes("w-full p-4"):
+    # Container de Conteúdo Principal
+    with ui.column().classes("w-full px-4"):
         container_formulario_igov_ti()
 
 
-if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(
-        title="Formulário iGov-TI",
-        storage_secret="chave_secreta_igov_ti_morato",
-        port=8080,
-        reload=False
-    )
-
-
+# Habilita o uso de storage do usuário e inicia a aplicação
+ui.run(storage_secret="sua_chave_secreta_aqui", title="iGov-TI System")
