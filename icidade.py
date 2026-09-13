@@ -3,7 +3,7 @@ import json
 import re
 from datetime import datetime
 from nicegui import app, ui
-import psycopg2
+import psycopg2f
 from psycopg2.extras import RealDictCursor, Json
 
 # =============================================================================
@@ -396,7 +396,7 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
                             with container_links:
                                 ui.label("Links Ativos: ").classes('font-bold text-caption')
                                 for url in links:
-                                    ui.link(url, url=url, new_tab=True).classes('text-caption text-blue-6 mr-2')
+                                    ui.link(url, target=url, new_tab=True).classes('text-caption text-blue-6 mr-2')
 
                     input_link.on('update:model-value', atualizar_links_visuais)
                     if is_text_area:
@@ -441,7 +441,6 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes=None, is_text_ar
 
             # Renderiza o bloco de comentários
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
-
 
 # =============================================================================
 # 4. CONTAINER PRINCIPAL REFRESHABLE
