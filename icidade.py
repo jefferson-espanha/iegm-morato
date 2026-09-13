@@ -882,16 +882,22 @@ def container_formulario_icidade():
                 "Riscos Meteorológicos": 0.0,
                 "Riscos Climatológicos": 0.0,
                 "Riscos Biológicos": 0.0,
-                "Riscos Tecnológicos": 0.0
+                "Riscos Tecnológicos": 0.0,
+                "Outros": 0.0,
             }
+
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
                 qid="4.1",
                 titulo="Ameaças Potenciais da Carta Geotécnica",
                 pergunta="Assinale quais os tipos de ameaças potenciais identificadas na Carta Geotécnica:",
+                tipo="checkbox",  # <--- Gera múltiplos ui.checkbox do NiceGUI!
                 opcoes=opcoes_41,
-                on_save_callback=container_formulario_icidade.refresh
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui...",
+                on_save_callback=container_formulario_icidade.refresh,
             )
 
             # =============================================================================
