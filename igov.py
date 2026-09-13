@@ -688,7 +688,7 @@ def container_formulario_igov_ti():
                 # Cabeçalho do Quesito
                 ui.label("📌 Quesito 1.1 - Recursos Humanos em TIC").classes("text-lg font-bold text-blue-900 mb-1")
                 
-                # Texto do Enunciado e Instruções
+                # Enunciado
                 ui.label("Informe a quantidade:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
                 
                 # Bloco Informativo da Fórmula de Cálculo
@@ -709,7 +709,7 @@ def container_formulario_igov_ti():
                         return 0
                     return int(val_str)
 
-                # Recuperação e sanitização do banco
+                # Recuperação do banco
                 d11 = res_data.get("1.1") or {}
                 if not isinstance(d11, dict):
                     d11 = {"valor": "0", "pontos": 0.0, "link": ""}
@@ -736,7 +736,7 @@ def container_formulario_igov_ti():
                     v_esta_i = int(match_e.group(1)) if match_e else 0
                     v_outr_i = int(match_o.group(1)) if match_o else 0
 
-                # Estado reativo do formulário
+                # Estado reativo local do formulário
                 state_11 = {
                     "conc": v_conc_i,
                     "comi": v_comi_i,
@@ -747,21 +747,32 @@ def container_formulario_igov_ti():
 
                 # Callback para Processar e Salvar os dados
                 def cb_processa_e_salva_11():
-                    c_val = parse_int_seguro(state_11["conc"])
-                    co_val = parse_int_seguro(state_11["comi"])
-                    e_val = parse_int_seguro(state_11["esta"])
-                    o_val = parse_int_seguro(state_11["outr"])
-                    lnk_val = str(state_11["link"] or "").strip()
+                    try:
+                        c_val = parse_int_seguro(state_11["conc"])
+                        co_val = parse_int_seguro(state_11["comi"])
+                        e_val = parse_int_seguro(state_11["esta"])
+                        o_val = parse_int_seguro(state_11["outr"])
+                        lnk_val = str(state_11["link"] or "").strip()
 
-                    total_p = c_val + co_val + e_val
-                    pts_calculados = 30.0 if total_p > 0 else 0.0
-                    composite_string = f"C:{c_val},Co:{co_val},E:{e_val},O:{o_val}|LINK:{lnk_val}"
+                        total_p = c_val + co_val + e_val
+                        pts_calculados = 30.0 if total_p > 0 else 0.0
+                        composite_string = f"C:{c_val},Co:{co_val},E:{e_val},O:{o_val}|LINK:{lnk_val}"
 
-                    save_resp("1.1", str(total_p), pts_calculados, composite_string)
-                    res_data["1.1"] = {"valor": str(total_p), "pontos": pts_calculados, "link": composite_string}
-                    
-                    ui.notify("Quesito 1.1 salvo com sucesso!", type="positive")
-                    container_formulario_igov_ti.refresh()
+                        # Grava no banco de dados
+                        save_resp("1.1", str(total_p), pts_calculados, composite_string)
+                        
+                        # Atualiza a memória local da página
+                        res_data["1.1"] = {
+                            "valor": str(total_p), 
+                            "pontos": pts_calculados, 
+                            "link": composite_string
+                        }
+                        
+                        ui.notify("Quesito 1.1 salvo com sucesso no banco!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 1.1: {err}", type="negative")
+                        print(f"❌ Erro interno no callback do 1.1: {err}")
 
                 # Grid com os 4 Inputs de Pessoal
                 with ui.grid(columns=2).classes("w-full gap-4 mb-4 md:grid-cols-4"):
