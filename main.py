@@ -214,7 +214,6 @@ def render_rodape():
         """
     )
 
-# Estrutura de Dicionários idêntica
 AVAILABLE_YEARS = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
 
 DIMENSIONS_DATA = {
@@ -500,9 +499,28 @@ def dimension_page():
                 except Exception as e:
                     ui.label(f"❌ Erro ao executar o i-Cidade: {e}").classes('text-red-600')
 
-        elif dimension == "i-Gov TI" and igov:
-            if hasattr(igov, "mostrar_formulario_igov"):
-                igov.mostrar_formulario_igov()
+        elif dimension == "i-Gov TI":
+            if igov is None:
+                ui.label("❌ O arquivo 'igov.py' não foi encontrado ou falhou ao carregar.").classes('text-red-600 font-bold')
+            else:
+                try:
+                    # Executa a primeira função válida que encontrar no módulo igov
+                    if hasattr(igov, "render_igovti"):
+                        igov.render_igovti()
+                    elif hasattr(igov, "mostrar_formulario_igovti"):
+                        igov.mostrar_formulario_igovti()
+                    elif hasattr(igov, "mostrar_formulario_igov"):
+                        igov.mostrar_formulario_igov()
+                    elif hasattr(igov, "render_igov"):
+                        igov.render_igov()
+                    elif hasattr(igov, "main"):
+                        igov.main()
+                    else:
+                        funcoes = [f for f in dir(igov) if not f.startswith("_") and callable(getattr(igov, f))]
+                        ui.label(f"⚠️ Nenhuma função padrão encontrada em igov.py. Funções disponíveis: {funcoes}").classes('text-yellow-600')
+                except Exception as e:
+                    ui.label(f"❌ Erro ao renderizar o i-Gov TI: {e}").classes('text-red-600')
+
         elif dimension == "i-Amb" and iamb:
             if hasattr(iamb, "mostrar_formulario_iamb"):
                 iamb.mostrar_formulario_iamb()
