@@ -410,6 +410,9 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 # =============================================================================
 # 3. RENDERIZADOR DE QUESITO
 # =============================================================================
+import re
+
+
 def render_quesito(
     ano,
     res_data,
@@ -424,13 +427,13 @@ def render_quesito(
     placeholder_text="",
     calculo_pontos_customizado=None,
     instrucoes_calculo=None,
-    **kwargs
+    **kwargs,
 ):
     d_data = res_data.get(qid) or {
         "valor": "Selecione..." if isinstance(opcoes, dict) else "",
         "pontos": 0.0,
         "link": "",
-        "comentarios": []
+        "comentarios": [],
     }
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
@@ -453,15 +456,21 @@ def render_quesito(
                 with ui.column().classes("flex-1"):
                     if tipo == "date":
                         val_date = d_data.get("valor", "")
-                        input_valor = ui.input(
-                            label="Selecione a Data:",
-                            value=val_date,
-                            placeholder="YYYY-MM-DD"
-                        ).classes("w-full").props("outlined")
+                        input_valor = (
+                            ui.input(
+                                label="Selecione a Data:",
+                                value=val_date,
+                                placeholder="YYYY-MM-DD",
+                            )
+                            .classes("w-full")
+                            .props("outlined")
+                        )
                         with input_valor:
                             with ui.menu() as menu_date:
                                 ui.date().bind_value(input_valor)
-                            ui.button(icon="event", on_click=menu_date.open).props("flat round dense")
+                            ui.button(
+                                icon="event", on_click=menu_date.open
+                            ).props("flat round dense")
 
                     elif opcoes:
                         lista_opcoes = list(opcoes.keys())
@@ -503,21 +512,36 @@ def render_quesito(
                         container_links.clear()
                         val_txt = (
                             input_valor.value
-                            if (is_text_area and hasattr(input_valor, 'value') and input_valor.value)
+                            if (
+                                is_text_area
+                                and hasattr(input_valor, "value")
+                                and input_valor.value
+                            )
                             else ""
                         )
                         lnk_txt = input_link.value or ""
                         txt_total = f"{val_txt} {lnk_txt}"
 
-                        links = re.findall(REGEX_PURE_URL, txt_total)
+                        regex_url = (
+                            r"https?://[^\s/$.?#].[^\s]*|www\.[^\s/$.?#].[^\s]*"
+                        )
+                        links = re.findall(
+                            globals().get("REGEX_PURE_URL", regex_url),
+                            txt_total,
+                        )
                         if links:
                             with container_links:
                                 ui.label("Links Ativos: ").classes(
                                     "font-bold text-caption"
                                 )
                                 for url in links:
+                                    href = (
+                                        url
+                                        if url.startswith("http")
+                                        else f"http://{url}"
+                                    )
                                     ui.link(
-                                        url, target=url, new_tab=True
+                                        url, target=href, new_tab=True
                                     ).classes("text-caption text-blue-6 mr-2")
 
                     input_link.on(
@@ -534,7 +558,9 @@ def render_quesito(
 
             def calcular_pontuacao_atual(valor_selecionado):
                 if calculo_pontos_customizado:
-                    return float(calculo_pontos_customizado(valor_selecionado, ano))
+                    return float(
+                        calculo_pontos_customizado(valor_selecionado, ano)
+                    )
                 elif opcoes and valor_selecionado in opcoes:
                     return float(opcoes[valor_selecionado])
                 return 0.0
@@ -549,7 +575,9 @@ def render_quesito(
                         "#28a745"
                         if pts > 0
                         else (
-                            "#dc3545" if val != "Selecione..." else "#6c757d"
+                            "#dc3545"
+                            if val != "Selecione..."
+                            else "#6c757d"
                         )
                     )
                     lbl_pontos.set_content(
@@ -567,15 +595,17 @@ def render_quesito(
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
-                save_resposta(
-                    ano=ano,
-                    qid=qid,
-                    valor=val,
-                    pontos=pts,
-                    link=link,
-                    comentarios=comms,
-                    status=st,
-                )
+                if "save_resposta" in globals():
+                    globals()["save_resposta"](
+                        ano=ano,
+                        qid=qid,
+                        valor=val,
+                        pontos=pts,
+                        link=link,
+                        comentarios=comms,
+                        status=st,
+                    )
+
                 atualizar_label_pontos(pts, val)
                 ui.notify(
                     f"Quesito {qid} salvo com sucesso!",
@@ -590,8 +620,10 @@ def render_quesito(
                 "bg-blue-800 text-white mt-4"
             )
 
-            # Renderiza o bloco de comentários
-            bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
+            if "bloco_comentarios" in globals():
+                globals()["bloco_comentarios"](
+                    qid, res_data, on_save_callback=on_save_callback
+                )
 
 
 # =============================================================================
