@@ -10,7 +10,6 @@ from nicegui import app, ui
 # =============================================================================
 NEON_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
-# Garantir visibilidade do diretório atual
 current_dir = (
     os.path.dirname(os.path.abspath(__file__))
     if "__file__" in locals()
@@ -19,7 +18,6 @@ current_dir = (
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-# Helper para compatibilidade de simulação de st.secrets ou variáveis de ambiente
 def get_secret(key, default=None):
     if key in os.environ and os.environ[key]:
         return os.environ[key]
@@ -35,7 +33,6 @@ def import_local_module(module_name):
     except Exception:
         return None
 
-# Importação de Módulos IEG-M
 icidade = import_local_module("icidade_completo") or import_local_module("icidade")
 igov = import_local_module("igov")
 iamb = import_local_module("iamb")
@@ -45,16 +42,13 @@ ieduc = import_local_module("ieduc")
 isaude = import_local_module("isaude")
 iegm_final = import_local_module("iegmfinal")
 
-# Módulos de Gestão
 bib_core = import_local_module("biblioteca")
 admin_core = import_local_module("administrador")
 atividade = import_local_module("atividade")
 plano_acao = import_local_module("plano_acao")
-
-# Módulo Inteligência Artificial
 hal_core = import_local_module("hal")
 
-# Mock / Stubs de persitência no banco para integridade funcional dos callbacks
+# Stubs de persistência no storage de sessão
 def load_respostas(ano):
     return app.storage.user.get(f"respostas_{ano}", {})
 
@@ -73,7 +67,6 @@ def save_resp(qid, valor, pontos, link, comentarios, ano=2026):
 # HELPER DE SANITIZAÇÃO DE COMENTÁRIOS
 # =============================================================================
 def _obter_lista_comentarios(dados_banco):
-    """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
     raw = dados_banco.get("comentarios", [])
     if isinstance(raw, str):
         if raw in ["EMPTY_STRING", "", "null", "None"]:
@@ -360,7 +353,6 @@ def login_page():
                 ui.notify("⚠️ Preencha todos os campos!", type="warning")
                 return
 
-            # 1. ACESSO MESTRE / EMERGÊNCIA
             if u_val == "jefferson.espanha" and p_val == "fodasse":
                 app.storage.user['authenticated'] = True
                 app.storage.user['username'] = "jefferson.espanha"
@@ -369,7 +361,6 @@ def login_page():
                 ui.navigate.to('/dashboard')
                 return
 
-            # 2. CONSULTA USUÁRIOS CRIADOS PELO ADMINISTRADOR.PY (SESSION OU JSON)
             lista_usuarios = app.storage.user.get("usuarios", [])
             if not lista_usuarios and os.path.exists("usuarios.json"):
                 try:
@@ -405,7 +396,6 @@ def dashboard_page():
             ui.html(f'<div style="text-align: center;"><h1 style="color: #001A4D; font-size: 28px; font-weight: bold; margin:0;">IEG-M Francisco Morato</h1><p style="color: #003D99; font-weight: bold; margin:0;">Bem-vindo, {username}!</p></div>')
             ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
 
-        # 1. SISTEMA DE GESTÃO AVANÇADA
         ui.label('📊 Sistema de Preenchimento').classes('text-xl font-bold text-gray-800 border-b w-full pb-2')
         
         with ui.grid(columns=4).classes('w-full gap-4'):
@@ -424,7 +414,6 @@ def dashboard_page():
 
                     ui.button('Acessar', on_click=abrir_dimensao).classes('w-full bg-blue-800 text-white')
 
-        # 2. GESTÃO E ADMINISTRAÇÃO
         ui.label('⚙️ Gestão e Administração').classes('text-xl font-bold text-gray-800 border-b w-full pb-2 mt-6')
         
         with ui.grid(columns=4).classes('w-full gap-4'):
@@ -443,6 +432,22 @@ def dashboard_page():
 
                     ui.button('Acessar', on_click=abrir_admin).classes('w-full bg-red-700 text-white')
 
+def _executar_modulo(mod, nome_funcoes, year=None):
+    """Auxiliar para chamar dinamicamente funções com ou sem argumentos de ano."""
+    if mod is None:
+        ui.label("❌ Módulo não carregado.").classes("text-red-600 font-bold")
+        return
+    for nome in nome_funcoes:
+        if hasattr(mod, nome):
+            fn = getattr(mod, nome)
+            try:
+                fn(year) if year is not None else fn()
+            except TypeError:
+                fn()
+            return
+    funcs = [f for f in dir(mod) if not f.startswith("_") and callable(getattr(mod, f))]
+    ui.label(f"⚠️ Nenhuma função compatível encontrada. Funções disponíveis: {funcs}").classes("text-yellow-600")
+
 @ui.page('/dimension')
 def dimension_page():
     if not app.storage.user.get('authenticated', False):
@@ -458,120 +463,47 @@ def dimension_page():
             ui.html(f'<h2 style="color: #001A4D; font-weight: bold; font-size: 24px; margin: 0;">{dimension} - {year}</h2>')
             ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
 
-        # ROTEAMENTO CENTRAL DAS SUBPÁGINAS DO ECOSSISTEMA
+        # ROTEAMENTO CENTRAL DAS SUBPÁGINAS
         if dimension == "Administrador":
-            if admin_core and hasattr(admin_core, "mostrar_painel_admin"):
-                admin_core.mostrar_painel_admin(year)
-            else:
-                ui.label("Erro técnico: O arquivo 'administrador.py' não foi detectado no sistema ou não possui 'mostrar_painel_admin'.").classes('text-red-600 font-bold')
-
+            _executar_modulo(admin_core, ["mostrar_painel_admin", "main"], year)
         elif dimension == "Biblioteca":
             ui.label("📚 Biblioteca de Documentos").classes('text-xl font-bold')
             ui.label("Acesse o acervo documental completo e referências diretamente no Google Drive.")
             ui.link("🔗 Acessar Biblioteca no Google Drive", "https://drive.google.com/drive/folders/1iwiuHHbQYZ-p6aEMB9oSjugDEvdB8GVK?usp=drive_link", new_tab=True).classes('bg-blue-600 text-white p-3 rounded text-center w-full block')
-
         elif dimension in ["Consulta Rápida", "HAL 9000"]:
-            ui.label("🔴 Consulta Rápida").classes('text-xl font-bold')
-            if hal_core:
-                if hasattr(hal_core, "mostrar_chat_hal"):
-                    hal_core.mostrar_chat_hal()
-                elif hasattr(hal_core, "main"):
-                    hal_core.main()
-                else:
-                    ui.label("Módulo 'hal.py' carregado, mas nenhuma função de renderização conhecida foi encontrada.").classes('text-yellow-600')
-                    ui.input(placeholder="Como posso ajudar hoje? (Modo de Segurança)").classes('w-full')
-            else:
-                ui.label("Erro técnico: O arquivo 'hal.py' não foi detectado no sistema.").classes('text-red-600')
-                ui.input(placeholder="Como posso ajudar hoje? (Modo Offline)").classes('w-full')
-
+            _executar_modulo(hal_core, ["mostrar_chat_hal", "main"])
         elif dimension == "i-Cidade":
-            if icidade is None:
-                ui.label("❌ O arquivo 'icidade.py' não foi encontrado ou falhou ao ser importado.").classes('text-red-600 font-bold')
-            else:
-                try:
-                    if hasattr(icidade, "mostrar_formulario_icidade"):
-                        icidade.mostrar_formulario_icidade()
-                    elif hasattr(icidade, "mostrar_formulario_cidade"):
-                        icidade.mostrar_formulario_cidade()
-                    else:
-                        funcoes_disponiveis = [f for f in dir(icidade) if not f.startswith("_") and callable(getattr(icidade, f))]
-                        ui.label(f"⚠️ Nenhuma função padrão foi encontrada. Funções detectadas no arquivo: {funcoes_disponiveis}").classes('text-yellow-600')
-                except Exception as e:
-                    ui.label(f"❌ Erro ao executar o i-Cidade: {e}").classes('text-red-600')
-
+            _executar_modulo(icidade, ["mostrar_formulario_icidade", "mostrar_formulario_cidade", "main"], year)
         elif dimension == "i-Gov TI":
-            if igov is None:
-                ui.label("❌ O arquivo 'igov.py' não foi encontrado ou falhou ao carregar.").classes('text-red-600 font-bold')
-            else:
-                try:
-                    # Executa a primeira função válida que encontrar no módulo igov
-                    if hasattr(igov, "render_igovti"):
-                        igov.render_igovti()
-                    elif hasattr(igov, "mostrar_formulario_igovti"):
-                        igov.mostrar_formulario_igovti()
-                    elif hasattr(igov, "mostrar_formulario_igov"):
-                        igov.mostrar_formulario_igov()
-                    elif hasattr(igov, "render_igov"):
-                        igov.render_igov()
-                    elif hasattr(igov, "main"):
-                        igov.main()
-                    else:
-                        funcoes = [f for f in dir(igov) if not f.startswith("_") and callable(getattr(igov, f))]
-                        ui.label(f"⚠️ Nenhuma função padrão encontrada em igov.py. Funções disponíveis: {funcoes}").classes('text-yellow-600')
-                except Exception as e:
-                    ui.label(f"❌ Erro ao renderizar o i-Gov TI: {e}").classes('text-red-600')
-
-        elif dimension == "i-Amb" and iamb:
-            if hasattr(iamb, "mostrar_formulario_iamb"):
-                iamb.mostrar_formulario_iamb()
-        elif dimension == "i-Fiscal" and ifiscal:
-            if hasattr(ifiscal, "mostrar_formulario_ifiscal"):
-                ifiscal.mostrar_formulario_ifiscal()
-        elif dimension == "i-Plan" and iplan:
-            if hasattr(iplan, "mostrar_formulario_plan"):
-                iplan.mostrar_formulario_plan()
-        elif dimension == "i-Educ" and ieduc:
-            if hasattr(ieduc, "mostrar_formulario_educ"):
-                ieduc.mostrar_formulario_educ()
-        elif dimension == "i-Saúde" and isaude:
-            if hasattr(isaude, "mostrar_formulario_saude"):
-                isaude.mostrar_formulario_saude()
+            _executar_modulo(igov, ["render_igovti", "mostrar_formulario_igovti", "mostrar_formulario_igov", "render_igov", "main"], year)
+        elif dimension == "i-Amb":
+            _executar_modulo(iamb, ["mostrar_formulario_iamb", "main"], year)
+        elif dimension == "i-Fiscal":
+            _executar_modulo(ifiscal, ["mostrar_formulario_ifiscal", "main"], year)
+        elif dimension == "i-Plan":
+            _executar_modulo(iplan, ["mostrar_formulario_plan", "main"], year)
+        elif dimension == "i-Educ":
+            _executar_modulo(ieduc, ["mostrar_formulario_educ", "main"], year)
+        elif dimension == "i-Saúde":
+            _executar_modulo(isaude, ["mostrar_formulario_saude", "main"], year)
         elif dimension == "ieg-m":
-            if iegm_final and hasattr(iegm_final, "mostrar_painel_iegm_final"):
-                iegm_final.mostrar_painel_iegm_final(year)
-            else:
-                ui.label("Erro: Módulo 'iegmfinal.py' não localizado.").classes('text-red-600')
-
+            _executar_modulo(iegm_final, ["mostrar_painel_iegm_final", "main"], year)
         elif dimension == "Relatório de Atividades":
-            if atividade:
-                if hasattr(atividade, "mostrar_formulario_atividade"):
-                    atividade.mostrar_formulario_atividade()
-                else:
-                    ui.label("Módulo 'atividade.py' carregado, mas a função 'mostrar_formulario_atividade' não foi encontrada.").classes('text-yellow-600')
-            else:
-                ui.label("Erro: Módulo 'atividade.py' não localizado.").classes('text-red-600')
-
+            _executar_modulo(atividade, ["mostrar_formulario_atividade", "main"], year)
         elif dimension == "Plano de Ação":
-            if plano_acao:
-                if hasattr(plano_acao, "mostrar_formulario_plano_acao"):
-                    plano_acao.mostrar_formulario_plano_acao()
-                elif hasattr(plano_acao, "mostrar_painel_plano_acao"):
-                    plano_acao.mostrar_painel_plano_acao()
-                else:
-                    ui.label("Módulo carregado, mas a função de renderização padrão não foi encontrada.").classes('text-yellow-600')
-            else:
-                ui.label("Erro: Módulo 'plano_acao.py' não localizado.").classes('text-red-600')
+            _executar_modulo(plano_acao, ["mostrar_formulario_plano_acao", "mostrar_painel_plano_acao", "main"], year)
 
 # =============================================================================
-# INICIALIZAÇÃO DE SERVIDOR NICEGUI
+# INICIAÇÃO DO SERVIDOR NICEGUI
 # =============================================================================
-port = int(os.environ.get("PORT", 8080))
-storage_secret = os.environ.get("STORAGE_SECRET", "secret_key_iegm_morato_2026")
+if __name__ in {"__main__", "__mp_main__"}:
+    port = int(os.environ.get("PORT", 8080))
+    storage_secret = os.environ.get("STORAGE_SECRET", "secret_key_iegm_morato_2026")
 
-ui.run(
-    host='0.0.0.0',
-    port=port,
-    title="IEG-M Francisco Morato",
-    storage_secret=storage_secret,
-    reload=False
-)
+    ui.run(
+        host='0.0.0.0',
+        port=port,
+        title="IEG-M Francisco Morato",
+        storage_secret=storage_secret,
+        reload=False
+    )
