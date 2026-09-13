@@ -1023,6 +1023,83 @@ def container_formulario_igov_ti():
                 # Bloco de Comentários
                 bloco_comentarios("1.3.1", res_data, ano_sel)
 
+# =============================================================================
+            # QUESITO 1.4 • PARTICIPAÇÃO DO PESSOAL DE TIC NAS LICITAÇÕES E CONTRATOS
+            # =============================================================================
+            opcoes_14 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.4",
+                titulo="Participação do Pessoal de TIC nas Licitações e Contratos",
+                pergunta="Nas licitações e contratos que tenham como soluções o uso de Tecnologia da Informação e Comunicação, houve participação formalizada do pessoal de TIC? (Considerar somente compras com verba municipal)",
+                opcoes=opcoes_14,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 1.4.1 • ETAPAS DE PARTICIPAÇÃO DO PESSOAL DE TIC
+            # =============================================================================
+            opcoes_141 = {
+                "Elaboração do edital / Especificação técnica": 15.0,
+                "Comissão de Licitação / Equipe de Apoio": 10.0,
+                "Recebimento / Gestão de Contrato": 15.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.4.1",
+                titulo="Etapas de Participação do Pessoal de TIC",
+                pergunta="Assinale as etapas que o pessoal de TIC participa:",
+                tipo="checkbox",
+                opcoes=opcoes_141,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 1.4.2 • ANÁLISE PRÉVIA PARA CONTRATAÇÃO DE SOFTWARES
+            # =============================================================================
+            opcoes_142 = {
+                "Selecione...": 0.0,
+                "Sim, para todos os softwares (20 pts)": 20.0,
+                "Sim, para a maior parte dos softwares (15 pts)": 15.0,
+                "Sim, para a menor parte dos softwares (08 pts)": 8.0,
+                "Não foi realizado (00 pts)": 0.0,
+                "Não foi adquirido nenhum software nos últimos 5 anos (20 pts)": 20.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.4.2",
+                titulo="Análise Prévias para Aquisição de Softwares",
+                pergunta="Sobre programas de computador (softwares) adquiridos ou licenciados nos últimos 5 anos, foi realizada análise ou estudo antes de sua contratação com a participação do pessoal de Tecnologia da Informação e Comunicação (TIC)?",
+                opcoes=opcoes_142,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 2.0 • PLANO DIRETOR DE TECNOLOGIA DA INFORMAÇÃO E COMUNICAÇÃO (PDTIC)
+            # =============================================================================
+            opcoes_20 = {
+                "Selecione...": 0.0,
+                "SIM, com metas acima de 02 anos (40 pts)": 40.0,
+                "SIM, com metas para até 02 anos (30 pts)": 30.0,
+                "NÃO POSSUI PDTIC (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="2.0",
+                titulo="Plano Diretor de Tecnologia da Informação e Comunicação - PDTIC",
+                pergunta="A prefeitura municipal possui um PDTIC – Plano Diretor de Tecnologia da Informação e Comunicação – vigente que estabeleça diretrizes e metas de atingimento no futuro?",
+                opcoes=opcoes_20,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
