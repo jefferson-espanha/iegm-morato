@@ -681,39 +681,62 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
-            # QUESITO 1.1 (Customizado com Inputs Numéricos, Botão Salvar e Comentários)
-            with ui.card().classes("w-full p-4 mb-4 border border-gray-200 shadow-sm"):
-                ui.label("📌 Quesito 1.1 - Composição de Recursos Humanos do Setor de TIC").classes("text-lg font-bold text-blue-900 mb-1")
-                ui.label("1.1 • Recursos Humanos em TIC").classes("text-md font-bold mb-1")
-                ui.label("Informe a quantidade da equipe que atua no suporte e atendimento de primeiro nível:").classes("text-sm text-gray-700 font-medium mb-1")
-                ui.label("ℹ Regra: (Concursados + Comissionados + Estagiários) > 0 garante +30 pontos.").classes("text-xs text-gray-500 mb-4")
-
-                d11 = res_data.get("1.1", {"valor": "0", "pontos": 0.0, "link": ""}) or {"valor": "0", "pontos": 0.0, "link": ""}
+            # =============================================================================
+            # QUESITO 1.1 • COMPOSIÇÃO DA EQUIPE DE TIC
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                # Cabeçalho do Quesito
+                ui.label("📌 Quesito 1.1 - Recursos Humanos em TIC").classes("text-lg font-bold text-blue-900 mb-1")
                 
+                # Texto do Enunciado e Instruções
+                ui.label("Informe a quantidade:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                
+                # Bloco Informativo da Fórmula de Cálculo
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "Funcionários concursados + Funcionários comissionados + Estagiários no suporte e atendimento de primeiro nível > 0 — 30 pontos"
+                    ).classes("text-sm text-blue-800 font-medium")
+
+                # Conversor ultraforte contra valores vazios ('', None, texto)
+                def parse_int_seguro(val):
+                    if val is None:
+                        return 0
+                    if isinstance(val, (int, float)):
+                        return int(val)
+                    val_str = str(val).strip()
+                    if not val_str or not val_str.isdigit():
+                        return 0
+                    return int(val_str)
+
+                # Recuperação e sanitização do banco
+                d11 = res_data.get("1.1") or {}
+                if not isinstance(d11, dict):
+                    d11 = {"valor": "0", "pontos": 0.0, "link": ""}
+
                 v_conc_i, v_comi_i, v_esta_i, v_outr_i = 0, 0, 0, 0
                 evidencia_11_salva = ""
-                raw_link = d11.get("link", "") or ""
+                raw_link = str(d11.get("link") or "")
 
-                if raw_link and raw_link != "EMPTY_STRING":
-                    try:
-                        if "|LINK:" in raw_link:
-                            contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1)
-                        else:
-                            contadores_part, evidencia_11_salva = raw_link, ""
-                        
-                        parts = contadores_part.split(",")
-                        for part in parts:
-                            if part.startswith("C:"):
-                                v_conc_i = int(part.split(":")[1])
-                            elif part.startswith("Co:"):
-                                v_comi_i = int(part.split(":")[1])
-                            elif part.startswith("E:"):
-                                v_esta_i = int(part.split(":")[1])
-                            elif part.startswith("O:"):
-                                v_outr_i = int(part.split(":")[1])
-                    except Exception:
-                        v_conc_i, v_comi_i, v_esta_i, v_outr_i = 0, 0, 0, 0
+                # Extração segura dos contadores do banco
+                if raw_link:
+                    if "|LINK:" in raw_link:
+                        contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1)
+                    else:
+                        contadores_part, evidencia_11_salva = raw_link, ""
 
+                    import re
+                    match_c = re.search(r'C:(\d+)', contadores_part)
+                    match_co = re.search(r'Co:(\d+)', contadores_part)
+                    match_e = re.search(r'E:(\d+)', contadores_part)
+                    match_o = re.search(r'O:(\d+)', contadores_part)
+
+                    v_conc_i = int(match_c.group(1)) if match_c else 0
+                    v_comi_i = int(match_co.group(1)) if match_co else 0
+                    v_esta_i = int(match_e.group(1)) if match_e else 0
+                    v_outr_i = int(match_o.group(1)) if match_o else 0
+
+                # Estado reativo do formulário
                 state_11 = {
                     "conc": v_conc_i,
                     "comi": v_comi_i,
@@ -722,61 +745,76 @@ def container_formulario_igov_ti():
                     "link": evidencia_11_salva
                 }
 
+                # Callback para Processar e Salvar os dados
                 def cb_processa_e_salva_11():
-                    try:
-                        c_val = int(state_11["conc"] or 0)
-                        co_val = int(state_11["comi"] or 0)
-                        e_val = int(state_11["esta"] or 0)
-                        o_val = int(state_11["outr"] or 0)
-                    except (ValueError, TypeError):
-                        c_val, co_val, e_val, o_val = 0, 0, 0, 0
-
+                    c_val = parse_int_seguro(state_11["conc"])
+                    co_val = parse_int_seguro(state_11["comi"])
+                    e_val = parse_int_seguro(state_11["esta"])
+                    o_val = parse_int_seguro(state_11["outr"])
                     lnk_val = str(state_11["link"] or "").strip()
 
                     total_p = c_val + co_val + e_val
                     pts_calculados = 30.0 if total_p > 0 else 0.0
                     composite_string = f"C:{c_val},Co:{co_val},E:{e_val},O:{o_val}|LINK:{lnk_val}"
-                    valor_str = str(total_p)
 
-                    # Atualização no dicionário local
-                    res_data["1.1"] = {
-                        "valor": valor_str, 
-                        "pontos": pts_calculados, 
-                        "link": composite_string
-                    }
-                    
-                    # Persistência direta no Banco de Dados
-                    salvar_resposta_db(ano_sel, "1.1", valor_str, pts_calculados, composite_string)
+                    save_resp("1.1", str(total_p), pts_calculados, composite_string)
+                    res_data["1.1"] = {"valor": str(total_p), "pontos": pts_calculados, "link": composite_string}
                     
                     ui.notify("Quesito 1.1 salvo com sucesso!", type="positive")
                     container_formulario_igov_ti.refresh()
 
-                with ui.grid(columns=4).classes("w-full gap-4 mb-4"):
-                    ui.number("Concursados", min=0, step=1).bind_value(state_11, "conc")
-                    ui.number("Comissionados", min=0, step=1).bind_value(state_11, "comi")
-                    ui.number("Estagiários", min=0, step=1).bind_value(state_11, "esta")
-                    ui.number("Outros", min=0, step=1).bind_value(state_11, "outr")
+                # Grid com os 4 Inputs de Pessoal
+                with ui.grid(columns=2).classes("w-full gap-4 mb-4 md:grid-cols-4"):
+                    ui.number(
+                        "Funcionários concursados:", 
+                        value=v_conc_i, 
+                        min=0, 
+                        step=1
+                    ).classes("w-full").bind_value(state_11, "conc")
+                    
+                    ui.number(
+                        "Funcionários comissionados:", 
+                        value=v_comi_i, 
+                        min=0, 
+                        step=1
+                    ).classes("w-full").bind_value(state_11, "comi")
+                    
+                    ui.number(
+                        "Estagiários no suporte e atendimento de primeiro nível:", 
+                        value=v_esta_i, 
+                        min=0, 
+                        step=1
+                    ).classes("w-full").bind_value(state_11, "esta")
+                    
+                    ui.number(
+                        "Outros:", 
+                        value=v_outr_i, 
+                        min=0, 
+                        step=1
+                    ).classes("w-full").bind_value(state_11, "outr")
 
+                # Área de Link e Evidências
                 ui.textarea(
-                    "Link/Evidência da composição da equipe (1.1):",
-                    placeholder="Cole aqui o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI..."
+                    "Página Eletrônica (Link / Evidência da Composição):",
+                    value=evidencia_11_salva,
+                    placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI..."
                 ).classes("w-full mb-4").bind_value(state_11, "link")
 
-                total_pessoal = int(d11.get("valor", "0") if d11.get("valor") != "EMPTY_STRING" else "0")
-                pts_atuais_11 = float(d11.get("pontos", 0.0))
+                # Rodapé com Indicador de Pontuação e Botão de Salvar
+                total_pessoal = parse_int_seguro(d11.get("valor"))
+                pts_atuais_11 = float(d11.get("pontos") or 0.0)
                 cor_txt_11 = "text-green-600" if pts_atuais_11 == 30.0 else "text-gray-500"
 
                 with ui.row().classes("w-full justify-between items-center mb-4"):
                     with ui.column().classes("gap-0"):
-                        ui.label(f"👥 Total de Pessoal Efetivo Computado (C+Co+E): {total_pessoal} funcionário(s)").classes("text-sm font-semibold")
+                        ui.label(f"👥 Total de Pessoal Efetivo Computado (Concursados + Comissionados + Estagiários): {total_pessoal} funcionário(s)").classes("text-sm font-semibold text-gray-700")
                         ui.label(f"📊 Impacto de Pontuação no Quesito 1.1: +{pts_atuais_11:.1f} pontos").classes(f"text-sm font-bold {cor_txt_11}")
                     
-                    # BOTÃO DE SALVAR
-                    ui.button("Salvar Quesito 1.1", on_click=cb_processa_e_salva_11, icon="save").classes("bg-blue-800 text-white")
+                    ui.button("Salvar Quesito 1.1", on_click=cb_processa_e_salva_11, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
 
                 ui.separator().classes("my-2")
 
-                # ÁREA DE COMENTÁRIOS DA QUESTÃO
+                # Bloco de Comentários Integrado ao Quesito
                 bloco_comentarios("1.1", res_data, ano_sel)
 
             # QUESITO 1.2
