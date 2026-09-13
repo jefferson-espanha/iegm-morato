@@ -662,76 +662,309 @@ def container_formulario_iamb():
                 "text-h5 font-bold my-4 text-green-900"
             )
 
-            # QUESTÃO 1.0
+            # =============================================================================
+            # QUESITO 1.0 • ESTRUTURA ORGANIZACIONAL
+            # =============================================================================
+            opcoes_10 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0,
+            }
             render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
                 qid="1.0",
-                titulo="A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?",
-                tipo="radio",
-                ano_sel=ano_sel
+                titulo="Estrutura Organizacional de Meio Ambiente",
+                pergunta="A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?",
+                opcoes=opcoes_10,
+                on_save_callback=container_formulario_iamb.refresh,
             )
 
-            # QUESTÃO 1.1
+            # =============================================================================
+            # QUESITO 1.1 • RECURSOS HUMANOS
+            # =============================================================================
+            opcoes_11 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0,
+            }
             render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
                 qid="1.1",
-                titulo="A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?",
-                tipo="radio",
-                ano_sel=ano_sel
+                titulo="Recursos Humanos para Meio Ambiente",
+                pergunta="A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?",
+                opcoes=opcoes_11,
+                on_save_callback=container_formulario_iamb.refresh,
             )
 
-            # QUESTÃO 1.1.1
-            render_quesito(
-                qid="1.1.1",
-                titulo="Informe o quantitativo de Recursos Humanos:",
-                tipo="servidores",
-                ano_sel=ano_sel
-            )
+            # =============================================================================
+            # QUESITO 1.1.1 • QUANTITATIVO DE RECURSOS HUMANOS
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 1.1.1 - Quantitativo de Recursos Humanos").classes("text-lg font-bold text-green-900 mb-1")
+                ui.label("Informe o quantitativo de Recursos Humanos atuantes na área ambiental:").classes("text-base font-semibold text-gray-800 mt-2 mb-3")
 
-            # QUESTÃO 1.1.2
+                d111 = res_data.get("1.1.1") or {}
+                if not isinstance(d111, dict):
+                    d111 = {"valor": "{}", "pontos": 0.0, "link": ""}
+
+                val_raw = d111.get("valor", "{}")
+                try:
+                    val_json = json.loads(val_raw) if isinstance(val_raw, str) else val_raw
+                except Exception:
+                    val_json = {}
+
+                evidencia_111_salva = str(d111.get("link") or "")
+
+                state_111 = {
+                    "efetivos": val_json.get("efetivos", 0),
+                    "comissionados": val_json.get("comissionados", 0),
+                    "terceirizados": val_json.get("terceirizados", 0),
+                    "link": evidencia_111_salva
+                }
+
+                def salvar_111():
+                    try:
+                        res_dict = {
+                            "efetivos": int(state_111["efetivos"] or 0),
+                            "comissionados": int(state_111["comissionados"] or 0),
+                            "terceirizados": int(state_111["terceirizados"] or 0)
+                        }
+                        val_str = json.dumps(res_dict)
+                        lnk_val = str(state_111["link"] or "").strip()
+
+                        save_resposta("1.1.1", val_str, 0.0, lnk_val, _obter_lista_comentarios(d111), ano_sel)
+                        res_data["1.1.1"] = {"valor": val_str, "pontos": 0.0, "link": lnk_val}
+                        ui.notify("Quesito 1.1.1 salvo com sucesso!", type="positive")
+                        container_formulario_iamb.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 1.1.1: {err}", type="negative")
+
+                with ui.row().classes("w-full gap-4 mb-4"):
+                    ui.number("Nº de efetivos", min=0).classes("w-1/4").bind_value(state_111, "efetivos")
+                    ui.number("Nº de comissionados", min=0).classes("w-1/4").bind_value(state_111, "comissionados")
+                    ui.number("Nº de terceirizados/contratados", min=0).classes("w-1/4").bind_value(state_111, "terceirizados")
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência):",
+                    value=evidencia_111_salva,
+                    placeholder="Cole aqui o link do ato de nomeação, organograma ou documento comprobatório..."
+                ).classes("w-full mb-4").bind_value(state_111, "link")
+
+                with ui.row().classes("w-full justify-end items-center mb-2"):
+                    ui.button("Salvar Quesito 1.1.1", on_click=salvar_111, icon="save").classes("bg-green-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("1.1.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 1.1.2 • TREINAMENTO ESPECÍFICO DOS SERVIDORES
+            # =============================================================================
+            opcoes_112 = {
+                "Selecione...": 0.0,
+                "Sim (20 pts)": 20.0,
+                "Não (00 pts)": 0.0,
+            }
             render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
                 qid="1.1.2",
-                titulo="Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente em 2025?",
-                tipo="radio_pontuado",
-                ano_sel=ano_sel
+                titulo="Treinamento Específico em Meio Ambiente",
+                pergunta="Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente no ano de referência?",
+                opcoes=opcoes_112,
+                on_save_callback=container_formulario_iamb.refresh,
             )
 
-            # QUESTÃO 1.1.3
-            opcoes_1_1_3 = [
-                ("escolas", "Para escolas", 5.0),
-                ("outras_secretarias", "Para outras secretarias / entidades municipais", 2.0),
-                ("municipes_empresas", "Para munícipes ou empresas", 3.0),
-                ("nenhum", "Não ofereceu nenhum curso/treinamento no ano", 0.0)
-            ]
-            render_quesito(
-                qid="1.1.3",
-                titulo="A Secretaria Municipal de Meio Ambiente ou similar ofereceu cursos/treinamento sobre educação ambiental para qual público?",
-                tipo="checkbox_group",
-                opcoes=opcoes_1_1_3,
-                ano_sel=ano_sel
-            )
+            # =============================================================================
+            # QUESITO 1.1.3 • PÚBLICO DOS CURSOS/TREINAMENTOS
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 1.1.3 - Cursos e Treinamentos de Educação Ambiental").classes("text-lg font-bold text-green-900 mb-1")
+                ui.label("A Secretaria Municipal de Meio Ambiente ou similar ofereceu cursos/treinamento sobre educação ambiental para qual público?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
 
-            # QUESTÃO 1.2
-            opcoes_1_2 = [
-                ("tecnologicos", "Recursos Tecnológicos", 5.0),
-                ("orcamentarios", "Recursos Orçamentários", 5.0),
-                ("materiais", "Recursos Materiais", 5.0),
-                ("outros", "Outros", 5.0)
-            ]
-            render_quesito(
-                qid="1.2",
-                titulo="Assinale os recursos disponibilizados para a operacionalização das atividades de meio ambiente (Desconsiderar RH e Estrutura Física nesta questão):",
-                tipo="checkbox_group",
-                opcoes=opcoes_1_2,
-                ano_sel=ano_sel
-            )
+                with ui.card().classes("w-full p-3 mb-4 bg-green-50 border-l-4 border-green-600 rounded-r-md shadow-none"):
+                    ui.label("Critérios de pontuação:").classes("text-xs font-bold text-green-900 uppercase tracking-wide")
+                    ui.label(
+                        "• Para escolas — 05 pontos\n"
+                        "• Para outras secretarias / entidades municipais — 02 pontos\n"
+                        "• Para munícipes ou empresas — 03 pontos\n"
+                        "• Não ofereceu nenhum curso/treinamento no ano — 00 pontos"
+                    ).classes("text-xs text-green-900 font-mono mt-1")
 
+                d113 = res_data.get("1.1.3") or {}
+                if not isinstance(d113, dict):
+                    d113 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_113 = str(d113.get("valor") or "")
+                itens_salvos_113 = [i.strip() for i in valor_salvo_113.split(",") if i.strip()]
+                evidencia_113_salva = str(d113.get("link") or "")
+
+                state_113 = {
+                    "escolas": "Para escolas" in itens_salvos_113,
+                    "secretarias": "Para outras secretarias / entidades municipais" in itens_salvos_113,
+                    "municipes": "Para munícipes ou empresas" in itens_salvos_113,
+                    "nenhum": "Não ofereceu nenhum curso/treinamento no ano" in itens_salvos_113,
+                    "link": evidencia_113_salva
+                }
+
+                def salvar_113():
+                    try:
+                        marcados = []
+                        pts_acumulados = 0.0
+
+                        if state_113["nenhum"]:
+                            marcados = ["Não ofereceu nenhum curso/treinamento no ano"]
+                            pts_acumulados = 0.0
+                        else:
+                            if state_113["escolas"]:
+                                marcados.append("Para escolas")
+                                pts_acumulados += 5.0
+                            if state_113["secretarias"]:
+                                marcados.append("Para outras secretarias / entidades municipais")
+                                pts_acumulados += 2.0
+                            if state_113["municipes"]:
+                                marcados.append("Para munícipes ou empresas")
+                                pts_acumulados += 3.0
+
+                        val_str = ", ".join(marcados)
+                        lnk_val = str(state_113["link"] or "").strip()
+
+                        save_resposta("1.1.3", val_str, pts_acumulados, lnk_val, _obter_lista_comentarios(d113), ano_sel)
+                        res_data["1.1.3"] = {"valor": val_str, "pontos": pts_acumulados, "link": lnk_val}
+                        ui.notify("Quesito 1.1.3 salvo com sucesso!", type="positive")
+                        container_formulario_iamb.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 1.1.3: {err}", type="negative")
+
+                with ui.column().classes("w-full gap-2 mb-4"):
+                    ui.checkbox("Para escolas (05 pts)").bind_value(state_113, "escolas")
+                    ui.checkbox("Para outras secretarias / entidades municipais (02 pts)").bind_value(state_113, "secretarias")
+                    ui.checkbox("Para munícipes ou empresas (03 pts)").bind_value(state_113, "municipes")
+                    ui.checkbox("Não ofereceu nenhum curso/treinamento no ano (00 pts)").bind_value(state_113, "nenhum")
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência):",
+                    value=evidencia_113_salva,
+                    placeholder="Link de fotos, certificados, listas de presença ou publicações..."
+                ).classes("w-full mb-4").bind_value(state_113, "link")
+
+                pts_atuais_113 = float(d113.get("pontos") or 0.0)
+                cor_txt_113 = "text-green-600" if pts_atuais_113 > 0 else "text-gray-500"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"📋 Selecionados: {valor_salvo_113 if valor_salvo_113 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Pontuação no Quesito 1.1.3: +{pts_atuais_113:.1f} pontos").classes(f"text-sm font-bold {cor_txt_113}")
+
+                    ui.button("Salvar Quesito 1.1.3", on_click=salvar_113, icon="save").classes("bg-green-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("1.1.3", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 1.2 • RECURSOS DISPONIBILIZADOS
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 1.2 - Recursos Disponibilizados").classes("text-lg font-bold text-green-900 mb-1")
+                ui.label("Assinale os recursos disponibilizados para a operacionalização das atividades de meio ambiente (Desconsiderar Recursos Humanos e Estrutura Física nesta questão):").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                with ui.card().classes("w-full p-3 mb-4 bg-green-50 border-l-4 border-green-600 rounded-r-md shadow-none"):
+                    ui.label("Critérios de pontuação:").classes("text-xs font-bold text-green-900 uppercase tracking-wide")
+                    ui.label(
+                        "• Recursos Tecnológicos — 05 pontos\n"
+                        "• Recursos Orçamentários — 05 pontos\n"
+                        "• Recursos Materiais — 05 pontos\n"
+                        "• Outros — 05 pontos"
+                    ).classes("text-xs text-green-900 font-mono mt-1")
+
+                d12 = res_data.get("1.2") or {}
+                if not isinstance(d12, dict):
+                    d12 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_12 = str(d12.get("valor") or "")
+                itens_salvos_12 = [i.strip() for i in valor_salvo_12.split(",") if i.strip()]
+                evidencia_12_salva = str(d12.get("link") or "")
+
+                state_12 = {
+                    "tecnologicos": "Recursos Tecnológicos" in itens_salvos_12,
+                    "orcamentarios": "Recursos Orçamentários" in itens_salvos_12,
+                    "materiais": "Recursos Materiais" in itens_salvos_12,
+                    "outros": "Outros" in itens_salvos_12,
+                    "link": evidencia_12_salva
+                }
+
+                def salvar_12():
+                    try:
+                        marcados = []
+                        pts_acumulados = 0.0
+
+                        if state_12["tecnologicos"]:
+                            marcados.append("Recursos Tecnológicos")
+                            pts_acumulados += 5.0
+                        if state_12["orcamentarios"]:
+                            marcados.append("Recursos Orçamentários")
+                            pts_acumulados += 5.0
+                        if state_12["materiais"]:
+                            marcados.append("Recursos Materiais")
+                            pts_acumulados += 5.0
+                        if state_12["outros"]:
+                            marcados.append("Outros")
+                            pts_acumulados += 5.0
+
+                        val_str = ", ".join(marcados)
+                        lnk_val = str(state_12["link"] or "").strip()
+
+                        save_resposta("1.2", val_str, pts_acumulados, lnk_val, _obter_lista_comentarios(d12), ano_sel)
+                        res_data["1.2"] = {"valor": val_str, "pontos": pts_acumulados, "link": lnk_val}
+                        ui.notify("Quesito 1.2 salvo com sucesso!", type="positive")
+                        container_formulario_iamb.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 1.2: {err}", type="negative")
+
+                with ui.column().classes("w-full gap-2 mb-4"):
+                    ui.checkbox("Recursos Tecnológicos (05 pts)").bind_value(state_12, "tecnologicos")
+                    ui.checkbox("Recursos Orçamentários (05 pts)").bind_value(state_12, "orcamentarios")
+                    ui.checkbox("Recursos Materiais (05 pts)").bind_value(state_12, "materiais")
+                    ui.checkbox("Outros (05 pts)").bind_value(state_12, "outros")
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência):",
+                    value=evidencia_12_salva,
+                    placeholder="Cole o link comprovando a alocação de recursos..."
+                ).classes("w-full mb-4").bind_value(state_12, "link")
+
+                pts_atuais_12 = float(d12.get("pontos") or 0.0)
+                cor_txt_12 = "text-green-600" if pts_atuais_12 > 0 else "text-gray-500"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"📋 Selecionados: {valor_salvo_12 if valor_salvo_12 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Pontuação no Quesito 1.2: +{pts_atuais_12:.1f} pontos").classes(f"text-sm font-bold {cor_txt_12}")
+
+                    ui.button("Salvar Quesito 1.2", on_click=salvar_12, icon="save").classes("bg-green-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("1.2", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 2.0 • PROGRAMAS DE EDUCAÇÃO AMBIENTAL
+            # =============================================================================
             ui.label("2.0 Programas de Educação Ambiental").classes(
                 "text-h5 font-bold my-4 text-green-900"
             )
 
-            # QUESTÃO 2.0
+            opcoes_20 = {
+                "Selecione...": 0.0,
+                "Sim (10 pts)": 10.0,
+                "Não (00 pts)": 0.0,
+            }
             render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
                 qid="2.0",
-                titulo="O Município participa de algum Programa de Educação Ambiental?",
-                tipo="radio_pontuado",
-                ano_sel=ano_sel
+                titulo="Programa de Educação Ambiental",
+                pergunta="O Município participa de algum Programa de Educação Ambiental?",
+                opcoes=opcoes_20,
+                on_save_callback=container_formulario_iamb.refresh,
             )
