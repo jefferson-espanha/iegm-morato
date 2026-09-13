@@ -324,6 +324,41 @@ def renderizar_questao_ui(qid, res_data):
         bloco_comentarios_ui(qid, res_data)
 
 # =============================================================================
+# EXECUTOR DINÂMICO DE MÓDULOS COM FALLBACK INTELIGENTE
+# =============================================================================
+def _executar_modulo(mod, nome_funcoes, year=None):
+    """Auxiliar para chamar dinamicamente funções com ou sem argumentos de ano."""
+    if mod is None:
+        ui.label("❌ Módulo não carregado.").classes("text-red-600 font-bold")
+        return
+
+    # 1. Tenta encontrar pelas funções fornecidas na lista de preferência
+    for nome in nome_funcoes:
+        if hasattr(mod, nome):
+            fn = getattr(mod, nome)
+            try:
+                fn(year) if year is not None else fn()
+            except TypeError:
+                try:
+                    fn()
+                except Exception as e:
+                    ui.label(f"Erro ao executar {nome}: {e}").classes("text-red-600")
+            return
+
+    # 2. Fallback inteligente: procura funções que comecem com 'container_', 'mostrar_' ou 'render_'
+    funcs_disponiveis = [f for f in dir(mod) if not f.startswith("_") and callable(getattr(mod, f))]
+    for fn_name in funcs_disponiveis:
+        if any(fn_name.startswith(prefix) for prefix in ["container_", "mostrar_", "render_"]):
+            fn = getattr(mod, fn_name)
+            try:
+                fn(year) if year is not None else fn()
+            except TypeError:
+                fn()
+            return
+
+    ui.label(f"⚠️ Nenhuma função compatível encontrada. Funções disponíveis: {funcs_disponiveis}").classes("text-yellow-600")
+
+# =============================================================================
 # PÁGINAS DO SISTEMA
 # =============================================================================
 
@@ -432,22 +467,6 @@ def dashboard_page():
 
                     ui.button('Acessar', on_click=abrir_admin).classes('w-full bg-red-700 text-white')
 
-def _executar_modulo(mod, nome_funcoes, year=None):
-    """Auxiliar para chamar dinamicamente funções com ou sem argumentos de ano."""
-    if mod is None:
-        ui.label("❌ Módulo não carregado.").classes("text-red-600 font-bold")
-        return
-    for nome in nome_funcoes:
-        if hasattr(mod, nome):
-            fn = getattr(mod, nome)
-            try:
-                fn(year) if year is not None else fn()
-            except TypeError:
-                fn()
-            return
-    funcs = [f for f in dir(mod) if not f.startswith("_") and callable(getattr(mod, f))]
-    ui.label(f"⚠️ Nenhuma função compatível encontrada. Funções disponíveis: {funcs}").classes("text-yellow-600")
-
 @ui.page('/dimension')
 def dimension_page():
     if not app.storage.user.get('authenticated', False):
@@ -465,33 +484,33 @@ def dimension_page():
 
         # ROTEAMENTO CENTRAL DAS SUBPÁGINAS
         if dimension == "Administrador":
-            _executar_modulo(admin_core, ["mostrar_painel_admin", "main"], year)
+            _executar_modulo(admin_core, ["mostrar_painel_admin", "container_painel_admin", "main"], year)
         elif dimension == "Biblioteca":
             ui.label("📚 Biblioteca de Documentos").classes('text-xl font-bold')
             ui.label("Acesse o acervo documental completo e referências diretamente no Google Drive.")
             ui.link("🔗 Acessar Biblioteca no Google Drive", "https://drive.google.com/drive/folders/1iwiuHHbQYZ-p6aEMB9oSjugDEvdB8GVK?usp=drive_link", new_tab=True).classes('bg-blue-600 text-white p-3 rounded text-center w-full block')
         elif dimension in ["Consulta Rápida", "HAL 9000"]:
-            _executar_modulo(hal_core, ["mostrar_chat_hal", "main"])
+            _executar_modulo(hal_core, ["mostrar_chat_hal", "container_chat_hal", "main"])
         elif dimension == "i-Cidade":
-            _executar_modulo(icidade, ["mostrar_formulario_icidade", "mostrar_formulario_cidade", "main"], year)
+            _executar_modulo(icidade, ["container_formulario_icidade", "mostrar_formulario_icidade", "mostrar_formulario_cidade", "main"], year)
         elif dimension == "i-Gov TI":
-            _executar_modulo(igov, ["render_igovti", "mostrar_formulario_igovti", "mostrar_formulario_igov", "render_igov", "main"], year)
+            _executar_modulo(igov, ["container_formulario_igovti", "render_igovti", "mostrar_formulario_igovti", "main"], year)
         elif dimension == "i-Amb":
-            _executar_modulo(iamb, ["mostrar_formulario_iamb", "main"], year)
+            _executar_modulo(iamb, ["container_formulario_iamb", "mostrar_formulario_iamb", "main"], year)
         elif dimension == "i-Fiscal":
-            _executar_modulo(ifiscal, ["mostrar_formulario_ifiscal", "main"], year)
+            _executar_modulo(ifiscal, ["container_formulario_ifiscal", "mostrar_formulario_ifiscal", "main"], year)
         elif dimension == "i-Plan":
-            _executar_modulo(iplan, ["mostrar_formulario_plan", "main"], year)
+            _executar_modulo(iplan, ["container_formulario_plan", "mostrar_formulario_plan", "main"], year)
         elif dimension == "i-Educ":
-            _executar_modulo(ieduc, ["mostrar_formulario_educ", "main"], year)
+            _executar_modulo(ieduc, ["container_formulario_educ", "mostrar_formulario_educ", "main"], year)
         elif dimension == "i-Saúde":
-            _executar_modulo(isaude, ["mostrar_formulario_saude", "main"], year)
+            _executar_modulo(isaude, ["container_formulario_saude", "mostrar_formulario_saude", "main"], year)
         elif dimension == "ieg-m":
-            _executar_modulo(iegm_final, ["mostrar_painel_iegm_final", "main"], year)
+            _executar_modulo(iegm_final, ["container_painel_iegm_final", "mostrar_painel_iegm_final", "main"], year)
         elif dimension == "Relatório de Atividades":
-            _executar_modulo(atividade, ["mostrar_formulario_atividade", "main"], year)
+            _executar_modulo(atividade, ["container_formulario_atividade", "mostrar_formulario_atividade", "main"], year)
         elif dimension == "Plano de Ação":
-            _executar_modulo(plano_acao, ["mostrar_formulario_plano_acao", "mostrar_painel_plano_acao", "main"], year)
+            _executar_modulo(plano_acao, ["container_formulario_plano_acao", "mostrar_formulario_plano_acao", "main"], year)
 
 # =============================================================================
 # INICIAÇÃO DO SERVIDOR NICEGUI
