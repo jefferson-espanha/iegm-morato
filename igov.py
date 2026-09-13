@@ -2221,6 +2221,156 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
+# =============================================================================
+            # QUESITO 6.1 • FERRAMENTA DE PESQUISA/BUSCA INTERNA DE CONTEÚDO
+            # =============================================================================
+            opcoes_61 = {
+                "Selecione...": 0.0,
+                "Sim, para todo o conteúdo do site (20 pts)": 20.0,
+                "Sim, para a maior parte do conteúdo do site (10 pts)": 10.0,
+                "Sim, para a menor parte do conteúdo do site (05 pts)": 5.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="6.1",
+                titulo="Ferramenta de Pesquisa / Busca Interna",
+                pergunta="O site eletrônico da prefeitura continha ferramenta de pesquisa/busca interna de conteúdo? (Não considerar a opção de busca do próprio browser - Ctrl + F)",
+                opcoes=opcoes_61,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 6.2 • DOWNLOAD DE DADOS EM FORMATOS ABERTOS E NÃO PROPRIETÁRIOS
+            # =============================================================================
+            opcoes_62 = {
+                "Selecione...": 0.0,
+                "Possibilita para todos os relatórios (20 pts)": 20.0,
+                "Possibilita para a maior parte dos relatórios (10 pts)": 10.0,
+                "Possibilita para a menor parte dos relatórios (05 pts)": 5.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="6.2",
+                titulo="Download em Formatos Abertos e Não Proprietários",
+                pergunta="O site possibilita o download de dados/informações em formatos abertos e não proprietários? (Exemplos: JSON, XML, CSV, ODS, RDF, etc.)",
+                opcoes=opcoes_62,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 6.3 • RESPOSTAS A PERGUNTAS MAIS FREQUENTES (FAQ)
+            # =============================================================================
+            opcoes_63 = {
+                "Selecione...": 0.0,
+                "Sim (10 pts)": 10.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="6.3",
+                titulo="Perguntas Mais Frequentes (FAQ)",
+                pergunta="O site disponibiliza as respostas a perguntas mais frequentes da sociedade?",
+                opcoes=opcoes_63,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 6.4 • ACESSIBILIDADE DE CONTEÚDO PARA PESSOAS COM DEFICIÊNCIA
+            # =============================================================================
+            opcoes_64 = {
+                "Selecione...": 0.0,
+                "Sim, para todo o conteúdo do site (30 pts)": 30.0,
+                "Sim, para a maior parte do conteúdo do site (15 pts)": 15.0,
+                "Sim, para a menor parte do conteúdo do site (05 pts)": 5.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="6.4",
+                titulo="Acessibilidade de Conteúdo para PCD",
+                pergunta="O site disponibiliza acessibilidade de conteúdo para pessoas com deficiência?",
+                opcoes=opcoes_64,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 7.0 • DISPONIBILIZAÇÃO DO e-SIC NO SITE
+            # =============================================================================
+            opcoes_70 = {
+                "Selecione...": 0.0,
+                "Sim (25 pts)": 25.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.0",
+                titulo="Serviço de Informação ao Cidadão (e-SIC)",
+                pergunta="A Prefeitura disponibiliza no site o Serviço de Informação ao Cidadão/e-SIC (Lei Federal nº 12.527/2011)?",
+                opcoes=opcoes_70,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 7.1 • SOLICITAÇÃO SIMPLIFICADA NO e-SIC
+            # =============================================================================
+            opcoes_71 = {
+                "Selecione...": 0.0,
+                "Sim (10 pts)": 10.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.1",
+                titulo="Solicitação Simplificada no e-SIC",
+                pergunta="A solicitação por meio do e-SIC é simplificada (sem a exigência de itens de identificação do requerente e demais dados desnecessários à solicitação)?",
+                opcoes=opcoes_71,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 7.2 • ACOMPANHAMENTO DA SOLICITAÇÃO NO e-SIC
+            # =============================================================================
+            opcoes_72 = {
+                "Selecione...": 0.0,
+                "Sim (10 pts)": 10.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.2",
+                titulo="Acompanhamento de Solicitação no e-SIC",
+                pergunta="O Serviço de Informação ao Cidadão/e-SIC apresentou possibilidade de acompanhamento da solicitação?",
+                opcoes=opcoes_72,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 7.3 • EXIGÊNCIA DE MOTIVOS PARA A SOLICITAÇÃO
+            # =============================================================================
+            opcoes_73 = {
+                "Selecione...": 0.0,
+                "Sim (00 pts)": 0.0,
+                "Não (05 pts)": 5.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.3",
+                titulo="Exigência de Motivação para Solicitação",
+                pergunta="Há necessidade de ser informado os motivos para a solicitação de informações de interesse público?",
+                opcoes=opcoes_73,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
