@@ -434,6 +434,8 @@ def render_quesito(
     }
     
     # ... Restante da sua implementação do render_quesito ...
+    
+    # ... Restante da sua implementação do render_quesito ...
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
         with ui.expansion(
