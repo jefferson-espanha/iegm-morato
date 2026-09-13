@@ -1147,28 +1147,31 @@ def container_formulario_icidade():
                 on_save_callback=container_formulario_icidade.refresh
             )
 
+           # =============================================================================
+            # QUESITO 7.3.1 • TIPOS DE SISTEMAS DE ALERTA
             # =============================================================================
-            # QUESITO 7.3.1 • TIPOS DE SISTEMAS DE ALERTA (Informativo)
-            # =============================================================================
-            # Nota: Caso a função render_quesito suporte opções com pontuação 0.0 ou múltipla escolha
             opcoes_731 = {
-                "Selecione...": 0.0,
                 "Alerta via SMS": 0.0,
                 "Anúncio por rádio/Televisão": 0.0,
                 "Placas de identificação de área de risco": 0.0,
                 "Aviso por telefone / Aplicativo de mensagens": 0.0,
                 "Aviso por email": 0.0,
                 "Aviso aos membros do Nupdec": 0.0,
-                "Outro": 0.0
+                "Outros": 0.0,
             }
+
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
                 qid="7.3.1",
-                titulo="Tipos de Sistemas de Alerta Utilizados",
+                titulo="7.3.1 • Tipos de Sistemas de Alerta Utilizados",
                 pergunta="Assinale os tipos de sistemas de alerta utilizados pelo Município:",
+                tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
                 opcoes=opcoes_731,
-                on_save_callback=container_formulario_icidade.refresh
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_link="Caso selecione 'Outros' ou queira detalhar os sistemas de alerta, especifique aqui...",
+                on_save_callback=container_formulario_icidade.refresh,
             )
 
             # =============================================================================
