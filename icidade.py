@@ -955,16 +955,21 @@ def container_formulario_icidade():
                 "Infestações e Pragas": 0.0,
                 "Ameaças radioativas": 0.0,
                 "Deslizamentos": 0.0,
-                "Outros": 0.0
+                "Outros": 0.0,
             }
+
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
                 qid="5.1",
-                titulo="Principais Ameaças Identificadas",
+                titulo="5.1 • Principais Ameaças Identificadas",
                 pergunta="Assinale as principais ameaças identificadas no município:",
+                tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
                 opcoes=opcoes_51,
-                on_save_callback=container_formulario_icidade.refresh
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui...",
+                on_save_callback=container_formulario_icidade.refresh,
             )
 
             # =============================================================================
