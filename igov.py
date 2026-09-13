@@ -1044,21 +1044,124 @@ def container_formulario_igov_ti():
             # =============================================================================
             # QUESITO 1.4.1 • ETAPAS DE PARTICIPAÇÃO DO PESSOAL DE TIC
             # =============================================================================
-            opcoes_141 = {
-                "Elaboração do edital / Especificação técnica": 15.0,
-                "Comissão de Licitação / Equipe de Apoio": 10.0,
-                "Recebimento / Gestão de Contrato": 15.0,
-            }
-            render_quesito(
-                ano=ano_sel,
-                res_data=res_data,
-                qid="1.4.1",
-                titulo="Etapas de Participação do Pessoal de TIC",
-                pergunta="Assinale as etapas que o pessoal de TIC participa:",
-                tipo="checkbox",
-                opcoes=opcoes_141,
-                on_save_callback=container_formulario_igov_ti.refresh,
-            )
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                # Cabeçalho do Quesito
+                ui.label("📌 Quesito 1.4.1 - Etapas de Participação do Pessoal de TIC").classes("text-lg font-bold text-blue-900 mb-1")
+                
+                # Enunciado
+                ui.label("Assinale as etapas que o pessoal de TIC participa:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                
+                # Bloco Informativo da Pontuação Somada
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Critérios de pontuação (somatório dos itens marcados):").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "• Elaboração do edital / Especificação técnica — 15 pontos\n"
+                        "• Comissão de Licitação / Equipe de Apoio — 10 pontos\n"
+                        "• Recebimento / Gestão de Contrato — 15 pontos"
+                    ).classes("text-xs text-blue-900 whitespace-pre-line font-mono mt-1")
+
+                # Função local de persistência no PostgreSQL
+                def salvar_no_banco_141(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                # Recuperação do Banco de Dados
+                d141 = res_data.get("1.4.1") or {}
+                if not isinstance(d141, dict):
+                    d141 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                # Parse dos itens marcados armazenados no banco (separados por vírgula)
+                valor_salvo = str(d141.get("valor") or "")
+                itens_salvos = [i.strip() for i in valor_salvo.split(",") if i.strip()]
+                evidencia_141_salva = str(d141.get("link") or "")
+
+                # Estado Reativo das Checkboxes
+                state_141 = {
+                    "edital": "Elaboração do edital / Especificação técnica" in itens_salvos,
+                    "comissao": "Comissão de Licitação / Equipe de Apoio" in itens_salvos,
+                    "gestao": "Recebimento / Gestão de Contrato" in itens_salvos,
+                    "link": evidencia_141_salva
+                }
+
+                # Callback para Calcular a Soma dos Pontos e Salvar
+                def cb_processa_e_salva_141():
+                    try:
+                        marcados = []
+                        pontos_acumulados = 0.0
+
+                        if state_141["edital"]:
+                            marcados.append("Elaboração do edital / Especificação técnica")
+                            pontos_acumulados += 15.0
+
+                        if state_141["comissao"]:
+                            marcados.append("Comissão de Licitação / Equipe de Apoio")
+                            pontos_acumulados += 10.0
+
+                        if state_141["gestao"]:
+                            marcados.append("Recebimento / Gestão de Contrato")
+                            pontos_acumulados += 15.0
+
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_141["link"] or "").strip()
+
+                        # Grava persistentemente no banco
+                        salvar_no_banco_141("1.4.1", valor_string, pontos_acumulados, lnk_val)
+
+                        # Atualiza a estrutura na memória local da página
+                        res_data["1.4.1"] = {
+                            "valor": valor_string,
+                            "pontos": pontos_acumulados,
+                            "link": lnk_val
+                        }
+
+                        ui.notify("Quesito 1.4.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 1.4.1: {err}", type="negative")
+
+                # Interface com as 3 opções do quesito
+                with ui.column().classes("w-full gap-2 mb-4"):
+                    ui.checkbox("Elaboração do edital / Especificação técnica (15 pts)").bind_value(state_141, "edital")
+                    ui.checkbox("Comissão de Licitação / Equipe de Apoio (10 pts)").bind_value(state_141, "comissao")
+                    ui.checkbox("Recebimento / Gestão de Contrato (15 pts)").bind_value(state_141, "gestao")
+
+                # Campo de Evidências / Links
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência da Participação):",
+                    value=evidencia_141_salva,
+                    placeholder="Insira o link de portarias de nomeação, termos de referência assinados ou atas de comissões..."
+                ).classes("w-full mb-4").bind_value(state_141, "link")
+
+                # Exibição dos pontos calculados no rodapé
+                pts_atuais_141 = float(d141.get("pontos") or 0.0)
+                cor_txt_141 = "text-green-600" if pts_atuais_141 > 0 else "text-gray-500"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"📋 Etapas Selecionadas: {valor_salvo if valor_salvo else 'Nenhuma'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Impacto de Pontuação no Quesito 1.4.1: +{pts_atuais_141:.1f} pontos").classes(f"text-sm font-bold {cor_txt_141}")
+
+                    ui.button("Salvar Quesito 1.4.1", on_click=cb_processa_e_salva_141, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+
+                # Bloco de Comentários Integrado ao Quesito
+                bloco_comentarios("1.4.1", res_data, ano_sel)
 
             # =============================================================================
             # QUESITO 1.4.2 • ANÁLISE PRÉVIA PARA CONTRATAÇÃO DE SOFTWARES
