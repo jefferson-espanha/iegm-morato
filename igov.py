@@ -1203,6 +1203,304 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
+# =============================================================================
+            # QUESITO 2.1 • PÁGINA ELETRÔNICA DO PDTIC
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 2.1 - Divulgação do PDTIC").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Informe a página eletrônica (link na internet) do PDTIC:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "• Se informado o texto 'XYZ' (ou caso não esteja disponível) — 0 pontos\n"
+                        "• Se informada URL/Link válido (diferente de 'XYZ') — 20 pontos"
+                    ).classes("text-xs text-blue-900 font-medium")
+
+                def salvar_no_banco_21(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d21 = res_data.get("2.1") or {}
+                if not isinstance(d21, dict):
+                    d21 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                link_salvo_21 = str(d21.get("link") or d21.get("valor") or "")
+                state_21 = {"link": link_salvo_21}
+
+                def cb_processa_e_salva_21():
+                    try:
+                        lnk_input = str(state_21["link"] or "").strip()
+                        if not lnk_input or lnk_input.upper() == "XYZ":
+                            pts_calc = 0.0
+                            val_str = "XYZ"
+                        else:
+                            pts_calc = 20.0
+                            val_str = lnk_input
+
+                        salvar_no_banco_21("2.1", val_str, pts_calc, lnk_input)
+                        res_data["2.1"] = {"valor": val_str, "pontos": pts_calc, "link": lnk_input}
+                        ui.notify("Quesito 2.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 2.1: {err}", type="negative")
+
+                ui.input(
+                    "Página Eletrônica (Link do PDTIC):",
+                    value=link_salvo_21,
+                    placeholder="Cole o link aqui ou digite XYZ se não estiver disponível..."
+                ).classes("w-full mb-4").bind_value(state_21, "link")
+
+                pts_atuais_21 = float(d21.get("pontos") or 0.0)
+                cor_txt_21 = "text-green-600" if pts_atuais_21 > 0 else "text-gray-500"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    ui.label(f"📊 Impacto de Pontuação no Quesito 2.1: +{pts_atuais_21:.1f} pontos").classes(f"text-sm font-bold {cor_txt_21}")
+                    ui.button("Salvar Quesito 2.1", on_click=cb_processa_e_salva_21, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("2.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 2.2 • ALOCAÇÃO DE RECURSOS NO PDTIC
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 2.2 - Conteúdo do Plano de TIC").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("O plano de TIC vigente contempla:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Critérios de pontuação (10 pontos por item assinalado):").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "• Alocação de recursos orçamentários — 10 pontos\n"
+                        "• Alocação de recursos humanos — 10 pontos\n"
+                        "• Alocação de recursos materiais — 10 pontos\n"
+                        "• Estratégia de execução indireta (terceirização) — 10 pontos"
+                    ).classes("text-xs text-blue-900 whitespace-pre-line font-mono mt-1")
+
+                def salvar_no_banco_22(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d22 = res_data.get("2.2") or {}
+                if not isinstance(d22, dict):
+                    d22 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_22 = str(d22.get("valor") or "")
+                itens_salvos_22 = [i.strip() for i in valor_salvo_22.split(",") if i.strip()]
+                evidencia_22_salva = str(d22.get("link") or "")
+
+                state_22 = {
+                    "orc": "Alocação de recursos orçamentários" in itens_salvos_22,
+                    "rh": "Alocação de recursos humanos" in itens_salvos_22,
+                    "mat": "Alocação de recursos materiais" in itens_salvos_22,
+                    "terc": "Estratégia de execução indireta (terceirização)" in itens_salvos_22,
+                    "link": evidencia_22_salva
+                }
+
+                def cb_processa_e_salva_22():
+                    try:
+                        marcados = []
+                        pts_acumulados = 0.0
+
+                        if state_22["orc"]:
+                            marcados.append("Alocação de recursos orçamentários")
+                            pts_acumulados += 10.0
+                        if state_22["rh"]:
+                            marcados.append("Alocação de recursos humanos")
+                            pts_acumulados += 10.0
+                        if state_22["mat"]:
+                            marcados.append("Alocação de recursos materiais")
+                            pts_acumulados += 10.0
+                        if state_22["terc"]:
+                            marcados.append("Estratégia de execução indireta (terceirização)")
+                            pts_acumulados += 10.0
+
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_22["link"] or "").strip()
+
+                        salvar_no_banco_22("2.2", valor_string, pts_acumulados, lnk_val)
+                        res_data["2.2"] = {"valor": valor_string, "pontos": pts_acumulados, "link": lnk_val}
+                        ui.notify("Quesito 2.2 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 2.2: {err}", type="negative")
+
+                with ui.column().classes("w-full gap-2 mb-4"):
+                    ui.checkbox("Alocação de recursos orçamentários (10 pts)").bind_value(state_22, "orc")
+                    ui.checkbox("Alocação de recursos humanos (10 pts)").bind_value(state_22, "rh")
+                    ui.checkbox("Alocação de recursos materiais (10 pts)").bind_value(state_22, "mat")
+                    ui.checkbox("Estratégia de execução indireta - terceirização (10 pts)").bind_value(state_22, "terc")
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência dos itens do PDTIC):",
+                    value=evidencia_22_salva,
+                    placeholder="Insira o link com a indicação dos capítulos ou páginas do documento..."
+                ).classes("w-full mb-4").bind_value(state_22, "link")
+
+                pts_atuais_22 = float(d22.get("pontos") or 0.0)
+                cor_txt_22 = "text-green-600" if pts_atuais_22 > 0 else "text-gray-500"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"📋 Itens Selecionados: {valor_salvo_22 if valor_salvo_22 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Impacto de Pontuação no Quesito 2.2: +{pts_atuais_22:.1f} pontos").classes(f"text-sm font-bold {cor_txt_22}")
+
+                    ui.button("Salvar Quesito 2.2", on_click=cb_processa_e_salva_22, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("2.2", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 2.3 • DATA DA ÚLTIMA ATUALIZAÇÃO DO PDTIC
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 2.3 - Atualização do PDTIC").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Qual a data da última atualização do PDTIC? (Se não foi atualizado, informar a data da publicação)").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Fórmula de cálculo (Tempo decorrido até o ano de referência):").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "• Data <= 5 anos — 20 pontos\n"
+                        "• 5 < Data <= 10 anos — 10 pontos\n"
+                        "• Data > 10 anos (ou não informado) — 0 pontos"
+                    ).classes("text-xs text-blue-900 font-medium")
+
+                def salvar_no_banco_23(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d23 = res_data.get("2.3") or {}
+                if not isinstance(d23, dict):
+                    d23 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                val_data_salva = str(d23.get("valor") or "")
+                evidencia_23_salva = str(d23.get("link") or "")
+
+                state_23 = {
+                    "data": val_data_salva,
+                    "link": evidencia_23_salva
+                }
+
+                def cb_processa_e_salva_23():
+                    try:
+                        from datetime import datetime
+                        dt_str = str(state_23["data"] or "").strip()
+                        pts_calc = 0.0
+
+                        if dt_str:
+                            try:
+                                dt_obj = datetime.strptime(dt_str, "%Y-%m-%d")
+                            except ValueError:
+                                try:
+                                    dt_obj = datetime.strptime(dt_str, "%d/%m/%Y")
+                                except ValueError:
+                                    dt_obj = None
+
+                            if dt_obj:
+                                ano_ref = int(ano_sel)
+                                anos_diferenca = ano_ref - dt_obj.year
+
+                                if anos_diferenca <= 5:
+                                    pts_calc = 20.0
+                                elif 5 < anos_diferenca <= 10:
+                                    pts_calc = 10.0
+                                else:
+                                    pts_calc = 0.0
+
+                        lnk_val = str(state_23["link"] or "").strip()
+                        salvar_no_banco_23("2.3", dt_str, pts_calc, lnk_val)
+                        res_data["2.3"] = {"valor": dt_str, "pontos": pts_calc, "link": lnk_val}
+
+                        ui.notify("Quesito 2.3 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 2.3: {err}", type="negative")
+
+                ui.input(
+                    "Data da publicação/atualização (AAAA-MM-DD ou DD/MM/AAAA):",
+                    value=val_data_salva,
+                    placeholder="Exemplo: 2024-05-10"
+                ).classes("w-full mb-4").bind_value(state_23, "data")
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência da Data):",
+                    value=evidencia_23_salva,
+                    placeholder="Link do diário oficial ou portaria que comprova a data..."
+                ).classes("w-full mb-4").bind_value(state_23, "link")
+
+                pts_atuais_23 = float(d23.get("pontos") or 0.0)
+                cor_txt_23 = "text-green-600" if pts_atuais_23 > 0 else "text-gray-500"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    ui.label(f"📊 Impacto de Pontuação no Quesito 2.3: +{pts_atuais_23:.1f} pontos").classes(f"text-sm font-bold {cor_txt_23}")
+                    ui.button("Salvar Quesito 2.3", on_click=cb_processa_e_salva_23, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("2.3", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 3.0 • POLÍTICA DE SEGURANÇA DA INFORMAÇÃO (POSI)
+            # =============================================================================
+            opcoes_30 = {
+                "Selecione...": 0.0,
+                "Sim (50 pts)": 50.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.0",
+                titulo="Política de Segurança da Informação",
+                pergunta="A Prefeitura dispõe de Política de Segurança da Informação formalmente instituída e de cumprimento obrigatório?",
+                opcoes=opcoes_30,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
