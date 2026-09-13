@@ -2577,6 +2577,191 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
+# Lista padrão de setores/sistemas para os quesitos 8.3 e 8.4
+            setores_padrao_8 = [
+                "Contabilidade", "Gestão de tributos (arrecadação)", "Dívida Ativa", "Precatórios",
+                "Gestão patrimonial (bens e equipamentos)", "Gestão de negócios (Business Intelligence)",
+                "Planejamento", "Recursos humanos / Departamento pessoal", "Almoxarifado",
+                "Controle de frotas", "Controle Interno", "Saúde", "Ensino (educação)",
+                "Compras, licitações e contratos", "Certidões e alvarás", "Saneamento", "Cemitérios"
+            ]
+
+            # =============================================================================
+            # QUESITO 8.3 • BASES DE DADOS SOB GESTÃO DIRETA DA PREFEITURA
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 8.3 - Bases de Dados sob Gestão Direta").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Assinale quais bases de dados encontram-se sob gestão direta da Prefeitura:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Regra de Pontuação:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "• Gestão Direta: Empresa terceira não pode alterar dados sem conhecimento prévio da Prefeitura.\n"
+                        "• Para cada opção NÃO assinalada, perde 3 pontos.\n"
+                        "• Pontuação Máxima de Perda (Pmáx) = -51 pontos."
+                    ).classes("text-xs text-blue-900 font-medium mt-1")
+
+                def salvar_no_banco_83(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d83 = res_data.get("8.3") or {}
+                if not isinstance(d83, dict):
+                    d83 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_83 = str(d83.get("valor") or "")
+                itens_salvos_83 = [i.strip() for i in valor_salvo_83.split(",") if i.strip()]
+                evidencia_83_salva = str(d83.get("link") or "")
+
+                state_83 = {item: item in itens_salvos_83 for item in setores_padrao_8}
+                state_83["link"] = evidencia_83_salva
+
+                def cb_processa_e_salva_83():
+                    try:
+                        marcados = [item for item in setores_padrao_8 if state_83[item]]
+                        nao_marcados = [item for item in setores_padrao_8 if not state_83[item]]
+                        
+                        # Abate -3 pontos para cada item não assinalado
+                        pts_penalidade = -3.0 * len(nao_marcados)
+                        if pts_penalidade < -51.0:
+                            pts_penalidade = -51.0
+
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_83["link"] or "").strip()
+
+                        salvar_no_banco_83("8.3", valor_string, pts_penalidade, lnk_val)
+                        res_data["8.3"] = {"valor": valor_string, "pontos": pts_penalidade, "link": lnk_val}
+                        ui.notify("Quesito 8.3 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 8.3: {err}", type="negative")
+
+                with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
+                    for item in setores_padrao_8:
+                        ui.checkbox(item).bind_value(state_83, item)
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência da Gestão Direta):",
+                    value=evidencia_83_salva,
+                    placeholder="Link do termo de gestão de dados, contrato ou política de BD..."
+                ).classes("w-full mb-4").bind_value(state_83, "link")
+
+                pts_atuais_83 = float(d83.get("pontos") or 0.0)
+                cor_txt_83 = "text-red-600" if pts_atuais_83 < 0 else "text-gray-700"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"📋 Bases sob Gestão Direta ({len([i for i in setores_padrao_8 if state_83[i]])}): {valor_salvo_83 if valor_salvo_83 else 'Nenhuma'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Impacto de Pontuação no Quesito 8.3: {pts_atuais_83:.1f} pontos").classes(f"text-sm font-bold {cor_txt_83}")
+
+                    ui.button("Salvar Quesito 8.3", on_click=cb_processa_e_salva_83, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("8.3", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 8.4 • SISTEMAS COM CONTROLE DE ACESSO À INFORMAÇÃO
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 8.4 - Controle de Acesso à Informação nos Sistemas").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Assinale quais sistemas possuem controle de acesso à informação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Regra de Pontuação:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label(
+                        "• Controle de Acesso: Gravação de histórico (logs), níveis de acesso e registro de ocorrências/eventos.\n"
+                        "• Para cada opção NÃO assinalada, perde 3 pontos.\n"
+                        "• Pontuação Máxima de Perda (Pmáx) = -51 pontos."
+                    ).classes("text-xs text-blue-900 font-medium mt-1")
+
+                def salvar_no_banco_84(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d84 = res_data.get("8.4") or {}
+                if not isinstance(d84, dict):
+                    d84 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_84 = str(d84.get("valor") or "")
+                itens_salvos_84 = [i.strip() for i in valor_salvo_84.split(",") if i.strip()]
+                evidencia_84_salva = str(d84.get("link") or "")
+
+                state_84 = {item: item in itens_salvos_84 for item in setores_padrao_8}
+                state_84["link"] = evidencia_84_salva
+
+                def cb_processa_e_salva_84():
+                    try:
+                        marcados = [item for item in setores_padrao_8 if state_84[item]]
+                        nao_marcados = [item for item in setores_padrao_8 if not state_84[item]]
+                        
+                        # Abate -3 pontos para cada item não assinalado
+                        pts_penalidade = -3.0 * len(nao_marcados)
+                        if pts_penalidade < -51.0:
+                            pts_penalidade = -51.0
+
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_84["link"] or "").strip()
+
+                        salvar_no_banco_84("8.4", valor_string, pts_penalidade, lnk_val)
+                        res_data["8.4"] = {"valor": valor_string, "pontos": pts_penalidade, "link": lnk_val}
+                        ui.notify("Quesito 8.4 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 8.4: {err}", type="negative")
+
+                with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
+                    for item in setores_padrao_8:
+                        ui.checkbox(item).bind_value(state_84, item)
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência dos Controles de Acesso):",
+                    value=evidencia_84_salva,
+                    placeholder="Link de manuais, relatórios de auditoria de logs ou telas de permissão..."
+                ).classes("w-full mb-4").bind_value(state_84, "link")
+
+                pts_atuais_84 = float(d84.get("pontos") or 0.0)
+                cor_txt_84 = "text-red-600" if pts_atuais_84 < 0 else "text-gray-700"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        ui.label(f"📋 Sistemas com Controle de Acesso ({len([i for i in setores_padrao_8 if state_84[i]])}): {valor_salvo_84 if valor_salvo_84 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Impacto de Pontuação no Quesito 8.4: {pts_atuais_84:.1f} pontos").classes(f"text-sm font-bold {cor_txt_84}")
+
+                    ui.button("Salvar Quesito 8.4", on_click=cb_processa_e_salva_84, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("8.4", res_data, ano_sel)
+
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
