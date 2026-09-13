@@ -3096,6 +3096,191 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
+# =============================================================================
+            # QUESITO 10.5 • MEDIDAS DE SEGURANÇA DA LGPD
+            # =============================================================================
+            opcoes_105 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="10.5",
+                titulo="Medidas de Segurança Técnicas e Administrativas (LGPD)",
+                pergunta="Foram adotadas medidas de segurança, técnicas e administrativas a fim de proteger os dados pessoais de acessos não autorizados e de situações acidentais ou ilícitas?",
+                opcoes=opcoes_105,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 10.5.1 • INFORMAR AS MEDIDAS ADOTADAS
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 10.5.1 - Descrição das Medidas Adotadas").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Informe as medidas técnicas e administrativas adotadas:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                d1051 = res_data.get("10.5.1") or {}
+                if not isinstance(d1051, dict):
+                    d1051 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                val_1051_salvo = str(d1051.get("valor") or "")
+
+                state_1051 = {"texto": val_1051_salvo}
+
+                def cb_processa_e_salva_1051():
+                    try:
+                        txt_val = str(state_1051["texto"] or "").strip()
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, ("10.5.1", ano_sel, txt_val, 0.0, ""))
+                                conn.commit()
+
+                        res_data["10.5.1"] = {"valor": txt_val, "pontos": 0.0, "link": ""}
+                        ui.notify("Quesito 10.5.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 10.5.1: {err}", type="negative")
+
+                ui.textarea(
+                    "Medidas de Segurança Adotadas:",
+                    value=val_1051_salvo,
+                    placeholder="Descreva a implantação de firewall, antivírus, controle de acessos, políticas de backup, treinamento..."
+                ).classes("w-full mb-4").bind_value(state_1051, "texto")
+
+                with ui.row().classes("w-full justify-end items-center mb-4"):
+                    ui.button("Salvar Quesito 10.5.1", on_click=cb_processa_e_salva_1051, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("10.5.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 11.0 • DESIGNAÇÃO DO ENCARREGADO DE DADOS (DPO)
+            # =============================================================================
+            opcoes_110 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="11.0",
+                titulo="Encarregado pelo Tratamento de Dados Pessoais (DPO)",
+                pergunta="A Prefeitura Municipal designou um encarregado para as operações de tratamento de dados pessoais?",
+                opcoes=opcoes_110,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 11.1 • LINK DE CONTATO DO ENCARREGADO
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 11.1 - Informações de Contato do Encarregado").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Informe a página eletrônica (link no site da prefeitura) que contenha a identidade e as informações de contato do encarregado:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                ui.label("Nota: Se não estiver disponível na internet, inserir no campo de resposta o texto XYZ").classes("text-xs text-gray-500 italic mb-2")
+
+                d111 = res_data.get("11.1") or {}
+                if not isinstance(d111, dict):
+                    d111 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                val_111_salvo = str(d111.get("valor") or "")
+
+                state_111 = {"link": val_111_salvo}
+
+                def cb_processa_e_salva_111():
+                    try:
+                        lnk_val = str(state_111["link"] or "").strip()
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        link = EXCLUDED.link,
+                                        pontos = EXCLUDED.pontos,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, ("11.1", ano_sel, lnk_val, 0.0, lnk_val))
+                                conn.commit()
+
+                        res_data["11.1"] = {"valor": lnk_val, "pontos": 0.0, "link": lnk_val}
+                        ui.notify("Quesito 11.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 11.1: {err}", type="negative")
+
+                ui.input(
+                    "Link de Contato do Encarregado (ou XYZ se indisponível):",
+                    value=val_111_salvo,
+                    placeholder="https://... ou XYZ"
+                ).classes("w-full mb-4").bind_value(state_111, "link")
+
+                with ui.row().classes("w-full justify-end items-center mb-4"):
+                    ui.button("Salvar Quesito 11.1", on_click=cb_processa_e_salva_111, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("11.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 12.0 • IMPRESSÕES, COMENTÁRIOS E SUGESTÕES
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 12.0 - Impressões, Comentários e Sugestões").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                d120 = res_data.get("12.0") or {}
+                if not isinstance(d120, dict):
+                    d120 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                val_120_salvo = str(d120.get("valor") or "")
+
+                state_120 = {"texto": val_120_salvo}
+
+                def cb_processa_e_salva_120():
+                    try:
+                        txt_val = str(state_120["texto"] or "").strip()
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, ("12.0", ano_sel, txt_val, 0.0, ""))
+                                conn.commit()
+
+                        res_data["12.0"] = {"valor": txt_val, "pontos": 0.0, "link": ""}
+                        ui.notify("Quesito 12.0 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 12.0: {err}", type="negative")
+
+                ui.textarea(
+                    "Registrar Impressões, Comentários e Sugestões:",
+                    value=val_120_salvo,
+                    placeholder="Espaço reservado para observações gerais..."
+                ).classes("w-full mb-4").bind_value(state_120, "texto")
+
+                with ui.row().classes("w-full justify-end items-center mb-4"):
+                    ui.button("Salvar Quesito 12.0", on_click=cb_processa_e_salva_120, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("12.0", res_data, ano_sel)
+
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
