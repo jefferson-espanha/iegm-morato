@@ -1767,7 +1767,7 @@ def container_formulario_icidade():
                 opcoes=opcoes_13111,
                 on_save_callback=container_formulario_icidade.refresh,
             )
-from nicegui import ui
+            from nicegui import ui
 
             # =============================================================================
             # QUESITO 14.0 • ACESSIBILIDADE EM CALÇAMENTOS PÚBLICOS
