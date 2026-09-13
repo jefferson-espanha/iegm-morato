@@ -767,3 +767,17 @@ def container_formulario_igov_ti():
                 placeholder_link="Insira o link do manual de cargos, decreto de atribuições de secretarias ou manual interno de procedimentos...",
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
+
+# =============================================================================
+# 5. ENTRY POINT PRINCIPAL
+# =============================================================================
+@ui.page("/")
+def mostrar_formulario_icidade():
+    container_formulario_icidade()
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    ui.run(
+        title="Indicador i-Cidade • Defesa Civil",
+        storage_secret="sua_chave_secreta_aqui",
+    )
