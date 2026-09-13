@@ -1817,6 +1817,410 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
+# =============================================================================
+            # QUESITO 3.6 • INVENTÁRIO ATUALIZADO DOS ATIVOS DE TIC
+            # =============================================================================
+            opcoes_36 = {
+                "Selecione...": 0.0,
+                "Sim (20 pts)": 20.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.6",
+                titulo="Inventário Atualizado dos Ativos de TIC",
+                pergunta="A Prefeitura possui inventário atualizado dos ativos de TIC? (Considerar switches, roteadores, servidores, firewalls, SOs, backup, storages, etc.)",
+                opcoes=opcoes_36,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 3.6.1 • COMPOSIÇÃO DA BASE DE ATIVOS
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 3.6.1 - Composição da Base de Ativos").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Como é composta a base de ativos:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                def salvar_no_banco_361(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d361 = res_data.get("3.6.1") or {}
+                if not isinstance(d361, dict):
+                    d361 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_361 = str(d361.get("valor") or "")
+                itens_salvos_361 = [i.strip() for i in valor_salvo_361.split(",") if i.strip()]
+                evidencia_361_salva = str(d361.get("link") or "")
+
+                state_361 = {
+                    "inf": "Ativos de informação" in itens_salvos_361,
+                    "soft": "Ativos de software" in itens_salvos_361,
+                    "fis": "Ativos físicos" in itens_salvos_361,
+                    "serv": "Serviços" in itens_salvos_361,
+                    "pess": "Pessoas e suas qualificações, habilidades e experiências" in itens_salvos_361,
+                    "link": evidencia_361_salva
+                }
+
+                def cb_processa_e_salva_361():
+                    try:
+                        marcados = []
+                        if state_361["inf"]: marcados.append("Ativos de informação")
+                        if state_361["soft"]: marcados.append("Ativos de software")
+                        if state_361["fis"]: marcados.append("Ativos físicos")
+                        if state_361["serv"]: marcados.append("Serviços")
+                        if state_361["pess"]: marcados.append("Pessoas e suas qualificações, habilidades e experiências")
+
+                        valor_string = ", ".join(marcados)
+                        lnk_val = str(state_361["link"] or "").strip()
+
+                        salvar_no_banco_361("3.6.1", valor_string, 0.0, lnk_val)
+                        res_data["3.6.1"] = {"valor": valor_string, "pontos": 0.0, "link": lnk_val}
+                        ui.notify("Quesito 3.6.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 3.6.1: {err}", type="negative")
+
+                with ui.column().classes("w-full gap-2 mb-4"):
+                    ui.checkbox("Ativos de informação").bind_value(state_361, "inf")
+                    ui.checkbox("Ativos de software").bind_value(state_361, "soft")
+                    ui.checkbox("Ativos físicos").bind_value(state_361, "fis")
+                    ui.checkbox("Serviços").bind_value(state_361, "serv")
+                    ui.checkbox("Pessoas e suas qualificações, habilidades e experiências").bind_value(state_361, "pess")
+
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência da Base de Ativos):",
+                    value=evidencia_361_salva,
+                    placeholder="Link do sistema de inventário ou documento..."
+                ).classes("w-full mb-4").bind_value(state_361, "link")
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    ui.label(f"📋 Selecionados: {valor_salvo_361 if valor_salvo_361 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                    ui.button("Salvar Quesito 3.6.1", on_click=cb_processa_e_salva_361, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("3.6.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 4.0 • REGULAMENTAÇÃO DA LEI DE ACESSO À INFORMAÇÃO (LAI)
+            # =============================================================================
+            opcoes_40 = {
+                "Selecione...": 0.0,
+                "Sim (40 pts)": 40.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="4.0",
+                titulo="Regulamentação da Lei de Acesso à Informação (LAI)",
+                pergunta="O município regulamentou a Lei de Acesso à Informação? (Lei Federal nº 12.527/2011, art. 45)",
+                opcoes=opcoes_40,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 4.1 • DADOS NORMATIVOS DA LAI
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 4.1 - Dados do Instrumento Normativo da LAI").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                def salvar_no_banco_41(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d41 = res_data.get("4.1") or {}
+                if not isinstance(d41, dict):
+                    d41 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                val_salvo_41 = str(d41.get("valor") or "")
+                state_41 = {"texto": val_salvo_41}
+
+                def cb_processa_e_salva_41():
+                    try:
+                        txt_val = str(state_41["texto"] or "").strip()
+                        salvar_no_banco_41("4.1", txt_val, 0.0, "")
+                        res_data["4.1"] = {"valor": txt_val, "pontos": 0.0, "link": ""}
+                        ui.notify("Quesito 4.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 4.1: {err}", type="negative")
+
+                ui.input(
+                    "Instrumento normativo, Número e Data:",
+                    value=val_salvo_41,
+                    placeholder="Ex: Decreto Municipal nº 1.234, de 15 de Maio de 2015"
+                ).classes("w-full mb-4").bind_value(state_41, "texto")
+
+                with ui.row().classes("w-full justify-end mb-4"):
+                    ui.button("Salvar Quesito 4.1", on_click=cb_processa_e_salva_41, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("4.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 4.2 • LINK DA NORMA DA LAI
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 4.2 - Link do Instrumento Normativo da LAI").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Página eletrônica (link na internet) do instrumento normativo:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label("• Se informado XYZ = 0 pontos\n• Se diferente de XYZ = 0 pontos (Registro informativo)").classes("text-xs text-blue-900 font-medium")
+
+                def salvar_no_banco_42(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d42 = res_data.get("4.2") or {}
+                if not isinstance(d42, dict):
+                    d42 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                link_salvo_42 = str(d42.get("link") or d42.get("valor") or "")
+                state_42 = {"link": link_salvo_42}
+
+                def cb_processa_e_salva_42():
+                    try:
+                        lnk_input = str(state_42["link"] or "").strip()
+                        val_str = "XYZ" if not lnk_input or lnk_input.upper() == "XYZ" else lnk_input
+                        salvar_no_banco_42("4.2", val_str, 0.0, lnk_input)
+                        res_data["4.2"] = {"valor": val_str, "pontos": 0.0, "link": lnk_input}
+                        ui.notify("Quesito 4.2 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 4.2: {err}", type="negative")
+
+                ui.input(
+                    "Página Eletrônica (Link da LAI):",
+                    value=link_salvo_42,
+                    placeholder="Cole o link aqui ou digite XYZ..."
+                ).classes("w-full mb-4").bind_value(state_42, "link")
+
+                with ui.row().classes("w-full justify-end mb-4"):
+                    ui.button("Salvar Quesito 4.2", on_click=cb_processa_e_salva_42, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("4.2", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 5.0 • LEI SOBRE EFICIÊNCIA PÚBLICA (GOVERNO DIGITAL)
+            # =============================================================================
+            opcoes_50 = {
+                "Selecione...": 0.0,
+                "Sim": 0.0,
+                "Não": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="5.0",
+                titulo="Regulamentação do Governo Digital",
+                pergunta="O município regulamentou a Lei sobre Eficiência Pública (Governo Digital)? (Lei Federal nº 14.129/2021)",
+                opcoes=opcoes_50,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 5.1 • DADOS NORMATIVOS DO GOVERNO DIGITAL
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 5.1 - Dados do Instrumento Normativo do Governo Digital").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                def salvar_no_banco_51(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d51 = res_data.get("5.1") or {}
+                if not isinstance(d51, dict):
+                    d51 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                val_salvo_51 = str(d51.get("valor") or "")
+                state_51 = {"texto": val_salvo_51}
+
+                def cb_processa_e_salva_51():
+                    try:
+                        txt_val = str(state_51["texto"] or "").strip()
+                        salvar_no_banco_51("5.1", txt_val, 0.0, "")
+                        res_data["5.1"] = {"valor": txt_val, "pontos": 0.0, "link": ""}
+                        ui.notify("Quesito 5.1 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 5.1: {err}", type="negative")
+
+                ui.input(
+                    "Instrumento normativo, Número e Data:",
+                    value=val_salvo_51,
+                    placeholder="Ex: Lei Municipal nº 5.678, de 10 de Março de 2022"
+                ).classes("w-full mb-4").bind_value(state_51, "texto")
+
+                with ui.row().classes("w-full justify-end mb-4"):
+                    ui.button("Salvar Quesito 5.1", on_click=cb_processa_e_salva_51, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("5.1", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 5.2 • LINK DA NORMA DO GOVERNO DIGITAL
+            # =============================================================================
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 5.2 - Link da Norma de Governo Digital").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("Página eletrônica (link na internet) do instrumento normativo:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                    ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                    ui.label("• Se não estiver disponível na internet, inserir XYZ").classes("text-xs text-blue-900 font-medium")
+
+                def salvar_no_banco_52(qid_val, valor_val, pontos_val, link_val):
+                    try:
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("""
+                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
+                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                    ON CONFLICT (ano, qid) 
+                                    DO UPDATE SET 
+                                        valor = EXCLUDED.valor,
+                                        pontos = EXCLUDED.pontos,
+                                        link = EXCLUDED.link,
+                                        updated_at = CURRENT_TIMESTAMP;
+                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
+                                conn.commit()
+                    except Exception as err_db:
+                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                        raise err_db
+
+                d52 = res_data.get("5.2") or {}
+                if not isinstance(d52, dict):
+                    d52 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                link_salvo_52 = str(d52.get("link") or d52.get("valor") or "")
+                state_52 = {"link": link_salvo_52}
+
+                def cb_processa_e_salva_52():
+                    try:
+                        lnk_input = str(state_52["link"] or "").strip()
+                        val_str = "XYZ" if not lnk_input or lnk_input.upper() == "XYZ" else lnk_input
+                        salvar_no_banco_52("5.2", val_str, 0.0, lnk_input)
+                        res_data["5.2"] = {"valor": val_str, "pontos": 0.0, "link": lnk_input}
+                        ui.notify("Quesito 5.2 salvo com sucesso!", type="positive")
+                        container_formulario_igov_ti.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 5.2: {err}", type="negative")
+
+                ui.input(
+                    "Página Eletrônica (Link da Norma):",
+                    value=link_salvo_52,
+                    placeholder="Cole o link aqui ou digite XYZ..."
+                ).classes("w-full mb-4").bind_value(state_52, "link")
+
+                with ui.row().classes("w-full justify-end mb-4"):
+                    ui.button("Salvar Quesito 5.2", on_click=cb_processa_e_salva_52, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("5.2", res_data, ano_sel)
+
+            # =============================================================================
+            # QUESITO 5.3 • TRÂMITE DIGITAL DE PROCESSOS ADMINISTRATIVOS
+            # =============================================================================
+            opcoes_53 = {
+                "Selecione...": 0.0,
+                "Sim, para todos os processos administrativos": 0.0,
+                "Sim, para a maior parte dos processos administrativos": 0.0,
+                "Sim, para a menor parte dos processos administrativos": 0.0,
+                "Não": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="5.3",
+                titulo="Soluções Digitais para Trâmite Processual",
+                pergunta="A Prefeitura implantou soluções digitais para trâmite de processos administrativos?",
+                opcoes=opcoes_53,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 6.0 • MANUTENÇÃO DO SITE DA PREFEITURA NA INTERNET
+            # =============================================================================
+            opcoes_60 = {
+                "Selecione...": 0.0,
+                "Sim (20 pts)": 20.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="6.0",
+                titulo="Portal Institucional / Site na Internet",
+                pergunta="A prefeitura mantém site na Internet com informações atualizadas?",
+                opcoes=opcoes_60,
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
