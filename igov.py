@@ -691,12 +691,22 @@ def container_formulario_igov_ti():
                 # Texto do Enunciado e Instruções
                 ui.label("Informe a quantidade:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
                 
-                # Bloco Informativo da Fórmula de Cálculo (Estilo Notificação/Highlight)
+                # Bloco Informativo da Fórmula de Cálculo
                 with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
                     ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
                     ui.label(
                         "Funcionários concursados + Funcionários comissionados + Estagiários no suporte e atendimento de primeiro nível > 0 — 30 pontos"
                     ).classes("text-sm text-blue-800 font-medium")
+
+                # Função auxiliar para conversão segura de int
+                def safe_int(val, default=0):
+                    if val is None:
+                        return default
+                    try:
+                        s = str(val).strip()
+                        return int(s) if s != "" else default
+                    except (ValueError, TypeError):
+                        return default
 
                 # Recuperação do Estado Inicial dos Dados
                 d11 = res_data.get("1.1", {"valor": "0", "pontos": 0.0, "link": ""}) or {"valor": "0", "pontos": 0.0, "link": ""}
@@ -709,10 +719,18 @@ def container_formulario_igov_ti():
                     try:
                         contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1) if "|LINK:" in raw_link else (raw_link, "")
                         parts = contadores_part.split(",")
-                        v_conc_i = int(parts[0].split(":")[1])
-                        v_comi_i = int(parts[1].split(":")[1])
-                        v_esta_i = int(parts[2].split(":")[1])
-                        v_outr_i = int(parts[3].split(":")[1])
+                        for p in parts:
+                            if ":" in p:
+                                chave, val = p.split(":", 1)
+                                chave = chave.strip()
+                                if chave == "C":
+                                    v_conc_i = safe_int(val)
+                                elif chave == "Co":
+                                    v_comi_i = safe_int(val)
+                                elif chave == "E":
+                                    v_esta_i = safe_int(val)
+                                elif chave == "O":
+                                    v_outr_i = safe_int(val)
                     except Exception:
                         v_conc_i, v_comi_i, v_esta_i, v_outr_i = 0, 0, 0, 0
 
@@ -727,11 +745,11 @@ def container_formulario_igov_ti():
 
                 # Callback para Processar e Salvar os dados
                 def cb_processa_e_salva_11():
-                    c_val = int(state_11["conc"] or 0)
-                    co_val = int(state_11["comi"] or 0)
-                    e_val = int(state_11["esta"] or 0)
-                    o_val = int(state_11["outr"] or 0)
-                    lnk_val = state_11["link"].strip()
+                    c_val = safe_int(state_11["conc"])
+                    co_val = safe_int(state_11["comi"])
+                    e_val = safe_int(state_11["esta"])
+                    o_val = safe_int(state_11["outr"])
+                    lnk_val = str(state_11["link"] or "").strip()
 
                     total_p = c_val + co_val + e_val
                     pts_calculados = 30.0 if total_p > 0 else 0.0
@@ -781,7 +799,7 @@ def container_formulario_igov_ti():
                 ).classes("w-full mb-4").bind_value(state_11, "link")
 
                 # Rodapé com Indicador de Pontuação e Botão de Salvar
-                total_pessoal = int(d11.get("valor", "0"))
+                total_pessoal = safe_int(d11.get("valor", "0"))
                 pts_atuais_11 = d11.get("pontos", 0.0)
                 cor_txt_11 = "text-green-600" if pts_atuais_11 == 30.0 else "text-gray-500"
 
