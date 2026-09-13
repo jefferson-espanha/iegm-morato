@@ -818,22 +818,28 @@ def container_formulario_icidade():
             # QUESITO 3.1 • AÇÕES REALIZADAS PARA PARTICIPAÇÃO DA SOCIEDADE
             # =============================================================================
             opcoes_31 = {
-                "Selecione...": 0.0,
-                "Workshop / Palestra (00 pts)": 0.0,
-                "Treinamento de Voluntários (00 pts)": 0.0,
-                "Reuniões Comunitárias (00 pts)": 0.0,
-                "Outras Ações (00 pts)": 0.0
+                "Workshop / Palestra": 0.0,
+                "Reunião": 0.0,
+                "Conferência": 0.0,
+                "Congresso": 0.0,
+                "Discussão na Câmara Municipal": 0.0,
+                "Treinamentos": 0.0,
+                "Outros": 0.0,
             }
+
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
                 qid="3.1",
-                titulo="3.1 • Ações para Participação da Sociedade",
-                pergunta="Quais ações foram promovidas para incentivar a participação da sociedade civil?",
+                titulo="3.1 • Ações Realizadas para Participação da Sociedade",
+                pergunta="Assinale quais ações foram realizadas para a participação da sociedade:",
+                tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
                 opcoes=opcoes_31,
-                on_save_callback=container_formulario_icidade.refresh
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_link="Caso selecione 'Outros' ou queira detalhar as ações, especifique aqui...",
+                on_save_callback=container_formulario_icidade.refresh,
             )
-
             # =============================================================================
             # QUESITO 3.1.1 • DATA DE TREINAMENTO DINÂMICA
             # =============================================================================
