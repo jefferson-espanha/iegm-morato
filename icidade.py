@@ -731,8 +731,90 @@ def container_formulario_icidade():
                 opcoes=opcoes_22,
                 on_save_callback=container_formulario_icidade.refresh
             )
+            # =============================================================================
+            # QUESITO 3.0 • PARTICIPAÇÃO DA SOCIEDADE CIVIL
+            # =============================================================================
+            opcoes_30 = {
+                "Selecione...": 0.0,
+                "Sim – 10 pts": 10.0,
+                "Não – 00 pts": 0.0
+            }
 
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.0",
+                titulo="3.0 • Sociedade Civil e Entidades",
+                pergunta=(
+                    "O Município realiza ações para estabelecer a participação de entidades privadas, "
+                    "associações de voluntários, clubes de serviços, organizações não governamentais e "
+                    "associações de classe e comunitárias nas ações de proteção e defesa civil?"
+                ),
+                opcoes=opcoes_30,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
+            # =============================================================================
+            # QUESITO 3.1 • AÇÕES REALIZADAS (MULTINÍVEL / MULTISELEÇÃO)
+            # =============================================================================
+            opcoes_31 = [
+                "Workshop / Palestra",
+                "Reunião",
+                "Conferência",
+                "Congresso",
+                "Discussão na Câmara Municipal",
+                "Treinamentos",
+                "Outros"
+            ]
+
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.1",
+                titulo="3.1 • Ações Realizadas para Participação da Sociedade",
+                pergunta="Assinale quais ações foram realizadas:",
+                opcoes=opcoes_31,
+                tipo="checkbox",  # Seleção múltipla para ações realizadas
+                informativo=True,  # Quesito apenas informativo (0.0 pts)
+                on_save_callback=container_formulario_icidade.refresh
+            )
+
+            # =============================================================================
+            # QUESITO 3.1.1 • DATA DE TREINAMENTO DINÂMICA
+            # =============================================================================
+            # Cálculo de pontuação dinâmico por data baseado no ano selecionado
+            def calc_pts_311(data_valor):
+                if not data_valor:
+                    return 0.0
+                try:
+                    if isinstance(data_valor, str):
+                        dt = datetime.strptime(data_valor, '%Y-%m-%d').date()
+                    else:
+                        dt = data_valor
+                    
+                    # 10 pontos se a data estiver dentro do ano selecionado
+                    if dt >= date(ano_sel, 1, 1) and dt.year == ano_sel:
+                        return 10.0
+                except Exception:
+                    pass
+                return 0.0
+
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.1.1",
+                titulo="3.1.1 • Data do Último Treinamento de Voluntários",
+                pergunta="Qual a data do último treinamento de associações de voluntários?",
+                tipo="date",
+                calculo_pontos_customizado=calc_pts_311,
+                instrucoes_calculo=f"""
+                **Fórmula de Cálculo:**
+                * 📅 **Até 31/12/{ano_sel - 1}:** 00 pontos.
+                * 📅 **A partir de 01/01/{ano_sel}:** 10 pontos.
+                * 🚫 **Observação:** Treinamentos em {ano_sel + 1} não pontuam.
+                """,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 # =============================================================================
 # 5. ENTRY POINT PRINCIPAL
 # =============================================================================
