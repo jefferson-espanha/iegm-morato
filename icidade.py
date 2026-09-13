@@ -416,18 +416,24 @@ def render_quesito(
     qid,
     titulo,
     pergunta,
-    opcoes=None,
-    is_text_area=False,
-    placeholder_text="",
+    opcoes,
     on_save_callback=None,
+    tipo="radio",
+    informativo=False,
+    is_text_area=False,  # <--- ADICIONE ESTE PARÂMETRO COM VALOR PADRÃO
+    calculo_pontos_customizado=None,
+    instrucoes_calculo=None,
+    **kwargs  # <--- Garante suporte a outros parâmetros extras
 ):
+    # Recupera o estado salvo para o quesito atual
     d_data = res_data.get(qid) or {
-        "valor": "Selecione..." if opcoes else "",
+        "valor": "Selecione..." if isinstance(opcoes, dict) else "",
         "pontos": 0.0,
         "link": "",
-        "comentarios": [],
-        "status": "Pendente",
+        "comentarios": []
     }
+    
+    # ... Restante da sua implementação do render_quesito ...
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
         with ui.expansion(
