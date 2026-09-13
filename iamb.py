@@ -661,3 +661,77 @@ def container_formulario_iamb():
             ui.label("1.0 Estrutura de Governança Ambiental").classes(
                 "text-h5 font-bold my-4 text-green-900"
             )
+
+            # QUESTÃO 1.0
+            render_quesito(
+                qid="1.0",
+                titulo="A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?",
+                tipo="radio",
+                ano_sel=ano_sel
+            )
+
+            # QUESTÃO 1.1
+            render_quesito(
+                qid="1.1",
+                titulo="A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?",
+                tipo="radio",
+                ano_sel=ano_sel
+            )
+
+            # QUESTÃO 1.1.1
+            render_quesito(
+                qid="1.1.1",
+                titulo="Informe o quantitativo de Recursos Humanos:",
+                tipo="servidores",
+                ano_sel=ano_sel
+            )
+
+            # QUESTÃO 1.1.2
+            render_quesito(
+                qid="1.1.2",
+                titulo="Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente em 2025?",
+                tipo="radio_pontuado",
+                ano_sel=ano_sel
+            )
+
+            # QUESTÃO 1.1.3
+            opcoes_1_1_3 = [
+                ("escolas", "Para escolas", 5.0),
+                ("outras_secretarias", "Para outras secretarias / entidades municipais", 2.0),
+                ("municipes_empresas", "Para munícipes ou empresas", 3.0),
+                ("nenhum", "Não ofereceu nenhum curso/treinamento no ano", 0.0)
+            ]
+            render_quesito(
+                qid="1.1.3",
+                titulo="A Secretaria Municipal de Meio Ambiente ou similar ofereceu cursos/treinamento sobre educação ambiental para qual público?",
+                tipo="checkbox_group",
+                opcoes=opcoes_1_1_3,
+                ano_sel=ano_sel
+            )
+
+            # QUESTÃO 1.2
+            opcoes_1_2 = [
+                ("tecnologicos", "Recursos Tecnológicos", 5.0),
+                ("orcamentarios", "Recursos Orçamentários", 5.0),
+                ("materiais", "Recursos Materiais", 5.0),
+                ("outros", "Outros", 5.0)
+            ]
+            render_quesito(
+                qid="1.2",
+                titulo="Assinale os recursos disponibilizados para a operacionalização das atividades de meio ambiente (Desconsiderar RH e Estrutura Física nesta questão):",
+                tipo="checkbox_group",
+                opcoes=opcoes_1_2,
+                ano_sel=ano_sel
+            )
+
+            ui.label("2.0 Programas de Educação Ambiental").classes(
+                "text-h5 font-bold my-4 text-green-900"
+            )
+
+            # QUESTÃO 2.0
+            render_quesito(
+                qid="2.0",
+                titulo="O Município participa de algum Programa de Educação Ambiental?",
+                tipo="radio_pontuado",
+                ano_sel=ano_sel
+            )
