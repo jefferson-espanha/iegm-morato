@@ -1,3 +1,4 @@
+import ast
 from datetime import datetime
 import json
 import os
@@ -19,97 +20,99 @@ DATABASE_URL = os.getenv(
 
 
 def get_db_connection():
-    """Cria e retorna uma conexão ativa com a base de dados do Neon."""
+    """Cria e retorna uma conexão ativa com a base de dados do Neon (PostgreSQL)."""
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
-
-def get_db_connection():
-    """Cria e retorna uma conexão ativa com a base de dados SQLite local."""
-    conn = sqlite3.connect(DB_NAME, check_same_thread=False)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
 def init_db():
-    """Inicializa a tabela de respostas e ajusta colunas necessárias se não existirem."""
-    with get_db_connection() as conn:
-        cursor = conn.cursor()
-        cursor.execute("""
-            CREATE TABLE IF NOT EXISTS respostas (
-                id TEXT NOT NULL,
-                ano INTEGER NOT NULL,
-                valor TEXT,
-                pontos REAL DEFAULT 0,
-                link TEXT,
-                criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                comentarios TEXT,
-                status TEXT DEFAULT 'Pendente',
-                PRIMARY KEY (id, ano)
-            )
-        """)
-        # Garantir colunas adicionais para versões legadas da tabela
-        try:
-            cursor.execute("ALTER TABLE respostas ADD COLUMN comentarios TEXT")
-        except sqlite3.OperationalError:
-            pass
-        try:
-            cursor.execute(
-                "ALTER TABLE respostas ADD COLUMN status TEXT DEFAULT 'Pendente'"
-            )
-        except sqlite3.OperationalError:
-            pass
-        conn.commit()
+    """Inicializa a tabela de respostas e ajusta colunas necessárias no PostgreSQL."""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute("""
+                    CREATE TABLE IF NOT EXISTS respostas (
+                        id VARCHAR(50) NOT NULL,
+                        ano INTEGER NOT NULL,
+                        valor TEXT,
+                        pontos REAL DEFAULT 0,
+                        link TEXT,
+                        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        atualizado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        comentarios TEXT,
+                        status VARCHAR(20) DEFAULT 'Pendente',
+                        PRIMARY KEY (id, ano)
+                    );
+                """)
+                # Garantir colunas adicionais se não existirem (Sintaxe PostgreSQL)
+                cursor.execute("""
+                    DO $$ 
+                    BEGIN 
+                        BEGIN
+                            ALTER TABLE respostas ADD COLUMN comentarios TEXT;
+                        EXCEPTION
+                            WHEN duplicate_column THEN NULL;
+                        END;
+                        BEGIN
+                            ALTER TABLE respostas ADD COLUMN status VARCHAR(20) DEFAULT 'Pendente';
+                        EXCEPTION
+                            WHEN duplicate_column THEN NULL;
+                        END;
+                    END $$;
+                """)
+                conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao inicializar o banco de dados Neon: {e}")
 
 
-# Inicializa a estrutura da base SQLite ao carregar o módulo
+# Inicializa a estrutura da base de dados PostgreSQL ao carregar o módulo
 init_db()
 
 
 def load_respostas(ano):
-    """Carrega o dicionário de respostas salvas para o ano selecionado no SQLite DB."""
+    """Carrega o dicionário de respostas salvas para o ano selecionado no PostgreSQL DB."""
     query = """
         SELECT id, valor, pontos, link, comentarios, status
         FROM respostas
-        WHERE ano = ?;
+        WHERE ano = %s;
     """
     respostas = {}
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(query, (ano,))
-            rows = cursor.fetchall()
-            for row in rows:
-                link_val = row["link"]
-                if link_val is None or link_val == "EMPTY_STRING":
-                    link_val = ""
+            with conn.cursor() as cursor:
+                cursor.execute(query, (ano,))
+                rows = cursor.fetchall()
+                for row in rows:
+                    link_val = row["link"]
+                    if link_val is None or link_val == "EMPTY_STRING":
+                        link_val = ""
 
-                # Tratamento do histórico de comentários em formato JSON
-                comentarios_lista = []
-                if row["comentarios"]:
-                    try:
-                        comentarios_lista = json.loads(row["comentarios"])
-                    except Exception:
-                        comentarios_lista = []
+                    # Tratamento do histórico de comentários em formato JSON
+                    comentarios_lista = []
+                    if row["comentarios"]:
+                        try:
+                            comentarios_lista = json.loads(row["comentarios"])
+                        except Exception:
+                            comentarios_lista = []
 
-                respostas[row["id"]] = {
-                    "valor": row["valor"] if row["valor"] is not None else "",
-                    "pontos": (
-                        float(row["pontos"])
-                        if row["pontos"] is not None
-                        else 0.0
-                    ),
-                    "link": link_val,
-                    "comentarios": comentarios_lista,
-                    "status": (
-                        row["status"] if row["status"] is not None else "Pendente"
-                    ),
-                }
+                    respostas[row["id"]] = {
+                        "valor": row["valor"] if row["valor"] is not None else "",
+                        "pontos": (
+                            float(row["pontos"])
+                            if row["pontos"] is not None
+                            else 0.0
+                        ),
+                        "link": link_val,
+                        "comentarios": comentarios_lista,
+                        "status": (
+                            row["status"]
+                            if row["status"] is not None
+                            else "Pendente"
+                        ),
+                    }
     except Exception as e:
-        print(f"❌ Erro ao carregar respostas do SQLite DB: {e}")
+        print(f"❌ Erro ao carregar respostas do Neon DB: {e}")
         ui.notify(
-            f"Erro ao carregar dados do banco SQLite: {e}", type="negative"
+            f"Erro ao carregar dados do banco Neon: {e}", type="negative"
         )
 
     return respostas
@@ -118,10 +121,7 @@ def load_respostas(ano):
 def save_resposta(
     ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
 ):
-    """Salva a resposta, link, pontos e o histórico de comentários de um quesito no SQLite DB.
-
-    Utiliza UPSERT (ON CONFLICT) para atualizar se já existir.
-    """
+    """Salva a resposta, link, pontos e comentários no PostgreSQL usando UPSERT."""
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(qid, {})
         comentarios = dados_atuais.get("comentarios", [])
@@ -131,7 +131,7 @@ def save_resposta(
 
     query = """
         INSERT INTO respostas (id, ano, valor, pontos, link, comentarios, status, atualizado_em)
-        VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
         ON CONFLICT(id, ano) DO UPDATE SET
             valor = EXCLUDED.valor,
             pontos = EXCLUDED.pontos,
@@ -142,37 +142,37 @@ def save_resposta(
     """
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                query,
-                (
-                    str(qid),
-                    int(ano),
-                    str(valor),
-                    float(pontos),
-                    link_final,
-                    json.dumps(comentarios_validos, ensure_ascii=False),
-                    str(status),
-                ),
-            )
-            conn.commit()
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    query,
+                    (
+                        str(qid),
+                        int(ano),
+                        str(valor),
+                        float(pontos),
+                        link_final,
+                        json.dumps(comentarios_validos, ensure_ascii=False),
+                        str(status),
+                    ),
+                )
+                conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta no SQLite DB: {e}")
-        ui.notify(f"Erro ao salvar no banco SQLite: {e}", type="negative")
+        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
+        ui.notify(f"Erro ao salvar no banco Neon: {e}", type="negative")
 
 
 def zerar_questionario_db(ano):
-    """Limpa todas as respostas salvas do ano selecionado na tabela do SQLite DB."""
-    query = "DELETE FROM respostas WHERE ano = ?;"
+    """Limpa todas as respostas salvas do ano selecionado na tabela do PostgreSQL."""
+    query = "DELETE FROM respostas WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute(query, (ano,))
-            conn.commit()
+            with conn.cursor() as cursor:
+                cursor.execute(query, (ano,))
+                conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao zerar questionário no SQLite DB: {e}")
+        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
         ui.notify(
-            f"Erro ao apagar dados no banco SQLite: {e}", type="negative"
+            f"Erro ao apagar dados no banco Neon: {e}", type="negative"
         )
 
 
@@ -225,7 +225,7 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # Cálculo de Pontuação e Faixa (busca direto do SQLite)
+        # Cálculo de Pontuação e Faixa
         res_data = load_respostas(ano_atual)
         total_pts = sum(
             float(item.get("pontos", 0)) for item in res_data.values()
@@ -768,16 +768,18 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
+
 # =============================================================================
-# 5. ENTRY POINT PRINCIPAL
+# INICIALIZAÇÃO DA PÁGINA PRINCIPAL DO NICEGUI
 # =============================================================================
 @ui.page("/")
-def mostrar_formulario_icidade():
-    container_formulario_icidade()
+def page_main():
+    container_formulario_igov_ti()
 
 
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run(
-        title="Indicador i-Cidade • Defesa Civil",
-        storage_secret="sua_chave_secreta_aqui",
+        title="Formulário iGov-TI",
+        storage_secret="chave_secreta_igov_ti_morato",
+        port=8080,
     )
