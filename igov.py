@@ -663,6 +663,7 @@ def container_formulario_igov_ti():
                 "text-h5 font-bold my-4 text-blue-900"
             )
 
+            # QUESITO 1.0
             opcoes_10 = {
                 "Selecione...": 0.0,
                 "Sim – 30 pts": 30.0,
@@ -677,6 +678,107 @@ def container_formulario_igov_ti():
                 pergunta="A Prefeitura possui uma área ou setor que cuida de Tecnologia da Informação e Comunicação (TIC)?",
                 opcoes=opcoes_10,
                 placeholder_link="Insira o link da lei de estrutura administrativa...",
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # QUESITO 1.1 (Customizado com Inputs Numéricos)
+            with ui.card().classes("w-full p-4 mb-4 border border-gray-200 shadow-sm"):
+                ui.label("📌 Quesito 1.1 - Composição de Recursos Humanos do Setor de TIC").classes("text-lg font-bold text-blue-900 mb-1")
+                ui.label("1.1 • Recursos Humanos em TIC").classes("text-md font-bold mb-1")
+                ui.label("Informe a quantidade da equipe que atua no suporte e atendimento de primeiro nível:").classes("text-sm text-gray-700 font-medium mb-1")
+                ui.label("ℹ Regra: (Concursados + Comissionados + Estagiários) > 0 garante +30 pontos.").classes("text-xs text-gray-500 mb-4")
+
+                d11 = res_data.get("1.1", {"valor": "0", "pontos": 0.0, "link": ""}) or {"valor": "0", "pontos": 0.0, "link": ""}
+                
+                v_conc_i, v_comi_i, v_esta_i, v_outr_i = 0, 0, 0, 0
+                evidencia_11_salva = ""
+                raw_link = d11.get("link", "")
+
+                if raw_link:
+                    try:
+                        contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1) if "|LINK:" in raw_link else (raw_link, "")
+                        parts = contadores_part.split(",")
+                        v_conc_i = int(parts[0].split(":")[1])
+                        v_comi_i = int(parts[1].split(":")[1])
+                        v_esta_i = int(parts[2].split(":")[1])
+                        v_outr_i = int(parts[3].split(":")[1])
+                    except Exception:
+                        v_conc_i, v_comi_i, v_esta_i, v_outr_i = 0, 0, 0, 0
+
+                state_11 = {
+                    "conc": v_conc_i,
+                    "comi": v_comi_i,
+                    "esta": v_esta_i,
+                    "outr": v_outr_i,
+                    "link": evidencia_11_salva
+                }
+
+                def cb_processa_e_salva_11():
+                    c_val = int(state_11["conc"])
+                    co_val = int(state_11["comi"])
+                    e_val = int(state_11["esta"])
+                    o_val = int(state_11["outr"])
+                    lnk_val = state_11["link"].strip()
+
+                    total_p = c_val + co_val + e_val
+                    pts_calculados = 30.0 if total_p > 0 else 0.0
+                    composite_string = f"C:{c_val},Co:{co_val},E:{e_val},O:{o_val}|LINK:{lnk_val}"
+
+                    save_resp("1.1", str(total_p), pts_calculados, composite_string)
+                    res_data["1.1"] = {"valor": str(total_p), "pontos": pts_calculados, "link": composite_string}
+                    container_formulario_igov_ti.refresh()
+
+                with ui.grid(columns=4).classes("w-full gap-4 mb-4"):
+                    ui.number("Concursados", value=v_conc_i, min=0, step=1, on_change=cb_processa_e_salva_11).bind_value(state_11, "conc")
+                    ui.number("Comissionados", value=v_comi_i, min=0, step=1, on_change=cb_processa_e_salva_11).bind_value(state_11, "comi")
+                    ui.number("Estagiários", value=v_esta_i, min=0, step=1, on_change=cb_processa_e_salva_11).bind_value(state_11, "esta")
+                    ui.number("Outros", value=v_outr_i, min=0, step=1, on_change=cb_processa_e_salva_11).bind_value(state_11, "outr")
+
+                ui.textarea(
+                    "Link/Evidência da composição da equipe (1.1):",
+                    value=evidencia_11_salva,
+                    placeholder="Cole aqui o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI...",
+                    on_change=cb_processa_e_salva_11
+                ).classes("w-full mb-4").bind_value(state_11, "link")
+
+                total_pessoal = int(d11.get("valor", "0"))
+                pts_atuais_11 = d11.get("pontos", 0.0)
+                cor_txt_11 = "text-green-600" if pts_atuais_11 == 30.0 else "text-gray-500"
+
+                ui.label(f"👥 Total de Pessoal Efetivo Computado (C+Co+E): {total_pessoal} funcionário(s)").classes("text-sm font-semibold mb-1")
+                ui.label(f"📊 Impacto de Pontuação no Quesito 1.1: +{pts_atuais_11:.1f} pontos").classes(f"text-sm font-bold {cor_txt_11}")
+
+            # QUESITO 1.2
+            opcoes_12 = {
+                "Selecione...": 0.0,
+                "Sim – 30 pts": 30.0,
+                "Não – 00 pts": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.2",
+                titulo="Definição de Atribuições Formais da Equipe",
+                pergunta="A prefeitura municipal definiu formalmente as atribuições do pessoal do setor de Tecnologia da Informação e Comunicação (TIC)?",
+                opcoes=opcoes_12,
+                placeholder_link="Insira o link do manual de cargos, decreto de atribuições...",
+                on_save_callback=container_formulario_igov_ti.refresh,
+            )
+
+            # QUESITO 1.3
+            opcoes_13 = {
+                "Selecione...": 0.0,
+                "Sim – 30 pts": 30.0,
+                "Não – 00 pts": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.3",
+                titulo="Capacitação e Treinamento do Pessoal de TIC",
+                pergunta="A prefeitura disponibilizou capacitação para o pessoal da área de Tecnologia da Informação e Comunicação (TIC)?",
+                opcoes=opcoes_13,
+                placeholder_link="Insira o link de certificados emitidos, notas de empenho ou plano de capacitação...",
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
