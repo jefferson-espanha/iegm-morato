@@ -155,7 +155,10 @@ def _obter_lista_comentarios(dados_banco):
 
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa, nome_indicador="INDICADOR"):
-    conteudo = f"RELATÓRIO TÉCNICO {nome_indicador.upper()} ({ano})\n"
+    # Converte explicitamente para str para evitar crash se o parametro vier como int ou outro tipo
+    nome_indicador_str = str(nome_indicador).upper()
+    
+    conteudo = f"RELATÓRIO TÉCNICO {nome_indicador_str} ({ano})\n"
     conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
     for qid, dados in res_data.items():
         conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
@@ -174,8 +177,11 @@ def render_painel_controle(
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
+    # Tratamento preventivo para garantir que nome_indicador seja string nas interfaces
+    nome_indicador_str = str(nome_indicador)
+
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
-        ui.label(f"🛠️ Painel de Controle ({nome_indicador})").classes(
+        ui.label(f"🛠️ Painel de Controle ({nome_indicador_str})").classes(
             "text-lg font-bold mb-2 text-blue-900"
         )
 
@@ -197,7 +203,7 @@ def render_painel_controle(
             float(item.get("pontos", 0)) for item in res_data.values()
         )
 
-        # Regra de Faixas genérica
+        # Regra de Faixas
         if total_pts <= 500:
             faixa, cor = "C", "text-red-600"
         elif total_pts <= 599:
@@ -239,7 +245,7 @@ def render_painel_controle(
                 "text-lg font-bold text-red-600"
             )
             ui.label(
-                f"Você está prestes a apagar todas as respostas de {ano_atual} em {nome_indicador}. Esta ação é irreversível!"
+                f"Você está prestes a apagar todas as respostas de {ano_atual} em {nome_indicador_str}. Esta ação é irreversível!"
             ).classes("text-sm my-2")
 
             input_senha = ui.input(
@@ -267,12 +273,12 @@ def render_painel_controle(
 
         with ui.row().classes("w-full gap-2 no-wrap"):
             pdf_bytes = gerar_relatorio_pdf_bytes(
-                res_data, ano_atual, total_pts, faixa, nome_indicador
+                res_data, ano_atual, total_pts, faixa, nome_indicador_str
             )
             ui.button(
                 "📄 Relatório",
                 on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_{nome_indicador}_{ano_atual}.pdf"
+                    pdf_bytes, f"Relatorio_{nome_indicador_str}_{ano_atual}.pdf"
                 ),
             ).classes("flex-1 bg-green-700 text-white")
             ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
@@ -316,9 +322,9 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
     ).classes("w-full border rounded p-2 mt-3 bg-gray-50"):
 
         def alterar_status(e):
-            novo_st = e.value
+            novo_st = str(e.value)
             log = {
-                "autor": "Sistema / " + usuario_atual,
+                "autor": "Sistema / " + str(usuario_atual),
                 "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
                 "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
@@ -372,7 +378,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
                 with ui.row().classes(
                     "w-full items-center justify-between no-wrap mb-2"
                 ):
-                    if "Sistema /" in autor:
+                    if "Sistema /" in str(autor):
                         ui.html(
                             f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
                                 <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
@@ -402,7 +408,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
             txt = input_novo_comentario.value.strip()
             if txt:
                 historico.append({
-                    "autor": usuario_atual,
+                    "autor": str(usuario_atual),
                     "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
                     "texto": txt,
                     "status_definido": status_global,
@@ -526,12 +532,12 @@ def render_quesito(
                         val_txt = ""
                         if input_valor and hasattr(input_valor, "value"):
                             val_txt = (
-                                input_valor.value
+                                str(input_valor.value)
                                 if (is_text_area and input_valor.value)
                                 else ""
                             )
 
-                        lnk_txt = input_link.value or ""
+                        lnk_txt = str(input_link.value or "")
                         txt_total = f"{val_txt} {lnk_txt}"
 
                         links = re.findall(REGEX_PURE_URL, txt_total)
@@ -633,7 +639,7 @@ def render_quesito(
 
 
 # =============================================================================
-# 4. EXEMPLO DE CONTAINER PRINCIPAL
+# 4. CONTAINER PRINCIPAL
 # =============================================================================
 @ui.refreshable
 def container_formulario_indicador(
@@ -643,24 +649,24 @@ def container_formulario_indicador(
 ):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     res_data = load_respostas(ano_sel, tabela_nome)
+    nome_indicador_str = str(nome_indicador)
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
         with ui.column().classes("col-span-1 w-full"):
             render_painel_controle(
                 on_refresh_callback=container_formulario_indicador.refresh,
-                nome_indicador=nome_indicador,
+                nome_indicador=nome_indicador_str,
                 tabela_nome=tabela_nome,
             )
 
         with ui.column().classes("col-span-3 w-full"):
             ui.label(
-                f"Formulário {nome_indicador} ({ano_sel})"
+                f"Formulário {nome_indicador_str} ({ano_sel})"
             ).classes("text-h4 mb-1 font-bold text-blue-900")
             ui.label(
-                f"Preencha as evidências e questões do indicador {nome_indicador}."
+                f"Preencha as evidências e questões do indicador {nome_indicador_str}."
             ).classes("text-gray-600 mb-6")
 
-            # Renderiza os quesitos genéricos passados por lista
             if quesitos_lista:
                 for q in quesitos_lista:
                     render_quesito(
