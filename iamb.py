@@ -718,8 +718,6 @@ def container_formulario_iamb(quesitos_lista=None):
                             **q
                         )
 
-    with container_pai:
-        render_conteudo()
             # =============================================================================
             # QUESITO 1.0 • ESTRUTURA ORGANIZACIONAL
             # =============================================================================
