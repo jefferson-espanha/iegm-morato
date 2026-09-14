@@ -1023,3 +1023,233 @@ def container_formulario_iamb():
                 opcoes=opcoes_20,
                 on_save_callback=container_formulario_iamb.refresh,
             )
+
+# =============================================================================
+            # QUESITO 2.1 • EDUCAÇÃO AMBIENTAL NA REDE ESCOLAR
+            # =============================================================================
+            # Este quesito é numérico (cálculo), similar ao exemplo 1.1.1 fornecido.
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 2.1 - Educação Ambiental na Rede Escolar Municipal").classes("text-lg font-bold text-green-900 mb-1")
+                ui.label("Sobre programa ou ação de educação ambiental na rede escolar municipal, informe:").classes("text-base font-semibold text-gray-800 mt-2 mb-3")
+
+                # Buscar dados existentes
+                d21 = res_data.get("2.1") or {}
+                if not isinstance(d21, dict):
+                    d21 = {"valor": "{}", "pontos": 0.0, "link": ""}
+
+                # Decodificar JSON do valor salvo
+                val_raw_21 = d21.get("valor", "{}")
+                try:
+                    val_json_21 = json.loads(val_raw_21) if isinstance(val_raw_21, str) else val_raw_21
+                except Exception:
+                    val_json_21 = {}
+
+                evidencia_21_salva = str(d21.get("link") or "")
+
+                # Estado local para os inputs (usando dados salvos ou padrões)
+                # Nota: nº de escolas dos Anos Iniciais deve vir de i-Educ = E3.3, 
+                # assumindo que esteja disponível em algum lugar ou precise ser preenchido aqui.
+                state_21 = {
+                    "n_escolas_ea": val_json_21.get("n_escolas_ea", 0),
+                    "n_total_escolas_iniciais": val_json_21.get("n_total_escolas_iniciais", 0),
+                    "link": evidencia_21_salva
+                }
+
+                def salvar_21():
+                    try:
+                        n_ea = int(state_21["n_escolas_ea"] or 0)
+                        n_total = int(state_21["n_total_escolas_iniciais"] or 0)
+                        
+                        # Lógica de cálculo da pontuação
+                        pts_finais = 0.0
+                        if n_total > 0:
+                            # P = nº de escolas com programa / nº total de escolas Anos Iniciais
+                            proporcao = n_ea / n_total
+                            # Garante que a proporção não exceda 1 (caso informem n_ea > n_total erroneamente)
+                            proporcao = min(proporcao, 1.0)
+                            # N = P x Pmáx (50 pontos)
+                            pts_finais = proporcao * 50.0
+                        
+                        res_dict = {
+                            "n_escolas_ea": n_ea,
+                            "n_total_escolas_iniciais": n_total,
+                            "formula": f"({n_ea} / {n_total}) * 50" if n_total > 0 else "Divisão por zero"
+                        }
+                        val_str = json.dumps(res_dict)
+                        lnk_val = str(state_21["link"] or "").strip()
+
+                        # Salvar no banco
+                        save_resposta("2.1", val_str, pts_finais, lnk_val, _obter_lista_comentarios(d21), ano_sel)
+                        
+                        # Atualizar dados locais
+                        res_data["2.1"] = {"valor": val_str, "pontos": pts_finais, "link": lnk_val}
+                        
+                        ui.notify(f"Quesito 2.1 salvo com sucesso! Pontuação calculada: {pts_finais:.2f}", type="positive")
+                        container_formulario_iamb.refresh()
+                        
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 2.1: {err}", type="negative")
+
+                # Inputs numéricos
+                with ui.row().classes("w-full gap-4 mb-4"):
+                    ui.number(
+                        "Nº de escolas dos Anos Iniciais (1º ao 5º) com educação ambiental", 
+                        min=0, 
+                        format="%.0f"
+                    ).classes("w-2/5").bind_value(state_21, "n_escolas_ea")
+                    
+                    ui.number(
+                        "Nº total de escolas dos Anos Iniciais no município (i-Educ = E3.3)", 
+                        min=0, 
+                        format="%.0f"
+                    ).classes("w-2/5").bind_value(state_21, "n_total_escolas_iniciais")
+
+                # Campo de evidência
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência):",
+                    value=evidencia_21_salva,
+                    placeholder="Link para documento comprobatório, PPP das escolas, relatórios de atividades, etc..."
+                ).classes("w-full mb-4").bind_value(state_21, "link")
+
+                # Exibição da pontuação calculada atualmente salva
+                pts_atuais_21 = float(d21.get("pontos") or 0.0)
+                cor_txt_21 = "text-green-600" if pts_atuais_21 > 0 else "text-gray-500"
+                
+                with ui.row().classes("w-full justify-between items-center mb-2"):
+                    ui.label(f"📊 Pontuação calculada: {pts_atuais_21:.2f} / 50.0 pontos").classes(f"text-base font-bold {cor_txt_21}")
+                    ui.button("Salvar Quesito 2.1", on_click=salvar_21, icon="save").classes("bg-green-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("2.1", res_data, ano_sel)
+
+            # =============================================================================
+            # TITULO SEÇÃO 3.0
+            # =============================================================================
+            ui.label("3.0 Uso Racional de Recursos Naturais").classes(
+                "text-h5 font-bold my-4 text-green-900"
+            )
+
+            # =============================================================================
+            # QUESITO 3.0 • ESTÍMULO AO USO RACIONAL
+            # =============================================================================
+            # Este quesito é de seleção única (rádio/select), usa o render_quesito padrão.
+            opcoes_30 = {
+                "Selecione...": 0.0,
+                "Sim, para todos os órgãos e entidades (10 pts)": 10.0,
+                "Parcialmente (03 pts)": 3.0,
+                "Não (00 pts)": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.0",
+                titulo="Estímulo ao Uso Racional de Recursos Naturais",
+                pergunta="A prefeitura municipal estimula entre seus órgãos e entidades projetos e/ou ações que promovam o uso racional de recursos naturais?",
+                opcoes=opcoes_30,
+                on_save_callback=container_formulario_iamb.refresh,
+            )
+
+            # =============================================================================
+            # QUESITO 3.1 • TIPOS DE AÇÕES REALIZADAS
+            # =============================================================================
+            # Este quesito é de múltipla escolha (checkbox), similar ao exemplo 1.1.3 fornecido.
+            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                ui.label("📌 Quesito 3.1 - Detalhamento das Ações de Uso Racional").classes("text-lg font-bold text-green-900 mb-1")
+                ui.label("Assinale quais tipos de ações realizadas pela Prefeitura para o uso racional de recursos naturais:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+
+                # Busca dados
+                d31 = res_data.get("3.1") or {}
+                if not isinstance(d31, dict):
+                    d31 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                valor_salvo_31 = d31.get("valor") or ""
+                # Converter string salva em lista para marcar os checkboxes
+                itens_salvos_31 = [i.strip() for i in valor_salvo_31.split(",") if i.strip()]
+                evidencia_31_salva = str(d31.get("link") or "")
+
+                # Dicionário de opções e pontos para facilitar iteração e renderização
+                opcoes_checkbox_31 = [
+                    ("Coleta seletiva", 1.5),
+                    ("Uso racional da água", 1.5),
+                    ("Uso racional de energia elétrica", 1.5),
+                    ("Reúso de materiais", 1.5),
+                    ("Horta coletiva", 1.5),
+                    ("Compostagem", 1.5),
+                    ("Instalação de bicicletários e vestiários para os servidores públicos", 1.5),
+                    ("Implantação de caixas acopladas nos vasos sanitários", 1.5),
+                    ("Substituição de lâmpadas fluorescentes por lâmpadas LED", 1.5),
+                    ("Instalação de estruturas para a captação de água de chuva", 1.5),
+                    ("Instalação de torneiras com redutores de pressão", 1.5),
+                    ("Substituição de material descartável", 1.5),
+                    ("Logística reversa de pilhas, baterias e eletrônicos", 1.5),
+                    ("Outros", 0.5),
+                ]
+
+                # Estado local para os checkboxes (inicializado com base no que foi salvo)
+                state_31 = {texto: (texto in itens_salvos_31) for texto, _ in opcoes_checkbox_31}
+                state_31["link"] = evidencia_31_salva
+
+                def salvar_31():
+                    try:
+                        marcados = []
+                        pts_acumulados = 0.0
+
+                        # Itera sobre as opções para verificar o que está marcado no state
+                        for texto, pontos in opcoes_checkbox_31:
+                            if state_31.get(texto):
+                                marcados.append(texto)
+                                pts_acumulados += pontos
+
+                        # Converter lista para string para salvar
+                        val_str = ", ".join(marcados)
+                        lnk_val = str(state_31["link"] or "").strip()
+
+                        save_resposta("3.1", val_str, pts_acumulados, lnk_val, _obter_lista_comentarios(d31), ano_sel)
+                        res_data["3.1"] = {"valor": val_str, "pontos": pts_acumulados, "link": lnk_val}
+                        ui.notify("Quesito 3.1 salvo com sucesso!", type="positive")
+                        container_formulario_iamb.refresh()
+                    except Exception as err:
+                        ui.notify(f"Erro ao salvar Quesito 3.1: {err}", type="negative")
+
+                # Renderização dinâmica dos checkboxes em 2 colunas para melhor visualização
+                with ui.row().classes("w-full gap-x-8 gap-y-2 mb-4"):
+                    # Divide as opções em duas metades
+                    metade = (len(opcoes_checkbox_31) + 1) // 2
+                    col1_ops = opcoes_checkbox_31[:metade]
+                    col2_ops = opcoes_checkbox_31[metade:]
+
+                    with ui.column().classes("w-1/2 gap-2"):
+                        for texto, pontos in col1_ops:
+                            ui.checkbox(f"{texto} ({pontos:.1f} pts)").bind_value(state_31, texto)
+                    
+                    with ui.column().classes("w-1/2 gap-2"):
+                        # Ajuste específico para o checkbox "Outros" se necessário (ex: input de texto extra), 
+                        # aqui mantido simples conforme padrão 1.1.3
+                        for texto, pontos in col2_ops:
+                            ui.checkbox(f"{texto} ({pontos:.1f} pts)").bind_value(state_31, texto)
+
+                # Campo de evidência
+                ui.textarea(
+                    "Página Eletrônica (Link / Evidência):",
+                    value=evidencia_31_salva,
+                    placeholder="Link para fotos, faturas comprovando substituição, leis/decretos, contratos, etc..."
+                ).classes("w-full mb-4").bind_value(state_31, "link")
+
+                # Rodapé do card com info e botão salvar
+                pts_atuais_31 = float(d31.get("pontos") or 0.0)
+                cor_txt_31 = "text-green-600" if pts_atuais_31 > 0 else "text-gray-500"
+
+                with ui.row().classes("w-full justify-between items-center mb-4"):
+                    with ui.column().classes("gap-0"):
+                        # Exibe resumo do que está salvo atualmente no banco
+                        texto_resumo_salvo = valor_salvo_31 if valor_salvo_31 else 'Nenhuma ação selecionada'
+                        if len(texto_resumo_salvo) > 100:
+                            texto_resumo_salvo = texto_resumo_salvo[:97] + "..."
+                            
+                        ui.label(f"📋 Salvo: {texto_resumo_salvo}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📊 Pontuação atual no Quesito 3.1: +{pts_atuais_31:.1f} pontos").classes(f"text-sm font-bold {cor_txt_31}")
+
+                    ui.button("Salvar Quesito 3.1", on_click=salvar_31, icon="save").classes("bg-green-800 text-white font-medium px-4 py-2 rounded-md")
+
+                ui.separator().classes("my-2")
+                bloco_comentarios("3.1", res_data, ano_sel)
