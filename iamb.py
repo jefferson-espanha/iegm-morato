@@ -213,33 +213,39 @@ def render_painel_controle(
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        res_data = load_respostas(ano_atual, tabela_nome)
-        total_pts = sum(
-            float(item.get("pontos", 0)) for item in res_data.values()
-        )
-
-        if total_pts <= 500:
-            faixa, cor = "C", "text-red-600"
-        elif total_pts <= 599:
-            faixa, cor = "C+", "text-orange-500"
-        elif total_pts <= 749:
-            faixa, cor = "B", "text-yellow-600"
-        elif total_pts <= 899:
-            faixa, cor = "B+", "text-green-500"
-        else:
-            faixa, cor = "A", "text-green-700"
-
-        with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
-            ui.label("Pontuação Total").classes(
-                "text-xs text-gray-500 font-bold uppercase"
-            )
-            ui.label(f"{total_pts:.1f} pts").classes(
-                "text-2xl font-black text-gray-800"
+        # --- BLOCO DINÂMICO DE PONTUAÇÃO (RE-RENDERIZÁVEL) ---
+        @ui.refreshable
+        def render_bloco_pontuacao():
+            ano_ref = int(app.storage.user.get("ano_referencia_global", 2026))
+            res_data_local = load_respostas(ano_ref, tabela_nome)
+            total_pts_local = sum(
+                float(item.get("pontos", 0)) for item in res_data_local.values()
             )
 
-            with ui.row().classes("items-center gap-1 mt-1"):
-                ui.label("Faixa:").classes("font-bold text-sm")
-                ui.label(faixa).classes(f"text-xl font-bold {cor}")
+            if total_pts_local <= 500:
+                faixa_l, cor_l = "C", "text-red-600"
+            elif total_pts_local <= 599:
+                faixa_l, cor_l = "C+", "text-orange-500"
+            elif total_pts_local <= 749:
+                faixa_l, cor_l = "B", "text-yellow-600"
+            elif total_pts_local <= 899:
+                faixa_l, cor_l = "B+", "text-green-500"
+            else:
+                faixa_l, cor_l = "A", "text-green-700"
+
+            with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
+                ui.label("Pontuação Total").classes(
+                    "text-xs text-gray-500 font-bold uppercase"
+                )
+                ui.label(f"{total_pts_local:.1f} pts").classes(
+                    "text-2xl font-black text-gray-800"
+                )
+
+                with ui.row().classes("items-center gap-1 mt-1"):
+                    ui.label("Faixa:").classes("font-bold text-sm")
+                    ui.label(faixa_l).classes(f"text-xl font-bold {cor_l}")
+
+        render_bloco_pontuacao()
 
         ui.separator().classes("my-2")
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
@@ -267,10 +273,11 @@ def render_painel_controle(
             ).classes("w-full mb-4")
 
             def executar_zerar():
+                ano_zerar = int(app.storage.user.get("ano_referencia_global", 2026))
                 if input_senha.value == "fidelios":
-                    zerar_questionario_db(ano_atual, tabela_nome)
+                    zerar_questionario_db(ano_zerar, tabela_nome)
                     ui.notify(
-                        f"✅ Questionário de {ano_atual} foi zerado!",
+                        f"✅ Questionário de {ano_zerar} foi zerado!",
                         type="positive",
                     )
                     dialog_zerar.close()
@@ -286,8 +293,16 @@ def render_painel_controle(
                 ).classes("bg-red-600 text-white")
 
         with ui.row().classes("w-full gap-2 no-wrap"):
+            res_data_rel = load_respostas(ano_atual, tabela_nome)
+            pts_rel = sum(float(i.get("pontos", 0)) for i in res_data_rel.values())
+            faixa_rel = (
+                "C" if pts_rel <= 500 else
+                "C+" if pts_rel <= 599 else
+                "B" if pts_rel <= 749 else
+                "B+" if pts_rel <= 899 else "A"
+            )
             pdf_bytes = gerar_relatorio_pdf_bytes(
-                res_data, ano_atual, total_pts, faixa, nome_indicador_str
+                res_data_rel, ano_atual, pts_rel, faixa_rel, nome_indicador_str
             )
             ui.button(
                 "📄 Relatório",
@@ -339,6 +354,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
     ).classes("w-full border rounded p-2 mt-3 bg-gray-50"):
 
         def alterar_status(e):
+            ano_ativo = int(app.storage.user.get("ano_referencia_global", ano_sel))
             novo_st = str(e.value)
             log = {
                 "autor": "Sistema / " + str(usuario_atual),
@@ -348,7 +364,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
             }
             historico.append(log)
             save_resposta(
-                ano=ano_sel,
+                ano=ano_ativo,
                 qid=qid,
                 valor=dados_q.get("valor", ""),
                 pontos=dados_q.get("pontos", 0.0),
@@ -377,9 +393,10 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
                 texto_com = com.get("texto", "")
 
                 def deletar_comentario(i=idx):
+                    ano_ativo = int(app.storage.user.get("ano_referencia_global", ano_sel))
                     historico.pop(i)
                     save_resposta(
-                        ano=ano_sel,
+                        ano=ano_ativo,
                         qid=qid,
                         valor=dados_q.get("valor", ""),
                         pontos=dados_q.get("pontos", 0.0),
@@ -422,6 +439,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
         )
 
         def postar_comentario():
+            ano_ativo = int(app.storage.user.get("ano_referencia_global", ano_sel))
             txt = input_novo_comentario.value.strip()
             if txt:
                 historico.append({
@@ -431,7 +449,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
                     "status_definido": status_global,
                 })
                 save_resposta(
-                    ano=ano_sel,
+                    ano=ano_ativo,
                     qid=qid,
                     valor=dados_q.get("valor", ""),
                     pontos=dados_q.get("pontos", 0.0),
@@ -602,6 +620,9 @@ def render_quesito(
             )
 
             def salvar():
+                # LER O ANO ATIVO DO USER STORAGE NO MOMENTO DO CLIQUE
+                ano_ativo = int(app.storage.user.get("ano_referencia_global", ano))
+
                 if tipo == "checkbox" and opcoes:
                     selecionados = [
                         opt
@@ -622,11 +643,14 @@ def render_quesito(
                     pts = 0.0
 
                 link = input_link.value or ""
-                st = d_data.get("status", "Pendente")
-                comms = d_data.get("comentarios", [])
+
+                # BUSCA DADOS MAIS RECENTES DO BANCO PARA ESTE ANO
+                dados_atuais_db = load_respostas(ano_ativo, tabela_nome).get(qid, {})
+                st = dados_atuais_db.get("status", "Pendente")
+                comms = dados_atuais_db.get("comentarios", [])
 
                 save_resposta(
-                    ano=ano,
+                    ano=ano_ativo,
                     qid=qid,
                     valor=val,
                     pontos=pts,
