@@ -621,7 +621,6 @@ def render_quesito(
 
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
-
 # =============================================================================
 # 4. CONTAINER PRINCIPAL REFRESHABLE (iAmb)
 # =============================================================================
@@ -689,20 +688,19 @@ def container_formulario_iamb():
                         return 0
                     return int(val_str)
 
-                # Recuperação do banco
                 d11 = res_data.get("1.1") or {}
                 if not isinstance(d11, dict):
-                    d11 = {"valor": "0", "pontos": 0.0, "link": ""}
+                    d11 = {"valor": "0", "pontos": 0.0, "link": "", "comentarios": [], "status": "Pendente"}
 
                 v_reun_i, v_membro_i = 0, 0
-                evididencia_11_salva = ""
+                evidencia_11_salva = ""
                 raw_link = str(d11.get("link") or "")
 
                 if raw_link:
                     if "|LINK:" in raw_link:
-                        contadores_part, evididencia_11_salva = raw_link.split("|LINK:", 1)
+                        contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1)
                     else:
-                        contadores_part, evididencia_11_salva = raw_link, ""
+                        contadores_part, evidencia_11_salva = raw_link, ""
 
                     match_r = re.search(r'R:(\d+)', contadores_part)
                     match_m = re.search(r'M:(\d+)', contadores_part)
@@ -710,18 +708,17 @@ def container_formulario_iamb():
                     v_reun_i = int(match_r.group(1)) if match_r else 0
                     v_membro_i = int(match_m.group(1)) if match_m else 0
 
-                # Renderização dos Campos numéricos
                 with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
                     inp_reun = ui.number(label="Quantidade de Reuniões no Ano", value=v_reun_i, min=0).classes("w-full")
                     inp_membro = ui.number(label="Quantidade de Membros Titulares", value=v_membro_i, min=0).classes("w-full")
 
                 inp_link11 = ui.textarea(
                     label="Link de Evidência / Atas / Lei de Criação do Conselho:",
-                    value=evididencia_11_salva,
+                    value=evidencia_11_salva,
                     placeholder="Cole o link das atas ou decreto de nomeação aqui..."
                 ).classes("w-full mb-4").props("outlined rows=2")
 
-                pts_atuais = d11.get("pontos", 0.0)
+                pts_atuais = float(d11.get("pontos", 0.0))
                 cor_pts = "#28a745" if pts_atuais > 0 else "#6c757d"
                 ui.html(f"<span style='color:{cor_pts}; font-weight:bold;'>📊 Impacto de Pontuação no Quesito 1.1: {pts_atuais:.1f} pontos</span>").classes("mb-4")
 
@@ -730,10 +727,15 @@ def container_formulario_iamb():
                     m_val = parse_int_seguro(inp_membro.value)
                     lnk_val = str(inp_link11.value or "").strip()
 
+                    # Lógica de cálculo de pontos do iAmb 1.1
                     pts_calculados = 30.0 if (r_val > 0 and m_val > 0) else 0.0
                     composite_string = f"R:{r_val},M:{m_val}|LINK:{lnk_val}"
-                    
                     val_sumario = f"Reuniões Realizadas: {r_val}, Membros Titulares: {m_val}"
+
+                    # Recarrega os comentários e status atuais do Quesito 1.1 antes de salvar
+                    d11_atual = load_respostas(ano_sel).get("1.1", {})
+                    comms_atuais = d11_atual.get("comentarios", [])
+                    st_atual = d11_atual.get("status", "Pendente")
 
                     save_resposta(
                         ano=ano_sel,
@@ -741,8 +743,8 @@ def container_formulario_iamb():
                         valor=val_sumario,
                         pontos=pts_calculados,
                         link=composite_string,
-                        comentarios=d11.get("comentarios", []),
-                        status=d11.get("status", "Pendente")
+                        comentarios=comms_atuais,
+                        status=st_atual
                     )
 
                     ui.notify("Quesito 1.1 salvo com sucesso!", type="positive", icon="check_circle")
