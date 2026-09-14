@@ -663,6 +663,29 @@ def container_formulario_iamb():
             )
 
 # =============================================================================
+            # HELPER DE PERSISTÊNCIA NO BANCO DE DADOS (iAmb)
+            # =============================================================================
+            def salvar_no_banco_iamb(qid_val, ano_val, valor_val, pontos_val, link_val):
+                """Grava as respostas diretamente na tabela respostas_iamb."""
+                try:
+                    with get_db_connection() as conn:
+                        with conn.cursor() as cur:
+                            cur.execute("""
+                                INSERT INTO respostas_iamb (qid, ano, valor, pontos, link, updated_at)
+                                VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                ON CONFLICT (ano, qid) 
+                                DO UPDATE SET 
+                                    valor = EXCLUDED.valor,
+                                    pontos = EXCLUDED.pontos,
+                                    link = EXCLUDED.link,
+                                    updated_at = CURRENT_TIMESTAMP;
+                            """, (qid_val, ano_val, str(valor_val), float(pontos_val), str(link_val)))
+                            conn.commit()
+                except Exception as err_db:
+                    print(f"❌ Erro ao salvar na tabela respostas_iamb (Quesito {qid_val}): {err_db}")
+                    raise err_db
+
+            # =============================================================================
             # QUESITO 1.0 • ESTRUTURA ORGANIZACIONAL DE MEIO AMBIENTE
             # =============================================================================
             opcoes_10 = {
@@ -715,25 +738,6 @@ def container_formulario_iamb():
                         "Nº de efetivos + Nº de comissionados + Nº de terceirizados/contratados > 0 — 30 pontos"
                     ).classes("text-sm text-blue-800 font-medium")
 
-                def salvar_no_banco_111(qid_val, valor_val, pontos_val, link_val):
-                    try:
-                        with get_db_connection() as conn:
-                            with conn.cursor() as cur:
-                                cur.execute("""
-                                    INSERT INTO respostas_igovti (qid, ano, valor, pontos, link, updated_at)
-                                    VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-                                    ON CONFLICT (ano, qid) 
-                                    DO UPDATE SET 
-                                        valor = EXCLUDED.valor,
-                                        pontos = EXCLUDED.pontos,
-                                        link = EXCLUDED.link,
-                                        updated_at = CURRENT_TIMESTAMP;
-                                """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
-                                conn.commit()
-                    except Exception as err_db:
-                        print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
-                        raise err_db
-
                 def parse_int_seguro(val):
                     if val is None:
                         return 0
@@ -744,7 +748,7 @@ def container_formulario_iamb():
                         return 0
                     return int(val_str)
 
-                # Recuperação do banco
+                # Recuperação dos dados do dicionário res_data
                 d111 = res_data.get("1.1.1") or {}
                 if not isinstance(d111, dict):
                     d111 = {"valor": "0", "pontos": 0.0, "link": ""}
@@ -786,8 +790,10 @@ def container_formulario_iamb():
                         pts_calculados = 30.0 if total_p > 0 else 0.0
                         composite_string = f"EF:{ef_val},CO:{co_val},TE:{te_val}|LINK:{lnk_val}"
 
-                        salvar_no_banco_111("1.1.1", str(total_p), pts_calculados, composite_string)
+                        # Salva na tabela do iAmb
+                        salvar_no_banco_iamb("1.1.1", ano_sel, str(total_p), pts_calculados, composite_string)
                         
+                        # Atualiza a memória local para cálculo imediato do painel
                         res_data["1.1.1"] = {
                             "valor": str(total_p), 
                             "pontos": pts_calculados, 
