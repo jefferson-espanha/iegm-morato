@@ -8,7 +8,7 @@ import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
 # =============================================================================
-# EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
+# CONFIGURAÇÃO DE BANCO DE DADOS E CONSTANTES
 # =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
 
@@ -23,12 +23,12 @@ def get_db_connection():
 
 
 def init_db():
-    """Garante que a tabela respostas_iamb exista e esteja correta."""
+    """Garante a criação e integridade da tabela oficial no Neon DB."""
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    CREATE TABLE IF NOT EXISTS respostas_iamb (
+                    CREATE TABLE IF NOT EXISTS respostas_iamb_oficial (
                         qid VARCHAR(50) NOT NULL,
                         ano INTEGER NOT NULL,
                         valor TEXT,
@@ -42,7 +42,7 @@ def init_db():
                 """)
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao inicializar tabela respostas_iamb: {e}")
+        print(f"❌ Erro ao inicializar a tabela respostas_iamb_oficial: {e}")
 
 
 init_db()
@@ -63,24 +63,23 @@ def _obter_lista_comentarios(dados_banco):
 
 
 def load_respostas(ano):
-    """Carrega todas as respostas do iAmb para o ano selecionado."""
+    """Carrega dados da tabela respostas_iamb_oficial."""
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
-        FROM respostas_iamb
+        FROM respostas_iamb_oficial
         WHERE ano = %s;
     """
     respostas = {}
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano,))
+                cur.execute(query, (int(ano),))
                 rows = cur.fetchall()
                 for row in rows:
                     link_val = row["link"]
                     if link_val is None or link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    pts_val = 0.0
                     try:
                         pts_val = float(row["pontos"]) if row["pontos"] is not None else 0.0
                     except (ValueError, TypeError):
@@ -98,15 +97,15 @@ def load_respostas(ano):
                         ),
                     }
     except Exception as e:
-        print(f"❌ Erro ao carregar respostas do iAmb: {e}")
+        print(f"❌ Erro ao carregar respostas de respostas_iamb_oficial: {e}")
 
     return respostas
 
 
 def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pendente"):
-    """Salva/Atualiza o quesito com conversão explícita de tipos."""
+    """Salva/Atualiza registros especificamente na tabela respostas_iamb_oficial."""
     qid_str = str(qid).strip()
-    
+
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(qid_str, {})
         comentarios = dados_atuais.get("comentarios", [])
@@ -120,7 +119,7 @@ def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pende
         pontos_float = 0.0
 
     query = """
-        INSERT INTO respostas_iamb (ano, qid, valor, pontos, link, comentarios, status)
+        INSERT INTO respostas_iamb_oficial (ano, qid, valor, pontos, link, comentarios, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (ano, qid) 
         DO UPDATE SET
@@ -148,31 +147,33 @@ def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pende
                 )
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta ({qid_str}): {e}")
+        print(f"❌ Erro crítico ao salvar na tabela respostas_iamb_oficial ({qid_str}): {e}")
 
 
 def zerar_questionario_db(ano):
-    query = "DELETE FROM respostas_iamb WHERE ano = %s;"
+    query = "DELETE FROM respostas_iamb_oficial WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(query, (int(ano),))
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao zerar iAmb: {e}")
+        print(f"❌ Erro ao zerar respostas_iamb_oficial: {e}")
 
 
 def obter_pontuacao_total_bd(ano):
-    """Consulta direta ao BD com SUM para garantir precisão."""
-    query = "SELECT COALESCE(SUM(pontos), 0) as total FROM respostas_iamb WHERE ano = %s;"
+    """Calcula a soma de pontos salvos no ano de referência diretamente no banco."""
+    query = "SELECT COALESCE(SUM(pontos), 0.0) as total FROM respostas_iamb_oficial WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(query, (int(ano),))
                 row = cur.fetchone()
-                return float(row["total"]) if row else 0.0
+                if row and row["total"] is not None:
+                    return float(row["total"])
+                return 0.0
     except Exception as e:
-        print(f"❌ Erro ao calcular pontuação total: {e}")
+        print(f"❌ Erro ao calcular soma na tabela respostas_iamb_oficial: {e}")
         return 0.0
 
 
@@ -209,7 +210,7 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # Busca a soma direto no banco para evitar desacoplamento
+        # Lê pontuação direto da tabela respostas_iamb_oficial
         total_pts = obter_pontuacao_total_bd(ano_atual)
         res_data = load_respostas(ano_atual)
 
@@ -439,7 +440,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# 3. RENDERIZADOR DE QUESITO
+# 3. RENDERIZADOR DE QUESITO PADRÃO
 # =============================================================================
 def render_quesito(
     ano,
