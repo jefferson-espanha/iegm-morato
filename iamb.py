@@ -8,7 +8,7 @@ import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
 # =============================================================================
-# EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
+# CONFIGURAÇÕES E BANCO DE DADOS (NEON)
 # =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
 
@@ -19,68 +19,50 @@ DATABASE_URL = os.getenv(
 
 
 def get_db_connection():
-    """Retorna uma conexão ativa com o PostgreSQL/Neon DB."""
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
-def init_db():
-    """Cria a nova tabela exclusiva respostas_iamb_oficial."""
+def init_db(tabela_nome="respostas_indicador"):
+    """Cria dinamicamente a tabela do indicador informado se não existir."""
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("""
-                    CREATE TABLE IF NOT EXISTS respostas_iamb_oficial (
-                        ano INTEGER NOT NULL,
+                cur.execute(f"""
+                    CREATE TABLE IF NOT EXISTS {tabela_nome} (
                         qid VARCHAR(50) NOT NULL,
+                        ano INTEGER NOT NULL,
                         valor TEXT,
-                        pontos REAL DEFAULT 0.0,
+                        pontos REAL DEFAULT 0,
                         link TEXT,
                         comentarios JSONB DEFAULT '[]'::jsonb,
-                        status VARCHAR(50) DEFAULT 'Pendente',
+                        status VARCHAR(20) DEFAULT 'Pendente',
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         PRIMARY KEY (ano, qid)
                     );
                 """)
                 conn.commit()
-        print("✅ Nova tabela 'respostas_iamb_oficial' verificada/criada com sucesso!")
     except Exception as e:
-        print(f"❌ Erro ao inicializar tabela respostas_iamb_oficial: {e}")
+        print(f"❌ Erro ao inicializar tabela {tabela_nome}: {e}")
 
 
-# Inicializa a nova tabela ao carregar o módulo
-init_db()
-
-
-def load_respostas(ano):
-    """Carrega as respostas do iAmb para o ano especificado na nova tabela."""
-    query = """
+def load_respostas(ano, tabela_nome="respostas_indicador"):
+    query = f"""
         SELECT qid, valor, pontos, link, comentarios, status
-        FROM respostas_iamb_oficial
+        FROM {tabela_nome}
         WHERE ano = %s;
     """
     respostas = {}
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
+                cur.execute(query, (ano,))
                 rows = cur.fetchall()
                 for row in rows:
                     link_val = row["link"]
                     if link_val is None or link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    raw_coment = row["comentarios"]
-                    if isinstance(raw_coment, str):
-                        try:
-                            coments_list = json.loads(raw_coment)
-                        except Exception:
-                            coments_list = []
-                    elif isinstance(raw_coment, list):
-                        coments_list = raw_coment
-                    else:
-                        coments_list = []
-
-                    respostas[str(row["qid"])] = {
+                    respostas[row["qid"]] = {
                         "valor": row["valor"] if row["valor"] is not None else "",
                         "pontos": (
                             float(row["pontos"])
@@ -88,7 +70,11 @@ def load_respostas(ano):
                             else 0.0
                         ),
                         "link": link_val,
-                        "comentarios": coments_list,
+                        "comentarios": (
+                            row["comentarios"]
+                            if isinstance(row["comentarios"], list)
+                            else []
+                        ),
                         "status": (
                             row["status"]
                             if row["status"] is not None
@@ -96,60 +82,24 @@ def load_respostas(ano):
                         ),
                     }
     except Exception as e:
-        print(f"❌ Erro ao carregar respostas do iAmb: {e}")
+        print(f"❌ Erro ao carregar respostas de {tabela_nome}: {e}")
 
     return respostas
 
 
-def save_resposta(*args, **kwargs):
-    """
-    Salva ou atualiza uma resposta na nova tabela respostas_iamb_oficial.
-    Aceita chamadas tanto por ordem (qid, valor, pontos...) quanto (ano, qid, valor...).
-    """
-    if len(args) >= 5:
-        first_arg = str(args[0])
-        # Se o 1º parâmetro for um número de 4 dígitos (ano)
-        if first_arg.isdigit() and len(first_arg) == 4:
-            ano = int(args[0])
-            qid = str(args[1])
-            valor = args[2]
-            pontos = args[3]
-            link = args[4]
-            comentarios = args[5] if len(args) > 5 else kwargs.get("comentarios")
-            status = args[6] if len(args) > 6 else kwargs.get("status", "Pendente")
-        else:
-            qid = str(args[0])
-            valor = args[1]
-            pontos = args[2]
-            link = args[3]
-            comentarios = args[4] if len(args) > 4 else kwargs.get("comentarios")
-            ano = args[5] if len(args) > 5 else kwargs.get("ano")
-            status = args[6] if len(args) > 6 else kwargs.get("status", "Pendente")
-    else:
-        qid = str(kwargs.get("qid", ""))
-        valor = kwargs.get("valor", "")
-        pontos = kwargs.get("pontos", 0.0)
-        link = kwargs.get("link", "")
-        comentarios = kwargs.get("comentarios")
-        ano = kwargs.get("ano")
-        status = kwargs.get("status", "Pendente")
-
-    # Garante o ano corrente/global caso não tenha sido passado
-    if ano is None:
-        ano = app.storage.user.get("ano_referencia_global", 2026)
-    ano = int(ano)
-
-    # Trata comentários vazios ou existentes
+def save_resposta(
+    ano, qid, valor, pontos, link, comentarios=None, status="Pendente", tabela_nome="respostas_indicador"
+):
     if comentarios is None:
-        dados_atuais = load_respostas(ano).get(qid, {})
+        dados_atuais = load_respostas(ano, tabela_nome).get(qid, {})
         comentarios = dados_atuais.get("comentarios", [])
 
     comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
-    link_final = str(link).strip() if link else ""
+    link_final = link.strip() if link else ""
 
-    query = """
-        INSERT INTO respostas_iamb_oficial (ano, qid, valor, pontos, link, comentarios, status, updated_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+    query = f"""
+        INSERT INTO {tabela_nome} (ano, qid, valor, pontos, link, comentarios, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (ano, qid) 
         DO UPDATE SET
             valor = EXCLUDED.valor,
@@ -175,30 +125,22 @@ def save_resposta(*args, **kwargs):
                     ),
                 )
                 conn.commit()
-        print(f"✅ Quesito {qid} ({ano}) salvo na tabela respostas_iamb_oficial!")
     except Exception as e:
-        print(f"❌ Erro ao salvar na respostas_iamb_oficial: {e}")
-        raise e
+        print(f"❌ Erro ao salvar resposta em {tabela_nome}: {e}")
 
 
-def zerar_questionario_db(ano):
-    """Apaga todas as respostas do ano na tabela respostas_iamb_oficial."""
-    query = "DELETE FROM respostas_iamb_oficial WHERE ano = %s;"
+def zerar_questionario_db(ano, tabela_nome="respostas_indicador"):
+    query = f"DELETE FROM {tabela_nome} WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
+                cur.execute(query, (ano,))
                 conn.commit()
-        print(f"✅ Questionário iAmb ({ano}) zerado com sucesso!")
     except Exception as e:
-        print(f"❌ Erro ao zerar respostas_iamb_oficial: {e}")
+        print(f"❌ Erro ao zerar questionário em {tabela_nome}: {e}")
 
 
 def _obter_lista_comentarios(dados_banco):
-    """Garante o retorno de uma lista limpa de comentários em Python."""
-    if not isinstance(dados_banco, dict):
-        return []
-
     raw = dados_banco.get("comentarios", [])
     if isinstance(raw, str):
         if raw in ["EMPTY_STRING", "", "null", "None"]:
@@ -212,24 +154,29 @@ def _obter_lista_comentarios(dados_banco):
     return []
 
 
-def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
-    """Gera um relatório em bytes do formulário iAmb."""
-    conteudo = f"RELATÓRIO TÉCNICO iAmb ({ano})\n"
+def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa, nome_indicador="INDICADOR"):
+    conteudo = f"RELATÓRIO TÉCNICO {nome_indicador.upper()} ({ano})\n"
     conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
     for qid, dados in res_data.items():
         conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode("utf-8")
 
+
 # =============================================================================
 # 1. PAINEL LATERAL / CONTROLE
 # =============================================================================
-def render_painel_controle(on_refresh_callback=None):
+def render_painel_controle(
+    on_refresh_callback=None,
+    nome_indicador="Indicador",
+    tabela_nome="respostas_indicador"
+):
+    init_db(tabela_nome)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
-        ui.label("🌱 Painel de Controle (iAmb)").classes(
-            "text-lg font-bold mb-2 text-green-900"
+        ui.label(f"🛠️ Painel de Controle ({nome_indicador})").classes(
+            "text-lg font-bold mb-2 text-blue-900"
         )
 
         def ao_mudar_ano(e):
@@ -245,11 +192,12 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        res_data = load_respostas(ano_atual)
+        res_data = load_respostas(ano_atual, tabela_nome)
         total_pts = sum(
             float(item.get("pontos", 0)) for item in res_data.values()
         )
 
+        # Regra de Faixas genérica
         if total_pts <= 500:
             faixa, cor = "C", "text-red-600"
         elif total_pts <= 599:
@@ -282,7 +230,7 @@ def render_painel_controle(on_refresh_callback=None):
                 on_refresh_callback()
 
         ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
-            "w-full bg-green-700 text-white mb-2"
+            "w-full bg-blue-700 text-white mb-2"
         )
         ui.separator().classes("my-2")
 
@@ -291,7 +239,7 @@ def render_painel_controle(on_refresh_callback=None):
                 "text-lg font-bold text-red-600"
             )
             ui.label(
-                f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!"
+                f"Você está prestes a apagar todas as respostas de {ano_atual} em {nome_indicador}. Esta ação é irreversível!"
             ).classes("text-sm my-2")
 
             input_senha = ui.input(
@@ -300,9 +248,9 @@ def render_painel_controle(on_refresh_callback=None):
 
             def executar_zerar():
                 if input_senha.value == "fidelios":
-                    zerar_questionario_db(ano_atual)
+                    zerar_questionario_db(ano_atual, tabela_nome)
                     ui.notify(
-                        f"✅ Questionário iAmb de {ano_atual} foi zerado!",
+                        f"✅ Questionário de {ano_atual} foi zerado!",
                         type="positive",
                     )
                     dialog_zerar.close()
@@ -319,12 +267,12 @@ def render_painel_controle(on_refresh_callback=None):
 
         with ui.row().classes("w-full gap-2 no-wrap"):
             pdf_bytes = gerar_relatorio_pdf_bytes(
-                res_data, ano_atual, total_pts, faixa
+                res_data, ano_atual, total_pts, faixa, nome_indicador
             )
             ui.button(
                 "📄 Relatório",
                 on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_iAmb_{ano_atual}.pdf"
+                    pdf_bytes, f"Relatorio_{nome_indicador}_{ano_atual}.pdf"
                 ),
             ).classes("flex-1 bg-green-700 text-white")
             ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
@@ -345,7 +293,7 @@ def render_painel_controle(on_refresh_callback=None):
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
-def bloco_comentarios(qid, res_data, on_save_callback=None):
+def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respostas_indicador"):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
@@ -384,6 +332,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                 link=dados_q.get("link", ""),
                 comentarios=historico,
                 status=novo_st,
+                tabela_nome=tabela_nome,
             )
             ui.notify(f"Status alterado para {novo_st}", type="info")
             if on_save_callback:
@@ -414,6 +363,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                         link=dados_q.get("link", ""),
                         comentarios=historico,
                         status=status_global,
+                        tabela_nome=tabela_nome,
                     )
                     ui.notify("Comentário removido.", type="warning")
                     if on_save_callback:
@@ -431,8 +381,8 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                         ).classes("w-full")
                     else:
                         ui.html(
-                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #2e7d32; border: 1px solid #e0e0e0; width: 100%;">
-                                <span style="font-size: 11px; color: #2e7d32; font-weight: bold;">👤 {autor}</span> 
+                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
+                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
                                 <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
                                 <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
                             </div>"""
@@ -465,13 +415,14 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                     link=dados_q.get("link", ""),
                     comentarios=historico,
                     status=status_global,
+                    tabela_nome=tabela_nome,
                 )
                 ui.notify("Comentário publicado!", type="positive")
                 if on_save_callback:
                     on_save_callback()
 
         ui.button("Postar Comentário", on_click=postar_comentario).classes(
-            "bg-green-700 text-white mt-2"
+            "bg-blue-600 text-white mt-2"
         )
 
 
@@ -492,6 +443,7 @@ def render_quesito(
     placeholder_text="Cole os links ou informações aqui...",
     placeholder_link="Link de Evidência / Documento:",
     pontuacao_maxima=None,
+    tabela_nome="respostas_indicador",
     **kwargs,
 ):
     d_data = res_data.get(qid, {})
@@ -500,7 +452,7 @@ def render_quesito(
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes(
             "w-full font-bold"
         ):
-            ui.label(f"{qid} • {titulo}").classes("text-h6 text-green-900 mt-2")
+            ui.label(f"{qid} • {titulo}").classes("text-h6 text-primary mt-2")
             ui.label(pergunta).classes("text-body1 font-bold my-2")
             ui.label(
                 "ℹ Preencha os campos abaixo e clique no botão de salvar."
@@ -590,7 +542,7 @@ def render_quesito(
                                 )
                                 for url in links:
                                     ui.link(url, target=url, new_tab=True).classes(
-                                        "text-caption text-green-7 mr-2"
+                                        "text-caption text-blue-6 mr-2"
                                     )
 
                     input_link.on(
@@ -648,10 +600,7 @@ def render_quesito(
 
                 link = input_link.value or ""
                 st = d_data.get("status", "Pendente")
-
-                # RE-LEITURA DE COMENTÁRIOS DIRETO DO BANCO DE DADOS
-                res_atualizado = load_respostas(ano)
-                comms = res_atualizado.get(qid, {}).get("comentarios", [])
+                comms = d_data.get("comentarios", [])
 
                 save_resposta(
                     ano=ano,
@@ -661,6 +610,7 @@ def render_quesito(
                     link=link,
                     comentarios=comms,
                     status=st,
+                    tabela_nome=tabela_nome,
                 )
 
                 atualizar_label_pontos(pts, val)
@@ -674,37 +624,52 @@ def render_quesito(
                     on_save_callback()
 
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes(
-                "bg-green-800 text-white mt-4"
+                "bg-blue-800 text-white mt-4"
             )
 
-            bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
+            bloco_comentarios(
+                qid, res_data, on_save_callback=on_save_callback, tabela_nome=tabela_nome
+            )
 
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL REFRESHABLE
+# 4. EXEMPLO DE CONTAINER PRINCIPAL
 # =============================================================================
 @ui.refreshable
-def container_formulario_iamb():
+def container_formulario_indicador(
+    nome_indicador="iGov-TI",
+    tabela_nome="respostas_igovti",
+    quesitos_lista=None
+):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
-    res_data = load_respostas(ano_sel)
+    res_data = load_respostas(ano_sel, tabela_nome)
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
         with ui.column().classes("col-span-1 w-full"):
             render_painel_controle(
-                on_refresh_callback=container_formulario_iamb.refresh
+                on_refresh_callback=container_formulario_indicador.refresh,
+                nome_indicador=nome_indicador,
+                tabela_nome=tabela_nome,
             )
 
         with ui.column().classes("col-span-3 w-full"):
             ui.label(
-                f"Formulário iAmb - Governança Ambiental ({ano_sel})"
-            ).classes("text-h4 mb-1 font-bold text-green-900")
+                f"Formulário {nome_indicador} ({ano_sel})"
+            ).classes("text-h4 mb-1 font-bold text-blue-900")
             ui.label(
-                "Preencha as evidências e questões do indicador iAmb."
+                f"Preencha as evidências e questões do indicador {nome_indicador}."
             ).classes("text-gray-600 mb-6")
 
-            ui.label("1.0 Estrutura de Governança Ambiental").classes(
-                "text-h5 font-bold my-4 text-green-900"
-            )
+            # Renderiza os quesitos genéricos passados por lista
+            if quesitos_lista:
+                for q in quesitos_lista:
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        tabela_nome=tabela_nome,
+                        on_save_callback=container_formulario_indicador.refresh,
+                        **q
+                    )
 
             # =============================================================================
             # QUESITO 1.0 • ESTRUTURA ORGANIZACIONAL
