@@ -183,11 +183,15 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa, nome_indicador="i
 # =============================================================================
 # 1. PAINEL LATERAL
 # =============================================================================
+# Objeto global para permitir o refresh isolado do bloco de pontos
+render_bloco_pontuacao_ref = None
+
 def render_painel_controle(
     on_refresh_callback=None,
     nome_indicador="iAMB",
     tabela_nome="respostas_iamb_oficial"
 ):
+    global render_bloco_pontuacao_ref
     init_db(tabela_nome)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     try:
@@ -247,6 +251,7 @@ def render_painel_controle(
                     ui.label(faixa_l).classes(f"text-xl font-bold {cor_l}")
 
         render_bloco_pontuacao()
+        render_bloco_pontuacao_ref = render_bloco_pontuacao
 
         ui.separator().classes("my-2")
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
@@ -683,27 +688,34 @@ def render_quesito(
 # 4. CONTAINER PRINCIPAL DO IAMB
 # =============================================================================
 def container_formulario_iamb(quesitos_lista=None):
-    container_pai = ui.column().classes("w-full")
+    tabela = "respostas_iamb_oficial"
 
-    @ui.refreshable
-    def render_conteudo():
-        try:
-            ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
-        except (TypeError, ValueError):
-            ano_sel = 2026
-        app.storage.user["ano_referencia_global"] = ano_sel
-        tabela = "respostas_iamb_oficial"
-        res_data = load_respostas(ano_sel, tabela)
+    with ui.grid(columns=4).classes("w-full gap-6 items-start"):
+        # Coluna 1: Painel fixo na tela (instanciado uma única vez)
+        with ui.column().classes("col-span-1 w-full"):
+            def recarregar_tudo():
+                if render_bloco_pontuacao_ref:
+                    render_bloco_pontuacao_ref.refresh()
+                render_formulario.refresh()
 
-        with ui.grid(columns=4).classes("w-full gap-6 items-start"):
-            with ui.column().classes("col-span-1 w-full"):
-                render_painel_controle(
-                    on_refresh_callback=render_conteudo.refresh,
-                    nome_indicador="iAMB",
-                    tabela_nome=tabela,
-                )
+            render_painel_controle(
+                on_refresh_callback=recarregar_tudo,
+                nome_indicador="iAMB",
+                tabela_nome=tabela,
+            )
 
-            with ui.column().classes("col-span-3 w-full"):
+        # Coluna 2: Apenas o formulário recarrega dinamicamente
+        with ui.column().classes("col-span-3 w-full"):
+            @ui.refreshable
+            def render_formulario():
+                try:
+                    ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+                except (TypeError, ValueError):
+                    ano_sel = 2026
+
+                app.storage.user["ano_referencia_global"] = ano_sel
+                res_data = load_respostas(ano_sel, tabela)
+
                 ui.label(
                     f"Formulário iAMB ({ano_sel})"
                 ).classes("text-h4 mb-1 font-bold text-blue-900")
@@ -717,14 +729,14 @@ def container_formulario_iamb(quesitos_lista=None):
                             ano=ano_sel,
                             res_data=res_data,
                             tabela_nome=tabela,
-                            on_save_callback=render_conteudo.refresh,
+                            on_save_callback=recarregar_tudo,
                             **q
                         )
 
                 # QUESITO 1.0
                 opcoes_10 = {
                     "Selecione...": 0.0,
-                    "Sim": 0.0,
+                    "Sim": 10.0,
                     "Não": 0.0,
                 }
                 render_quesito(
@@ -734,13 +746,13 @@ def container_formulario_iamb(quesitos_lista=None):
                     titulo="Estrutura Organizacional de Meio Ambiente",
                     pergunta="A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?",
                     opcoes=opcoes_10,
-                    on_save_callback=render_conteudo.refresh,
+                    on_save_callback=recarregar_tudo,
                 )
 
                 # QUESITO 1.1
                 opcoes_11 = {
                     "Selecione...": 0.0,
-                    "Sim": 0.0,
+                    "Sim": 10.0,
                     "Não": 0.0,
                 }
                 render_quesito(
@@ -750,7 +762,7 @@ def container_formulario_iamb(quesitos_lista=None):
                     titulo="Recursos Humanos para Meio Ambiente",
                     pergunta="A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?",
                     opcoes=opcoes_11,
-                    on_save_callback=render_conteudo.refresh,
+                    on_save_callback=recarregar_tudo,
                 )
 
                 # QUESITO 1.1.1
@@ -791,12 +803,11 @@ def container_formulario_iamb(quesitos_lista=None):
                                 tabela_nome=tabela
                             )
                             ui.notify("Quesito 1.1.1 salvo com sucesso!", type="positive")
-                            render_conteudo.refresh()
+                            recarregar_tudo()
                         except Exception as ex:
                             ui.notify(f"Erro ao salvar Quesito 1.1.1: {ex}", type="negative")
 
                     ui.button("💾 Salvar Quesito 1.1.1", on_click=salvar_111).classes("bg-blue-800 text-white mt-2")
-                    bloco_comentarios("1.1.1", res_data, on_save_callback=render_conteudo.refresh, tabela_nome=tabela)
+                    bloco_comentarios("1.1.1", res_data, on_save_callback=recarregar_tudo, tabela_nome=tabela)
 
-    with container_pai:
-        render_conteudo()
+            render_formulario()
