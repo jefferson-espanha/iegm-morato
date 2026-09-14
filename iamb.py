@@ -179,157 +179,6 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa, nome_indicador="i
         conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode("utf-8")
 
-
-# =============================================================================
-# 1. PAINEL LATERAL
-# =============================================================================
-# Objeto global para permitir o refresh isolado do bloco de pontos
-render_bloco_pontuacao_ref = None
-
-def render_painel_controle(
-    on_refresh_callback=None,
-    nome_indicador="iAMB",
-    tabela_nome="respostas_iamb_oficial"
-):
-    global render_bloco_pontuacao_ref
-    init_db(tabela_nome)
-    anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
-    try:
-        ano_atual = int(app.storage.user.get("ano_referencia_global", 2026))
-    except (TypeError, ValueError):
-        ano_atual = 2026
-    nome_indicador_str = str(nome_indicador)
-
-    with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
-        ui.label(f"🛠️ Painel de Controle ({nome_indicador_str})").classes(
-            "text-lg font-bold mb-2 text-blue-900"
-        )
-
-        def ao_mudar_ano(e):
-            novo_ano = int(e.value)
-            app.storage.user["ano_referencia_global"] = novo_ano
-            ui.notify(f"Ano alterado para {novo_ano}", type="info")
-            if on_refresh_callback:
-                on_refresh_callback()
-
-        ui.select(
-            options=anos,
-            value=ano_atual,
-            label="Ano de Referência:",
-            on_change=ao_mudar_ano,
-        ).classes("w-full mb-4")
-
-        @ui.refreshable
-        def render_bloco_pontuacao():
-            ano_ref = int(app.storage.user.get("ano_referencia_global", 2026))
-            res_data_local = load_respostas(ano_ref, tabela_nome)
-            total_pts_local = sum(
-                float(item.get("pontos", 0)) for item in res_data_local.values()
-            )
-
-            if total_pts_local <= 500:
-                faixa_l, cor_l = "C", "text-red-600"
-            elif total_pts_local <= 599:
-                faixa_l, cor_l = "C+", "text-orange-500"
-            elif total_pts_local <= 749:
-                faixa_l, cor_l = "B", "text-yellow-600"
-            elif total_pts_local <= 899:
-                faixa_l, cor_l = "B+", "text-green-500"
-            else:
-                faixa_l, cor_l = "A", "text-green-700"
-
-            with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
-                ui.label("Pontuação Total").classes(
-                    "text-xs text-gray-500 font-bold uppercase"
-                )
-                ui.label(f"{total_pts_local:.1f} pts").classes(
-                    "text-2xl font-black text-gray-800"
-                )
-
-                with ui.row().classes("items-center gap-1 mt-1"):
-                    ui.label("Faixa:").classes("font-bold text-sm")
-                    ui.label(faixa_l).classes(f"text-xl font-bold {cor_l}")
-
-        render_bloco_pontuacao()
-        render_bloco_pontuacao_ref = render_bloco_pontuacao
-
-        ui.separator().classes("my-2")
-        ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
-
-        def atualizar_dados():
-            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
-            if on_refresh_callback:
-                on_refresh_callback()
-
-        ui.button("🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados).classes(
-            "w-full bg-blue-600 text-white mb-2"
-        )
-
-        with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
-            ui.label("🔒 Confirmação de Segurança").classes(
-                "text-lg font-bold text-red-600"
-            )
-            ui.label(
-                f"Você está prestes a apagar todas as respostas de {ano_atual} em {nome_indicador_str}. Esta ação é irreversível!"
-            ).classes("text-sm my-2")
-
-            input_senha = ui.input(
-                "Digite a senha de administrador:", password=True
-            ).classes("w-full mb-4")
-
-            def executar_zerar():
-                ano_zerar = int(app.storage.user.get("ano_referencia_global", 2026))
-                if input_senha.value == "fidelios":
-                    zerar_questionario_db(ano_zerar, tabela_nome)
-                    ui.notify(
-                        f"✅ Questionário de {ano_zerar} foi zerado!",
-                        type="positive",
-                    )
-                    dialog_zerar.close()
-                    if on_refresh_callback:
-                        on_refresh_callback()
-                else:
-                    ui.notify("❌ Senha incorreta!", type="negative")
-
-            with ui.row().classes("w-full justify-end gap-2"):
-                ui.button("Cancelar", on_click=dialog_zerar.close).props("flat")
-                ui.button(
-                    "Confirmar e Zerar", on_click=executar_zerar
-                ).classes("bg-red-600 text-white")
-
-        with ui.row().classes("w-full gap-2 no-wrap"):
-            res_data_rel = load_respostas(ano_atual, tabela_nome)
-            pts_rel = sum(float(i.get("pontos", 0)) for i in res_data_rel.values())
-            faixa_rel = (
-                "C" if pts_rel <= 500 else
-                "C+" if pts_rel <= 599 else
-                "B" if pts_rel <= 749 else
-                "B+" if pts_rel <= 899 else "A"
-            )
-            pdf_bytes = gerar_relatorio_pdf_bytes(
-                res_data_rel, ano_atual, pts_rel, faixa_rel, nome_indicador_str
-            )
-            ui.button(
-                "📄 RELATÓRIO",
-                on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_{nome_indicador_str}_{ano_atual}.pdf"
-                ),
-            ).classes("flex-1 bg-blue-500 text-white")
-            ui.button("🗑️ ZERAR", on_click=dialog_zerar.open).classes(
-                "flex-1 bg-blue-500 text-white"
-            )
-
-        ui.separator().classes("my-4")
-        ui.html("""
-            <div style="text-align: center; color: #000000; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
-                ⚙️ <b>Desenvolvido por:</b><br>
-                <span style="font-size: 12px;">Jefferson Espanha</span><br>
-                <span>Procuradoria do Município</span><br>
-                <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
-            </div>
-        """).classes("w-full")
-
-
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS
 # =============================================================================
@@ -685,27 +534,188 @@ def render_quesito(
 
 
 # =============================================================================
+# 1. PAINEL LATERAL
+# =============================================================================
+def render_painel_controle(
+    on_refresh_callback=None,
+    nome_indicador="iAMB",
+    tabela_nome="respostas_iamb_oficial"
+):
+    init_db(tabela_nome)
+    anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    try:
+        ano_atual = int(app.storage.user.get("ano_referencia_global", 2026))
+    except (TypeError, ValueError):
+        ano_atual = 2026
+    nome_indicador_str = str(nome_indicador)
+
+    with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
+        ui.label(f"🛠️ Painel de Controle ({nome_indicador_str})").classes(
+            "text-lg font-bold mb-2 text-blue-900"
+        )
+
+        def ao_mudar_ano(e):
+            novo_ano = int(e.value)
+            app.storage.user["ano_referencia_global"] = novo_ano
+            ui.notify(f"Ano alterado para {novo_ano}", type="info")
+            if on_refresh_callback:
+                on_refresh_callback()
+
+        ui.select(
+            options=anos,
+            value=ano_atual,
+            label="Ano de Referência:",
+            on_change=ao_mudar_ano,
+        ).classes("w-full mb-4")
+
+        # Container exclusivo para a pontuação que será atualizada dinamicamente
+        container_pontos = ui.column().classes("w-full")
+
+        def render_bloco_pontuacao():
+            container_pontos.clear()
+            ano_ref = int(app.storage.user.get("ano_referencia_global", 2026))
+            res_data_local = load_respostas(ano_ref, tabela_nome)
+            total_pts_local = sum(
+                float(item.get("pontos", 0)) for item in res_data_local.values()
+            )
+
+            if total_pts_local <= 500:
+                faixa_l, cor_l = "C", "text-red-600"
+            elif total_pts_local <= 599:
+                faixa_l, cor_l = "C+", "text-orange-500"
+            elif total_pts_local <= 749:
+                faixa_l, cor_l = "B", "text-yellow-600"
+            elif total_pts_local <= 899:
+                faixa_l, cor_l = "B+", "text-green-500"
+            else:
+                faixa_l, cor_l = "A", "text-green-700"
+
+            with container_pontos:
+                with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
+                    ui.label("Pontuação Total").classes(
+                        "text-xs text-gray-500 font-bold uppercase"
+                    )
+                    ui.label(f"{total_pts_local:.1f} pts").classes(
+                        "text-2xl font-black text-gray-800"
+                    )
+
+                    with ui.row().classes("items-center gap-1 mt-1"):
+                        ui.label("Faixa:").classes("font-bold text-sm")
+                        ui.label(faixa_l).classes(f"text-xl font-bold {cor_l}")
+
+        render_bloco_pontuacao()
+
+        ui.separator().classes("my-2")
+        ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
+
+        def atualizar_dados():
+            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
+            if on_refresh_callback:
+                on_refresh_callback()
+
+        ui.button("🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados).classes(
+            "w-full bg-blue-600 text-white mb-2"
+        )
+
+        with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
+            ui.label("🔒 Confirmação de Segurança").classes(
+                "text-lg font-bold text-red-600"
+            )
+            ui.label(
+                f"Você está prestes a apagar todas as respostas de {ano_atual} em {nome_indicador_str}. Esta ação é irreversível!"
+            ).classes("text-sm my-2")
+
+            input_senha = ui.input(
+                "Digite a senha de administrador:", password=True
+            ).classes("w-full mb-4")
+
+            def executar_zerar():
+                ano_zerar = int(app.storage.user.get("ano_referencia_global", 2026))
+                if input_senha.value == "fidelios":
+                    zerar_questionario_db(ano_zerar, tabela_nome)
+                    ui.notify(
+                        f"✅ Questionário de {ano_zerar} foi zerado!",
+                        type="positive",
+                    )
+                    dialog_zerar.close()
+                    if on_refresh_callback:
+                        on_refresh_callback()
+                else:
+                    ui.notify("❌ Senha incorreta!", type="negative")
+
+            with ui.row().classes("w-full justify-end gap-2"):
+                ui.button("Cancelar", on_click=dialog_zerar.close).props("flat")
+                ui.button(
+                    "Confirmar e Zerar", on_click=executar_zerar
+                ).classes("bg-red-600 text-white")
+
+        with ui.row().classes("w-full gap-2 no-wrap"):
+            res_data_rel = load_respostas(ano_atual, tabela_nome)
+            pts_rel = sum(float(i.get("pontos", 0)) for i in res_data_rel.values())
+            faixa_rel = (
+                "C" if pts_rel <= 500 else
+                "C+" if pts_rel <= 599 else
+                "B" if pts_rel <= 749 else
+                "B+" if pts_rel <= 899 else "A"
+            )
+            pdf_bytes = gerar_relatorio_pdf_bytes(
+                res_data_rel, ano_atual, pts_rel, faixa_rel, nome_indicador_str
+            )
+            ui.button(
+                "📄 RELATÓRIO",
+                on_click=lambda: ui.download(
+                    pdf_bytes, f"Relatorio_{nome_indicador_str}_{ano_atual}.pdf"
+                ),
+            ).classes("flex-1 bg-blue-500 text-white")
+            ui.button("🗑️ ZERAR", on_click=dialog_zerar.open).classes(
+                "flex-1 bg-blue-500 text-white"
+            )
+
+        ui.separator().classes("my-4")
+        ui.html("""
+            <div style="text-align: center; color: #000000; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
+                ⚙️ <b>Desenvolvido por:</b><br>
+                <span style="font-size: 12px;">Jefferson Espanha</span><br>
+                <span>Procuradoria do Município</span><br>
+                <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
+            </div>
+        """).classes("w-full")
+
+    # Retorna a função de atualizar os pontos para ser chamada externamente sem reconstruir a barra toda
+    return render_bloco_pontuacao
+
+
+# =============================================================================
+# [2 e 3 sem alterações - Mantenha as funções bloco_comentarios e render_quesito]
+# =============================================================================
+
+
+# =============================================================================
 # 4. CONTAINER PRINCIPAL DO IAMB
 # =============================================================================
 def container_formulario_iamb(quesitos_lista=None):
     tabela = "respostas_iamb_oficial"
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
-        # Coluna 1: Painel fixo na tela (instanciado uma única vez)
+        
+        # COLUNA LATERAL (Renderizada estaticamente 1 única vez)
         with ui.column().classes("col-span-1 w-full"):
-            def recarregar_tudo():
-                if render_bloco_pontuacao_ref:
-                    render_bloco_pontuacao_ref.refresh()
-                render_formulario.refresh()
-
-            render_painel_controle(
-                on_refresh_callback=recarregar_tudo,
+            atualizar_pontos_func = render_painel_controle(
+                on_refresh_callback=lambda: (
+                    atualizar_pontos_func(),
+                    render_formulario.refresh()
+                ),
                 nome_indicador="iAMB",
                 tabela_nome=tabela,
             )
 
-        # Coluna 2: Apenas o formulário recarrega dinamicamente
+        # COLUNA CONTEÚDO (Única parte recarregável)
         with ui.column().classes("col-span-3 w-full"):
+            
+            def salvar_e_atualizar_tudo():
+                atualizar_pontos_func()
+                render_formulario.refresh()
+
             @ui.refreshable
             def render_formulario():
                 try:
@@ -729,7 +739,7 @@ def container_formulario_iamb(quesitos_lista=None):
                             ano=ano_sel,
                             res_data=res_data,
                             tabela_nome=tabela,
-                            on_save_callback=recarregar_tudo,
+                            on_save_callback=salvar_e_atualizar_tudo,
                             **q
                         )
 
@@ -746,7 +756,7 @@ def container_formulario_iamb(quesitos_lista=None):
                     titulo="Estrutura Organizacional de Meio Ambiente",
                     pergunta="A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?",
                     opcoes=opcoes_10,
-                    on_save_callback=recarregar_tudo,
+                    on_save_callback=salvar_e_atualizar_tudo,
                 )
 
                 # QUESITO 1.1
@@ -762,7 +772,7 @@ def container_formulario_iamb(quesitos_lista=None):
                     titulo="Recursos Humanos para Meio Ambiente",
                     pergunta="A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?",
                     opcoes=opcoes_11,
-                    on_save_callback=recarregar_tudo,
+                    on_save_callback=salvar_e_atualizar_tudo,
                 )
 
                 # QUESITO 1.1.1
@@ -803,11 +813,11 @@ def container_formulario_iamb(quesitos_lista=None):
                                 tabela_nome=tabela
                             )
                             ui.notify("Quesito 1.1.1 salvo com sucesso!", type="positive")
-                            recarregar_tudo()
+                            salvar_e_atualizar_tudo()
                         except Exception as ex:
                             ui.notify(f"Erro ao salvar Quesito 1.1.1: {ex}", type="negative")
 
                     ui.button("💾 Salvar Quesito 1.1.1", on_click=salvar_111).classes("bg-blue-800 text-white mt-2")
-                    bloco_comentarios("1.1.1", res_data, on_save_callback=recarregar_tudo, tabela_nome=tabela)
+                    bloco_comentarios("1.1.1", res_data, on_save_callback=salvar_e_atualizar_tudo, tabela_nome=tabela)
 
             render_formulario()
