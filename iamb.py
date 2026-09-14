@@ -66,7 +66,8 @@ def load_respostas(ano, tabela_nome="respostas_iamb_oficial"):
                     if link_val is None or link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    respostas[str(row["qid"])] = {
+                    key_qid = str(row["qid"]).strip()
+                    respostas[key_qid] = {
                         "valor": row["valor"] if row["valor"] is not None else "",
                         "pontos": (
                             float(row["pontos"])
@@ -99,8 +100,10 @@ def save_resposta(
     except (TypeError, ValueError):
         raise ValueError(f"Ano inválido: {ano!r}")
 
+    qid_str = str(qid).strip()
+
     if comentarios is None:
-        dados_atuais = load_respostas(ano, tabela_nome).get(str(qid), {})
+        dados_atuais = load_respostas(ano, tabela_nome).get(qid_str, {})
         comentarios = dados_atuais.get("comentarios", [])
 
     comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
@@ -125,7 +128,7 @@ def save_resposta(
                     query,
                     (
                         ano,
-                        str(qid),
+                        qid_str,
                         str(valor),
                         float(pontos),
                         link_final,
@@ -213,7 +216,7 @@ def render_painel_controle(
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # --- BLOCO DINÂMICO DE PONTUAÇÃO ---
+        # --- BLOCO DINÂMICO DE PONTUAÇÃO (CALCULA CORRETAMENTE DO BANCO) ---
         @ui.refreshable
         def render_bloco_pontuacao():
             ano_ref = int(app.storage.user.get("ano_referencia_global", 2026))
@@ -334,7 +337,8 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
         ano_sel = 2026
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
-    dados_q = res_data.get(str(qid), {})
+    qid_str = str(qid).strip()
+    dados_q = res_data.get(qid_str, {})
     historico = _obter_lista_comentarios(dados_q)
 
     status_global = dados_q.get("status", "Pendente")
@@ -364,7 +368,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
             historico.append(log)
             save_resposta(
                 ano=ano_ativo,
-                qid=qid,
+                qid=qid_str,
                 valor=dados_q.get("valor", ""),
                 pontos=dados_q.get("pontos", 0.0),
                 link=dados_q.get("link", ""),
@@ -396,7 +400,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
                     historico.pop(i)
                     save_resposta(
                         ano=ano_ativo,
-                        qid=qid,
+                        qid=qid_str,
                         valor=dados_q.get("valor", ""),
                         pontos=dados_q.get("pontos", 0.0),
                         link=dados_q.get("link", ""),
@@ -449,7 +453,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respost
                 })
                 save_resposta(
                     ano=ano_ativo,
-                    qid=qid,
+                    qid=qid_str,
                     valor=dados_q.get("valor", ""),
                     pontos=dados_q.get("pontos", 0.0),
                     link=dados_q.get("link", ""),
@@ -486,7 +490,8 @@ def render_quesito(
     tabela_nome="respostas_iamb_oficial",
     **kwargs,
 ):
-    d_data = res_data.get(str(qid), {})
+    qid_str = str(qid).strip()
+    d_data = res_data.get(qid_str, {})
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes(
@@ -642,13 +647,13 @@ def render_quesito(
 
                 link = input_link.value or ""
 
-                dados_atuais_db = load_respostas(ano_ativo, tabela_nome).get(str(qid), {})
+                dados_atuais_db = load_respostas(ano_ativo, tabela_nome).get(qid_str, {})
                 st = dados_atuais_db.get("status", "Pendente")
                 comms = dados_atuais_db.get("comentarios", [])
 
                 save_resposta(
                     ano=ano_ativo,
-                    qid=qid,
+                    qid=qid_str,
                     valor=val,
                     pontos=pts,
                     link=link,
@@ -672,15 +677,15 @@ def render_quesito(
             )
 
             bloco_comentarios(
-                qid, res_data, on_save_callback=on_save_callback, tabela_nome=tabela_nome
+                qid_str, res_data, on_save_callback=on_save_callback, tabela_nome=tabela_nome
             )
 
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL DO IAMB (SEM DECORADOR REFRESHABLE AQUI)
+# 4. CONTAINER PRINCIPAL DO IAMB
 # =============================================================================
 def container_formulario_iamb(quesitos_lista=None):
-    container_pai = ui.container().classes("w-full")
+    container_pai = ui.column().classes("w-full")
 
     @ui.refreshable
     def render_conteudo():
@@ -717,6 +722,9 @@ def container_formulario_iamb(quesitos_lista=None):
                             on_save_callback=render_conteudo.refresh,
                             **q
                         )
+
+    with container_pai:
+        render_conteudo()
 
             # =============================================================================
             # QUESITO 1.0 • ESTRUTURA ORGANIZACIONAL
