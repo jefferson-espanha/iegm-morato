@@ -401,7 +401,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# 3. RENDERIZADOR DE QUESITO
+# 3. RENDERIZADOR DE QUESITO (PADRÃO iGov-TI)
 # =============================================================================
 def render_quesito(
     ano,
@@ -414,24 +414,25 @@ def render_quesito(
     tipo="radio",
     informativo=False,
     is_text_area=False,
-    placeholder_text="Descreva a ação ou informe os dados...",
-    placeholder_link="Link para o Portal / Documento / Lei:",
+    placeholder_text="Cole os links ou informações aqui...",
+    placeholder_link="Link de Evidência / Documento:",
     pontuacao_maxima=None,
     **kwargs,
 ):
     d_data = res_data.get(qid, {})
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
-        with ui.expansion(f"🌱 Quesito {qid} - {titulo}", value=True).classes(
+        with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes(
             "w-full font-bold"
         ):
-            ui.label(f"{qid} • {titulo}").classes("text-h6 text-emerald-800 mt-2")
+            ui.label(f"{qid} • {titulo}").classes("text-h6 text-primary mt-2")
             ui.label(pergunta).classes("text-body1 font-bold my-2")
             ui.label(
-                "ℹ Preencha as comprovações ambientais e salve."
+                "ℹ Preencha os campos abaixo e clique no botão de salvar."
             ).classes("text-caption text-grey-6 mb-4")
 
             with ui.row().classes("w-full gap-4 items-start"):
+                # Coluna das Opções / Resposta
                 with ui.column().classes("flex-1"):
                     checkbox_dict = {}
                     input_valor = None
@@ -480,15 +481,15 @@ def render_quesito(
                         ).classes("gap-2")
                     else:
                         input_valor = ui.textarea(
-                            label="Comprovação / Detalhes:",
+                            label="Dados do quesito:",
                             placeholder=placeholder_text,
                             value=d_data.get("valor", ""),
                         ).classes("w-full").props("outlined rows=3")
 
-                # Links / Documentação
+                # Coluna das Evidências / Links
                 with ui.column().classes("flex-1"):
                     input_link = ui.textarea(
-                        label="Link da Evidência Ambiental:",
+                        label="Link de Evidência / Documento:",
                         value=d_data.get("link", ""),
                         placeholder=placeholder_link,
                     ).classes("w-full").props("outlined rows=3")
@@ -511,12 +512,12 @@ def render_quesito(
                         links = re.findall(REGEX_PURE_URL, txt_total)
                         if links:
                             with container_links:
-                                ui.label("Evidências Ativas: ").classes(
+                                ui.label("Links Ativos: ").classes(
                                     "font-bold text-caption"
                                 )
                                 for url in links:
                                     ui.link(url, target=url, new_tab=True).classes(
-                                        "text-caption text-emerald-700 mr-2"
+                                        "text-caption text-blue-6 mr-2"
                                     )
 
                     input_link.on(
@@ -529,12 +530,13 @@ def render_quesito(
 
                     atualizar_links_visuais()
 
+            # Exibição do Impacto de Pontuação
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
             def atualizar_label_pontos(pts, val):
                 if informativo or pontuacao_maxima == 0.0 or not opcoes:
                     lbl_pontos.set_content(
-                        f"<span style='color:#6c757d;'>📊 Impacto no IAMB: 0.0 pts (Informativo)</span>"
+                        f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>"
                     )
                 else:
                     cor = (
@@ -545,13 +547,14 @@ def render_quesito(
                         )
                     )
                     lbl_pontos.set_content(
-                        f"<span style='color:{cor};'>📊 Impacto no IAMB: {pts:.1f} pontos</span>"
+                        f"<span style='color:{cor};'>📊 Impacto de Pontuação no Quesito {qid}: {pts:.1f} pontos</span>"
                     )
 
             atualizar_label_pontos(
                 d_data.get("pontos", 0.0), d_data.get("valor", "")
             )
 
+            # Botão de Ação do Quesito
             def salvar():
                 if tipo == "checkbox" and opcoes:
                     selecionados = [
@@ -576,15 +579,30 @@ def render_quesito(
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
-                save_resposta(
-                    ano=ano,
-                    qid=qid,
-                    valor=val,
-                    pontos=pts,
-                    link=link,
-                    comentarios=comms,
-                    status=st,
-                )
+                if "save_resp" in globals():
+                    try:
+                        save_resp(qid, val, pts, link, comms, ano)
+                    except TypeError:
+                        save_resposta(
+                            ano=ano,
+                            qid=qid,
+                            valor=val,
+                            pontos=pts,
+                            link=link,
+                            comentarios=comms,
+                            status=st,
+                        )
+                else:
+                    save_resposta(
+                        ano=ano,
+                        qid=qid,
+                        valor=val,
+                        pontos=pts,
+                        link=link,
+                        comentarios=comms,
+                        status=st,
+                    )
+
                 atualizar_label_pontos(pts, val)
                 ui.notify(
                     f"Quesito {qid} salvo com sucesso!",
@@ -595,10 +613,11 @@ def render_quesito(
                 if on_save_callback:
                     on_save_callback()
 
-            ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes(
-                "bg-emerald-800 text-white mt-4"
+            ui.button(f"💾 SALVAR QUESITO {qid}", on_click=salvar).classes(
+                "bg-blue-800 text-white mt-4"
             )
 
+            # Inclusão da área de Análise / Parecer
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
 
