@@ -495,8 +495,8 @@ def container_formulario_iamb():
                 "text-h5 font-bold my-4 text-green-900"
             )
 
-            # =============================================================================
-            # HELPER DE PERSISTÊNCIA CORRIGIDO PARA A TABELA OFICIAL (iAmb)
+           # =============================================================================
+            # HELPER DE PERSISTÊNCIA NA TABELA OFICIAL (respostas_iamb_oficial)
             # =============================================================================
             def salvar_no_banco_iamb(qid_val, ano_val, valor_val, pontos_val, link_val):
                 """Grava as respostas diretamente na tabela respostas_iamb_oficial."""
