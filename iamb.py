@@ -453,7 +453,6 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes, placeholder_lin
         ui.label(f"📌 Quesito {qid} - {titulo}").classes("text-lg font-bold text-blue-900 mb-1")
         ui.label(pergunta).classes("text-base font-semibold text-gray-800 mt-2 mb-4")
 
-        # Seleção de opções e link
         radio_opcao = ui.radio(list(opcoes.keys()), value=valor_atual).classes("mb-4")
         input_link = ui.textarea("Página Eletrônica (Link / Evidência):", value=link_atual, placeholder=placeholder_link).classes("w-full mb-4")
 
@@ -463,10 +462,10 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes, placeholder_lin
                 pts_sel = opcoes.get(val_sel, 0.0)
                 lnk_sel = input_link.value or ""
 
-                # 1. Grava na tabela oficial do iAmb
+                # Chama a função global definida anteriormente
                 salvar_no_banco_iamb(qid, ano, val_sel, pts_sel, lnk_sel)
 
-                # 2. Atualiza a memória local para recalcular o Painel
+                # Atualiza a memória local res_data
                 res_data[qid] = {
                     "valor": val_sel,
                     "pontos": pts_sel,
@@ -488,7 +487,6 @@ def render_quesito(ano, res_data, qid, titulo, pergunta, opcoes, placeholder_lin
 
         ui.separator().classes("my-2")
         bloco_comentarios(qid, res_data, ano)
-
 
 # =============================================================================
 # 4. CONTAINER PRINCIPAL REFRESHABLE
@@ -644,10 +642,10 @@ def container_formulario_iamb():
                         pts_calculados = 30.0 if total_p > 0 else 0.0
                         composite_string = f"EF:{ef_val},CO:{co_val},TE:{te_val}|LINK:{lnk_val}"
 
-                        # Salva na tabela do iAmb
+                        # Salva na tabela oficial
                         salvar_no_banco_iamb("1.1.1", ano_sel, str(total_p), pts_calculados, composite_string)
                         
-                        # Atualiza a memória local para cálculo imediato do painel
+                        # Atualiza memória local
                         res_data["1.1.1"] = {
                             "valor": str(total_p), 
                             "pontos": pts_calculados, 
