@@ -61,8 +61,12 @@ def load_respostas(ano, tabela_nome="respostas_iamb"):
                     if link_val is None or link_val == "EMPTY_STRING":
                         link_val = ""
 
+                    valor_val = row["valor"]
+                    if valor_val is None or valor_val == "EMPTY_STRING":
+                        valor_val = ""
+
                     respostas[row["qid"]] = {
-                        "valor": row["valor"] if row["valor"] is not None else "",
+                        "valor": valor_val,
                         "pontos": (
                             float(row["pontos"])
                             if row["pontos"] is not None
@@ -94,7 +98,15 @@ def save_resposta(
         comentarios = dados_atuais.get("comentarios", [])
 
     comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
-    link_final = link.strip() if link else ""
+    
+    # Tratamento para evitar 'EMPTY_STRING' ou Nones nos campos de texto
+    valor_final = str(valor).strip() if valor is not None else ""
+    link_final = str(link).strip() if link else ""
+    
+    try:
+        pontos_final = float(pontos)
+    except (ValueError, TypeError):
+        pontos_final = 0.0
 
     query = f"""
         INSERT INTO {tabela_nome} (ano, qid, valor, pontos, link, comentarios, status)
@@ -114,10 +126,10 @@ def save_resposta(
                 cur.execute(
                     query,
                     (
-                        ano,
+                        int(ano),
                         str(qid),
-                        str(valor),
-                        float(pontos),
+                        valor_final,
+                        pontos_final,
                         link_final,
                         Json(comentarios_validos),
                         str(status),
