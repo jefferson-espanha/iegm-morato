@@ -662,16 +662,16 @@ def container_formulario_iamb():
                 "text-h5 font-bold my-4 text-green-900"
             )
 
-# =============================================================================
-            # HELPER DE PERSISTÊNCIA NO BANCO DE DADOS (iAmb)
+            # =============================================================================
+            # HELPER DE PERSISTÊNCIA CORRIGIDO PARA A TABELA OFICIAL (iAmb)
             # =============================================================================
             def salvar_no_banco_iamb(qid_val, ano_val, valor_val, pontos_val, link_val):
-                """Grava as respostas diretamente na tabela respostas_iamb."""
+                """Grava as respostas diretamente na tabela respostas_iamb_oficial."""
                 try:
                     with get_db_connection() as conn:
                         with conn.cursor() as cur:
                             cur.execute("""
-                                INSERT INTO respostas_iamb (qid, ano, valor, pontos, link, updated_at)
+                                INSERT INTO respostas_iamb_oficial (qid, ano, valor, pontos, link, updated_at)
                                 VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
                                 ON CONFLICT (ano, qid) 
                                 DO UPDATE SET 
@@ -682,7 +682,7 @@ def container_formulario_iamb():
                             """, (qid_val, ano_val, str(valor_val), float(pontos_val), str(link_val)))
                             conn.commit()
                 except Exception as err_db:
-                    print(f"❌ Erro ao salvar na tabela respostas_iamb (Quesito {qid_val}): {err_db}")
+                    print(f"❌ Erro de gravação no banco (Quesito {qid_val}): {err_db}")
                     raise err_db
 
             # =============================================================================
