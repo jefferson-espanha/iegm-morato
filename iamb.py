@@ -136,6 +136,7 @@ def save_resposta(
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao salvar resposta em {tabela_nome}: {e}")
+        raise
 
 
 def zerar_questionario_db(ano, tabela_nome="respostas_iamb"):
@@ -1299,3 +1300,17 @@ def container_formulario_iamb(quesitos_lista=None):
                     on_save_callback=container_formulario_iamb.refresh,
                     tabela_nome=tabela,
                 )
+
+
+# =============================================================================
+# 5. ENTRADA ÚNICA DA APLICAÇÃO
+# =============================================================================
+def render_iamb():
+    """Renderiza o formulário completo; o painel é criado apenas dentro dele."""
+    container_formulario_iamb()
+
+
+if __name__ in {"__main__", "__mp_main__"}:
+    @ui.page("/")
+    def main_page():
+        render_iamb()
