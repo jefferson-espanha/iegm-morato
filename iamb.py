@@ -676,7 +676,6 @@ def container_formulario_indicador(
                         on_save_callback=container_formulario_indicador.refresh,
                         **q
                     )
-
             # =============================================================================
             # QUESITO 1.0 • ESTRUTURA ORGANIZACIONAL
             # =============================================================================
