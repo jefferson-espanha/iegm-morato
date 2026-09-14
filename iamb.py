@@ -23,7 +23,7 @@ def get_db_connection():
 
 
 def init_db():
-    """Garante que a tabela respostas_iamb exista no Neon DB."""
+    """Garante que a tabela respostas_iamb exista e esteja correta."""
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -32,7 +32,7 @@ def init_db():
                         qid VARCHAR(50) NOT NULL,
                         ano INTEGER NOT NULL,
                         valor TEXT,
-                        pontos REAL DEFAULT 0,
+                        pontos REAL DEFAULT 0.0,
                         link TEXT,
                         comentarios JSONB DEFAULT '[]'::jsonb,
                         status VARCHAR(20) DEFAULT 'Pendente',
@@ -48,7 +48,22 @@ def init_db():
 init_db()
 
 
+def _obter_lista_comentarios(dados_banco):
+    raw = dados_banco.get("comentarios", [])
+    if isinstance(raw, str):
+        if raw in ["EMPTY_STRING", "", "null", "None"]:
+            return []
+        try:
+            raw = json.loads(raw)
+        except Exception:
+            return []
+    if isinstance(raw, list):
+        return raw
+    return []
+
+
 def load_respostas(ano):
+    """Carrega todas as respostas do iAmb para o ano selecionado."""
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
         FROM respostas_iamb
@@ -65,19 +80,17 @@ def load_respostas(ano):
                     if link_val is None or link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    respostas[row["qid"]] = {
+                    pts_val = 0.0
+                    try:
+                        pts_val = float(row["pontos"]) if row["pontos"] is not None else 0.0
+                    except (ValueError, TypeError):
+                        pts_val = 0.0
+
+                    respostas[str(row["qid"]).strip()] = {
                         "valor": row["valor"] if row["valor"] is not None else "",
-                        "pontos": (
-                            float(row["pontos"])
-                            if row["pontos"] is not None
-                            else 0.0
-                        ),
+                        "pontos": pts_val,
                         "link": link_val,
-                        "comentarios": (
-                            row["comentarios"]
-                            if isinstance(row["comentarios"], list)
-                            else []
-                        ),
+                        "comentarios": _obter_lista_comentarios({"comentarios": row["comentarios"]}),
                         "status": (
                             row["status"]
                             if row["status"] is not None
@@ -90,15 +103,21 @@ def load_respostas(ano):
     return respostas
 
 
-def save_resposta(
-    ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
-):
+def save_resposta(ano, qid, valor, pontos, link, comentarios=None, status="Pendente"):
+    """Salva/Atualiza o quesito com conversão explícita de tipos."""
+    qid_str = str(qid).strip()
+    
     if comentarios is None:
-        dados_atuais = load_respostas(ano).get(qid, {})
+        dados_atuais = load_respostas(ano).get(qid_str, {})
         comentarios = dados_atuais.get("comentarios", [])
 
     comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
-    link_final = link.strip() if link else ""
+    link_final = str(link).strip() if link else ""
+
+    try:
+        pontos_float = float(pontos)
+    except (ValueError, TypeError):
+        pontos_float = 0.0
 
     query = """
         INSERT INTO respostas_iamb (ano, qid, valor, pontos, link, comentarios, status)
@@ -118,10 +137,10 @@ def save_resposta(
                 cur.execute(
                     query,
                     (
-                        ano,
-                        str(qid),
+                        int(ano),
+                        qid_str,
                         str(valor),
-                        float(pontos),
+                        pontos_float,
                         link_final,
                         Json(comentarios_validos),
                         str(status),
@@ -129,7 +148,7 @@ def save_resposta(
                 )
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta no iAmb: {e}")
+        print(f"❌ Erro ao salvar resposta ({qid_str}): {e}")
 
 
 def zerar_questionario_db(ano):
@@ -137,24 +156,24 @@ def zerar_questionario_db(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano,))
+                cur.execute(query, (int(ano),))
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao zerar questionário iAmb: {e}")
+        print(f"❌ Erro ao zerar iAmb: {e}")
 
 
-def _obter_lista_comentarios(dados_banco):
-    raw = dados_banco.get("comentarios", [])
-    if isinstance(raw, str):
-        if raw in ["EMPTY_STRING", "", "null", "None"]:
-            return []
-        try:
-            raw = json.loads(raw)
-        except Exception:
-            return []
-    if isinstance(raw, list):
-        return raw
-    return []
+def obter_pontuacao_total_bd(ano):
+    """Consulta direta ao BD com SUM para garantir precisão."""
+    query = "SELECT COALESCE(SUM(pontos), 0) as total FROM respostas_iamb WHERE ano = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (int(ano),))
+                row = cur.fetchone()
+                return float(row["total"]) if row else 0.0
+    except Exception as e:
+        print(f"❌ Erro ao calcular pontuação total: {e}")
+        return 0.0
 
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
@@ -166,15 +185,15 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
 
 
 # =============================================================================
-# 1. PAINEL LATERAL / CONTROLE
+# 1. PAINEL LATERAL / CONTROLE (iAmb)
 # =============================================================================
 def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
-        ui.label("🛠️ Painel de Controle (iGov-TI)").classes(
-            "text-lg font-bold mb-2 text-blue-900"
+        ui.label("🌱 Painel de Controle (iAmb)").classes(
+            "text-lg font-bold mb-2 text-green-900"
         )
 
         def ao_mudar_ano(e):
@@ -190,10 +209,9 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
+        # Busca a soma direto no banco para evitar desacoplamento
+        total_pts = obter_pontuacao_total_bd(ano_atual)
         res_data = load_respostas(ano_atual)
-        total_pts = sum(
-            float(item.get("pontos", 0)) for item in res_data.values()
-        )
 
         if total_pts <= 500:
             faixa, cor = "C", "text-red-600"
@@ -207,7 +225,7 @@ def render_painel_controle(on_refresh_callback=None):
             faixa, cor = "A", "text-green-700"
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
-            ui.label("Pontuação Total").classes(
+            ui.label("PONTUAÇÃO TOTAL").classes(
                 "text-xs text-gray-500 font-bold uppercase"
             )
             ui.label(f"{total_pts:.1f} pts").classes(
@@ -222,12 +240,12 @@ def render_painel_controle(on_refresh_callback=None):
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
         def atualizar_dados():
-            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
+            ui.notify("Formulário iAmb atualizado!", type="positive", icon="refresh")
             if on_refresh_callback:
                 on_refresh_callback()
 
-        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
-            "w-full bg-blue-700 text-white mb-2"
+        ui.button("🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados).classes(
+            "w-full bg-green-800 text-white mb-2"
         )
         ui.separator().classes("my-2")
 
@@ -236,7 +254,7 @@ def render_painel_controle(on_refresh_callback=None):
                 "text-lg font-bold text-red-600"
             )
             ui.label(
-                f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!"
+                f"Você está prestes a apagar todas as respostas do iAmb ({ano_atual})!"
             ).classes("text-sm my-2")
 
             input_senha = ui.input(
@@ -247,7 +265,7 @@ def render_painel_controle(on_refresh_callback=None):
                 if input_senha.value == "fidelios":
                     zerar_questionario_db(ano_atual)
                     ui.notify(
-                        f"✅ Questionário de {ano_atual} foi zerado!",
+                        f"✅ Respostas de iAmb ({ano_atual}) foram zeradas!",
                         type="positive",
                     )
                     dialog_zerar.close()
@@ -267,12 +285,12 @@ def render_painel_controle(on_refresh_callback=None):
                 res_data, ano_atual, total_pts, faixa
             )
             ui.button(
-                "📄 Relatório",
+                "📄 RELATÓRIO",
                 on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_iGovTI_{ano_atual}.pdf"
+                    pdf_bytes, f"Relatorio_iAmb_{ano_atual}.pdf"
                 ),
             ).classes("flex-1 bg-green-700 text-white")
-            ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
+            ui.button("🗑️ ZERAR", on_click=dialog_zerar.open).classes(
                 "flex-1 bg-red-700 text-white"
             )
 
@@ -294,7 +312,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
-    dados_q = res_data.get(qid, {})
+    dados_q = res_data.get(str(qid).strip(), {})
     historico = _obter_lista_comentarios(dados_q)
 
     status_global = dados_q.get("status", "Pendente")
@@ -376,8 +394,8 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                         ).classes("w-full")
                     else:
                         ui.html(
-                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
-                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
+                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #2e7d32; border: 1px solid #e0e0e0; width: 100%;">
+                                <span style="font-size: 11px; color: #2e7d32; font-weight: bold;">👤 {autor}</span> 
                                 <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
                                 <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
                             </div>"""
@@ -416,8 +434,10 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                     on_save_callback()
 
         ui.button("Postar Comentário", on_click=postar_comentario).classes(
-            "bg-blue-600 text-white mt-2"
+            "bg-green-700 text-white mt-2"
         )
+
+
 # =============================================================================
 # 3. RENDERIZADOR DE QUESITO
 # =============================================================================
@@ -437,13 +457,14 @@ def render_quesito(
     pontuacao_maxima=None,
     **kwargs,
 ):
-    d_data = res_data.get(qid, {})
+    qid_key = str(qid).strip()
+    d_data = res_data.get(qid_key, {})
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
-        with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes(
+        with ui.expansion(f"📌 Quesito {qid_key} - {titulo}", value=True).classes(
             "w-full font-bold"
         ):
-            ui.label(f"{qid} • {titulo}").classes("text-h6 text-green-900 mt-2")
+            ui.label(f"{qid_key} • {titulo}").classes("text-h6 text-green-900 mt-2")
             ui.label(pergunta).classes("text-body1 font-bold my-2")
             ui.label(
                 "ℹ Preencha os campos abaixo e clique no botão de salvar."
@@ -551,7 +572,7 @@ def render_quesito(
             def atualizar_label_pontos(pts, val):
                 if informativo or pontuacao_maxima == 0.0 or not opcoes:
                     lbl_pontos.set_content(
-                        f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>"
+                        f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid_key}: 0.0 pontos (Informativo)</span>"
                     )
                 else:
                     cor = (
@@ -562,7 +583,7 @@ def render_quesito(
                         )
                     )
                     lbl_pontos.set_content(
-                        f"<span style='color:{cor};'>📊 Impacto de Pontuação no Quesito {qid}: {pts:.1f} pontos</span>"
+                        f"<span style='color:{cor};'>📊 Impacto de Pontuação no Quesito {qid_key}: {pts:.1f} pontos</span>"
                     )
 
             atualizar_label_pontos(
@@ -595,7 +616,7 @@ def render_quesito(
 
                 save_resposta(
                     ano=ano,
-                    qid=qid,
+                    qid=qid_key,
                     valor=val,
                     pontos=pts,
                     link=link,
@@ -605,7 +626,7 @@ def render_quesito(
 
                 atualizar_label_pontos(pts, val)
                 ui.notify(
-                    f"Quesito {qid} salvo com sucesso!",
+                    f"Quesito {qid_key} salvo com sucesso!",
                     type="positive",
                     icon="check_circle",
                 )
@@ -613,11 +634,12 @@ def render_quesito(
                 if on_save_callback:
                     on_save_callback()
 
-            ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes(
+            ui.button(f"💾 SALVAR QUESITO {qid_key}", on_click=salvar).classes(
                 "bg-green-800 text-white mt-4"
             )
 
-            bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
+            bloco_comentarios(qid_key, res_data, on_save_callback=on_save_callback)
+
 
 # =============================================================================
 # 4. CONTAINER PRINCIPAL REFRESHABLE (iAmb)
@@ -662,92 +684,3 @@ def container_formulario_iamb():
                 placeholder_link="Insira o link do organograma ou lei da estrutura administrativa...",
                 on_save_callback=container_formulario_iamb.refresh,
             )
-
-            # =============================================================================
-            # QUESITO 1.1 • CONSELHO MUNICIPAL DE MEIO AMBIENTE
-            # =============================================================================
-            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                ui.label("📌 Quesito 1.1 - Conselho Municipal do Meio Ambiente (COMDEMA)").classes("text-lg font-bold text-green-900 mb-1")
-                ui.label("Informe os dados da composição do conselho:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
-                
-                with ui.card().classes("w-full p-3 mb-4 bg-green-50 border-l-4 border-green-600 rounded-r-md shadow-none"):
-                    ui.label("Critério de pontuação:").classes("text-xs font-bold text-green-900 uppercase tracking-wide")
-                    ui.label(
-                        "Conselho ativo + Reuniões periódicas no ano de referência > 0 — 30 pontos"
-                    ).classes("text-sm text-green-800 font-medium")
-
-                def parse_int_seguro(val):
-                    if val is None:
-                        return 0
-                    if isinstance(val, (int, float)):
-                        return int(val)
-                    val_str = str(val).strip()
-                    if not val_str or not val_str.isdigit():
-                        return 0
-                    return int(val_str)
-
-                d11 = res_data.get("1.1") or {}
-                if not isinstance(d11, dict):
-                    d11 = {"valor": "0", "pontos": 0.0, "link": "", "comentarios": [], "status": "Pendente"}
-
-                v_reun_i, v_membro_i = 0, 0
-                evidencia_11_salva = ""
-                raw_link = str(d11.get("link") or "")
-
-                if raw_link:
-                    if "|LINK:" in raw_link:
-                        contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1)
-                    else:
-                        contadores_part, evidencia_11_salva = raw_link, ""
-
-                    match_r = re.search(r'R:(\d+)', contadores_part)
-                    match_m = re.search(r'M:(\d+)', contadores_part)
-
-                    v_reun_i = int(match_r.group(1)) if match_r else 0
-                    v_membro_i = int(match_m.group(1)) if match_m else 0
-
-                with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
-                    inp_reun = ui.number(label="Quantidade de Reuniões no Ano", value=v_reun_i, min=0).classes("w-full")
-                    inp_membro = ui.number(label="Quantidade de Membros Titulares", value=v_membro_i, min=0).classes("w-full")
-
-                inp_link11 = ui.textarea(
-                    label="Link de Evidência / Atas / Lei de Criação do Conselho:",
-                    value=evidencia_11_salva,
-                    placeholder="Cole o link das atas ou decreto de nomeação aqui..."
-                ).classes("w-full mb-4").props("outlined rows=2")
-
-                pts_atuais = float(d11.get("pontos", 0.0))
-                cor_pts = "#28a745" if pts_atuais > 0 else "#6c757d"
-                ui.html(f"<span style='color:{cor_pts}; font-weight:bold;'>📊 Impacto de Pontuação no Quesito 1.1: {pts_atuais:.1f} pontos</span>").classes("mb-4")
-
-                def cb_processa_e_salva_11():
-                    r_val = parse_int_seguro(inp_reun.value)
-                    m_val = parse_int_seguro(inp_membro.value)
-                    lnk_val = str(inp_link11.value or "").strip()
-
-                    # Lógica de cálculo de pontos do iAmb 1.1
-                    pts_calculados = 30.0 if (r_val > 0 and m_val > 0) else 0.0
-                    composite_string = f"R:{r_val},M:{m_val}|LINK:{lnk_val}"
-                    val_sumario = f"Reuniões Realizadas: {r_val}, Membros Titulares: {m_val}"
-
-                    # Recarrega os comentários e status atuais do Quesito 1.1 antes de salvar
-                    d11_atual = load_respostas(ano_sel).get("1.1", {})
-                    comms_atuais = d11_atual.get("comentarios", [])
-                    st_atual = d11_atual.get("status", "Pendente")
-
-                    save_resposta(
-                        ano=ano_sel,
-                        qid="1.1",
-                        valor=val_sumario,
-                        pontos=pts_calculados,
-                        link=composite_string,
-                        comentarios=comms_atuais,
-                        status=st_atual
-                    )
-
-                    ui.notify("Quesito 1.1 salvo com sucesso!", type="positive", icon="check_circle")
-                    container_formulario_iamb.refresh()
-
-                ui.button("💾 Salvar Quesito 1.1", on_click=cb_processa_e_salva_11).classes("bg-green-800 text-white mt-2")
-                
-                bloco_comentarios("1.1", res_data, on_save_callback=container_formulario_iamb.refresh)
