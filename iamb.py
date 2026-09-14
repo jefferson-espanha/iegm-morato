@@ -24,36 +24,38 @@ def get_db_connection():
 
 
 def init_db():
-    """Garante que a tabela respostas_iamb exista com as colunas certas."""
+    """Cria a nova tabela exclusiva respostas_iamb_oficial."""
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    CREATE TABLE IF NOT EXISTS respostas_iamb (
-                        qid VARCHAR(50) NOT NULL,
+                    CREATE TABLE IF NOT EXISTS respostas_iamb_oficial (
                         ano INTEGER NOT NULL,
+                        qid VARCHAR(50) NOT NULL,
                         valor TEXT,
-                        pontos REAL DEFAULT 0,
+                        pontos REAL DEFAULT 0.0,
                         link TEXT,
                         comentarios JSONB DEFAULT '[]'::jsonb,
-                        status VARCHAR(20) DEFAULT 'Pendente',
+                        status VARCHAR(50) DEFAULT 'Pendente',
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                         PRIMARY KEY (ano, qid)
                     );
                 """)
                 conn.commit()
+        print("✅ Nova tabela 'respostas_iamb_oficial' verificada/criada com sucesso!")
     except Exception as e:
-        print(f"❌ Erro ao inicializar tabela respostas_iamb: {e}")
+        print(f"❌ Erro ao inicializar tabela respostas_iamb_oficial: {e}")
 
 
+# Inicializa a nova tabela ao carregar o módulo
 init_db()
 
 
 def load_respostas(ano):
-    """Carrega as respostas do banco Neon para o ano especificado."""
+    """Carrega as respostas do iAmb para o ano especificado na nova tabela."""
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
-        FROM respostas_iamb
+        FROM respostas_iamb_oficial
         WHERE ano = %s;
     """
     respostas = {}
@@ -94,22 +96,19 @@ def load_respostas(ano):
                         ),
                     }
     except Exception as e:
-        print(f"❌ Erro ao carregar respostas do Neon DB (iAmb): {e}")
+        print(f"❌ Erro ao carregar respostas do iAmb: {e}")
 
     return respostas
 
 
 def save_resposta(*args, **kwargs):
     """
-    Salva ou atualiza uma resposta no banco de dados Neon.
-    Aceita chamadas posicionais ou por argumentos nomeados flexíveis:
-    - save_resposta(qid, valor, pontos, link, comentarios, ano, status)
-    - save_resposta(ano, qid, valor, pontos, link, comentarios, status)
+    Salva ou atualiza uma resposta na nova tabela respostas_iamb_oficial.
+    Aceita chamadas tanto por ordem (qid, valor, pontos...) quanto (ano, qid, valor...).
     """
-    # Flexibilidade para interpretar argumentos posicionais
     if len(args) >= 5:
-        # Se o 1º argumento for inteiro ou converter para tal (ex: 2026), é o 'ano'
         first_arg = str(args[0])
+        # Se o 1º parâmetro for um número de 4 dígitos (ano)
         if first_arg.isdigit() and len(first_arg) == 4:
             ano = int(args[0])
             qid = str(args[1])
@@ -135,12 +134,12 @@ def save_resposta(*args, **kwargs):
         ano = kwargs.get("ano")
         status = kwargs.get("status", "Pendente")
 
-    # Recupera ano global do NiceGUI se não tiver sido passado
+    # Garante o ano corrente/global caso não tenha sido passado
     if ano is None:
         ano = app.storage.user.get("ano_referencia_global", 2026)
     ano = int(ano)
 
-    # Tratamento dos comentários
+    # Trata comentários vazios ou existentes
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(qid, {})
         comentarios = dados_atuais.get("comentarios", [])
@@ -149,7 +148,7 @@ def save_resposta(*args, **kwargs):
     link_final = str(link).strip() if link else ""
 
     query = """
-        INSERT INTO respostas_iamb (ano, qid, valor, pontos, link, comentarios, status, updated_at)
+        INSERT INTO respostas_iamb_oficial (ano, qid, valor, pontos, link, comentarios, status, updated_at)
         VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
         ON CONFLICT (ano, qid) 
         DO UPDATE SET
@@ -176,23 +175,23 @@ def save_resposta(*args, **kwargs):
                     ),
                 )
                 conn.commit()
-        print(f"✅ Quesito {qid} ({ano}) gravado com SUCESSO no Neon DB!")
+        print(f"✅ Quesito {qid} ({ano}) salvo na tabela respostas_iamb_oficial!")
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta no Neon DB (iAmb): {e}")
-        raise e  # Propaga o erro para o NiceGUI exibir no ui.notify se necessário
+        print(f"❌ Erro ao salvar na respostas_iamb_oficial: {e}")
+        raise e
 
 
 def zerar_questionario_db(ano):
-    """Apaga todas as respostas de determinado ano do banco de dados."""
-    query = "DELETE FROM respostas_iamb WHERE ano = %s;"
+    """Apaga todas as respostas do ano na tabela respostas_iamb_oficial."""
+    query = "DELETE FROM respostas_iamb_oficial WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(query, (int(ano),))
                 conn.commit()
-        print(f"✅ Questionário do ano {ano} foi zerado com sucesso!")
+        print(f"✅ Questionário iAmb ({ano}) zerado com sucesso!")
     except Exception as e:
-        print(f"❌ Erro ao zerar questionário no Neon DB (iAmb): {e}")
+        print(f"❌ Erro ao zerar respostas_iamb_oficial: {e}")
 
 
 def _obter_lista_comentarios(dados_banco):
@@ -214,7 +213,7 @@ def _obter_lista_comentarios(dados_banco):
 
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
-    """Gera um relatório simples em texto encodado como bytes para download."""
+    """Gera um relatório em bytes do formulário iAmb."""
     conteudo = f"RELATÓRIO TÉCNICO iAmb ({ano})\n"
     conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
     for qid, dados in res_data.items():
