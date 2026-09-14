@@ -679,7 +679,7 @@ def container_formulario_iamb():
                 pergunta="A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?",
                 opcoes=opcoes_10,
                 placeholder_link="Insira o link da lei da estrutura administrativa, organograma ou decreto...",
-                on_save_callback=container_formulario_igov_ti.refresh,
+                on_save_callback=container_formulario_iamb.refresh,
             )
 
             # =============================================================================
@@ -699,7 +699,7 @@ def container_formulario_iamb():
                 pergunta="A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?",
                 opcoes=opcoes_11,
                 placeholder_link="Insira o link da folha simplificada, ato de nomeação ou relatório do RH...",
-                on_save_callback=container_formulario_igov_ti.refresh,
+                on_save_callback=container_formulario_iamb.refresh,
             )
 
             # =============================================================================
@@ -795,7 +795,7 @@ def container_formulario_iamb():
                         }
                         
                         ui.notify("Quesito 1.1.1 salvo com sucesso!", type="positive")
-                        container_formulario_igov_ti.refresh()
+                        container_formulario_iamb.refresh()
                     except Exception as err:
                         ui.notify(f"Erro ao salvar Quesito 1.1.1: {err}", type="negative")
 
@@ -859,5 +859,5 @@ def container_formulario_iamb():
                 pergunta="Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente em 2025?",
                 opcoes=opcoes_112,
                 placeholder_link="Insira o link dos certificados, lista de presença ou comprovante de capacitação...",
-                on_save_callback=container_formulario_igov_ti.refresh,
+                on_save_callback=container_formulario_iamb.refresh,
             )
