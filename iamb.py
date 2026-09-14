@@ -166,15 +166,15 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
 
 
 # =============================================================================
-# 1. PAINEL LATERAL / CONTROLE (iAmb)
+# 1. PAINEL LATERAL / CONTROLE
 # =============================================================================
 def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
-        ui.label("🌱 Painel de Controle (iAmb)").classes(
-            "text-lg font-bold mb-2 text-green-900"
+        ui.label("🛠️ Painel de Controle (iGov-TI)").classes(
+            "text-lg font-bold mb-2 text-blue-900"
         )
 
         def ao_mudar_ano(e):
@@ -207,7 +207,7 @@ def render_painel_controle(on_refresh_callback=None):
             faixa, cor = "A", "text-green-700"
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
-            ui.label("Pontuação Total (iAmb)").classes(
+            ui.label("Pontuação Total").classes(
                 "text-xs text-gray-500 font-bold uppercase"
             )
             ui.label(f"{total_pts:.1f} pts").classes(
@@ -222,12 +222,12 @@ def render_painel_controle(on_refresh_callback=None):
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
         def atualizar_dados():
-            ui.notify("Formulário iAmb atualizado!", type="positive", icon="refresh")
+            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
             if on_refresh_callback:
                 on_refresh_callback()
 
         ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
-            "w-full bg-green-800 text-white mb-2"
+            "w-full bg-blue-700 text-white mb-2"
         )
         ui.separator().classes("my-2")
 
@@ -236,7 +236,7 @@ def render_painel_controle(on_refresh_callback=None):
                 "text-lg font-bold text-red-600"
             )
             ui.label(
-                f"Você está prestes a apagar todas as respostas de iAmb para {ano_atual}!"
+                f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!"
             ).classes("text-sm my-2")
 
             input_senha = ui.input(
@@ -247,7 +247,7 @@ def render_painel_controle(on_refresh_callback=None):
                 if input_senha.value == "fidelios":
                     zerar_questionario_db(ano_atual)
                     ui.notify(
-                        f"✅ Respostas de iAmb ({ano_atual}) foram zeradas!",
+                        f"✅ Questionário de {ano_atual} foi zerado!",
                         type="positive",
                     )
                     dialog_zerar.close()
@@ -269,7 +269,7 @@ def render_painel_controle(on_refresh_callback=None):
             ui.button(
                 "📄 Relatório",
                 on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_iAmb_{ano_atual}.pdf"
+                    pdf_bytes, f"Relatorio_iGovTI_{ano_atual}.pdf"
                 ),
             ).classes("flex-1 bg-green-700 text-white")
             ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
@@ -376,8 +376,8 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                         ).classes("w-full")
                     else:
                         ui.html(
-                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #2e7d32; border: 1px solid #e0e0e0; width: 100%;">
-                                <span style="font-size: 11px; color: #2e7d32; font-weight: bold;">👤 {autor}</span> 
+                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
+                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
                                 <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
                                 <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
                             </div>"""
@@ -416,10 +416,8 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                     on_save_callback()
 
         ui.button("Postar Comentário", on_click=postar_comentario).classes(
-            "bg-green-700 text-white mt-2"
+            "bg-blue-600 text-white mt-2"
         )
-
-
 # =============================================================================
 # 3. RENDERIZADOR DE QUESITO
 # =============================================================================
