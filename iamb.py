@@ -45,6 +45,11 @@ def init_db(tabela_nome="respostas_iamb"):
 
 
 def load_respostas(ano, tabela_nome="respostas_iamb"):
+    try:
+        ano = int(ano)
+    except (TypeError, ValueError):
+        ano = 2026
+
     query = f"""
         SELECT qid, valor, pontos, link, comentarios, status
         FROM {tabela_nome}
@@ -61,12 +66,8 @@ def load_respostas(ano, tabela_nome="respostas_iamb"):
                     if link_val is None or link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    valor_val = row["valor"]
-                    if valor_val is None or valor_val == "EMPTY_STRING":
-                        valor_val = ""
-
                     respostas[row["qid"]] = {
-                        "valor": valor_val,
+                        "valor": row["valor"] if row["valor"] is not None else "",
                         "pontos": (
                             float(row["pontos"])
                             if row["pontos"] is not None
@@ -93,20 +94,17 @@ def load_respostas(ano, tabela_nome="respostas_iamb"):
 def save_resposta(
     ano, qid, valor, pontos, link, comentarios=None, status="Pendente", tabela_nome="respostas_iamb"
 ):
+    try:
+        ano = int(ano)
+    except (TypeError, ValueError):
+        raise ValueError(f"Ano inválido: {ano!r}")
+
     if comentarios is None:
         dados_atuais = load_respostas(ano, tabela_nome).get(qid, {})
         comentarios = dados_atuais.get("comentarios", [])
 
     comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
-    
-    # Tratamento para evitar 'EMPTY_STRING' ou Nones nos campos de texto
-    valor_final = str(valor).strip() if valor is not None else ""
-    link_final = str(link).strip() if link else ""
-    
-    try:
-        pontos_final = float(pontos)
-    except (ValueError, TypeError):
-        pontos_final = 0.0
+    link_final = link.strip() if link else ""
 
     query = f"""
         INSERT INTO {tabela_nome} (ano, qid, valor, pontos, link, comentarios, status)
@@ -126,10 +124,10 @@ def save_resposta(
                 cur.execute(
                     query,
                     (
-                        int(ano),
+                        ano,
                         str(qid),
-                        valor_final,
-                        pontos_final,
+                        str(valor),
+                        float(pontos),
                         link_final,
                         Json(comentarios_validos),
                         str(status),
@@ -141,6 +139,11 @@ def save_resposta(
 
 
 def zerar_questionario_db(ano, tabela_nome="respostas_iamb"):
+    try:
+        ano = int(ano)
+    except (TypeError, ValueError):
+        raise ValueError(f"Ano inválido: {ano!r}")
+
     query = f"DELETE FROM {tabela_nome} WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
@@ -184,7 +187,10 @@ def render_painel_controle(
 ):
     init_db(tabela_nome)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
-    ano_atual = app.storage.user.get("ano_referencia_global", 2026)
+    try:
+        ano_atual = int(app.storage.user.get("ano_referencia_global", 2026))
+    except (TypeError, ValueError):
+        ano_atual = 2026
     nome_indicador_str = str(nome_indicador)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
@@ -193,8 +199,9 @@ def render_painel_controle(
         )
 
         def ao_mudar_ano(e):
-            app.storage.user["ano_referencia_global"] = e.value
-            ui.notify(f"Ano alterado para {e.value}", type="info")
+            novo_ano = int(e.value)
+            app.storage.user["ano_referencia_global"] = novo_ano
+            ui.notify(f"Ano alterado para {novo_ano}", type="info")
             if on_refresh_callback:
                 on_refresh_callback()
 
@@ -306,7 +313,10 @@ def render_painel_controle(
 # 2. BLOCO DE COMENTÁRIOS
 # =============================================================================
 def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respostas_iamb"):
-    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+    try:
+        ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+    except (TypeError, ValueError):
+        ano_sel = 2026
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
     dados_q = res_data.get(qid, {})
@@ -650,7 +660,11 @@ def render_quesito(
 @ui.refreshable
 def container_formulario_iamb(quesitos_lista=None):
     """Declaração oficial da função 'container_formulario_iamb'."""
-    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+    try:
+        ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+    except (TypeError, ValueError):
+        ano_sel = 2026
+    app.storage.user["ano_referencia_global"] = ano_sel
     tabela = "respostas_iamb"
     res_data = load_respostas(ano_sel, tabela)
 
@@ -751,7 +765,16 @@ def container_formulario_iamb(quesitos_lista=None):
                         val_str = json.dumps(res_dict)
                         lnk_val = str(state_111["link"] or "").strip()
 
-                        save_resposta("1.1.1", val_str, 0.0, lnk_val, _obter_lista_comentarios(d111), ano_sel)
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="1.1.1",
+                            valor=val_str,
+                            pontos=0.0,
+                            link=lnk_val,
+                            comentarios=_obter_lista_comentarios(d111),
+                            status=d111.get("status", "Pendente"),
+                            tabela_nome=tabela,
+                        )
                         res_data["1.1.1"] = {"valor": val_str, "pontos": 0.0, "link": lnk_val}
                         ui.notify("Quesito 1.1.1 salvo com sucesso!", type="positive")
                         container_formulario_iamb.refresh()
@@ -773,7 +796,12 @@ def container_formulario_iamb(quesitos_lista=None):
                     ui.button("Salvar Quesito 1.1.1", on_click=salvar_111, icon="save").classes("bg-green-800 text-white font-medium px-4 py-2 rounded-md")
 
                 ui.separator().classes("my-2")
-                bloco_comentarios("1.1.1", res_data, ano_sel)
+                bloco_comentarios(
+                    "1.1.1",
+                    res_data,
+                    on_save_callback=container_formulario_iamb.refresh,
+                    tabela_nome=tabela,
+                )
 
             # =============================================================================
             # QUESITO 1.1.2 • TREINAMENTO ESPECÍFICO DOS SERVIDORES
@@ -847,7 +875,16 @@ def container_formulario_iamb(quesitos_lista=None):
                         val_str = ", ".join(marcados)
                         lnk_val = str(state_113["link"] or "").strip()
 
-                        save_resposta("1.1.3", val_str, pts_acumulados, lnk_val, _obter_lista_comentarios(d113), ano_sel)
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="1.1.3",
+                            valor=val_str,
+                            pontos=pts_acumulados,
+                            link=lnk_val,
+                            comentarios=_obter_lista_comentarios(d113),
+                            status=d113.get("status", "Pendente"),
+                            tabela_nome=tabela,
+                        )
                         res_data["1.1.3"] = {"valor": val_str, "pontos": pts_acumulados, "link": lnk_val}
                         ui.notify("Quesito 1.1.3 salvo com sucesso!", type="positive")
                         container_formulario_iamb.refresh()
@@ -877,7 +914,12 @@ def container_formulario_iamb(quesitos_lista=None):
                     ui.button("Salvar Quesito 1.1.3", on_click=salvar_113, icon="save").classes("bg-green-800 text-white font-medium px-4 py-2 rounded-md")
 
                 ui.separator().classes("my-2")
-                bloco_comentarios("1.1.3", res_data, ano_sel)
+                bloco_comentarios(
+                    "1.1.3",
+                    res_data,
+                    on_save_callback=container_formulario_iamb.refresh,
+                    tabela_nome=tabela,
+                )
 
             # =============================================================================
             # QUESITO 1.2 • RECURSOS DISPONIBILIZADOS
@@ -932,7 +974,16 @@ def container_formulario_iamb(quesitos_lista=None):
                         val_str = ", ".join(marcados)
                         lnk_val = str(state_12["link"] or "").strip()
 
-                        save_resposta("1.2", val_str, pts_acumulados, lnk_val, _obter_lista_comentarios(d12), ano_sel)
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="1.2",
+                            valor=val_str,
+                            pontos=pts_acumulados,
+                            link=lnk_val,
+                            comentarios=_obter_lista_comentarios(d12),
+                            status=d12.get("status", "Pendente"),
+                            tabela_nome=tabela,
+                        )
                         res_data["1.2"] = {"valor": val_str, "pontos": pts_acumulados, "link": lnk_val}
                         ui.notify("Quesito 1.2 salvo com sucesso!", type="positive")
                         container_formulario_iamb.refresh()
@@ -962,7 +1013,12 @@ def container_formulario_iamb(quesitos_lista=None):
                     ui.button("Salvar Quesito 1.2", on_click=salvar_12, icon="save").classes("bg-green-800 text-white font-medium px-4 py-2 rounded-md")
 
                 ui.separator().classes("my-2")
-                bloco_comentarios("1.2", res_data, ano_sel)
+                bloco_comentarios(
+                    "1.2",
+                    res_data,
+                    on_save_callback=container_formulario_iamb.refresh,
+                    tabela_nome=tabela,
+                )
 
             # =============================================================================
             # QUESITO 2.0 • PROGRAMAS DE EDUCAÇÃO AMBIENTAL
@@ -1041,7 +1097,16 @@ def container_formulario_iamb(quesitos_lista=None):
                         lnk_val = str(state_21["link"] or "").strip()
 
                         # Salvar no banco
-                        save_resposta("2.1", val_str, pts_finais, lnk_val, _obter_lista_comentarios(d21), ano_sel)
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="2.1",
+                            valor=val_str,
+                            pontos=pts_finais,
+                            link=lnk_val,
+                            comentarios=_obter_lista_comentarios(d21),
+                            status=d21.get("status", "Pendente"),
+                            tabela_nome=tabela,
+                        )
                         
                         # Atualizar dados locais
                         res_data["2.1"] = {"valor": val_str, "pontos": pts_finais, "link": lnk_val}
@@ -1082,7 +1147,12 @@ def container_formulario_iamb(quesitos_lista=None):
                     ui.button("Salvar Quesito 2.1", on_click=salvar_21, icon="save").classes("bg-green-800 text-white font-medium px-4 py-2 rounded-md")
 
                 ui.separator().classes("my-2")
-                bloco_comentarios("2.1", res_data, ano_sel)
+                bloco_comentarios(
+                    "2.1",
+                    res_data,
+                    on_save_callback=container_formulario_iamb.refresh,
+                    tabela_nome=tabela,
+                )
 
             # =============================================================================
             # TITULO SEÇÃO 3.0
@@ -1166,7 +1236,16 @@ def container_formulario_iamb(quesitos_lista=None):
                         val_str = ", ".join(marcados)
                         lnk_val = str(state_31["link"] or "").strip()
 
-                        save_resposta("3.1", val_str, pts_acumulados, lnk_val, _obter_lista_comentarios(d31), ano_sel)
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="3.1",
+                            valor=val_str,
+                            pontos=pts_acumulados,
+                            link=lnk_val,
+                            comentarios=_obter_lista_comentarios(d31),
+                            status=d31.get("status", "Pendente"),
+                            tabela_nome=tabela,
+                        )
                         res_data["3.1"] = {"valor": val_str, "pontos": pts_acumulados, "link": lnk_val}
                         ui.notify("Quesito 3.1 salvo com sucesso!", type="positive")
                         container_formulario_iamb.refresh()
@@ -1214,4 +1293,9 @@ def container_formulario_iamb(quesitos_lista=None):
                     ui.button("Salvar Quesito 3.1", on_click=salvar_31, icon="save").classes("bg-green-800 text-white font-medium px-4 py-2 rounded-md")
 
                 ui.separator().classes("my-2")
-                bloco_comentarios("3.1", res_data, ano_sel)
+                bloco_comentarios(
+                    "3.1",
+                    res_data,
+                    on_save_callback=container_formulario_iamb.refresh,
+                    tabela_nome=tabela,
+                )
