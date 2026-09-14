@@ -22,8 +22,7 @@ def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
-def init_db(tabela_nome="respostas_indicador"):
-    """Cria dinamicamente a tabela do indicador informado se não existir."""
+def init_db(tabela_nome="respostas_iamb"):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -45,7 +44,7 @@ def init_db(tabela_nome="respostas_indicador"):
         print(f"❌ Erro ao inicializar tabela {tabela_nome}: {e}")
 
 
-def load_respostas(ano, tabela_nome="respostas_indicador"):
+def load_respostas(ano, tabela_nome="respostas_iamb"):
     query = f"""
         SELECT qid, valor, pontos, link, comentarios, status
         FROM {tabela_nome}
@@ -88,7 +87,7 @@ def load_respostas(ano, tabela_nome="respostas_indicador"):
 
 
 def save_resposta(
-    ano, qid, valor, pontos, link, comentarios=None, status="Pendente", tabela_nome="respostas_indicador"
+    ano, qid, valor, pontos, link, comentarios=None, status="Pendente", tabela_nome="respostas_iamb"
 ):
     if comentarios is None:
         dados_atuais = load_respostas(ano, tabela_nome).get(qid, {})
@@ -129,7 +128,7 @@ def save_resposta(
         print(f"❌ Erro ao salvar resposta em {tabela_nome}: {e}")
 
 
-def zerar_questionario_db(ano, tabela_nome="respostas_indicador"):
+def zerar_questionario_db(ano, tabela_nome="respostas_iamb"):
     query = f"DELETE FROM {tabela_nome} WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
@@ -154,10 +153,8 @@ def _obter_lista_comentarios(dados_banco):
     return []
 
 
-def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa, nome_indicador="INDICADOR"):
-    # Converte explicitamente para str para evitar crash se o parametro vier como int ou outro tipo
+def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa, nome_indicador="iAMB"):
     nome_indicador_str = str(nome_indicador).upper()
-    
     conteudo = f"RELATÓRIO TÉCNICO {nome_indicador_str} ({ano})\n"
     conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
     for qid, dados in res_data.items():
@@ -166,18 +163,16 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa, nome_indicador="I
 
 
 # =============================================================================
-# 1. PAINEL LATERAL / CONTROLE
+# 1. PAINEL LATERAL
 # =============================================================================
 def render_painel_controle(
     on_refresh_callback=None,
-    nome_indicador="Indicador",
-    tabela_nome="respostas_indicador"
+    nome_indicador="iAMB",
+    tabela_nome="respostas_iamb"
 ):
     init_db(tabela_nome)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
-
-    # Tratamento preventivo para garantir que nome_indicador seja string nas interfaces
     nome_indicador_str = str(nome_indicador)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
@@ -203,7 +198,6 @@ def render_painel_controle(
             float(item.get("pontos", 0)) for item in res_data.values()
         )
 
-        # Regra de Faixas
         if total_pts <= 500:
             faixa, cor = "C", "text-red-600"
         elif total_pts <= 599:
@@ -297,9 +291,9 @@ def render_painel_controle(
 
 
 # =============================================================================
-# 2. BLOCO DE COMENTÁRIOS INTERNOS
+# 2. BLOCO DE COMENTÁRIOS
 # =============================================================================
-def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respostas_indicador"):
+def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respostas_iamb"):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
@@ -449,7 +443,7 @@ def render_quesito(
     placeholder_text="Cole os links ou informações aqui...",
     placeholder_link="Link de Evidência / Documento:",
     pontuacao_maxima=None,
-    tabela_nome="respostas_indicador",
+    tabela_nome="respostas_iamb",
     **kwargs,
 ):
     d_data = res_data.get(qid, {})
@@ -639,32 +633,29 @@ def render_quesito(
 
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL
+# 4. CONTAINER PRINCIPAL DO IAMB
 # =============================================================================
 @ui.refreshable
-def container_formulario_indicador(
-    nome_indicador="iGov-TI",
-    tabela_nome="respostas_igovti",
-    quesitos_lista=None
-):
+def container_formulario_iamb(quesitos_lista=None):
+    """Declaração oficial da função 'container_formulario_iamb'."""
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
-    res_data = load_respostas(ano_sel, tabela_nome)
-    nome_indicador_str = str(nome_indicador)
+    tabela = "respostas_iamb"
+    res_data = load_respostas(ano_sel, tabela)
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
         with ui.column().classes("col-span-1 w-full"):
             render_painel_controle(
-                on_refresh_callback=container_formulario_indicador.refresh,
-                nome_indicador=nome_indicador_str,
-                tabela_nome=tabela_nome,
+                on_refresh_callback=container_formulario_iamb.refresh,
+                nome_indicador="iAMB",
+                tabela_nome=tabela,
             )
 
         with ui.column().classes("col-span-3 w-full"):
             ui.label(
-                f"Formulário {nome_indicador_str} ({ano_sel})"
+                f"Formulário iAMB ({ano_sel})"
             ).classes("text-h4 mb-1 font-bold text-blue-900")
             ui.label(
-                f"Preencha as evidências e questões do indicador {nome_indicador_str}."
+                "Preencha as evidências e questões ambientais do município."
             ).classes("text-gray-600 mb-6")
 
             if quesitos_lista:
@@ -672,8 +663,8 @@ def container_formulario_indicador(
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        tabela_nome=tabela_nome,
-                        on_save_callback=container_formulario_indicador.refresh,
+                        tabela_nome=tabela,
+                        on_save_callback=container_formulario_iamb.refresh,
                         **q
                     )
             # =============================================================================
