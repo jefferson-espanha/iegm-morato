@@ -22,7 +22,7 @@ def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
-def init_db(tabela_nome="respostas_iamb"):
+def init_db(tabela_nome="respostas_iamb_oficial"):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -44,7 +44,7 @@ def init_db(tabela_nome="respostas_iamb"):
         print(f"❌ Erro ao inicializar tabela {tabela_nome}: {e}")
 
 
-def load_respostas(ano, tabela_nome="respostas_iamb"):
+def load_respostas(ano, tabela_nome="respostas_iamb_oficial"):
     try:
         ano = int(ano)
     except (TypeError, ValueError):
@@ -66,7 +66,7 @@ def load_respostas(ano, tabela_nome="respostas_iamb"):
                     if link_val is None or link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    respostas[row["qid"]] = {
+                    respostas[str(row["qid"])] = {
                         "valor": row["valor"] if row["valor"] is not None else "",
                         "pontos": (
                             float(row["pontos"])
@@ -92,7 +92,7 @@ def load_respostas(ano, tabela_nome="respostas_iamb"):
 
 
 def save_resposta(
-    ano, qid, valor, pontos, link, comentarios=None, status="Pendente", tabela_nome="respostas_iamb"
+    ano, qid, valor, pontos, link, comentarios=None, status="Pendente", tabela_nome="respostas_iamb_oficial"
 ):
     try:
         ano = int(ano)
@@ -100,7 +100,7 @@ def save_resposta(
         raise ValueError(f"Ano inválido: {ano!r}")
 
     if comentarios is None:
-        dados_atuais = load_respostas(ano, tabela_nome).get(qid, {})
+        dados_atuais = load_respostas(ano, tabela_nome).get(str(qid), {})
         comentarios = dados_atuais.get("comentarios", [])
 
     comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
@@ -139,7 +139,7 @@ def save_resposta(
         raise
 
 
-def zerar_questionario_db(ano, tabela_nome="respostas_iamb"):
+def zerar_questionario_db(ano, tabela_nome="respostas_iamb_oficial"):
     try:
         ano = int(ano)
     except (TypeError, ValueError):
@@ -184,7 +184,7 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa, nome_indicador="i
 def render_painel_controle(
     on_refresh_callback=None,
     nome_indicador="iAMB",
-    tabela_nome="respostas_iamb"
+    tabela_nome="respostas_iamb_oficial"
 ):
     init_db(tabela_nome)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
@@ -213,7 +213,7 @@ def render_painel_controle(
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # --- BLOCO DINÂMICO DE PONTUAÇÃO (RE-RENDERIZÁVEL) ---
+        # --- BLOCO DINÂMICO DE PONTUAÇÃO ---
         @ui.refreshable
         def render_bloco_pontuacao():
             ano_ref = int(app.storage.user.get("ano_referencia_global", 2026))
@@ -255,10 +255,9 @@ def render_painel_controle(
             if on_refresh_callback:
                 on_refresh_callback()
 
-        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
-            "w-full bg-blue-700 text-white mb-2"
+        ui.button("🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados).classes(
+            "w-full bg-blue-600 text-white mb-2"
         )
-        ui.separator().classes("my-2")
 
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
@@ -305,13 +304,13 @@ def render_painel_controle(
                 res_data_rel, ano_atual, pts_rel, faixa_rel, nome_indicador_str
             )
             ui.button(
-                "📄 Relatório",
+                "📄 RELATÓRIO",
                 on_click=lambda: ui.download(
                     pdf_bytes, f"Relatorio_{nome_indicador_str}_{ano_atual}.pdf"
                 ),
-            ).classes("flex-1 bg-green-700 text-white")
-            ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
-                "flex-1 bg-red-700 text-white"
+            ).classes("flex-1 bg-blue-500 text-white")
+            ui.button("🗑️ ZERAR", on_click=dialog_zerar.open).classes(
+                "flex-1 bg-blue-500 text-white"
             )
 
         ui.separator().classes("my-4")
@@ -328,14 +327,14 @@ def render_painel_controle(
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS
 # =============================================================================
-def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respostas_iamb"):
+def bloco_comentarios(qid, res_data, on_save_callback=None, tabela_nome="respostas_iamb_oficial"):
     try:
         ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
     except (TypeError, ValueError):
         ano_sel = 2026
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
-    dados_q = res_data.get(qid, {})
+    dados_q = res_data.get(str(qid), {})
     historico = _obter_lista_comentarios(dados_q)
 
     status_global = dados_q.get("status", "Pendente")
@@ -484,10 +483,10 @@ def render_quesito(
     placeholder_text="Cole os links ou informações aqui...",
     placeholder_link="Link de Evidência / Documento:",
     pontuacao_maxima=None,
-    tabela_nome="respostas_iamb",
+    tabela_nome="respostas_iamb_oficial",
     **kwargs,
 ):
-    d_data = res_data.get(qid, {})
+    d_data = res_data.get(str(qid), {})
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes(
@@ -620,7 +619,6 @@ def render_quesito(
             )
 
             def salvar():
-                # LER O ANO ATIVO DO USER STORAGE NO MOMENTO DO CLIQUE
                 ano_ativo = int(app.storage.user.get("ano_referencia_global", ano))
 
                 if tipo == "checkbox" and opcoes:
@@ -644,8 +642,7 @@ def render_quesito(
 
                 link = input_link.value or ""
 
-                # BUSCA DADOS MAIS RECENTES DO BANCO PARA ESTE ANO
-                dados_atuais_db = load_respostas(ano_ativo, tabela_nome).get(qid, {})
+                dados_atuais_db = load_respostas(ano_ativo, tabela_nome).get(str(qid), {})
                 st = dados_atuais_db.get("status", "Pendente")
                 comms = dados_atuais_db.get("comentarios", [])
 
@@ -680,44 +677,49 @@ def render_quesito(
 
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL DO IAMB
+# 4. CONTAINER PRINCIPAL DO IAMB (SEM DECORADOR REFRESHABLE AQUI)
 # =============================================================================
-@ui.refreshable
 def container_formulario_iamb(quesitos_lista=None):
-    """Declaração oficial da função 'container_formulario_iamb'."""
-    try:
-        ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
-    except (TypeError, ValueError):
-        ano_sel = 2026
-    app.storage.user["ano_referencia_global"] = ano_sel
-    tabela = "respostas_iamb"
-    res_data = load_respostas(ano_sel, tabela)
+    container_pai = ui.container().classes("w-full")
 
-    with ui.grid(columns=4).classes("w-full gap-6 items-start"):
-        with ui.column().classes("col-span-1 w-full"):
-            render_painel_controle(
-                on_refresh_callback=container_formulario_iamb.refresh,
-                nome_indicador="iAMB",
-                tabela_nome=tabela,
-            )
+    @ui.refreshable
+    def render_conteudo():
+        try:
+            ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+        except (TypeError, ValueError):
+            ano_sel = 2026
+        app.storage.user["ano_referencia_global"] = ano_sel
+        tabela = "respostas_iamb_oficial"
+        res_data = load_respostas(ano_sel, tabela)
 
-        with ui.column().classes("col-span-3 w-full"):
-            ui.label(
-                f"Formulário iAMB ({ano_sel})"
-            ).classes("text-h4 mb-1 font-bold text-blue-900")
-            ui.label(
-                "Preencha as evidências e questões ambientais do município."
-            ).classes("text-gray-600 mb-6")
+        with ui.grid(columns=4).classes("w-full gap-6 items-start"):
+            with ui.column().classes("col-span-1 w-full"):
+                render_painel_controle(
+                    on_refresh_callback=render_conteudo.refresh,
+                    nome_indicador="iAMB",
+                    tabela_nome=tabela,
+                )
 
-            if quesitos_lista:
-                for q in quesitos_lista:
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        tabela_nome=tabela,
-                        on_save_callback=container_formulario_iamb.refresh,
-                        **q
-                    )
+            with ui.column().classes("col-span-3 w-full"):
+                ui.label(
+                    f"Formulário iAMB ({ano_sel})"
+                ).classes("text-h4 mb-1 font-bold text-blue-900")
+                ui.label(
+                    "Preencha as evidências e questões ambientais do município."
+                ).classes("text-gray-600 mb-6")
+
+                if quesitos_lista:
+                    for q in quesitos_lista:
+                        render_quesito(
+                            ano=ano_sel,
+                            res_data=res_data,
+                            tabela_nome=tabela,
+                            on_save_callback=render_conteudo.refresh,
+                            **q
+                        )
+
+    with container_pai:
+        render_conteudo()
             # =============================================================================
             # QUESITO 1.0 • ESTRUTURA ORGANIZACIONAL
             # =============================================================================
