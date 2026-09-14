@@ -648,31 +648,20 @@ def render_quesito(
 
                 link = input_link.value or ""
                 st = d_data.get("status", "Pendente")
-                comms = d_data.get("comentarios", [])
 
-                if "save_resp" in globals():
-                    try:
-                        save_resp(qid, val, pts, link, comms, ano)
-                    except TypeError:
-                        save_resposta(
-                            ano=ano,
-                            qid=qid,
-                            valor=val,
-                            pontos=pts,
-                            link=link,
-                            comentarios=comms,
-                            status=st,
-                        )
-                else:
-                    save_resposta(
-                        ano=ano,
-                        qid=qid,
-                        valor=val,
-                        pontos=pts,
-                        link=link,
-                        comentarios=comms,
-                        status=st,
-                    )
+                # RE-LEITURA DE COMENTÁRIOS DIRETO DO BANCO DE DADOS
+                res_atualizado = load_respostas(ano)
+                comms = res_atualizado.get(qid, {}).get("comentarios", [])
+
+                save_resposta(
+                    ano=ano,
+                    qid=qid,
+                    valor=val,
+                    pontos=pts,
+                    link=link,
+                    comentarios=comms,
+                    status=st,
+                )
 
                 atualizar_label_pontos(pts, val)
                 ui.notify(
