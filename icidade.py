@@ -188,6 +188,7 @@ def calcular_pontos_generico(val, opcoes):
     return 0.0
 
 
+
 # =============================================================================
 # 1. PAINEL LATERAL / CONTROLE
 # =============================================================================
@@ -196,18 +197,22 @@ def render_painel_controle(on_refresh_callback=None):
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
-        ui.label("🛠️ Painel de Controle (icidade)").classes(
+        ui.label("🛠️ Painel de Controle").classes(
             "text-lg font-bold mb-2 text-blue-900"
         )
 
-        async def ao_mudar_ano(e):
+        def ao_mudar_ano(e):
+            # Salva o ano escolhido antes de reconstruir a tela.
             app.storage.user["ano_referencia_global"] = e.value
-            ui.notify(f"Ano alterado para {e.value}", type="info")
+
+            ui.notify(
+                f"Ano alterado para {e.value}",
+                type="info",
+            )
+
+            # Atualiza painel e formulário juntos.
             if on_refresh_callback:
-                if asyncio.iscoroutinefunction(on_refresh_callback):
-                    await on_refresh_callback()
-                else:
-                    on_refresh_callback()
+                on_refresh_callback()
 
         ui.select(
             options=anos,
@@ -216,10 +221,11 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
+        # Sempre calcula usando o ano atual selecionado.
         res_data = load_respostas(ano_atual)
-
         total_pts = sum(
-            float(item.get("pontos", 0.0)) for item in res_data.values()
+            float(item.get("pontos", 0) or 0)
+            for item in res_data.values()
         )
 
         if total_pts <= 500:
@@ -249,13 +255,19 @@ def render_painel_controle(on_refresh_callback=None):
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
         def atualizar_dados():
-            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
+            ui.notify(
+                "Questionário atualizado!",
+                type="positive",
+                icon="refresh",
+            )
             if on_refresh_callback:
                 on_refresh_callback()
 
-        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
-            "w-full bg-blue-700 text-white mb-2"
-        )
+        ui.button(
+            "🔄 Atualizar Questionário",
+            on_click=atualizar_dados,
+        ).classes("w-full bg-blue-700 text-white mb-2")
+
         ui.separator().classes("my-2")
 
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
@@ -263,11 +275,13 @@ def render_painel_controle(on_refresh_callback=None):
                 "text-lg font-bold text-red-600"
             )
             ui.label(
-                f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!"
+                f"Você está prestes a apagar todas as respostas de {ano_atual}. "
+                "Esta ação é irreversível!"
             ).classes("text-sm my-2")
 
             input_senha = ui.input(
-                "Digite a senha de administrador:", password=True
+                "Digite a senha de administrador:",
+                password=True,
             ).classes("w-full mb-4")
 
             def executar_zerar():
@@ -278,47 +292,281 @@ def render_painel_controle(on_refresh_callback=None):
                         type="positive",
                     )
                     dialog_zerar.close()
+
                     if on_refresh_callback:
                         on_refresh_callback()
                 else:
                     ui.notify("❌ Senha incorreta!", type="negative")
 
             with ui.row().classes("w-full justify-end gap-2"):
-                ui.button("Cancelar", on_click=dialog_zerar.close).props("flat")
                 ui.button(
-                    "Confirmar e Zerar", on_click=executar_zerar
+                    "Cancelar",
+                    on_click=dialog_zerar.close,
+                ).props("flat")
+                ui.button(
+                    "Confirmar e Zerar",
+                    on_click=executar_zerar,
                 ).classes("bg-red-600 text-white")
 
-        def baixar_pdf():
-            dados_frescos = load_respostas(ano_atual)
-            pts_frescos = sum(
-                float(item.get("pontos", 0.0)) for item in dados_frescos.values()
-            )
-            pdf = gerar_relatorio_pdf_bytes(
-                dados_frescos, ano_atual, pts_frescos, faixa
-            )
-            ui.download(pdf, f"Relatorio_icidade_{ano_atual}.pdf")
-
         with ui.row().classes("w-full gap-2 no-wrap"):
+            pdf_bytes = gerar_relatorio_pdf_bytes(
+                res_data,
+                ano_atual,
+                total_pts,
+                faixa,
+            )
+
             ui.button(
-                "📄 Relatório", on_click=baixar_pdf
+                "📄 Relatório",
+                on_click=lambda: ui.download(
+                    pdf_bytes,
+                    f"Relatorio_iCidade_{ano_atual}.pdf",
+                ),
             ).classes("flex-1 bg-green-700 text-white")
 
-            ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
-                "flex-1 bg-red-700 text-white"
+            ui.button(
+                "🗑️ Zerar",
+                on_click=dialog_zerar.open,
+            ).classes("flex-1 bg-red-700 text-white")
+
+
+# =============================================================================
+# 2. RENDERIZADOR DE QUESITO
+# =============================================================================
+def render_quesito(
+    ano,
+    res_data,
+    qid,
+    titulo,
+    pergunta,
+    opcoes=None,
+    tipo="radio",
+    informativo=False,
+    is_text_area=False,
+    placeholder_text="Cole os links ou informações aqui...",
+    placeholder_link="Link de Evidência / Documento:",
+    pontuacao_maxima=None,
+    on_refresh_callback=None,
+    **kwargs,
+):
+    d_data = res_data.get(qid, {})
+
+    with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
+        with ui.expansion(
+            f"📌 Quesito {qid} - {titulo}",
+            value=True,
+        ).classes("w-full font-bold"):
+            ui.label(f"{qid} • {titulo}").classes(
+                "text-h6 text-primary mt-2"
+            )
+            ui.label(pergunta).classes("text-body1 font-bold my-2")
+            ui.label(
+                "ℹ Preencha os campos abaixo e clique no botão de salvar."
+            ).classes("text-caption text-grey-6 mb-4")
+
+            with ui.row().classes("w-full gap-4 items-start"):
+                with ui.column().classes("flex-1"):
+                    checkbox_dict = {}
+                    input_valor = None
+
+                    if tipo == "checkbox" and opcoes:
+                        lista_opcoes = (
+                            list(opcoes.keys())
+                            if isinstance(opcoes, dict)
+                            else opcoes
+                        )
+                        v_salvo = d_data.get("valor", "[]")
+
+                        if isinstance(v_salvo, str):
+                            try:
+                                sel_list = ast.literal_eval(v_salvo)
+                                if not isinstance(sel_list, list):
+                                    sel_list = []
+                            except Exception:
+                                sel_list = []
+                        elif isinstance(v_salvo, list):
+                            sel_list = v_salvo
+                        else:
+                            sel_list = []
+
+                        for opt in lista_opcoes:
+                            chk = ui.checkbox(
+                                opt,
+                                value=(opt in sel_list),
+                            ).classes("mb-1")
+                            checkbox_dict[opt] = chk
+
+                    elif opcoes:
+                        lista_opcoes = (
+                            list(opcoes.keys())
+                            if isinstance(opcoes, dict)
+                            else opcoes
+                        )
+                        v_salvo = d_data.get("valor", "Selecione...")
+                        valor_inicial = (
+                            v_salvo
+                            if v_salvo in lista_opcoes
+                            else (lista_opcoes[0] if lista_opcoes else "")
+                        )
+
+                        input_valor = ui.radio(
+                            options=lista_opcoes,
+                            value=valor_inicial,
+                        ).classes("gap-2")
+                    else:
+                        input_valor = ui.textarea(
+                            label="Dados do quesito:",
+                            placeholder=placeholder_text,
+                            value=d_data.get("valor", ""),
+                        ).classes("w-full").props("outlined rows=3")
+
+                with ui.column().classes("flex-1"):
+                    input_link = ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=d_data.get("link", ""),
+                        placeholder=placeholder_link,
+                    ).classes("w-full").props("outlined rows=3")
+
+                    container_links = ui.row().classes("mt-1")
+
+                    def atualizar_links_visuais():
+                        container_links.clear()
+                        val_txt = ""
+
+                        if input_valor and hasattr(input_valor, "value"):
+                            val_txt = (
+                                input_valor.value
+                                if is_text_area and input_valor.value
+                                else ""
+                            )
+
+                        lnk_txt = input_link.value or ""
+                        txt_total = f"{val_txt} {lnk_txt}"
+                        links = re.findall(REGEX_PURE_URL, txt_total)
+
+                        if links:
+                            with container_links:
+                                ui.label("Links Ativos:").classes(
+                                    "font-bold text-caption"
+                                )
+                                for url in links:
+                                    ui.link(
+                                        url,
+                                        target=url,
+                                        new_tab=True,
+                                    ).classes(
+                                        "text-caption text-blue-6 mr-2"
+                                    )
+
+                    input_link.on(
+                        "update:model-value",
+                        atualizar_links_visuais,
+                    )
+
+                    if is_text_area and input_valor:
+                        input_valor.on(
+                            "update:model-value",
+                            atualizar_links_visuais,
+                        )
+
+                    atualizar_links_visuais()
+
+            lbl_pontos = ui.html().classes("mt-3 font-bold")
+
+            def atualizar_label_pontos(pts, val):
+                if informativo or pontuacao_maxima == 0.0 or not opcoes:
+                    lbl_pontos.set_content(
+                        f"<span style='color:#6c757d;'>"
+                        f"📊 Impacto de Pontuação no Quesito {qid}: "
+                        "0.0 pontos (Informativo)</span>"
+                    )
+                else:
+                    cor = (
+                        "#28a745"
+                        if pts > 0
+                        else (
+                            "#dc3545"
+                            if val != "Selecione..."
+                            else "#6c757d"
+                        )
+                    )
+                    lbl_pontos.set_content(
+                        f"<span style='color:{cor};'>"
+                        f"📊 Impacto de Pontuação no Quesito {qid}: "
+                        f"{pts:.1f} pontos</span>"
+                    )
+
+            atualizar_label_pontos(
+                float(d_data.get("pontos", 0.0) or 0.0),
+                d_data.get("valor", ""),
             )
 
-        ui.separator().classes("my-4")
-        ui.html("""
-            <div style="text-align: center; color: #000000; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
-                ⚙️ <b>Desenvolvido por:</b><br>
-                <span style="font-size: 12px;">Jefferson Espanha</span><br>
-                <span>Procuradoria do Município</span><br>
-                <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
-            </div>
-        """).classes("w-full")
+            def salvar():
+                if tipo == "checkbox" and opcoes:
+                    selecionados = [
+                        opt
+                        for opt, chk_obj in checkbox_dict.items()
+                        if chk_obj.value
+                    ]
+                    val = str(selecionados)
+                    pts = 0.0
 
+                elif opcoes:
+                    val = input_valor.value if input_valor else ""
+                    pts = (
+                        float(opcoes.get(val, 0.0))
+                        if isinstance(opcoes, dict)
+                        else 0.0
+                    )
 
+                else:
+                    val = input_valor.value if input_valor else ""
+                    pts = 0.0
+
+                link = input_link.value or ""
+                st = d_data.get("status", "Pendente")
+                comms = d_data.get("comentarios", [])
+
+                # Salva primeiro no banco.
+                save_resposta(
+                    ano=ano,
+                    qid=qid,
+                    valor=val,
+                    pontos=pts,
+                    link=link,
+                    comentarios=comms,
+                    status=st,
+                )
+
+                # Atualiza o mapa local.
+                d_data.update({
+                    "valor": val,
+                    "pontos": pts,
+                    "link": link,
+                    "status": st,
+                    "comentarios": comms,
+                })
+
+                # Atualiza o valor exibido no quesito.
+                atualizar_label_pontos(pts, val)
+
+                ui.notify(
+                    f"Quesito {qid} salvo com sucesso! "
+                    f"Pontuação: {pts:.1f} pontos",
+                    type="positive",
+                    icon="check_circle",
+                )
+
+                # Atualiza imediatamente o painel e o formulário.
+                if on_refresh_callback:
+                    on_refresh_callback()
+
+            ui.button(
+                f"💾 Salvar Quesito {qid}",
+                on_click=salvar,
+            ).classes("bg-blue-800 text-white mt-4")
+
+            bloco_comentarios(qid, res_data)
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
@@ -647,74 +895,29 @@ def render_quesito(
             )
 
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
-
-
 # =============================================================================
-# 4. CONTAINER PRINCIPAL (CORRIGIDO)
+# 3. CONTAINER PRINCIPAL REFRESHABLE
 # =============================================================================
-
 @ui.refreshable
-def render_conteudo_formulario(ano_sel, callback_refresh):
-    """Renderiza a área de formulários do ano selecionado."""
+def container_formulario_icidade():
+    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     res_data = load_respostas(ano_sel)
 
-    ui.label(f"Formulário I-cidade ({ano_sel})").classes(
-        "text-h4 mb-1 font-bold text-blue-900"
-    )
-    ui.label(
-        "Preencha as evidências e questões do indicador icidade."
-    ).classes("text-gray-600 mb-6")
-
-    # Quesito 1.0
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.0",
-        titulo="Criação da COMPDEC ou Órgão Similar",
-        pergunta="Foi criada a Coordenadoria Municipal...?",
-        opcoes={
-            "Selecione...": 0.0,
-            "Sim (40 pts)": 40.0,
-            "Não (00 pts)": 0.0,
-        },
-        on_save_callback=callback_refresh,
-    )
-
-    # Quesito 3.1.1 (Opções passadas como Dicionário)
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="3.1.1",
-        titulo="Plano de Contingência",
-        pergunta="O município possui plano de contingência aprovado?",
-        opcoes={
-            "Selecione...": 0.0,
-            "Sim (40 pts)": 40.0,
-            "Não (00 pts)": 0.0,
-        },
-        on_save_callback=callback_refresh,
-    )
-
-
-def container_formulario_icidade(on_refresh_pagina=None):
-    """Container principal que gerencia o grid e atualizações."""
-    def recarregar_tudo():
-        if on_refresh_pagina:
-            on_refresh_pagina()
-        else:
-            ano_atual = app.storage.user.get("ano_referencia_global", 2026)
-            render_conteudo_formulario.refresh(ano_atual, recarregar_tudo)
-
-    ano_inicial = app.storage.user.get("ano_referencia_global", 2026)
-
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
-        # COLUNA 1: PAINEL LATERAL
         with ui.column().classes("col-span-1 w-full"):
-            render_painel_controle(on_refresh_callback=recarregar_tudo)
+            render_painel_controle(
+                on_refresh_callback=container_formulario_icidade.refresh,
+            )
 
-        # COLUNA 2: FORMULÁRIO DINÂMICO
         with ui.column().classes("col-span-3 w-full"):
-            render_conteudo_formulario(ano_inicial, recarregar_tudo)
+            ui.label(
+                f"Formulário COMPDEC - Defesa Civil ({ano_sel})"
+            ).classes("text-h4 mb-1 font-bold text-blue-900")
+
+            ui.label(
+                "Preencha as evidências e questões do indicador i-Cidade."
+            ).classes("text-gray-600 mb-6")
+
             
             # QUESITO 1.1
             render_quesito(
