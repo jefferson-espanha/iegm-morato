@@ -168,14 +168,16 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
         conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode("utf-8")
 
+
 # =============================================================================
-# FUNÇÕES AUXILIARES DE CÁLCULO DE PONTUAÇÃO (Restauradas)
+# FUNÇÕES AUXILIARES DE CÁLCULO DE PONTUAÇÃO
 # =============================================================================
 def calc_pts_311(valor):
     """Calcula a pontuação para o quesito 3.1.1"""
     if valor and "Sim" in str(valor):
         return 40.0
     return 0.0
+
 
 def calcular_pontos_generico(val, opcoes):
     """Auxiliar para calcular pontos baseados em dicionário ou função"""
@@ -612,8 +614,7 @@ def render_quesito(
                     val = str(selecionados)
                 elif opcoes:
                     val = input_valor.value if input_valor else ""
-                    if isinstance(opcoes, dict):
-                        pts = float(opcoes.get(val, 0.0))
+                    pts = calcular_pontos_generico(val, opcoes)
                 else:
                     val = input_valor.value if input_valor else ""
 
@@ -649,11 +650,12 @@ def render_quesito(
 
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL (CORRIGIDO COM REFRESHABLE)
+# 4. CONTAINER PRINCIPAL (CORRIGIDO)
 # =============================================================================
 
+@ui.refreshable
 def render_conteudo_formulario(ano_sel, res_data, callback_refresh):
-    """Sub-função para renderizar o formulário da direita."""
+    """Renderiza a área de perguntas e títulos com atualização dinâmica."""
     ui.label(f"Formulário I-cidade ({ano_sel})").classes(
         "text-h4 mb-1 font-bold text-blue-900"
     )
@@ -661,7 +663,7 @@ def render_conteudo_formulario(ano_sel, res_data, callback_refresh):
         "Preencha as evidências e questões do indicador icidade."
     ).classes("text-gray-600 mb-6")
 
-    # Renderize os quesitos aqui:
+    # Chamada dos quesitos
     render_quesito(
         ano=ano_sel,
         res_data=res_data,
@@ -676,9 +678,19 @@ def render_conteudo_formulario(ano_sel, res_data, callback_refresh):
         on_save_callback=callback_refresh,
     )
 
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="3.1.1",
+        titulo="Plano de Contingência",
+        pergunta="O município possui plano de contingência aprovado?",
+        opcoes=calc_pts_311,
+        on_save_callback=callback_refresh,
+    )
 
-@ui.refreshable  # DECORADOR OBRIGATÓRIO AQUI PARA PERMITIR O .refresh()
+
 def container_formulario_icidade(on_refresh_pagina=None):
+    """Container principal com grid lateral e formulário."""
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     res_data = load_respostas(ano_sel)
 
@@ -686,7 +698,7 @@ def container_formulario_icidade(on_refresh_pagina=None):
         if on_refresh_pagina:
             on_refresh_pagina()
         else:
-            container_formulario_icidade.refresh()
+            render_conteudo_formulario.refresh()
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
         # COLUNA 1: PAINEL LATERAL
@@ -694,43 +706,6 @@ def container_formulario_icidade(on_refresh_pagina=None):
             render_painel_controle(on_refresh_callback=recarregar_tudo)
 
         # COLUNA 2: FORMULÁRIO COM DADOS DO ANO ATUALIZADO
-        with ui.column().classes("col-span-3 w-full"):
-            render_conteudo_formulario(ano_sel, res_data, recarregar_tudo)
-
-    # AQUI ENTRARIAM AS CHAMADAS DOS SEUS QUESITOS:
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.0",
-        titulo="Criação da COMPDEC ou Órgão Similar",
-        pergunta="Foi criada a Coordenadoria Municipal...?",
-        opcoes={
-            "Selecione...": 0.0,
-            "Sim (40 pts)": 40.0,
-            "Não (00 pts)": 0.0,
-        },
-        on_save_callback=callback_refresh,
-    )
-    # Adicione os demais quesitos abaixo...
-
-
-def container_formulario_icidade(on_refresh_pagina=None):
-    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
-    res_data = load_respostas(ano_sel)
-
-    def recarregar_tudo():
-        if on_refresh_pagina:
-            on_refresh_pagina()
-        else:
-            # Força o recarregamento dos componentes sem quebrar o layout
-            container_formulario_icidade.refresh()
-
-    with ui.grid(columns=4).classes("w-full gap-6 items-start"):
-        # COLUNA 1: PAINEL LATERAL (Fixo)
-        with ui.column().classes("col-span-1 w-full"):
-            render_painel_controle(on_refresh_callback=recarregar_tudo)
-
-        # COLUNA 2: CONTEÚDO DINÂMICO (Atualizável)
         with ui.column().classes("col-span-3 w-full"):
             render_conteudo_formulario(ano_sel, res_data, recarregar_tudo)
             
