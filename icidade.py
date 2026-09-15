@@ -1,4 +1,5 @@
 import ast
+import asyncio
 from datetime import datetime
 import json
 import os
@@ -171,6 +172,7 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
         conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode("utf-8")
 
+
 # =============================================================================
 # FUNÇÕES AUXILIARES DE CÁLCULO DE PONTUAÇÃO
 # =============================================================================
@@ -180,12 +182,12 @@ def calc_pts_311(valor):
         return 40.0
     return 0.0
 
+
 # =============================================================================
 # 1. PAINEL LATERAL / CONTROLE
 # =============================================================================
 def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
-    # Pega sempre o ano ativo no storage
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
@@ -193,12 +195,10 @@ def render_painel_controle(on_refresh_callback=None):
             "text-lg font-bold mb-2 text-blue-900"
         )
 
-        # Trata a troca do ano no Select
         async def ao_mudar_ano(e):
             app.storage.user["ano_referencia_global"] = e.value
             ui.notify(f"Ano alterado para {e.value}", type="info")
             if on_refresh_callback:
-                # Se for função assíncrona executa await, senão chama direto
                 if asyncio.iscoroutinefunction(on_refresh_callback):
                     await on_refresh_callback()
                 else:
@@ -211,15 +211,12 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # Carrega dados atualizados do banco para o ano corrente
         res_data = load_respostas(ano_atual)
-        
-        # Soma pontuação
+
         total_pts = sum(
             float(item.get("pontos", 0.0)) for item in res_data.values()
         )
 
-        # Regras de Faixa de Pontuação
         if total_pts <= 500:
             faixa, cor = "C", "text-red-600"
         elif total_pts <= 599:
@@ -231,7 +228,6 @@ def render_painel_controle(on_refresh_callback=None):
         else:
             faixa, cor = "A", "text-green-700"
 
-        # Card de Exibição dos Pontos
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
             ui.label("Pontuação Total").classes(
                 "text-xs text-gray-500 font-bold uppercase"
@@ -257,7 +253,6 @@ def render_painel_controle(on_refresh_callback=None):
         )
         ui.separator().classes("my-2")
 
-        # Modal de Confirmação para Zerar Banco
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
@@ -289,19 +284,21 @@ def render_painel_controle(on_refresh_callback=None):
                     "Confirmar e Zerar", on_click=executar_zerar
                 ).classes("bg-red-600 text-white")
 
-        # Ação Dinâmica do Relatório PDF (Gera o PDF com dados frescos na hora do clique)
         def baixar_pdf():
             dados_frescos = load_respostas(ano_atual)
-            pts_frescos = sum(float(item.get("pontos", 0.0)) for item in dados_frescos.values())
-            pdf = gerar_relatorio_pdf_bytes(dados_frescos, ano_atual, pts_frescos, faixa)
+            pts_frescos = sum(
+                float(item.get("pontos", 0.0)) for item in dados_frescos.values()
+            )
+            pdf = gerar_relatorio_pdf_bytes(
+                dados_frescos, ano_atual, pts_frescos, faixa
+            )
             ui.download(pdf, f"Relatorio_icidade_{ano_atual}.pdf")
 
         with ui.row().classes("w-full gap-2 no-wrap"):
             ui.button(
-                "📄 Relatório",
-                on_click=baixar_pdf
+                "📄 Relatório", on_click=baixar_pdf
             ).classes("flex-1 bg-green-700 text-white")
-            
+
             ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
                 "flex-1 bg-red-700 text-white"
             )
@@ -315,6 +312,8 @@ def render_painel_controle(on_refresh_callback=None):
                 <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
             </div>
         """).classes("w-full")
+
+
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
@@ -446,6 +445,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         ui.button("Postar Comentário", on_click=postar_comentario).classes(
             "bg-blue-600 text-white mt-2"
         )
+
 
 # =============================================================================
 # 3. RENDERIZADOR DE QUESITO
@@ -622,7 +622,6 @@ def render_quesito(
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
-                # Tenta chamar save_resp do main se existir, senão usa local
                 if "save_resp" in globals():
                     try:
                         save_resp(qid, val, pts, link, comms, ano)
@@ -663,6 +662,7 @@ def render_quesito(
 
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
+
 # =============================================================================
 # 4. CONTAINER PRINCIPAL REFRESHABLE
 # =============================================================================
@@ -671,7 +671,11 @@ def container_formulario_icidade(on_refresh_pagina=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     res_data = load_respostas(ano_sel)
 
-    callback_refresh = on_refresh_pagina if on_refresh_pagina else container_formulario_icidade.refresh
+    callback_refresh = (
+        on_refresh_pagina
+        if on_refresh_pagina
+        else container_formulario_icidade.refresh
+    )
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
         # COLUNA 1: PAINEL LATERAL
@@ -680,9 +684,13 @@ def container_formulario_icidade(on_refresh_pagina=None):
 
         # COLUNA 2: FORMULÁRIO COM TODOS OS QUESITOS
         with ui.column().classes("col-span-3 w-full"):
-            ui.label(f"Formulário I-cidade ({ano_sel})").classes("text-h4 mb-1 font-bold text-blue-900")
-            ui.label("Preencha as evidências e questões do indicador icidade.").classes("text-gray-600 mb-6")
-
+            ui.label(f"Formulário I-cidade ({ano_sel})").classes(
+                "text-h4 mb-1 font-bold text-blue-900"
+            )
+            ui.label(
+                "Preencha as evidências e questões do indicador icidade."
+            ).classes("text-gray-600 mb-6")
+            
             # --- QUESITO 1.0 ---
             opcoes_10 = {"Selecione...": 0.0, "Sim (40 pts)": 40.0, "Não (00 pts)": 0.0}
             render_quesito(
