@@ -197,7 +197,7 @@ def render_painel_controle(on_refresh_callback=None):
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
-        ui.label("🛠️ Painel de Controle").classes(
+        ui.label("🛠️ Painel de Controle fodasse").classes(
             "text-lg font-bold mb-2 text-blue-900"
         )
 
