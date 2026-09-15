@@ -1,7 +1,94 @@
-import ast
-import re
-from datetime import datetime
-from nicegui import app, ui
+import json
+import psycopg2
+from psycopg2.extras import RealDictCursor
+
+# Configuração da URL do seu Banco Neon
+DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
+
+
+def get_db_connection():
+    return psycopg2.connect(DATABASE_URL)
+
+
+# Criação da tabela (Execute uma vez no início da aplicação)
+def init_db():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS respostas_igov (
+            ano INT NOT NULL,
+            qid VARCHAR(20) NOT NULL,
+            valor TEXT,
+            pontos NUMERIC(5, 2),
+            link TEXT,
+            comentarios JSONB,
+            status VARCHAR(20),
+            PRIMARY KEY (ano, qid)
+        );
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def load_respostas(ano):
+    """Carrega todas as respostas de um ano específico do PostgreSQL Neon"""
+    conn = get_db_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    cur.execute(
+        "SELECT qid, valor, pontos, link, comentarios, status FROM respostas_igov WHERE ano = %s",
+        (ano,),
+    )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    res_data = {}
+    for r in rows:
+        res_data[r["qid"]] = {
+            "valor": r["valor"],
+            "pontos": float(r["pontos"]) if r["pontos"] is not None else 0.0,
+            "link": r["link"] or "",
+            "comentarios": r["comentarios"] or [],
+            "status": r["status"] or "Pendente",
+        }
+    return res_data
+
+
+def save_resposta(ano, qid, valor, pontos, link, comentarios, status):
+    """Insere ou Atualiza (UPSERT) uma resposta no PostgreSQL Neon"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        """
+        INSERT INTO respostas_igov (ano, qid, valor, pontos, link, comentarios, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (ano, qid) DO UPDATE SET
+            valor = EXCLUDED.valor,
+            pontos = EXCLUDED.pontos,
+            link = EXCLUDED.link,
+            comentarios = EXCLUDED.comentarios,
+            status = EXCLUDED.status;
+    """,
+        (ano, qid, valor, pontos, link, json.dumps(comentarios), status),
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def zerar_questionario_db(ano):
+    """Remove todas as respostas de um determinado ano"""
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM respostas_igov WHERE ano = %s", (ano,))
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+# Executar na inicialização da aplicação
+init_db()
 
 # =============================================================================
 # REGRAS DE CÁLCULO ESPECÍFICAS DOS QUESITOS
