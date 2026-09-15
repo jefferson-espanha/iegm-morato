@@ -1,151 +1,7 @@
 import ast
-from datetime import datetime
-import json
-import os
 import re
+from datetime import datetime
 from nicegui import app, ui
-import psycopg2
-from psycopg2.extras import Json, RealDictCursor
-
-# =============================================================================
-# CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
-# =============================================================================
-REGEX_PURE_URL = r"https?://[^\s]+"
-
-DATABASE_URL = os.getenv(
-    "NEON_DATABASE_URL",
-    "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
-)
-
-
-def get_db_connection():
-    """Cria e retorna uma conexão ativa com a base de dados do Neon."""
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
-
-
-def _obter_lista_comentarios_raw(raw):
-    """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
-    if raw is None:
-        return []
-    if isinstance(raw, str):
-        if raw in ["EMPTY_STRING", "", "null", "None"]:
-            return []
-        try:
-            raw = json.loads(raw)
-        except Exception:
-            return []
-    if isinstance(raw, list):
-        return raw
-    return []
-
-
-def load_respostas(ano):
-    """Carrega o dicionário de respostas salvas para o ano selecionado no Neon DB."""
-    query = """
-        SELECT qid, valor, pontos, link, comentarios, status
-        FROM respostas_icidade
-        WHERE ano = %s;
-    """
-    respostas = {}
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
-                rows = cur.fetchall()
-                for row in rows:
-                    link_val = row["link"]
-                    if link_val is None or link_val == "EMPTY_STRING":
-                        link_val = ""
-
-                    respostas[row["qid"]] = {
-                        "valor": row["valor"] if row["valor"] is not None else "",
-                        "pontos": (
-                            float(row["pontos"])
-                            if row["pontos"] is not None
-                            else 0.0
-                        ),
-                        "link": link_val,
-                        "comentarios": _obter_lista_comentarios_raw(
-                            row["comentarios"]
-                        ),
-                        "status": (
-                            row["status"]
-                            if row["status"] is not None
-                            else "Pendente"
-                        ),
-                    }
-    except Exception as e:
-        print(f"❌ Erro ao carregar respostas do Neon DB: {e}")
-        ui.notify(f"Erro ao carregar dados do banco Neon: {e}", type="negative")
-
-    return respostas
-
-
-def save_resposta(
-    ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
-):
-    """Salva a resposta, link, pontos e o histórico de comentários no Neon DB."""
-    comentarios_validos = _obter_lista_comentarios_raw(comentarios)
-    link_final = link.strip() if link else ""
-
-    query = """
-        INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (ano, qid) 
-        DO UPDATE SET
-            valor = EXCLUDED.valor,
-            pontos = EXCLUDED.pontos,
-            link = EXCLUDED.link,
-            comentarios = EXCLUDED.comentarios,
-            status = EXCLUDED.status,
-            updated_at = CURRENT_TIMESTAMP;
-    """
-    try:
-        conn = get_db_connection()
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute(
-                    query,
-                    (
-                        int(ano),
-                        str(qid),
-                        str(valor),
-                        float(pontos),
-                        link_final,
-                        Json(comentarios_validos),
-                        str(status),
-                    ),
-                )
-        conn.close()
-        print(f"✅ Quesito {qid} (Ano {ano}) gravado no Neon DB com sucesso!")
-    except Exception as e:
-        print(f"❌ Erro crítico ao gravar no Neon DB (Quesito {qid}): {e}")
-        ui.notify(f"Erro ao salvar no banco Neon: {e}", type="negative")
-
-
-def zerar_questionario_db(ano):
-    """Limpa todas as respostas salvas do ano selecionado na tabela do Neon DB."""
-    query = "DELETE FROM respostas_icidade WHERE ano = %s;"
-    try:
-        conn = get_db_connection()
-        with conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
-        conn.close()
-        print(f"🧹 Questionário do ano {ano} zerado no Neon DB!")
-    except Exception as e:
-        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
-        ui.notify(f"Erro ao apagar dados no banco Neon: {e}", type="negative")
-
-
-def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
-    """Gera dados para download do relatório em PDF."""
-    conteudo = f"RELATÓRIO TÉCNICO i-Cidade ({ano})\n"
-    conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
-    for qid, dados in res_data.items():
-        conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
-    return conteudo.encode("utf-8")
-
 
 # =============================================================================
 # 1. PAINEL LATERAL / CONTROLE
@@ -155,7 +11,7 @@ def render_painel_controle(on_refresh_callback=None):
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
-        ui.label("🛠️ Painel de Controle").classes(
+        ui.label("🛠️ Painel de Controle (iGov-TI)").classes(
             "text-lg font-bold mb-2 text-blue-900"
         )
 
@@ -172,7 +28,7 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # Cálculo de Pontuação e Faixa
+        # Busca do banco com base no ano atual selecionado
         res_data = load_respostas(ano_atual)
         total_pts = sum(
             float(item.get("pontos", 0)) for item in res_data.values()
@@ -190,7 +46,7 @@ def render_painel_controle(on_refresh_callback=None):
             faixa, cor = "A", "text-green-700"
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
-            ui.label("PONTUAÇÃO TOTAL").classes(
+            ui.label("Pontuação Total").classes(
                 "text-xs text-gray-500 font-bold uppercase"
             )
             ui.label(f"{total_pts:.1f} pts").classes(
@@ -205,15 +61,13 @@ def render_painel_controle(on_refresh_callback=None):
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
         def atualizar_dados():
-            ui.notify(
-                "Questionário atualizado!", type="positive", icon="refresh"
-            )
+            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
             if on_refresh_callback:
                 on_refresh_callback()
 
-        ui.button(
-            "🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados
-        ).classes("w-full bg-blue-700 text-white mb-2")
+        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
+            "w-full bg-blue-700 text-white mb-2"
+        )
         ui.separator().classes("my-2")
 
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
@@ -252,13 +106,13 @@ def render_painel_controle(on_refresh_callback=None):
                 res_data, ano_atual, total_pts, faixa
             )
             ui.button(
-                "📄 RELATÓRIO",
+                "📄 Relatório",
                 on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_iCidade_{ano_atual}.pdf"
+                    pdf_bytes, f"Relatorio_iGovTI_{ano_atual}.pdf"
                 ),
-            ).classes("flex-1 bg-blue-600 text-white")
-            ui.button("🗑️ ZERAR", on_click=dialog_zerar.open).classes(
-                "flex-1 bg-blue-600 text-white"
+            ).classes("flex-1 bg-green-700 text-white")
+            ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
+                "flex-1 bg-red-700 text-white"
             )
 
         ui.separator().classes("my-4")
@@ -280,9 +134,9 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
     dados_q = res_data.get(qid, {})
-    historico = dados_q.get("comentarios", [])
-    status_global = dados_q.get("status", "Pendente")
+    historico = _obter_lista_comentarios(dados_q)
 
+    status_global = dados_q.get("status", "Pendente")
     for com in reversed(historico):
         if isinstance(com, dict) and "status_definido" in com:
             status_global = com["status_definido"]
@@ -315,6 +169,9 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                 comentarios=historico,
                 status=novo_st,
             )
+            dados_q["status"] = novo_st
+            dados_q["comentarios"] = historico
+            
             ui.notify(f"Status alterado para {novo_st}", type="info")
             if on_save_callback:
                 on_save_callback()
@@ -325,59 +182,53 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             on_change=alterar_status,
         ).props("inline")
 
-        container_historico = ui.column().classes("w-full my-2")
+        if historico:
+            for idx, com in enumerate(historico):
+                if isinstance(com, str):
+                    com = {"autor": "Usuário", "data": "", "texto": com}
 
-        def render_lista_comentarios():
-            container_historico.clear()
-            with container_historico:
-                for idx, com in enumerate(historico):
-                    if isinstance(com, str):
-                        com = {"autor": "Usuário", "data": "", "texto": com}
+                autor = com.get("autor", "Anônimo")
+                data_com = com.get("data", "")
+                texto_com = com.get("texto", "")
 
-                    autor = com.get("autor", "Anônimo")
-                    data_com = com.get("data", "")
-                    texto_com = com.get("texto", "")
+                def deletar_comentario(i=idx):
+                    historico.pop(i)
+                    save_resposta(
+                        ano=ano_sel,
+                        qid=qid,
+                        valor=dados_q.get("valor", ""),
+                        pontos=dados_q.get("pontos", 0.0),
+                        link=dados_q.get("link", ""),
+                        comentarios=historico,
+                        status=status_global,
+                    )
+                    dados_q["comentarios"] = historico
+                    ui.notify("Comentário removido.", type="warning")
+                    if on_save_callback:
+                        on_save_callback()
 
-                    def deletar_comentario(i=idx):
-                        historico.pop(i)
-                        save_resposta(
-                            ano=ano_sel,
-                            qid=qid,
-                            valor=dados_q.get("valor", ""),
-                            pontos=dados_q.get("pontos", 0.0),
-                            link=dados_q.get("link", ""),
-                            comentarios=historico,
-                            status=status_global,
-                        )
-                        ui.notify("Comentário removido.", type="warning")
-                        render_lista_comentarios()
-                        if on_save_callback:
-                            on_save_callback()
+                with ui.row().classes(
+                    "w-full items-center justify-between no-wrap mb-2"
+                ):
+                    if "Sistema /" in autor:
+                        ui.html(
+                            f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
+                                <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
+                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
+                            </div>"""
+                        ).classes("w-full")
+                    else:
+                        ui.html(
+                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
+                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
+                                <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
+                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
+                            </div>"""
+                        ).classes("w-full")
 
-                    with ui.row().classes(
-                        "w-full items-center justify-between no-wrap mb-2"
-                    ):
-                        if "Sistema /" in autor:
-                            ui.html(
-                                f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
-                                    <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
-                                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
-                                </div>"""
-                            ).classes("w-full")
-                        else:
-                            ui.html(
-                                f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
-                                    <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
-                                    <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
-                                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
-                                </div>"""
-                            ).classes("w-full")
-
-                        ui.button(
-                            "🗑️", on_click=deletar_comentario
-                        ).props("flat dense")
-
-        render_lista_comentarios()
+                    ui.button("🗑️", on_click=deletar_comentario).props(
+                        "flat dense"
+                    )
 
         input_novo_comentario = (
             ui.textarea(placeholder="Novo comentário...")
@@ -403,9 +254,8 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                     comentarios=historico,
                     status=status_global,
                 )
-                input_novo_comentario.value = ""
+                dados_q["comentarios"] = historico
                 ui.notify("Comentário publicado!", type="positive")
-                render_lista_comentarios()
                 if on_save_callback:
                     on_save_callback()
 
@@ -415,36 +265,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# REGRAS DE CÁLCULO ESPECÍFICAS DOS QUESITOS
-# =============================================================================
-def calc_pts_311(opcao_ou_itens, pontuacao_maxima=10.0):
-    """Calcula a pontuação do quesito 3.1.1 com base no valor selecionado.
-    
-    Suporta tanto seleção de rádio (String) quanto múltipla escolha (Lista).
-    """
-    if not opcao_ou_itens:
-        return 0.0
-
-    # Caso 1: Se for uma lista de itens (Checkbox)
-    if isinstance(opcao_ou_itens, list):
-        # Exemplo: distribui o peso igualmente entre os itens selecionados
-        total_itens = 4  # Ajuste para a quantidade total de itens do quesito 3.1.1
-        pts_por_item = pontuacao_maxima / total_itens
-        return min(float(len(opcao_ou_itens) * pts_por_item), pontuacao_maxima)
-
-    # Caso 2: Se for uma opção única (Radio/Select)
-    tabela_pontos = {
-        "Sim": float(pontuacao_maxima),
-        "Parcialmente": float(pontuacao_maxima) / 2,
-        "Não": 0.0,
-        "Não se aplica": float(pontuacao_maxima),
-    }
-    
-    return float(tabela_pontos.get(str(opcao_ou_itens), 0.0))
-
-
-# =============================================================================
-# RENDERIZADOR DE QUESITO (COM SUPORTE À FUNÇÃO DINÂMICA DE CÁLCULO)
+# 3. RENDERIZADOR DE QUESITO
 # =============================================================================
 def render_quesito(
     ano,
@@ -453,16 +274,19 @@ def render_quesito(
     titulo,
     pergunta,
     opcoes=None,
+    on_save_callback=None,
     tipo="radio",
     informativo=False,
     is_text_area=False,
     placeholder_text="Cole os links ou informações aqui...",
     placeholder_link="Link de Evidência / Documento:",
     pontuacao_maxima=None,
-    on_save_callback=None,
     **kwargs,
 ):
-    d_data = res_data.get(qid, {})
+    # Assegura que a chave existe na referência global/local res_data
+    if qid not in res_data:
+        res_data[qid] = {}
+    d_data = res_data[qid]
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes(
@@ -557,9 +381,9 @@ def render_quesito(
                                     "font-bold text-caption"
                                 )
                                 for url in links:
-                                    ui.link(
-                                        url, target=url, new_tab=True
-                                    ).classes("text-caption text-blue-6 mr-2")
+                                    ui.link(url, target=url, new_tab=True).classes(
+                                        "text-caption text-blue-6 mr-2"
+                                    )
 
                     input_link.on(
                         "update:model-value", atualizar_links_visuais
@@ -574,7 +398,7 @@ def render_quesito(
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
             def atualizar_label_pontos(pts, val):
-                if informativo or pontuacao_maxima == 0.0:
+                if informativo or pontuacao_maxima == 0.0 or not opcoes:
                     lbl_pontos.set_content(
                         f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>"
                     )
@@ -596,13 +420,13 @@ def render_quesito(
 
             def salvar():
                 # Regra de cálculo dinâmica para o quesito 3.1.1
-                if qid == "3.1.1":
+                if qid == "3.1.1" and "calc_pts_311" in globals():
                     if tipo == "checkbox":
                         val_calc = [opt for opt, chk in checkbox_dict.items() if chk.value]
                     else:
                         val_calc = input_valor.value if input_valor else ""
                     val = str(val_calc)
-                    pts = calc_pts_311(val_calc, pontuacao_maxima or 10.0)
+                    pts = float(calc_pts_311(val_calc, pontuacao_maxima or 10.0))
                 
                 # Regra padrão para demais quesitos
                 elif tipo == "checkbox" and opcoes:
@@ -624,10 +448,11 @@ def render_quesito(
                     val = input_valor.value if input_valor else ""
                     pts = 0.0
 
-                link = input_link.value.strip() if input_link and input_link.value else ""
+                link = input_link.value or ""
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
+                # Persistência no Banco de Dados
                 save_resposta(
                     ano=ano,
                     qid=qid,
@@ -638,9 +463,11 @@ def render_quesito(
                     status=st,
                 )
 
+                # ATUALIZAÇÃO CRÍTICA EM MEMÓRIA DENTRO DO DICIONÁRIO
                 d_data["valor"] = val
                 d_data["pontos"] = pts
                 d_data["link"] = link
+                d_data["status"] = st
 
                 atualizar_label_pontos(pts, val)
                 ui.notify(
@@ -649,16 +476,15 @@ def render_quesito(
                     icon="check_circle",
                 )
 
+                # Chama a callback para forçar a re-renderização do painel lateral
                 if on_save_callback:
                     on_save_callback()
 
-            ui.button(f"💾 SALVAR QUESITO {qid}", on_click=salvar).classes(
-                "bg-blue-600 text-white mt-4"
+            ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes(
+                "bg-blue-800 text-white mt-4"
             )
 
-            bloco_comentarios(
-                qid, res_data, on_save_callback=on_save_callback
-            )
+            bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
 # =============================================================================
 # 4. CONTAINER PRINCIPAL REFRESHABLE
