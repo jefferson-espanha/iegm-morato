@@ -415,7 +415,36 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# 3. RENDERIZADOR DE QUESITO
+# REGRAS DE CÁLCULO ESPECÍFICAS DOS QUESITOS
+# =============================================================================
+def calc_pts_311(opcao_ou_itens, pontuacao_maxima=10.0):
+    """Calcula a pontuação do quesito 3.1.1 com base no valor selecionado.
+    
+    Suporta tanto seleção de rádio (String) quanto múltipla escolha (Lista).
+    """
+    if not opcao_ou_itens:
+        return 0.0
+
+    # Caso 1: Se for uma lista de itens (Checkbox)
+    if isinstance(opcao_ou_itens, list):
+        # Exemplo: distribui o peso igualmente entre os itens selecionados
+        total_itens = 4  # Ajuste para a quantidade total de itens do quesito 3.1.1
+        pts_por_item = pontuacao_maxima / total_itens
+        return min(float(len(opcao_ou_itens) * pts_por_item), pontuacao_maxima)
+
+    # Caso 2: Se for uma opção única (Radio/Select)
+    tabela_pontos = {
+        "Sim": float(pontuacao_maxima),
+        "Parcialmente": float(pontuacao_maxima) / 2,
+        "Não": 0.0,
+        "Não se aplica": float(pontuacao_maxima),
+    }
+    
+    return float(tabela_pontos.get(str(opcao_ou_itens), 0.0))
+
+
+# =============================================================================
+# RENDERIZADOR DE QUESITO (COM SUPORTE À FUNÇÃO DINÂMICA DE CÁLCULO)
 # =============================================================================
 def render_quesito(
     ano,
@@ -545,7 +574,7 @@ def render_quesito(
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
             def atualizar_label_pontos(pts, val):
-                if informativo or pontuacao_maxima == 0.0 or not opcoes:
+                if informativo or pontuacao_maxima == 0.0:
                     lbl_pontos.set_content(
                         f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>"
                     )
@@ -566,7 +595,17 @@ def render_quesito(
             )
 
             def salvar():
-                if tipo == "checkbox" and opcoes:
+                # Regra de cálculo dinâmica para o quesito 3.1.1
+                if qid == "3.1.1":
+                    if tipo == "checkbox":
+                        val_calc = [opt for opt, chk in checkbox_dict.items() if chk.value]
+                    else:
+                        val_calc = input_valor.value if input_valor else ""
+                    val = str(val_calc)
+                    pts = calc_pts_311(val_calc, pontuacao_maxima or 10.0)
+                
+                # Regra padrão para demais quesitos
+                elif tipo == "checkbox" and opcoes:
                     selecionados = [
                         opt
                         for opt, chk_obj in checkbox_dict.items()
