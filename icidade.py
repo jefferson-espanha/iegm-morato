@@ -168,6 +168,15 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
         conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode("utf-8")
 
+# =============================================================================
+# FUNÇÕES AUXILIARES DE CÁLCULO DE PONTUAÇÃO
+# =============================================================================
+def calc_pts_311(valor):
+    """Calcula a pontuação para o quesito 3.1.1"""
+    if "Sim" in str(valor):
+        return 40.0
+    return 0.0
+
 
 # =============================================================================
 # 1. PAINEL LATERAL / CONTROLE
