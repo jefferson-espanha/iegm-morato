@@ -50,7 +50,7 @@ def load_respostas(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano,))
+                cur.execute(query, (int(ano),))
                 rows = cur.fetchall()
                 for row in rows:
                     link_val = row["link"]
@@ -101,12 +101,13 @@ def save_resposta(
             updated_at = CURRENT_TIMESTAMP;
     """
     try:
-        with get_db_connection() as conn:
+        conn = get_db_connection()
+        with conn:
             with conn.cursor() as cur:
                 cur.execute(
                     query,
                     (
-                        ano,
+                        int(ano),
                         str(qid),
                         str(valor),
                         float(pontos),
@@ -115,9 +116,10 @@ def save_resposta(
                         str(status),
                     ),
                 )
-            conn.commit()
+        conn.close()
+        print(f"✅ Quesito {qid} (Ano {ano}) gravado no Neon DB com sucesso!")
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
+        print(f"❌ Erro crítico ao gravar no Neon DB (Quesito {qid}): {e}")
         ui.notify(f"Erro ao salvar no banco Neon: {e}", type="negative")
 
 
@@ -125,10 +127,12 @@ def zerar_questionario_db(ano):
     """Limpa todas as respostas salvas do ano selecionado na tabela do Neon DB."""
     query = "DELETE FROM respostas_icidade WHERE ano = %s;"
     try:
-        with get_db_connection() as conn:
+        conn = get_db_connection()
+        with conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano,))
-            conn.commit()
+                cur.execute(query, (int(ano),))
+        conn.close()
+        print(f"🧹 Questionário do ano {ano} zerado no Neon DB!")
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
         ui.notify(f"Erro ao apagar dados no banco Neon: {e}", type="negative")
@@ -186,7 +190,7 @@ def render_painel_controle(on_refresh_callback=None):
             faixa, cor = "A", "text-green-700"
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
-            ui.label("Pontuação Total").classes(
+            ui.label("PONTUAÇÃO TOTAL").classes(
                 "text-xs text-gray-500 font-bold uppercase"
             )
             ui.label(f"{total_pts:.1f} pts").classes(
@@ -208,7 +212,7 @@ def render_painel_controle(on_refresh_callback=None):
                 on_refresh_callback()
 
         ui.button(
-            "🔄 Atualizar Questionário", on_click=atualizar_dados
+            "🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados
         ).classes("w-full bg-blue-700 text-white mb-2")
         ui.separator().classes("my-2")
 
@@ -248,13 +252,13 @@ def render_painel_controle(on_refresh_callback=None):
                 res_data, ano_atual, total_pts, faixa
             )
             ui.button(
-                "📄 Relatório",
+                "📄 RELATÓRIO",
                 on_click=lambda: ui.download(
                     pdf_bytes, f"Relatorio_iCidade_{ano_atual}.pdf"
                 ),
-            ).classes("flex-1 bg-green-700 text-white")
-            ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
-                "flex-1 bg-red-700 text-white"
+            ).classes("flex-1 bg-blue-600 text-white")
+            ui.button("🗑️ ZERAR", on_click=dialog_zerar.open).classes(
+                "flex-1 bg-blue-600 text-white"
             )
 
         ui.separator().classes("my-4")
@@ -573,7 +577,7 @@ def render_quesito(
                 elif opcoes:
                     val = input_valor.value if input_valor else ""
                     pts = (
-                        opcoes.get(val, 0.0)
+                        float(opcoes.get(val, 0.0))
                         if isinstance(opcoes, dict)
                         else 0.0
                     )
@@ -581,7 +585,7 @@ def render_quesito(
                     val = input_valor.value if input_valor else ""
                     pts = 0.0
 
-                link = input_link.value or ""
+                link = input_link.value.strip() if input_link and input_link.value else ""
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
@@ -609,14 +613,13 @@ def render_quesito(
                 if on_save_callback:
                     on_save_callback()
 
-            ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes(
-                "bg-blue-800 text-white mt-4"
+            ui.button(f"💾 SALVAR QUESITO {qid}", on_click=salvar).classes(
+                "bg-blue-600 text-white mt-4"
             )
 
             bloco_comentarios(
                 qid, res_data, on_save_callback=on_save_callback
             )
-
 
 # =============================================================================
 # 4. CONTAINER PRINCIPAL REFRESHABLE
