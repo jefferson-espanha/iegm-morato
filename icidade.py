@@ -4,6 +4,25 @@ from datetime import datetime
 from nicegui import app, ui
 
 # =============================================================================
+# REGRAS DE CÁLCULO ESPECÍFICAS DOS QUESITOS
+# =============================================================================
+def calc_pts_311(opcao_ou_itens, pontuacao_maxima=10.0):
+    if not opcao_ou_itens:
+        return 0.0
+    if isinstance(opcao_ou_itens, list):
+        total_itens = 4
+        pts_por_item = pontuacao_maxima / total_itens
+        return min(float(len(opcao_ou_itens) * pts_por_item), pontuacao_maxima)
+    tabela_pontos = {
+        "Sim": float(pontuacao_maxima),
+        "Parcialmente": float(pontuacao_maxima) / 2,
+        "Não": 0.0,
+        "Não se aplica": float(pontuacao_maxima),
+    }
+    return float(tabela_pontos.get(str(opcao_ou_itens), 0.0))
+
+
+# =============================================================================
 # 1. PAINEL LATERAL / CONTROLE
 # =============================================================================
 def render_painel_controle(on_refresh_callback=None):
@@ -28,7 +47,6 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # Busca do banco com base no ano atual selecionado
         res_data = load_respostas(ano_atual)
         total_pts = sum(
             float(item.get("pontos", 0)) for item in res_data.values()
@@ -171,7 +189,6 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             )
             dados_q["status"] = novo_st
             dados_q["comentarios"] = historico
-            
             ui.notify(f"Status alterado para {novo_st}", type="info")
             if on_save_callback:
                 on_save_callback()
@@ -265,7 +282,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# 3. RENDERIZADOR DE QUESITO
+# 3. RENDERIZADOR DE QUESITO (COM COMPATIBILIZAÇÃO DE VALORES)
 # =============================================================================
 def render_quesito(
     ano,
@@ -283,7 +300,6 @@ def render_quesito(
     pontuacao_maxima=None,
     **kwargs,
 ):
-    # Assegura que a chave existe na referência global/local res_data
     if qid not in res_data:
         res_data[qid] = {}
     d_data = res_data[qid]
@@ -335,12 +351,20 @@ def render_quesito(
                             if isinstance(opcoes, dict)
                             else opcoes
                         )
-                        v_salvo = d_data.get("valor", "Selecione...")
-                        valor_inicial = (
-                            v_salvo
-                            if v_salvo in lista_opcoes
-                            else (lista_opcoes[0] if lista_opcoes else "")
-                        )
+                        v_salvo = str(d_data.get("valor", "")).strip()
+
+                        # Compatibilização: Se o banco tem "Sim", mas a opção é "Sim (40 pts)", casa os valores
+                        valor_inicial = None
+                        if v_salvo in lista_opcoes:
+                            valor_inicial = v_salvo
+                        else:
+                            for opt in lista_opcoes:
+                                if opt.startswith(v_salvo) and v_salvo != "":
+                                    valor_inicial = opt
+                                    break
+
+                        if not valor_inicial:
+                            valor_inicial = lista_opcoes[0] if lista_opcoes else ""
 
                         input_valor = ui.radio(
                             options=lista_opcoes, value=valor_inicial
@@ -419,7 +443,6 @@ def render_quesito(
             )
 
             def salvar():
-                # Regra de cálculo dinâmica para o quesito 3.1.1
                 if qid == "3.1.1" and "calc_pts_311" in globals():
                     if tipo == "checkbox":
                         val_calc = [opt for opt, chk in checkbox_dict.items() if chk.value]
@@ -428,7 +451,6 @@ def render_quesito(
                     val = str(val_calc)
                     pts = float(calc_pts_311(val_calc, pontuacao_maxima or 10.0))
                 
-                # Regra padrão para demais quesitos
                 elif tipo == "checkbox" and opcoes:
                     selecionados = [
                         opt
@@ -452,7 +474,6 @@ def render_quesito(
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
-                # Persistência no Banco de Dados
                 save_resposta(
                     ano=ano,
                     qid=qid,
@@ -463,7 +484,7 @@ def render_quesito(
                     status=st,
                 )
 
-                # ATUALIZAÇÃO CRÍTICA EM MEMÓRIA DENTRO DO DICIONÁRIO
+                # Atualiza os dados em memória
                 d_data["valor"] = val
                 d_data["pontos"] = pts
                 d_data["link"] = link
@@ -476,7 +497,6 @@ def render_quesito(
                     icon="check_circle",
                 )
 
-                # Chama a callback para forçar a re-renderização do painel lateral
                 if on_save_callback:
                     on_save_callback()
 
@@ -485,6 +505,7 @@ def render_quesito(
             )
 
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
+
 
 # =============================================================================
 # 4. CONTAINER PRINCIPAL REFRESHABLE
