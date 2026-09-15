@@ -1,3 +1,4 @@
+import ast
 from datetime import datetime
 import json
 import os
@@ -7,11 +8,10 @@ import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
 # =============================================================================
-# EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
+# CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
 # =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
 
-# Connection string configurada para o seu cluster no Neon
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -21,6 +21,22 @@ DATABASE_URL = os.getenv(
 def get_db_connection():
     """Cria e retorna uma conexão ativa com a base de dados do Neon."""
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+
+
+def _obter_lista_comentarios_raw(raw):
+    """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        if raw in ["EMPTY_STRING", "", "null", "None"]:
+            return []
+        try:
+            raw = json.loads(raw)
+        except Exception:
+            return []
+    if isinstance(raw, list):
+        return raw
+    return []
 
 
 def load_respostas(ano):
@@ -43,16 +59,20 @@ def load_respostas(ano):
 
                     respostas[row["qid"]] = {
                         "valor": row["valor"] if row["valor"] is not None else "",
-                        "pontos": float(row["pontos"])
-                        if row["pontos"] is not None
-                        else 0.0,
+                        "pontos": (
+                            float(row["pontos"])
+                            if row["pontos"] is not None
+                            else 0.0
+                        ),
                         "link": link_val,
-                        "comentarios": row["comentarios"]
-                        if isinstance(row["comentarios"], list)
-                        else [],
-                        "status": row["status"]
-                        if row["status"] is not None
-                        else "Pendente",
+                        "comentarios": _obter_lista_comentarios_raw(
+                            row["comentarios"]
+                        ),
+                        "status": (
+                            row["status"]
+                            if row["status"] is not None
+                            else "Pendente"
+                        ),
                     }
     except Exception as e:
         print(f"❌ Erro ao carregar respostas do Neon DB: {e}")
@@ -64,15 +84,8 @@ def load_respostas(ano):
 def save_resposta(
     ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
 ):
-    """Salva a resposta, link, pontos e o histórico de comentários de um quesito no Neon DB.
-
-    Utiliza UPSERT (ON CONFLICT) para atualizar se já existir.
-    """
-    if comentarios is None:
-        dados_atuais = load_respostas(ano).get(qid, {})
-        comentarios = dados_atuais.get("comentarios", [])
-
-    comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
+    """Salva a resposta, link, pontos e o histórico de comentários no Neon DB."""
+    comentarios_validos = _obter_lista_comentarios_raw(comentarios)
     link_final = link.strip() if link else ""
 
     query = """
@@ -98,9 +111,7 @@ def save_resposta(
                         str(valor),
                         float(pontos),
                         link_final,
-                        Json(
-                            comentarios_validos
-                        ),  # Trata corretamente o JSONB para o PostgreSQL
+                        Json(comentarios_validos),
                         str(status),
                     ),
                 )
@@ -121,21 +132,6 @@ def zerar_questionario_db(ano):
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
         ui.notify(f"Erro ao apagar dados no banco Neon: {e}", type="negative")
-
-
-def _obter_lista_comentarios(dados_banco):
-    """Garante que o retorno de 'comentarios' seja sempre uma lista Python válida."""
-    raw = dados_banco.get("comentarios", [])
-    if isinstance(raw, str):
-        if raw in ["EMPTY_STRING", "", "null", "None"]:
-            return []
-        try:
-            raw = json.loads(raw)
-        except Exception:
-            return []
-    if isinstance(raw, list):
-        return raw
-    return []
 
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
@@ -172,7 +168,7 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # Cálculo de Pontuação e Faixa (busca direto do Neon)
+        # Cálculo de Pontuação e Faixa
         res_data = load_respostas(ano_atual)
         total_pts = sum(
             float(item.get("pontos", 0)) for item in res_data.values()
@@ -189,7 +185,6 @@ def render_painel_controle(on_refresh_callback=None):
         else:
             faixa, cor = "A", "text-green-700"
 
-        # Card de Pontuação
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
             ui.label("Pontuação Total").classes(
                 "text-xs text-gray-500 font-bold uppercase"
@@ -217,7 +212,6 @@ def render_painel_controle(on_refresh_callback=None):
         ).classes("w-full bg-blue-700 text-white mb-2")
         ui.separator().classes("my-2")
 
-        # Modal de Confirmação para Zerar
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
@@ -277,14 +271,14 @@ def render_painel_controle(on_refresh_callback=None):
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
-def bloco_comentarios(qid, res_data, on_save_callback=None):
+def bloco_comentarios(qid, res_data):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
     dados_q = res_data.get(qid, {})
-    historico = _obter_lista_comentarios(dados_q)
-
+    historico = dados_q.get("comentarios", [])
     status_global = dados_q.get("status", "Pendente")
+
     for com in reversed(historico):
         if isinstance(com, dict) and "status_definido" in com:
             status_global = com["status_definido"]
@@ -318,8 +312,6 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                 status=novo_st,
             )
             ui.notify(f"Status alterado para {novo_st}", type="info")
-            if on_save_callback:
-                on_save_callback()
 
         ui.radio(
             ["Resolvido", "Pendente"],
@@ -327,52 +319,57 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             on_change=alterar_status,
         ).props("inline")
 
-        if historico:
-            for idx, com in enumerate(historico):
-                if isinstance(com, str):
-                    com = {"autor": "Usuário", "data": "", "texto": com}
+        container_historico = ui.column().classes("w-full my-2")
 
-                autor = com.get("autor", "Anônimo")
-                data_com = com.get("data", "")
-                texto_com = com.get("texto", "")
+        def render_lista_comentarios():
+            container_historico.clear()
+            with container_historico:
+                for idx, com in enumerate(historico):
+                    if isinstance(com, str):
+                        com = {"autor": "Usuário", "data": "", "texto": com}
 
-                def deletar_comentario(i=idx):
-                    historico.pop(i)
-                    save_resposta(
-                        ano=ano_sel,
-                        qid=qid,
-                        valor=dados_q.get("valor", ""),
-                        pontos=dados_q.get("pontos", 0.0),
-                        link=dados_q.get("link", ""),
-                        comentarios=historico,
-                        status=status_global,
-                    )
-                    ui.notify("Comentário removido.", type="warning")
-                    if on_save_callback:
-                        on_save_callback()
+                    autor = com.get("autor", "Anônimo")
+                    data_com = com.get("data", "")
+                    texto_com = com.get("texto", "")
 
-                with ui.row().classes(
-                    "w-full items-center justify-between no-wrap mb-2"
-                ):
-                    if "Sistema /" in autor:
-                        ui.html(
-                            f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
-                                <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
-                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
-                            </div>"""
-                        ).classes("w-full")
-                    else:
-                        ui.html(
-                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
-                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
-                                <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
-                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
-                            </div>"""
-                        ).classes("w-full")
+                    def deletar_comentario(i=idx):
+                        historico.pop(i)
+                        save_resposta(
+                            ano=ano_sel,
+                            qid=qid,
+                            valor=dados_q.get("valor", ""),
+                            pontos=dados_q.get("pontos", 0.0),
+                            link=dados_q.get("link", ""),
+                            comentarios=historico,
+                            status=status_global,
+                        )
+                        ui.notify("Comentário removido.", type="warning")
+                        render_lista_comentarios()
 
-                    ui.button("🗑️", on_click=deletar_comentario).props(
-                        "flat dense"
-                    )
+                    with ui.row().classes(
+                        "w-full items-center justify-between no-wrap mb-2"
+                    ):
+                        if "Sistema /" in autor:
+                            ui.html(
+                                f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
+                                    <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
+                                    <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
+                                </div>"""
+                            ).classes("w-full")
+                        else:
+                            ui.html(
+                                f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
+                                    <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
+                                    <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
+                                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
+                                </div>"""
+                            ).classes("w-full")
+
+                        ui.button(
+                            "🗑️", on_click=deletar_comentario
+                        ).props("flat dense")
+
+        render_lista_comentarios()
 
         input_novo_comentario = (
             ui.textarea(placeholder="Novo comentário...")
@@ -398,9 +395,9 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                     comentarios=historico,
                     status=status_global,
                 )
+                input_novo_comentario.value = ""
                 ui.notify("Comentário publicado!", type="positive")
-                if on_save_callback:
-                    on_save_callback()
+                render_lista_comentarios()
 
         ui.button("Postar Comentário", on_click=postar_comentario).classes(
             "bg-blue-600 text-white mt-2"
@@ -417,8 +414,7 @@ def render_quesito(
     titulo,
     pergunta,
     opcoes=None,
-    on_save_callback=None,
-    tipo="radio",  # 'radio', 'checkbox', ou 'text'
+    tipo="radio",
     informativo=False,
     is_text_area=False,
     placeholder_text="Cole os links ou informações aqui...",
@@ -439,7 +435,6 @@ def render_quesito(
             ).classes("text-caption text-grey-6 mb-4")
 
             with ui.row().classes("w-full gap-4 items-start"):
-                # Coluna das Opções / Entrada
                 with ui.column().classes("flex-1"):
                     checkbox_dict = {}
                     input_valor = None
@@ -493,7 +488,6 @@ def render_quesito(
                             value=d_data.get("valor", ""),
                         ).classes("w-full").props("outlined rows=3")
 
-                # Coluna de Links / Evidências
                 with ui.column().classes("flex-1"):
                     input_link = ui.textarea(
                         label="Link de Evidência / Documento:",
@@ -523,9 +517,9 @@ def render_quesito(
                                     "font-bold text-caption"
                                 )
                                 for url in links:
-                                    ui.link(url, target=url, new_tab=True).classes(
-                                        "text-caption text-blue-6 mr-2"
-                                    )
+                                    ui.link(
+                                        url, target=url, new_tab=True
+                                    ).classes("text-caption text-blue-6 mr-2")
 
                     input_link.on(
                         "update:model-value", atualizar_links_visuais
@@ -593,6 +587,12 @@ def render_quesito(
                     comentarios=comms,
                     status=st,
                 )
+
+                # Atualiza os dados locais do mapa para manter coerência sem recarregar toda a página
+                d_data["valor"] = val
+                d_data["pontos"] = pts
+                d_data["link"] = link
+
                 atualizar_label_pontos(pts, val)
                 ui.notify(
                     f"Quesito {qid} salvo com sucesso!",
@@ -600,34 +600,11 @@ def render_quesito(
                     icon="check_circle",
                 )
 
-                if on_save_callback:
-                    on_save_callback()
-
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes(
                 "bg-blue-800 text-white mt-4"
             )
 
-            # Renderiza o bloco de comentários
-            bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
-
-
-# =============================================================================
-# FUNÇÃO DE CÁLCULO CUSTOMIZADO (QUESITO 3.1.1)
-# =============================================================================
-def calc_pts_311(data_str, ano_sel):
-    """Calcula a pontuação para a data do último treinamento."""
-    if not data_str:
-        return 0.0
-    try:
-        dt = datetime.strptime(data_str, "%Y-%m-%d")
-        if dt.year < ano_sel:
-            return 0.0
-        elif dt.year == ano_sel:
-            return 10.0
-        else:
-            return 0.0
-    except ValueError:
-        return 0.0
+            bloco_comentarios(qid, res_data)
 
 
 # =============================================================================
@@ -639,14 +616,11 @@ def container_formulario_icidade():
     res_data = load_respostas(ano_sel)
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
-
-        # Coluna da Esquerda (Painel de Controle)
         with ui.column().classes("col-span-1 w-full"):
             render_painel_controle(
                 on_refresh_callback=container_formulario_icidade.refresh
             )
 
-        # Coluna da Direita (Quesitos do Formulário)
         with ui.column().classes("col-span-3 w-full"):
             ui.label(
                 f"Formulário COMPDEC - Defesa Civil ({ano_sel})"
@@ -655,7 +629,6 @@ def container_formulario_icidade():
                 "Preencha as evidências e questões do indicador i-Cidade."
             ).classes("text-gray-600 mb-6")
 
-            # QUESITO 1.0
             opcoes_10 = {
                 "Selecione...": 0.0,
                 "Sim (40 pts)": 40.0,
@@ -668,9 +641,7 @@ def container_formulario_icidade():
                 titulo="Criação da COMPDEC ou Órgão Similar",
                 pergunta="Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil-COMPDEC ou órgão similar responsável pela execução, coordenação e mobilização de todas as ações de defesa civil no município?",
                 opcoes=opcoes_10,
-                on_save_callback=container_formulario_icidade.refresh,
             )
-
             # QUESITO 1.1
             render_quesito(
                 ano=ano_sel,
