@@ -23,10 +23,11 @@ def get_db_connection():
 
 
 def init_db():
-    """Garante que a tabela respostas_icidade exista com as colunas certas."""
+    """Garante que a tabela respostas_icidade e a coluna comentarios existam."""
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
+                # 1. Cria a tabela se não existir
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS respostas_icidade (
                         qid VARCHAR(50) NOT NULL,
@@ -40,11 +41,17 @@ def init_db():
                         PRIMARY KEY (ano, qid)
                     );
                 """)
+                # 2. Garante a coluna 'comentarios' caso a tabela já existisse antes
+                cur.execute("""
+                    ALTER TABLE respostas_icidade 
+                    ADD COLUMN IF NOT EXISTS comentarios JSONB DEFAULT '[]'::jsonb;
+                """)
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao inicializar tabela respostas_icidade: {e}")
 
 
+# Executa a inicialização ao carregar o módulo
 init_db()
 
 
@@ -163,7 +170,6 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
     for qid, dados in res_data.items():
         conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode("utf-8")
-
 
 # =============================================================================
 # 1. PAINEL LATERAL / CONTROLE
