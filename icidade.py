@@ -637,48 +637,30 @@ def render_quesito(
 # 4. CONTAINER PRINCIPAL REFRESHABLE
 # =============================================================================
 @ui.refreshable
-def container_formulario_icidade():
+def container_formulario_icidade(on_refresh_pagina=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     res_data = load_respostas(ano_sel)
 
+    callback_refresh = on_refresh_pagina if on_refresh_pagina else container_formulario_icidade.refresh
+
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
-        # COLUNA 1: PAINEL DE CONTROLE LATERAL
+        # COLUNA 1: PAINEL LATERAL
         with ui.column().classes("col-span-1 w-full"):
-            render_painel_controle(
-                on_refresh_callback=pagina_icidade.refresh
-            )
+            render_painel_controle(on_refresh_callback=callback_refresh)
 
-        # COLUNA 2: CONTEÚDO DO FORMULÁRIO
+        # COLUNA 2: FORMULÁRIO COM TODOS OS QUESITOS
         with ui.column().classes("col-span-3 w-full"):
-            ui.label(
-                f"Formulário I-cidade ({ano_sel})"
-            ).classes("text-h4 mb-1 font-bold text-blue-900")
-            
-            ui.label(
-                "Preencha as evidências e questões do indicador icidade."
-            ).classes("text-gray-600 mb-6")
+            ui.label(f"Formulário I-cidade ({ano_sel})").classes("text-h4 mb-1 font-bold text-blue-900")
+            ui.label("Preencha as evidências e questões do indicador icidade.").classes("text-gray-600 mb-6")
 
-            ui.label("1.0 Estrutura de TIC").classes(
-                "text-h5 font-bold my-4 text-blue-900"
-            )
-            
-            opcoes_10 = {
-                "Selecione...": 0.0,
-                "Sim (40 pts)": 40.0,
-                "Não (00 pts)": 0.0,
-            }
-            
-            # Renderiza o quesito passando o callback de refresh da página toda
+            # --- QUESITO 1.0 ---
+            opcoes_10 = {"Selecione...": 0.0, "Sim (40 pts)": 40.0, "Não (00 pts)": 0.0}
             render_quesito(
-                ano=ano_sel,
-                res_data=res_data,
-                qid="1.0",
+                ano=ano_sel, res_data=res_data, qid="1.0",
                 titulo="Criação da COMPDEC ou Órgão Similar",
-                pergunta="Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil-COMPDEC ou órgão similar?",
-                opcoes=opcoes_10,
-                on_save_callback=pagina_icidade.refresh,
+                pergunta="Foi criada a Coordenadoria Municipal...?",
+                opcoes=opcoes_10, on_save_callback=callback_refresh,
             )
-
             # QUESITO 1.1
             render_quesito(
                 ano=ano_sel,
@@ -1913,15 +1895,17 @@ def container_formulario_icidade():
                 on_save_callback=container_formulario_icidade.refresh,
             )
 # =============================================================================
-# 5. ENTRY POINT PRINCIPAL
+# 5. PÁGINA PRINCIPAL (COLOQUE AQUI, DEPOIS DE FECHAR O CONTAINER)
 # =============================================================================
-@ui.page("/")
-def mostrar_formulario_icidade():
-    container_formulario_icidade()
+@ui.refreshable
+def pagina_icidade():
+    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+    
+    # 1. CABEÇALHO SUPERIOR
+    with ui.header().classes("w-full bg-blue-900 text-white p-4 flex justify-between items-center"):
+        ui.button("← VOLTAR", on_click=lambda: ui.navigate.to("/")).classes("bg-blue-600 text-white")
+        ui.label(f"i-Cidade - {ano_sel}").classes("text-xl font-bold")
+        ui.button("SAIR", on_click=lambda: ui.navigate.to("/login")).classes("bg-orange-600 text-white")
 
-
-if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(
-        title="Indicador i-Cidade • Defesa Civil",
-        storage_secret="sua_chave_secreta_aqui",
-    )
+    # 2. CHAMA O CONTAINER COM TODOS OS QUESITOS
+    container_formulario_icidade(on_refresh_pagina=pagina_icidade.refresh)
