@@ -639,19 +639,25 @@ def render_quesito(
 # =============================================================================
 @ui.refreshable
 def container_formulario_icidade():
+    # 1. Busca sempre o ano atualizado diretamente do storage no momento do refresh
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+    
+    # 2. Recarrega as respostas do banco correspondentes ao ano selecionado
     res_data = load_respostas(ano_sel)
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
+        # COLUNA 1: PAINEL DE CONTROLE LATERAL
         with ui.column().classes("col-span-1 w-full"):
             render_painel_controle(
                 on_refresh_callback=container_formulario_icidade.refresh
             )
 
+        # COLUNA 2: CONTEÚDO DO FORMULÁRIO
         with ui.column().classes("col-span-3 w-full"):
             ui.label(
-                f"Formulário I-cidade({ano_sel})"
+                f"Formulário I-cidade ({ano_sel})"
             ).classes("text-h4 mb-1 font-bold text-blue-900")
+            
             ui.label(
                 "Preencha as evidências e questões do indicador icidade."
             ).classes("text-gray-600 mb-6")
@@ -659,11 +665,14 @@ def container_formulario_icidade():
             ui.label("1.0 Estrutura de TIC").classes(
                 "text-h5 font-bold my-4 text-blue-900"
             )
+            
             opcoes_10 = {
                 "Selecione...": 0.0,
                 "Sim (40 pts)": 40.0,
                 "Não (00 pts)": 0.0,
             }
+            
+            # Renderiza o quesito passando o ano dinâmico e os dados recarregados
             render_quesito(
                 ano=ano_sel,
                 res_data=res_data,
