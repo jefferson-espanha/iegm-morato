@@ -1,152 +1,179 @@
 import ast
-import json
-import re
 from datetime import datetime
+import json
+import os
+import re
 from nicegui import app, ui
 import psycopg2
-from psycopg2.extras import RealDictCursor
+from psycopg2.extras import Json, RealDictCursor
 
 # =============================================================================
-# CONEXÃO BANCO DE DADOS (NEON POSTGRESQL)
+# EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
 # =============================================================================
-DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
-REGEX_PURE_URL = r'https?://[^\s<>"]+|www\.[^\s<>"]+'
+REGEX_PURE_URL = r"https?://[^\s]+"
+
+DATABASE_URL = os.getenv(
+    "NEON_DATABASE_URL",
+    "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
+)
 
 
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL)
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
 def init_db():
+    """Garante que a tabela respostas_icidade exista com as colunas certas."""
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("""
-            CREATE TABLE IF NOT EXISTS respostas_icidade (
-                ano INT NOT NULL,
-                qid VARCHAR(20) NOT NULL,
-                valor TEXT,
-                pontos NUMERIC(5, 2),
-                link TEXT,
-                comentarios JSONB,
-                status VARCHAR(20),
-                PRIMARY KEY (ano, qid)
-            );
-        """)
-        conn.commit()
-        cur.close()
-        conn.close()
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS respostas_icidade (
+                        qid VARCHAR(50) NOT NULL,
+                        ano INTEGER NOT NULL,
+                        valor TEXT,
+                        pontos REAL DEFAULT 0,
+                        link TEXT,
+                        comentarios JSONB DEFAULT '[]'::jsonb,
+                        status VARCHAR(20) DEFAULT 'Pendente',
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (ano, qid)
+                    );
+                """)
+                conn.commit()
     except Exception as e:
-        print(f"Erro ao inicializar banco PostgreSQL no icidade.py: {e}")
+        print(f"❌ Erro ao inicializar tabela respostas_icidade: {e}")
+
+
+init_db()
 
 
 def load_respostas(ano):
+    query = """
+        SELECT qid, valor, pontos, link, comentarios, status
+        FROM respostas_icidade
+        WHERE ano = %s;
+    """
+    respostas = {}
     try:
-        conn = get_db_connection()
-        cur = conn.cursor(cursor_factory=RealDictCursor)
-        cur.execute(
-            "SELECT qid, valor, pontos, link, comentarios, status FROM respostas_icidade WHERE ano = %s",
-            (ano,),
-        )
-        rows = cur.fetchall()
-        cur.close()
-        conn.close()
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (ano,))
+                rows = cur.fetchall()
+                for row in rows:
+                    link_val = row["link"]
+                    if link_val is None or link_val == "EMPTY_STRING":
+                        link_val = ""
 
-        res_data = {}
-        for r in rows:
-            res_data[r["qid"]] = {
-                "valor": r["valor"] or "",
-                "pontos": float(r["pontos"]) if r["pontos"] is not None else 0.0,
-                "link": r["link"] or "",
-                "comentarios": r["comentarios"] or [],
-                "status": r["status"] or "Pendente",
-            }
-        return res_data
+                    respostas[row["qid"]] = {
+                        "valor": row["valor"] if row["valor"] is not None else "",
+                        "pontos": (
+                            float(row["pontos"])
+                            if row["pontos"] is not None
+                            else 0.0
+                        ),
+                        "link": link_val,
+                        "comentarios": (
+                            row["comentarios"]
+                            if isinstance(row["comentarios"], list)
+                            else []
+                        ),
+                        "status": (
+                            row["status"]
+                            if row["status"] is not None
+                            else "Pendente"
+                        ),
+                    }
     except Exception as e:
-        print(f"Erro ao carregar respostas do ano {ano}: {e}")
-        return {}
+        print(f"❌ Erro ao carregar respostas do Neon DB (icidade): {e}")
+
+    return respostas
 
 
-def save_resposta(ano, qid, valor, pontos, link, comentarios, status):
+def save_resposta(
+    ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
+):
+    if comentarios is None:
+        dados_atuais = load_respostas(ano).get(qid, {})
+        comentarios = dados_atuais.get("comentarios", [])
+
+    comentarios_validos = _obter_lista_comentarios({"comentarios": comentarios})
+    link_final = link.strip() if link else ""
+
+    query = """
+        INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (ano, qid) 
+        DO UPDATE SET
+            valor = EXCLUDED.valor,
+            pontos = EXCLUDED.pontos,
+            link = EXCLUDED.link,
+            comentarios = EXCLUDED.comentarios,
+            status = EXCLUDED.status,
+            updated_at = CURRENT_TIMESTAMP;
+    """
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute(
-            """
-            INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-            ON CONFLICT (ano, qid) DO UPDATE SET
-                valor = EXCLUDED.valor,
-                pontos = EXCLUDED.pontos,
-                link = EXCLUDED.link,
-                comentarios = EXCLUDED.comentarios,
-                status = EXCLUDED.status;
-        """,
-            (ano, qid, valor, pontos, link, json.dumps(comentarios), status),
-        )
-        conn.commit()
-        cur.close()
-        conn.close()
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    query,
+                    (
+                        ano,
+                        str(qid),
+                        str(valor),
+                        float(pontos),
+                        link_final,
+                        Json(comentarios_validos),
+                        str(status),
+                    ),
+                )
+                conn.commit()
     except Exception as e:
-        print(f"Erro ao salvar quesito {qid}: {e}")
+        print(f"❌ Erro ao salvar resposta no Neon DB (icidade): {e}")
 
 
 def zerar_questionario_db(ano):
+    query = "DELETE FROM respostas_icidade WHERE ano = %s;"
     try:
-        conn = get_db_connection()
-        cur = conn.cursor()
-        cur.execute("DELETE FROM respostas_icidade WHERE ano = %s", (ano,))
-        conn.commit()
-        cur.close()
-        conn.close()
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (ano,))
+                conn.commit()
     except Exception as e:
-        print(f"Erro ao zerar dados de {ano}: {e}")
+        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
 
 
-def _obter_lista_comentarios(dados_q):
-    comms = dados_q.get("comentarios", [])
-    if isinstance(comms, list):
-        return comms
+def _obter_lista_comentarios(dados_banco):
+    raw = dados_banco.get("comentarios", [])
+    if isinstance(raw, str):
+        if raw in ["EMPTY_STRING", "", "null", "None"]:
+            return []
+        try:
+            raw = json.loads(raw)
+        except Exception:
+            return []
+    if isinstance(raw, list):
+        return raw
     return []
 
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
-    conteudo = f"Relatório i-Cidade ({ano})\nPontuação Total: {total_pts:.1f} pts\nFaixa: {faixa}"
+    conteudo = f"RELATÓRIO TÉCNICO icidade ({ano})\n"
+    conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
+    for qid, dados in res_data.items():
+        conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode("utf-8")
 
 
-# Executa ao importar
-init_db()
-
-
 # =============================================================================
-# REGRAS DE CÁLCULO ESPECÍFICAS
-# =============================================================================
-def calc_pts_311(opcao_ou_itens, pontuacao_maxima=10.0):
-    if not opcao_ou_itens:
-        return 0.0
-    if isinstance(opcao_ou_itens, list):
-        total_itens = 4
-        pts_por_item = pontuacao_maxima / total_itens
-        return min(float(len(opcao_ou_itens) * pts_por_item), pontuacao_maxima)
-    tabela_pontos = {
-        "Sim": float(pontuacao_maxima),
-        "Parcialmente": float(pontuacao_maxima) / 2,
-        "Não": 0.0,
-        "Não se aplica": float(pontuacao_maxima),
-    }
-    return float(tabela_pontos.get(str(opcao_ou_itens), 0.0))
-
-
-# =============================================================================
-# 1. PAINEL LATERAL DE CONTROLE
+# 1. PAINEL LATERAL / CONTROLE
 # =============================================================================
 def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
-        ui.label("🛠️ Painel de Controle (i-Cidade)").classes(
+        ui.label("🛠️ Painel de Controle (icidade)").classes(
             "text-lg font-bold mb-2 text-blue-900"
         )
 
@@ -192,6 +219,7 @@ def render_painel_controle(on_refresh_callback=None):
                 ui.label(faixa).classes(f"text-xl font-bold {cor}")
 
         ui.separator().classes("my-2")
+        ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
         def atualizar_dados():
             ui.notify("Questionário atualizado!", type="positive", icon="refresh")
@@ -201,23 +229,26 @@ def render_painel_controle(on_refresh_callback=None):
         ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
             "w-full bg-blue-700 text-white mb-2"
         )
+        ui.separator().classes("my-2")
 
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
             )
             ui.label(
-                f"Deseja apagar todas as respostas de {ano_atual}?"
+                f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!"
             ).classes("text-sm my-2")
+
             input_senha = ui.input(
-                "Senha de Admin:", password=True
+                "Digite a senha de administrador:", password=True
             ).classes("w-full mb-4")
 
             def executar_zerar():
                 if input_senha.value == "fidelios":
                     zerar_questionario_db(ano_atual)
                     ui.notify(
-                        f"✅ Dados de {ano_atual} zerados!", type="positive"
+                        f"✅ Questionário de {ano_atual} foi zerado!",
+                        type="positive",
                     )
                     dialog_zerar.close()
                     if on_refresh_callback:
@@ -227,9 +258,9 @@ def render_painel_controle(on_refresh_callback=None):
 
             with ui.row().classes("w-full justify-end gap-2"):
                 ui.button("Cancelar", on_click=dialog_zerar.close).props("flat")
-                ui.button("Confirmar", on_click=executar_zerar).classes(
-                    "bg-red-600 text-white"
-                )
+                ui.button(
+                    "Confirmar e Zerar", on_click=executar_zerar
+                ).classes("bg-red-600 text-white")
 
         with ui.row().classes("w-full gap-2 no-wrap"):
             pdf_bytes = gerar_relatorio_pdf_bytes(
@@ -238,12 +269,22 @@ def render_painel_controle(on_refresh_callback=None):
             ui.button(
                 "📄 Relatório",
                 on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_iCidade_{ano_atual}.pdf"
+                    pdf_bytes, f"Relatorio_icidade_{ano_atual}.pdf"
                 ),
             ).classes("flex-1 bg-green-700 text-white")
             ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
                 "flex-1 bg-red-700 text-white"
             )
+
+        ui.separator().classes("my-4")
+        ui.html("""
+            <div style="text-align: center; color: #000000; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
+                ⚙️ <b>Desenvolvido por:</b><br>
+                <span style="font-size: 12px;">Jefferson Espanha</span><br>
+                <span>Procuradoria do Município</span><br>
+                <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
+            </div>
+        """).classes("w-full")
 
 
 # =============================================================================
@@ -276,7 +317,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             log = {
                 "autor": "Sistema / " + usuario_atual,
                 "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                "texto": f"ℹ️ Alterou o status para: **{novo_st.upper()}**.",
+                "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
             historico.append(log)
@@ -289,8 +330,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                 comentarios=historico,
                 status=novo_st,
             )
-            dados_q["status"] = novo_st
-            dados_q["comentarios"] = historico
+            ui.notify(f"Status alterado para {novo_st}", type="info")
             if on_save_callback:
                 on_save_callback()
 
@@ -320,20 +360,28 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                         comentarios=historico,
                         status=status_global,
                     )
-                    dados_q["comentarios"] = historico
+                    ui.notify("Comentário removido.", type="warning")
                     if on_save_callback:
                         on_save_callback()
 
                 with ui.row().classes(
                     "w-full items-center justify-between no-wrap mb-2"
                 ):
-                    ui.html(
-                        f"""<div style="background-color: #ffffff; padding: 8px 12px; border-radius: 6px; border: 1px solid #e0e0e0; width: 100%;">
-                            <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
-                            <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
-                            <p style="margin: 4px 0 0 0; font-size: 12px; color: #333;">{texto_com}</p>
-                        </div>"""
-                    ).classes("w-full")
+                    if "Sistema /" in autor:
+                        ui.html(
+                            f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
+                                <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
+                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
+                            </div>"""
+                        ).classes("w-full")
+                    else:
+                        ui.html(
+                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
+                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
+                                <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
+                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
+                            </div>"""
+                        ).classes("w-full")
 
                     ui.button("🗑️", on_click=deletar_comentario).props(
                         "flat dense"
@@ -363,7 +411,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                     comentarios=historico,
                     status=status_global,
                 )
-                dados_q["comentarios"] = historico
+                ui.notify("Comentário publicado!", type="positive")
                 if on_save_callback:
                     on_save_callback()
 
@@ -386,14 +434,12 @@ def render_quesito(
     tipo="radio",
     informativo=False,
     is_text_area=False,
-    placeholder_text="Cole as informações aqui...",
-    placeholder_link="Link de Evidência:",
+    placeholder_text="Cole os links ou informações aqui...",
+    placeholder_link="Link de Evidência / Documento:",
     pontuacao_maxima=None,
     **kwargs,
 ):
-    if qid not in res_data:
-        res_data[qid] = {}
-    d_data = res_data[qid]
+    d_data = res_data.get(qid, {})
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
         with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes(
@@ -401,6 +447,9 @@ def render_quesito(
         ):
             ui.label(f"{qid} • {titulo}").classes("text-h6 text-primary mt-2")
             ui.label(pergunta).classes("text-body1 font-bold my-2")
+            ui.label(
+                "ℹ Preencha os campos abaixo e clique no botão de salvar."
+            ).classes("text-caption text-grey-6 mb-4")
 
             with ui.row().classes("w-full gap-4 items-start"):
                 with ui.column().classes("flex-1"):
@@ -415,15 +464,16 @@ def render_quesito(
                         )
                         v_salvo = d_data.get("valor", "[]")
 
-                        try:
-                            sel_list = (
-                                ast.literal_eval(v_salvo)
-                                if isinstance(v_salvo, str)
-                                else v_salvo
-                            )
-                            if not isinstance(sel_list, list):
+                        if isinstance(v_salvo, str):
+                            try:
+                                sel_list = ast.literal_eval(v_salvo)
+                                if not isinstance(sel_list, list):
+                                    sel_list = []
+                            except Exception:
                                 sel_list = []
-                        except Exception:
+                        elif isinstance(v_salvo, list):
+                            sel_list = v_salvo
+                        else:
                             sel_list = []
 
                         for opt in lista_opcoes:
@@ -438,19 +488,12 @@ def render_quesito(
                             if isinstance(opcoes, dict)
                             else opcoes
                         )
-                        v_salvo = str(d_data.get("valor", "")).strip()
-
-                        valor_inicial = None
-                        if v_salvo in lista_opcoes:
-                            valor_inicial = v_salvo
-                        else:
-                            for opt in lista_opcoes:
-                                if opt.startswith(v_salvo) and v_salvo != "":
-                                    valor_inicial = opt
-                                    break
-
-                        if not valor_inicial:
-                            valor_inicial = lista_opcoes[0] if lista_opcoes else ""
+                        v_salvo = d_data.get("valor", "Selecione...")
+                        valor_inicial = (
+                            v_salvo
+                            if v_salvo in lista_opcoes
+                            else (lista_opcoes[0] if lista_opcoes else "")
+                        )
 
                         input_valor = ui.radio(
                             options=lista_opcoes, value=valor_inicial
@@ -464,35 +507,72 @@ def render_quesito(
 
                 with ui.column().classes("flex-1"):
                     input_link = ui.textarea(
-                        label="Link de Evidência:",
+                        label="Link de Evidência / Documento:",
                         value=d_data.get("link", ""),
                         placeholder=placeholder_link,
                     ).classes("w-full").props("outlined rows=3")
 
+                    container_links = ui.row().classes("mt-1")
+
+                    def atualizar_links_visuais():
+                        container_links.clear()
+                        val_txt = ""
+                        if input_valor and hasattr(input_valor, "value"):
+                            val_txt = (
+                                input_valor.value
+                                if (is_text_area and input_valor.value)
+                                else ""
+                            )
+
+                        lnk_txt = input_link.value or ""
+                        txt_total = f"{val_txt} {lnk_txt}"
+
+                        links = re.findall(REGEX_PURE_URL, txt_total)
+                        if links:
+                            with container_links:
+                                ui.label("Links Ativos: ").classes(
+                                    "font-bold text-caption"
+                                )
+                                for url in links:
+                                    ui.link(url, target=url, new_tab=True).classes(
+                                        "text-caption text-blue-6 mr-2"
+                                    )
+
+                    input_link.on(
+                        "update:model-value", atualizar_links_visuais
+                    )
+                    if is_text_area and input_valor:
+                        input_valor.on(
+                            "update:model-value", atualizar_links_visuais
+                        )
+
+                    atualizar_links_visuais()
+
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
-            def atualizar_label_pontos(pts):
-                cor = "#28a745" if pts > 0 else "#6c757d"
-                lbl_pontos.set_content(
-                    f"<span style='color:{cor};'>📊 Impacto no Quesito {qid}: {pts:.1f} pontos</span>"
-                )
+            def atualizar_label_pontos(pts, val):
+                if informativo or pontuacao_maxima == 0.0 or not opcoes:
+                    lbl_pontos.set_content(
+                        f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>"
+                    )
+                else:
+                    cor = (
+                        "#28a745"
+                        if pts > 0
+                        else (
+                            "#dc3545" if val != "Selecione..." else "#6c757d"
+                        )
+                    )
+                    lbl_pontos.set_content(
+                        f"<span style='color:{cor};'>📊 Impacto de Pontuação no Quesito {qid}: {pts:.1f} pontos</span>"
+                    )
 
-            atualizar_label_pontos(d_data.get("pontos", 0.0))
+            atualizar_label_pontos(
+                d_data.get("pontos", 0.0), d_data.get("valor", "")
+            )
 
             def salvar():
-                if qid == "3.1.1":
-                    val_calc = (
-                        [
-                            opt
-                            for opt, chk in checkbox_dict.items()
-                            if chk.value
-                        ]
-                        if tipo == "checkbox"
-                        else (input_valor.value if input_valor else "")
-                    )
-                    val = str(val_calc)
-                    pts = float(calc_pts_311(val_calc, pontuacao_maxima or 10.0))
-                elif tipo == "checkbox" and opcoes:
+                if tipo == "checkbox" and opcoes:
                     selecionados = [
                         opt
                         for opt, chk_obj in checkbox_dict.items()
@@ -503,7 +583,7 @@ def render_quesito(
                 elif opcoes:
                     val = input_valor.value if input_valor else ""
                     pts = (
-                        float(opcoes.get(val, 0.0))
+                        opcoes.get(val, 0.0)
                         if isinstance(opcoes, dict)
                         else 0.0
                     )
@@ -515,15 +595,37 @@ def render_quesito(
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
-                save_resposta(ano, qid, val, pts, link, comms, st)
+                # Tenta chamar save_resp do main se existir, senão usa local
+                if "save_resp" in globals():
+                    try:
+                        save_resp(qid, val, pts, link, comms, ano)
+                    except TypeError:
+                        save_resposta(
+                            ano=ano,
+                            qid=qid,
+                            valor=val,
+                            pontos=pts,
+                            link=link,
+                            comentarios=comms,
+                            status=st,
+                        )
+                else:
+                    save_resposta(
+                        ano=ano,
+                        qid=qid,
+                        valor=val,
+                        pontos=pts,
+                        link=link,
+                        comentarios=comms,
+                        status=st,
+                    )
 
-                d_data["valor"] = val
-                d_data["pontos"] = pts
-                d_data["link"] = link
-                d_data["status"] = st
-
-                atualizar_label_pontos(pts)
-                ui.notify(f"Quesito {qid} salvo!", type="positive")
+                atualizar_label_pontos(pts, val)
+                ui.notify(
+                    f"Quesito {qid} salvo com sucesso!",
+                    type="positive",
+                    icon="check_circle",
+                )
 
                 if on_save_callback:
                     on_save_callback()
@@ -531,11 +633,12 @@ def render_quesito(
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes(
                 "bg-blue-800 text-white mt-4"
             )
+
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL (CHAMADO PELO MAIN.PY)
+# 4. CONTAINER PRINCIPAL REFRESHABLE
 # =============================================================================
 @ui.refreshable
 def container_formulario_icidade():
@@ -550,12 +653,15 @@ def container_formulario_icidade():
 
         with ui.column().classes("col-span-3 w-full"):
             ui.label(
-                f"Formulário COMPDEC - Defesa Civil ({ano_sel})"
+                f"Formulário I-cidade({ano_sel})"
             ).classes("text-h4 mb-1 font-bold text-blue-900")
             ui.label(
-                "Preencha as evidências e questões do indicador i-Cidade."
+                "Preencha as evidências e questões do indicador icidade."
             ).classes("text-gray-600 mb-6")
 
+            ui.label("1.0 Estrutura de TIC").classes(
+                "text-h5 font-bold my-4 text-blue-900"
+            )
             opcoes_10 = {
                 "Selecione...": 0.0,
                 "Sim (40 pts)": 40.0,
