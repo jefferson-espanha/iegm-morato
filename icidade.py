@@ -24,11 +24,9 @@ def get_db_connection():
 
 
 def init_db():
-    """Garante que a tabela respostas_icidade e a coluna comentarios existam."""
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                # 1. Cria a tabela se não existir
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS respostas_icidade (
                         qid VARCHAR(50) NOT NULL,
@@ -42,7 +40,6 @@ def init_db():
                         PRIMARY KEY (ano, qid)
                     );
                 """)
-                # 2. Garante a coluna 'comentarios' caso a tabela já existisse antes
                 cur.execute("""
                     ALTER TABLE respostas_icidade 
                     ADD COLUMN IF NOT EXISTS comentarios JSONB DEFAULT '[]'::jsonb;
@@ -52,7 +49,6 @@ def init_db():
         print(f"❌ Erro ao inicializar tabela respostas_icidade: {e}")
 
 
-# Executa a inicialização ao carregar o módulo
 init_db()
 
 
@@ -171,16 +167,6 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
     for qid, dados in res_data.items():
         conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode("utf-8")
-
-
-# =============================================================================
-# FUNÇÕES AUXILIARES DE CÁLCULO DE PONTUAÇÃO
-# =============================================================================
-def calc_pts_311(valor):
-    """Calcula a pontuação para o quesito 3.1.1"""
-    if "Sim" in str(valor):
-        return 40.0
-    return 0.0
 
 
 # =============================================================================
@@ -599,6 +585,7 @@ def render_quesito(
             )
 
             def salvar():
+                pts = 0.0
                 if tipo == "checkbox" and opcoes:
                     selecionados = [
                         opt
@@ -606,45 +593,26 @@ def render_quesito(
                         if chk_obj.value
                     ]
                     val = str(selecionados)
-                    pts = 0.0
                 elif opcoes:
                     val = input_valor.value if input_valor else ""
-                    pts = (
-                        opcoes.get(val, 0.0)
-                        if isinstance(opcoes, dict)
-                        else 0.0
-                    )
+                    if isinstance(opcoes, dict):
+                        pts = float(opcoes.get(val, 0.0))
                 else:
                     val = input_valor.value if input_valor else ""
-                    pts = 0.0
 
                 link = input_link.value or ""
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
-                if "save_resp" in globals():
-                    try:
-                        save_resp(qid, val, pts, link, comms, ano)
-                    except TypeError:
-                        save_resposta(
-                            ano=ano,
-                            qid=qid,
-                            valor=val,
-                            pontos=pts,
-                            link=link,
-                            comentarios=comms,
-                            status=st,
-                        )
-                else:
-                    save_resposta(
-                        ano=ano,
-                        qid=qid,
-                        valor=val,
-                        pontos=pts,
-                        link=link,
-                        comentarios=comms,
-                        status=st,
-                    )
+                save_resposta(
+                    ano=ano,
+                    qid=qid,
+                    valor=val,
+                    pontos=pts,
+                    link=link,
+                    comentarios=comms,
+                    status=st,
+                )
 
                 atualizar_label_pontos(pts, val)
                 ui.notify(
@@ -690,14 +658,20 @@ def container_formulario_icidade(on_refresh_pagina=None):
             ui.label(
                 "Preencha as evidências e questões do indicador icidade."
             ).classes("text-gray-600 mb-6")
-            
-            # --- QUESITO 1.0 ---
-            opcoes_10 = {"Selecione...": 0.0, "Sim (40 pts)": 40.0, "Não (00 pts)": 0.0}
+
+            # EXEMPLO DE RENDEREZAÇÃO DE QUESITO 1.0 (Com cálculo de pontos no dicionário):
             render_quesito(
-                ano=ano_sel, res_data=res_data, qid="1.0",
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.0",
                 titulo="Criação da COMPDEC ou Órgão Similar",
                 pergunta="Foi criada a Coordenadoria Municipal...?",
-                opcoes=opcoes_10, on_save_callback=callback_refresh,
+                opcoes={
+                    "Selecione...": 0.0,
+                    "Sim (40 pts)": 40.0,
+                    "Não (00 pts)": 0.0,
+                },
+                on_save_callback=callback_refresh,
             )
             # QUESITO 1.1
             render_quesito(
