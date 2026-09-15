@@ -649,47 +649,56 @@ def render_quesito(
 
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL REFRESHABLE
+# 4. CONTAINER PRINCIPAL (ESTRUTURA DE GRID + REFRESH SEPARADO)
 # =============================================================================
+
 @ui.refreshable
+def render_conteudo_formulario(ano_sel, res_data, callback_refresh):
+    """Sub-função decorada com refreshable apenas para a área dinâmica do formulário."""
+    ui.label(f"Formulário I-cidade ({ano_sel})").classes(
+        "text-h4 mb-1 font-bold text-blue-900"
+    )
+    ui.label(
+        "Preencha as evidências e questões do indicador icidade."
+    ).classes("text-gray-600 mb-6")
+
+    # AQUI ENTRARIAM AS CHAMADAS DOS SEUS QUESITOS:
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="1.0",
+        titulo="Criação da COMPDEC ou Órgão Similar",
+        pergunta="Foi criada a Coordenadoria Municipal...?",
+        opcoes={
+            "Selecione...": 0.0,
+            "Sim (40 pts)": 40.0,
+            "Não (00 pts)": 0.0,
+        },
+        on_save_callback=callback_refresh,
+    )
+    # Adicione os demais quesitos abaixo...
+
+
 def container_formulario_icidade(on_refresh_pagina=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     res_data = load_respostas(ano_sel)
 
-    callback_refresh = (
-        on_refresh_pagina
-        if on_refresh_pagina
-        else container_formulario_icidade.refresh
-    )
+    def recarregar_tudo():
+        if on_refresh_pagina:
+            on_refresh_pagina()
+        else:
+            # Força o recarregamento dos componentes sem quebrar o layout
+            container_formulario_icidade.refresh()
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
-        # COLUNA 1: PAINEL LATERAL
+        # COLUNA 1: PAINEL LATERAL (Fixo)
         with ui.column().classes("col-span-1 w-full"):
-            render_painel_controle(on_refresh_callback=callback_refresh)
+            render_painel_controle(on_refresh_callback=recarregar_tudo)
 
-        # COLUNA 2: FORMULÁRIO COM TODOS OS QUESITOS
+        # COLUNA 2: CONTEÚDO DINÂMICO (Atualizável)
         with ui.column().classes("col-span-3 w-full"):
-            ui.label(f"Formulário I-cidade ({ano_sel})").classes(
-                "text-h4 mb-1 font-bold text-blue-900"
-            )
-            ui.label(
-                "Preencha as evidências e questões do indicador icidade."
-            ).classes("text-gray-600 mb-6")
-
-            # EXEMPLO DE RENDEREZAÇÃO DE QUESITO 1.0 (Com cálculo de pontos no dicionário):
-            render_quesito(
-                ano=ano_sel,
-                res_data=res_data,
-                qid="1.0",
-                titulo="Criação da COMPDEC ou Órgão Similar",
-                pergunta="Foi criada a Coordenadoria Municipal...?",
-                opcoes={
-                    "Selecione...": 0.0,
-                    "Sim (40 pts)": 40.0,
-                    "Não (00 pts)": 0.0,
-                },
-                on_save_callback=callback_refresh,
-            )
+            render_conteudo_formulario(ano_sel, res_data, recarregar_tudo)
+            
             # QUESITO 1.1
             render_quesito(
                 ano=ano_sel,
