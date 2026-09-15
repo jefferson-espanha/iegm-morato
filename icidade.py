@@ -649,18 +649,53 @@ def render_quesito(
 
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL (ESTRUTURA DE GRID + REFRESH SEPARADO)
+# 4. CONTAINER PRINCIPAL (CORRIGIDO COM REFRESHABLE)
 # =============================================================================
 
-@ui.refreshable
 def render_conteudo_formulario(ano_sel, res_data, callback_refresh):
-    """Sub-função decorada com refreshable apenas para a área dinâmica do formulário."""
+    """Sub-função para renderizar o formulário da direita."""
     ui.label(f"Formulário I-cidade ({ano_sel})").classes(
         "text-h4 mb-1 font-bold text-blue-900"
     )
     ui.label(
         "Preencha as evidências e questões do indicador icidade."
     ).classes("text-gray-600 mb-6")
+
+    # Renderize os quesitos aqui:
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="1.0",
+        titulo="Criação da COMPDEC ou Órgão Similar",
+        pergunta="Foi criada a Coordenadoria Municipal...?",
+        opcoes={
+            "Selecione...": 0.0,
+            "Sim (40 pts)": 40.0,
+            "Não (00 pts)": 0.0,
+        },
+        on_save_callback=callback_refresh,
+    )
+
+
+@ui.refreshable  # DECORADOR OBRIGATÓRIO AQUI PARA PERMITIR O .refresh()
+def container_formulario_icidade(on_refresh_pagina=None):
+    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+    res_data = load_respostas(ano_sel)
+
+    def recarregar_tudo():
+        if on_refresh_pagina:
+            on_refresh_pagina()
+        else:
+            container_formulario_icidade.refresh()
+
+    with ui.grid(columns=4).classes("w-full gap-6 items-start"):
+        # COLUNA 1: PAINEL LATERAL
+        with ui.column().classes("col-span-1 w-full"):
+            render_painel_controle(on_refresh_callback=recarregar_tudo)
+
+        # COLUNA 2: FORMULÁRIO COM DADOS DO ANO ATUALIZADO
+        with ui.column().classes("col-span-3 w-full"):
+            render_conteudo_formulario(ano_sel, res_data, recarregar_tudo)
 
     # AQUI ENTRARIAM AS CHAMADAS DOS SEUS QUESITOS:
     render_quesito(
