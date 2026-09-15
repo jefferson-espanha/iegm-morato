@@ -655,11 +655,7 @@ def render_quesito(
 
 @ui.refreshable
 def render_conteudo_formulario(ano_sel, callback_refresh):
-    """
-    Área reativa. Recebe 'ano_sel' e 'callback_refresh'. 
-    Carrega os dados frescos do banco a cada atualização de tela.
-    """
-    # Carrega dados atualizados para o ano selecionado
+    """Renderiza a área de formulários do ano selecionado."""
     res_data = load_respostas(ano_sel)
 
     ui.label(f"Formulário I-cidade ({ano_sel})").classes(
@@ -669,7 +665,7 @@ def render_conteudo_formulario(ano_sel, callback_refresh):
         "Preencha as evidências e questões do indicador icidade."
     ).classes("text-gray-600 mb-6")
 
-    # Renderização dos quesitos
+    # Quesito 1.0
     render_quesito(
         ano=ano_sel,
         res_data=res_data,
@@ -684,24 +680,28 @@ def render_conteudo_formulario(ano_sel, callback_refresh):
         on_save_callback=callback_refresh,
     )
 
+    # Quesito 3.1.1 (Opções passadas como Dicionário)
     render_quesito(
         ano=ano_sel,
         res_data=res_data,
         qid="3.1.1",
         titulo="Plano de Contingência",
         pergunta="O município possui plano de contingência aprovado?",
-        opcoes=calc_pts_311,
+        opcoes={
+            "Selecione...": 0.0,
+            "Sim (40 pts)": 40.0,
+            "Não (00 pts)": 0.0,
+        },
         on_save_callback=callback_refresh,
     )
 
 
 def container_formulario_icidade(on_refresh_pagina=None):
-    """Container principal que gerencia a montagem da página."""
+    """Container principal que gerencia o grid e atualizações."""
     def recarregar_tudo():
         if on_refresh_pagina:
             on_refresh_pagina()
         else:
-            # Pega o ano atualizado do storage e recarrega a função refreshable com os argumentos certos
             ano_atual = app.storage.user.get("ano_referencia_global", 2026)
             render_conteudo_formulario.refresh(ano_atual, recarregar_tudo)
 
