@@ -640,16 +640,6 @@ def container_formulario_icidade():
                 "Preencha as evidências e questões do indicador i-Cidade."
             ).classes("text-gray-600 mb-6")
 
-            # Exemplo de chamada aos quesitos passando o callback de salvamento:
-            # render_quesito(
-            #     ano=ano_sel,
-            #     res_data=res_data,
-            #     qid="1.1",
-            #     titulo="Estrutura COMPDEC",
-            #     pergunta="Existe órgão municipal encarregado de ações de defesa civil?",
-            #     opcoes={"Sim": 100.0, "Não": 0.0},
-            #     on_save_callback=container_formulario_icidade.refresh
-            # )
             opcoes_10 = {
                 "Selecione...": 0.0,
                 "Sim (40 pts)": 40.0,
@@ -662,7 +652,10 @@ def container_formulario_icidade():
                 titulo="Criação da COMPDEC ou Órgão Similar",
                 pergunta="Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil-COMPDEC ou órgão similar responsável pela execução, coordenação e mobilização de todas as ações de defesa civil no município?",
                 opcoes=opcoes_10,
+                on_save_callback=container_formulario_icidade.refresh,
             )
+
+
             # QUESITO 1.1
             render_quesito(
                 ano=ano_sel,
