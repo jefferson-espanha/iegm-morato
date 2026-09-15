@@ -185,6 +185,7 @@ def calc_pts_311(valor):
 # =============================================================================
 def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    # Pega sempre o ano ativo no storage
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
@@ -192,11 +193,16 @@ def render_painel_controle(on_refresh_callback=None):
             "text-lg font-bold mb-2 text-blue-900"
         )
 
-        def ao_mudar_ano(e):
+        # Trata a troca do ano no Select
+        async def ao_mudar_ano(e):
             app.storage.user["ano_referencia_global"] = e.value
             ui.notify(f"Ano alterado para {e.value}", type="info")
             if on_refresh_callback:
-                on_refresh_callback()
+                # Se for função assíncrona executa await, senão chama direto
+                if asyncio.iscoroutinefunction(on_refresh_callback):
+                    await on_refresh_callback()
+                else:
+                    on_refresh_callback()
 
         ui.select(
             options=anos,
@@ -205,11 +211,15 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
+        # Carrega dados atualizados do banco para o ano corrente
         res_data = load_respostas(ano_atual)
+        
+        # Soma pontuação
         total_pts = sum(
-            float(item.get("pontos", 0)) for item in res_data.values()
+            float(item.get("pontos", 0.0)) for item in res_data.values()
         )
 
+        # Regras de Faixa de Pontuação
         if total_pts <= 500:
             faixa, cor = "C", "text-red-600"
         elif total_pts <= 599:
@@ -221,6 +231,7 @@ def render_painel_controle(on_refresh_callback=None):
         else:
             faixa, cor = "A", "text-green-700"
 
+        # Card de Exibição dos Pontos
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
             ui.label("Pontuação Total").classes(
                 "text-xs text-gray-500 font-bold uppercase"
@@ -246,6 +257,7 @@ def render_painel_controle(on_refresh_callback=None):
         )
         ui.separator().classes("my-2")
 
+        # Modal de Confirmação para Zerar Banco
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
@@ -277,16 +289,19 @@ def render_painel_controle(on_refresh_callback=None):
                     "Confirmar e Zerar", on_click=executar_zerar
                 ).classes("bg-red-600 text-white")
 
+        # Ação Dinâmica do Relatório PDF (Gera o PDF com dados frescos na hora do clique)
+        def baixar_pdf():
+            dados_frescos = load_respostas(ano_atual)
+            pts_frescos = sum(float(item.get("pontos", 0.0)) for item in dados_frescos.values())
+            pdf = gerar_relatorio_pdf_bytes(dados_frescos, ano_atual, pts_frescos, faixa)
+            ui.download(pdf, f"Relatorio_icidade_{ano_atual}.pdf")
+
         with ui.row().classes("w-full gap-2 no-wrap"):
-            pdf_bytes = gerar_relatorio_pdf_bytes(
-                res_data, ano_atual, total_pts, faixa
-            )
             ui.button(
                 "📄 Relatório",
-                on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_icidade_{ano_atual}.pdf"
-                ),
+                on_click=baixar_pdf
             ).classes("flex-1 bg-green-700 text-white")
+            
             ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
                 "flex-1 bg-red-700 text-white"
             )
