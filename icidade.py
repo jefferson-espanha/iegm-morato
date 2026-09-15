@@ -688,12 +688,6 @@ def render_conteudo_formulario(ano_sel, res_data, callback_refresh):
         on_save_callback=callback_refresh,
     )
 
-
-def container_formulario_icidade(on_refresh_pagina=None):
-    """Container principal com grid lateral e formulário."""
-    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
-    res_data = load_respostas(ano_sel)
-
     def recarregar_tudo():
         if on_refresh_pagina:
             on_refresh_pagina()
