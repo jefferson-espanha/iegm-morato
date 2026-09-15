@@ -177,45 +177,9 @@ def render_painel_controle(on_refresh_callback=None):
             "text-lg font-bold mb-2 text-blue-900"
         )
 
-        # 1. Container reativo para os cards de pontuação
-        card_pontuacao_container = ui.element("div").classes("w-full")
-
-        # 2. Função interna para recalcular e redesenhar apenas a área de pontos
-        def atualizar_metricas_painel():
-            card_pontuacao_container.clear()
-            
-            ano_sel = app.storage.user.get("ano_referencia_global", 2026)
-            res_data = load_respostas(ano_sel)
-            total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
-
-            if total_pts <= 500:
-                faixa, cor = "C", "text-red-600"
-            elif total_pts <= 599:
-                faixa, cor = "C+", "text-orange-500"
-            elif total_pts <= 749:
-                faixa, cor = "B", "text-yellow-600"
-            elif total_pts <= 899:
-                faixa, cor = "B+", "text-green-500"
-            else:
-                faixa, cor = "A", "text-green-700"
-
-            with card_pontuacao_container:
-                with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
-                    ui.label("Pontuação Total").classes(
-                        "text-xs text-gray-500 font-bold uppercase"
-                    )
-                    ui.label(f"{total_pts:.1f} pts").classes(
-                        "text-2xl font-black text-gray-800"
-                    )
-                    with ui.row().classes("items-center gap-1 mt-1"):
-                        ui.label("Faixa:").classes("font-bold text-sm")
-                        ui.label(faixa).classes(f"text-xl font-bold {cor}")
-
-        # 3. Callbacks encadeados
         def ao_mudar_ano(e):
             app.storage.user["ano_referencia_global"] = e.value
             ui.notify(f"Ano alterado para {e.value}", type="info")
-            atualizar_metricas_painel()
             if on_refresh_callback:
                 on_refresh_callback()
 
@@ -226,15 +190,39 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # Renderiza a pontuação inicial
-        atualizar_metricas_painel()
+        res_data = load_respostas(ano_atual)
+        total_pts = sum(
+            float(item.get("pontos", 0)) for item in res_data.values()
+        )
+
+        if total_pts <= 500:
+            faixa, cor = "C", "text-red-600"
+        elif total_pts <= 599:
+            faixa, cor = "C+", "text-orange-500"
+        elif total_pts <= 749:
+            faixa, cor = "B", "text-yellow-600"
+        elif total_pts <= 899:
+            faixa, cor = "B+", "text-green-500"
+        else:
+            faixa, cor = "A", "text-green-700"
+
+        with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
+            ui.label("Pontuação Total").classes(
+                "text-xs text-gray-500 font-bold uppercase"
+            )
+            ui.label(f"{total_pts:.1f} pts").classes(
+                "text-2xl font-black text-gray-800"
+            )
+
+            with ui.row().classes("items-center gap-1 mt-1"):
+                ui.label("Faixa:").classes("font-bold text-sm")
+                ui.label(faixa).classes(f"text-xl font-bold {cor}")
 
         ui.separator().classes("my-2")
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
         def atualizar_dados():
             ui.notify("Questionário atualizado!", type="positive", icon="refresh")
-            atualizar_metricas_painel()
             if on_refresh_callback:
                 on_refresh_callback()
 
@@ -243,13 +231,12 @@ def render_painel_controle(on_refresh_callback=None):
         )
         ui.separator().classes("my-2")
 
-        # --- Dialog de Zerar ---
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
             )
             ui.label(
-                "Você está prestes a apagar todas as respostas do ano selecionado. Esta ação é irreversível!"
+                f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!"
             ).classes("text-sm my-2")
 
             input_senha = ui.input(
@@ -257,15 +244,13 @@ def render_painel_controle(on_refresh_callback=None):
             ).classes("w-full mb-4")
 
             def executar_zerar():
-                ano_sel = app.storage.user.get("ano_referencia_global", 2026)
                 if input_senha.value == "fidelios":
-                    zerar_questionario_db(ano_sel)
+                    zerar_questionario_db(ano_atual)
                     ui.notify(
-                        f"✅ Questionário de {ano_sel} foi zerado!",
+                        f"✅ Questionário de {ano_atual} foi zerado!",
                         type="positive",
                     )
                     dialog_zerar.close()
-                    atualizar_metricas_painel()
                     if on_refresh_callback:
                         on_refresh_callback()
                 else:
@@ -277,20 +262,16 @@ def render_painel_controle(on_refresh_callback=None):
                     "Confirmar e Zerar", on_click=executar_zerar
                 ).classes("bg-red-600 text-white")
 
-        # 4. Ajuste no Relatório PDF (Geração sob demanda no clique)
-        def baixar_pdf():
-            ano_sel = app.storage.user.get("ano_referencia_global", 2026)
-            res_data = load_respostas(ano_sel)
-            pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
-            # Calcula faixa simplificada para o PDF...
-            f = "A" if pts > 899 else "B"
-            pdf_bytes = gerar_relatorio_pdf_bytes(res_data, ano_sel, pts, f)
-            ui.download(pdf_bytes, f"Relatorio_icidade_{ano_sel}.pdf")
-
         with ui.row().classes("w-full gap-2 no-wrap"):
-            ui.button("📄 Relatório", on_click=baixar_pdf).classes(
-                "flex-1 bg-green-700 text-white"
+            pdf_bytes = gerar_relatorio_pdf_bytes(
+                res_data, ano_atual, total_pts, faixa
             )
+            ui.button(
+                "📄 Relatório",
+                on_click=lambda: ui.download(
+                    pdf_bytes, f"Relatorio_icidade_{ano_atual}.pdf"
+                ),
+            ).classes("flex-1 bg-green-700 text-white")
             ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
                 "flex-1 bg-red-700 text-white"
             )
@@ -435,7 +416,6 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         ui.button("Postar Comentário", on_click=postar_comentario).classes(
             "bg-blue-600 text-white mt-2"
         )
-
 
 # =============================================================================
 # 3. RENDERIZADOR DE QUESITO
