@@ -169,12 +169,20 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
     return conteudo.encode("utf-8")
 
 # =============================================================================
-# FUNÇÕES AUXILIARES DE CÁLCULO DE PONTUAÇÃO
+# FUNÇÕES AUXILIARES DE CÁLCULO DE PONTUAÇÃO (Restauradas)
 # =============================================================================
 def calc_pts_311(valor):
     """Calcula a pontuação para o quesito 3.1.1"""
-    if "Sim" in str(valor):
+    if valor and "Sim" in str(valor):
         return 40.0
+    return 0.0
+
+def calcular_pontos_generico(val, opcoes):
+    """Auxiliar para calcular pontos baseados em dicionário ou função"""
+    if callable(opcoes):
+        return float(opcoes(val))
+    if isinstance(opcoes, dict):
+        return float(opcoes.get(val, 0.0))
     return 0.0
 
 
