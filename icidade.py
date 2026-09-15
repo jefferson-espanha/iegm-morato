@@ -654,8 +654,14 @@ def render_quesito(
 # =============================================================================
 
 @ui.refreshable
-def render_conteudo_formulario(ano_sel, res_data, callback_refresh):
-    """Renderiza a área de perguntas e títulos com atualização dinâmica."""
+def render_conteudo_formulario(ano_sel, callback_refresh):
+    """
+    Área reativa. Recebe 'ano_sel' e 'callback_refresh'. 
+    Carrega os dados frescos do banco a cada atualização de tela.
+    """
+    # Carrega dados atualizados para o ano selecionado
+    res_data = load_respostas(ano_sel)
+
     ui.label(f"Formulário I-cidade ({ano_sel})").classes(
         "text-h4 mb-1 font-bold text-blue-900"
     )
@@ -663,7 +669,7 @@ def render_conteudo_formulario(ano_sel, res_data, callback_refresh):
         "Preencha as evidências e questões do indicador icidade."
     ).classes("text-gray-600 mb-6")
 
-    # Chamada dos quesitos
+    # Renderização dos quesitos
     render_quesito(
         ano=ano_sel,
         res_data=res_data,
@@ -688,20 +694,27 @@ def render_conteudo_formulario(ano_sel, res_data, callback_refresh):
         on_save_callback=callback_refresh,
     )
 
+
+def container_formulario_icidade(on_refresh_pagina=None):
+    """Container principal que gerencia a montagem da página."""
     def recarregar_tudo():
         if on_refresh_pagina:
             on_refresh_pagina()
         else:
-            render_conteudo_formulario.refresh()
+            # Pega o ano atualizado do storage e recarrega a função refreshable com os argumentos certos
+            ano_atual = app.storage.user.get("ano_referencia_global", 2026)
+            render_conteudo_formulario.refresh(ano_atual, recarregar_tudo)
+
+    ano_inicial = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
         # COLUNA 1: PAINEL LATERAL
         with ui.column().classes("col-span-1 w-full"):
             render_painel_controle(on_refresh_callback=recarregar_tudo)
 
-        # COLUNA 2: FORMULÁRIO COM DADOS DO ANO ATUALIZADO
+        # COLUNA 2: FORMULÁRIO DINÂMICO
         with ui.column().classes("col-span-3 w-full"):
-            render_conteudo_formulario(ano_sel, res_data, recarregar_tudo)
+            render_conteudo_formulario(ano_inicial, recarregar_tudo)
             
             # QUESITO 1.1
             render_quesito(
