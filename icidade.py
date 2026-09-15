@@ -271,7 +271,7 @@ def render_painel_controle(on_refresh_callback=None):
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
-def bloco_comentarios(qid, res_data):
+def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
@@ -312,6 +312,8 @@ def bloco_comentarios(qid, res_data):
                 status=novo_st,
             )
             ui.notify(f"Status alterado para {novo_st}", type="info")
+            if on_save_callback:
+                on_save_callback()
 
         ui.radio(
             ["Resolvido", "Pendente"],
@@ -345,6 +347,8 @@ def bloco_comentarios(qid, res_data):
                         )
                         ui.notify("Comentário removido.", type="warning")
                         render_lista_comentarios()
+                        if on_save_callback:
+                            on_save_callback()
 
                     with ui.row().classes(
                         "w-full items-center justify-between no-wrap mb-2"
@@ -398,6 +402,8 @@ def bloco_comentarios(qid, res_data):
                 input_novo_comentario.value = ""
                 ui.notify("Comentário publicado!", type="positive")
                 render_lista_comentarios()
+                if on_save_callback:
+                    on_save_callback()
 
         ui.button("Postar Comentário", on_click=postar_comentario).classes(
             "bg-blue-600 text-white mt-2"
@@ -420,6 +426,7 @@ def render_quesito(
     placeholder_text="Cole os links ou informações aqui...",
     placeholder_link="Link de Evidência / Documento:",
     pontuacao_maxima=None,
+    on_save_callback=None,
     **kwargs,
 ):
     d_data = res_data.get(qid, {})
@@ -588,7 +595,6 @@ def render_quesito(
                     status=st,
                 )
 
-                # Atualiza os dados locais do mapa para manter coerência sem recarregar toda a página
                 d_data["valor"] = val
                 d_data["pontos"] = pts
                 d_data["link"] = link
@@ -600,11 +606,16 @@ def render_quesito(
                     icon="check_circle",
                 )
 
+                if on_save_callback:
+                    on_save_callback()
+
             ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes(
                 "bg-blue-800 text-white mt-4"
             )
 
-            bloco_comentarios(qid, res_data)
+            bloco_comentarios(
+                qid, res_data, on_save_callback=on_save_callback
+            )
 
 
 # =============================================================================
@@ -629,6 +640,16 @@ def container_formulario_icidade():
                 "Preencha as evidências e questões do indicador i-Cidade."
             ).classes("text-gray-600 mb-6")
 
+            # Exemplo de chamada aos quesitos passando o callback de salvamento:
+            # render_quesito(
+            #     ano=ano_sel,
+            #     res_data=res_data,
+            #     qid="1.1",
+            #     titulo="Estrutura COMPDEC",
+            #     pergunta="Existe órgão municipal encarregado de ações de defesa civil?",
+            #     opcoes={"Sim": 100.0, "Não": 0.0},
+            #     on_save_callback=container_formulario_icidade.refresh
+            # )
             opcoes_10 = {
                 "Selecione...": 0.0,
                 "Sim (40 pts)": 40.0,
