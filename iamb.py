@@ -2953,6 +2953,161 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 9.3.1", on_click=salvar_931).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("9.3.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 10.0 (Seleção Única - Realização da Coleta de Lixo Doméstico)
+                # =============================================================================
+                opcoes_100 = {
+                    "Selecione...": 0.0,
+                    "Sim – 00 pts": 0.0,
+                    "Não – -100 pts (perde 100 pontos)": -100.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="10.0",
+                    titulo="Coleta de Lixo Doméstico (Resíduos Domiciliares)",
+                    pergunta="É realizada a coleta de lixo doméstico (resíduos domiciliares)? (Resíduos originários de atividades domésticas em residências urbanas)",
+                    opcoes=opcoes_100,
+                    placeholder_link="Insira o link do contrato, edital ou página oficial sobre o serviço de coleta...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 10.1 (Seleção Única - Programação da Coleta)
+                # =============================================================================
+                opcoes_101 = {
+                    "Selecione...": 0.0,
+                    "Sim – 00 pts": 0.0,
+                    "Não – -30 pts (perde 30 pontos)": -30.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="10.1",
+                    titulo="Programação da Coleta Doméstica",
+                    pergunta="A coleta de lixo doméstico (resíduos domiciliares) ocorre de forma programada (determinados os horários e dias da semana)?",
+                    opcoes=opcoes_101,
+                    placeholder_link="Insira o link do cronograma/itinerário oficial da coleta divulgado à população...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 10.2 (Seleção Única - Abrangência do Atendimento)
+                # =============================================================================
+                opcoes_102 = {
+                    "Selecione...": 0.0,
+                    "Todos os bairros do município são atendidos – 00 pts": 0.0,
+                    "A maior parte dos bairros são atendidos – -10 pts (perde 10 pontos)": -10.0,
+                    "A menor parte dos bairros são atendidos – -30 pts (perde 30 pontos)": -30.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="10.2",
+                    titulo="Abrangência da Coleta Doméstica",
+                    pergunta="Todas as regiões do município são atendidas pela coleta de lixo doméstico? (Inclusive zona rural e periferia)",
+                    opcoes=opcoes_102,
+                    placeholder_link="Insira o link de mapas de rotas ou relatórios de cobertura do serviço...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 10.3 (Seleção Única - Existência de ATT)
+                # =============================================================================
+                opcoes_103 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="10.3",
+                    titulo="Área de Transbordo e Triagem (ATT)",
+                    pergunta="Existe Área de Transbordo e Triagem (ATT) para os Resíduos Sólidos Urbanos no município?",
+                    opcoes=opcoes_103,
+                    placeholder_link="Insira o link de cadastro ou comprovação da ATT no município...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 10.3.1 (Seleção Única - Licença CETESB para ATT)
+                # =============================================================================
+                opcoes_1031 = {
+                    "Selecione...": 0.0,
+                    "Sim – 00 pts": 0.0,
+                    "Não – -50 pts (perde 50 pontos)": -50.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="10.3.1",
+                    titulo="Licença de Operação CETESB da ATT",
+                    pergunta="Existe licença de operação da CETESB para a Área de Transbordo e Triagem (ATT) de Resíduos Sólidos Urbanos?",
+                    opcoes=opcoes_1031,
+                    placeholder_link="Insira o link do documento da Licença de Operação emitida pela CETESB...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 10.3.1.1 (Validade da Licença CETESB da ATT)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("10.3.1.1 • Prazo de Validade da Licença de Operação da ATT").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe o prazo de validade da licença de operação da ATT:").classes("text-base font-bold text-black mb-1")
+                    ui.label("⚠️ Regra de Pontuação: Se Data <= 31/12/2024 perde 50 pontos (-50.0). Se Data > 31/12/2024 não perde pontos (0.0).").classes("text-xs font-semibold text-red-500 mb-6")
+
+                    d10311 = res_data.get("10.3.1.1") or {}
+                    data_salva_10311 = d10311.get("valor", "")
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-center mb-4"):
+                        input_data_10311 = ui.input(
+                            label="Data de Validade (DD/MM/AAAA):",
+                            value=data_salva_10311,
+                            placeholder="Ex: 30/06/2025"
+                        ).classes("w-full").props("outlined mask='##/##/####'")
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento da Licença CETESB:",
+                        value=d10311.get("link", ""),
+                        placeholder="Insira o link da licença em PDF ou no sistema de consulta da CETESB..."
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(d10311, "link")
+
+                    def calc_pts_10311(data_str):
+                        if not data_str or len(data_str) < 10:
+                            return 0.0
+                        try:
+                            partes = data_str.split("/")
+                            if len(partes) == 3:
+                                dia, mes, ano = int(partes[0]), int(partes[1]), int(partes[2])
+                                # Data limite: 31/12/2024
+                                if (ano < 2024) or (ano == 2024 and mes <= 12 and dia <= 31):
+                                    return -50.0
+                                else:
+                                    return 0.0
+                        except Exception:
+                            pass
+                        return 0.0
+
+                    def salvar_10311():
+                        val_data = input_data_10311.value or ""
+                        pts = calc_pts_10311(val_data)
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="10.3.1.1",
+                            valor=val_data,
+                            pontos=pts,
+                            link=d10311.get("link", ""),
+                            comentarios=d10311.get("comentarios", []),
+                            status=d10311.get("status", "Pendente")
+                        )
+                        ui.notify(f"Quesito 10.3.1.1 salvo! Impacto de pontuação: {pts} pts", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 10.3.1.1", on_click=salvar_10311).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("10.3.1.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
