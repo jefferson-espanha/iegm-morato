@@ -735,7 +735,94 @@ def container_formulario_iamb(ano=None):
                     ui.separator().classes("my-2")
                     bloco_comentarios("1.1.3", res_data, render_conteudo.refresh)
 
-                # QUESITO 2.0
+               # =============================================================================
+                # QUESITO 1.2 (Seleção Múltipla - Checkboxes)
+                # =============================================================================
+                with ui.card().classes(
+                    "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                ):
+                    ui.label(
+                        "1.2 • Recursos Disponibilizados para Meio Ambiente"
+                    ).classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label(
+                        "Assinale os recursos disponibilizados para a operacionalização das atividades de meio ambiente (Não considerar Recursos Humanos e Estrutura Física):"
+                    ).classes("text-base font-bold text-black mb-1")
+                    ui.label(
+                        "ℹ Selecione as opções aplicáveis e clique no botão de salvar."
+                    ).classes("text-xs text-gray-400 mb-6")
+
+                    d12 = res_data.get("1.2") or {}
+                    try:
+                        sel_12_salvos = json.loads(d12.get("valor", "[]"))
+                        if not isinstance(sel_12_salvos, list):
+                            sel_12_salvos = []
+                    except Exception:
+                        sel_12_salvos = []
+
+                    state_12 = {
+                        "tec": "tec" in sel_12_salvos,
+                        "orc": "orc" in sel_12_salvos,
+                        "mat": "mat" in sel_12_salvos,
+                        "out": "out" in sel_12_salvos,
+                        "link": d12.get("link", ""),
+                    }
+
+                    def calc_pts_12():
+                        pts = 0.0
+                        if state_12["tec"]: pts += 5.0
+                        if state_12["orc"]: pts += 5.0
+                        if state_12["mat"]: pts += 5.0
+                        if state_12["out"]: pts += 5.0
+                        return pts
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-2"):
+                            cb_tec = ui.checkbox("Recursos Tecnológicos (+5 pts)").bind_value(state_12, "tec")
+                            cb_orc = ui.checkbox("Recursos Orçamentários (+5 pts)").bind_value(state_12, "orc")
+                            cb_mat = ui.checkbox("Recursos Materiais (+5 pts)").bind_value(state_12, "mat")
+                            cb_out = ui.checkbox("Outros (+5 pts)").bind_value(state_12, "out")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_12["link"],
+                            placeholder="Insira notas fiscais, extratos orçamentários, inventário de materiais...",
+                        ).classes("w-full").props("outlined rows=5").bind_value(state_12, "link")
+
+                    lbl_pts_12 = ui.label(
+                        f"📊 Impacto de Pontuação no Quesito 1.2: {calc_pts_12():.1f} pontos"
+                    ).classes("text-sm font-bold text-green-600 my-4")
+
+                    def att_pts_12():
+                        lbl_pts_12.set_text(f"📊 Impacto de Pontuação no Quesito 1.2: {calc_pts_12():.1f} pontos")
+
+                    cb_tec.on("update:model-value", att_pts_12)
+                    cb_orc.on("update:model-value", att_pts_12)
+                    cb_mat.on("update:model-value", att_pts_12)
+                    cb_out.on("update:model-value", att_pts_12)
+
+                    def salvar_12():
+                        selecionados = [k for k, v in state_12.items() if k != "link" and v]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="1.2",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_12(),
+                            link=state_12["link"],
+                            comentarios=d12.get("comentarios", []),
+                            status=d12.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 1.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 1.2", on_click=salvar_12).classes(
+                        "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                    )
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("1.2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 2.0 (Seleção Única - Radio Button)
+                # =============================================================================
                 opcoes_20 = {
                     "Selecione...": 0.0,
                     "Sim – 10 pts": 10.0,
@@ -752,10 +839,127 @@ def container_formulario_iamb(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-    # Executa a renderização da interface
-    render_conteudo()
+                # =============================================================================
+                # QUESITO 2.1 (Cálculo Proporcional - Fórmula Pmáx=50)
+                # =============================================================================
+                with ui.card().classes(
+                    "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                ):
+                    ui.label(
+                        "2.1 • Ação de Educação Ambiental na Rede Escolar Municipal"
+                    ).classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label(
+                        "Informe o número de escolas dos Anos Iniciais (1º ao 5º ano) que adotam programa ou ação de educação ambiental e o total de escolas:"
+                    ).classes("text-base font-bold text-black mb-1")
+                    ui.label(
+                        "ℹ O cálculo é automático: N = (Escolas com Programa / Total Escolas) × 50 pts."
+                    ).classes("text-xs text-gray-400 mb-6")
 
+                    d21 = res_data.get("2.1") or {}
+                    raw_link_21 = str(d21.get("link") or "")
+                    
+                    n_com_prog_i, n_total_esc_i = 0, 0
+                    evidencia_21 = raw_link_21
 
+                    if "|LINK:" in raw_link_21:
+                        partes_21, evidencia_21 = raw_link_21.split("|LINK:", 1)
+                        match_prog = re.search(r"PROG:(\d+)", partes_21)
+                        match_tot = re.search(r"TOT:(\d+)", partes_21)
+                        n_com_prog_i = int(match_prog.group(1)) if match_prog else 0
+                        n_total_esc_i = int(match_tot.group(1)) if match_tot else 0
+
+                    state_21 = {
+                        "prog": n_com_prog_i,
+                        "total": n_total_esc_i,
+                        "link": evidencia_21,
+                    }
+
+                    def calc_pts_21():
+                        tot = int(state_21["total"] or 0)
+                        prog = int(state_21["prog"] or 0)
+                        if tot <= 0 or prog <= 0:
+                            return 0.0
+                        prop = min(prog / tot, 1.0) # Limita a 100%
+                        return prop * 50.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            inp_prog = ui.number(
+                                "Escolas COM programa (Anos Iniciais):",
+                                value=n_com_prog_i,
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined").bind_value(state_21, "prog")
+
+                            inp_tot = ui.number(
+                                "TOTAL de escolas dos Anos Iniciais (i-Educ = E3.3):",
+                                value=n_total_esc_i,
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined").bind_value(state_21, "total")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=evidencia_21,
+                            placeholder="Insira a relação de escolas, projetos pedagógicos ou declaração da Secretaria de Educação...",
+                        ).classes("w-full").props("outlined rows=5").bind_value(state_21, "link")
+
+                    lbl_pts_21 = ui.label(
+                        f"📊 Impacto de Pontuação no Quesito 2.1: {calc_pts_21():.1f} / 50.0 pontos"
+                    ).classes("text-sm font-bold text-green-600 my-4")
+
+                    def att_pts_21():
+                        lbl_pts_21.set_text(
+                            f"📊 Impacto de Pontuação no Quesito 2.1: {calc_pts_21():.1f} / 50.0 pontos"
+                        )
+
+                    inp_prog.on("update:model-value", att_pts_21)
+                    inp_tot.on("update:model-value", att_pts_21)
+
+                    def salvar_21():
+                        p_val = int(state_21["prog"] or 0)
+                        t_val = int(state_21["total"] or 0)
+                        pts_finais = calc_pts_21()
+                        composite = f"PROG:{p_val},TOT:{t_val}|LINK:{state_21['link']}"
+
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="2.1",
+                            valor=f"{p_val}/{t_val}",
+                            pontos=pts_finais,
+                            link=composite,
+                            comentarios=d21.get("comentarios", []),
+                            status=d21.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 2.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 2.1", on_click=salvar_21).classes(
+                        "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                    )
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("2.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 3.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_30 = {
+                    "Selecione...": 0.0,
+                    "Sim, para todos os órgãos e entidades – 10 pts": 10.0,
+                    "Parcialmente – 03 pts": 3.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="3.0",
+                    titulo="Uso Racional de Recursos Naturais nos Órgãos Públicos",
+                    pergunta="A prefeitura municipal estimula entre seus órgãos e entidades de sua responsabilidade projetos e/ou ações que promovam o uso racional de recursos naturais? (Ex.: implantação de dispositivos para uso racional da água, coleta seletiva, reuso/reciclagem)",
+                    opcoes=opcoes_30,
+                    placeholder_link="Insira o link das portarias, fotos das instalações, comprovantes de coleta seletiva nos prédios públicos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+                
 # Exporta referências principais para o aplicativo
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
