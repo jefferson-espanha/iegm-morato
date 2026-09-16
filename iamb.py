@@ -1,8 +1,9 @@
 import base64
+from datetime import datetime
 import json
 import os
-import psycopg2
 from nicegui import app, ui
+import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
 # =============================================================================
@@ -130,6 +131,11 @@ def zerar_questionario_db(ano):
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
 
 
+def _obter_lista_comentarios(dados_q):
+    coms = dados_q.get("comentarios", [])
+    return coms if isinstance(coms, list) else []
+
+
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
@@ -198,8 +204,9 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             </div>
         """).classes("w-full")
 
+
 # =============================================================================
-# 2. BLOCO DE COMENTÁRIOS INTERNOS
+# BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
 def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
@@ -340,8 +347,8 @@ def container_formulario_iamb(ano=None):
 
     @ui.refreshable
     def render_conteudo():
-        ano_atual = int(app.storage.user.get("ano_referencia_global", 2026))
-        respostas = load_respostas(ano_atual)
+        ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+        res_data = load_respostas(ano_sel)
 
         def alterar_ano(novo_ano):
             app.storage.user["ano_referencia_global"] = int(novo_ano)
@@ -355,7 +362,7 @@ def container_formulario_iamb(ano=None):
             # Coluna 1: Painel Lateral (3/12)
             with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
                 render_painel_controle(
-                    ano_atual=ano_atual,
+                    ano_atual=ano_sel,
                     on_mudar_ano=alterar_ano,
                     on_refresh=render_conteudo.refresh,
                 )
@@ -364,11 +371,11 @@ def container_formulario_iamb(ano=None):
             with ui.element("div").classes(
                 "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
             ):
-                ui.label(f"📋 Módulo i-Amb — Ano {ano_atual}").classes(
+                ui.label(f"📋 Módulo i-Amb — Ano {ano_sel}").classes(
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
 
-               # =============================================================================
+                # =============================================================================
                 # QUESITO 1.0 • ESTRUTURA ORGANIZACIONAL DE MEIO AMBIENTE
                 # =============================================================================
                 opcoes_10 = {
@@ -384,7 +391,7 @@ def container_formulario_iamb(ano=None):
                     pergunta="A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?",
                     opcoes=opcoes_10,
                     placeholder_link="Insira o link da lei da estrutura administrativa ou organograma...",
-                    on_save_callback=container_formulario_iamb.refresh,
+                    on_save_callback=render_conteudo.refresh,
                 )
 
                 # =============================================================================
@@ -393,17 +400,14 @@ def container_formulario_iamb(ano=None):
                 with ui.card().classes(
                     "w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"
                 ):
-                    # Cabeçalho do Quesito
                     ui.label(
                         "📌 Quesito 1.1 - Recursos Humanos em Meio Ambiente"
                     ).classes("text-lg font-bold text-blue-900 mb-1")
 
-                    # Enunciado
                     ui.label(
                         "A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente? Informe a quantidade:"
                     ).classes("text-base font-semibold text-gray-800 mt-2 mb-1")
 
-                    # Bloco Informativo da Fórmula de Cálculo
                     with ui.card().classes(
                         "w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"
                     ):
@@ -414,7 +418,6 @@ def container_formulario_iamb(ano=None):
                             "Informe o quantitativo de servidores efetivos, comissionados e terceirizados/contratados alocados no setor."
                         ).classes("text-sm text-blue-800 font-medium")
 
-                    # Função local de persistência
                     def salvar_no_banco_11(
                         qid_val, valor_val, pontos_val, link_val
                     ):
@@ -447,7 +450,6 @@ def container_formulario_iamb(ano=None):
                             )
                             raise err_db
 
-                    # Conversor seguro para prevenir crash com valores inválidos
                     def parse_int_seguro(val):
                         if val is None:
                             return 0
@@ -458,7 +460,6 @@ def container_formulario_iamb(ano=None):
                             return 0
                         return int(val_str)
 
-                    # Recuperação do banco
                     d11 = res_data.get("1.1") or {}
                     if not isinstance(d11, dict):
                         d11 = {"valor": "0", "pontos": 0.0, "link": ""}
@@ -467,7 +468,6 @@ def container_formulario_iamb(ano=None):
                     evidencia_11_salva = ""
                     raw_link = str(d11.get("link") or "")
 
-                    # Extração dos contadores armazenados
                     if raw_link:
                         if "|LINK:" in raw_link:
                             contadores_part, evidencia_11_salva = (
@@ -489,7 +489,6 @@ def container_formulario_iamb(ano=None):
                         v_comi_i = int(match_co.group(1)) if match_co else 0
                         v_terc_i = int(match_t.group(1)) if match_t else 0
 
-                    # Estado reativo do formulário
                     state_11 = {
                         "efet": v_efet_i,
                         "comi": v_comi_i,
@@ -497,7 +496,6 @@ def container_formulario_iamb(ano=None):
                         "link": evidencia_11_salva,
                     }
 
-                    # Callback do Botão de Salvar
                     def cb_processa_e_salva_11():
                         try:
                             ef_val = parse_int_seguro(state_11["efet"])
@@ -509,7 +507,6 @@ def container_formulario_iamb(ano=None):
                             pts_calculados = 0.0
                             composite_string = f"E:{ef_val},Co:{co_val},T:{te_val}|LINK:{lnk_val}"
 
-                            # Executa salvamento persistente no PostgreSQL
                             salvar_no_banco_11(
                                 "1.1",
                                 str(total_p),
@@ -517,7 +514,6 @@ def container_formulario_iamb(ano=None):
                                 composite_string,
                             )
 
-                            # Atualiza dict local em memória
                             res_data["1.1"] = {
                                 "valor": str(total_p),
                                 "pontos": pts_calculados,
@@ -528,14 +524,13 @@ def container_formulario_iamb(ano=None):
                                 "Quesito 1.1 salvo com sucesso!",
                                 type="positive",
                             )
-                            container_formulario_iamb.refresh()
+                            render_conteudo.refresh()
                         except Exception as err:
                             ui.notify(
                                 f"Erro ao salvar Quesito 1.1: {err}",
                                 type="negative",
                             )
 
-                    # Grid com os Inputs Numéricos
                     with ui.grid(columns=2).classes(
                         "w-full gap-4 mb-4 md:grid-cols-3"
                     ):
@@ -560,14 +555,12 @@ def container_formulario_iamb(ano=None):
                             step=1,
                         ).classes("w-full").bind_value(state_11, "terc")
 
-                    # Área do Link / Evidência
                     ui.textarea(
                         "Página Eletrônica (Link / Evidência da Composição):",
                         value=evidencia_11_salva,
                         placeholder="Insira o link da portaria de lotação, folha de pagamento simplificada ou declaração de RH...",
                     ).classes("w-full mb-4").bind_value(state_11, "link")
 
-                    # Rodapé do Quesito
                     total_pessoal = parse_int_seguro(d11.get("valor"))
 
                     with ui.row().classes(
@@ -588,8 +581,7 @@ def container_formulario_iamb(ano=None):
 
                     ui.separator().classes("my-2")
 
-                    # Bloco de Comentários Integrado ao Quesito
-                    bloco_comentarios("1.1", res_data, ano_sel)
+                    bloco_comentarios("1.1", res_data, render_conteudo.refresh)
 
                 # =============================================================================
                 # QUESITO 1.1.2 • TREINAMENTO DOS SERVIDORES EM MEIO AMBIENTE
@@ -608,8 +600,11 @@ def container_formulario_iamb(ano=None):
                     pergunta=f"Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente em {ano_treinamento}?",
                     opcoes=opcoes_112,
                     placeholder_link="Insira o link de certificados emitidos, ordem de serviço ou relatório de treinamento...",
-                    on_save_callback=container_formulario_iamb.refresh,
+                    on_save_callback=render_conteudo.refresh,
                 )
+
+    render_conteudo()
+
 
 # Aliases para o main.py
 mostrar_formulario_iamb = container_formulario_iamb
