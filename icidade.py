@@ -472,6 +472,47 @@ def container_formulario_icidade(ano=None):
                 ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
+
+                # =============================================================================
+                # QUESITO 1.0 
+                # =============================================================================
+                def render_quesito_1_0(ano_sel, res_data, on_refresh_callback):
+                    qid = "1.0"
+                    titulo = "Estrutura de Proteção e Defesa Civil"
+                    pergunta = (
+                        "Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil-COMPDEC "
+                        "ou órgão similar responsável pela execução, coordenação e mobilização "
+                        "de todas as ações de defesa civil no município?"
+                    )
+                    
+                    # Opções com "Selecione..." e a pontuação ao lado
+                    opcoes = {
+                        "Selecione...": 0.0,
+                        "Sim - 40.0 pts": 40.0,
+                        "Não - 0.0 pts": 0.0,
+                    }
+
+                    # Renderiza o componente padrão do quesito
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid=qid,
+                        titulo=titulo,
+                        pergunta=pergunta,
+                        opcoes=opcoes,
+                        placeholder_link="Insira o link da Lei Municipal ou Decreto de criação da COMPDEC...",
+                        on_save_callback=on_refresh_callback,
+                    )
+
+                    # Adiciona o bloco de comentários/diálogo interno logo abaixo do quesito
+                    bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
+
+                # Chamada do Quesito 1.0 dentro do container
+                render_quesito_1_0(
+                    ano_sel=ano_sel, 
+                    res_data=res_data, 
+                    on_refresh_callback=render_conteudo.refresh
+                )
                 
                 # Exemplo de chamada de quesito caso deseje renderizar dentro do container principal:
                 # render_quesito(ano_sel, res_data, "Q1", "Título do Quesito", "Pergunta de exemplo?", {"Opção A": 10, "Opção B": 5}, on_save_callback=render_conteudo.refresh)
