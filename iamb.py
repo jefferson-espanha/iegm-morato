@@ -1706,6 +1706,254 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 7.3.2", on_click=salvar_732).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("7.3.2", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 7.4 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_74 = {
+                    "Selecione...": 0.0,
+                    "Sim – 10 pts": 10.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.4",
+                    titulo="Metas de Coleta de Esgoto",
+                    pergunta="O Plano Municipal ou Regional de Saneamento Básico possui metas de coleta de esgoto?",
+                    opcoes=opcoes_74,
+                    placeholder_link="Insira o capítulo/página do plano contendo as metas de coleta de esgoto...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 7.4.1 (Seleção Múltipla de Metas de Esgoto)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.4.1 • Metas Estabelecidas sobre Coleta de Esgoto").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale quais as metas estabelecidas sobre coleta de esgoto:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as metas presentes no Plano e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d741 = res_data.get("7.4.1") or {}
+                    try:
+                        sel_741_salvos = json.loads(d741.get("valor", "[]"))
+                        if not isinstance(sel_741_salvos, list): sel_741_salvos = []
+                    except Exception:
+                        sel_741_salvos = []
+
+                    mapa_741 = {
+                        "expansao_esgoto": ("Metas de expansão do serviço de coleta de esgoto (0 pts)", 0.0),
+                        "qualidade_esgoto": ("Metas de qualidade na prestação do serviço (+3,5 pts)", 3.5),
+                        "reuso_efluentes": ("Meta do reúso de efluentes sanitários (+3,5 pts)", 3.5),
+                        "direitos_deveres_esgoto": ("Estabelecimento de direitos e deveres dos usuários (+3,5 pts)", 3.5),
+                        "universalizacao_esgoto_2033": ("Meta de universalização da coleta de esgoto até 31/12/2033 (+3,5 pts)", 3.5),
+                        "cronograma_esgoto": ("Estabelecimento de cronograma para atingimento das metas (+6,0 pts)", 6.0),
+                    }
+
+                    state_741 = {k: k in sel_741_salvos for k in mapa_741.keys()}
+                    state_741["link"] = d741.get("link", "")
+
+                    def calc_pts_741():
+                        return sum(peso for k, (_, peso) in mapa_741.items() if state_741.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_741a = [ui.checkbox(rotulo).bind_value(state_741, k) for k, (rotulo, _) in list(mapa_741.items())[:3]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_741b = [ui.checkbox(rotulo).bind_value(state_741, k) for k, (rotulo, _) in list(mapa_741.items())[3:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_741["link"],
+                        placeholder="Insira o link das páginas/tabelas do plano onde constam as metas de coleta...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_741, "link")
+
+                    lbl_pts_741 = ui.label(f"📊 Impacto de Pontuação no Quesito 7.4.1: {calc_pts_741():.1f} / 20.0 pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_741():
+                        lbl_pts_741.set_text(f"📊 Impacto de Pontuação no Quesito 7.4.1: {calc_pts_741():.1f} / 20.0 pontos")
+
+                    for cb in cb_col_741a + cb_col_741b:
+                        cb.on("update:model-value", att_pts_741)
+
+                    def salvar_741():
+                        selecionados = [k for k in mapa_741.keys() if state_741.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.4.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_741(),
+                            link=state_741["link"],
+                            comentarios=d741.get("comentarios", []),
+                            status=d741.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.4.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.4.1", on_click=salvar_741).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.4.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 7.4.2 (Data Universalização Coleta de Esgoto e Penalização)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.4.2 • Data Prevista para Universalização da Coleta de Esgoto").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Qual a data prevista para universalização da coleta de esgoto no município?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Caso já tenha sido universalizado, informe: 01/01/2001. Se Data > 31/12/2033 = Perde 5 pontos.").classes("text-xs text-gray-400 mb-6")
+
+                    d742 = res_data.get("7.4.2") or {}
+                    val_742_i = str(d742.get("valor") or "31/12/2033")
+
+                    state_742 = {
+                        "data_univ": val_742_i,
+                        "link": d742.get("link", ""),
+                    }
+
+                    def calc_pts_742():
+                        dt_str = state_742["data_univ"].strip()
+                        try:
+                            if "/" in dt_str:
+                                partes = dt_str.split("/")
+                                ano_num = int(partes[2]) if len(partes) == 3 else 2033
+                            elif "-" in dt_str:
+                                partes = dt_str.split("-")
+                                ano_num = int(partes[0]) if len(partes) == 3 else 2033
+                            else:
+                                ano_num = int(dt_str)
+                            
+                            if ano_num > 2033:
+                                return -5.0
+                        except Exception:
+                            pass
+                        return 0.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Data Prevista (DD/MM/AAAA):",
+                                value=state_742["data_univ"],
+                                placeholder="Ex: 31/12/2033 ou 01/01/2001",
+                            ).classes("w-full").props("outlined").bind_value(state_742, "data_univ")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_742["link"],
+                            placeholder="Insira o link do trecho do Plano que comprova a data...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_742, "link")
+
+                    lbl_pts_742 = ui.label(f"📊 Impacto de Pontuação no Quesito 7.4.2: {calc_pts_742():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_742():
+                        lbl_pts_742.set_text(f"📊 Impacto de Pontuação no Quesito 7.4.2: {calc_pts_742():.1f} pontos")
+
+                    def salvar_742():
+                        pts = calc_pts_742()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.4.2",
+                            valor=state_742["data_univ"],
+                            pontos=pts,
+                            link=state_742["link"],
+                            comentarios=d742.get("comentarios", []),
+                            status=d742.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.4.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.4.2", on_click=salvar_742).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.4.2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 7.5 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_75 = {
+                    "Selecione...": 0.0,
+                    "Sim – 30 pts": 30.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.5",
+                    titulo="Metas de Tratamento de Esgoto",
+                    pergunta="O Plano Municipal ou Regional de Saneamento Básico possui metas de tratamento de esgoto?",
+                    opcoes=opcoes_75,
+                    placeholder_link="Insira a página do plano que comprova as metas de tratamento de esgoto...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 7.5.1 (Data Universalização Tratamento de Esgoto e Penalização)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.5.1 • Data Prevista para Universalização do Tratamento de Esgoto").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Qual a data prevista para universalização do tratamento de esgoto no município?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Caso já tenha sido universalizado, informe: 01/01/2001. Se Data > 31/12/2033 = Perde 5 pontos.").classes("text-xs text-gray-400 mb-6")
+
+                    d751 = res_data.get("7.5.1") or {}
+                    val_751_i = str(d751.get("valor") or "31/12/2033")
+
+                    state_751 = {
+                        "data_univ": val_751_i,
+                        "link": d751.get("link", ""),
+                    }
+
+                    def calc_pts_751():
+                        dt_str = state_751["data_univ"].strip()
+                        try:
+                            if "/" in dt_str:
+                                partes = dt_str.split("/")
+                                ano_num = int(partes[2]) if len(partes) == 3 else 2033
+                            elif "-" in dt_str:
+                                partes = dt_str.split("-")
+                                ano_num = int(partes[0]) if len(partes) == 3 else 2033
+                            else:
+                                ano_num = int(dt_str)
+                            
+                            if ano_num > 2033:
+                                return -5.0
+                        except Exception:
+                            pass
+                        return 0.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Data Prevista (DD/MM/AAAA):",
+                                value=state_751["data_univ"],
+                                placeholder="Ex: 31/12/2033 ou 01/01/2001",
+                            ).classes("w-full").props("outlined").bind_value(state_751, "data_univ")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_751["link"],
+                            placeholder="Insira o link do documento do plano que comprova a data...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_751, "link")
+
+                    lbl_pts_751 = ui.label(f"📊 Impacto de Pontuação no Quesito 7.5.1: {calc_pts_751():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_751():
+                        lbl_pts_751.set_text(f"📊 Impacto de Pontuação no Quesito 7.5.1: {calc_pts_751():.1f} pontos")
+
+                    def salvar_751():
+                        pts = calc_pts_751()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.5.1",
+                            valor=state_751["data_univ"],
+                            pontos=pts,
+                            link=state_751["link"],
+                            comentarios=d751.get("comentarios", []),
+                            status=d751.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.5.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.5.1", on_click=salvar_751).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.5.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
