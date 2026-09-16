@@ -821,26 +821,5 @@ def container_formulario_iamb(ano=None):
                     ui.separator().classes("my-2")
                     bloco_comentarios("1.2", res_data, render_conteudo.refresh)
 
-                # =============================================================================
-                # QUESITO 2.0 (Seleção Única - Radio Button)
-                # =============================================================================
-                opcoes_20 = {
-                    "Selecione...": 0.0,
-                    "Sim – 10 pts": 10.0,
-                    "Não – 00 pts": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="2.0",
-                    titulo="Programa de Educação Ambiental",
-                    pergunta="O Município participa de algum Programa de Educação Ambiental?",
-                    opcoes=opcoes_20,
-                    placeholder_link="Insira o link da lei, decreto, convênio ou projeto do programa...",
-                    on_save_callback=render_conteudo.refresh,
-                )
-
-
-# Atribuições finais no ESCOPO PRINCIPAL (fora da função/container)
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
