@@ -53,7 +53,7 @@ def load_respostas(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano,))
+                cur.execute(query, (int(ano),))
                 rows = cur.fetchall()
                 for row in rows:
                     respostas[row["qid"]] = {
@@ -105,7 +105,7 @@ def save_resposta(
                 cur.execute(
                     query,
                     (
-                        ano,
+                        int(ano),
                         str(qid),
                         str(valor),
                         float(pontos),
@@ -124,7 +124,7 @@ def zerar_questionario_db(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (ano,))
+                cur.execute(query, (int(ano),))
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
@@ -133,7 +133,7 @@ def zerar_questionario_db(ano):
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
-def render_painel_controle(ano_atual, on_refresh):
+def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
     total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
@@ -156,17 +156,11 @@ def render_painel_controle(ano_atual, on_refresh):
             "text-lg font-bold mb-2 text-blue-900"
         )
 
-        def ao_mudar_ano(e):
-            app.storage.user["ano_referencia_global"] = e.value
-            ui.notify(f"Ano alterado para {e.value}", type="info")
-            if on_refresh:
-                on_refresh()
-
         ui.select(
             options=anos,
-            value=ano_atual,
+            value=int(ano_atual),
             label="Ano de Referência:",
-            on_change=ao_mudar_ano,
+            on_change=lambda e: on_mudar_ano(e.value),
         ).classes("w-full mb-4 bg-white")
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
@@ -185,8 +179,7 @@ def render_painel_controle(ano_atual, on_refresh):
             ui.notify(
                 f"✅ Questionário de {ano_atual} zerado!", type="positive"
             )
-            if on_refresh:
-                on_refresh()
+            on_refresh()
 
         ui.button("🔄 ATUALIZAR UI", on_click=on_refresh).classes(
             "w-full bg-blue-600 text-white font-bold mb-2"
@@ -207,30 +200,42 @@ def render_painel_controle(ano_atual, on_refresh):
 
 
 # =============================================================================
-# FUNÇÃO CHAMADA PELO MAIN.PY (_executar_modulo)
+# MÓDULO PRINCIPAL DE REQUISITOS
 # =============================================================================
 def container_formulario_iamb(ano=None):
-    if ano is None:
-        ano = app.storage.user.get("ano_referencia_global", 2026)
+    # Salva o ano inicial no storage do usuário se ainda não existir
+    if "ano_referencia_global" not in app.storage.user:
+        app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
     @ui.refreshable
     def render_conteudo():
-        respostas = load_respostas(ano)
+        # Busca dinamicamente o ano salvo no storage
+        ano_atual = int(app.storage.user.get("ano_referencia_global", 2026))
+        respostas = load_respostas(ano_atual)
 
-        # Layout responsivo de 12 colunas (3 para Painel e 9 para Formulário)
+        def alterar_ano(novo_ano):
+            app.storage.user["ano_referencia_global"] = int(novo_ano)
+            ui.notify(f"Ano alterado para {novo_ano}", type="info")
+            render_conteudo.refresh()
+
+        # Layout responsivo
         with ui.element("div").classes(
             "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
         ):
 
             # Coluna 1: Painel Lateral (3/12)
             with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
-                render_painel_controle(ano, on_refresh=render_conteudo.refresh)
+                render_painel_controle(
+                    ano_atual=ano_atual,
+                    on_mudar_ano=alterar_ano,
+                    on_refresh=render_conteudo.refresh,
+                )
 
-            # Coluna 2: Lista de Quesitos (9/12)
+            # Coluna 2: Formulário (9/12)
             with ui.element("div").classes(
                 "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
             ):
-                ui.label(f"📋 Módulo i-Amb — Ano {ano}").classes(
+                ui.label(f"📋 Módulo i-Amb — Ano {ano_atual}").classes(
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
 
@@ -272,14 +277,15 @@ def container_formulario_iamb(ano=None):
                         pts = 20.0 if sel == "Sim" else 0.0
 
                         save_resposta(
-                            ano=ano,
+                            ano=ano_atual,
                             qid=qid,
                             valor=sel,
                             pontos=pts,
                             link=link_input.value,
                         )
                         ui.notify(
-                            f"Quesito {qid} salvo! ({pts} pts)", type="positive"
+                            f"Quesito {qid} salvo para {ano_atual}! ({pts} pts)",
+                            type="positive",
                         )
                         render_conteudo.refresh()
 
@@ -290,6 +296,6 @@ def container_formulario_iamb(ano=None):
     render_conteudo()
 
 
-# Alias para o main.py encontrar a função
+# Aliases para compatibilidade com o main.py
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
