@@ -4152,6 +4152,320 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 14.3", on_click=salvar_143).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("14.3", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 15.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_150 = {
+                    "Selecione...": 0.0,
+                    "Sim – 02 pts": 2.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="15.0",
+                    titulo="Entidade Responsável pela Regulação e Fiscalização",
+                    pergunta="O Município definiu a entidade responsável pela regulação e fiscalização dos serviços públicos de saneamento básico?",
+                    opcoes=opcoes_150,
+                    placeholder_link="Insira o link da norma, decreto ou convênio de delegação...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 15.1 (Seleção Múltipla - Serviços com Entidade Reguladora)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("15.1 • Serviços com Entidade Responsável pela Regulação e Fiscalização").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale quais os serviços que possuem entidade responsável pela regulação e fiscalização:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d151 = res_data.get("15.1") or {}
+                    try:
+                        sel_151_salvos = json.loads(d151.get("valor", "[]"))
+                        if not isinstance(sel_151_salvos, list): sel_151_salvos = []
+                    except Exception:
+                        sel_151_salvos = []
+
+                    mapa_151 = {
+                        "agua_potavel": ("Abastecimento de água potável – 01 pt", 1.0),
+                        "esgotamento_sanitario": ("Esgotamento sanitário – 01 pt", 1.0),
+                        "limpeza_residuos": ("Limpeza urbana e manejo de resíduos sólidos – 01 pt", 1.0),
+                        "drenagem_aguas_pluviais": ("Drenagem e manejo das águas pluviais urbanas – 00 pts", 0.0),
+                    }
+
+                    state_151 = {k: k in sel_151_salvos for k in mapa_151.keys()}
+                    state_151["link"] = d151.get("link", "")
+
+                    def calc_pts_151():
+                        return sum(peso for k, (_, peso) in mapa_151.items() if state_151.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_151a = [ui.checkbox(rotulo).bind_value(state_151, k) for k, (rotulo, _) in list(mapa_151.items())[:2]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_151b = [ui.checkbox(rotulo).bind_value(state_151, k) for k, (rotulo, _) in list(mapa_151.items())[2:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_151["link"],
+                        placeholder="Insira o link das comprovações da regulação dos serviços...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_151, "link")
+
+                    lbl_pts_151 = ui.label(f"📊 Impacto de Pontuação no Quesito 15.1: {calc_pts_151():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def salvar_151():
+                        selecionados = [k for k in mapa_151.keys() if state_151.get(k)]
+                        pts = calc_pts_151()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="15.1",
+                            valor=json.dumps(selecionados),
+                            pontos=pts,
+                            link=state_151["link"],
+                            comentarios=d151.get("comentarios", []),
+                            status=d151.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 15.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 15.1", on_click=salvar_151).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("15.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 15.1.1 (Campo de Texto - Entidade de Água Potável)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("15.1.1 • Entidade Reguladora de Abastecimento de Água Potável").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe a entidade responsável pela regulação e fiscalização do abastecimento de água potável do município:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Digite o nome/sigla da entidade e insira o link de comprovação.").classes("text-xs text-gray-400 mb-6")
+
+                    d1511 = res_data.get("15.1.1") or {}
+                    val_1511_i = str(d1511.get("valor") or "").strip()
+
+                    state_1511 = {
+                        "entidade": val_1511_i,
+                        "link": d1511.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Entidade Responsável:",
+                                value=state_1511["entidade"],
+                                placeholder="Ex: ARSESP, ARES-PCJ, etc.",
+                            ).classes("w-full").props("outlined").bind_value(state_1511, "entidade")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_1511["link"],
+                            placeholder="Insira o link de contrato ou convênio com a agência...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_1511, "link")
+
+                    def salvar_1511():
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="15.1.1",
+                            valor=state_1511["entidade"],
+                            pontos=0.0,
+                            link=state_1511["link"],
+                            comentarios=d1511.get("comentarios", []),
+                            status=d1511.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 15.1.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 15.1.1", on_click=salvar_1511).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("15.1.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 15.1.2 (Campo de Texto - Entidade de Esgotamento Sanitário)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("15.1.2 • Entidade Reguladora de Esgotamento Sanitário").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe a entidade responsável pela regulação e fiscalização do esgotamento sanitário do município:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Digite o nome/sigla da entidade e insira o link de comprovação.").classes("text-xs text-gray-400 mb-6")
+
+                    d1512 = res_data.get("15.1.2") or {}
+                    val_1512_i = str(d1512.get("valor") or "").strip()
+
+                    state_1512 = {
+                        "entidade": val_1512_i,
+                        "link": d1512.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Entidade Responsável:",
+                                value=state_1512["entidade"],
+                                placeholder="Ex: ARSESP, ARES-PCJ, etc.",
+                            ).classes("w-full").props("outlined").bind_value(state_1512, "entidade")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_1512["link"],
+                            placeholder="Insira o link de contrato ou convênio com a agência...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_1512, "link")
+
+                    def salvar_1512():
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="15.1.2",
+                            valor=state_1512["entidade"],
+                            pontos=0.0,
+                            link=state_1512["link"],
+                            comentarios=d1512.get("comentarios", []),
+                            status=d1512.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 15.1.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 15.1.2", on_click=salvar_1512).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("15.1.2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 15.1.3 (Campo de Texto - Entidade de Limpeza Urbana e Resíduos)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("15.1.3 • Entidade Reguladora de Limpeza Urbana e Resíduos Sólidos").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe a entidade responsável pela regulação e fiscalização de limpeza urbana e manejo de resíduos sólidos do município:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Digite o nome/sigla da entidade e insira o link de comprovação.").classes("text-xs text-gray-400 mb-6")
+
+                    d1513 = res_data.get("15.1.3") or {}
+                    val_1513_i = str(d1513.get("valor") or "").strip()
+
+                    state_1513 = {
+                        "entidade": val_1513_i,
+                        "link": d1513.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Entidade Responsável:",
+                                value=state_1513["entidade"],
+                                placeholder="Ex: Secretaria Municipal de Meio Ambiente, Consórcio, etc.",
+                            ).classes("w-full").props("outlined").bind_value(state_1513, "entidade")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_1513["link"],
+                            placeholder="Insira o link do documento legal de regulação...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_1513, "link")
+
+                    def salvar_1513():
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="15.1.3",
+                            valor=state_1513["entidade"],
+                            pontos=0.0,
+                            link=state_1513["link"],
+                            comentarios=d1513.get("comentarios", []),
+                            status=d1513.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 15.1.3 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 15.1.3", on_click=salvar_1513).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("15.1.3", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 15.1.4 (Campo de Texto - Entidade de Drenagem e Águas Pluviais)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("15.1.4 • Entidade Reguladora de Drenagem e Águas Pluviais").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe a entidade responsável pela regulação e fiscalização de drenagem e manejo das águas pluviais urbanas do município:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Digite o nome/sigla da entidade e insira o link de comprovação.").classes("text-xs text-gray-400 mb-6")
+
+                    d1514 = res_data.get("15.1.4") or {}
+                    val_1514_i = str(d1514.get("valor") or "").strip()
+
+                    state_1514 = {
+                        "entidade": val_1514_i,
+                        "link": d1514.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Entidade Responsável:",
+                                value=state_1514["entidade"],
+                                placeholder="Ex: Secretaria Municipal de Obras/Serviços Urbanos, etc.",
+                            ).classes("w-full").props("outlined").bind_value(state_1514, "entidade")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_1514["link"],
+                            placeholder="Insira o link do documento legal de atribuição...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_1514, "link")
+
+                    def salvar_1514():
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="15.1.4",
+                            valor=state_1514["entidade"],
+                            pontos=0.0,
+                            link=state_1514["link"],
+                            comentarios=d1514.get("comentarios", []),
+                            status=d1514.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 15.1.4 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 15.1.4", on_click=salvar_1514).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("15.1.4", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 16.0 (Campo de Texto Extenso - Impressões, Comentários e Sugestões)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("16.0 • Impressões, Comentários e Sugestões").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Utilize o espaço abaixo para registrar suas impressões, comentários e sugestões.").classes("text-xs text-gray-400 mb-6")
+
+                    d160 = res_data.get("16.0") or {}
+                    val_160_i = str(d160.get("valor") or "").strip()
+
+                    state_160 = {
+                        "comentarios_sugestoes": val_160_i,
+                        "link": d160.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        ui.textarea(
+                            label="Impressões / Comentários / Sugestões:",
+                            value=state_160["comentarios_sugestoes"],
+                            placeholder="Insira aqui seus comentários e sugestões a respeito do questionário...",
+                        ).classes("w-full").props("outlined rows=5").bind_value(state_160, "comentarios_sugestoes")
+
+                        ui.textarea(
+                            label="Link de Evidência / Anexo (Opcional):",
+                            value=state_160["link"],
+                            placeholder="Insira o link de documentos complementares se houver...",
+                        ).classes("w-full").props("outlined rows=5").bind_value(state_160, "link")
+
+                    def salvar_160():
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="16.0",
+                            valor=state_160["comentarios_sugestoes"],
+                            pontos=0.0,
+                            link=state_160["link"],
+                            comentarios=d160.get("comentarios", []),
+                            status=d160.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 16.0 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 16.0", on_click=salvar_160).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("16.0", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
