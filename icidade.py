@@ -10,6 +10,7 @@ from psycopg2.extras import Json, RealDictCursor
 # =============================================================================
 # BANCO DE DADOS (NEON)
 # =============================================================================
+# Lembre-se de configurar a variável de ambiente NEON_DATABASE_URL no seu servidor/deploys.
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -148,14 +149,17 @@ def render_quesito(
     qid,
     titulo,
     pergunta,
-    opcoes,
+    opcoes=None,
     placeholder_link="Insira o link da evidência...",
     on_save_callback=None,
 ):
+    if opcoes is None:
+        opcoes = {"Preenchido / Informado": 0.0, "Não informado": 0.0}
+
     dados_q = res_data.get(qid, {})
     valor_atual = dados_q.get("valor", "Selecione...")
     if valor_atual not in opcoes:
-        valor_atual = "Selecione..."
+        valor_atual = list(opcoes.keys())[0] if opcoes else "Selecione..."
 
     link_atual = dados_q.get("link", "")
 
@@ -186,7 +190,7 @@ def render_quesito(
             )
 
             ui.textarea(
-                label="Link de Evidência / Documento:",
+                label="Link / Texto da Evidência:",
                 value=state["link"],
                 placeholder=placeholder_link,
             ).classes("w-full").props("outlined rows=4").bind_value(
@@ -221,22 +225,23 @@ def render_quesito(
                 status=dados_q.get("status", "Pendente"),
             )
             ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
-            
-            # --- PROTEÇÃO CONTRA O ERRO DE REFRESH ---
+
             if on_save_callback:
                 try:
                     on_save_callback()
-                except TypeError:
-                    ui.run_javascript('window.location.reload()')
-                except Exception:
-                    ui.run_javascript('window.location.reload()')
+                except Exception as err:
+                    print(f"Erro ao executar callback: {err}")
+                    ui.run_javascript("window.location.reload()")
 
-        ui.button("Salvar Resposta", on_click=salvar_acao).classes("bg-blue-600 text-white font-bold px-4 py-2")
+        ui.button("Salvar Resposta", on_click=salvar_acao).classes(
+            "bg-blue-600 text-white font-bold px-4 py-2"
+        )
 
 
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
+@ui.refreshable
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
@@ -437,8 +442,13 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# ÁREA DO FORMULÁRIO (Apenas esta área é recarregada ao salvar)
+# ÁREA DO FORMULÁRIO (Atualiza a interface ao salvar)
 # =============================================================================
+def atualizar_tudo():
+    container_formulario_icidade.refresh()
+    render_painel_controle.refresh()
+
+
 @ui.refreshable
 def container_formulario_icidade():
     ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
@@ -474,17 +484,24 @@ def container_formulario_icidade():
             placeholder_link="Insira o link da Lei Municipal ou Decreto de criação da COMPDEC...",
             on_save_callback=on_refresh_callback,
         )
-        bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
+        bloco_comentarios(
+            qid=qid, res_data=res_data, on_save_callback=on_refresh_callback
+        )
 
-    render_quesito_1_0(ano_sel, res_data, container_formulario_icidade.refresh)
+    render_quesito_1_0(ano_sel, res_data, atualizar_tudo)
 
     # -------------------------------------------------------------------------
-    # QUESITO 1.1
+    # QUESITO 1.1 (Campos Informativos possuem opções padrão no render_quesito)
     # -------------------------------------------------------------------------
     def render_quesito_1_1(ano_sel, res_data, on_refresh_callback):
         qid = "1.1"
         titulo = "Dados do Instrumento Normativo COMPDEC"
         pergunta = "Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:"
+
+        opcoes = {
+            "Informado": 0.0,
+            "Não informado": 0.0,
+        }
 
         render_quesito(
             ano=ano_sel,
@@ -492,12 +509,15 @@ def container_formulario_icidade():
             qid=qid,
             titulo=titulo,
             pergunta=pergunta,
-            placeholder_link="Instrumento normativo, Número e Data da publicação:",
+            opcoes=opcoes,
+            placeholder_link="Ex: Lei Municipal nº 1.234, de 10/01/2020",
             on_save_callback=on_refresh_callback,
         )
-        bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
+        bloco_comentarios(
+            qid=qid, res_data=res_data, on_save_callback=on_refresh_callback
+        )
 
-    render_quesito_1_1(ano_sel, res_data, container_formulario_icidade.refresh)
+    render_quesito_1_1(ano_sel, res_data, atualizar_tudo)
 
     # -------------------------------------------------------------------------
     # QUESITO 1.2
@@ -507,18 +527,26 @@ def container_formulario_icidade():
         titulo = "Endereço Eletrônico do Instrumento Normativo"
         pergunta = "Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar:"
 
+        opcoes = {
+            "Disponível Online": 0.0,
+            "Não Disponível": 0.0,
+        }
+
         render_quesito(
             ano=ano_sel,
             res_data=res_data,
             qid=qid,
             titulo=titulo,
             pergunta=pergunta,
-            placeholder_link="Se não estiver disponível na internet, inserir no campo de resposta o texto XYZ",
+            opcoes=opcoes,
+            placeholder_link="Se não estiver disponível na internet, inserir o texto explicativo...",
             on_save_callback=on_refresh_callback,
         )
-        bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
+        bloco_comentarios(
+            qid=qid, res_data=res_data, on_save_callback=on_refresh_callback
+        )
 
-    render_quesito_1_2(ano_sel, res_data, container_formulario_icidade.refresh)
+    render_quesito_1_2(ano_sel, res_data, atualizar_tudo)
 
     # -------------------------------------------------------------------------
     # QUESITO 1.3
@@ -544,9 +572,11 @@ def container_formulario_icidade():
             opcoes=opcoes,
             on_save_callback=on_refresh_callback,
         )
-        bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
+        bloco_comentarios(
+            qid=qid, res_data=res_data, on_save_callback=on_refresh_callback
+        )
 
-    render_quesito_1_3(ano_sel, res_data, container_formulario_icidade.refresh)
+    render_quesito_1_3(ano_sel, res_data, atualizar_tudo)
 
     # -------------------------------------------------------------------------
     # QUESITO 1.4
@@ -575,13 +605,15 @@ def container_formulario_icidade():
             opcoes=opcoes,
             on_save_callback=on_refresh_callback,
         )
-        bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
+        bloco_comentarios(
+            qid=qid, res_data=res_data, on_save_callback=on_refresh_callback
+        )
 
-    render_quesito_1_4(ano_sel, res_data, container_formulario_icidade.refresh)
+    render_quesito_1_4(ano_sel, res_data, atualizar_tudo)
 
 
 # =============================================================================
-# LAYOUT PRINCIPAL (Monta a tela e previne duplicação do painel)
+# LAYOUT PRINCIPAL
 # =============================================================================
 def render_pagina_icidade():
     ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
@@ -589,17 +621,21 @@ def render_pagina_icidade():
     def alterar_ano(novo_ano):
         app.storage.user["ano_referencia_global"] = int(novo_ano)
         ui.notify(f"Ano alterado para {novo_ano}", type="info")
-        container_formulario_icidade.refresh()
+        atualizar_tudo()
 
-    with ui.element("div").classes("w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"):
-        # Coluna 1: PAINEL LATERAL (Renderizado apenas UMA vez aqui)
+    with ui.element("div").classes(
+        "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
+    ):
+        # Coluna 1: PAINEL LATERAL
         with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
             render_painel_controle(
                 ano_atual=ano_sel,
                 on_mudar_ano=alterar_ano,
-                on_refresh=container_formulario_icidade.refresh,
+                on_refresh=atualizar_tudo,
             )
 
-        # Coluna 2: FORMULÁRIO (Atualiza sozinho sem duplicar o painel)
-        with ui.element("div").classes("md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"):
+        # Coluna 2: FORMULÁRIO
+        with ui.element("div").classes(
+            "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
+        ):
             container_formulario_icidade()
