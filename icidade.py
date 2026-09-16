@@ -153,11 +153,9 @@ def render_quesito(
     on_save_callback=None,
 ):
     dados_q = res_data.get(qid, {})
-    valor_atual = dados_q.get("valor", "")
-
-    chaves_validas = list(opcoes.keys())
-    if valor_atual not in chaves_validas:
-        valor_atual = chaves_validas[0]
+    valor_atual = dados_q.get("valor", "Selecione...")
+    if valor_atual not in opcoes:
+        valor_atual = "Selecione..."
 
     link_atual = dados_q.get("link", "")
 
@@ -223,10 +221,13 @@ def render_quesito(
                 status=dados_q.get("status", "Pendente"),
             )
             ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
-
+            
+            # --- PROTEÇÃO CONTRA O ERRO DE REFRESH ---
             if on_save_callback:
                 try:
                     on_save_callback()
+                except TypeError:
+                    ui.run_javascript('window.location.reload()')
                 except Exception:
                     ui.run_javascript('window.location.reload()')
 
@@ -436,85 +437,43 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# QUESITO 1.0
+# MÓDULO PRINCIPAL DE REQUISITOS
 # =============================================================================
-def render_quesito_1_0(ano_sel, res_data, on_refresh_callback):
-    qid = "1.0"
-    titulo = "Estrutura de Proteção e Defesa Civil"
-    pergunta = (
-        "Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil-COMPDEC "
-        "ou órgão similar responsável pela execução, coordenação e mobilização "
-        "de todas as ações de defesa civil no município?"
-    )
-
-    opcoes = {
-        "Selecione...": 0.0,
-        "Sim - 40.0 pts": 40.0,
-        "Não - 0.0 pts": 0.0,
-    }
-
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid=qid,
-        titulo=titulo,
-        pergunta=pergunta,
-        opcoes=opcoes,
-        placeholder_link="Insira o link da Lei Municipal ou Decreto de criação da COMPDEC...",
-        on_save_callback=on_refresh_callback,
-    )
-
-    bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
-
-
-# =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS & RENDERIZAÇÃO DYNAMICA
-# =============================================================================
-@ui.refreshable
-def render_conteudo():
+def container_formulario_icidade(ano=None):
     if "ano_referencia_global" not in app.storage.user:
-        app.storage.user["ano_referencia_global"] = 2026
+        app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
-    ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
-    res_data = load_respostas(ano_sel)
+    @ui.refreshable
+    def render_conteudo():
+        ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+        res_data = load_respostas(ano_sel)
 
-    def alterar_ano(novo_ano):
-        app.storage.user["ano_referencia_global"] = int(novo_ano)
-        ui.notify(f"Ano alterado para {novo_ano}", type="info")
-        render_conteudo.refresh()
+        def alterar_ano(novo_ano):
+            app.storage.user["ano_referencia_global"] = int(novo_ano)
+            ui.notify(f"Ano alterado para {novo_ano}", type="info")
+            render_conteudo.refresh()
 
-    with ui.element("div").classes("w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"):
-        # Coluna 1: Painel Lateral
-        with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
-            render_painel_controle(
-                ano_atual=ano_sel,
-                on_mudar_ano=alterar_ano,
-                on_refresh=render_conteudo.refresh,
-            )
+        with ui.element("div").classes(
+            "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
+        ):
 
-        # Coluna 2: Lista de Quesitos
-        with ui.element("div").classes("md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"):
-            ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
-                "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
-            )
+            # Coluna 1: Painel Lateral (3/12)
+            with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
+                render_painel_controle(
+                    ano_atual=ano_sel,
+                    on_mudar_ano=alterar_ano,
+                    on_refresh=render_conteudo.refresh,
+                )
 
-            # Renderização dos Quesitos
-            render_quesito_1_0(
-                ano_sel=ano_sel,
-                res_data=res_data,
-                on_refresh_callback=render_conteudo.refresh,
-            )
+            # Coluna 2: Formulário (9/12)
+            with ui.element("div").classes(
+                "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
+            ):
+                ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
+                    "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
+                )
+                
+                # Exemplo de chamada de quesito caso deseje renderizar dentro do container principal:
+                # render_quesito(ano_sel, res_data, "Q1", "Título do Quesito", "Pergunta de exemplo?", {"Opção A": 10, "Opção B": 5}, on_save_callback=render_conteudo.refresh)
 
-
-@ui.page('/icidade')
-def pagina_principal():
     render_conteudo()
-
-
-# =============================================================================
-# INICIALIZAÇÃO DO SERVIDOR (EXEMPLO)
-# =============================================================================
-if __name__ in {"__main__", "__mp_main__"}:
-    ui.run(storage_secret="sua_chave_secreta_aqui")
-
-              
