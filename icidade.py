@@ -1358,4 +1358,154 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+    # ==========================================
+                # QUESITO 11.1 (Metas de Qualidade do Transporte)
+                # ==========================================
+                opcoes_111 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (-20.0 pts)": -20.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.1",
+                    titulo="Metas de Qualidade e Desempenho do Transporte Público",
+                    pergunta="Foram estabelecidas metas de qualidade e desempenho para o transporte público coletivo municipal?",
+                    opcoes=opcoes_111,
+                    placeholder_link="Insira o link do contrato, decreto ou edital com as metas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 11.1.1 (Cumprimento das Metas)
+                # ==========================================
+                opcoes_1111 = {
+                    "Selecione...": 0.0,
+                    "Todas as metas foram atingidas (0.0 pts)": 0.0,
+                    "A maior parte das metas foram atingidas (-5.0 pts)": -5.0,
+                    "A menor parte das metas foram atingidas (-10.0 pts)": -10.0,
+                    "As metas não foram atingidas (-20.0 pts)": -20.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.1.1",
+                    titulo="Atingimento das Metas de Qualidade e Desempenho",
+                    pergunta="As metas de qualidade e desempenho do transporte público coletivo estão sendo atingidas?",
+                    opcoes=opcoes_1111,
+                    placeholder_link="Insira o link do relatório de fiscalização ou monitoramento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 11.1.1.1 (Aplicação de Penalidades)
+                # ==========================================
+                opcoes_11111 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (-50.0 pts)": -50.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.1.1.1",
+                    titulo="Aplicação de Penalidade por Meta Não Cumprida",
+                    pergunta="Foi aplicada penalidade pela meta não cumprida?",
+                    opcoes=opcoes_11111,
+                    placeholder_link="Insira o link do processo administrativo ou auto de infração...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 11.2 (Pesquisa de Satisfação)
+                # ==========================================
+                opcoes_112 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (-20.0 pts)": -20.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.2",
+                    titulo="Pesquisa de Satisfação dos Usuários (2025)",
+                    pergunta="Foi realizada pesquisa de satisfação dos usuários do transporte público coletivo em 2025?",
+                    opcoes=opcoes_112,
+                    placeholder_link="Insira o link do relatório da pesquisa realizada...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 11.2.1 (Ações Decorrentes da Pesquisa)
+                # ==========================================
+                opcoes_1121 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (-20.0 pts)": -20.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.2.1",
+                    titulo="Ações com Base na Pesquisa de Satisfação",
+                    pergunta="Foram realizadas ações com base nesta pesquisa?",
+                    opcoes=opcoes_1121,
+                    placeholder_link="Insira o link do plano de ação ou melhorias implementadas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 11.3 (Resultado Tarifário 2025)
+                # ==========================================
+                opcoes_113 = {
+                    "Selecione...": 0.0,
+                    "Déficit ou subsídio tarifário (0.0 pts)": 0.0,
+                    "Superávit tarifário (0.0 pts)": 0.0,
+                    "Não sabe informar (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.3",
+                    titulo="Equilíbrio / Resultado Tarifário em 2025",
+                    pergunta="Quanto ao custo do transporte público (tarifa de remuneração) e o preço de passagem (tarifa pública), informe qual o resultado no ano de 2025:",
+                    opcoes=opcoes_113,
+                    placeholder_link="Insira o link do balanço financeiro ou estudo tarifário...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 11.3.1 (Link Benefícios Tarifários)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.3.1",
+                    titulo="Divulgação dos Benefícios Tarifários",
+                    pergunta="Informe a página eletrônica (link na internet) em que os benefícios tarifários concedidos no valor das tarifas do transporte público foram divulgados (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
+                    tipo_input="link",
+                    placeholder_link="https://... ou digite XYZ",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 12.0 (Transporte Remunerado Privado / Aplicativos)
+                # ==========================================
+                opcoes_120 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="12.0",
+                    titulo="Transporte Remunerado Privado Individual (Táxi / Aplicativos)",
+                    pergunta="O Município possui transporte remunerado privado individual de passageiros (táxi por aplicativos)?",
+                    opcoes=opcoes_120,
+                    placeholder_link="Insira o link da regulamentação ou lei municipal...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
