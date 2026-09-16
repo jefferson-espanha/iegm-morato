@@ -155,9 +155,10 @@ def render_quesito(
     dados_q = res_data.get(qid, {})
     valor_atual = dados_q.get("valor", "")
     
-    # Se o valor salvo não estiver nas opções, define como vazio ou pega a primeira chave
-    if valor_atual not in opcoes:
-        valor_atual = ""  # Ou selecione a primeira opção se preferir: list(opcoes.keys())[0]
+    # Garante que o valor atual existe nas opções; se não, usa a primeira opção válida (ex: "Não")
+    chaves_validas = list(opcoes.keys())
+    if valor_atual not in chaves_validas:
+        valor_atual = chaves_validas[0]  # Define a primeira opção como padrão se estiver vazio
 
     link_atual = dados_q.get("link", "")
 
