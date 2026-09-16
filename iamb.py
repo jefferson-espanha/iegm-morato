@@ -494,39 +494,31 @@ def container_formulario_iamb(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-                # QUESITO 1.1 + 1.1.1 (Recursos Humanos e Contagem)
-                opcoes_11 = {
-                    "Selecione...": 0.0,
-                    "Sim": 0.0,
-                    "Não": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.1",
-                    titulo="Recursos Humanos em Meio Ambiente",
-                    pergunta="A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?",
-                    opcoes=opcoes_11,
-                    placeholder_link="Insira o link da portaria, organograma ou documento probatório...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                # =============================================================================
+                # QUESITO 1.1.1 (Detalhamento do Quantitativo de Pessoal)
+                # =============================================================================
+                with ui.card().classes(
+                    "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                ):
+                    ui.label("1.1.1 • Detalhamento do Quantitativo de Pessoal").classes(
+                        "text-xl font-semibold text-blue-500 mb-3"
+                    )
+                    ui.label("Informe o quantitativo de servidores por categoria:").classes(
+                        "text-base font-bold text-black mb-1"
+                    )
+                    ui.label(
+                        "ℹ Preencha os campos abaixo e clique no botão de salvar."
+                    ).classes("text-xs text-gray-400 mb-6")
 
-                # Detalhamento dos Servidores (1.1.1)
-                with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                    ui.label("📌 Quesito 1.1.1 - Detalhamento do Quantitativo de Pessoal").classes("text-lg font-bold text-blue-900 mb-1")
-                    ui.label("Informe o quantitativo de servidores por categoria:").classes("text-base font-semibold text-gray-800 mb-4")
-
+                    # Recupera e trata os dados salvos no banco
                     d111 = res_data.get("1.1.1") or {}
                     raw_link = str(d111.get("link") or "")
+
                     v_efet_i, v_comi_i, v_terc_i = 0, 0, 0
-                    evidencia_111 = ""
+                    evidencia_111 = raw_link
 
-                    if raw_link:
-                        if "|LINK:" in raw_link:
-                            contadores_part, evidencia_111 = raw_link.split("|LINK:", 1)
-                        else:
-                            contadores_part, evidencia_111 = raw_link, ""
-
+                    if "|LINK:" in raw_link:
+                        contadores_part, evidencia_111 = raw_link.split("|LINK:", 1)
                         match_e = re.search(r"E:(\d+)", contadores_part)
                         match_co = re.search(r"Co:(\d+)", contadores_part)
                         match_t = re.search(r"T:(\d+)", contadores_part)
@@ -542,19 +534,41 @@ def container_formulario_iamb(ano=None):
                         "link": evidencia_111,
                     }
 
-                    with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                        ui.number("Nº de efetivos:", value=v_efet_i, min=0, step=1).classes("w-full").bind_value(state_111, "efet")
-                        ui.number("Nº de comissionados:", value=v_comi_i, min=0, step=1).classes("w-full").bind_value(state_111, "comi")
-                        ui.number("Nº de terceirizados/contratados:", value=v_terc_i, min=0, step=1).classes("w-full").bind_value(state_111, "terc")
+                    # Grid de 2 colunas: Contadores à esquerda e Textarea à direita
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.number("Nº de efetivos:", value=v_efet_i, min=0, step=1).classes(
+                                "w-full"
+                            ).props("outlined").bind_value(state_111, "efet")
+                            ui.number(
+                                "Nº de comissionados:", value=v_comi_i, min=0, step=1
+                            ).classes("w-full").props("outlined").bind_value(state_111, "comi")
+                            ui.number(
+                                "Nº de terceirizados/contratados:",
+                                value=v_terc_i,
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined").bind_value(
+                                state_111, "terc"
+                            )
 
-                    ui.textarea("Página Eletrônica (Link / Evidência):", value=evidencia_111, placeholder="Insira a folha de pagamento simplificada, relatório de RH ou declaração...").classes("w-full mb-4").bind_value(state_111, "link")
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=evidencia_111,
+                            placeholder="Insira a folha de pagamento simplificada, relatório de RH ou declaração...",
+                        ).classes("w-full").props("outlined rows=6").bind_value(
+                            state_111, "link"
+                        )
 
+                    # Função de Salvar Corrigida
                     def salvar_111():
                         ef_val = int(state_111["efet"] or 0)
                         co_val = int(state_111["comi"] or 0)
                         te_val = int(state_111["terc"] or 0)
                         total = ef_val + co_val + te_val
-                        composite = f"E:{ef_val},Co:{co_val},T:{te_val}|LINK:{state_111['link']}"
+                        composite = (
+                            f"E:{ef_val},Co:{co_val},T:{te_val}|LINK:{state_111['link']}"
+                        )
 
                         save_resposta(
                             ano=ano_sel,
@@ -563,16 +577,20 @@ def container_formulario_iamb(ano=None):
                             pontos=0.0,
                             link=composite,
                             comentarios=d111.get("comentarios", []),
-                            status=d111.get("status", "Pendente")
+                            status=d111.get("status", "Pendente"),
                         )
                         ui.notify("Quesito 1.1.1 salvo com sucesso!", type="positive")
-                        render_conteudo.refresh()
+                        if render_conteudo.refresh:
+                            render_conteudo.refresh()
 
-                    with ui.row().classes("w-full justify-between items-center mb-2"):
-                        ui.label(f"👥 Total Calculado: {int(state_111['efet'] or 0) + int(state_111['comi'] or 0) + int(state_111['terc'] or 0)} servidores").classes("text-sm font-semibold text-gray-700")
-                        ui.button("Salvar Quesito 1.1.1", on_click=salvar_111, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                    # Botão de Salvar
+                    ui.button("💾 SALVAR QUESITO 1.1.1", on_click=salvar_111).classes(
+                        "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                    )
 
                     ui.separator().classes("my-2")
+
+                    # Bloco de Diálogo Interno
                     bloco_comentarios("1.1.1", res_data, render_conteudo.refresh)
 
                 # QUESITO 1.1.2
