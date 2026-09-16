@@ -25,7 +25,7 @@ def init_db():
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    CREATE TABLE IF NOT EXISTS respostas_iamb (
+                    CREATE TABLE IF NOT EXISTS respostas_icidade (
                         qid VARCHAR(50) NOT NULL,
                         ano INTEGER NOT NULL,
                         valor TEXT,
@@ -39,7 +39,7 @@ def init_db():
                 """)
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao inicializar tabela respostas_iamb: {e}")
+        print(f"❌ Erro ao inicializar tabela respostas_icidade: {e}")
 
 
 init_db()
@@ -48,7 +48,7 @@ init_db()
 def load_respostas(ano):
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
-        FROM respostas_iamb
+        FROM respostas_icidade
         WHERE ano = %s;
     """
     respostas = {}
@@ -92,7 +92,7 @@ def save_resposta(
     link_final = link.strip() if link else ""
 
     query = """
-        INSERT INTO respostas_iamb (ano, qid, valor, pontos, link, comentarios, status)
+        INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (ano, qid) 
         DO UPDATE SET
@@ -124,7 +124,7 @@ def save_resposta(
 
 
 def zerar_questionario_db(ano):
-    query = "DELETE FROM respostas_iamb WHERE ano = %s;"
+    query = "DELETE FROM respostas_icidade WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -140,9 +140,103 @@ def _obter_lista_comentarios(dados_q):
 
 
 # =============================================================================
+# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
+# =============================================================================
+def render_quesito(
+    ano,
+    res_data,
+    qid,
+    titulo,
+    pergunta,
+    opcoes,
+    placeholder_link="Insira o link da evidência...",
+    on_save_callback=None,
+):
+    dados_q = res_data.get(qid, {})
+    valor_atual = dados_q.get("valor", "Selecione...")
+    if valor_atual not in opcoes:
+        valor_atual = "Selecione..."
+
+    link_atual = dados_q.get("link", "")
+
+    state = {
+        "opcao": valor_atual,
+        "link": link_atual,
+    }
+
+    with ui.card().classes(
+        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+    ):
+        ui.label(f"{qid} • {titulo}").classes(
+            "text-xl font-semibold text-blue-500 mb-3"
+        )
+        ui.label(pergunta).classes("text-base font-bold text-black mb-1")
+        ui.label(
+            "ℹ Preencha os campos abaixo e clique no botão de salvar."
+        ).classes("text-xs text-gray-400 mb-6")
+
+        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+            radio_opcao = (
+                ui.radio(
+                    options=list(opcoes.keys()),
+                    value=state["opcao"],
+                )
+                .props("color=blue")
+                .bind_value(state, "opcao")
+            )
+
+            ui.textarea(
+                label="Link de Evidência / Documento:",
+                value=state["link"],
+                placeholder=placeholder_link,
+            ).classes("w-full").props("outlined rows=4").bind_value(
+                state, "link"
+            )
+
+        pts_atuais = opcoes.get(state["opcao"], 0.0)
+        label_impacto = ui.label(
+            f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
+        ).classes("text-sm font-bold text-green-600 my-4")
+
+        def ao_mudar_opcao(e):
+            novos_pts = opcoes.get(e.value, 0.0)
+            label_impacto.set_text(
+                f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
+            )
+
+        radio_opcao.on("update:model-value", ao_mudar_opcao)
+
+        def salvar_acao():
+            opcao_sel = state["opcao"]
+            pts = opcoes.get(opcao_sel, 0.0)
+            lnk = state["link"]
+
+            save_resposta(
+                ano=ano,
+                qid=qid,
+                valor=opcao_sel,
+                pontos=pts,
+                link=lnk,
+                comentarios=dados_q.get("comentarios", []),
+                status=dados_q.get("status", "Pendente"),
+            )
+            ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
+            
+            # --- PROTEÇÃO CONTRA O ERRO DE REFRESH ---
+            if on_save_callback:
+                try:
+                    on_save_callback()
+                except TypeError:
+                    ui.run_javascript('window.location.reload()')
+                except Exception:
+                    ui.run_javascript('window.location.reload()')
+
+        ui.button("Salvar Resposta", on_click=salvar_acao).classes("bg-blue-600 text-white font-bold px-4 py-2")
+
+
+# =============================================================================
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
-@ui.refreshable
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
@@ -162,7 +256,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     with ui.card().classes(
         "w-full bg-slate-100 p-4 border rounded-lg shadow-sm"
     ):
-        ui.label("🛠️ Painel de Controle (iAmb)").classes(
+        ui.label("🛠️ Painel de Controle (icidade)").classes(
             "text-lg font-bold mb-2 text-blue-900"
         )
 
@@ -210,101 +304,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
 
 
 # =============================================================================
-# COMPONENTE DE QUESITO
-# =============================================================================
-def render_quesito(
-    ano,
-    res_data,
-    qid,
-    titulo,
-    pergunta,
-    opcoes=None,
-    placeholder_link="Insira o link da evidência...",
-    on_save_callback=None,
-):
-    if opcoes is None:
-        opcoes = {"Preenchido / Informado": 0.0, "Não informado": 0.0}
-
-    dados_q = res_data.get(qid, {})
-    valor_atual = dados_q.get("valor", "Selecione...")
-    if valor_atual not in opcoes:
-        valor_atual = list(opcoes.keys())[0] if opcoes else "Selecione..."
-
-    link_atual = dados_q.get("link", "")
-
-    state = {
-        "opcao": valor_atual,
-        "link": link_atual,
-    }
-
-    with ui.card().classes(
-        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-    ):
-        ui.label(f"{qid} • {titulo}").classes(
-            "text-xl font-semibold text-blue-500 mb-3"
-        )
-        ui.label(pergunta).classes("text-base font-bold text-black mb-1")
-        ui.label(
-            "ℹ Preencha os campos abaixo e clique no botão de salvar."
-        ).classes("text-xs text-gray-400 mb-6")
-
-        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-            radio_opcao = (
-                ui.radio(
-                    options=list(opcoes.keys()),
-                    value=state["opcao"],
-                )
-                .props("color=blue")
-                .bind_value(state, "opcao")
-            )
-
-            ui.textarea(
-                label="Link / Texto da Evidência:",
-                value=state["link"],
-                placeholder=placeholder_link,
-            ).classes("w-full").props("outlined rows=4").bind_value(
-                state, "link"
-            )
-
-        pts_atuais = opcoes.get(state["opcao"], 0.0)
-        label_impacto = ui.label(
-            f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
-        ).classes("text-sm font-bold text-green-600 my-4")
-
-        def ao_mudar_opcao(e):
-            novos_pts = opcoes.get(e.value, 0.0)
-            label_impacto.set_text(
-                f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
-            )
-
-        radio_opcao.on("update:model-value", ao_mudar_opcao)
-
-        def salvar_acao():
-            opcao_sel = state["opcao"]
-            pts = opcoes.get(opcao_sel, 0.0)
-            lnk = state["link"]
-
-            save_resposta(
-                ano=ano,
-                qid=qid,
-                valor=opcao_sel,
-                pontos=pts,
-                link=lnk,
-                comentarios=dados_q.get("comentarios", []),
-                status=dados_q.get("status", "Pendente"),
-            )
-            ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
-
-            if on_save_callback:
-                on_save_callback()
-
-        ui.button("Salvar Resposta", on_click=salvar_acao).classes(
-            "bg-blue-600 text-white font-bold px-4 py-2"
-        )
-
-
-# =============================================================================
-# COMENTÁRIOS
+# BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
 def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
@@ -383,13 +383,21 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                 with ui.row().classes(
                     "w-full items-center justify-between no-wrap mb-2"
                 ):
-                    ui.html(
-                        f"""<div style="background-color: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0; width: 100%;">
-                            <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
-                            <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
-                            <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
-                        </div>"""
-                    ).classes("w-full")
+                    if "Sistema /" in autor:
+                        ui.html(
+                            f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
+                                <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
+                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
+                            </div>"""
+                        ).classes("w-full")
+                    else:
+                        ui.html(
+                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
+                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
+                                <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
+                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
+                            </div>"""
+                        ).classes("w-full")
 
                     ui.button("🗑️", on_click=deletar_comentario).props(
                         "flat dense"
@@ -429,63 +437,43 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# ÁREA DE CONTEÚDO DO FORMULÁRIO (DIREITA)
+# MÓDULO PRINCIPAL DE REQUISITOS
 # =============================================================================
-@ui.refreshable
-def container_formulario_iamb():
-    ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
-    res_data = load_respostas(ano_sel)
+def container_formulario_icidade(ano=None):
+    if "ano_referencia_global" not in app.storage.user:
+        app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
-    ui.label(f"🌿 Módulo i-Amb — Ano {ano_sel}").classes(
-        "text-2xl font-bold mb-4 text-slate-800 border-b pb-2"
-    )
+    @ui.refreshable
+    def render_conteudo():
+        ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+        res_data = load_respostas(ano_sel)
 
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.0",
-        titulo="Conselho Municipal do Meio Ambiente",
-        pergunta="O município possui Conselho Municipal do Meio Ambiente constituído e em funcionamento?",
-        opcoes={
-            "Selecione...": 0.0,
-            "Sim - Paritário e Ativo - 50.0 pts": 50.0,
-            "Sim - Não Paritário - 25.0 pts": 25.0,
-            "Não possui - 0.0 pts": 0.0,
-        },
-        placeholder_link="Insira o link da Lei de criação do Conselho...",
-        on_save_callback=atualizar_tudo,
-    )
-    bloco_comentarios("1.0", res_data, atualizar_tudo)
+        def alterar_ano(novo_ano):
+            app.storage.user["ano_referencia_global"] = int(novo_ano)
+            ui.notify(f"Ano alterado para {novo_ano}", type="info")
+            render_conteudo.refresh()
 
-
-def atualizar_tudo():
-    container_formulario_iamb.refresh()
-    render_painel_controle.refresh()
-
-
-# =============================================================================
-# RENDERIZAÇÃO DA PÁGINA (PAINEL NA ESQUERDA + CONTEÚDO NA DIREITA)
-# =============================================================================
-def render_pagina_iamb():
-    ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
-
-    def alterar_ano(novo_ano):
-        app.storage.user["ano_referencia_global"] = int(novo_ano)
-        ui.notify(f"Ano alterado para {novo_ano}", type="info")
-        atualizar_tudo()
-
-    # Estrutura Flexbox forçando 2 colunas lado a lado
-    with ui.row().classes("w-full items-start no-wrap gap-6 p-2"):
-        # Coluna da Esquerda (Painel Lateral)
-        with ui.element("div").classes("w-80 shrink-0"):
-            render_painel_controle(
-                ano_atual=ano_sel,
-                on_mudar_ano=alterar_ano,
-                on_refresh=atualizar_tudo,
-            )
-
-        # Coluna da Direita (Formulário)
         with ui.element("div").classes(
-            "grow bg-white p-6 border rounded-lg shadow-sm"
+            "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
         ):
-            container_formulario_iamb()
+
+            # Coluna 1: Painel Lateral (3/12)
+            with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
+                render_painel_controle(
+                    ano_atual=ano_sel,
+                    on_mudar_ano=alterar_ano,
+                    on_refresh=render_conteudo.refresh,
+                )
+
+            # Coluna 2: Formulário (9/12)
+            with ui.element("div").classes(
+                "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
+            ):
+                ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
+                    "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
+                )
+                
+                # Exemplo de chamada de quesito caso deseje renderizar dentro do container principal:
+                # render_quesito(ano_sel, res_data, "Q1", "Título do Quesito", "Pergunta de exemplo?", {"Opção A": 10, "Opção B": 5}, on_save_callback=render_conteudo.refresh)
+
+    render_conteudo()
