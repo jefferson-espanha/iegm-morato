@@ -512,70 +512,71 @@ def container_formulario_plan(ano=None):
                         on_refresh=render_conteudo.refresh,
                     )
 
-                # Coluna 2: Formulário (9/12) - TODOS os quesitos devem estar dentro deste bloco!
-                with ui.element("div").classes("md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm flex flex-col gap-4"):
-                    ui.label(f"📋 Módulo i-Plan — Ano {ano_sel}").classes(
-                        "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
+                # Coluna 2: Formulário Principal (9/12)
+                with ui.element("div").classes("md:col-span-8 lg:col-span-9 flex flex-col gap-4"):
+                    with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
+                        ui.label(f"📋 Módulo i-Plan — Ano {ano_sel}").classes(
+                            "text-xl font-bold text-slate-800 border-b pb-2"
+                        )
+
+                    # =============================================================================
+                    # QUESITO 1.0 (Audiências Públicas Orçamentárias)
+                    # =============================================================================
+                    opcoes_10 = {
+                        "Selecione...": 0.0,
+                        "Sim (1.0 pt)": 1.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.0",
+                        titulo="Audiências Públicas na Elaboração das Peças Orçamentárias",
+                        pergunta="A Prefeitura realizou audiências públicas para elaboração das peças orçamentárias? (Obs: Serão consideradas apenas as audiências públicas realizadas durante o processo de planejamento municipal - PPA, LDO e LOA):",
+                        opcoes=opcoes_10,
+                        placeholder_link="Insira o link das atas ou publicações das audiências públicas...",
+                        on_save_callback=render_conteudo.refresh,
                     )
 
-                # =============================================================================
-                # QUESITO 1.0 (Audiências Públicas Orçamentárias)
-                # =============================================================================
-                opcoes_10 = {
-                    "Selecione...": 0.0,
-                    "Sim (1.0 pt)": 1.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.0",
-                    titulo="Audiências Públicas na Elaboração das Peças Orçamentárias",
-                    pergunta="A Prefeitura realizou audiências públicas para elaboração das peças orçamentárias? (Obs: Serão consideradas apenas as audiências públicas realizadas durante o processo de planejamento municipal - PPA, LDO e LOA):",
-                    opcoes=opcoes_10,
-                    placeholder_link="Insira o link das atas ou publicações das audiências públicas...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # =============================================================================
+                    # QUESITO 1.1 (Peças Orçamentárias - Checkbox)
+                    # =============================================================================
+                    opcoes_11 = {
+                        "Não": 0.0,
+                        "PPA inicial 2026-2029": 1.0,
+                        "LDO 2026": 1.0,
+                        "LOA 2026": 1.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.1",
+                        titulo="Peças Orçamentárias com Audiência Pública",
+                        pergunta="Assinale para quais peças orçamentárias foram realizadas as audiências públicas (Considerar as audiências públicas da LOA e LDO realizadas no exercício avaliado e o último PPA elaborado):",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_11,
+                        placeholder_link="Insira o link de comprovação das audiências (ex: ata, edital, transmissão)...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # =============================================================================
-                # QUESITO 1.1 (Peças Orçamentárias - Checkbox)
-                # =============================================================================
-                opcoes_11 = {
-                    "Não": 0.0,
-                    "PPA inicial 2026-2029": 1.0,
-                    "LDO 2026": 1.0,
-                    "LOA 2026": 1.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.1",
-                    titulo="Peças Orçamentárias com Audiência Pública",
-                    pergunta="Assinale para quais peças orçamentárias foram realizadas as audiências públicas (Considerar as audiências públicas da LOA e LDO realizadas no exercício avaliado e o último PPA elaborado):",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_11,
-                    placeholder_link="Insira o link de comprovação das audiências (ex: ata, edital, transmissão)...",
-                    on_save_callback=render_conteudo.refresh,
-                )
-
-                # =============================================================================
-                # QUESITO 1.2 (Dia e Horário das Audiências - Checkbox)
-                # =============================================================================
-                opcoes_12 = {
-                    "Dia de semana em horário comercial (ex: 8 às 18 horas)": 0.0,
-                    "Dia de semana após horário comercial (ex: após às 18 horas)": 2.0,
-                    "Aos sábados, domingos e feriados": 2.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.2",
-                    titulo="Dia e Horário das Audiências Públicas",
-                    pergunta="Assinale o dia e horário de realização das audiências públicas:",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_12,
-                    placeholder_link="Insira o link das atas, convocações ou documentos com os horários...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # =============================================================================
+                    # QUESITO 1.2 (Dia e Horário das Audiências - Checkbox)
+                    # =============================================================================
+                    opcoes_12 = {
+                        "Dia de semana em horário comercial (ex: 8 às 18 horas)": 0.0,
+                        "Dia de semana após horário comercial (ex: após às 18 horas)": 2.0,
+                        "Aos sábados, domingos e feriados": 2.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.2",
+                        titulo="Dia e Horário das Audiências Públicas",
+                        pergunta="Assinale o dia e horário de realização das audiências públicas:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_12,
+                        placeholder_link="Insira o link das atas, convocações ou documentos com os horários...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
     render_conteudo()
