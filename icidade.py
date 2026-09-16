@@ -567,15 +567,25 @@ def render_quesito(
             ).classes("bg-blue-800 text-white mt-4")
 
             bloco_comentarios(qid, res_data)
-# =============================================================================
-# 2. BLOCO DE COMENTÁRIOS INTERNOS
-# =============================================================================
+# ============================================================================
+# CORREÇÃO i-CIDADE — MESMO PADRÃO DO iGov-TI FUNCIONAL
+# ============================================================================
+# Substitua as funções render_quesito e container_formulario_icidade pelas
+# versões abaixo. Também substitua bloco_comentarios pela versão do seu arquivo
+# acrescentando o parâmetro on_save_callback conforme indicado neste arquivo.
+
+
+# ============================================================================
+# 1. BLOCO DE COMENTÁRIOS: assinatura e callbacks
+# ============================================================================
 def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
     dados_q = res_data.get(qid, {})
-    historico = _obter_lista_comentarios(dados_q)
+    historico = dados_q.get("comentarios", [])
+    if not isinstance(historico, list):
+        historico = []
 
     status_global = dados_q.get("status", "Pendente")
     for com in reversed(historico):
@@ -597,10 +607,14 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             log = {
                 "autor": "Sistema / " + usuario_atual,
                 "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
+                "texto": (
+                    f"ℹ️ Alterou o status do quesito para: "
+                    f"**{novo_st.upper()}**."
+                ),
                 "status_definido": novo_st,
             }
             historico.append(log)
+
             save_resposta(
                 ano=ano_sel,
                 qid=qid,
@@ -610,6 +624,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                 comentarios=historico,
                 status=novo_st,
             )
+
             ui.notify(f"Status alterado para {novo_st}", type="info")
             if on_save_callback:
                 on_save_callback()
@@ -620,89 +635,108 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             on_change=alterar_status,
         ).props("inline")
 
-        if historico:
-            for idx, com in enumerate(historico):
-                if isinstance(com, str):
-                    com = {"autor": "Usuário", "data": "", "texto": com}
+        container_historico = ui.column().classes("w-full my-2")
 
-                autor = com.get("autor", "Anônimo")
-                data_com = com.get("data", "")
-                texto_com = com.get("texto", "")
+        def render_lista_comentarios():
+            container_historico.clear()
+            with container_historico:
+                for idx, com in enumerate(historico):
+                    if isinstance(com, str):
+                        com = {
+                            "autor": "Usuário",
+                            "data": "",
+                            "texto": com,
+                        }
 
-                def deletar_comentario(i=idx):
-                    historico.pop(i)
-                    save_resposta(
-                        ano=ano_sel,
-                        qid=qid,
-                        valor=dados_q.get("valor", ""),
-                        pontos=dados_q.get("pontos", 0.0),
-                        link=dados_q.get("link", ""),
-                        comentarios=historico,
-                        status=status_global,
-                    )
-                    ui.notify("Comentário removido.", type="warning")
-                    if on_save_callback:
-                        on_save_callback()
+                    autor = com.get("autor", "Anônimo")
+                    data_com = com.get("data", "")
+                    texto_com = com.get("texto", "")
 
-                with ui.row().classes(
-                    "w-full items-center justify-between no-wrap mb-2"
-                ):
-                    if "Sistema /" in autor:
-                        ui.html(
-                            f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
-                                <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
-                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
-                            </div>"""
-                        ).classes("w-full")
-                    else:
-                        ui.html(
-                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
-                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
-                                <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
-                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
-                            </div>"""
-                        ).classes("w-full")
+                    def deletar_comentario(i=idx):
+                        historico.pop(i)
+                        save_resposta(
+                            ano=ano_sel,
+                            qid=qid,
+                            valor=dados_q.get("valor", ""),
+                            pontos=dados_q.get("pontos", 0.0),
+                            link=dados_q.get("link", ""),
+                            comentarios=historico,
+                            status=status_global,
+                        )
+                        ui.notify("Comentário removido.", type="warning")
+                        if on_save_callback:
+                            on_save_callback()
+                        else:
+                            render_lista_comentarios()
 
-                    ui.button("🗑️", on_click=deletar_comentario).props(
-                        "flat dense"
-                    )
+                    with ui.row().classes(
+                        "w-full items-center justify-between no-wrap mb-2"
+                    ):
+                        if "Sistema /" in autor:
+                            ui.html(
+                                f"""<div style="background-color:#f1f3f5; padding:6px 12px; border-radius:6px; border-left:3px solid #ced4da; width:100%;">
+<span style="font-size:11px; color:#6c757d; font-style:italic;">{autor} - {data_com}</span>
+<p style="margin:2px 0 0 0; font-size:12px; color:#495057;">{texto_com}</p>
+</div>"""
+                            ).classes("w-full")
+                        else:
+                            ui.html(
+                                f"""<div style="background-color:#ffffff; padding:10px 15px; border-radius:8px; border-left:3px solid #1e88e5; border:1px solid #e0e0e0; width:100%;">
+<span style="font-size:11px; color:#1e88e5; font-weight:bold;">👤 {autor}</span>
+<span style="font-size:10px; color:#999; margin-left:10px;">{data_com}</span>
+<p style="margin:4px 0 0 0; font-size:13px; color:#333;">{texto_com}</p>
+</div>"""
+                            ).classes("w-full")
 
-        input_novo_comentario = (
-            ui.textarea(placeholder="Novo comentário...")
-            .classes("w-full")
-            .props("outlined rows=2")
-        )
+                        ui.button(
+                            "🗑️",
+                            on_click=deletar_comentario,
+                        ).props("flat dense")
+
+        render_lista_comentarios()
+
+        input_novo_comentario = ui.textarea(
+            placeholder="Novo comentário..."
+        ).classes("w-full").props("outlined rows=2")
 
         def postar_comentario():
-            txt = input_novo_comentario.value.strip()
-            if txt:
-                historico.append({
-                    "autor": usuario_atual,
-                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                    "texto": txt,
-                    "status_definido": status_global,
-                })
-                save_resposta(
-                    ano=ano_sel,
-                    qid=qid,
-                    valor=dados_q.get("valor", ""),
-                    pontos=dados_q.get("pontos", 0.0),
-                    link=dados_q.get("link", ""),
-                    comentarios=historico,
-                    status=status_global,
-                )
-                ui.notify("Comentário publicado!", type="positive")
-                if on_save_callback:
-                    on_save_callback()
+            txt = (input_novo_comentario.value or "").strip()
+            if not txt:
+                return
 
-        ui.button("Postar Comentário", on_click=postar_comentario).classes(
-            "bg-blue-600 text-white mt-2"
-        )
+            historico.append({
+                "autor": usuario_atual,
+                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "texto": txt,
+                "status_definido": status_global,
+            })
+
+            save_resposta(
+                ano=ano_sel,
+                qid=qid,
+                valor=dados_q.get("valor", ""),
+                pontos=dados_q.get("pontos", 0.0),
+                link=dados_q.get("link", ""),
+                comentarios=historico,
+                status=status_global,
+            )
+            input_novo_comentario.value = ""
+            ui.notify("Comentário publicado!", type="positive")
+
+            if on_save_callback:
+                on_save_callback()
+            else:
+                render_lista_comentarios()
+
+        ui.button(
+            "Postar Comentário",
+            on_click=postar_comentario,
+        ).classes("bg-blue-600 text-white mt-2")
 
 
-# =============================================================================
-# 3. RENDERIZADOR DE QUESITO
-# =============================================================================
+# ============================================================================
+# 2. RENDERIZADOR DO QUESITO
+# ============================================================================
 def render_quesito(
     ano,
     res_data,
@@ -710,7 +744,7 @@ def render_quesito(
     titulo,
     pergunta,
     opcoes=None,
-    on_save_callback=None,
+    on_save_callback=None,  # ESTE É O CALLBACK USADO PELO iGov
     tipo="radio",
     informativo=False,
     is_text_area=False,
@@ -722,10 +756,13 @@ def render_quesito(
     d_data = res_data.get(qid, {})
 
     with ui.card().classes("w-full mb-4 p-4 border rounded-lg shadow-sm"):
-        with ui.expansion(f"📌 Quesito {qid} - {titulo}", value=True).classes(
-            "w-full font-bold"
-        ):
-            ui.label(f"{qid} • {titulo}").classes("text-h6 text-primary mt-2")
+        with ui.expansion(
+            f"📌 Quesito {qid} - {titulo}",
+            value=True,
+        ).classes("w-full font-bold"):
+            ui.label(f"{qid} • {titulo}").classes(
+                "text-h6 text-primary mt-2"
+            )
             ui.label(pergunta).classes("text-body1 font-bold my-2")
             ui.label(
                 "ℹ Preencha os campos abaixo e clique no botão de salvar."
@@ -742,25 +779,25 @@ def render_quesito(
                             if isinstance(opcoes, dict)
                             else opcoes
                         )
-                        v_salvo = d_data.get("valor", "[]")
+                        valor_salvo = d_data.get("valor", "[]")
 
-                        if isinstance(v_salvo, str):
+                        if isinstance(valor_salvo, str):
                             try:
-                                sel_list = ast.literal_eval(v_salvo)
-                                if not isinstance(sel_list, list):
-                                    sel_list = []
+                                selecionados = ast.literal_eval(valor_salvo)
+                                if not isinstance(selecionados, list):
+                                    selecionados = []
                             except Exception:
-                                sel_list = []
-                        elif isinstance(v_salvo, list):
-                            sel_list = v_salvo
+                                selecionados = []
+                        elif isinstance(valor_salvo, list):
+                            selecionados = valor_salvo
                         else:
-                            sel_list = []
+                            selecionados = []
 
-                        for opt in lista_opcoes:
-                            chk = ui.checkbox(
-                                opt, value=(opt in sel_list)
+                        for opcao in lista_opcoes:
+                            checkbox_dict[opcao] = ui.checkbox(
+                                opcao,
+                                value=(opcao in selecionados),
                             ).classes("mb-1")
-                            checkbox_dict[opt] = chk
 
                     elif opcoes:
                         lista_opcoes = (
@@ -768,15 +805,15 @@ def render_quesito(
                             if isinstance(opcoes, dict)
                             else opcoes
                         )
-                        v_salvo = d_data.get("valor", "Selecione...")
+                        valor_salvo = d_data.get("valor", "Selecione...")
                         valor_inicial = (
-                            v_salvo
-                            if v_salvo in lista_opcoes
+                            valor_salvo
+                            if valor_salvo in lista_opcoes
                             else (lista_opcoes[0] if lista_opcoes else "")
                         )
-
                         input_valor = ui.radio(
-                            options=lista_opcoes, value=valor_inicial
+                            options=lista_opcoes,
+                            value=valor_inicial,
                         ).classes("gap-2")
                     else:
                         input_valor = ui.textarea(
@@ -792,92 +829,64 @@ def render_quesito(
                         placeholder=placeholder_link,
                     ).classes("w-full").props("outlined rows=3")
 
-                    container_links = ui.row().classes("mt-1")
-
-                    def atualizar_links_visuais():
-                        container_links.clear()
-                        val_txt = ""
-                        if input_valor and hasattr(input_valor, "value"):
-                            val_txt = (
-                                input_valor.value
-                                if (is_text_area and input_valor.value)
-                                else ""
-                            )
-
-                        lnk_txt = input_link.value or ""
-                        txt_total = f"{val_txt} {lnk_txt}"
-
-                        links = re.findall(REGEX_PURE_URL, txt_total)
-                        if links:
-                            with container_links:
-                                ui.label("Links Ativos: ").classes(
-                                    "font-bold text-caption"
-                                )
-                                for url in links:
-                                    ui.link(url, target=url, new_tab=True).classes(
-                                        "text-caption text-blue-6 mr-2"
-                                    )
-
-                    input_link.on(
-                        "update:model-value", atualizar_links_visuais
-                    )
-                    if is_text_area and input_valor:
-                        input_valor.on(
-                            "update:model-value", atualizar_links_visuais
-                        )
-
-                    atualizar_links_visuais()
-
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
             def atualizar_label_pontos(pts, val):
+                pts = float(pts or 0.0)
                 if informativo or pontuacao_maxima == 0.0 or not opcoes:
-                    lbl_pontos.set_content(
-                        f"<span style='color:#6c757d;'>📊 Impacto de Pontuação no Quesito {qid}: 0.0 pontos (Informativo)</span>"
+                    texto = (
+                        f"📊 Impacto de Pontuação no Quesito {qid}: "
+                        "0.0 pontos (Informativo)"
                     )
+                    cor = "#6c757d"
                 else:
-                    cor = (
-                        "#28a745"
-                        if pts > 0
-                        else (
-                            "#dc3545" if val != "Selecione..." else "#6c757d"
-                        )
+                    cor = "#28a745" if pts > 0 else "#dc3545"
+                    texto = (
+                        f"📊 Impacto de Pontuação no Quesito {qid}: "
+                        f"{pts:.1f} pontos"
                     )
-                    lbl_pontos.set_content(
-                        f"<span style='color:{cor};'>📊 Impacto de Pontuação no Quesito {qid}: {pts:.1f} pontos</span>"
-                    )
+                lbl_pontos.set_content(
+                    f"<span style='color:{cor};'>{texto}</span>"
+                )
 
             atualizar_label_pontos(
-                d_data.get("pontos", 0.0), d_data.get("valor", "")
+                d_data.get("pontos", 0.0),
+                d_data.get("valor", ""),
             )
 
             def salvar():
-                pts = 0.0
                 if tipo == "checkbox" and opcoes:
                     selecionados = [
-                        opt
-                        for opt, chk_obj in checkbox_dict.items()
-                        if chk_obj.value
+                        opcao
+                        for opcao, checkbox in checkbox_dict.items()
+                        if checkbox.value
                     ]
                     val = str(selecionados)
+                    pts = 0.0
                 elif opcoes:
                     val = input_valor.value if input_valor else ""
-                    pts = calcular_pontos_generico(val, opcoes)
+                    pts = (
+                        float(opcoes.get(val, 0.0))
+                        if isinstance(opcoes, dict)
+                        else 0.0
+                    )
                 else:
                     val = input_valor.value if input_valor else ""
+                    pts = 0.0
 
                 link = input_link.value or ""
-                st = d_data.get("status", "Pendente")
-                comms = d_data.get("comentarios", [])
+                status = d_data.get("status", "Pendente")
+                comentarios = d_data.get("comentarios", [])
 
+                # O banco é salvo antes do refresh.
                 save_resposta(
                     ano=ano,
                     qid=qid,
                     valor=val,
                     pontos=pts,
                     link=link,
-                    comentarios=comms,
-                    status=st,
+                    comentarios=comentarios,
+                    status=status,
                 )
 
                 atualizar_label_pontos(pts, val)
@@ -887,17 +896,25 @@ def render_quesito(
                     icon="check_circle",
                 )
 
+                # EXATAMENTE como no iGov: chama o callback após salvar.
                 if on_save_callback:
                     on_save_callback()
 
-            ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes(
-                "bg-blue-800 text-white mt-4"
+            ui.button(
+                f"💾 Salvar Quesito {qid}",
+                on_click=salvar,
+            ).classes("bg-blue-800 text-white mt-4")
+
+            bloco_comentarios(
+                qid,
+                res_data,
+                on_save_callback=on_save_callback,
             )
 
-            bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
-# =============================================================================
-# 3. CONTAINER PRINCIPAL REFRESHABLE
-# =============================================================================
+
+# ============================================================================
+# 3. CONTAINER PRINCIPAL
+# ============================================================================
 @ui.refreshable
 def container_formulario_icidade():
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
@@ -906,19 +923,18 @@ def container_formulario_icidade():
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
         with ui.column().classes("col-span-1 w-full"):
             render_painel_controle(
-                on_refresh_callback=container_formulario_icidade.refresh,
+                on_refresh_callback=container_formulario_icidade.refresh
             )
 
         with ui.column().classes("col-span-3 w-full"):
             ui.label(
                 f"Formulário COMPDEC - Defesa Civil ({ano_sel})"
             ).classes("text-h4 mb-1 font-bold text-blue-900")
-
             ui.label(
                 "Preencha as evidências e questões do indicador i-Cidade."
             ).classes("text-gray-600 mb-6")
 
-            
+                     
             # QUESITO 1.1
             render_quesito(
                 ano=ano_sel,
