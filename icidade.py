@@ -1508,4 +1508,110 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+    # ==========================================
+                # QUESITO 12.1 (Regulamentação do Transporte por Aplicativo)
+                # ==========================================
+                opcoes_121 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (-50.0 pts)": -50.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="12.1",
+                    titulo="Regulamentação do Transporte Remunerado Privado Individual",
+                    pergunta="O Município regulamentou o transporte remunerado privado individual de passageiros (táxi por aplicativo como Uber, 99 e similares)?",
+                    opcoes=opcoes_121,
+                    placeholder_link="Insira o link para o decreto ou lei municipal...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 12.1.1 (Normativo de Regulamentação)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="12.1.1",
+                    titulo="Instrumento Normativo de Regulamentação",
+                    pergunta="Informe o Instrumento normativo, Número e Data da publicação:",
+                    tipo_input="texto",
+                    placeholder_texto="Ex: Lei Municipal nº 2.456, de 15 de maio de 2021",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 12.1.2 (Link do Normativo)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="12.1.2",
+                    titulo="Link do Instrumento Normativo",
+                    pergunta="Informe a página eletrônica (link na internet) do instrumento normativo de transporte remunerado privado individual de passageiros (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
+                    tipo_input="link",
+                    placeholder_link="https://... ou digite XYZ",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 12.1.3 (Fiscalização Regular)
+                # ==========================================
+                opcoes_1213 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (-50.0 pts)": -50.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="12.1.3",
+                    titulo="Fiscalização do Transporte por Aplicativo",
+                    pergunta="O Município fiscaliza regularmente o transporte remunerado privado individual de passageiros (táxi por aplicativo como Uber, 99 e similares)?",
+                    opcoes=opcoes_1213,
+                    placeholder_link="Insira o link para relatórios de fiscalização ou autos de infração...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 12.1.3.1 (Periodicidade da Fiscalização)
+                # ==========================================
+                opcoes_12131 = {
+                    "Selecione...": 0.0,
+                    "Diariamente (0.0 pts)": 0.0,
+                    "Semanalmente (0.0 pts)": 0.0,
+                    "Mensalmente (0.0 pts)": 0.0,
+                    "Anualmente (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="12.1.3.1",
+                    titulo="Periodicidade da Fiscalização",
+                    pergunta="Informe a periodicidade da fiscalização realizada pelo município:",
+                    opcoes=opcoes_12131,
+                    placeholder_link="Insira o link do cronograma ou relatórios periódicos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 13.0 (Transporte Não Motorizado - 2025)
+                # ==========================================
+                opcoes_130 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="13.0",
+                    titulo="Incentivo ao Transporte Não Motorizado em 2025",
+                    pergunta="Foram realizadas ações para estimular a adoção/uso dos meios de transporte não motorizados em 2025?",
+                    opcoes=opcoes_130,
+                    placeholder_link="Insira o link comprovando campanhas, ciclovias ou eventos promovidos em 2025...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
