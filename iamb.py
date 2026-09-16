@@ -3571,6 +3571,191 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 11.5.1", on_click=salvar_1151).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("11.5.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 11.6 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_116 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.6",
+                    titulo="Área de Transbordo e Triagem (ATT)",
+                    pergunta="Existe Área de Transbordo e Triagem (ATT) para os Resíduos da Construção Civil no município?",
+                    opcoes=opcoes_116,
+                    placeholder_link="Insira o link com comprovações ou dados da ATT...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 11.6.1 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_1161 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.6.1",
+                    titulo="Licença de Operação da CETESB para ATT",
+                    pergunta="Existe licença de operação da CETESB para a Área de Transbordo e Triagem (ATT) de Resíduos da Construção Civil?",
+                    opcoes=opcoes_1161,
+                    placeholder_link="Insira o link do documento da licença da CETESB...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 11.6.1.1 (Campo de Texto para Validade da Licença)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("11.6.1.1 • Prazo de Validade da Licença CETESB").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe o prazo de validade da licença:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Digite a data de validade da licença e anexe o link de comprovação.").classes("text-xs text-gray-400 mb-6")
+
+                    d11611 = res_data.get("11.6.1.1") or {}
+                    val_11611_i = str(d11611.get("valor") or "").strip()
+
+                    state_11611 = {
+                        "validade": val_11611_i,
+                        "link": d11611.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Prazo de Validade:",
+                                value=state_11611["validade"],
+                                placeholder="Ex: 15/12/2026",
+                            ).classes("w-full").props("outlined").bind_value(state_11611, "validade")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_11611["link"],
+                            placeholder="Insira o link da licença ambiental ou documento comprobatório...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_11611, "link")
+
+                    def salvar_11611():
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="11.6.1.1",
+                            valor=state_11611["validade"],
+                            pontos=0.0,
+                            link=state_11611["link"],
+                            comentarios=d11611.get("comentarios", []),
+                            status=d11611.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 11.6.1.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 11.6.1.1", on_click=salvar_11611).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("11.6.1.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 12.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_120 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="12.0",
+                    titulo="Processamento de Resíduos Antes do Aterro",
+                    pergunta="Antes de aterrar o lixo, o município realiza algum tipo de processamento de resíduos (reciclagem, compostagem, reutilização ou outra forma)?",
+                    opcoes=opcoes_120,
+                    placeholder_link="Insira o link com comprovações do processamento prévio dos resíduos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 12.1 (Seleção Múltipla - Forma de Processamento de Resíduos)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("12.1 • Forma de Processamento de Resíduos").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale qual a forma realizada de processamento de resíduos:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as opções praticadas e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d121 = res_data.get("12.1") or {}
+                    try:
+                        sel_121_salvos = json.loads(d121.get("valor", "[]"))
+                        if not isinstance(sel_121_salvos, list): sel_121_salvos = []
+                    except Exception:
+                        sel_121_salvos = []
+
+                    mapa_121 = {
+                        "reciclagem": ("Reciclagem – 04 pts", 4.0),
+                        "compostagem": ("Compostagem – 20 pts", 20.0),
+                        "reutilizacao": ("Reutilização – 20 pts", 20.0),
+                        "logistica_reversa": ("Sistema de Logística Reversa – 10 pts", 10.0),
+                        "outro": ("Outro – 00 pts", 0.0),
+                    }
+
+                    state_121 = {k: k in sel_121_salvos for k in mapa_121.keys()}
+                    state_121["link"] = d121.get("link", "")
+
+                    def calc_pts_121():
+                        return sum(peso for k, (_, peso) in mapa_121.items() if state_121.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_121a = [ui.checkbox(rotulo).bind_value(state_121, k) for k, (rotulo, _) in list(mapa_121.items())[:3]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_121b = [ui.checkbox(rotulo).bind_value(state_121, k) for k, (rotulo, _) in list(mapa_121.items())[3:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_121["link"],
+                        placeholder="Insira o link das comprovações das formas de processamento selecionadas...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_121, "link")
+
+                    lbl_pts_121 = ui.label(f"📊 Impacto de Pontuação no Quesito 12.1: {calc_pts_121():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def salvar_121():
+                        selecionados = [k for k in mapa_121.keys() if state_121.get(k)]
+                        pts = calc_pts_121()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="12.1",
+                            valor=json.dumps(selecionados),
+                            pontos=pts,
+                            link=state_121["link"],
+                            comentarios=d121.get("comentarios", []),
+                            status=d121.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 12.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 12.1", on_click=salvar_121).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("12.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 13.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_130 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="13.0",
+                    titulo="Aterro para Resíduos Sólidos Urbanos no Município",
+                    pergunta="Existe aterro para os resíduos sólidos urbanos (lixo doméstico e limpeza urbana) no município?",
+                    opcoes=opcoes_130,
+                    placeholder_link="Insira o link comprobatório referente à presença ou ausência do aterro no município...",
+                    on_save_callback=render_conteudo.refresh,
+                )
     
     # Executa a renderização da interface
     render_conteudo()
