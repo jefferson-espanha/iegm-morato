@@ -687,7 +687,7 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-    # ==========================================
+                # ==========================================
                 # QUESITO 3.0 (Estímulo à Participação)
                 # ==========================================
                 opcoes_30 = {
@@ -769,16 +769,25 @@ def container_formulario_icidade(ano=None):
                 )
 
                 # ==========================================
-                # QUESITO 4.1 (Ameaças da Carta Geotécnica)
+                # QUESITO 4.1 (Ameaças Potenciais - Checkbox)
                 # ==========================================
+                opcoes_41 = {
+                    "Riscos Geológicos": 0.0,
+                    "Riscos Hidrológicos": 0.0,
+                    "Riscos Meteorológicos": 0.0,
+                    "Riscos Climatológicos": 0.0,
+                    "Riscos Biológicos": 0.0,
+                    "Riscos Tecnológicos": 0.0,
+                }
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
                     qid="4.1",
-                    titulo="Ameaças Potenciais Identificadas (COBRADE)",
-                    pergunta="Assinale/Informe os tipos de ameaças potenciais identificadas na Carta Geotécnica segundo a COBRADE (Ex: Riscos Geológicos, Hidrológicos, Meteorológicos, Climatológicos, Biológicos, Tecnológicos):",
-                    tipo_input="texto",
-                    placeholder_texto="Listar e detalhar as ameaças identificadas...",
+                    titulo="Ameaças Potenciais Identificadas na Carta Geotécnica",
+                    pergunta="Assinale quais os tipos de ameaças potenciais identificadas na Carta Geotécnica (Classificação COBRADE):",
+                    tipo_input="checkbox",
+                    opcoes=opcoes_41,
+                    placeholder_link="Insira o link para a documentação ou trecho da Carta Geotécnica...",
                     on_save_callback=render_conteudo.refresh,
                 )
 
