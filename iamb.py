@@ -4870,6 +4870,176 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO A4.1.1", on_click=salvar_A411).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("A4.1.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO A4.1.2 (Limpeza Urbana / Resíduos Sólidos - Coleta)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("A4.1.2 • Limpeza Urbana e Manejo de Resíduos Sólidos (Taxas de Coleta)").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe as taxas de cobertura do serviço de coleta de resíduos domiciliares (SINISA):").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Dados do SINISA. Não sujeitos à validação.").classes("text-xs text-gray-500 font-semibold mb-6")
+
+                    dA412 = res_data.get("A4.1.2") or {}
+                    val_A412_raw = dA412.get("valor", "{}")
+                    try:
+                        vals_A412_dict = json.loads(val_A412_raw) if isinstance(val_A412_raw, str) else (val_A412_raw if isinstance(val_A412_raw, dict) else {})
+                    except Exception:
+                        vals_A412_dict = {}
+
+                    state_A412 = {
+                        "p_coleta_pop_total": str(vals_A412_dict.get("p_coleta_pop_total", "")),
+                        "p_coleta_pop_urbana": str(vals_A412_dict.get("p_coleta_pop_urbana", "")),
+                        "link": dA412.get("link", ""),
+                    }
+
+                    def parse_val(v_str):
+                        try:
+                            return float(str(v_str).replace("%", "").replace(",", ".").strip())
+                        except Exception:
+                            return None
+
+                    # Fórmula de pontuação para Coleta (Pmáx = 20 pontos)
+                    def calc_pts_coleta_residuos(p):
+                        if p is None: return 0.0
+                        if p >= 100.0: return 20.0
+                        elif 99.0 < p < 100.0: return (((p - 99.0) / 1.0) * 10.0) + 10.0
+                        elif 90.0 < p <= 99.0: return ((p - 90.0) / 9.0) * 10.0
+                        else: return 0.0
+
+                    def calc_pts_total_A412():
+                        # Considera a taxa informada para o cálculo de pontuação
+                        v_total = parse_val(state_A412["p_coleta_pop_total"])
+                        return calc_pts_coleta_residuos(v_total)
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        ui.input(
+                            "Coleta em relação à população total (%):",
+                            value=state_A412["p_coleta_pop_total"],
+                            placeholder="Ex: 98.5",
+                        ).classes("w-full").props("outlined").bind_value(state_A412, "p_coleta_pop_total")
+
+                        ui.input(
+                            "Coleta em relação à população urbana (%):",
+                            value=state_A412["p_coleta_pop_urbana"],
+                            placeholder="Ex: 100.0",
+                        ).classes("w-full").props("outlined").bind_value(state_A412, "p_coleta_pop_urbana")
+
+                    ui.textarea(
+                        label="Link de Evidência / Fonte SINISA:",
+                        value=state_A412["link"],
+                        placeholder="Insira o link dos dados de resíduos no SINISA...",
+                    ).classes("w-full mb-2").props("outlined rows=3").bind_value(state_A412, "link")
+
+                    lbl_pts_A412 = ui.label(f"📊 Impacto de Pontuação no Quesito A4.1.2: {calc_pts_total_A412():.2f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def salvar_A412():
+                        pts = calc_pts_total_A412()
+                        payload_salvar = {
+                            "p_coleta_pop_total": state_A412["p_coleta_pop_total"],
+                            "p_coleta_pop_urbana": state_A412["p_coleta_pop_urbana"],
+                        }
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="A4.1.2",
+                            valor=json.dumps(payload_salvar),
+                            pontos=pts,
+                            link=state_A412["link"],
+                            comentarios=dA412.get("comentarios", []),
+                            status=dA412.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito A4.1.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO A4.1.2", on_click=salvar_A412).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("A4.1.2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO A4.1.3 (Limpeza Urbana / Resíduos Sólidos - Massas e Reciclagem)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("A4.1.3 • Limpeza Urbana e Manejo de Resíduos Sólidos (Massa Coletada e Recuperada)").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe a massa coletada e recuperada per capita (SINISA):").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Dados do SINISA. Não sujeitos à validação.").classes("text-xs text-gray-500 font-semibold mb-6")
+
+                    dA413 = res_data.get("A4.1.3") or {}
+                    val_A413_raw = dA413.get("valor", "{}")
+                    try:
+                        vals_A413_dict = json.loads(val_A413_raw) if isinstance(val_A413_raw, str) else (val_A413_raw if isinstance(val_A413_raw, dict) else {})
+                    except Exception:
+                        vals_A413_dict = {}
+
+                    state_A413 = {
+                        "massa_coletada_dia": str(vals_A413_dict.get("massa_coletada_dia", "")),
+                        "massa_recuperada_ano": str(vals_A413_dict.get("massa_recuperada_ano", "")),
+                        "link": dA413.get("link", ""),
+                    }
+
+                    # 1. Massa coletada de resíduos sólidos da população urbana por dia (kg/hab/dia) - Pmáx = 10 pontos
+                    def calc_pts_massa_coletada(m):
+                        if m is None: return 0.0
+                        if m > 1.0: return 0.0
+                        elif 0.99 < m <= 1.0: return (((1.0 - m) / 0.01) * 2.0) + 1.0
+                        elif 0.90 < m <= 0.99: return (((0.99 - m) / 0.09) * 3.0) + 5.0
+                        elif 0.70 < m <= 0.90: return (((0.90 - m) / 0.20) * 2.0) + 7.0
+                        else: return 10.0
+
+                    # 2. Massa recuperada per capita de materiais recicláveis (kg/hab/ano) - Pmáx = 12 pontos
+                    def calc_pts_massa_recuperada(m):
+                        if m is None: return 0.0
+                        if m > 73.0: return 12.0
+                        elif 36.5 < m <= 73.0: return (((m - 36.5) / 36.5) * 2.0) + 5.0
+                        elif 20.0 < m <= 36.5: return (((m - 20.0) / 16.5) * 2.0) + 3.0
+                        elif 8.0 < m <= 20.0: return ((m - 8.0) / 12.0) * 3.0
+                        else: return 0.0
+
+                    def calc_pts_total_A413():
+                        v_coletada = parse_val(state_A413["massa_coletada_dia"])
+                        v_recuperada = parse_val(state_A413["massa_recuperada_ano"])
+                        return calc_pts_massa_coletada(v_coletada) + calc_pts_massa_recuperada(v_recuperada)
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        ui.input(
+                            "Massa coletada urbana (kg/hab/dia):",
+                            value=state_A413["massa_coletada_dia"],
+                            placeholder="Ex: 0.85",
+                        ).classes("w-full").props("outlined").bind_value(state_A413, "massa_coletada_dia")
+
+                        ui.input(
+                            "Massa reciclável recuperada (kg/hab/ano):",
+                            value=state_A413["massa_recuperada_ano"],
+                            placeholder="Ex: 25.4",
+                        ).classes("w-full").props("outlined").bind_value(state_A413, "massa_recuperada_ano")
+
+                    ui.textarea(
+                        label="Link de Evidência / Fonte SINISA:",
+                        value=state_A413["link"],
+                        placeholder="Insira o link do relatório do SINISA...",
+                    ).classes("w-full mb-2").props("outlined rows=3").bind_value(state_A413, "link")
+
+                    lbl_pts_A413 = ui.label(f"📊 Impacto de Pontuação no Quesito A4.1.3: {calc_pts_total_A413():.2f} pontos (Max: 22 pts)").classes("text-sm font-bold text-green-600 my-2")
+
+                    def salvar_A413():
+                        pts = calc_pts_total_A413()
+                        payload_salvar = {
+                            "massa_coletada_dia": state_A413["massa_coletada_dia"],
+                            "massa_recuperada_ano": state_A413["massa_recuperada_ano"],
+                        }
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="A4.1.3",
+                            valor=json.dumps(payload_salvar),
+                            pontos=pts,
+                            link=state_A413["link"],
+                            comentarios=dA413.get("comentarios", []),
+                            status=dA413.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito A4.1.3 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO A4.1.3", on_click=salvar_A413).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("A4.1.3", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
