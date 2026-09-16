@@ -448,7 +448,7 @@ def container_formulario_iamb(ano=None):
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
 
-                # Quesito 1.0
+                # QUESITO 1.0
                 opcoes_10 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -458,97 +458,45 @@ def container_formulario_iamb(ano=None):
                     ano=ano_sel,
                     res_data=res_data,
                     qid="1.0",
-                    titulo="Estrutura Organizacional do Meio Ambiente",
+                    titulo="Estrutura Organizacional de Meio Ambiente",
                     pergunta="A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?",
                     opcoes=opcoes_10,
                     placeholder_link="Insira o link da lei da estrutura administrativa ou organograma...",
                     on_save_callback=render_conteudo.refresh,
                 )
 
-                # Quesito 1.1
-                with ui.card().classes(
-                    "w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"
-                ):
-                    ui.label(
-                        "📌 Quesito 1.1 - Recursos Humanos em Meio Ambiente"
-                    ).classes("text-lg font-bold text-blue-900 mb-1")
+                # QUESITO 1.1 + 1.1.1 (Recursos Humanos e Contagem)
+                opcoes_11 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.1",
+                    titulo="Recursos Humanos em Meio Ambiente",
+                    pergunta="A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?",
+                    opcoes=opcoes_11,
+                    placeholder_link="Insira o link da portaria, organograma ou documento probatório...",
+                    on_save_callback=render_conteudo.refresh,
+                )
 
-                    ui.label(
-                        "A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente? Informe a quantidade:"
-                    ).classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                # Detalhamento dos Servidores (1.1.1)
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                    ui.label("📌 Quesito 1.1.1 - Detalhamento do Quantitativo de Pessoal").classes("text-lg font-bold text-blue-900 mb-1")
+                    ui.label("Informe o quantitativo de servidores por categoria:").classes("text-base font-semibold text-gray-800 mb-4")
 
-                    with ui.card().classes(
-                        "w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"
-                    ):
-                        ui.label("Instrução de preenchimento:").classes(
-                            "text-xs font-bold text-blue-900 uppercase tracking-wide"
-                        )
-                        ui.label(
-                            "Informe o quantitativo de servidores efetivos, comissionados e terceirizados/contratados alocados no setor."
-                        ).classes("text-sm text-blue-800 font-medium")
-
-                    def salvar_no_banco_11(
-                        qid_val, valor_val, pontos_val, link_val
-                    ):
-                        try:
-                            with get_db_connection() as conn:
-                                with conn.cursor() as cur:
-                                    cur.execute(
-                                        """
-                                        INSERT INTO respostas_iamb (qid, ano, valor, pontos, link, updated_at)
-                                        VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-                                        ON CONFLICT (ano, qid) 
-                                        DO UPDATE SET 
-                                            valor = EXCLUDED.valor,
-                                            pontos = EXCLUDED.pontos,
-                                            link = EXCLUDED.link,
-                                            updated_at = CURRENT_TIMESTAMP;
-                                    """,
-                                        (
-                                            qid_val,
-                                            ano_sel,
-                                            str(valor_val),
-                                            float(pontos_val),
-                                            str(link_val),
-                                        ),
-                                    )
-                                    conn.commit()
-                        except Exception as err_db:
-                            print(
-                                f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}"
-                            )
-                            raise err_db
-
-                    def parse_int_seguro(val):
-                        if val is None:
-                            return 0
-                        if isinstance(val, (int, float)):
-                            return int(val)
-                        val_str = str(val).strip()
-                        if not val_str or not val_str.isdigit():
-                            return 0
-                        return int(val_str)
-
-                    d11 = res_data.get("1.1") or {}
-                    if not isinstance(d11, dict):
-                        d11 = {"valor": "0", "pontos": 0.0, "link": ""}
-
+                    d111 = res_data.get("1.1.1") or {}
+                    raw_link = str(d111.get("link") or "")
                     v_efet_i, v_comi_i, v_terc_i = 0, 0, 0
-                    evidencia_11_salva = ""
-                    raw_link = str(d11.get("link") or "")
+                    evidencia_111 = ""
 
                     if raw_link:
                         if "|LINK:" in raw_link:
-                            contadores_part, evidencia_11_salva = (
-                                raw_link.split("|LINK:", 1)
-                            )
+                            contadores_part, evidencia_111 = raw_link.split("|LINK:", 1)
                         else:
-                            contadores_part, evidencia_11_salva = (
-                                raw_link,
-                                "",
-                            )
-
-                        import re
+                            contadores_part, evidencia_111 = raw_link, ""
 
                         match_e = re.search(r"E:(\d+)", contadores_part)
                         match_co = re.search(r"Co:(\d+)", contadores_part)
@@ -558,112 +506,58 @@ def container_formulario_iamb(ano=None):
                         v_comi_i = int(match_co.group(1)) if match_co else 0
                         v_terc_i = int(match_t.group(1)) if match_t else 0
 
-                    state_11 = {
+                    state_111 = {
                         "efet": v_efet_i,
                         "comi": v_comi_i,
                         "terc": v_terc_i,
-                        "link": evidencia_11_salva,
+                        "link": evidencia_111,
                     }
 
-                    def cb_processa_e_salva_11():
-                        try:
-                            ef_val = parse_int_seguro(state_11["efet"])
-                            co_val = parse_int_seguro(state_11["comi"])
-                            te_val = parse_int_seguro(state_11["terc"])
-                            lnk_val = str(state_11["link"] or "").strip()
+                    with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                        ui.number("Nº de efetivos:", value=v_efet_i, min=0, step=1).classes("w-full").bind_value(state_111, "efet")
+                        ui.number("Nº de comissionados:", value=v_comi_i, min=0, step=1).classes("w-full").bind_value(state_111, "comi")
+                        ui.number("Nº de terceirizados/contratados:", value=v_terc_i, min=0, step=1).classes("w-full").bind_value(state_111, "terc")
 
-                            total_p = ef_val + co_val + te_val
-                            pts_calculados = 0.0
-                            composite_string = f"E:{ef_val},Co:{co_val},T:{te_val}|LINK:{lnk_val}"
+                    ui.textarea("Página Eletrônica (Link / Evidência):", value=evidencia_111, placeholder="Insira a folha de pagamento simplificada, relatório de RH ou declaração...").classes("w-full mb-4").bind_value(state_111, "link")
 
-                            salvar_no_banco_11(
-                                "1.1",
-                                str(total_p),
-                                pts_calculados,
-                                composite_string,
-                            )
+                    def salvar_111():
+                        ef_val = int(state_111["efet"] or 0)
+                        co_val = int(state_111["comi"] or 0)
+                        te_val = int(state_111["terc"] or 0)
+                        total = ef_val + co_val + te_val
+                        composite = f"E:{ef_val},Co:{co_val},T:{te_val}|LINK:{state_111['link']}"
 
-                            res_data["1.1"] = {
-                                "valor": str(total_p),
-                                "pontos": pts_calculados,
-                                "link": composite_string,
-                            }
-
-                            ui.notify(
-                                "Quesito 1.1 salvo com sucesso!",
-                                type="positive",
-                            )
-                            render_conteudo.refresh()
-                        except Exception as err:
-                            ui.notify(
-                                f"Erro ao salvar Quesito 1.1: {err}",
-                                type="negative",
-                            )
-
-                    with ui.grid(columns=2).classes(
-                        "w-full gap-4 mb-4 md:grid-cols-3"
-                    ):
-                        ui.number(
-                            "Nº de efetivos:",
-                            value=v_efet_i,
-                            min=0,
-                            step=1,
-                        ).classes("w-full").bind_value(state_11, "efet")
-
-                        ui.number(
-                            "Nº de comissionados:",
-                            value=v_comi_i,
-                            min=0,
-                            step=1,
-                        ).classes("w-full").bind_value(state_11, "comi")
-
-                        ui.number(
-                            "Nº de terceirizados/contratados:",
-                            value=v_terc_i,
-                            min=0,
-                            step=1,
-                        ).classes("w-full").bind_value(state_11, "terc")
-
-                    ui.textarea(
-                        "Página Eletrônica (Link / Evidência da Composição):",
-                        value=evidencia_11_salva,
-                        placeholder="Insira o link da portaria de lotação, folha de pagamento simplificada ou declaração de RH...",
-                    ).classes("w-full mb-4").bind_value(state_11, "link")
-
-                    total_pessoal = parse_int_seguro(d11.get("valor"))
-
-                    with ui.row().classes(
-                        "w-full justify-between items-center mb-4"
-                    ):
-                        with ui.column().classes("gap-0"):
-                            ui.label(
-                                f"👥 Total de Pessoal Computado: {total_pessoal} servidor(es)"
-                            ).classes("text-sm font-semibold text-gray-700")
-
-                        ui.button(
-                            "Salvar Quesito 1.1",
-                            on_click=cb_processa_e_salva_11,
-                            icon="save",
-                        ).classes(
-                            "bg-blue-800 text-white font-medium px-4 py-2 rounded-md"
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="1.1.1",
+                            valor=str(total),
+                            pontos=0.0,
+                            link=composite,
+                            comentarios=d111.get("comentarios", []),
+                            status=d111.get("status", "Pendente")
                         )
+                        ui.notify("Quesito 1.1.1 salvo com sucesso!", type="positive")
+                        render_conteudo.refresh()
+
+                    with ui.row().classes("w-full justify-between items-center mb-2"):
+                        ui.label(f"👥 Total Calculado: {int(state_111['efet'] or 0) + int(state_111['comi'] or 0) + int(state_111['terc'] or 0)} servidores").classes("text-sm font-semibold text-gray-700")
+                        ui.button("Salvar Quesito 1.1.1", on_click=salvar_111, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
 
                     ui.separator().classes("my-2")
-                    bloco_comentarios("1.1", res_data, render_conteudo.refresh)
+                    bloco_comentarios("1.1.1", res_data, render_conteudo.refresh)
 
-                # Quesito 1.1.2
-                ano_treinamento = ano_sel - 1
+                # QUESITO 1.1.2
                 opcoes_112 = {
                     "Selecione...": 0.0,
-                    "Sim – 20 pts": 20.0,
-                    "Não – 00 pts": 0.0,
+                    "Sim – 20": 20.0,
+                    "Não – 00": 0.0,
                 }
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
                     qid="1.1.2",
                     titulo="Treinamento Específico dos Servidores",
-                    pergunta=f"Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente em {ano_treinamento}?",
+                    pergunta="Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente em 2025?",
                     opcoes=opcoes_112,
                     placeholder_link="Insira o link de certificados emitidos, ordem de serviço ou relatório de treinamento...",
                     on_save_callback=render_conteudo.refresh,
