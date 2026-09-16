@@ -368,236 +368,248 @@ def container_formulario_iamb(ano=None):
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
 
-                # -------------------------------------------------------------
-                # QUESITO 1.0
-                # -------------------------------------------------------------
-                qid_1_0 = "1.0"
-                dados_1_0 = respostas.get(
-                    qid_1_0, {"valor": "Não", "pontos": 0.0, "link": ""}
+               # =============================================================================
+                # QUESITO 1.0 • ESTRUTURA ORGANIZACIONAL DE MEIO AMBIENTE
+                # =============================================================================
+                opcoes_10 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.0",
+                    titulo="Estrutura Organizacional do Meio Ambiente",
+                    pergunta="A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?",
+                    opcoes=opcoes_10,
+                    placeholder_link="Insira o link da lei da estrutura administrativa ou organograma...",
+                    on_save_callback=container_formulario_iamb.refresh,
                 )
 
+                # =============================================================================
+                # QUESITO 1.1 • RECURSOS HUMANOS EM MEIO AMBIENTE
+                # =============================================================================
                 with ui.card().classes(
-                    "w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"
+                    "w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"
                 ):
-                    ui.label(f"Quesito {qid_1_0}").classes(
-                        "font-bold text-blue-900 text-base"
-                    )
+                    # Cabeçalho do Quesito
                     ui.label(
-                        "A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?"
-                    ).classes("text-sm text-gray-700 my-2 font-medium")
+                        "📌 Quesito 1.1 - Recursos Humanos em Meio Ambiente"
+                    ).classes("text-lg font-bold text-blue-900 mb-1")
 
-                    sel_1_0 = ui.select(
-                        options=["Sim", "Não"],
-                        value=(
-                            dados_1_0["valor"]
-                            if dados_1_0["valor"] in ["Sim", "Não"]
-                            else "Não"
-                        ),
-                        label="Resposta:",
-                    ).classes("w-full mb-2 bg-white")
-
-                    link_1_0 = ui.input(
-                        "Link da Evidência / Comprovação:",
-                        value=dados_1_0["link"],
-                    ).classes("w-full mb-2 bg-white")
-
-                    def salvar_1_0():
-                        save_resposta(
-                            ano=ano_atual,
-                            qid=qid_1_0,
-                            valor=sel_1_0.value,
-                            pontos=0.0,
-                            link=link_1_0.value,
-                        )
-                        ui.notify(
-                            f"Quesito {qid_1_0} salvo com sucesso!",
-                            type="positive",
-                        )
-                        render_conteudo.refresh()
-
-                    ui.button(
-                        f"💾 Salvar Quesito {qid_1_0}", on_click=salvar_1_0
-                    ).classes("bg-green-600 text-white font-bold mt-2")
-
-                # -------------------------------------------------------------
-                # QUESITO 1.1 E SUBQUESITO 1.1.1
-                # -------------------------------------------------------------
-                qid_1_1 = "1.1"
-                dados_1_1 = respostas.get(
-                    qid_1_1, {"valor": "Não", "pontos": 0.0, "link": ""}
-                )
-
-                qid_1_1_1 = "1.1.1"
-                dados_1_1_1 = respostas.get(
-                    qid_1_1_1, {"valor": "{}", "pontos": 0.0, "link": ""}
-                )
-
-                # Converte o JSON armazenado dos efetivos/comissionados
-                try:
-                    val_1_1_1_dict = json.loads(
-                        dados_1_1_1.get("valor", "{}") or "{}"
-                    )
-                except Exception:
-                    val_1_1_1_dict = {}
-
-                with ui.card().classes(
-                    "w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"
-                ):
-                    ui.label(f"Quesito {qid_1_1}").classes(
-                        "font-bold text-blue-900 text-base"
-                    )
+                    # Enunciado
                     ui.label(
-                        "A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?"
-                    ).classes("text-sm text-gray-700 my-2 font-medium")
+                        "A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente? Informe a quantidade:"
+                    ).classes("text-base font-semibold text-gray-800 mt-2 mb-1")
 
-                    sel_1_1 = ui.select(
-                        options=["Sim", "Não"],
-                        value=(
-                            dados_1_1["valor"]
-                            if dados_1_1["valor"] in ["Sim", "Não"]
-                            else "Não"
-                        ),
-                        label="Resposta:",
-                    ).classes("w-full mb-2 bg-white")
-
-                    link_1_1 = ui.input(
-                        "Link da Evidência / Comprovação:",
-                        value=dados_1_1["link"],
-                    ).classes("w-full mb-2 bg-white")
-
-                    # Subseção para o Quesito 1.1.1 (Exibido apenas se 1.1 for "Sim")
-                    container_1_1_1 = ui.column().classes(
-                        "w-full pl-4 border-l-4 border-blue-400 my-2 bg-blue-50/50 p-3 rounded"
-                    )
-                    container_1_1_1.set_visibility(sel_1_1.value == "Sim")
-
-                    with container_1_1_1:
-                        ui.label(f"Quesito {qid_1_1_1} — Informe:").classes(
-                            "font-bold text-blue-950 text-sm"
+                    # Bloco Informativo da Fórmula de Cálculo
+                    with ui.card().classes(
+                        "w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"
+                    ):
+                        ui.label("Instrução de preenchimento:").classes(
+                            "text-xs font-bold text-blue-900 uppercase tracking-wide"
                         )
+                        ui.label(
+                            "Informe o quantitativo de servidores efetivos, comissionados e terceirizados/contratados alocados no setor."
+                        ).classes("text-sm text-blue-800 font-medium")
 
-                        input_efetivos = ui.number(
-                            "Nº de efetivos:",
-                            value=val_1_1_1_dict.get("efetivos", 0),
-                            min=0,
-                            precision=0,
-                        ).classes("w-full bg-white mb-1")
-                        input_comissionados = ui.number(
-                            "Nº de comissionados:",
-                            value=val_1_1_1_dict.get("comissionados", 0),
-                            min=0,
-                            precision=0,
-                        ).classes("w-full bg-white mb-1")
-                        input_terceirizados = ui.number(
-                            "Nº de terceirizados/contratados:",
-                            value=val_1_1_1_dict.get("terceirizados", 0),
-                            min=0,
-                            precision=0,
-                        ).classes("w-full bg-white mb-1")
+                    # Função local de persistência
+                    def salvar_no_banco_11(
+                        qid_val, valor_val, pontos_val, link_val
+                    ):
+                        try:
+                            with get_db_connection() as conn:
+                                with conn.cursor() as cur:
+                                    cur.execute(
+                                        """
+                                        INSERT INTO respostas_iamb (qid, ano, valor, pontos, link, updated_at)
+                                        VALUES (%s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+                                        ON CONFLICT (ano, qid) 
+                                        DO UPDATE SET 
+                                            valor = EXCLUDED.valor,
+                                            pontos = EXCLUDED.pontos,
+                                            link = EXCLUDED.link,
+                                            updated_at = CURRENT_TIMESTAMP;
+                                    """,
+                                        (
+                                            qid_val,
+                                            ano_sel,
+                                            str(valor_val),
+                                            float(pontos_val),
+                                            str(link_val),
+                                        ),
+                                    )
+                                    conn.commit()
+                        except Exception as err_db:
+                            print(
+                                f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}"
+                            )
+                            raise err_db
 
-                    sel_1_1.on(
-                        "update:model-value",
-                        lambda e: container_1_1_1.set_visibility(
-                            e.args == "Sim"
-                        ),
-                    )
+                    # Conversor seguro para prevenir crash com valores inválidos
+                    def parse_int_seguro(val):
+                        if val is None:
+                            return 0
+                        if isinstance(val, (int, float)):
+                            return int(val)
+                        val_str = str(val).strip()
+                        if not val_str or not val_str.isdigit():
+                            return 0
+                        return int(val_str)
 
-                    def salvar_1_1_e_sub():
-                        save_resposta(
-                            ano=ano_atual,
-                            qid=qid_1_1,
-                            valor=sel_1_1.value,
-                            pontos=0.0,
-                            link=link_1_1.value,
-                        )
+                    # Recuperação do banco
+                    d11 = res_data.get("1.1") or {}
+                    if not isinstance(d11, dict):
+                        d11 = {"valor": "0", "pontos": 0.0, "link": ""}
 
-                        if sel_1_1.value == "Sim":
-                            payload_1_1_1 = json.dumps({
-                                "efetivos": int(input_efetivos.value or 0),
-                                "comissionados": int(
-                                    input_comissionados.value or 0
-                                ),
-                                "terceirizados": int(
-                                    input_terceirizados.value or 0
-                                ),
-                            })
-                            save_resposta(
-                                ano=ano_atual,
-                                qid=qid_1_1_1,
-                                valor=payload_1_1_1,
-                                pontos=0.0,
-                                link="",
+                    v_efet_i, v_comi_i, v_terc_i = 0, 0, 0
+                    evidencia_11_salva = ""
+                    raw_link = str(d11.get("link") or "")
+
+                    # Extração dos contadores armazenados
+                    if raw_link:
+                        if "|LINK:" in raw_link:
+                            contadores_part, evidencia_11_salva = (
+                                raw_link.split("|LINK:", 1)
+                            )
+                        else:
+                            contadores_part, evidencia_11_salva = (
+                                raw_link,
+                                "",
                             )
 
-                        ui.notify(
-                            f"Quesitos {qid_1_1} e {qid_1_1_1} salvos com sucesso!",
-                            type="positive",
+                        import re
+
+                        match_e = re.search(r"E:(\d+)", contadores_part)
+                        match_co = re.search(r"Co:(\d+)", contadores_part)
+                        match_t = re.search(r"T:(\d+)", contadores_part)
+
+                        v_efet_i = int(match_e.group(1)) if match_e else 0
+                        v_comi_i = int(match_co.group(1)) if match_co else 0
+                        v_terc_i = int(match_t.group(1)) if match_t else 0
+
+                    # Estado reativo do formulário
+                    state_11 = {
+                        "efet": v_efet_i,
+                        "comi": v_comi_i,
+                        "terc": v_terc_i,
+                        "link": evidencia_11_salva,
+                    }
+
+                    # Callback do Botão de Salvar
+                    def cb_processa_e_salva_11():
+                        try:
+                            ef_val = parse_int_seguro(state_11["efet"])
+                            co_val = parse_int_seguro(state_11["comi"])
+                            te_val = parse_int_seguro(state_11["terc"])
+                            lnk_val = str(state_11["link"] or "").strip()
+
+                            total_p = ef_val + co_val + te_val
+                            pts_calculados = 0.0
+                            composite_string = f"E:{ef_val},Co:{co_val},T:{te_val}|LINK:{lnk_val}"
+
+                            # Executa salvamento persistente no PostgreSQL
+                            salvar_no_banco_11(
+                                "1.1",
+                                str(total_p),
+                                pts_calculados,
+                                composite_string,
+                            )
+
+                            # Atualiza dict local em memória
+                            res_data["1.1"] = {
+                                "valor": str(total_p),
+                                "pontos": pts_calculados,
+                                "link": composite_string,
+                            }
+
+                            ui.notify(
+                                "Quesito 1.1 salvo com sucesso!",
+                                type="positive",
+                            )
+                            container_formulario_iamb.refresh()
+                        except Exception as err:
+                            ui.notify(
+                                f"Erro ao salvar Quesito 1.1: {err}",
+                                type="negative",
+                            )
+
+                    # Grid com os Inputs Numéricos
+                    with ui.grid(columns=2).classes(
+                        "w-full gap-4 mb-4 md:grid-cols-3"
+                    ):
+                        ui.number(
+                            "Nº de efetivos:",
+                            value=v_efet_i,
+                            min=0,
+                            step=1,
+                        ).classes("w-full").bind_value(state_11, "efet")
+
+                        ui.number(
+                            "Nº de comissionados:",
+                            value=v_comi_i,
+                            min=0,
+                            step=1,
+                        ).classes("w-full").bind_value(state_11, "comi")
+
+                        ui.number(
+                            "Nº de terceirizados/contratados:",
+                            value=v_terc_i,
+                            min=0,
+                            step=1,
+                        ).classes("w-full").bind_value(state_11, "terc")
+
+                    # Área do Link / Evidência
+                    ui.textarea(
+                        "Página Eletrônica (Link / Evidência da Composição):",
+                        value=evidencia_11_salva,
+                        placeholder="Insira o link da portaria de lotação, folha de pagamento simplificada ou declaração de RH...",
+                    ).classes("w-full mb-4").bind_value(state_11, "link")
+
+                    # Rodapé do Quesito
+                    total_pessoal = parse_int_seguro(d11.get("valor"))
+
+                    with ui.row().classes(
+                        "w-full justify-between items-center mb-4"
+                    ):
+                        with ui.column().classes("gap-0"):
+                            ui.label(
+                                f"👥 Total de Pessoal Computado: {total_pessoal} servidor(es)"
+                            ).classes("text-sm font-semibold text-gray-700")
+
+                        ui.button(
+                            "Salvar Quesito 1.1",
+                            on_click=cb_processa_e_salva_11,
+                            icon="save",
+                        ).classes(
+                            "bg-blue-800 text-white font-medium px-4 py-2 rounded-md"
                         )
-                        render_conteudo.refresh()
 
-                    ui.button(
-                        f"💾 Salvar Quesito {qid_1_1}", on_click=salvar_1_1_e_sub
-                    ).classes("bg-green-600 text-white font-bold mt-2")
+                    ui.separator().classes("my-2")
 
-                # -------------------------------------------------------------
-                # QUESITO 1.1.2
-                # -------------------------------------------------------------
-                qid_1_1_2 = "1.1.2"
-                dados_1_1_2 = respostas.get(
-                    qid_1_1_2, {"valor": "Não", "pontos": 0.0, "link": ""}
+                    # Bloco de Comentários Integrado ao Quesito
+                    bloco_comentarios("1.1", res_data, ano_sel)
+
+                # =============================================================================
+                # QUESITO 1.1.2 • TREINAMENTO DOS SERVIDORES EM MEIO AMBIENTE
+                # =============================================================================
+                ano_treinamento = ano_sel - 1
+                opcoes_112 = {
+                    "Selecione...": 0.0,
+                    "Sim – 20 pts": 20.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.1.2",
+                    titulo="Treinamento Específico dos Servidores",
+                    pergunta=f"Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente em {ano_treinamento}?",
+                    opcoes=opcoes_112,
+                    placeholder_link="Insira o link de certificados emitidos, ordem de serviço ou relatório de treinamento...",
+                    on_save_callback=container_formulario_iamb.refresh,
                 )
-                opcoes_1_1_2 = {"Sim": "Sim – 20", "Não": "Não – 00"}
-
-                with ui.card().classes(
-                    "w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"
-                ):
-                    ui.label(f"Quesito {qid_1_1_2}").classes(
-                        "font-bold text-blue-900 text-base"
-                    )
-                    ui.label(
-                        f"Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente em {ano_atual - 1}?"
-                    ).classes("text-sm text-gray-700 my-2 font-medium")
-
-                    val_1_1_2 = (
-                        dados_1_1_2["valor"]
-                        if dados_1_1_2["valor"] in opcoes_1_1_2
-                        else "Não"
-                    )
-
-                    select_1_1_2 = ui.select(
-                        options=opcoes_1_1_2,
-                        value=val_1_1_2,
-                        label="Resposta:",
-                    ).classes("w-full mb-2 bg-white")
-
-                    link_1_1_2 = ui.input(
-                        "Link da Evidência / Comprovação:",
-                        value=dados_1_1_2["link"],
-                    ).classes("w-full mb-2 bg-white")
-
-                    def salvar_1_1_2():
-                        sel = select_1_1_2.value
-                        pts = 20.0 if sel == "Sim" else 0.0
-
-                        save_resposta(
-                            ano=ano_atual,
-                            qid=qid_1_1_2,
-                            valor=sel,
-                            pontos=pts,
-                            link=link_1_1_2.value,
-                        )
-                        ui.notify(
-                            f"Quesito {qid_1_1_2} salvo para {ano_atual}! ({pts} pts)",
-                            type="positive",
-                        )
-                        render_conteudo.refresh()
-
-                    ui.button(
-                        f"💾 Salvar Quesito {qid_1_1_2}", on_click=salvar_1_1_2
-                    ).classes("bg-green-600 text-white font-bold mt-2")
-
-    render_conteudo()
-
 
 # Aliases para o main.py
 mostrar_formulario_iamb = container_formulario_iamb
