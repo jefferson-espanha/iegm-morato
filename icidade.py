@@ -1771,4 +1771,44 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+    # ==========================================
+                # DADOS EXTERNOS DO i-CIDADE: QUESITO C1
+                # ==========================================
+                opcoes_c1 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="C1",
+                    titulo="Inscrição no Programa Cidades Resilientes 2030 (MCR2030)",
+                    pergunta="O Município estava inscrito no Programa Construindo Cidades Resilientes 2030 da ONU?",
+                    opcoes=opcoes_c1,
+                    placeholder_link="Insira o link de comprovação de inscrição ou página no portal MCR2030...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # DADOS EXTERNOS DO i-CIDADE: QUESITO C1.1
+                # ==========================================
+                opcoes_c11 = {
+                    "Selecione...": 0.0,
+                    "Etapa A (10.0 pts)": 10.0,
+                    "Etapa B (20.0 pts)": 20.0,
+                    "Etapa C (50.0 pts)": 50.0,
+                    "Não classificada (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="C1.1",
+                    titulo="Estágio do Município no Programa MCR2030",
+                    pergunta="O Município foi classificado em qual estágio do Programa Construindo Cidades Resilientes 2030 da ONU?",
+                    opcoes=opcoes_c11,
+                    placeholder_link="Insira o link para a certidão ou relatório de classificação da ONU/MCR2030...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
