@@ -517,426 +517,423 @@ def container_formulario_icidade(ano=None):
                     on_refresh_callback=render_conteudo.refresh
                 )
 
-                # QUESITO 1.1
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.1",
-                    titulo="Dados do Instrumento Normativo COMPDEC",
-                    pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
-                    is_text_area=True,
-                    placeholder_text="Ex: Decreto nº 123 de 01/01/2025",
-                    on_save_callback=container_formulario_icidade.refresh,
-                )
+               # QUESITO 1.1
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.1",
+                titulo="Dados do Instrumento Normativo COMPDEC",
+                pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
+                is_text_area=True,
+                placeholder_text="Ex: Decreto nº 123 de 01/01/2025",
+                on_save_callback=container_formulario_icidade.refresh,
+            )
 
-                # QUESITO 1.2
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.2",
-                    titulo="Endereço Eletrônico do Instrumento Normativo",
-                    pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar:",
-                    is_text_area=True,
-                    placeholder_text="https://www.municipio.sp.gov.br/legislacao",
-                    on_save_callback=container_formulario_icidade.refresh,
-                )
+            # QUESITO 1.2
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.2",
+                titulo="Endereço Eletrônico do Instrumento Normativo",
+                pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar:",
+                is_text_area=True,
+                placeholder_text="https://www.municipio.sp.gov.br/legislacao",
+                on_save_callback=container_formulario_icidade.refresh,
+            )
 
-                # QUESITO 1.3
-                opcoes_13 = {
-                    "Selecione...": 0.0,
-                    "Gabinete do Prefeito (05 pts)": 5.0,
-                    "Segurança Pública (00 pts)": 0.0,
-                    "Controladoria (00 pts)": 0.0,
-                    "Outra (00 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.3",
-                    titulo="Secretaria ou Diretoria de Subordinação",
-                    pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
-                    opcoes=opcoes_13,
-                    on_save_callback=container_formulario_icidade.refresh,
-                )
+            # QUESITO 1.3
+            opcoes_13 = {
+                "Selecione...": 0.0,
+                "Gabinete do Prefeito – 05 pts": 5.0,
+                "Segurança Pública – 00 pts": 0.0,
+                "Controladoria – 00 pts": 0.0,
+                "Outra – 00 pts": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.3",
+                titulo="Secretaria ou Diretoria de Subordinação",
+                pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
+                opcoes=opcoes_13,
+                on_save_callback=container_formulario_icidade.refresh,
+            )
 
-                # QUESITO 1.4
-                opcoes_14 = {
-                    "Selecione...": 0.0,
-                    "Sim, inclusive com a participação de entidades privadas e da comunidade (50 pts)": 50.0,
-                    "Sim, com participação de entidades privadas (20 pts)": 20.0,
-                    "Sim, com participação da comunidade (20 pts)": 20.0,
-                    "Sim, apenas com representantes da administração municipal (10 pts)": 10.0,
-                    "Não atuam de forma sistêmica (00 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.4",
-                    titulo="Atuação Sistêmica e Articulação da Defesa Civil",
-                    pergunta="Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta e recuperação de acordo com a Política Nacional de Proteção e Defesa Civil - PNPDEC?",
-                    opcoes=opcoes_14,
-                    on_save_callback=container_formulario_icidade.refresh,
-                )
+            # QUESITO 1.4
+            opcoes_14 = {
+                "Selecione...": 0.0,
+                "Sim, inclusive com a participação de entidades privadas e da comunidade – 50 pts": 50.0,
+                "Sim, com participação de entidades privadas – 20 pts": 20.0,
+                "Sim, com participação da comunidade – 20 pts": 20.0,
+                "Sim, apenas com representantes da administração municipal – 10 pts": 10.0,
+                "Não atuam de forma sistêmica – 00 pts": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="1.4",
+                titulo="Atuação Sistêmica e Articulação da Defesa Civil",
+                pergunta="Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta e recuperação de acordo com a Política Nacional de Proteção e Defesa Civil - PNPDEC?",
+                opcoes=opcoes_14,
+                on_save_callback=container_formulario_icidade.refresh,
+            )
 
-                # =============================================================================
-                # QUESITO 2.0 • CAPACITAÇÃO DA EQUIPE DA COMPDEC
-                # =============================================================================
-                opcoes_20 = {
-                    "Selecione...": 0.0,
-                    "Sim, com curso presencial ou EAD de Proteção e Defesa Civil (10 pts)": 10.0,
-                    "Não realizou capacitação/treinamento no ano (00 pts)": 0.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="2.0",
-                    titulo="2.0 • Capacitação da Equipe da COMPDEC",
-                    pergunta="Os integrantes da COMPDEC participaram de cursos, treinamentos ou capacitações em Proteção e Defesa Civil no ano de referência?",
-                    opcoes=opcoes_20,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
+            # =============================================================================
+            # QUESITO 2.0 • CAPACITAÇÃO DA EQUIPE DA COMPDEC
+            # =============================================================================
+            opcoes_20 = {
+                "Selecione...": 0.0,
+                "Sim, com curso presencial ou EAD de Proteção e Defesa Civil – 10 pts": 10.0,
+                "Não realizou capacitação/treinamento no ano – 00 pts": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="2.0",
+                titulo="2.0 • Capacitação da Equipe da COMPDEC",
+                pergunta="Os integrantes da COMPDEC participaram de cursos, treinamentos ou capacitações em Proteção e Defesa Civil no ano de referência?",
+                opcoes=opcoes_20,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                # =============================================================================
-                # QUESITO 2.1 • AÇÕES EDUCATIVAS E PREVENTIVAS
-                # =============================================================================
-                opcoes_21 = {
-                    "Selecione...": 0.0,
-                    "Sim, realizou palestras, oficinas ou campanhas de conscientização (10 pts)": 10.0,
-                    "Não realizou ações educativas no ano (00 pts)": 0.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="2.1",
-                    titulo="2.1 • Ações Educativas e Preventivas na Comunidade",
-                    pergunta="A COMPDEC promoveu ações educativas, campanhas de sensibilização ou oficinas sobre percepção de risco para a população no ano de referência?",
-                    opcoes=opcoes_21,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
+            # =============================================================================
+            # QUESITO 2.1 • AÇÕES EDUCATIVAS E PREVENTIVAS
+            # =============================================================================
+            opcoes_21 = {
+                "Selecione...": 0.0,
+                "Sim, realizou palestras, oficinas ou campanhas de conscientização – 10 pts": 10.0,
+                "Não realizou ações educativas no ano – 00 pts": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="2.1",
+                titulo="2.1 • Ações Educativas e Preventivas na Comunidade",
+                pergunta="A COMPDEC promoveu ações educativas, campanhas de sensibilização ou oficinas sobre percepção de risco para a população no ano de referência?",
+                opcoes=opcoes_21,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                # =============================================================================
-                # QUESITO 2.2 • PÚBLICO-ALVO DOS CURSOS E TREINAMENTOS
-                # =============================================================================
-                opcoes_22 = {
-                    "Selecione...": 0.0,
-                    "Para escolas, secretarias/entidades municipais e munícipes/empresas (10 pts)": 10.0,
-                    "Para escolas e secretarias/entidades municipais (08 pts)": 8.0,
-                    "Para escolas e munícipes/empresas (07 pts)": 7.0,
-                    "Para secretarias/entidades municipais e munícipes/empresas (05 pts)": 5.0,
-                    "Apenas para escolas (05 pts)": 5.0,
-                    "Apenas para outras secretarias / entidades municipais (03 pts)": 3.0,
-                    "Apenas para munícipes ou empresas (02 pts)": 2.0,
-                    "Não ofereceu nenhum curso/treinamento no ano (00 pts)": 0.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="2.2",
-                    titulo="2.2 • Público Alvo de Cursos e Treinamentos",
-                    pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
-                    opcoes=opcoes_22,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
+            # =============================================================================
+            # QUESITO 2.2 • PÚBLICO-ALVO DOS CURSOS E TREINAMENTOS
+            # =============================================================================
+            opcoes_22 = {
+                "Selecione...": 0.0,
+                "Para escolas, secretarias/entidades municipais e munícipes/empresas – 10 pts": 10.0,
+                "Para escolas e secretarias/entidades municipais – 08 pts": 8.0,
+                "Para escolas e munícipes/empresas – 07 pts": 7.0,
+                "Para secretarias/entidades municipais e munícipes/empresas – 05 pts": 5.0,
+                "Apenas para escolas – 05 pts": 5.0,
+                "Apenas para outras secretarias / entidades municipais – 03 pts": 3.0,
+                "Apenas para munícipes ou empresas – 02 pts": 2.0,
+                "Não ofereceu nenhum curso/treinamento no ano – 00 pts": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="2.2",
+                titulo="2.2 • Público Alvo de Cursos e Treinamentos",
+                pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
+                opcoes=opcoes_22,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                # =============================================================================
-                # QUESITO 3.0 • PARTICIPAÇÃO DA SOCIEDADE CIVIL
-                # =============================================================================
-                opcoes_30 = {
-                    "Selecione...": 0.0,
-                    "Sim – 10 pts": 10.0,
-                    "Não – 00 pts": 0.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="3.0",
-                    titulo="3.0 • Sociedade Civil e Entidades",
-                    pergunta=(
-                        "O Município realiza ações para estabelecer a participação de entidades privadas, "
-                        "associações de voluntários, clubes de serviços, organizações não governamentais e "
-                        "associações de classe e comunitárias nas ações de proteção e defesa civil?"
-                    ),
-                    opcoes=opcoes_30,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
+            # =============================================================================
+            # QUESITO 3.0 • PARTICIPAÇÃO DA SOCIEDADE CIVIL
+            # =============================================================================
+            opcoes_30 = {
+                "Selecione...": 0.0,
+                "Sim – 10 pts": 10.0,
+                "Não – 00 pts": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.0",
+                titulo="3.0 • Sociedade Civil e Entidades",
+                pergunta=(
+                    "O Município realiza ações para estabelecer a participação de entidades privadas, "
+                    "associações de voluntários, clubes de serviços, organizações não governamentais e "
+                    "associações de classe e comunitárias nas ações de proteção e defesa civil?"
+                ),
+                opcoes=opcoes_30,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                # =============================================================================
-                # QUESITO 3.1 • AÇÕES REALIZADAS PARA PARTICIPAÇÃO DA SOCIEDADE
-                # =============================================================================
-                opcoes_31 = {
-                    "Workshop / Palestra": 0.0,
-                    "Reunião": 0.0,
-                    "Conferência": 0.0,
-                    "Congresso": 0.0,
-                    "Discussão na Câmara Municipal": 0.0,
-                    "Treinamentos": 0.0,
-                    "Outros": 0.0,
-                }
+            # =============================================================================
+            # QUESITO 3.1 • AÇÕES REALIZADAS PARA PARTICIPAÇÃO DA SOCIEDADE
+            # =============================================================================
+            opcoes_31 = {
+                "Workshop / Palestra": 0.0,
+                "Reunião": 0.0,
+                "Conferência": 0.0,
+                "Congresso": 0.0,
+                "Discussão na Câmara Municipal": 0.0,
+                "Treinamentos": 0.0,
+                "Outros": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.1",
+                titulo="3.1 • Ações Realizadas para Participação da Sociedade",
+                pergunta="Assinale quais ações foram realizadas para a participação da sociedade:",
+                tipo="checkbox",
+                opcoes=opcoes_31,
+                pontuacao_maxima=0.0,
+                 informativo=True,
+                placeholder_link="Caso selecione 'Outros' ou queira detalhar as ações, especifique aqui...",
+                on_save_callback=container_formulario_icidade.refresh,
+            )
 
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="3.1",
-                    titulo="3.1 • Ações Realizadas para Participação da Sociedade",
-                    pergunta="Assinale quais ações foram realizadas para a participação da sociedade:",
-                    tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
-                    opcoes=opcoes_31,
-                    pontuacao_maxima=0.0,
-                    informativo=True,
-                    placeholder_link="Caso selecione 'Outros' ou queira detalhar as ações, especifique aqui...",
-                    on_save_callback=container_formulario_icidade.refresh,
-                )
-                # =============================================================================
-                # QUESITO 3.1.1 • DATA DE TREINAMENTO DINÂMICA
-                # =============================================================================
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="3.1.1",
-                    titulo="3.1.1 • Data do Último Treinamento de Voluntários",
-                    pergunta="Qual a data do último treinamento de associações de voluntários?",
-                    opcoes=None,
-                    tipo="date",
-                    calculo_pontos_customizado=calc_pts_311,
-                    instrucoes_calculo=f"""
-                    **Fórmula de Cálculo:**
-                    * 📅 **Até 31/12/{ano_sel - 1}:** 00 pontos.
-                    * 📅 **A partir de 01/01/{ano_sel}:** 10 pontos.
-                    * 🚫 **Observação:** Treinamentos em {ano_sel + 1} não pontuam.
-                    """,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
+            # =============================================================================
+            # QUESITO 3.1.1 • DATA DE TREINAMENTO DINÂMICA
+            # =============================================================================
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="3.1.1",
+                titulo="3.1.1 • Data do Último Treinamento de Voluntários",
+                pergunta="Qual a data do último treinamento de associações de voluntários?",
+                opcoes=None,
+                tipo="date",
+                calculo_pontos_customizado=calc_pts_311,
+                instrucoes_calculo=f"""
+                **Fórmula de Cálculo:**
+                * 📅 **Até 31/12/{ano_sel - 1}:** 00 pontos.
+                * 📅 **A partir de 01/01/{ano_sel}:** 10 pontos.
+                * 🚫 **Observação:** Treinamentos em {ano_sel + 1} não pontuam.
+                """,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                # =============================================================================
-                # QUESITO 4.0 • CARTA GEOTÉCNICA DE SUSCETIBILIDADE
-                # =============================================================================
-                opcoes_40 = {
-                    "Selecione...": 0.0,
-                    "Sim": 0.0,
-                    "Não": 0.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="4.0",
-                    titulo="Carta Geotécnica de Suscetibilidade",
-                    pergunta="O Município recebeu a Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco?",
-                    opcoes=opcoes_40,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
+            # =============================================================================
+            # QUESITO 4.0 • CARTA GEOTÉCNICA DE SUSCETIBILIDADE
+            # =============================================================================
+            opcoes_40 = {
+                "Selecione...": 0.0,
+                "Sim – 00 pts": 0.0,
+                "Não – 00 pts": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="4.0",
+                titulo="Carta Geotécnica de Suscetibilidade",
+                pergunta="O Município recebeu a Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco?",
+                opcoes=opcoes_40,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                # =============================================================================
-                # QUESITO 4.1 • AMEAÇAS POTENCIAIS DA CARTA GEOTÉCNICA
-                # =============================================================================
-                opcoes_41 = {
-                    "Riscos Geológicos": 0.0,
-                    "Riscos Hidrológicos": 0.0,
-                    "Riscos Meteorológicos": 0.0,
-                    "Riscos Climatológicos": 0.0,
-                    "Riscos Biológicos": 0.0,
-                    "Riscos Tecnológicos": 0.0,
-                    "Outros": 0.0,
-                }
+            # =============================================================================
+            # QUESITO 4.1 • AMEAÇAS POTENCIAIS DA CARTA GEOTÉCNICA
+            # =============================================================================
+            opcoes_41 = {
+                "Riscos Geológicos": 0.0,
+                "Riscos Hidrológicos": 0.0,
+                "Riscos Meteorológicos": 0.0,
+                "Riscos Climatológicos": 0.0,
+                "Riscos Biológicos": 0.0,
+                "Riscos Tecnológicos": 0.0,
+                "Outros": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="4.1",
+                titulo="Ameaças Potenciais da Carta Geotécnica",
+                pergunta="Assinale quais os tipos de ameaças potenciais identificadas na Carta Geotécnica:",
+                tipo="checkbox",
+                opcoes=opcoes_41,
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui...",
+                on_save_callback=container_formulario_icidade.refresh,
+            )
 
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="4.1",
-                    titulo="Ameaças Potenciais da Carta Geotécnica",
-                    pergunta="Assinale quais os tipos de ameaças potenciais identificadas na Carta Geotécnica:",
-                    tipo="checkbox",  # <--- Gera múltiplos ui.checkbox do NiceGUI!
-                    opcoes=opcoes_41,
-                    pontuacao_maxima=0.0,
-                    informativo=True,
-                    placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui...",
-                    on_save_callback=container_formulario_icidade.refresh,
-                )
+            # =============================================================================
+            # QUESITO 4.2 • CARTA GEOTÉCNICA NO PLANO DIRETOR
+            # =============================================================================
+            opcoes_42 = {
+                "Selecione...": 0.0,
+                "Sim – 00 pts": 0.0,
+                "Não – -50 pts": -50.0,
+                "Não se aplica o Plano Diretor – 00 pts": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="4.2",
+                titulo="Carta Geotécnica no Plano Diretor",
+                pergunta="A Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco consta no Plano Diretor?",
+                opcoes=opcoes_42,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                # =============================================================================
-                # QUESITO 4.2 • CARTA GEOTÉCNICA NO PLANO DIRETOR
-                # =============================================================================
-                opcoes_42 = {
-                    "Selecione...": 0.0,
-                    "Sim (00 pts)": 0.0,
-                    "Não (-50 pts)": -50.0,
-                    "Não se aplica o Plano Diretor (00 pts)": 0.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="4.2",
-                    titulo="Carta Geotécnica no Plano Diretor",
-                    pergunta="A Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco consta no Plano Diretor?",
-                    opcoes=opcoes_42,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
+            # =============================================================================
+            # QUESITO 5.0 • MAPEAMENTO PRÓPRIO DE AMEAÇAS
+            # =============================================================================
+            opcoes_50 = {
+                "Selecione...": 0.0,
+                "Sim – 200 pts": 200.0,
+                "Não – 00 pts": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="5.0",
+                titulo="Mapeamento Próprio de Ameaças",
+                pergunta="O Município realizou, por conta própria, o mapeamento e identificação das principales ameaças existentes em seu território?",
+                opcoes=opcoes_50,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                # =============================================================================
-                # QUESITO 5.0 • MAPEAMENTO PRÓPRIO DE AMEAÇAS
-                # =============================================================================
-                opcoes_50 = {
-                    "Selecione...": 0.0,
-                    "Sim (200 pts)": 200.0,
-                    "Não (00 pts)": 0.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.0",
-                    titulo="Mapeamento Próprio de Ameaças",
-                    pergunta="O Município realizou, por conta própria, o mapeamento e identificação das principais ameaças existentes em seu território?",
-                    opcoes=opcoes_50,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
+            # =============================================================================
+            # QUESITO 5.1 • PRINCIPAIS AMEAÇAS IDENTIFICADAS
+            # =============================================================================
+            opcoes_51 = {
+                "Epidemias": 0.0,
+                "Estiagem": 0.0,
+                "Incêndios (urbanos e florestais)": 0.0,
+                "Ondas de calor ou ondas de frio": 0.0,
+                "Inundações": 0.0,
+                "Infestações e Pragas": 0.0,
+                "Ameaças radioativas": 0.0,
+                "Deslizamentos": 0.0,
+                "Outros": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="5.1",
+                titulo="5.1 • Principais Ameaças Identificadas",
+                pergunta="Assinale as principais ameaças identificadas no município:",
+                tipo="checkbox",
+                opcoes=opcoes_51,
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui...",
+                on_save_callback=container_formulario_icidade.refresh,
+            )
 
-                # =============================================================================
-                # QUESITO 5.1 • PRINCIPAIS AMEAÇAS IDENTIFICADAS
-                # =============================================================================
-                opcoes_51 = {
-                    "Epidemias": 0.0,
-                    "Estiagem": 0.0,
-                    "Incêndios (urbanos e florestais)": 0.0,
-                    "Ondas de calor ou ondas de frio": 0.0,
-                    "Inundações": 0.0,
-                    "Infestações e Pragas": 0.0,
-                    "Ameaças radioativas": 0.0,
-                    "Deslizamentos": 0.0,
-                    "Outros": 0.0,
-                }
+            # =============================================================================
+            # QUESITO 5.1.1 • FISCALIZAÇÃO DE ÁREAS DE RISCO
+            # =============================================================================
+            opcoes_511 = {
+                "Selecione...": 0.0,
+                "Sim, integralmente – 00 pts": 0.0,
+                "Sim, parcialmente – 00 pts": 0.0,
+                "Não houve fiscalização – -100 pts": -100.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="5.1.1",
+                titulo="Fiscalização das Áreas de Risco",
+                pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
+                opcoes=opcoes_511,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1",
-                    titulo="5.1 • Principais Ameaças Identificadas",
-                    pergunta="Assinale as principais ameaças identificadas no município:",
-                    tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
-                    opcoes=opcoes_51,
-                    pontuacao_maxima=0.0,
-                    informativo=True,
-                    placeholder_link="Caso selecione 'Outros' ou queira detalhar as ameaças, especifique aqui...",
-                    on_save_callback=container_formulario_icidade.refresh,
-                )
+            # =============================================================================
+            # QUESITO 5.1.2 • ÁREAS DE RISCO COM RISCO DE INVASÃO
+            # =============================================================================
+            opcoes_512 = {
+                "Selecione...": 0.0,
+                "Sim – 00 pts": 0.0,
+                "Não – 00 pts": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="5.1.2",
+                titulo="Possibilidade de Ocupação/Invasão em Áreas de Risco",
+                pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
+                opcoes=opcoes_512,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                # =============================================================================
-                # QUESITO 5.1.1 • FISCALIZAÇÃO DE ÁREAS DE RISCO
-                # =============================================================================
-                opcoes_511 = {
-                    "Selecione...": 0.0,
-                    "Sim, integralmente (00 pts)": 0.0,
-                    "Sim, parcialmente (00 pts)": 0.0,
-                    "Não houve fiscalização (-100 pts)": -100.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1.1",
-                    titulo="Fiscalização das Áreas de Risco",
-                    pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
-                    opcoes=opcoes_511,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
+            # =============================================================================
+            # QUESITO 5.1.2.1 • MECANISMOS CONTRA NOVAS OCUPAÇÕES
+            # =============================================================================
+            opcoes_5121 = {
+                "Aplicação de sanções monetárias (multas)": 0.0,
+                "Monitoramento (fiscalização)": 0.0,
+                "Notificação dos infratores": 0.0,
+                "Interdição do local e remoção das famílias": 0.0,
+                "Demolição das ocupações": 0.0,
+                "Outros": 0.0,
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="5.1.2.1",
+                titulo="5.1.2.1 • Mecanismos para Vedar Novas Ocupações",
+                pergunta="Assinale os mecanismos para vedar novas ocupações nas áreas de riscos:",
+                tipo="checkbox",
+                opcoes=opcoes_5121,
+                pontuacao_maxima=0.0,
+                informativo=True,
+                placeholder_link="Caso selecione 'Outros' ou queira detalhar os mecanismos, especifique aqui...",
+                on_save_callback=container_formulario_icidade.refresh,
+            )
 
-                # =============================================================================
-                # QUESITO 5.1.2 • ÁREAS DE RISCO COM RISCO DE INVASÃO
-                # =============================================================================
-                opcoes_512 = {
-                    "Selecione...": 0.0,
-                    "Sim": 0.0,
-                    "Não": 0.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1.2",
-                    titulo="Possibilidade de Ocupação/Invasão em Áreas de Risco",
-                    pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
-                    opcoes=opcoes_512,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
+            # =============================================================================
+            # QUESITO 5.2 • INFORMAÇÃO À POPULAÇÃO SOBRE AMEAÇAS
+            # =============================================================================
+            opcoes_52 = {
+                "Selecione...": 0.0,
+                "Sim – 00 pts": 0.0,
+                "Parcialmente – 00 pts": 0.0,
+                "Não – -50 pts": -50.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="5.2",
+                titulo="Informação à População sobre Ameaças",
+                pergunta="A população foi informada sobre todas as ameaças identificadas pelo município?",
+                opcoes=opcoes_52,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                # =============================================================================
-                # QUESITO 5.1.2.1 • MECANISMOS CONTRA NOVAS OCUPAÇÕES
-                # =============================================================================
-                opcoes_5121 = {
-                    "Aplicação de sanções monetárias (multas)": 0.0,
-                    "Monitoramento (fiscalização)": 0.0,
-                    "Notificação dos infratores": 0.0,
-                    "Interdição do local e remoção das famílias": 0.0,
-                    "Demolição das ocupações": 0.0,
-                    "Outros": 0.0,
-                }
+            # =============================================================================
+            # QUESITO 6.0 • VISTORIAS EM EDIFICAÇÕES VULNERÁVEIS
+            # =============================================================================
+            opcoes_60 = {
+                "Selecione...": 0.0,
+                "Sim, de acordo com um cronograma preestabelecido – 00 pts": 0.0,
+                "Sim, de acordo com a demanda – 00 pts": 0.0,
+                "Não foram vistoriadas – -50 pts": -50.0,
+                "Não houve casos de edificações vulneráveis – 00 pts": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="6.0",
+                titulo="Vistorias em Edificações Vulneráveis",
+                pergunta="A Secretaria responsável realizou vistorias em edificações vulneráveis com o objetivo de identificar a necessidade de intervenção preventiva nos imóveis?",
+                opcoes=opcoes_60,
+                on_save_callback=container_formulario_icidade.refresh
+            )
 
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1.2.1",
-                    titulo="5.1.2.1 • Mecanismos para Vedar Novas Ocupações",
-                    pergunta="Assinale os mecanismos para vedar novas ocupações nas áreas de riscos:",
-                    tipo="checkbox",  # <--- Habilita a seleção múltipla via ui.checkbox
-                    opcoes=opcoes_5121,
-                    pontuacao_maxima=0.0,
-                    informativo=True,
-                    placeholder_link="Caso selecione 'Outros' ou queira detalhar os mecanismos, especifique aqui...",
-                    on_save_callback=container_formulario_icidade.refresh,
-                )
-
-                # =============================================================================
-                # QUESITO 5.2 • INFORMAÇÃO À POPULAÇÃO SOBRE AMEAÇAS
-                # =============================================================================
-                opcoes_52 = {
-                    "Selecione...": 0.0,
-                    "Sim (00 pts)": 0.0,
-                    "Parcialmente (00 pts)": 0.0,
-                    "Não (-50 pts)": -50.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.2",
-                    titulo="Informação à População sobre Ameaças",
-                    pergunta="A população foi informada sobre todas as ameaças identificadas pelo município?",
-                    opcoes=opcoes_52,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
-
-                # =============================================================================
-                # QUESITO 6.0 • VISTORIAS EM EDIFICAÇÕES VULNERÁVEIS
-                # =============================================================================
-                opcoes_60 = {
-                    "Selecione...": 0.0,
-                    "Sim, de acordo com um cronograma preestabelecido (00 pts)": 0.0,
-                    "Sim, de acordo com a demanda (00 pts)": 0.0,
-                    "Não foram vistoriadas (-50 pts)": -50.0,
-                    "Não houve casos de edificações vulneráveis (00 pts)": 0.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="6.0",
-                    titulo="Vistorias em Edificações Vulneráveis",
-                    pergunta="A Secretaria responsável realizou vistorias em edificações vulneráveis com o objetivo de identificar a necessidade de intervenção preventiva nos imóveis?",
-                    opcoes=opcoes_60,
-                    on_save_callback=container_formulario_icidade.refresh
-                )
-
-                # =============================================================================
-                # QUESITO 7.0 • PLANCON DE DEFESA CIVIL
-                # =============================================================================
-                opcoes_70 = {
-                    "Selecione...": 0.0,
-                    "Sim (50 pts)": 50.0,
-                    "Não (00 pts)": 0.0
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.0",
-                    titulo="Plano de Contingência Municipal (PLANCON)",
-                    pergunta="O Município possui Plano de Contingência Municipal – PLANCON de Defesa Civil?",
-                    opcoes=opcoes_70,
-                    on_save_callback=container_formulario_icidade.refresh
-                )  
+            # =============================================================================
+            # QUESITO 7.0 • PLANCON DE DEFESA CIVIL
+            # =============================================================================
+            opcoes_70 = {
+                "Selecione...": 0.0,
+                "Sim – 50 pts": 50.0,
+                "Não – 00 pts": 0.0
+            }
+            render_quesito(
+                ano=ano_sel,
+                res_data=res_data,
+                qid="7.0",
+                titulo="Plano de Contingência Municipal (PLANCON)",
+                pergunta="O Município possui Plano de Contingência Municipal – PLANCON de Defesa Civil?",
+                opcoes=opcoes_70,
+                on_save_callback=container_formulario_icidade.refresh
+            )
           
            # Executa a renderização da interface
     render_conteudo()
