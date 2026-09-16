@@ -998,4 +998,101 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+    # ==========================================
+                # QUESITO 7.0 (Plano de Contingência - PLANCON)
+                # ==========================================
+                opcoes_70 = {
+                    "Selecione...": 0.0,
+                    "Sim (50.0 pts)": 50.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.0",
+                    titulo="Plano de Contingência Municipal (PLANCON)",
+                    pergunta="O Município possui Plano de Contingência Municipal – PLANCON de Defesa Civil?",
+                    opcoes=opcoes_70,
+                    placeholder_link="Insira o link da publicação do PLANCON...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 7.1 (PLANCON por Ameaça Especificada)
+                # ==========================================
+                opcoes_71 = {
+                    "Selecione...": 0.0,
+                    "Sim, cada ameaça mapeada possui um PLANCON diferente (5.0 pts)": 5.0,
+                    "Sim, parte das ameaças possuem PLANCON diferentes (3.0 pts)": 3.0,
+                    "Existe apenas um PLANCON que abrange todas as ameaças (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.1",
+                    titulo="PLANCON Específico por Ameaça",
+                    pergunta="Foi elaborado um PLANCON específico para cada ameaça identificada?",
+                    opcoes=opcoes_71,
+                    placeholder_link="Insira o link para os planos específicos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 7.2 (Exercícios Simulados)
+                # ==========================================
+                opcoes_72 = {
+                    "Selecione...": 0.0,
+                    "Sim (80.0 pts)": 80.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.2",
+                    titulo="Exercícios Simulados do PLANCON",
+                    pergunta="São realizados regularmente exercícios simulados para as contingências previstas no PLANCON?",
+                    opcoes=opcoes_72,
+                    placeholder_link="Insira o link de relatórios, fotos ou atas dos simulados...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 7.3 (Sistema de Alerta)
+                # ==========================================
+                opcoes_73 = {
+                    "Selecione...": 0.0,
+                    "Sim (50.0 pts)": 50.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.3",
+                    titulo="Sistema de Alerta de Desastres",
+                    pergunta="O Município possui sistema de alerta para desastres? (Objetivo: avisar a população vulnerável antes de ocorrer o evento):",
+                    opcoes=opcoes_73,
+                    placeholder_link="Insira o link do documento ou norma que regulamenta o alerta...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 7.3.1 (Tipos de Sistema de Alerta - Checkbox)
+                # ==========================================
+                opcoes_731 = {
+                    "Alerta via SMS": 0.0,
+                    "Anúncio por rádio/Televisão": 0.0,
+                    "Placas de identificação de área de risco": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.3.1",
+                    titulo="Tipos de Sistemas de Alerta Utilizados",
+                    pergunta="Assinale os tipos de sistemas de alerta utilizados pelo Município:",
+                    tipo_input="checkbox",
+                    opcoes=opcoes_731,
+                    placeholder_link="Insira o link com fotos ou registros das mídias/alertas emitidos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
