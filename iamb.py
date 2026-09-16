@@ -2596,6 +2596,165 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 8.4.1", on_click=salvar_841).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("8.4.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 8.4.2 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_842 = {
+                    "Selecione...": 0.0,
+                    "Sim – 30 pts": 30.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="8.4.2",
+                    titulo="Monitoramento e Avaliação das Metas de Resíduos Sólidos",
+                    pergunta="Realiza monitoramento e avaliação das ações e metas de resíduos sólidos?",
+                    opcoes=opcoes_842,
+                    placeholder_link="Insira o link dos relatórios de acompanhamento ou pareceres do conselho...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 8.4.2.1 (Seleção Múltipla - Formas de Monitoramento)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("8.4.2.1 • Formas de Monitoramento e Avaliação de Resíduos Sólidos").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("De que forma é realizado o monitoramento e avaliação das ações e metas de resíduos sólidos?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d8421 = res_data.get("8.4.2.1") or {}
+                    try:
+                        sel_8421_salvos = json.loads(d8421.get("valor", "[]"))
+                        if not isinstance(sel_8421_salvos, list): sel_8421_salvos = []
+                    except Exception:
+                        sel_8421_salvos = []
+
+                    mapa_8421 = {
+                        "relatorios_anuais": ("Relatórios anuais discutidos e/ou publicados", 0.0),
+                        "indicadores": ("Indicadores de eficácia e eficiência", 0.0),
+                        "recursos": ("Avaliação de recursos aplicados", 0.0),
+                        "outro": ("Outro", 0.0),
+                    }
+
+                    state_8421 = {k: k in sel_8421_salvos for k in mapa_8421.keys()}
+                    state_8421["link"] = d8421.get("link", "")
+
+                    def calc_pts_8421():
+                        return sum(peso for k, (_, peso) in mapa_8421.items() if state_8421.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_8421a = [ui.checkbox(rotulo).bind_value(state_8421, k) for k, (rotulo, _) in list(mapa_8421.items())[:2]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_8421b = [ui.checkbox(rotulo).bind_value(state_8421, k) for k, (rotulo, _) in list(mapa_8421.items())[2:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_8421["link"],
+                        placeholder="Insira o link das atas de reuniões, relatórios publicados ou sistemas de monitoramento...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_8421, "link")
+
+                    def salvar_8421():
+                        selecionados = [k for k in mapa_8421.keys() if state_8421.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="8.4.2.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_8421(),
+                            link=state_8421["link"],
+                            comentarios=d8421.get("comentarios", []),
+                            status=d8421.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 8.4.2.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 8.4.2.1", on_click=salvar_8421).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("8.4.2.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 8.4.3 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_843 = {
+                    "Selecione...": 0.0,
+                    "Todas as metas foram cumpridas dentro do prazo – 50 pts": 50.0,
+                    "A maior parte das metas foram cumpridas dentro do prazo – 30 pts": 30.0,
+                    "A menor parte das metas foram cumpridas dentro do prazo – 10 pts": 10.0,
+                    "As metas não foram cumpridas dentro do prazo – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="8.4.3",
+                    titulo="Cumprimento das Metas do PMGIRS",
+                    pergunta="As metas do Plano Municipal ou Regional de Gestão Integrada de Resíduos Sólidos estão sendo cumpridas no prazo estipulado?",
+                    opcoes=opcoes_843,
+                    placeholder_link="Insira o relatório de acompanhamento, parecer técnico ou documento que comprove o status de cumprimento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 8.4.3.1 (Seleção Múltipla - Motivos para Descumprimento)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("8.4.3.1 • Motivos do Não Cumprimento das Metas do PMGIRS").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale os motivos pelos quais as metas do PMGIRS não estão sendo cumpridas:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione os motivos aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d8431 = res_data.get("8.4.3.1") or {}
+                    try:
+                        sel_8431_salvos = json.loads(d8431.get("valor", "[]"))
+                        if not isinstance(sel_8431_salvos, list): sel_8431_salvos = []
+                    except Exception:
+                        sel_8431_salvos = []
+
+                    mapa_8431 = {
+                        "recursos": ("Falta de recursos orçamentários", 0.0),
+                        "legislativo": ("Falta de aprovação legislativa", 0.0),
+                        "atraso_licitacao": ("Atraso na licitação", 0.0),
+                        "nao_licitou": ("Não realizou licitação necessária", 0.0),
+                        "pessoal": ("Falta de pessoal qualificado", 0.0),
+                        "consenso_consorcio": ("Falta de consenso no consórcio intermunicipal", 0.0),
+                        "outros": ("Outros", 0.0),
+                    }
+
+                    state_8431 = {k: k in sel_8431_salvos for k in mapa_8431.keys()}
+                    state_8431["link"] = d8431.get("link", "")
+
+                    def calc_pts_8431():
+                        return sum(peso for k, (_, peso) in mapa_8431.items() if state_8431.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_8431a = [ui.checkbox(rotulo).bind_value(state_8431, k) for k, (rotulo, _) in list(mapa_8431.items())[:4]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_8431b = [ui.checkbox(rotulo).bind_value(state_8431, k) for k, (rotulo, _) in list(mapa_8431.items())[4:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Justificativa Documentada:",
+                        value=state_8431["link"],
+                        placeholder="Insira o link de relatórios, pareceres oficiais ou atas que justificam os motivos...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_8431, "link")
+
+                    def salvar_8431():
+                        selecionados = [k for k in mapa_8431.keys() if state_8431.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="8.4.3.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_8431(),
+                            link=state_8431["link"],
+                            comentarios=d8431.get("comentarios", []),
+                            status=d8431.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 8.4.3.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 8.4.3.1", on_click=salvar_8431).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("8.4.3.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
