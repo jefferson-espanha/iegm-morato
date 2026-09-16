@@ -3392,6 +3392,185 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 11.3.2.1", on_click=salvar_11321).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("11.3.2.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 11.3.3 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_1133 = {
+                    "Selecione...": 0.0,
+                    "Todas as metas foram cumpridas dentro do prazo – 40 pts": 40.0,
+                    "A maior parte das metas foram cumpridas dentro do prazo – 30 pts": 30.0,
+                    "A menor parte das metas foram cumpridas dentro do prazo – 10 pts": 10.0,
+                    "As metas não foram cumpridas dentro do prazo – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.3.3",
+                    titulo="Cumprimento das Metas do PGRCC",
+                    pergunta="As metas do Plano estão sendo cumpridas no prazo estipulado?",
+                    opcoes=opcoes_1133,
+                    placeholder_link="Insira o link de evidências ou relatórios do cumprimento das metas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 11.3.3.1 (Seleção Múltipla - Motivos do Não Cumprimento)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("11.3.3.1 • Motivos do Não Cumprimento das Metas").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale os motivos pelos quais as metas não estão sendo cumpridas:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d11331 = res_data.get("11.3.3.1") or {}
+                    try:
+                        sel_11331_salvos = json.loads(d11331.get("valor", "[]"))
+                        if not isinstance(sel_11331_salvos, list): sel_11331_salvos = []
+                    except Exception:
+                        sel_11331_salvos = []
+
+                    mapa_11331 = {
+                        "recursos": ("Falta de recursos orçamentários", 0.0),
+                        "aprovacao_legislativa": ("Falta de aprovação legislativa", 0.0),
+                        "atraso_licitacao": ("Atraso na licitação", 0.0),
+                        "nao_realizou_licitacao": ("Não realizou licitação necessária", 0.0),
+                        "pessoal": ("Falta de pessoal qualificado", 0.0),
+                        "consenso_consorcio": ("Falta de consenso no consórcio intermunicipal", 0.0),
+                        "outros": ("Outros", 0.0),
+                    }
+
+                    state_11331 = {k: k in sel_11331_salvos for k in mapa_11331.keys()}
+                    state_11331["link"] = d11331.get("link", "")
+
+                    def calc_pts_11331():
+                        return sum(peso for k, (_, peso) in mapa_11331.items() if state_11331.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_11331a = [ui.checkbox(rotulo).bind_value(state_11331, k) for k, (rotulo, _) in list(mapa_11331.items())[:4]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_11331b = [ui.checkbox(rotulo).bind_value(state_11331, k) for k, (rotulo, _) in list(mapa_11331.items())[4:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_11331["link"],
+                        placeholder="Insira o link de documentos ou justificativas referentes aos motivos...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_11331, "link")
+
+                    def salvar_11331():
+                        selecionados = [k for k in mapa_11331.keys() if state_11331.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="11.3.3.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_11331(),
+                            link=state_11331["link"],
+                            comentarios=d11331.get("comentarios", []),
+                            status=d11331.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 11.3.3.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 11.3.3.1", on_click=salvar_11331).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("11.3.3.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 11.4 (Seleção Única - Radio Button com Penalidades)
+                # =============================================================================
+                opcoes_114 = {
+                    "Selecione...": 0.0,
+                    "Gerador dos resíduos – 00 pts": 0.0,
+                    "Prefeitura – -10 pts": -10.0,
+                    "Outros – -10 pts": -10.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.4",
+                    titulo="Responsável pela Triagem dos Resíduos",
+                    pergunta="Quem é o responsável pela triagem dos resíduos da construção civil?",
+                    opcoes=opcoes_114,
+                    placeholder_link="Insira o link da norma ou documento sobre a responsabilidade da triagem...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 11.5 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_115 = {
+                    "Selecione...": 0.0,
+                    "Sim – 10 pts": 10.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.5",
+                    titulo="Fiscalização das Atividades de Gerenciamento",
+                    pergunta="A Prefeitura realiza fiscalizações das atividades envolvidas no gerenciamento dos resíduos da construção civil?",
+                    opcoes=opcoes_115,
+                    placeholder_link="Insira o link com relatórios de fiscalização ou atas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 11.5.1 (Seleção Múltipla - Atividades Fiscalizadas)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("11.5.1 • Atividades Fiscalizadas").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Em quais atividades são realizadas essas fiscalizações?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as atividades e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d1151 = res_data.get("11.5.1") or {}
+                    try:
+                        sel_1151_salvos = json.loads(d1151.get("valor", "[]"))
+                        if not isinstance(sel_1151_salvos, list): sel_1151_salvos = []
+                    except Exception:
+                        sel_1151_salvos = []
+
+                    mapa_1151 = {
+                        "coleta": ("Coleta", 0.0),
+                        "acondicionamento": ("Acondicionamento", 0.0),
+                        "transporte": ("Transporte", 0.0),
+                        "destinacao_final": ("Destinação / disposição final", 0.0),
+                    }
+
+                    state_1151 = {k: k in sel_1151_salvos for k in mapa_1151.keys()}
+                    state_1151["link"] = d1151.get("link", "")
+
+                    def calc_pts_1151():
+                        return sum(peso for k, (_, peso) in mapa_1151.items() if state_1151.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_1151a = [ui.checkbox(rotulo).bind_value(state_1151, k) for k, (rotulo, _) in list(mapa_1151.items())[:2]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_1151b = [ui.checkbox(rotulo).bind_value(state_1151, k) for k, (rotulo, _) in list(mapa_1151.items())[2:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_1151["link"],
+                        placeholder="Insira o link das evidências das fiscalizações realizadas...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_1151, "link")
+
+                    def salvar_1151():
+                        selecionados = [k for k in mapa_1151.keys() if state_1151.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="11.5.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_1151(),
+                            link=state_1151["link"],
+                            comentarios=d1151.get("comentarios", []),
+                            status=d1151.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 11.5.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 11.5.1", on_click=salvar_1151).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("11.5.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
