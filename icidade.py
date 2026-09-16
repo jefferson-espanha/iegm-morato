@@ -516,8 +516,7 @@ def container_formulario_icidade(ano=None):
                 
                 # Exemplo de chamada de quesito caso deseje renderizar dentro do container principal:
                 # render_quesito(ano_sel, res_data, "Q1", "Título do Quesito", "Pergunta de exemplo?", {"Opção A": 10, "Opção B": 5}, on_save_callback=render_conteudo.refresh)
-
-                # =============================================================================
+# =============================================================================
                 # QUESITO 1.1 
                 # =============================================================================
                 def render_quesito_1_1(ano_sel, res_data, on_refresh_callback):
@@ -531,8 +530,7 @@ def container_formulario_icidade(ano=None):
                         qid=qid,
                         titulo=titulo,
                         pergunta=pergunta,
-                        is_text_area=True,
-                        placeholder_text="Instrumento normativo, Número e Data da publicação:",
+                        placeholder="Instrumento normativo, Número e Data da publicação:",
                         on_save_callback=on_refresh_callback,
                     )
 
@@ -558,8 +556,7 @@ def container_formulario_icidade(ano=None):
                         qid=qid,
                         titulo=titulo,
                         pergunta=pergunta,
-                        is_text_area=True,
-                        placeholder_text="Se não estiver disponível na internet, inserir no campo de resposta o texto XYZ",
+                        placeholder="Se não estiver disponível na internet, inserir no campo de resposta o texto XYZ",
                         on_save_callback=on_refresh_callback,
                     )
 
@@ -642,7 +639,6 @@ def container_formulario_icidade(ano=None):
                     res_data=res_data, 
                     on_refresh_callback=render_conteudo.refresh
                 )
-   
     # Executa a renderização da interface
     render_conteudo()
                 
