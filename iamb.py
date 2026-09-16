@@ -146,7 +146,7 @@ def render_quesito(
     titulo,
     pergunta,
     opcoes,
-    placeholder_link="",
+    placeholder_link="Insira o link da evidência...",
     on_save_callback=None,
 ):
     dados_q = res_data.get(qid, {})
@@ -162,26 +162,54 @@ def render_quesito(
     }
 
     with ui.card().classes(
-        "w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"
+        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
     ):
-        ui.label(f"📌 Quesito {qid} - {titulo}").classes(
-            "text-lg font-bold text-blue-900 mb-1"
+        # Título principal estilo header (Ex: 1.0 • Setor de Meio Ambiente)
+        ui.label(f"{qid} • {titulo}").classes(
+            "text-xl font-semibold text-blue-500 mb-3"
         )
-        ui.label(pergunta).classes("text-base font-semibold text-gray-800 mb-4")
 
-        with ui.row().classes("w-full items-center gap-4 mb-4"):
-            ui.select(
+        # Enunciado/Pergunta
+        ui.label(pergunta).classes("text-base font-bold text-black mb-1")
+
+        # Texto de instrução
+        ui.label(
+            "ℹ Preencha os campos abaixo e clique no botão de salvar."
+        ).classes("text-xs text-gray-400 mb-6")
+
+        # Layout em Grid de 2 colunas (Opções Radio à esquerda e Link à direita)
+        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+            # Coluna Esquerda: Radio Group
+            radio_opcao = ui.radio(
                 options=list(opcoes.keys()),
                 value=state["opcao"],
-                label="Selecione a resposta:",
-            ).classes("w-full md:w-1/2").bind_value(state, "opcao")
+            ).props("color=blue").bind_value(state, "opcao")
 
-        ui.textarea(
-            label="Página Eletrônica (Link / Evidência):",
-            value=state["link"],
-            placeholder=placeholder_link,
-        ).classes("w-full mb-4").bind_value(state, "link")
+            # Coluna Direita: Textarea de Evidência
+            ui.textarea(
+                label="Link de Evidência / Documento:",
+                value=state["link"],
+                placeholder=placeholder_link,
+            ).classes("w-full").props("outlined rows=4").bind_value(
+                state, "link"
+            )
 
+        # Cálculo dinâmico do Impacto da Pontuação para exibição
+        pts_atuais = opcoes.get(state["opcao"], 0.0)
+        label_impacto = ui.label(
+            f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
+        ).classes("text-sm font-bold text-green-600 my-4")
+
+        # Atualiza a pontuação exibida ao mudar a seleção
+        def ao_mudar_opcao(e):
+            novos_pts = opcoes.get(e.value, 0.0)
+            label_impacto.set_text(
+                f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
+            )
+
+        radio_opcao.on("update:model-value", ao_mudar_opcao)
+
+        # Ação de Salvar
         def salvar_acao():
             opcao_sel = state["opcao"]
             pts = opcoes.get(opcao_sel, 0.0)
@@ -200,14 +228,15 @@ def render_quesito(
             if on_save_callback:
                 on_save_callback()
 
-        with ui.row().classes("w-full justify-end mb-2"):
-            ui.button("Salvar Quesito", on_click=salvar_acao, icon="save").classes(
-                "bg-blue-800 text-white font-medium px-4 py-2 rounded-md"
-            )
+        # Botão Azul de Salvar
+        ui.button(
+            f"💾 SALVAR QUESITO {qid}", on_click=salvar_acao
+        ).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
 
         ui.separator().classes("my-2")
-        bloco_comentarios(qid, res_data, on_save_callback)
 
+        # Bloco de Diálogo Interno
+        bloco_comentarios(qid, res_data, on_save_callback)
 
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
