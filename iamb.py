@@ -1486,6 +1486,226 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 7.1", on_click=salvar_71).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("7.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 7.2 (Validação de Link vs Texto XYZ)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.2 • Link do Plano Municipal/Regional de Saneamento Básico").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe a página eletrônica (link na internet) do Plano Municipal ou Regional de Saneamento Básico:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Se não estiver disponível na internet, insira 'XYZ' no campo. (Link válido = 2 pts | XYZ = 0 pts)").classes("text-xs text-gray-400 mb-6")
+
+                    d72 = res_data.get("7.2") or {}
+                    val_72_i = str(d72.get("valor") or "").strip()
+
+                    state_72 = {
+                        "link_plano": val_72_i if val_72_i else "XYZ",
+                        "link_evid": d72.get("link", ""),
+                    }
+
+                    def calc_pts_72():
+                        txt = state_72["link_plano"].strip()
+                        if not txt or txt.upper() == "XYZ":
+                            return 0.0
+                        return 2.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Link do Plano na Internet (ou digite XYZ):",
+                                value=state_72["link_plano"],
+                                placeholder="https://... ou XYZ",
+                            ).classes("w-full").props("outlined").bind_value(state_72, "link_plano")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento Complementar:",
+                            value=state_72["link_evid"],
+                            placeholder="Insira o link da página do portal da transparência ou publicação...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_72, "link_evid")
+
+                    lbl_pts_72 = ui.label(f"📊 Impacto de Pontuação no Quesito 7.2: {calc_pts_72():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_72():
+                        lbl_pts_72.set_text(f"📊 Impacto de Pontuação no Quesito 7.2: {calc_pts_72():.1f} pontos")
+
+                    def salvar_72():
+                        pts = calc_pts_72()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.2",
+                            valor=state_72["link_plano"],
+                            pontos=pts,
+                            link=state_72["link_evid"],
+                            comentarios=d72.get("comentarios", []),
+                            status=d72.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.2", on_click=salvar_72).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 7.3 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_73 = {
+                    "Selecione...": 0.0,
+                    "Sim – 10 pts": 10.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.3",
+                    titulo="Metas de Abastecimento de Água Potável",
+                    pergunta="O Plano Municipal ou Regional de Saneamento Básico possui metas de abastecimento de água potável?",
+                    opcoes=opcoes_73,
+                    placeholder_link="Insira o capítulo/página do plano contendo as metas de abastecimento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 7.3.1 (Seleção Múltipla de Metas)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.3.1 • Metas Estabelecidas sobre Abastecimento de Água").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale quais as metas estabelecidas sobre abastecimento de água potável:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as metas presentes no Plano e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d731 = res_data.get("7.3.1") or {}
+                    try:
+                        sel_731_salvos = json.loads(d731.get("valor", "[]"))
+                        if not isinstance(sel_731_salvos, list): sel_731_salvos = []
+                    except Exception:
+                        sel_731_salvos = []
+
+                    mapa_731 = {
+                        "expansao": ("Metas de expansão do serviço de abastecimento de água (0 pts)", 0.0),
+                        "perdas": ("Metas de redução de perdas na distribuição de água tratada (+2,5 pts)", 2.5),
+                        "qualidade": ("Metas de qualidade na prestação do serviço (+2,5 pts)", 2.5),
+                        "eficiencia": ("Metas de eficiência e de uso racional da água (+2,5 pts)", 2.5),
+                        "volume_percapita": ("Estabelecimento de volume mínimo de abastecimento per capita (+2,5 pts)", 2.5),
+                        "direitos_deveres": ("Estabelecimento de direitos e deveres dos usuários (+2,5 pts)", 2.5),
+                        "universalizacao_2033": ("Meta de universalização do abastecimento até 31/12/2033 (+2,5 pts)", 2.5),
+                        "cronograma": ("Estabelecimento de cronograma para atingimento das metas (+5,0 pts)", 5.0),
+                    }
+
+                    state_731 = {k: k in sel_731_salvos for k in mapa_731.keys()}
+                    state_731["link"] = d731.get("link", "")
+
+                    def calc_pts_731():
+                        return sum(peso for k, (_, peso) in mapa_731.items() if state_731.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_731a = [ui.checkbox(rotulo).bind_value(state_731, k) for k, (rotulo, _) in list(mapa_731.items())[:4]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_731b = [ui.checkbox(rotulo).bind_value(state_731, k) for k, (rotulo, _) in list(mapa_731.items())[4:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_731["link"],
+                        placeholder="Insira o link das páginas/tabelas do plano onde constam as metas...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_731, "link")
+
+                    lbl_pts_731 = ui.label(f"📊 Impacto de Pontuação no Quesito 7.3.1: {calc_pts_731():.1f} / 20.0 pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_731():
+                        lbl_pts_731.set_text(f"📊 Impacto de Pontuação no Quesito 7.3.1: {calc_pts_731():.1f} / 20.0 pontos")
+
+                    for cb in cb_col_731a + cb_col_731b:
+                        cb.on("update:model-value", att_pts_731)
+
+                    def salvar_731():
+                        selecionados = [k for k in mapa_731.keys() if state_731.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.3.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_731(),
+                            link=state_731["link"],
+                            comentarios=d731.get("comentarios", []),
+                            status=d731.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.3.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.3.1", on_click=salvar_731).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.3.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 7.3.2 (Data Prevista para Universalização e Penalização)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.3.2 • Data Prevista para Universalização do Abastecimento").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Qual a data prevista para universalização do abastecimento de água potável no município?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Caso já tenha sido universalizado, informe: 01/01/2001. Se Data > 31/12/2033 = Perde 5 pontos.").classes("text-xs text-gray-400 mb-6")
+
+                    d732 = res_data.get("7.3.2") or {}
+                    val_732_i = str(d732.get("valor") or "31/12/2033")
+
+                    state_732 = {
+                        "data_univ": val_732_i,
+                        "link": d732.get("link", ""),
+                    }
+
+                    def calc_pts_732():
+                        dt_str = state_732["data_univ"].strip()
+                        try:
+                            # Tenta parsear no formato dd/mm/YYYY ou YYYY-mm-dd
+                            if "/" in dt_str:
+                                partes = dt_str.split("/")
+                                ano_num = int(partes[2]) if len(partes) == 3 else 2033
+                            elif "-" in dt_str:
+                                partes = dt_str.split("-")
+                                ano_num = int(partes[0]) if len(partes) == 3 else 2033
+                            else:
+                                ano_num = int(dt_str)
+                            
+                            if ano_num > 2033:
+                                return -5.0
+                        except Exception:
+                            pass
+                        return 0.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Data Prevista (DD/MM/AAAA):",
+                                value=state_732["data_univ"],
+                                placeholder="Ex: 31/12/2033 ou 01/01/2001",
+                            ).classes("w-full").props("outlined").bind_value(state_732, "data_univ")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_732["link"],
+                            placeholder="Insira o link do trecho do Plano de Saneamento que comprova a data...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_732, "link")
+
+                    lbl_pts_732 = ui.label(f"📊 Impacto de Pontuação no Quesito 7.3.2: {calc_pts_732():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_732():
+                        lbl_pts_732.set_text(f"📊 Impacto de Pontuação no Quesito 7.3.2: {calc_pts_732():.1f} pontos")
+
+                    def salvar_732():
+                        pts = calc_pts_732()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.3.2",
+                            valor=state_732["data_univ"],
+                            pontos=pts,
+                            link=state_732["link"],
+                            comentarios=d732.get("comentarios", []),
+                            status=d732.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.3.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.3.2", on_click=salvar_732).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.3.2", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
