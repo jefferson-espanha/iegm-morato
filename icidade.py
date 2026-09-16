@@ -491,8 +491,8 @@ def container_formulario_icidade(ano=None):
                 # ==========================================
                 opcoes_10 = {
                     "Selecione...": 0.0,
-                    "Sim": 40.0,
-                    "Não": 0.0,
+                    "Sim (40.0 pts)": 40.0,
+                    "Não (0.0 pts)": 0.0,
                 }
                 render_quesito(
                     ano=ano_sel,
@@ -538,10 +538,10 @@ def container_formulario_icidade(ano=None):
                 # ==========================================
                 opcoes_13 = {
                     "Selecione...": 0.0,
-                    "Gabinete do Prefeito": 5.0,
-                    "Secretaria Municipal de Segurança Pública": 0.0,
-                    "Controladoria": 0.0,
-                    "Outra": 0.0,
+                    "Gabinete do Prefeito (5.0 pts)": 5.0,
+                    "Secretaria Municipal de Segurança Pública (0.0 pts)": 0.0,
+                    "Controladoria (0.0 pts)": 0.0,
+                    "Outra (0.0 pts)": 0.0,
                 }
                 render_quesito(
                     ano=ano_sel,
