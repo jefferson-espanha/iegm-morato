@@ -1688,27 +1688,7 @@ def container_formulario_icidade(ano=None):
                 on_save_callback=container_formulario_icidade.refresh,
             )
 
-            # =============================================================================
-            # QUESITO C1.1 • ESTÁGIO MCR2030 DA ONU
-            # =============================================================================
-            opcoes_c11 = {
-                "Selecione...": 0.0,
-                "Etapa A (10 pts)": 10.0,
-                "Etapa B (20 pts)": 20.0,
-                "Etapa C (50 pts)": 50.0,
-                "Não classificada (00 pts)": 0.0,
-            }
-            render_quesito(
-                ano=ano_sel,
-                res_data=res_data,
-                qid="C1.1",
-                titulo="Estágio de Classificação no Programa MCR2030",
-                pergunta="O Município foi classificado em qual estágio do Programa?",
-                opcoes=opcoes_c11,
-                on_save_callback=container_formulario_icidade.refresh,
-            )
-
-    # Executa a renderização da interface
+           # Executa a renderização da interface
     render_conteudo()
                 
 # Exporta referências principais para o aplicativo
