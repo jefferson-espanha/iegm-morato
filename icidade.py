@@ -449,18 +449,14 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS (SEM DUPLICAÇÃO)
+# MÓDULO PRINCIPAL DE REQUISITOS (LAYOUT CORRIGIDO)
 # =============================================================================
 def container_formulario_icidade(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
-    main_container = ui.element("div").classes("w-full")
-
     @ui.refreshable
     def render_conteudo():
-        main_container.clear()
-
         ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
         res_data = load_respostas(ano_sel)
 
@@ -469,26 +465,26 @@ def container_formulario_icidade(ano=None):
             ui.notify(f"Ano alterado para {novo_ano}", type="info")
             render_conteudo.refresh()
 
-        with main_container:
+        # Grid principal de 12 colunas
+        with ui.element("div").classes(
+            "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
+        ):
+
+            # Coluna 1: Painel Lateral (3 colunas)
+            with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
+                render_painel_controle(
+                    ano_atual=ano_sel,
+                    on_mudar_ano=alterar_ano,
+                    on_refresh=render_conteudo.refresh,
+                )
+
+            # Coluna 2: Formulário (9 colunas) — TUDO DEVE FICAR DENTRO DESTE BLOCO
             with ui.element("div").classes(
-                "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
+                "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm flex flex-col gap-6"
             ):
-
-                # Coluna 1: Painel Lateral (3/12)
-                with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
-                    render_painel_controle(
-                        ano_atual=ano_sel,
-                        on_mudar_ano=alterar_ano,
-                        on_refresh=render_conteudo.refresh,
-                    )
-
-                # Coluna 2: Formulário (9/12)
-                with ui.element("div").classes(
-                    "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
-                ):
-                    ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
-                        "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
-                    )
+                ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
+                    "text-xl font-bold mb-2 text-slate-800 border-b pb-2"
+                )
 
                 # ==========================================
                 # QUESITO 1.0 (Seleção com Pontuação)
