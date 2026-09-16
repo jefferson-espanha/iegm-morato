@@ -4648,6 +4648,228 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO A3", on_click=salvar_A3).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("A3", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO A4 (Seleção Única - Envio de Dados ao SINISA)
+                # =============================================================================
+                opcoes_A4 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="A4",
+                    titulo="Envio de Dados ao SINISA",
+                    pergunta="Foram enviados / informados os dados relativos ao abastecimento de água e esgotamento sanitário, limpeza urbana e manejo de resíduos sólidos e manejo das águas pluviais urbanas ao SINISA?",
+                    opcoes=opcoes_A4,
+                    placeholder_link="Insira o link do comprovante/painel do SINISA...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO A4.1 (Seleção Múltipla - Dados Enviados ao SINISA)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("A4.1 • Dados Informados ao SINISA").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe quais dados foram enviados ao SINISA:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Dados do SINISA. Não sujeitos à validação.").classes("text-xs text-gray-500 font-semibold mb-6")
+
+                    dA41 = res_data.get("A4.1") or {}
+                    try:
+                        sel_A41_salvos = json.loads(dA41.get("valor", "[]"))
+                        if not isinstance(sel_A41_salvos, list): sel_A41_salvos = []
+                    except Exception:
+                        sel_A41_salvos = []
+
+                    mapa_A41 = {
+                        "agua_esgoto": ("Abastecimento de água e esgotamento sanitário", 0.0),
+                        "limpeza_residuos": ("Limpeza urbana e manejo de resíduos sólidos", 0.0),
+                        "drenagem_pluviais": ("Drenagem e manejo de águas pluviais urbanas", 0.0),
+                    }
+
+                    state_A41 = {k: k in sel_A41_salvos for k in mapa_A41.keys()}
+                    state_A41["link"] = dA41.get("link", "")
+
+                    with ui.column().classes("w-full gap-2 mb-4"):
+                        for k, (rotulo, _) in mapa_A41.items():
+                            ui.checkbox(rotulo).bind_value(state_A41, k)
+
+                    ui.textarea(
+                        label="Link de Evidência / Fonte SINISA:",
+                        value=state_A41["link"],
+                        placeholder="Insira o link de comprovação do SINISA...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_A41, "link")
+
+                    def salvar_A41():
+                        selecionados = [k for k in mapa_A41.keys() if state_A41.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="A4.1",
+                            valor=json.dumps(selecionados),
+                            pontos=0.0,
+                            link=state_A41["link"],
+                            comentarios=dA41.get("comentarios", []),
+                            status=dA41.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito A4.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO A4.1", on_click=salvar_A41).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("A4.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO A4.1.1 (Indicadores de Água e Esgoto - SINISA)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("A4.1.1 • Indicadores sobre Abastecimento de Água e Esgotamento Sanitário").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe os dados/percentuais relativos ao abastecimento de água e esgotamento sanitário (SINISA):").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Dados do SINISA. Não sujeitos à validação.").classes("text-xs text-gray-500 font-semibold mb-6")
+
+                    dA411 = res_data.get("A4.1.1") or {}
+                    val_A411_raw = dA411.get("valor", "{}")
+                    try:
+                        vals_A411_dict = json.loads(val_A411_raw) if isinstance(val_A411_raw, str) else (val_A411_raw if isinstance(val_A411_raw, dict) else {})
+                    except Exception:
+                        vals_A411_dict = {}
+
+                    state_A411 = {
+                        "p_agua": str(vals_A411_dict.get("p_agua", "")),
+                        "p_perdas": str(vals_A411_dict.get("p_perdas", "")),
+                        "p_coleta_esgoto": str(vals_A411_dict.get("p_coleta_esgoto", "")),
+                        "p_tratam_esgoto": str(vals_A411_dict.get("p_tratam_esgoto", "")),
+                        "p_esgoto_ref_agua": str(vals_A411_dict.get("p_esgoto_ref_agua", "")),
+                        "link": dA411.get("link", ""),
+                    }
+
+                    def parse_val(v_str):
+                        try:
+                            return float(str(v_str).replace("%", "").replace(",", ".").strip())
+                        except Exception:
+                            return None
+
+                    # 1. Percentual de população atendida com abastecimento de água
+                    def calc_pts_agua(p):
+                        if p is None: return 0.0
+                        if p >= 100.0: return 20.0
+                        elif 99.0 < p < 100.0: return (((p - 99.0) / 1.0) * 10.0) + 10.0
+                        elif 90.0 < p <= 99.0: return ((p - 90.0) / 9.0) * 10.0
+                        else: return 0.0
+
+                    # 2. Percentual de perdas na distribuição de água
+                    def calc_pts_perdas(p):
+                        if p is None: return 0.0
+                        if p <= 0.0: return 0.0
+                        elif 0.0 < p <= 10.0: return (p / 10.0) * (-5.0)
+                        elif 10.0 < p <= 20.0: return (((p - 10.0) / 10.0) * (-2.0)) - 5.0
+                        else: return -10.0
+
+                    # 3. Percentual de população atendida com coleta de esgoto
+                    def calc_pts_coleta_esgoto(p):
+                        if p is None: return 0.0
+                        if p >= 100.0: return 20.0
+                        elif 90.0 < p < 100.0: return (((p - 90.0) / 10.0) * 10.0) + 10.0
+                        elif 80.0 < p <= 90.0: return ((p - 80.0) / 10.0) * 10.0
+                        else: return 0.0
+
+                    # 4. Índice de tratamento de esgoto
+                    def calc_pts_tratam_esgoto(p):
+                        if p is None: return 0.0
+                        if p >= 100.0: return 20.0
+                        elif 90.0 < p < 100.0: return (((p - 90.0) / 10.0) * 10.0) + 10.0
+                        elif 80.0 < p <= 90.0: return ((p - 80.0) / 10.0) * 10.0
+                        else: return 0.0
+
+                    # 5. Índice de esgoto tratado referido à água consumida
+                    def calc_pts_esgoto_ref_agua(p):
+                        if p is None: return 0.0
+                        if p >= 100.0: return 30.0
+                        elif 90.0 < p < 100.0: return (((p - 90.0) / 10.0) * 10.0) + 10.0
+                        elif 80.0 < p <= 90.0: return ((p - 80.0) / 10.0) * 10.0
+                        else: return 0.0
+
+                    def calc_pts_total_A411():
+                        v_agua = parse_val(state_A411["p_agua"])
+                        v_perdas = parse_val(state_A411["p_perdas"])
+                        v_coleta = parse_val(state_A411["p_coleta_esgoto"])
+                        v_tratam = parse_val(state_A411["p_tratam_esgoto"])
+                        v_ref = parse_val(state_A411["p_esgoto_ref_agua"])
+
+                        return (
+                            calc_pts_agua(v_agua) +
+                            calc_pts_perdas(v_perdas) +
+                            calc_pts_coleta_esgoto(v_coleta) +
+                            calc_pts_tratam_esgoto(v_tratam) +
+                            calc_pts_esgoto_ref_agua(v_ref)
+                        )
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "População atendida com água (%):",
+                                value=state_A411["p_agua"],
+                                placeholder="Ex: 95.5",
+                            ).classes("w-full").props("outlined").bind_value(state_A411, "p_agua")
+
+                            ui.input(
+                                "Perdas na distribuição de água (%):",
+                                value=state_A411["p_perdas"],
+                                placeholder="Ex: 15.0",
+                            ).classes("w-full").props("outlined").bind_value(state_A411, "p_perdas")
+
+                            ui.input(
+                                "População atendida com coleta de esgoto (%):",
+                                value=state_A411["p_coleta_esgoto"],
+                                placeholder="Ex: 85.0",
+                            ).classes("w-full").props("outlined").bind_value(state_A411, "p_coleta_esgoto")
+
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Índice de tratamento de esgoto (%):",
+                                value=state_A411["p_tratam_esgoto"],
+                                placeholder="Ex: 92.0",
+                            ).classes("w-full").props("outlined").bind_value(state_A411, "p_tratam_esgoto")
+
+                            ui.input(
+                                "Esgoto tratado referido à água consumida (%):",
+                                value=state_A411["p_esgoto_ref_agua"],
+                                placeholder="Ex: 88.0",
+                            ).classes("w-full").props("outlined").bind_value(state_A411, "p_esgoto_ref_agua")
+
+                            ui.textarea(
+                                label="Link de Evidência / Fonte SINISA:",
+                                value=state_A411["link"],
+                                placeholder="Insira o link das estatísticas do SINISA...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(state_A411, "link")
+
+                    lbl_pts_A411 = ui.label(f"📊 Impacto de Pontuação no Quesito A4.1.1: {calc_pts_total_A411():.2f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def salvar_A411():
+                        pts = calc_pts_total_A411()
+                        payload_salvar = {
+                            "p_agua": state_A411["p_agua"],
+                            "p_perdas": state_A411["p_perdas"],
+                            "p_coleta_esgoto": state_A411["p_coleta_esgoto"],
+                            "p_tratam_esgoto": state_A411["p_tratam_esgoto"],
+                            "p_esgoto_ref_agua": state_A411["p_esgoto_ref_agua"],
+                        }
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="A4.1.1",
+                            valor=json.dumps(payload_salvar),
+                            pontos=pts,
+                            link=state_A411["link"],
+                            comentarios=dA411.get("comentarios", []),
+                            status=dA411.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito A4.1.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO A4.1.1", on_click=salvar_A411).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("A4.1.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
