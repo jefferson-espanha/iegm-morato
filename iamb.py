@@ -3108,6 +3108,290 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 10.3.1.1", on_click=salvar_10311).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("10.3.1.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 11.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_110 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.0",
+                    titulo="Plano de Gerenciamento de Resíduos da Construção Civil (PGRCC)",
+                    pergunta="A prefeitura possui Plano de Gerenciamento de Resíduos da Construção Civil (PGRCC) elaborado e implantado de acordo com a resolução CONAMA 307/2002 e suas alterações?",
+                    opcoes=opcoes_110,
+                    placeholder_link="Insira a cópia ou página de publicação do PGRCC...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 11.1 (Campos de Texto para Instrumento Normativo)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("11.1 • Instrumento Normativo do PGRCC").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Preencha as informações do ato legal e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d111 = res_data.get("11.1") or {}
+                    raw_val_111 = str(d111.get("valor") or "")
+                    
+                    norma_i, num_i, data_i = "", "", ""
+                    if "|NUM:" in raw_val_111 and "|DATA:" in raw_val_111:
+                        partes_111 = raw_val_111.split("|NUM:")
+                        norma_i = partes_111[0]
+                        num_i, data_i = partes_111[1].split("|DATA:")
+
+                    state_111 = {
+                        "norma": norma_i,
+                        "numero": num_i,
+                        "data": data_i,
+                        "link": d111.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input("Instrumento Normativo (Ex: Lei Municipal, Decreto):", value=norma_i, placeholder="Ex: Decreto Municipal").classes("w-full").props("outlined").bind_value(state_111, "norma")
+                            ui.input("Número do Instrumento:", value=num_i, placeholder="Ex: nº 1.234/2021").classes("w-full").props("outlined").bind_value(state_111, "numero")
+                            ui.input("Data da Publicação:", value=data_i, placeholder="Ex: 10/05/2021").classes("w-full").props("outlined").bind_value(state_111, "data")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_111["link"],
+                            placeholder="Insira a cópia do Diário Oficial ou link do documento na íntegra...",
+                        ).classes("w-full").props("outlined rows=6").bind_value(state_111, "link")
+
+                    def salvar_111():
+                        composite_val = f"{state_111['norma']}|NUM:{state_111['numero']}|DATA:{state_111['data']}"
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="11.1",
+                            valor=composite_val,
+                            pontos=0.0,
+                            link=state_111["link"],
+                            comentarios=d111.get("comentarios", []),
+                            status=d111.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 11.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 11.1", on_click=salvar_111).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("11.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 11.2 (Validação de Link vs Texto XYZ)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("11.2 • Link do Instrumento Normativo do PGRCC").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe a página eletrônica (link na internet) do Plano de Gerenciamento de Resíduos da Construção Civil (PGRCC):").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Se não estiver disponível na internet, insira 'XYZ' no campo. (Link válido = 2 pts | XYZ = 0 pts)").classes("text-xs text-gray-400 mb-6")
+
+                    d112 = res_data.get("11.2") or {}
+                    val_112_i = str(d112.get("valor") or "").strip()
+
+                    state_112 = {
+                        "link_pgrcc": val_112_i if val_112_i else "XYZ",
+                        "link_evid": d112.get("link", ""),
+                    }
+
+                    def calc_pts_112():
+                        txt = state_112["link_pgrcc"].strip()
+                        if not txt or txt.upper() == "XYZ":
+                            return 0.0
+                        return 2.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Link na Internet (ou digite XYZ):",
+                                value=state_112["link_pgrcc"],
+                                placeholder="https://... ou XYZ",
+                            ).classes("w-full").props("outlined").bind_value(state_112, "link_pgrcc")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento Complementar:",
+                            value=state_112["link_evid"],
+                            placeholder="Insira o link da página no portal da transparência ou diário oficial...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_112, "link_evid")
+
+                    lbl_pts_112 = ui.label(f"📊 Impacto de Pontuação no Quesito 11.2: {calc_pts_112():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def salvar_112():
+                        pts = calc_pts_112()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="11.2",
+                            valor=state_112["link_pgrcc"],
+                            pontos=pts,
+                            link=state_112["link_evid"],
+                            comentarios=d112.get("comentarios", []),
+                            status=d112.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 11.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 11.2", on_click=salvar_112).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("11.2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 11.3 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_113 = {
+                    "Selecione...": 0.0,
+                    "Sim – 30 pts": 30.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.3",
+                    titulo="Cronograma com Metas do PGRCC",
+                    pergunta="Possui cronograma com as metas a serem cumpridas?",
+                    opcoes=opcoes_113,
+                    placeholder_link="Insira o link do trecho do PGRCC que contém o cronograma de metas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 11.3.1 (Seleção Múltipla - Metas Previstas)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("11.3.1 • Metas Previstas no PGRCC").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe quais metas estão previstas:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as metas previstas e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d1131 = res_data.get("11.3.1") or {}
+                    try:
+                        sel_1131_salvos = json.loads(d1131.get("valor", "[]"))
+                        if not isinstance(sel_1131_salvos, list): sel_1131_salvos = []
+                    except Exception:
+                        sel_1131_salvos = []
+
+                    mapa_1131 = {
+                        "pev": ("Aumento/melhoria dos Pontos de Entrega Voluntária - PEV", 0.0),
+                        "att": ("Aumento/melhoria de Áreas de Transbordo e Triagem - ATT", 0.0),
+                        "pontos_viciados": ("Realização de operações de coleta de Resíduos da Construção Civil em 'pontos viciados'", 0.0),
+                        "transportadores": ("Cadastro de transportadores de Resíduos da Construção Civil", 0.0),
+                        "outro": ("Outro", 0.0),
+                    }
+
+                    state_1131 = {k: k in sel_1131_salvos for k in mapa_1131.keys()}
+                    state_1131["link"] = d1131.get("link", "")
+
+                    def calc_pts_1131():
+                        return sum(peso for k, (_, peso) in mapa_1131.items() if state_1131.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_1131a = [ui.checkbox(rotulo).bind_value(state_1131, k) for k, (rotulo, _) in list(mapa_1131.items())[:3]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_1131b = [ui.checkbox(rotulo).bind_value(state_1131, k) for k, (rotulo, _) in list(mapa_1131.items())[3:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_1131["link"],
+                        placeholder="Insira o link das tabelas ou capítulos do plano que comprovam as metas...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_1131, "link")
+
+                    def salvar_1131():
+                        selecionados = [k for k in mapa_1131.keys() if state_1131.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="11.3.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_1131(),
+                            link=state_1131["link"],
+                            comentarios=d1131.get("comentarios", []),
+                            status=d1131.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 11.3.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 11.3.1", on_click=salvar_1131).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("11.3.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 11.3.2 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_1132 = {
+                    "Selecione...": 0.0,
+                    "Sim – 20 pts": 20.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.3.2",
+                    titulo="Monitoramento e Avaliação do PGRCC",
+                    pergunta="Realiza monitoramento e avaliação das ações e metas?",
+                    opcoes=opcoes_1132,
+                    placeholder_link="Insira o link de relatórios ou atas do conselho que comprovem o monitoramento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 11.3.2.1 (Seleção Múltipla - Formas de Monitoramento)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("11.3.2.1 • Formas de Monitoramento e Avaliação do PGRCC").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("De que forma é realizado o monitoramento e avaliação?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d11321 = res_data.get("11.3.2.1") or {}
+                    try:
+                        sel_11321_salvos = json.loads(d11321.get("valor", "[]"))
+                        if not isinstance(sel_11321_salvos, list): sel_11321_salvos = []
+                    except Exception:
+                        sel_11321_salvos = []
+
+                    mapa_11321 = {
+                        "relatorios_anuais": ("Relatórios anuais discutidos e/ou publicados", 0.0),
+                        "indicadores": ("Indicadores de eficácia e eficiência", 0.0),
+                        "recursos": ("Avaliação de recursos aplicados", 0.0),
+                        "outro": ("Outro", 0.0),
+                    }
+
+                    state_11321 = {k: k in sel_11321_salvos for k in mapa_11321.keys()}
+                    state_11321["link"] = d11321.get("link", "")
+
+                    def calc_pts_11321():
+                        return sum(peso for k, (_, peso) in mapa_11321.items() if state_11321.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_11321a = [ui.checkbox(rotulo).bind_value(state_11321, k) for k, (rotulo, _) in list(mapa_11321.items())[:2]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_11321b = [ui.checkbox(rotulo).bind_value(state_11321, k) for k, (rotulo, _) in list(mapa_11321.items())[2:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_11321["link"],
+                        placeholder="Insira o link dos relatórios de indicadores, publicações ou avaliações de recursos...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_11321, "link")
+
+                    def salvar_11321():
+                        selecionados = [k for k in mapa_11321.keys() if state_11321.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="11.3.2.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_11321(),
+                            link=state_11321["link"],
+                            comentarios=d11321.get("comentarios", []),
+                            status=d11321.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 11.3.2.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 11.3.2.1", on_click=salvar_11321).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("11.3.2.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
