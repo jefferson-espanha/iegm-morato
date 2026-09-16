@@ -483,13 +483,12 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS (Nome ajustado para corresponder ao main.py)
+# MÓDULO PRINCIPAL DE REQUISITOS
 # =============================================================================
 def container_formulario_plan(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
-    # Div principal que vai conter o conteúdo dinâmico sem duplicar
     main_container = ui.element("div").classes("w-full")
 
     @ui.refreshable
@@ -504,9 +503,7 @@ def container_formulario_plan(ano=None):
                 ui.notify(f"Ano alterado para {novo_ano}", type="info")
                 render_conteudo.refresh()
 
-            with ui.element("div").classes(
-                "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
-            ):
+            with ui.element("div").classes("w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"):
                 # Coluna 1: Painel Lateral (3/12)
                 with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
                     render_painel_controle(
@@ -515,34 +512,32 @@ def container_formulario_plan(ano=None):
                         on_refresh=render_conteudo.refresh,
                     )
 
-                # Coluna 2: Formulário (9/12)
-                with ui.element("div").classes(
-                    "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
-                ):
+                # Coluna 2: Formulário (9/12) - TODOS os quesitos devem estar dentro deste bloco!
+                with ui.element("div").classes("md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm flex flex-col gap-4"):
                     ui.label(f"📋 Módulo i-Plan — Ano {ano_sel}").classes(
                         "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                     )
 
-                    # ==========================================
-                    # QUESITO 1.0 (Audiências Públicas Orçamentárias)
-                    # ==========================================
-                    opcoes_10 = {
-                        "Selecione...": 0.0,
-                        "Sim (1.0 pt)": 1.0,
-                        "Não (0.0 pts)": 0.0,
-                    }
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="1.0",
-                        titulo="Audiências Públicas na Elaboração das Peças Orçamentárias",
-                        pergunta="A Prefeitura realizou audiências públicas para elaboração das peças orçamentárias? (Obs: Serão consideradas apenas as audiências públicas realizadas durante o processo de planejamento municipal - PPA, LDO e LOA):",
-                        opcoes=opcoes_10,
-                        placeholder_link="Insira o link das atas ou publicações das audiências públicas...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                # =============================================================================
+                # QUESITO 1.0 (Audiências Públicas Orçamentárias)
+                # =============================================================================
+                opcoes_10 = {
+                    "Selecione...": 0.0,
+                    "Sim (1.0 pt)": 1.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.0",
+                    titulo="Audiências Públicas na Elaboração das Peças Orçamentárias",
+                    pergunta="A Prefeitura realizou audiências públicas para elaboração das peças orçamentárias? (Obs: Serão consideradas apenas as audiências públicas realizadas durante o processo de planejamento municipal - PPA, LDO e LOA):",
+                    opcoes=opcoes_10,
+                    placeholder_link="Insira o link das atas ou publicações das audiências públicas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
 
-                    # =============================================================================
+                # =============================================================================
                 # QUESITO 1.1 (Peças Orçamentárias - Checkbox)
                 # =============================================================================
                 opcoes_11 = {
@@ -551,7 +546,6 @@ def container_formulario_plan(ano=None):
                     "LDO 2026": 1.0,
                     "LOA 2026": 1.0,
                 }
-
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
@@ -572,7 +566,6 @@ def container_formulario_plan(ano=None):
                     "Dia de semana após horário comercial (ex: após às 18 horas)": 2.0,
                     "Aos sábados, domingos e feriados": 2.0,
                 }
-
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
@@ -584,5 +577,5 @@ def container_formulario_plan(ano=None):
                     placeholder_link="Insira o link das atas, convocações ou documentos com os horários...",
                     on_save_callback=render_conteudo.refresh,
                 )
-    # Executa a renderização inicial
+
     render_conteudo()
