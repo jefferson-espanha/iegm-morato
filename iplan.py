@@ -443,34 +443,39 @@ def container_formulario_plan(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
+    # Container principal para evitar duplicação de elementos no NiceGUI
+    main_container = ui.container().classes("w-full")
+
     @ui.refreshable
     def render_conteudo():
-        ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
-        res_data = load_respostas(ano_sel)
+        main_container.clear()
+        with main_container:
+            ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+            res_data = load_respostas(ano_sel)
 
-        def alterar_ano(novo_ano):
-            app.storage.user["ano_referencia_global"] = int(novo_ano)
-            ui.notify(f"Ano alterado para {novo_ano}", type="info")
-            render_conteudo.refresh()
+            def alterar_ano(novo_ano):
+                app.storage.user["ano_referencia_global"] = int(novo_ano)
+                ui.notify(f"Ano alterado para {novo_ano}", type="info")
+                render_conteudo.refresh()
 
-        with ui.element("div").classes(
-            "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
-        ):
-            # Coluna 1: Painel Lateral (3/12)
-            with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
-                render_painel_controle(
-                    ano_atual=ano_sel,
-                    on_mudar_ano=alterar_ano,
-                    on_refresh=render_conteudo.refresh,
-                )
-
-            # Coluna 2: Formulário (9/12)
             with ui.element("div").classes(
-                "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
+                "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
             ):
-                ui.label(f"📋 Módulo i-Plan — Ano {ano_sel}").classes(
-                    "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
-                )
+                # Coluna 1: Painel Lateral (3/12)
+                with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
+                    render_painel_controle(
+                        ano_atual=ano_sel,
+                        on_mudar_ano=alterar_ano,
+                        on_refresh=render_conteudo.refresh,
+                    )
+
+                # Coluna 2: Formulário (9/12)
+                with ui.element("div").classes(
+                    "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
+                ):
+                    ui.label(f"📋 Módulo i-Plan — Ano {ano_sel}").classes(
+                        "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
+                    )
 
                 # ==========================================
                 # QUESITO 1.0 (Audiências Públicas Orçamentárias)
@@ -505,7 +510,6 @@ def container_formulario_plan(ano=None):
                     qid="1.1",
                     titulo="Peças Orçamentárias com Audiências Públicas",
                     pergunta="Assinale para quais peças orçamentárias foram realizadas as audiências públicas (Considerar as audiências públicas da LOA e LDO realizadas no exercício avaliado e o último PPA elaborado):",
-                    tipo_input="checkbox",
                     opcoes=opcoes_11,
                     placeholder_link="Insira o link das comprovações por peça orçamentária...",
                     on_save_callback=render_conteudo.refresh,
@@ -525,11 +529,10 @@ def container_formulario_plan(ano=None):
                     qid="1.2",
                     titulo="Dia e Horário de Realização das Audiências Públicas",
                     pergunta="Assinale o dia e horário de realização das audiências públicas:",
-                    tipo_input="checkbox",
                     opcoes=opcoes_12,
                     placeholder_link="Insira o link com os editais ou comprovantes de convocação/realização...",
                     on_save_callback=render_conteudo.refresh,
                 )
 
-    # Inicializa e renderiza o conteúdo do módulo
+    # Executa a renderização inicial
     render_conteudo()
