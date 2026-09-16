@@ -639,3 +639,8 @@ def render_pagina_icidade():
             "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
         ):
             container_formulario_icidade()
+
+render_pagina_icidade()
+
+# 2. Inicialização do servidor NiceGUI
+ui.run(storage_secret="sua_chave_secreta_aqui")
