@@ -517,6 +517,131 @@ def container_formulario_icidade(ano=None):
                 # Exemplo de chamada de quesito caso deseje renderizar dentro do container principal:
                 # render_quesito(ano_sel, res_data, "Q1", "Título do Quesito", "Pergunta de exemplo?", {"Opção A": 10, "Opção B": 5}, on_save_callback=render_conteudo.refresh)
 
+                # =============================================================================
+                # QUESITO 1.1 
+                # =============================================================================
+                def render_quesito_1_1(ano_sel, res_data, on_refresh_callback):
+                    qid = "1.1"
+                    titulo = "Dados do Instrumento Normativo COMPDEC"
+                    pergunta = "Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:"
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid=qid,
+                        titulo=titulo,
+                        pergunta=pergunta,
+                        is_text_area=True,
+                        placeholder_text="Instrumento normativo, Número e Data da publicação:",
+                        on_save_callback=on_refresh_callback,
+                    )
+
+                    bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
+
+                render_quesito_1_1(
+                    ano_sel=ano_sel, 
+                    res_data=res_data, 
+                    on_refresh_callback=render_conteudo.refresh
+                )
+
+                # =============================================================================
+                # QUESITO 1.2 
+                # =============================================================================
+                def render_quesito_1_2(ano_sel, res_data, on_refresh_callback):
+                    qid = "1.2"
+                    titulo = "Endereço Eletrônico do Instrumento Normativo"
+                    pergunta = "Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar:"
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid=qid,
+                        titulo=titulo,
+                        pergunta=pergunta,
+                        is_text_area=True,
+                        placeholder_text="Se não estiver disponível na internet, inserir no campo de resposta o texto XYZ",
+                        on_save_callback=on_refresh_callback,
+                    )
+
+                    bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
+
+                render_quesito_1_2(
+                    ano_sel=ano_sel, 
+                    res_data=res_data, 
+                    on_refresh_callback=render_conteudo.refresh
+                )
+
+                # =============================================================================
+                # QUESITO 1.3 
+                # =============================================================================
+                def render_quesito_1_3(ano_sel, res_data, on_refresh_callback):
+                    qid = "1.3"
+                    titulo = "Secretaria ou Diretoria de Subordinação"
+                    pergunta = "A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?"
+
+                    opcoes = {
+                        "Selecione...": 0.0,
+                        "Gabinete do Prefeito - 5.0 pts": 5.0,
+                        "Secretaria Municipal de Segurança Pública - 0.0 pts": 0.0,
+                        "Controladoria - 0.0 pts": 0.0,
+                        "Outra - 0.0 pts": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid=qid,
+                        titulo=titulo,
+                        pergunta=pergunta,
+                        opcoes=opcoes,
+                        on_save_callback=on_refresh_callback,
+                    )
+
+                    bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
+
+                render_quesito_1_3(
+                    ano_sel=ano_sel, 
+                    res_data=res_data, 
+                    on_refresh_callback=render_conteudo.refresh
+                )
+
+                # =============================================================================
+                # QUESITO 1.4 
+                # =============================================================================
+                def render_quesito_1_4(ano_sel, res_data, on_refresh_callback):
+                    qid = "1.4"
+                    titulo = "Atuação Sistêmica e Articulação da Defesa Civil"
+                    pergunta = (
+                        "Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, "
+                        "articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta "
+                        "e recuperação de acordo com a Política Nacional de Proteção e Defesa Civil - PNPDEC?"
+                    )
+
+                    opcoes = {
+                        "Selecione...": 0.0,
+                        "Sim, inclusive com a participação de entidades privadas e da comunidade - 50.0 pts": 50.0,
+                        "Sim, com participação de entidades privadas - 20.0 pts": 20.0,
+                        "Sim, com participação da comunidade - 20.0 pts": 20.0,
+                        "Sim, apenas com participação dos representantes da administração municipal - 10.0 pts": 10.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid=qid,
+                        titulo=titulo,
+                        pergunta=pergunta,
+                        opcoes=opcoes,
+                        on_save_callback=on_refresh_callback,
+                    )
+
+                    bloco_comentarios(qid=qid, res_data=res_data, on_save_callback=on_refresh_callback)
+
+                render_quesito_1_4(
+                    ano_sel=ano_sel, 
+                    res_data=res_data, 
+                    on_refresh_callback=render_conteudo.refresh
+                )
    
     # Executa a renderização da interface
     render_conteudo()
