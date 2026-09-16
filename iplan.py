@@ -174,13 +174,16 @@ def render_quesito(
     dados_q = res_data.get(qid, {})
     link_atual = dados_q.get("link", "")
 
-    # Define o valor padrão seguro de acordo com o tipo de input
+    # Trata valor inicial
     if tipo_input == "checkbox":
-        valor_atual = dados_q.get("valor", [])
-        if not isinstance(valor_atual, list):
-            valor_atual = [valor_atual] if valor_atual in opcoes else []
+        valor_bruto = dados_q.get("valor", [])
+        if isinstance(valor_bruto, list):
+            valor_atual = valor_bruto
+        elif valor_bruto in opcoes:
+            valor_atual = [valor_bruto]
+        else:
+            valor_atual = []
     else:
-        # Se for Radio, busca o valor ou escolhe a primeira chave válida do dicionário
         primeira_opcao_valida = list(opcoes.keys())[0] if opcoes else ""
         valor_atual = dados_q.get("valor", primeira_opcao_valida)
         if valor_atual not in opcoes:
@@ -203,21 +206,31 @@ def render_quesito(
         ).classes("text-xs text-gray-400 mb-6")
 
         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-            # Renderização condicional (Checkbox ou Radio)
+            # Lado Esquerdo: Checkboxes ou Radio Buttons
             if tipo_input == "checkbox":
-                input_opcao = (
-                    ui.select(
-                        options=list(opcoes.keys()),
-                        multiple=True,
-                        value=state["opcao"],
-                        label="Selecione as opções aplicáveis",
-                    )
-                    .classes("w-full")
-                    .props("use-chips outlined")
-                    .bind_value(state, "opcao")
-                )
+                with ui.column().classes("gap-2 w-full"):
+                    # Dicionário interno para monitorar o estado individual de cada checkbox
+                    chk_states = {}
+
+                    def make_on_change(opt):
+                        def on_change(e):
+                            if e.value and opt not in state["opcao"]:
+                                state["opcao"].append(opt)
+                            elif not e.value and opt in state["opcao"]:
+                                state["opcao"].remove(opt)
+                            atualizar_impacto()
+                        return on_change
+
+                    for opt_key in opcoes.keys():
+                        is_checked = opt_key in state["opcao"]
+                        chk = ui.checkbox(
+                            text=opt_key,
+                            value=is_checked,
+                            on_change=make_on_change(opt_key)
+                        ).props("color=blue")
+                        chk_states[opt_key] = chk
             else:
-                input_opcao = (
+                input_radio = (
                     ui.radio(
                         options=list(opcoes.keys()),
                         value=state["opcao"],
@@ -226,15 +239,16 @@ def render_quesito(
                     .bind_value(state, "opcao")
                 )
 
+            # Lado Direito: Textarea para o Link
             ui.textarea(
                 label="Link de Evidência / Documento:",
                 value=state["link"],
                 placeholder=placeholder_link,
-            ).classes("w-full").props("outlined rows=4").bind_value(
+            ).classes("w-full").props("outlined rows=5").bind_value(
                 state, "link"
             )
 
-        # Cálculo inicial da pontuação
+        # Cálculo dinâmico de pontuação
         def calcular_pontos(opcao_sel):
             if isinstance(opcao_sel, list):
                 return sum(opcoes.get(opt, 0.0) for opt in opcao_sel)
@@ -245,14 +259,16 @@ def render_quesito(
             f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
         ).classes("text-sm font-bold text-green-600 my-4")
 
-        def ao_mudar_opcao(e):
-            novos_pts = calcular_pontos(e.value)
+        def atualizar_impacto():
+            novos_pts = calcular_pontos(state["opcao"])
             label_impacto.set_text(
                 f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
             )
 
-        input_opcao.on("update:model-value", ao_mudar_opcao)
+        if tipo_input != "checkbox":
+            input_radio.on("update:model-value", lambda e: atualizar_impacto())
 
+        # Botão Salvar
         def salvar_acao():
             opcao_sel = state["opcao"]
             pts = calcular_pontos(opcao_sel)
@@ -272,7 +288,7 @@ def render_quesito(
                 on_save_callback()
 
         ui.button(
-            f"💾 SALVAR QUESITO {qid}", on_click=salvar_acao
+            "SALVAR RESPOSTA", on_click=salvar_acao
         ).classes(
             "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
         )
