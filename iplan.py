@@ -24,6 +24,7 @@ def init_db():
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
+                # Criar tabela caso não exista
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS respostas_iplan (
                         qid VARCHAR(50) NOT NULL,
@@ -58,8 +59,19 @@ def load_respostas(ano):
                 cur.execute(query, (int(ano),))
                 rows = cur.fetchall()
                 for row in rows:
+                    val_bruto = row["valor"] or ""
+                    
+                    # Se for uma lista salva como JSON string, converte de volta para Python
+                    if val_bruto.startswith("[") and val_bruto.endswith("]"):
+                        try:
+                            val_final = json.loads(val_bruto)
+                        except Exception:
+                            val_final = val_bruto
+                    else:
+                        val_final = val_bruto
+
                     respostas[row["qid"]] = {
-                        "valor": row["valor"] or "",
+                        "valor": val_final,
                         "pontos": (
                             float(row["pontos"])
                             if row["pontos"] is not None
@@ -91,6 +103,12 @@ def save_resposta(
 
     link_final = link.strip() if link else ""
 
+    # Trata lista (Checkboxes) convertendo para JSON em texto
+    if isinstance(valor, list):
+        valor_str = json.dumps(valor)
+    else:
+        valor_str = str(valor) if valor is not None else ""
+
     query = """
         INSERT INTO respostas_iplan (ano, qid, valor, pontos, link, comentarios, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -111,7 +129,7 @@ def save_resposta(
                     (
                         int(ano),
                         str(qid),
-                        str(valor),
+                        valor_str,
                         float(pontos),
                         link_final,
                         Json(comentarios),
@@ -119,6 +137,7 @@ def save_resposta(
                     ),
                 )
                 conn.commit()
+                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso no banco!")
     except Exception as e:
         print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
 
@@ -137,7 +156,6 @@ def zerar_questionario_db(ano):
 def _obter_lista_comentarios(dados_q):
     coms = dados_q.get("comentarios", [])
     return coms if isinstance(coms, list) else []
-
 
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
