@@ -3756,6 +3756,98 @@ def container_formulario_iamb(ano=None):
                     placeholder_link="Insira o link comprobatório referente à presença ou ausência do aterro no município...",
                     on_save_callback=render_conteudo.refresh,
                 )
+
+                # =============================================================================
+                # QUESITO 13.1 (Seleção Múltipla com Pontuação Penalizativa / Desconto)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("13.1 • Características do Local de Destinação Final dos RSU (Aterro)").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale as características do local de destinação final dos resíduos sólidos urbanos do município (aterro):").classes("text-base font-bold text-black mb-1")
+                    ui.label("⚠️ Regra de Pontuação: Para cada opção NÃO assinalada (exceto 'Outros'), perde-se 5 pontos (Pontuação Máxima de Perda: -110 pts).").classes("text-xs text-amber-600 font-semibold mb-6")
+
+                    d131 = res_data.get("13.1") or {}
+                    try:
+                        sel_131_salvos = json.loads(d131.get("valor", "[]"))
+                        if not isinstance(sel_131_salvos, list): sel_131_salvos = []
+                    except Exception:
+                        sel_131_salvos = []
+
+                    # Dicionário mapeando chave: (Rótulo, Penalizável_se_não_marcado)
+                    mapa_131 = {
+                        "local_planejado": ("Local da instalação foi planejado", True),
+                        "capacidade_definida": ("Capacidade do local é definida", True),
+                        "celulas_individuais": ("Há desenvolvimento de células individuais", True),
+                        "impermeabilizacao_solo": ("Impermeabilização do solo", True),
+                        "gestao_chorume": ("Total gestão do chorume", True),
+                        "gestao_gases": ("Total gestão dos gases", True),
+                        "cobertura_solo": ("Aplicação diária de camadas intermediárias e finais - cobertura do solo", True),
+                        "compactacao_residuos": ("Há compactação dos resíduos", True),
+                        "protecao_vegetal": ("Há proteção vegetal (manutenção do paisagismo sobre as células de resíduos)", True),
+                        "vias_acesso": ("Há desenvolvimento e manutenção das vias de acesso do aterro", True),
+                        "cercas_muros": ("Há cercas/muros ao redor do local do aterro", True),
+                        "controle_acesso": ("Há controle de acesso ao local do aterro", True),
+                        "controle_quantitativo": ("Controle total do quantitativo de resíduos que entram no aterro", True),
+                        "controle_procedencia": ("Controle total da procedência dos resíduos que entram no aterro", True),
+                        "controle_composicao": ("Controle total da composição dos resíduos que entram no aterro", True),
+                        "sem_catadores": ("Não há coleta de resíduos por catadores dentro do aterro", True),
+                        "sem_comercio": ("Não há comércio de resíduos dentro do aterro", True),
+                        "sem_animais": ("Não há presença de animais domésticos e/ou animais silvestres (urubus, garças, etc.)", True),
+                        "sem_odores_moscas": ("Não há odores nem presença de moscas", True),
+                        "sem_queima": ("Não há queima de resíduos dentro do aterro", True),
+                        "data_fechamento": ("Conhecimento da data provável de fechamento do aterro", True),
+                        "previsao_pos_fechamento": ("Previsão de gerenciamento do aterro pós-fechamento", True),
+                        "outros": ("Outros", False),
+                    }
+
+                    state_131 = {k: k in sel_131_salvos for k in mapa_131.keys()}
+                    state_131["link"] = d131.get("link", "")
+
+                    def calc_pts_131():
+                        # Conta quantas opções penalizáveis NÃO foram assinaladas
+                        nao_marcadas = sum(
+                            1 for k, (_, penalizavel) in mapa_131.items()
+                            if penalizavel and not state_131.get(k)
+                        )
+                        return -(nao_marcadas * 5.0)
+
+                    # Divisão das opções em duas colunas verticais
+                    itens_131 = list(mapa_131.items())
+                    meio_131 = (len(itens_131) + 1) // 2
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            for k, (rotulo, _) in itens_131[:meio_131]:
+                                ui.checkbox(rotulo).bind_value(state_131, k)
+                        with ui.column().classes("w-full gap-1"):
+                            for k, (rotulo, _) in itens_131[meio_131:]:
+                                ui.checkbox(rotulo).bind_value(state_131, k)
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_131["link"],
+                        placeholder="Insira o link das comprovações das características do aterro...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_131, "link")
+
+                    lbl_pts_131 = ui.label(f"📊 Pontuação de Penalização / Impacto no Quesito 13.1: {calc_pts_131():.1f} pontos").classes("text-sm font-bold text-red-600 my-2")
+
+                    def salvar_131():
+                        selecionados = [k for k in mapa_131.keys() if state_131.get(k)]
+                        pts = calc_pts_131()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="13.1",
+                            valor=json.dumps(selecionados),
+                            pontos=pts,
+                            link=state_131["link"],
+                            comentarios=d131.get("comentarios", []),
+                            status=d131.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 13.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 13.1", on_click=salvar_131).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("13.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
