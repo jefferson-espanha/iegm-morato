@@ -221,17 +221,16 @@ def render_quesito(
                 status=dados_q.get("status", "Pendente"),
             )
             ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
+            
+            # --- PROTEÇÃO CONTRA O ERRO DE REFRESH ---
             if on_save_callback:
-                on_save_callback()
-
-        ui.button(
-            f"💾 SALVAR QUESITO {qid}", on_click=salvar_acao
-        ).classes(
-            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-        )
-
-        ui.separator().classes("my-2")
-        bloco_comentarios(qid, res_data, on_save_callback)
+                try:
+                    on_save_callback()
+                except TypeError:
+                    # Caso passem algo que não é função ou não suporta .refresh()
+                    ui.run_javascript('window.location.reload()')
+                except Exception:
+                    ui.run_javascript('window.location.reload()')
 
 
 # =============================================================================
