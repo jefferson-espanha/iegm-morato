@@ -5040,6 +5040,115 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO A4.1.3", on_click=salvar_A413).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("A4.1.3", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO A4.1.4 (Drenagem e Manejo de Águas Pluviais Urbanas)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("A4.1.4 • Drenagem e Manejo de Águas Pluviais Urbanas").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe os dados de cobertura de drenagem e risco de inundação (SINISA):").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Dados do SINISA. Não sujeitos à validação.").classes("text-xs text-gray-500 font-semibold mb-6")
+
+                    dA414 = res_data.get("A4.1.4") or {}
+                    val_A414_raw = dA414.get("valor", "{}")
+                    try:
+                        vals_A414_dict = json.loads(val_A414_raw) if isinstance(val_A414_raw, str) else (val_A414_raw if isinstance(val_A414_raw, dict) else {})
+                    except Exception:
+                        vals_A414_dict = {}
+
+                    state_A414 = {
+                        "p_pavimentacao": str(vals_A414_dict.get("p_pavimentacao", "")),
+                        "p_redes_subterraneas": str(vals_A414_dict.get("p_redes_subterraneas", "")),
+                        "p_domicilios_risco": str(vals_A414_dict.get("p_domicilios_risco", "")),
+                        "link": dA414.get("link", ""),
+                    }
+
+                    with ui.grid(columns=3).classes("w-full gap-4 items-start mb-4"):
+                        ui.input(
+                            "Pavimentação e meio-fio (%):",
+                            value=state_A414["p_pavimentacao"],
+                            placeholder="Ex: 85.0",
+                        ).classes("w-full").props("outlined").bind_value(state_A414, "p_pavimentacao")
+
+                        ui.input(
+                            "Redes/Canais subterrâneos (%):",
+                            value=state_A414["p_redes_subterraneas"],
+                            placeholder="Ex: 60.0",
+                        ).classes("w-full").props("outlined").bind_value(state_A414, "p_redes_subterraneas")
+
+                        ui.input(
+                            "Domicílios em risco de inundação (%):",
+                            value=state_A414["p_domicilios_risco"],
+                            placeholder="Ex: 5.0",
+                        ).classes("w-full").props("outlined").bind_value(state_A414, "p_domicilios_risco")
+
+                    ui.textarea(
+                        label="Link de Evidência / Fonte SINISA:",
+                        value=state_A414["link"],
+                        placeholder="Insira o link das informações de drenagem no SINISA...",
+                    ).classes("w-full mb-2").props("outlined rows=3").bind_value(state_A414, "link")
+
+                    def salvar_A414():
+                        payload_salvar = {
+                            "p_pavimentacao": state_A414["p_pavimentacao"],
+                            "p_redes_subterraneas": state_A414["p_redes_subterraneas"],
+                            "p_domicilios_risco": state_A414["p_domicilios_risco"],
+                        }
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="A4.1.4",
+                            valor=json.dumps(payload_salvar),
+                            pontos=0.0,
+                            link=state_A414["link"],
+                            comentarios=dA414.get("comentarios", []),
+                            status=dA414.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito A4.1.4 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO A4.1.4", on_click=salvar_A414).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("A4.1.4", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO A5 (Taxa/Tarifa de Limpeza Urbana e Resíduos Sólidos)
+                # =============================================================================
+                opcoes_A5 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                    "Não foi informado": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="A5",
+                    titulo="Taxa / Tarifa de Limpeza Urbana e Resíduos Sólidos",
+                    pergunta="Foi instituída taxa / tarifa de cobrança dos serviços de limpeza urbana e manejo de resíduos sólidos?",
+                    opcoes=opcoes_A5,
+                    placeholder_link="Insira o link da legislação/comprovante do SINISA...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO A6 (Uso de Balança para Pesagem Rotineira)
+                # =============================================================================
+                opcoes_A6 = {
+                    "Selecione...": 0.0,
+                    "Sim": 5.0,
+                    "Não": 0.0,
+                    "Não foi informado": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="A6",
+                    titulo="Balança para Pesagem Rotineira dos Resíduos Coletados",
+                    pergunta="O município utiliza balança para pesagem rotineira dos resíduos sólidos coletados?",
+                    opcoes=opcoes_A6,
+                    placeholder_link="Insira o link de evidência/comprovação do SINISA...",
+                    on_save_callback=render_conteudo.refresh,
+                )
     
     # Executa a renderização da interface
     render_conteudo()
