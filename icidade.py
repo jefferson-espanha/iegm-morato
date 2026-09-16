@@ -895,4 +895,107 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+    # ==========================================
+                # QUESITO 5.1.1 (Fiscalização de Áreas de Risco)
+                # ==========================================
+                opcoes_511 = {
+                    "Selecione...": 0.0,
+                    "Sim, integralmente (0.0 pts)": 0.0,
+                    "Sim, parcialmente (0.0 pts)": 0.0,
+                    "Não houve fiscalização (-100.0 pts)": -100.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.1.1",
+                    titulo="Fiscalização das Áreas de Risco",
+                    pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
+                    opcoes=opcoes_511,
+                    placeholder_link="Insira o link dos relatórios de fiscalização...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 5.1.2 (Possibilidade de Ocupação)
+                # ==========================================
+                opcoes_512 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.1.2",
+                    titulo="Áreas de Risco Sujeitas a Ocupação ou Invasão",
+                    pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
+                    opcoes=opcoes_512,
+                    placeholder_link="Insira o link do levantamento ou relatório de monitoramento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 5.1.2.1 (Mecanismos de Vedação - Checkbox)
+                # ==========================================
+                opcoes_5121 = {
+                    "Aplicação de sanções monetárias (multas)": 0.0,
+                    "Monitoramento (fiscalização)": 0.0,
+                    "Notificação dos infratores": 0.0,
+                    "Interdição do local e remoção das famílias": 0.0,
+                    "Demolição das ocupações": 0.0,
+                    "Outros": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.1.2.1",
+                    titulo="Mecanismos para Vedar Novas Ocupações",
+                    pergunta="Assinale os mecanismos para vedar novas ocupações nas áreas de riscos:",
+                    tipo_input="checkbox",
+                    opcoes=opcoes_5121,
+                    placeholder_link="Insira o link para a comprovação das ações de fiscalização/coibição...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 5.2 (Informação à População)
+                # ==========================================
+                opcoes_52 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Parcialmente (0.0 pts)": 0.0,
+                    "Não (-50.0 pts)": -50.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.2",
+                    titulo="Informação da População sobre Ameaças",
+                    pergunta="A população foi informada sobre todas as ameaças identificadas pelo município?",
+                    opcoes=opcoes_52,
+                    placeholder_link="Insira o link das campanhas, boletins ou publicações...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 6.0 (Vistoria em Edificações)
+                # ==========================================
+                opcoes_60 = {
+                    "Selecione...": 0.0,
+                    "Sim, de acordo com um cronograma preestabelecido (0.0 pts)": 0.0,
+                    "Sim, de acordo com a demanda (0.0 pts)": 0.0,
+                    "Não foram vistoriadas (-50.0 pts)": -50.0,
+                    "Não houve casos de edificações vulneráveis no Município (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="6.0",
+                    titulo="Vistorias em Edificações Vulneráveis",
+                    pergunta="A Secretaria responsável realizou vistorias em edificações vulneráveis com o objetivo de identificar a necessidade de intervenção preventiva nos imóveis?",
+                    opcoes=opcoes_60,
+                    placeholder_link="Insira o link do cronograma, ordens de serviço ou relatórios...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
