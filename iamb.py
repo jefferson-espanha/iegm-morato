@@ -137,6 +137,79 @@ def _obter_lista_comentarios(dados_q):
 
 
 # =============================================================================
+# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
+# =============================================================================
+def render_quesito(
+    ano,
+    res_data,
+    qid,
+    titulo,
+    pergunta,
+    opcoes,
+    placeholder_link="",
+    on_save_callback=None,
+):
+    dados_q = res_data.get(qid, {})
+    valor_atual = dados_q.get("valor", "Selecione...")
+    if valor_atual not in opcoes:
+        valor_atual = "Selecione..."
+
+    link_atual = dados_q.get("link", "")
+
+    state = {
+        "opcao": valor_atual,
+        "link": link_atual,
+    }
+
+    with ui.card().classes(
+        "w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"
+    ):
+        ui.label(f"📌 Quesito {qid} - {titulo}").classes(
+            "text-lg font-bold text-blue-900 mb-1"
+        )
+        ui.label(pergunta).classes("text-base font-semibold text-gray-800 mb-4")
+
+        with ui.row().classes("w-full items-center gap-4 mb-4"):
+            ui.select(
+                options=list(opcoes.keys()),
+                value=state["opcao"],
+                label="Selecione a resposta:",
+            ).classes("w-full md:w-1/2").bind_value(state, "opcao")
+
+        ui.textarea(
+            label="Página Eletrônica (Link / Evidência):",
+            value=state["link"],
+            placeholder=placeholder_link,
+        ).classes("w-full mb-4").bind_value(state, "link")
+
+        def salvar_acao():
+            opcao_sel = state["opcao"]
+            pts = opcoes.get(opcao_sel, 0.0)
+            lnk = state["link"]
+
+            save_resposta(
+                ano=ano,
+                qid=qid,
+                valor=opcao_sel,
+                pontos=pts,
+                link=lnk,
+                comentarios=dados_q.get("comentarios", []),
+                status=dados_q.get("status", "Pendente"),
+            )
+            ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
+            if on_save_callback:
+                on_save_callback()
+
+        with ui.row().classes("w-full justify-end mb-2"):
+            ui.button("Salvar Quesito", on_click=salvar_acao, icon="save").classes(
+                "bg-blue-800 text-white font-medium px-4 py-2 rounded-md"
+            )
+
+        ui.separator().classes("my-2")
+        bloco_comentarios(qid, res_data, on_save_callback)
+
+
+# =============================================================================
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
@@ -375,9 +448,7 @@ def container_formulario_iamb(ano=None):
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
 
-                # =============================================================================
-                # QUESITO 1.0 • ESTRUTURA ORGANIZACIONAL DE MEIO AMBIENTE
-                # =============================================================================
+                # Quesito 1.0
                 opcoes_10 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -394,9 +465,7 @@ def container_formulario_iamb(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-                # =============================================================================
-                # QUESITO 1.1 • RECURSOS HUMANOS EM MEIO AMBIENTE
-                # =============================================================================
+                # Quesito 1.1
                 with ui.card().classes(
                     "w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"
                 ):
@@ -580,12 +649,9 @@ def container_formulario_iamb(ano=None):
                         )
 
                     ui.separator().classes("my-2")
-
                     bloco_comentarios("1.1", res_data, render_conteudo.refresh)
 
-                # =============================================================================
-                # QUESITO 1.1.2 • TREINAMENTO DOS SERVIDORES EM MEIO AMBIENTE
-                # =============================================================================
+                # Quesito 1.1.2
                 ano_treinamento = ano_sel - 1
                 opcoes_112 = {
                     "Selecione...": 0.0,
@@ -606,6 +672,5 @@ def container_formulario_iamb(ano=None):
     render_conteudo()
 
 
-# Aliases para o main.py
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
