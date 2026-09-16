@@ -2301,6 +2301,301 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 7.10", on_click=salvar_710).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("7.10", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 8.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_80 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="8.0",
+                    titulo="Plano Municipal/Regional de Gestão Integrada de Resíduos Sólidos",
+                    pergunta="Foi elaborado o Plano Municipal ou Regional de Gestão Integrada de Resíduos Sólidos, conforme Lei nº 12.305/2010?",
+                    opcoes=opcoes_80,
+                    placeholder_link="Insira a cópia ou página de publicação do PMGIRS...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 8.1 (Campos de Texto para Instrumento Normativo)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("8.1 • Instrumento Normativo do PMGIRS").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Preencha as informações do ato legal e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d81 = res_data.get("8.1") or {}
+                    raw_val_81 = str(d81.get("valor") or "")
+                    
+                    norma_i, num_i, data_i = "", "", ""
+                    if "|NUM:" in raw_val_81 and "|DATA:" in raw_val_81:
+                        partes_81 = raw_val_81.split("|NUM:")
+                        norma_i = partes_81[0]
+                        num_i, data_i = partes_81[1].split("|DATA:")
+
+                    state_81 = {
+                        "norma": norma_i,
+                        "numero": num_i,
+                        "data": data_i,
+                        "link": d81.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input("Instrumento Normativo (Ex: Lei Municipal, Decreto):", value=norma_i, placeholder="Ex: Lei Municipal").classes("w-full").props("outlined").bind_value(state_81, "norma")
+                            ui.input("Número do Instrumento:", value=num_i, placeholder="Ex: nº 4.567/2018").classes("w-full").props("outlined").bind_value(state_81, "numero")
+                            ui.input("Data da Publicação:", value=data_i, placeholder="Ex: 20/10/2018").classes("w-full").props("outlined").bind_value(state_81, "data")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_81["link"],
+                            placeholder="Insira a cópia do Diário Oficial ou link do documento na íntegra...",
+                        ).classes("w-full").props("outlined rows=6").bind_value(state_81, "link")
+
+                    def salvar_81():
+                        composite_val = f"{state_81['norma']}|NUM:{state_81['numero']}|DATA:{state_81['data']}"
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="8.1",
+                            valor=composite_val,
+                            pontos=0.0,
+                            link=state_81["link"],
+                            comentarios=d81.get("comentarios", []),
+                            status=d81.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 8.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 8.1", on_click=salvar_81).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("8.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 8.2 (Validação de Link vs Texto XYZ)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("8.2 • Link do Instrumento Normativo do PMGIRS").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe a página eletrônica (link na internet) do instrumento normativo do PMGIRS:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Se não estiver disponível na internet, insira 'XYZ' no campo. (Link válido = 2 pts | XYZ = 0 pts)").classes("text-xs text-gray-400 mb-6")
+
+                    d82 = res_data.get("8.2") or {}
+                    val_82_i = str(d82.get("valor") or "").strip()
+
+                    state_82 = {
+                        "link_plano": val_82_i if val_82_i else "XYZ",
+                        "link_evid": d82.get("link", ""),
+                    }
+
+                    def calc_pts_82():
+                        txt = state_82["link_plano"].strip()
+                        if not txt or txt.upper() == "XYZ":
+                            return 0.0
+                        return 2.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Link na Internet (ou digite XYZ):",
+                                value=state_82["link_plano"],
+                                placeholder="https://... ou XYZ",
+                            ).classes("w-full").props("outlined").bind_value(state_82, "link_plano")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento Complementar:",
+                            value=state_82["link_evid"],
+                            placeholder="Insira o link da página no portal da transparência ou diário oficial...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_82, "link_evid")
+
+                    lbl_pts_82 = ui.label(f"📊 Impacto de Pontuação no Quesito 8.2: {calc_pts_82():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_82():
+                        lbl_pts_82.set_text(f"📊 Impacto de Pontuação no Quesito 8.2: {calc_pts_82():.1f} pontos")
+
+                    def salvar_82():
+                        pts = calc_pts_82()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="8.2",
+                            valor=state_82["link_plano"],
+                            pontos=pts,
+                            link=state_82["link_evid"],
+                            comentarios=d82.get("comentarios", []),
+                            status=d82.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 8.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 8.2", on_click=salvar_82).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("8.2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 8.3 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_83 = {
+                    "Selecione...": 0.0,
+                    "Sim – 10 pts": 10.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="8.3",
+                    titulo="Caracterização Qualitativa e Quantitativa dos Resíduos Sólidos",
+                    pergunta="A Prefeitura realizou a caracterização qualitativa e quantitativa dos resíduos sólidos urbanos gerados no município, identificando ainda sua origem?",
+                    opcoes=opcoes_83,
+                    placeholder_link="Insira o estudo de gravimetria ou relatório de caracterização dos resíduos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 8.3.1 (Seleção Múltipla - Formas de Caracterização)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("8.3.1 • Forma Utilizada para Caracterizar os Resíduos Sólidos").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale a forma utilizada para caracterizar os resíduos sólidos do município:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d831 = res_data.get("8.3.1") or {}
+                    try:
+                        sel_831_salvos = json.loads(d831.get("valor", "[]"))
+                        if not isinstance(sel_831_salvos, list): sel_831_salvos = []
+                    except Exception:
+                        sel_831_salvos = []
+
+                    mapa_831 = {
+                        "estimativa_secundarios": ("Estimativa com base em dados secundários", 0.0),
+                        "estudo_gravimetrico": ("Realização de estudo gravimétrico, por amostragem", 0.0),
+                        "dados_primarios": ("Pesquisa de dados primários com medição direta", 0.0),
+                        "outros": ("Outros", 0.0),
+                    }
+
+                    state_831 = {k: k in sel_831_salvos for k in mapa_831.keys()}
+                    state_831["link"] = d831.get("link", "")
+
+                    def calc_pts_831():
+                        return sum(peso for k, (_, peso) in mapa_831.items() if state_831.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_831a = [ui.checkbox(rotulo).bind_value(state_831, k) for k, (rotulo, _) in list(mapa_831.items())[:2]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_831b = [ui.checkbox(rotulo).bind_value(state_831, k) for k, (rotulo, _) in list(mapa_831.items())[2:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_831["link"],
+                        placeholder="Insira o link das planilhas, relatórios técnicos ou dados primários...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_831, "link")
+
+                    def salvar_831():
+                        selecionados = [k for k in mapa_831.keys() if state_831.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="8.3.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_831(),
+                            link=state_831["link"],
+                            comentarios=d831.get("comentarios", []),
+                            status=d831.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 8.3.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 8.3.1", on_click=salvar_831).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("8.3.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 8.4 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_84 = {
+                    "Selecione...": 0.0,
+                    "Sim – 20 pts": 20.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="8.4",
+                    titulo="Cronograma com Metas de Resíduos Sólidos",
+                    pergunta="Possui cronograma com as metas a serem cumpridas de resíduos sólidos?",
+                    opcoes=opcoes_84,
+                    placeholder_link="Insira o link da seção do plano que apresenta o cronograma de metas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 8.4.1 (Seleção Múltipla de Metas de Resíduos Sólidos)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("8.4.1 • Metas Estabelecidas sobre Resíduos Sólidos").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale quais as metas estabelecidas sobre resíduos sólidos:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as metas presentes no Plano e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d841 = res_data.get("8.4.1") or {}
+                    try:
+                        sel_841_salvos = json.loads(d841.get("valor", "[]"))
+                        if not isinstance(sel_841_salvos, list): sel_841_salvos = []
+                    except Exception:
+                        sel_841_salvos = []
+
+                    mapa_841 = {
+                        "reducao_fonte": ("Metas de redução da geração de resíduos sólidos na fonte (+2,5 pts)", 2.5),
+                        "coleta_seletiva": ("Metas de coleta seletiva (+2,0 pts)", 2.0),
+                        "reducao_secos_aterro": ("Metas de redução de resíduos sólidos secos dispostos em aterros (+2,5 pts)", 2.5),
+                        "reducao_umidos_aterro": ("Metas de redução de resíduos sólidos úmidos dispostos em aterros (+2,5 pts)", 2.5),
+                        "outro": ("Outro (+0,5 pts)", 0.5),
+                    }
+
+                    state_841 = {k: k in sel_841_salvos for k in mapa_841.keys()}
+                    state_841["link"] = d841.get("link", "")
+
+                    def calc_pts_841():
+                        return sum(peso for k, (_, peso) in mapa_841.items() if state_841.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_841a = [ui.checkbox(rotulo).bind_value(state_841, k) for k, (rotulo, _) in list(mapa_841.items())[:3]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_841b = [ui.checkbox(rotulo).bind_value(state_841, k) for k, (rotulo, _) in list(mapa_841.items())[3:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_841["link"],
+                        placeholder="Insira o link do trecho do plano ou tabelas com o detalhamento das metas...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_841, "link")
+
+                    lbl_pts_841 = ui.label(f"📊 Impacto de Pontuação no Quesito 8.4.1: {calc_pts_841():.1f} / 10.0 pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_841():
+                        lbl_pts_841.set_text(f"📊 Impacto de Pontuação no Quesito 8.4.1: {calc_pts_841():.1f} / 10.0 pontos")
+
+                    for cb in cb_col_841a + cb_col_841b:
+                        cb.on("update:model-value", att_pts_841)
+
+                    def salvar_841():
+                        selecionados = [k for k in mapa_841.keys() if state_841.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="8.4.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_841(),
+                            link=state_841["link"],
+                            comentarios=d841.get("comentarios", []),
+                            status=d841.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 8.4.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 8.4.1", on_click=salvar_841).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("8.4.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
