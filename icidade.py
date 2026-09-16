@@ -140,7 +140,7 @@ def _obter_lista_comentarios(dados_q):
 
 
 # =============================================================================
-# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
+# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (ATUALIZADA)
 # =============================================================================
 def render_quesito(
     ano,
@@ -149,7 +149,7 @@ def render_quesito(
     titulo,
     pergunta,
     opcoes=None,
-    tipo_input="radio",  # <--- Adicionado parâmetro com valor padrão
+    tipo_input="radio",
     placeholder_texto="Digite sua resposta...",
     placeholder_link="Insira o link da evidência...",
     on_save_callback=None,
@@ -174,22 +174,26 @@ def render_quesito(
             "ℹ Preencha os campos abaixo e clique no botão de salvar."
         ).classes("text-xs text-gray-400 mb-6")
 
+        # RENDERIZAÇÃO DE CAMPO TEXTUAL/LINK
         if tipo_input in ["texto", "link"]:
-            input_resposta = ui.input(
-                label="Resposta:",
+            ui.textarea(
+                label="Resposta / Detalhamento:",
                 value=state["opcao"],
                 placeholder=placeholder_texto if tipo_input == "texto" else placeholder_link,
-            ).classes("w-full mb-4").bind_value(state, "opcao")
-            
-            label_impacto = None
+            ).classes("w-full mb-4").props("outlined rows=3").bind_value(state, "opcao")
+
+        # RENDERIZAÇÃO DE SELEÇÃO POR RADIO BUTTONS
         else:
-            if opcoes and state["opcao"] not in opcoes:
+            if not opcoes:
+                opcoes = {"Selecione...": 0.0}
+
+            if state["opcao"] not in opcoes:
                 state["opcao"] = "Selecione..."
 
             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                 radio_opcao = (
                     ui.radio(
-                        options=list(opcoes.keys()) if opcoes else [],
+                        options=list(opcoes.keys()),
                         value=state["opcao"],
                     )
                     .props("color=blue")
@@ -204,13 +208,13 @@ def render_quesito(
                     state, "link"
                 )
 
-            pts_atuais = opcoes.get(state["opcao"], 0.0) if opcoes else 0.0
+            pts_atuais = opcoes.get(state["opcao"], 0.0)
             label_impacto = ui.label(
                 f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
             ).classes("text-sm font-bold text-green-600 my-4")
 
             def ao_mudar_opcao(e):
-                novos_pts = opcoes.get(e.value, 0.0) if opcoes else 0.0
+                novos_pts = opcoes.get(e.value, 0.0)
                 label_impacto.set_text(
                     f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
                 )
@@ -237,11 +241,11 @@ def render_quesito(
                 try:
                     on_save_callback()
                 except Exception:
-                    ui.run_javascript("window.location.reload()")
+                    ui.run_javascript('window.location.reload()')
 
-        ui.button("Salvar Resposta", on_click=salvar_acao).classes(
-            "bg-blue-600 text-white font-bold px-4 py-2"
-        )
+        ui.button("Salvar Resposta", on_click=salvar_acao).classes("bg-blue-600 text-white font-bold px-4 py-2")
+
+
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
@@ -445,18 +449,16 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS (CORRIGIDO SEM DUPLICAÇÃO)
+# MÓDULO PRINCIPAL DE REQUISITOS (SEM DUPLICAÇÃO)
 # =============================================================================
 def container_formulario_icidade(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
-    # Criamos um contêiner pai único
     main_container = ui.element("div").classes("w-full")
 
     @ui.refreshable
     def render_conteudo():
-        # Limpa elementos remanescentes no contêiner antes de re-renderizar
         main_container.clear()
 
         ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
@@ -510,29 +512,27 @@ def container_formulario_icidade(ano=None):
                 # ==========================================
                 # QUESITO 1.1 (Campo de Texto / Normativo)
                 # ==========================================
-                opcoes_11 = {"Preenchido / Verificado": 0.0, "Não Preenchido": 0.0}
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
                     qid="1.1",
                     titulo="Instrumento Normativo de Criação da COMPDEC",
                     pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
-                    opcoes=opcoes_11,
-                    placeholder_link="Ex: Lei Municipal nº 1.234, de 10 de janeiro de 2020",
+                    tipo_input="texto",
+                    placeholder_texto="Ex: Lei Municipal nº 1.234, de 10 de janeiro de 2020",
                     on_save_callback=render_conteudo.refresh,
                 )
 
                 # ==========================================
                 # QUESITO 1.2 (Link / Página Eletrônica)
                 # ==========================================
-                opcoes_12 = {"Link Informado": 0.0, "XYZ (Indisponível)": 0.0}
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
                     qid="1.2",
                     titulo="Link do Instrumento Normativo",
                     pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
-                    opcoes=opcoes_12,
+                    tipo_input="link",
                     placeholder_link="https://... ou digite XYZ",
                     on_save_callback=render_conteudo.refresh,
                 )
