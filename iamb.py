@@ -959,6 +959,193 @@ def container_formulario_iamb(ano=None):
                     placeholder_link="Insira o link das portarias, fotos das instalações, comprovantes de coleta seletiva nos prédios públicos...",
                     on_save_callback=render_conteudo.refresh,
                 )
+
+    # =============================================================================
+                # QUESITO 3.1 (Seleção Múltipla - Checkboxes com Pontuação Fracionada)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("3.1 • Tipos de Ações para Uso Racional de Recursos Naturais").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale quais tipos de ações são realizadas pela Prefeitura:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as ações aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d31 = res_data.get("3.1") or {}
+                    try:
+                        sel_31_salvos = json.loads(d31.get("valor", "[]"))
+                        if not isinstance(sel_31_salvos, list): sel_31_salvos = []
+                    except Exception:
+                        sel_31_salvos = []
+
+                    mapa_31 = {
+                        "coleta": ("Coleta seletiva (+1,5 pts)", 1.5),
+                        "agua": ("Uso racional da água (+1,5 pts)", 1.5),
+                        "energia": ("Uso racional de energia elétrica (+1,5 pts)", 1.5),
+                        "reuso_mat": ("Reúso de materiais (+1,5 pts)", 1.5),
+                        "horta": ("Horta coletiva (+1,5 pts)", 1.5),
+                        "compostagem": ("Compostagem (+1,5 pts)", 1.5),
+                        "bicicletarios": ("Instalação de bicicletários e vestiários (+1,5 pts)", 1.5),
+                        "caixas_acopladas": ("Caixas acopladas nos vasos sanitários (+1,5 pts)", 1.5),
+                        "led": ("Substituição de lâmpadas por LED (+1,5 pts)", 1.5),
+                        "chuva": ("Captura de água de chuva (+1,5 pts)", 1.5),
+                        "torneiras": ("Torneiras com redutores de pressão (+1,5 pts)", 1.5),
+                        "descartaveis": ("Substituição de material descartável (+1,5 pts)", 1.5),
+                        "logistica_reversa": ("Logística reversa (pilhas/baterias/eletrônicos) (+1,5 pts)", 1.5),
+                        "outros": ("Outros (+0,5 pts)", 0.5),
+                    }
+
+                    state_31 = {k: k in sel_31_salvos for k in mapa_31.keys()}
+                    state_31["link"] = d31.get("link", "")
+
+                    def calc_pts_31():
+                        pts = sum(peso for k, (_, peso) in mapa_31.items() if state_31.get(k))
+                        return min(pts, 20.0)
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col = [ui.checkbox(rotulo).bind_value(state_31, k) for k, (rotulo, _) in list(mapa_31.items())[:7]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col2 = [ui.checkbox(rotulo).bind_value(state_31, k) for k, (rotulo, _) in list(mapa_31.items())[7:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_31["link"],
+                        placeholder="Insira relatórios, ordens de serviço, fotos das instalações...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_31, "link")
+
+                    lbl_pts_31 = ui.label(f"📊 Impacto de Pontuação no Quesito 3.1: {calc_pts_31():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_31():
+                        lbl_pts_31.set_text(f"📊 Impacto de Pontuação no Quesito 3.1: {calc_pts_31():.1f} pontos")
+
+                    for cb in cb_col + cb_col2:
+                        cb.on("update:model-value", att_pts_31)
+
+                    def salvar_31():
+                        selecionados = [k for k in mapa_31.keys() if state_31.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="3.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_31(),
+                            link=state_31["link"],
+                            comentarios=d31.get("comentarios", []),
+                            status=d31.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 3.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 3.1", on_click=salvar_31).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("3.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 4.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_40 = {
+                    "Selecione...": 0.0,
+                    "Sim, com medição da densidade colorimétrica da Escala Ringelmann ou equivalente – 20 pts": 20.0,
+                    "Sim, através de outra forma de medição – 15 pts": 15.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="4.0",
+                    titulo="Fiscalização de Emissão de Poluentes na Frota",
+                    pergunta="O município fiscalizou a emissão de poluentes de combustíveis fósseis (diesel) na frota da Prefeitura Municipal?",
+                    opcoes=opcoes_40,
+                    placeholder_link="Insira laudos de medição, relatórios de medição de opacidade ou certificados...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 5.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_50 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.0",
+                    titulo="Contrato de Prestação de Serviço de Poda e Corte de Árvores",
+                    pergunta="A Prefeitura Municipal possui contrato de prestação de serviço de poda e corte de árvores, arbustos e outras plantas lenhosas em áreas urbanas?",
+                    opcoes=opcoes_50,
+                    placeholder_link="Insira o link do contrato administrativo ou termo de homologação...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 5.1 (Campos de Texto para Informações do Contrato)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("5.1 • Detalhamento do Contrato de Poda/Corte").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe o número do contrato e o prestador de serviço:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Preencha os dados e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d51 = res_data.get("5.1") or {}
+                    raw_val_51 = str(d51.get("valor") or "")
+                    
+                    num_contrato_i, prestador_i = "", ""
+                    if "|PRESTADOR:" in raw_val_51:
+                        num_contrato_i, prestador_i = raw_val_51.split("|PRESTADOR:", 1)
+
+                    state_51 = {
+                        "contrato": num_contrato_i,
+                        "prestador": prestador_i,
+                        "link": d51.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input("Número do Contrato:", value=num_contrato_i, placeholder="Ex: Contrato nº 042/2024").classes("w-full").props("outlined").bind_value(state_51, "contrato")
+                            ui.input("Prestador de Serviço (Razão Social / CNPJ):", value=prestador_i, placeholder="Ex: Empresa X Ltda - CNPJ 00.000.000/0001-00").classes("w-full").props("outlined").bind_value(state_51, "prestador")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_51["link"],
+                            placeholder="Insira o link da publicação do extrato no Diário Oficial ou cópia do contrato...",
+                        ).classes("w-full").props("outlined rows=5").bind_value(state_51, "link")
+
+                    def salvar_51():
+                        composite_val = f"{state_51['contrato']}|PRESTADOR:{state_51['prestador']}"
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="5.1",
+                            valor=composite_val,
+                            pontos=0.0,
+                            link=state_51["link"],
+                            comentarios=d51.get("comentarios", []),
+                            status=d51.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 5.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 5.1", on_click=salvar_51).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("5.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 5.2 (Seleção Única com Pontuação Negativa / Penalização)
+                # =============================================================================
+                opcoes_52 = {
+                    "Selecione...": 0.0,
+                    "Sim – 00 pts": 0.0,
+                    "Não tem uma periodicidade – (-10 pts)": -10.0,
+                    "Somente por solicitação – (-10 pts)": -10.0,
+                    "Não realiza poda e/ou corte de árvores – (-15 pts)": -15.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.2",
+                    titulo="Periodicidade de Poda e Manutenção das Árvores",
+                    pergunta="A Prefeitura mantém uma periodicidade de poda/manutenção das árvores?",
+                    opcoes=opcoes_52,
+                    placeholder_link="Insira o plano de arborização, cronograma de poda ou ordens de serviço...",
+                    on_save_callback=render_conteudo.refresh,
+                )
     
     # Executa a renderização da interface
     render_conteudo()
