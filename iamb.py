@@ -79,7 +79,7 @@ def load_respostas(ano):
 
 
 def save_resposta(
-    ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
+    ano, qid, valor, pontos, link="", comentarios=None, status="Pendente"
 ):
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(str(qid), {})
@@ -203,13 +203,11 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
 # MÓDULO PRINCIPAL DE REQUISITOS
 # =============================================================================
 def container_formulario_iamb(ano=None):
-    # Salva o ano inicial no storage do usuário se ainda não existir
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
     @ui.refreshable
     def render_conteudo():
-        # Busca dinamicamente o ano salvo no storage
         ano_atual = int(app.storage.user.get("ano_referencia_global", 2026))
         respostas = load_respostas(ano_atual)
 
@@ -218,7 +216,6 @@ def container_formulario_iamb(ano=None):
             ui.notify(f"Ano alterado para {novo_ano}", type="info")
             render_conteudo.refresh()
 
-        # Layout responsivo
         with ui.element("div").classes(
             "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
         ):
@@ -239,63 +236,237 @@ def container_formulario_iamb(ano=None):
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
 
-                # Quesito 1.1.2
-                qid = "1.1.2"
-                dados_q = respostas.get(
-                    qid, {"valor": "Não", "pontos": 0.0, "link": ""}
+                # -------------------------------------------------------------
+                # QUESITO 1.0
+                # -------------------------------------------------------------
+                qid_1_0 = "1.0"
+                dados_1_0 = respostas.get(
+                    qid_1_0, {"valor": "Não", "pontos": 0.0, "link": ""}
                 )
-                opcoes = {"Sim": "Sim – 20", "Não": "Não – 00"}
 
                 with ui.card().classes(
                     "w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"
                 ):
-                    ui.label(f"Quesito {qid}").classes(
+                    ui.label(f"Quesito {qid_1_0}").classes(
                         "font-bold text-blue-900 text-base"
                     )
                     ui.label(
-                        "Os servidores responsáveis pelo Meio Ambiente receberam treinamento "
-                        "específico voltado ao Meio Ambiente em 2025?"
+                        "A prefeitura possui alguma estrutura organizacional para tratar de assuntos ligados ao Meio Ambiente Municipal?"
                     ).classes("text-sm text-gray-700 my-2 font-medium")
 
-                    val_inicial = (
-                        dados_q["valor"]
-                        if dados_q["valor"] in opcoes
-                        else "Não"
-                    )
-
-                    select_input = ui.select(
-                        options=opcoes, value=val_inicial, label="Resposta:"
+                    sel_1_0 = ui.select(
+                        options=["Sim", "Não"],
+                        value=(
+                            dados_1_0["valor"]
+                            if dados_1_0["valor"] in ["Sim", "Não"]
+                            else "Não"
+                        ),
+                        label="Resposta:",
                     ).classes("w-full mb-2 bg-white")
 
-                    link_input = ui.input(
+                    link_1_0 = ui.input(
                         "Link da Evidência / Comprovação:",
-                        value=dados_q["link"],
+                        value=dados_1_0["link"],
                     ).classes("w-full mb-2 bg-white")
 
-                    def salvar_quesito():
-                        sel = select_input.value
-                        pts = 20.0 if sel == "Sim" else 0.0
-
+                    def salvar_1_0():
                         save_resposta(
                             ano=ano_atual,
-                            qid=qid,
-                            valor=sel,
-                            pontos=pts,
-                            link=link_input.value,
+                            qid=qid_1_0,
+                            valor=sel_1_0.value,
+                            pontos=0.0,
+                            link=link_1_0.value,
                         )
                         ui.notify(
-                            f"Quesito {qid} salvo para {ano_atual}! ({pts} pts)",
+                            f"Quesito {qid_1_0} salvo com sucesso!",
                             type="positive",
                         )
                         render_conteudo.refresh()
 
                     ui.button(
-                        f"💾 Salvar Quesito {qid}", on_click=salvar_quesito
+                        f"💾 Salvar Quesito {qid_1_0}", on_click=salvar_1_0
+                    ).classes("bg-green-600 text-white font-bold mt-2")
+
+                # -------------------------------------------------------------
+                # QUESITO 1.1 E SUBQUESITO 1.1.1
+                # -------------------------------------------------------------
+                qid_1_1 = "1.1"
+                dados_1_1 = respostas.get(
+                    qid_1_1, {"valor": "Não", "pontos": 0.0, "link": ""}
+                )
+
+                qid_1_1_1 = "1.1.1"
+                dados_1_1_1 = respostas.get(
+                    qid_1_1_1, {"valor": "{}", "pontos": 0.0, "link": ""}
+                )
+
+                # Converte o JSON armazenado dos efetivos/comissionados
+                try:
+                    val_1_1_1_dict = json.loads(
+                        dados_1_1_1.get("valor", "{}") or "{}"
+                    )
+                except Exception:
+                    val_1_1_1_dict = {}
+
+                with ui.card().classes(
+                    "w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"
+                ):
+                    ui.label(f"Quesito {qid_1_1}").classes(
+                        "font-bold text-blue-900 text-base"
+                    )
+                    ui.label(
+                        "A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?"
+                    ).classes("text-sm text-gray-700 my-2 font-medium")
+
+                    sel_1_1 = ui.select(
+                        options=["Sim", "Não"],
+                        value=(
+                            dados_1_1["valor"]
+                            if dados_1_1["valor"] in ["Sim", "Não"]
+                            else "Não"
+                        ),
+                        label="Resposta:",
+                    ).classes("w-full mb-2 bg-white")
+
+                    link_1_1 = ui.input(
+                        "Link da Evidência / Comprovação:",
+                        value=dados_1_1["link"],
+                    ).classes("w-full mb-2 bg-white")
+
+                    # Subseção para o Quesito 1.1.1 (Exibido apenas se 1.1 for "Sim")
+                    container_1_1_1 = ui.column().classes(
+                        "w-full pl-4 border-l-4 border-blue-400 my-2 bg-blue-50/50 p-3 rounded"
+                    )
+                    container_1_1_1.set_visibility(sel_1_1.value == "Sim")
+
+                    with container_1_1_1:
+                        ui.label(f"Quesito {qid_1_1_1} — Informe:").classes(
+                            "font-bold text-blue-950 text-sm"
+                        )
+
+                        input_efetivos = ui.number(
+                            "Nº de efetivos:",
+                            value=val_1_1_1_dict.get("efetivos", 0),
+                            min=0,
+                            precision=0,
+                        ).classes("w-full bg-white mb-1")
+                        input_comissionados = ui.number(
+                            "Nº de comissionados:",
+                            value=val_1_1_1_dict.get("comissionados", 0),
+                            min=0,
+                            precision=0,
+                        ).classes("w-full bg-white mb-1")
+                        input_terceirizados = ui.number(
+                            "Nº de terceirizados/contratados:",
+                            value=val_1_1_1_dict.get("terceirizados", 0),
+                            min=0,
+                            precision=0,
+                        ).classes("w-full bg-white mb-1")
+
+                    sel_1_1.on(
+                        "update:model-value",
+                        lambda e: container_1_1_1.set_visibility(
+                            e.args == "Sim"
+                        ),
+                    )
+
+                    def salvar_1_1_e_sub():
+                        save_resposta(
+                            ano=ano_atual,
+                            qid=qid_1_1,
+                            valor=sel_1_1.value,
+                            pontos=0.0,
+                            link=link_1_1.value,
+                        )
+
+                        if sel_1_1.value == "Sim":
+                            payload_1_1_1 = json.dumps({
+                                "efetivos": int(input_efetivos.value or 0),
+                                "comissionados": int(
+                                    input_comissionados.value or 0
+                                ),
+                                "terceirizados": int(
+                                    input_terceirizados.value or 0
+                                ),
+                            })
+                            save_resposta(
+                                ano=ano_atual,
+                                qid=qid_1_1_1,
+                                valor=payload_1_1_1,
+                                pontos=0.0,
+                                link="",
+                            )
+
+                        ui.notify(
+                            f"Quesitos {qid_1_1} e {qid_1_1_1} salvos com sucesso!",
+                            type="positive",
+                        )
+                        render_conteudo.refresh()
+
+                    ui.button(
+                        f"💾 Salvar Quesito {qid_1_1}", on_click=salvar_1_1_e_sub
+                    ).classes("bg-green-600 text-white font-bold mt-2")
+
+                # -------------------------------------------------------------
+                # QUESITO 1.1.2
+                # -------------------------------------------------------------
+                qid_1_1_2 = "1.1.2"
+                dados_1_1_2 = respostas.get(
+                    qid_1_1_2, {"valor": "Não", "pontos": 0.0, "link": ""}
+                )
+                opcoes_1_1_2 = {"Sim": "Sim – 20", "Não": "Não – 00"}
+
+                with ui.card().classes(
+                    "w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"
+                ):
+                    ui.label(f"Quesito {qid_1_1_2}").classes(
+                        "font-bold text-blue-900 text-base"
+                    )
+                    ui.label(
+                        f"Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente em {ano_atual - 1}?"
+                    ).classes("text-sm text-gray-700 my-2 font-medium")
+
+                    val_1_1_2 = (
+                        dados_1_1_2["valor"]
+                        if dados_1_1_2["valor"] in opcoes_1_1_2
+                        else "Não"
+                    )
+
+                    select_1_1_2 = ui.select(
+                        options=opcoes_1_1_2,
+                        value=val_1_1_2,
+                        label="Resposta:",
+                    ).classes("w-full mb-2 bg-white")
+
+                    link_1_1_2 = ui.input(
+                        "Link da Evidência / Comprovação:",
+                        value=dados_1_1_2["link"],
+                    ).classes("w-full mb-2 bg-white")
+
+                    def salvar_1_1_2():
+                        sel = select_1_1_2.value
+                        pts = 20.0 if sel == "Sim" else 0.0
+
+                        save_resposta(
+                            ano=ano_atual,
+                            qid=qid_1_1_2,
+                            valor=sel,
+                            pontos=pts,
+                            link=link_1_1_2.value,
+                        )
+                        ui.notify(
+                            f"Quesito {qid_1_1_2} salvo para {ano_atual}! ({pts} pts)",
+                            type="positive",
+                        )
+                        render_conteudo.refresh()
+
+                    ui.button(
+                        f"💾 Salvar Quesito {qid_1_1_2}", on_click=salvar_1_1_2
                     ).classes("bg-green-600 text-white font-bold mt-2")
 
     render_conteudo()
 
 
-# Aliases para compatibilidade com o main.py
+# Aliases para o main.py
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
