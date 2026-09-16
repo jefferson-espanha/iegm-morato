@@ -227,10 +227,11 @@ def render_quesito(
                 try:
                     on_save_callback()
                 except TypeError:
-                    # Caso passem algo que não é função ou não suporta .refresh()
                     ui.run_javascript('window.location.reload()')
                 except Exception:
                     ui.run_javascript('window.location.reload()')
+
+        ui.button("Salvar Resposta", on_click=salvar_acao).classes("bg-blue-600 text-white font-bold px-4 py-2")
 
 
 # =============================================================================
@@ -471,8 +472,8 @@ def container_formulario_icidade(ano=None):
                 ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
-
-                     
+                
+                                   
             # QUESITO 1.1
             render_quesito(
                 ano=ano_sel,
