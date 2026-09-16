@@ -4466,6 +4466,188 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 16.0", on_click=salvar_160).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("16.0", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO A1 (Indicador ICTEM - CETESB)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("A1 • ICTEM - Indicador de Coleta e Tratabilidade de Esgoto").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe o ICTEM - Indicador de Coleta de Tratabilidade de Esgoto da População Urbana do Município:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Dados da CETESB. Não sujeitos à validação.").classes("text-xs text-gray-500 font-semibold mb-1")
+                    ui.label("⚠️ Regra de Pontuação: ICTEM >= 7,5 -> 0 pts | 5,0 < ICTEM < 7,5 -> -50 pts | 2,5 < ICTEM <= 5,0 -> -150 pts | ICTEM <= 2,5 -> -200 pts").classes("text-xs text-amber-600 font-semibold mb-6")
+
+                    dA1 = res_data.get("A1") or {}
+                    val_A1_i = str(dA1.get("valor") or "").strip()
+
+                    state_A1 = {
+                        "ictem": val_A1_i,
+                        "link": dA1.get("link", ""),
+                    }
+
+                    def calc_pts_A1(valor_str):
+                        try:
+                            # Converte vírgula para ponto caso o usuário digite no formato brasileiro
+                            val = float(valor_str.replace(",", "."))
+                            if val >= 7.5:
+                                return 0.0
+                            elif val > 5.0:
+                                return -50.0
+                            elif val > 2.5:
+                                return -150.0
+                            else:
+                                return -200.0
+                        except Exception:
+                            return 0.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Valor do ICTEM (ex: 8.5):",
+                                value=state_A1["ictem"],
+                                placeholder="Digite o valor do ICTEM...",
+                            ).classes("w-full").props("outlined").bind_value(state_A1, "ictem")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte CETESB:",
+                            value=state_A1["link"],
+                            placeholder="Insira o link da publicação/relatório da CETESB...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_A1, "link")
+
+                    lbl_pts_A1 = ui.label(f"📊 Impacto de Pontuação no Quesito A1: {calc_pts_A1(state_A1['ictem']):.1f} pontos").classes("text-sm font-bold text-red-600 my-2")
+
+                    def salvar_A1():
+                        pts = calc_pts_A1(state_A1["ictem"])
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="A1",
+                            valor=state_A1["ictem"],
+                            pontos=pts,
+                            link=state_A1["link"],
+                            comentarios=dA1.get("comentarios", []),
+                            status=dA1.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito A1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO A1", on_click=salvar_A1).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("A1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO A2 (Índice IQR - Qualidade de Aterro de Resíduos - CETESB)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("A2 • IQR - Índice de Qualidade de Aterro de Resíduos").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Utilização do IQR (Índice de Qualidade de Aterro de Resíduos):").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Dados da CETESB. Não sujeitos à validação.").classes("text-xs text-gray-500 font-semibold mb-1")
+                    ui.label("⚠️ Regra de Pontuação: Condições adequadas -> 00 pts | Condições inadequadas -> Rebaixar i-Amb 1 Faixa").classes("text-xs text-amber-600 font-semibold mb-6")
+
+                    dA2 = res_data.get("A2") or {}
+                    val_A2_i = str(dA2.get("valor") or "Selecione...").strip()
+
+                    opcoes_A2 = {
+                        "Selecione...": 0.0,
+                        "Condições adequadas - 00 pts": 0.0,
+                        "Condições inadequadas - Rebaixar i-Amb 1 Faixa": 0.0,  # A penalidade de faixa é tratada na consolidação dos índices
+                    }
+
+                    state_A2 = {
+                        "valor": val_A2_i if val_A2_i in opcoes_A2 else "Selecione...",
+                        "link": dA2.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.select(
+                                label="Condição do IQR:",
+                                options=list(opcoes_A2.keys()),
+                                value=state_A2["valor"],
+                            ).classes("w-full").props("outlined").bind_value(state_A2, "valor")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte CETESB:",
+                            value=state_A2["link"],
+                            placeholder="Insira o link da avaliação do IQR da CETESB...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_A2, "link")
+
+                    def salvar_A2():
+                        pts = opcoes_A2.get(state_A2["valor"], 0.0)
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="A2",
+                            valor=state_A2["valor"],
+                            pontos=pts,
+                            link=state_A2["link"],
+                            comentarios=dA2.get("comentarios", []),
+                            status=dA2.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito A2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO A2", on_click=salvar_A2).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("A2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO A3 (Índice IQT - Estações de Transbordo - CETESB)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("A3 • IQT - Índice de Qualidade de Estações de Transbordo").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe o IQT - Índice de Qualidade de Estações de Transbordo:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Dados da CETESB. Não sujeitos à validação.").classes("text-xs text-gray-500 font-semibold mb-1")
+                    ui.label("⚠️ Regra de Pontuação: De 7,1 a 10,0 (Condições adequadas) -> 00 pts | De 0,0 a 7,0 (Condições inadequadas) -> -50 pts").classes("text-xs text-amber-600 font-semibold mb-6")
+
+                    dA3 = res_data.get("A3") or {}
+                    val_A3_i = str(dA3.get("valor") or "").strip()
+
+                    state_A3 = {
+                        "iqt": val_A3_i,
+                        "link": dA3.get("link", ""),
+                    }
+
+                    def calc_pts_A3(valor_str):
+                        try:
+                            val = float(valor_str.replace(",", "."))
+                            if val >= 7.1:
+                                return 0.0
+                            else:
+                                return -50.0
+                        except Exception:
+                            return 0.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Valor do IQT (0.0 a 10.0):",
+                                value=state_A3["iqt"],
+                                placeholder="Digite a nota/índice do IQT...",
+                            ).classes("w-full").props("outlined").bind_value(state_A3, "iqt")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte CETESB:",
+                            value=state_A3["link"],
+                            placeholder="Insira o link do relatório IQT da CETESB...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_A3, "link")
+
+                    lbl_pts_A3 = ui.label(f"📊 Impacto de Pontuação no Quesito A3: {calc_pts_A3(state_A3['iqt']):.1f} pontos").classes("text-sm font-bold text-red-600 my-2")
+
+                    def salvar_A3():
+                        pts = calc_pts_A3(state_A3["iqt"])
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="A3",
+                            valor=state_A3["iqt"],
+                            pontos=pts,
+                            link=state_A3["link"],
+                            comentarios=dA3.get("comentarios", []),
+                            status=dA3.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito A3 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO A3", on_click=salvar_A3).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("A3", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
