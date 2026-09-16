@@ -1614,4 +1614,86 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+    # ==========================================
+                # QUESITO 13.1 (Ações para Transporte Não Motorizado - Checkbox)
+                # ==========================================
+                opcoes_131 = {
+                    "Instalação/manutenção de ciclovias ou ciclofaixas": 0.0,
+                    "Instalação/manutenção de pontos de locação de bicicletas": 0.0,
+                    "Instalação/manutenção de pontos de locação de patinetes": 0.0,
+                    "Outras": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="13.1",
+                    titulo="Ações Realizadas para Transporte Não Motorizado em 2025",
+                    pergunta="Assinale as ações realizadas para estimular a adoção/uso dos meios de transporte não motorizados em 2025:",
+                    tipo_input="checkbox",
+                    opcoes=opcoes_131,
+                    placeholder_link="Insira o link das evidências das ações ou fotos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 13.1.1 (Cronograma de Manutenção)
+                # ==========================================
+                opcoes_1311 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (-20.0 pts)": -20.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="13.1.1",
+                    titulo="Cronograma de Manutenção de Ciclovias e Ciclofaixas",
+                    pergunta="Possui um cronograma de manutenção da infraestrutura das ciclovias ou ciclofaixas?",
+                    opcoes=opcoes_1311,
+                    placeholder_link="Insira o link do cronograma oficial de manutenção...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 13.1.1.1 (Prazo das Manutenções Preventivas)
+                # ==========================================
+                opcoes_13111 = {
+                    "Selecione...": 0.0,
+                    "Sim, para todos os trechos (0.0 pts)": 0.0,
+                    "Sim, para a maior parte dos trechos (-5.0 pts)": -5.0,
+                    "Sim, para a menor parte dos trechos (-10.0 pts)": -10.0,
+                    "Não foram realizadas dentro do prazo (-15.0 pts)": -15.0,
+                    "Não foram realizadas manutenções preventivas no exercício (-20.0 pts)": -20.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="13.1.1.1",
+                    titulo="Cumprimento do Prazo de Manutenção Preventiva",
+                    pergunta="As manutenções preventivas da infraestrutura das ciclovias ou ciclofaixas foram realizadas dentro do prazo?",
+                    opcoes=opcoes_13111,
+                    placeholder_link="Insira o link dos relatórios ou ordens de serviço executadas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 14.0 (Acessibilidade de Calçamentos Públicos)
+                # ==========================================
+                opcoes_140 = {
+                    "Selecione...": 0.0,
+                    "Sim, integralmente - Todos os calçamentos públicos (0.0 pts)": 0.0,
+                    "Sim, parcialmente - Em parte dos calçamentos públicos (-10.0 pts)": -10.0,
+                    "Não possui acessibilidade em calçamentos públicos (-50.0 pts)": -50.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="14.0",
+                    titulo="Acessibilidade em Calçamentos Públicos",
+                    pergunta="O Município adequou os calçamentos públicos para acessibilidade das pessoas com deficiência e restrição de mobilidade? (Calçamento público é no entorno de prédios públicos e locais de grande circulação):",
+                    opcoes=opcoes_140,
+                    placeholder_link="Insira o link das vistorias, laudos de acessibilidade ou relatórios de obras...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
