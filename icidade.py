@@ -736,4 +736,110 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+                # ==========================================
+                # QUESITO 4.1 (Ameaças da Carta Geotécnica)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="4.1",
+                    titulo="Ameaças Potenciais Identificadas (COBRADE)",
+                    pergunta="Assinale/Informe os tipos de ameaças potenciais identificadas na Carta Geotécnica segundo a COBRADE (Ex: Riscos Geológicos, Hidrológicos, Meteorológicos, Climatológicos, Biológicos, Tecnológicos):",
+                    tipo_input="texto",
+                    placeholder_texto="Listar e detalhar as ameaças identificadas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 4.2 (Carta no Plano Diretor)
+                # ==========================================
+                opcoes_42 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (-50.0 pts)": -50.0,
+                    "Não se aplica o Plano Diretor para o município (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="4.2",
+                    titulo="Carta Geotécnica no Plano Diretor",
+                    pergunta="A Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco consta no Plano Diretor? (Art. 42-A, §1º, §2º e §3º, da Lei Federal nº 10.257/2001):",
+                    opcoes=opcoes_42,
+                    placeholder_link="Insira o link da Lei do Plano Diretor ou comprovação...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 5.0 (Mapeamento Próprio de Ameaças)
+                # ==========================================
+                opcoes_50 = {
+                    "Selecione...": 0.0,
+                    "Sim (200.0 pts)": 200.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.0",
+                    titulo="Mapeamento e Identificação Própria de Ameaças",
+                    pergunta="O Município realizou, por conta própria, o mapeamento e identificação das principais ameaças existentes em seu território?",
+                    opcoes=opcoes_50,
+                    placeholder_link="Insira o link do estudo, relatório ou mapa de ameaças...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 5.1 (Principais Ameaças Identificadas)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.1",
+                    titulo="Principais Ameaças Identificadas no Território",
+                    pergunta="Assinale/Informe as principais ameaças identificadas (Ex: Epidemias, Estiagem, Incêndios, Ondas de calor/frio, Inundações, Infestações/Pragas, Ameaças radioativas, Deslizamentos, Outros):",
+                    tipo_input="texto",
+                    placeholder_texto="Listar as principais ameaças identificadas no município...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 5.1.1 (Fiscalização das Áreas de Risco)
+                # ==========================================
+                opcoes_511 = {
+                    "Selecione...": 0.0,
+                    "Sim, integralmente (0.0 pts)": 0.0,
+                    "Sim, parcialmente (0.0 pts)": 0.0,
+                    "Não houve fiscalização (-100.0 pts)": -100.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.1.1",
+                    titulo="Fiscalização das Áreas de Risco",
+                    pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
+                    opcoes=opcoes_511,
+                    placeholder_link="Insira o link dos relatórios de fiscalização...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 5.1.2 (Possibilidade de Ocupação/Invasão)
+                # ==========================================
+                opcoes_512 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.1.2",
+                    titulo="Possibilidade de Ocupação ou Invasão em Áreas de Risco",
+                    pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
+                    opcoes=opcoes_512,
+                    placeholder_link="Insira o link da documentação de monitoramento ou parecer...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
