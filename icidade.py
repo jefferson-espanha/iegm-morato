@@ -665,4 +665,75 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+    # ==========================================
+                # QUESITO 3.0 (Estímulo à Participação)
+                # ==========================================
+                opcoes_30 = {
+                    "Selecione...": 0.0,
+                    "Sim (10.0 pts)": 10.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="3.0",
+                    titulo="Estímulo à Participação da Sociedade Civil",
+                    pergunta="O Município realiza ações para estimular a participação de entidades privadas, associações de voluntários, clubes de serviços, organizações não governamentais e associações de classe e comunitárias nas ações de proteção e defesa civil?",
+                    opcoes=opcoes_30,
+                    placeholder_link="Insira o link para a comprovação das ações...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 3.1 (Ações Realizadas)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="3.1",
+                    titulo="Ações Realizadas com a Sociedade Civil",
+                    pergunta="Assinale/Informe quais ações foram realizadas (Ex: Workshop / Palestra, Reunião, Conferência, Congresso, Discussão na Câmara Municipal, Treinamentos, Outros):",
+                    tipo_input="texto",
+                    placeholder_texto="Listar e detalhar as ações realizadas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 3.1.1 (Data do Último Treinamento)
+                # ==========================================
+                opcoes_311 = {
+                    "Selecione...": 0.0,
+                    "Após 31/12/2023 [Até 2025] (10.0 pts)": 10.0,
+                    "Até 31/12/2023 ou Sem Treinamento (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="3.1.1",
+                    titulo="Data do Último Treinamento de Voluntários",
+                    pergunta="Qual a data do último treinamento de associações de voluntários? (Atenção: Não considerar os treinamentos realizados em 2026):",
+                    opcoes=opcoes_311,
+                    placeholder_link="Informe a data (DD/MM/AAAA) e insira o link do certificado ou ata...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 4.0 (Carta Geotécnica)
+                # ==========================================
+                opcoes_40 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="4.0",
+                    titulo="Carta Geotécnica de Suscetibilidade",
+                    pergunta="O Município recebeu a Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco? (Disponível em: http://www.defesacivil.sp.gov.br/instrumentos-de-identificacao-de-riscos/):",
+                    opcoes=opcoes_40,
+                    placeholder_link="Insira o link para a publicação ou recebimento do documento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
