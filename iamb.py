@@ -198,6 +198,138 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             </div>
         """).classes("w-full")
 
+# =============================================================================
+# 2. BLOCO DE COMENTÁRIOS INTERNOS
+# =============================================================================
+def bloco_comentarios(qid, res_data, on_save_callback=None):
+    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+    usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
+
+    dados_q = res_data.get(qid, {})
+    historico = _obter_lista_comentarios(dados_q)
+
+    status_global = dados_q.get("status", "Pendente")
+    for com in reversed(historico):
+        if isinstance(com, dict) and "status_definido" in com:
+            status_global = com["status_definido"]
+            break
+
+    badge_status = (
+        "🔴 PENDENTE" if status_global == "Pendente" else "🟢 RESOLVIDO"
+    )
+
+    with ui.expansion(
+        f"💬 Diálogo Interno {qid} | Status: {badge_status}",
+        value=(status_global == "Pendente"),
+    ).classes("w-full border rounded p-2 mt-3 bg-gray-50"):
+
+        def alterar_status(e):
+            novo_st = e.value
+            log = {
+                "autor": "Sistema / " + usuario_atual,
+                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
+                "status_definido": novo_st,
+            }
+            historico.append(log)
+            save_resposta(
+                ano=ano_sel,
+                qid=qid,
+                valor=dados_q.get("valor", ""),
+                pontos=dados_q.get("pontos", 0.0),
+                link=dados_q.get("link", ""),
+                comentarios=historico,
+                status=novo_st,
+            )
+            ui.notify(f"Status alterado para {novo_st}", type="info")
+            if on_save_callback:
+                on_save_callback()
+
+        ui.radio(
+            ["Resolvido", "Pendente"],
+            value=status_global,
+            on_change=alterar_status,
+        ).props("inline")
+
+        if historico:
+            for idx, com in enumerate(historico):
+                if isinstance(com, str):
+                    com = {"autor": "Usuário", "data": "", "texto": com}
+
+                autor = com.get("autor", "Anônimo")
+                data_com = com.get("data", "")
+                texto_com = com.get("texto", "")
+
+                def deletar_comentario(i=idx):
+                    historico.pop(i)
+                    save_resposta(
+                        ano=ano_sel,
+                        qid=qid,
+                        valor=dados_q.get("valor", ""),
+                        pontos=dados_q.get("pontos", 0.0),
+                        link=dados_q.get("link", ""),
+                        comentarios=historico,
+                        status=status_global,
+                    )
+                    ui.notify("Comentário removido.", type="warning")
+                    if on_save_callback:
+                        on_save_callback()
+
+                with ui.row().classes(
+                    "w-full items-center justify-between no-wrap mb-2"
+                ):
+                    if "Sistema /" in autor:
+                        ui.html(
+                            f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
+                                <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
+                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
+                            </div>"""
+                        ).classes("w-full")
+                    else:
+                        ui.html(
+                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
+                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
+                                <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
+                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
+                            </div>"""
+                        ).classes("w-full")
+
+                    ui.button("🗑️", on_click=deletar_comentario).props(
+                        "flat dense"
+                    )
+
+        input_novo_comentario = (
+            ui.textarea(placeholder="Novo comentário...")
+            .classes("w-full")
+            .props("outlined rows=2")
+        )
+
+        def postar_comentario():
+            txt = input_novo_comentario.value.strip()
+            if txt:
+                historico.append({
+                    "autor": usuario_atual,
+                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "texto": txt,
+                    "status_definido": status_global,
+                })
+                save_resposta(
+                    ano=ano_sel,
+                    qid=qid,
+                    valor=dados_q.get("valor", ""),
+                    pontos=dados_q.get("pontos", 0.0),
+                    link=dados_q.get("link", ""),
+                    comentarios=historico,
+                    status=status_global,
+                )
+                ui.notify("Comentário publicado!", type="positive")
+                if on_save_callback:
+                    on_save_callback()
+
+        ui.button("Postar Comentário", on_click=postar_comentario).classes(
+            "bg-blue-600 text-white mt-2"
+        )
+
 
 # =============================================================================
 # MÓDULO PRINCIPAL DE REQUISITOS
