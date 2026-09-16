@@ -1954,6 +1954,161 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 7.5.1", on_click=salvar_751).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("7.5.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 7.6 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_76 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.6",
+                    titulo="Metas de Drenagem e Manejo de Águas Pluviais Urbanas",
+                    pergunta="O Plano Municipal ou Regional de Saneamento Básico possui metas de drenagem e manejo de águas pluviais urbanas?",
+                    opcoes=opcoes_76,
+                    placeholder_link="Insira a página do plano que comprova as metas de drenagem pluvial...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 7.6.1 (Seleção Múltipla de Metas de Drenagem Pluvial)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.6.1 • Metas Estabelecidas sobre Drenagem e Águas Pluviais").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale quais as metas estabelecidas sobre drenagem e manejo de águas pluviais urbanas:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as metas presentes no Plano e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d761 = res_data.get("7.6.1") or {}
+                    try:
+                        sel_761_salvos = json.loads(d761.get("valor", "[]"))
+                        if not isinstance(sel_761_salvos, list): sel_761_salvos = []
+                    except Exception:
+                        sel_761_salvos = []
+
+                    mapa_761 = {
+                        "expansao_drenagem": ("Metas de expansão do serviço de drenagem e manejo de águas pluviais", 0.0),
+                        "qualidade_drenagem": ("Metas de qualidade na prestação do serviço de drenagem e manejo", 0.0),
+                        "aproveitamento_chuva": ("Metas de aproveitamento de águas da chuva", 0.0),
+                        "direitos_deveres_drenagem": ("Estabelecimento de direitos e deveres dos usuários", 0.0),
+                        "cronograma_drenagem": ("Estabelecimento de cronograma para o atingimento das metas", 0.0),
+                    }
+
+                    state_761 = {k: k in sel_761_salvos for k in mapa_761.keys()}
+                    state_761["link"] = d761.get("link", "")
+
+                    def calc_pts_761():
+                        return sum(peso for k, (_, peso) in mapa_761.items() if state_761.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_761a = [ui.checkbox(rotulo).bind_value(state_761, k) for k, (rotulo, _) in list(mapa_761.items())[:3]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_761b = [ui.checkbox(rotulo).bind_value(state_761, k) for k, (rotulo, _) in list(mapa_761.items())[3:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_761["link"],
+                        placeholder="Insira o link do capítulo/páginas do plano contendo as metas de drenagem...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_761, "link")
+
+                    def salvar_761():
+                        selecionados = [k for k in mapa_761.keys() if state_761.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.6.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_761(),
+                            link=state_761["link"],
+                            comentarios=d761.get("comentarios", []),
+                            status=d761.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.6.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.6.1", on_click=salvar_761).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.6.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 7.7 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_77 = {
+                    "Selecione...": 0.0,
+                    "Sim – 30 pts": 30.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.7",
+                    titulo="Monitoramento e Avaliação das Ações e Metas",
+                    pergunta="Realiza monitoramento e avaliação das ações e metas relacionadas ao abastecimento de água potável e esgotamento sanitário?",
+                    opcoes=opcoes_77,
+                    placeholder_link="Insira o link dos relatórios de monitoramento ou da comissão/equipe de acompanhamento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 7.7.1 (Seleção Múltipla de Formas de Monitoramento)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.7.1 • Formas de Monitoramento e Avaliação Executadas").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("De que forma é realizado o monitoramento e avaliação relacionadas ao abastecimento de água potável e esgotamento sanitário?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d771 = res_data.get("7.7.1") or {}
+                    try:
+                        sel_771_salvos = json.loads(d771.get("valor", "[]"))
+                        if not isinstance(sel_771_salvos, list): sel_771_salvos = []
+                    except Exception:
+                        sel_771_salvos = []
+
+                    mapa_771 = {
+                        "relatorios_anuais": ("Relatórios anuais discutidos e/ou publicados", 0.0),
+                        "indicadores": ("Indicadores de eficácia e eficiência", 0.0),
+                        "recursos": ("Avaliação de recursos aplicados", 0.0),
+                        "outro": ("Outro", 0.0),
+                    }
+
+                    state_771 = {k: k in sel_771_salvos for k in mapa_771.keys()}
+                    state_771["link"] = d771.get("link", "")
+
+                    def calc_pts_771():
+                        return sum(peso for k, (_, peso) in mapa_771.items() if state_771.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_771a = [ui.checkbox(rotulo).bind_value(state_771, k) for k, (rotulo, _) in list(mapa_771.items())[:2]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_771b = [ui.checkbox(rotulo).bind_value(state_771, k) for k, (rotulo, _) in list(mapa_771.items())[2:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_771["link"],
+                        placeholder="Insira o link das atas de reuniões, relatórios de indicadores ou publicações de avaliação...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_771, "link")
+
+                    def salvar_771():
+                        selecionados = [k for k in mapa_771.keys() if state_771.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.7.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_771(),
+                            link=state_771["link"],
+                            comentarios=d771.get("comentarios", []),
+                            status=d771.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.7.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.7.1", on_click=salvar_771).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.7.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
