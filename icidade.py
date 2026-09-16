@@ -437,14 +437,20 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS
+# MÓDULO PRINCIPAL DE REQUISITOS (CORRIGIDO SEM DUPLICAÇÃO)
 # =============================================================================
 def container_formulario_icidade(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
+    # Criamos um contêiner pai único
+    main_container = ui.element("div").classes("w-full")
+
     @ui.refreshable
     def render_conteudo():
+        # Limpa elementos remanescentes no contêiner antes de re-renderizar
+        main_container.clear()
+
         ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
         res_data = load_respostas(ano_sel)
 
@@ -453,27 +459,28 @@ def container_formulario_icidade(ano=None):
             ui.notify(f"Ano alterado para {novo_ano}", type="info")
             render_conteudo.refresh()
 
-        with ui.element("div").classes(
-            "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
-        ):
-
-            # Coluna 1: Painel Lateral (3/12)
-            with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
-                render_painel_controle(
-                    ano_atual=ano_sel,
-                    on_mudar_ano=alterar_ano,
-                    on_refresh=render_conteudo.refresh,
-                )
-
-            # Coluna 2: Formulário (9/12)
+        with main_container:
             with ui.element("div").classes(
-                "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
+                "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
             ):
-                ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
-                    "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
-                )
 
-    # ==========================================
+                # Coluna 1: Painel Lateral (3/12)
+                with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
+                    render_painel_controle(
+                        ano_atual=ano_sel,
+                        on_mudar_ano=alterar_ano,
+                        on_refresh=render_conteudo.refresh,
+                    )
+
+                # Coluna 2: Formulário (9/12)
+                with ui.element("div").classes(
+                    "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
+                ):
+                    ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
+                        "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
+                    )
+
+                # ==========================================
                 # QUESITO 1.0 (Seleção com Pontuação)
                 # ==========================================
                 opcoes_10 = {
@@ -540,8 +547,5 @@ def container_formulario_icidade(ano=None):
                     placeholder_link="Insira o link do organograma ou norma que comprove a vinculação...",
                     on_save_callback=render_conteudo.refresh,
                 )
-                
-                # Exemplo de chamada de quesito caso deseje renderizar dentro do container principal:
-                # render_quesito(ano_sel, res_data, "Q1", "Título do Quesito", "Pergunta de exemplo?", {"Opção A": 10, "Opção B": 5}, on_save_callback=render_conteudo.refresh)
 
     render_conteudo()
