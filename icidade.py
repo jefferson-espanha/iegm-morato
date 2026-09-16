@@ -487,8 +487,10 @@ def container_formulario_icidade(ano=None):
                         "ou órgão similar responsável pela execução, coordenação e mobilização "
                         "de todas as ações de defesa civil no município?"
                     )
-                    # Opções com a pontuação ao lado nas alternativas deste quesito específico
+                    
+                    # Opções com "Selecione..." e a pontuação ao lado
                     opcoes = {
+                        "Selecione...": 0.0,
                         "Sim - 40.0 pts": 40.0,
                         "Não - 0.0 pts": 0.0,
                     }
