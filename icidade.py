@@ -153,9 +153,11 @@ def render_quesito(
     on_save_callback=None,
 ):
     dados_q = res_data.get(qid, {})
-    valor_atual = dados_q.get("valor", "Selecione...")
+    valor_atual = dados_q.get("valor", "")
+    
+    # Se o valor salvo não estiver nas opções, define como vazio ou pega a primeira chave
     if valor_atual not in opcoes:
-        valor_atual = "Selecione..."
+        valor_atual = ""  # Ou selecione a primeira opção se preferir: list(opcoes.keys())[0]
 
     link_atual = dados_q.get("link", "")
 
@@ -163,7 +165,7 @@ def render_quesito(
         "opcao": valor_atual,
         "link": link_atual,
     }
-
+    
     with ui.card().classes(
         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
     ):
