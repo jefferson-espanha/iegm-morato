@@ -19,12 +19,36 @@ DATABASE_URL = os.getenv(
 
 
 def get_db_connection():
-    """Cria e retorna uma conexão ativa com a base de dados do Neon."""
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
+def init_db():
+    """Garante que a tabela respostas_iamb exista com as colunas certas."""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS respostas_iamb (
+                        qid VARCHAR(50) NOT NULL,
+                        ano INTEGER NOT NULL,
+                        valor TEXT,
+                        pontos REAL DEFAULT 0,
+                        link TEXT,
+                        comentarios JSONB DEFAULT '[]'::jsonb,
+                        status VARCHAR(20) DEFAULT 'Pendente',
+                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (ano, qid)
+                    );
+                """)
+                conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao inicializar tabela respostas_iamb: {e}")
+
+
+init_db()
+
+
 def load_respostas(ano):
-    """Carrega o dicionário de respostas salvas para o ano selecionado no Neon DB (Tabela IAMB)."""
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
         FROM respostas_iamb
@@ -43,20 +67,25 @@ def load_respostas(ano):
 
                     respostas[row["qid"]] = {
                         "valor": row["valor"] if row["valor"] is not None else "",
-                        "pontos": float(row["pontos"])
-                        if row["pontos"] is not None
-                        else 0.0,
+                        "pontos": (
+                            float(row["pontos"])
+                            if row["pontos"] is not None
+                            else 0.0
+                        ),
                         "link": link_val,
-                        "comentarios": row["comentarios"]
-                        if isinstance(row["comentarios"], list)
-                        else [],
-                        "status": row["status"]
-                        if row["status"] is not None
-                        else "Pendente",
+                        "comentarios": (
+                            row["comentarios"]
+                            if isinstance(row["comentarios"], list)
+                            else []
+                        ),
+                        "status": (
+                            row["status"]
+                            if row["status"] is not None
+                            else "Pendente"
+                        ),
                     }
     except Exception as e:
-        print(f"❌ Erro ao carregar respostas do IAMB no Neon DB: {e}")
-        ui.notify(f"Erro ao carregar dados do banco Neon: {e}", type="negative")
+        print(f"❌ Erro ao carregar respostas do Neon DB (iAmb): {e}")
 
     return respostas
 
@@ -64,7 +93,6 @@ def load_respostas(ano):
 def save_resposta(
     ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
 ):
-    """Salva a resposta, link, pontos e comentários de um quesito do IAMB no Neon DB."""
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(qid, {})
         comentarios = dados_atuais.get("comentarios", [])
@@ -73,7 +101,7 @@ def save_resposta(
     link_final = link.strip() if link else ""
 
     query = """
-        INSERT INTO respostas_iamb (ano, qid, valor, pontos, link, comentarios, status)
+        INSERT INTO respostas_amb (ano, qid, valor, pontos, link, comentarios, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (ano, qid) 
         DO UPDATE SET
@@ -99,27 +127,23 @@ def save_resposta(
                         str(status),
                     ),
                 )
-            conn.commit()
+                conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta do IAMB no Neon DB: {e}")
-        ui.notify(f"Erro ao salvar no banco Neon: {e}", type="negative")
+        print(f"❌ Erro ao salvar resposta no Neon DB (iamb): {e}")
 
 
 def zerar_questionario_db(ano):
-    """Limpa todas as respostas salvas do ano selecionado na tabela respostas_iamb."""
     query = "DELETE FROM respostas_iamb WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(query, (ano,))
-            conn.commit()
+                conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao zerar questionário IAMB no Neon DB: {e}")
-        ui.notify(f"Erro ao apagar dados no banco Neon: {e}", type="negative")
+        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
 
 
 def _obter_lista_comentarios(dados_banco):
-    """Garante retorno de lista válida de comentários."""
     raw = dados_banco.get("comentarios", [])
     if isinstance(raw, str):
         if raw in ["EMPTY_STRING", "", "null", "None"]:
@@ -134,24 +158,23 @@ def _obter_lista_comentarios(dados_banco):
 
 
 def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
-    """Gera dados para download do relatório IAMB."""
-    conteudo = f"RELATÓRIO TÉCNICO IAMB - MEIO AMBIENTE ({ano})\n"
-    conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa de Desempenho: {faixa}\n\n"
+    conteudo = f"RELATÓRIO TÉCNICO iamb ({ano})\n"
+    conteudo += f"Pontuação Total: {total_pts:.1f} pts | Faixa: {faixa}\n\n"
     for qid, dados in res_data.items():
         conteudo += f"Quesito {qid}: {dados.get('valor')} | Pontos: {dados.get('pontos')} | Link: {dados.get('link')}\n"
     return conteudo.encode("utf-8")
 
 
 # =============================================================================
-# 1. PAINEL LATERAL / CONTROLE (IAMB)
+# 1. PAINEL LATERAL / CONTROLE
 # =============================================================================
 def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
 
     with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
-        ui.label("🌱 Painel de Controle - IAMB").classes(
-            "text-lg font-bold mb-2 text-emerald-900"
+        ui.label("🛠️ Painel de Controle (iAmb)").classes(
+            "text-lg font-bold mb-2 text-blue-900"
         )
 
         def ao_mudar_ano(e):
@@ -167,24 +190,24 @@ def render_painel_controle(on_refresh_callback=None):
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
-        # Busca dados e faz o cálculo
         res_data = load_respostas(ano_atual)
         total_pts = sum(
             float(item.get("pontos", 0)) for item in res_data.values()
         )
 
-        # Regras de Faixa Ambientais (IAMB)
-        if total_pts < 40.0:
-            faixa, cor = "C (Insuficiente)", "text-red-600"
-        elif total_pts < 60.0:
-            faixa, cor = "B (Mediano)", "text-orange-500"
-        elif total_pts < 80.0:
-            faixa, cor = "B+ (Bom)", "text-yellow-600"
+        if total_pts <= 500:
+            faixa, cor = "C", "text-red-600"
+        elif total_pts <= 599:
+            faixa, cor = "C+", "text-orange-500"
+        elif total_pts <= 749:
+            faixa, cor = "B", "text-yellow-600"
+        elif total_pts <= 899:
+            faixa, cor = "B+", "text-green-500"
         else:
-            faixa, cor = "A (Excelência)", "text-emerald-700"
+            faixa, cor = "A", "text-green-700"
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
-            ui.label("Índice Ambiental").classes(
+            ui.label("Pontuação Total").classes(
                 "text-xs text-gray-500 font-bold uppercase"
             )
             ui.label(f"{total_pts:.1f} pts").classes(
@@ -192,42 +215,39 @@ def render_painel_controle(on_refresh_callback=None):
             )
 
             with ui.row().classes("items-center gap-1 mt-1"):
-                ui.label("Nível:").classes("font-bold text-sm")
-                ui.label(faixa).classes(f"text-sm font-bold {cor}")
+                ui.label("Faixa:").classes("font-bold text-sm")
+                ui.label(faixa).classes(f"text-xl font-bold {cor}")
 
         ui.separator().classes("my-2")
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
         def atualizar_dados():
-            ui.notify(
-                "Métricas ambientais atualizadas!", type="positive", icon="refresh"
-            )
+            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
             if on_refresh_callback:
                 on_refresh_callback()
 
-        ui.button(
-            "🔄 Atualizar Indicadores", on_click=atualizar_dados
-        ).classes("w-full bg-emerald-700 text-white mb-2")
+        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
+            "w-full bg-blue-700 text-white mb-2"
+        )
         ui.separator().classes("my-2")
 
-        # Modal de Zerapagem
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
-            ui.label("🔒 Confirmar Exclusão").classes(
+            ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
             )
             ui.label(
-                f"Você irá apagar os dados do IAMB de {ano_atual}. Ação irreversível!"
+                f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!"
             ).classes("text-sm my-2")
 
             input_senha = ui.input(
-                "Senha de Administrador:", password=True
+                "Digite a senha de administrador:", password=True
             ).classes("w-full mb-4")
 
             def executar_zerar():
                 if input_senha.value == "fidelios":
                     zerar_questionario_db(ano_atual)
                     ui.notify(
-                        f"✅ Registros do IAMB {ano_atual} foram zerados!",
+                        f"✅ Questionário de {ano_atual} foi zerado!",
                         type="positive",
                     )
                     dialog_zerar.close()
@@ -249,9 +269,9 @@ def render_painel_controle(on_refresh_callback=None):
             ui.button(
                 "📄 Relatório",
                 on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_IAMB_{ano_atual}.pdf"
+                    pdf_bytes, f"Relatorio_iamb_{ano_atual}.pdf"
                 ),
-            ).classes("flex-1 bg-emerald-800 text-white")
+            ).classes("flex-1 bg-green-700 text-white")
             ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
                 "flex-1 bg-red-700 text-white"
             )
@@ -288,7 +308,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
     )
 
     with ui.expansion(
-        f"💬 Análise do Quesito {qid} | Status: {badge_status}",
+        f"💬 Diálogo Interno {qid} | Status: {badge_status}",
         value=(status_global == "Pendente"),
     ).classes("w-full border rounded p-2 mt-3 bg-gray-50"):
 
@@ -297,7 +317,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             log = {
                 "autor": "Sistema / " + usuario_atual,
                 "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                "texto": f"ℹ️ Alterou o status ambiental para: **{novo_st.upper()}**.",
+                "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
             historico.append(log)
@@ -340,7 +360,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                         comentarios=historico,
                         status=status_global,
                     )
-                    ui.notify("Registro excluído.", type="warning")
+                    ui.notify("Comentário removido.", type="warning")
                     if on_save_callback:
                         on_save_callback()
 
@@ -356,8 +376,8 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                         ).classes("w-full")
                     else:
                         ui.html(
-                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #059669; border: 1px solid #e0e0e0; width: 100%;">
-                                <span style="font-size: 11px; color: #059669; font-weight: bold;">👤 {autor}</span> 
+                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
+                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
                                 <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
                                 <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
                             </div>"""
@@ -368,7 +388,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                     )
 
         input_novo_comentario = (
-            ui.textarea(placeholder="Adicionar parecer / nota técnica...")
+            ui.textarea(placeholder="Novo comentário...")
             .classes("w-full")
             .props("outlined rows=2")
         )
@@ -391,17 +411,17 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                     comentarios=historico,
                     status=status_global,
                 )
-                ui.notify("Apontamento registrado!", type="positive")
+                ui.notify("Comentário publicado!", type="positive")
                 if on_save_callback:
                     on_save_callback()
 
-        ui.button("Inserir Parecer", on_click=postar_comentario).classes(
-            "bg-emerald-700 text-white mt-2"
+        ui.button("Postar Comentário", on_click=postar_comentario).classes(
+            "bg-blue-600 text-white mt-2"
         )
 
 
 # =============================================================================
-# 3. RENDERIZADOR DE QUESITO (PADRÃO iGov-TI)
+# 3. RENDERIZADOR DE QUESITO
 # =============================================================================
 def render_quesito(
     ano,
@@ -432,7 +452,6 @@ def render_quesito(
             ).classes("text-caption text-grey-6 mb-4")
 
             with ui.row().classes("w-full gap-4 items-start"):
-                # Coluna das Opções / Resposta
                 with ui.column().classes("flex-1"):
                     checkbox_dict = {}
                     input_valor = None
@@ -486,7 +505,6 @@ def render_quesito(
                             value=d_data.get("valor", ""),
                         ).classes("w-full").props("outlined rows=3")
 
-                # Coluna das Evidências / Links
                 with ui.column().classes("flex-1"):
                     input_link = ui.textarea(
                         label="Link de Evidência / Documento:",
@@ -530,7 +548,6 @@ def render_quesito(
 
                     atualizar_links_visuais()
 
-            # Exibição do Impacto de Pontuação
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
             def atualizar_label_pontos(pts, val):
@@ -540,7 +557,7 @@ def render_quesito(
                     )
                 else:
                     cor = (
-                        "#059669"
+                        "#28a745"
                         if pts > 0
                         else (
                             "#dc3545" if val != "Selecione..." else "#6c757d"
@@ -554,7 +571,6 @@ def render_quesito(
                 d_data.get("pontos", 0.0), d_data.get("valor", "")
             )
 
-            # Botão de Ação do Quesito
             def salvar():
                 if tipo == "checkbox" and opcoes:
                     selecionados = [
@@ -579,6 +595,7 @@ def render_quesito(
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
+                # Tenta chamar save_resp do main se existir, senão usa local
                 if "save_resp" in globals():
                     try:
                         save_resp(qid, val, pts, link, comms, ano)
@@ -613,39 +630,38 @@ def render_quesito(
                 if on_save_callback:
                     on_save_callback()
 
-            ui.button(f"💾 SALVAR QUESITO {qid}", on_click=salvar).classes(
+            ui.button(f"💾 Salvar Quesito {qid}", on_click=salvar).classes(
                 "bg-blue-800 text-white mt-4"
             )
 
-            # Inclusão da área de Análise / Parecer
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
 
 # =============================================================================
-# 4. CONTAINER PRINCIPAL IAMB
+# 4. CONTAINER PRINCIPAL REFRESHABLE
 # =============================================================================
 @ui.refreshable
-def container_formulario_icidade():
+def container_formulario_iamb():
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     res_data = load_respostas(ano_sel)
 
     with ui.grid(columns=4).classes("w-full gap-6 items-start"):
-
-        # Painel Lateral
         with ui.column().classes("col-span-1 w-full"):
             render_painel_controle(
-                on_refresh_callback=container_formulario_icidade.refresh
+                on_refresh_callback=container_formulario_iamb.refresh
             )
 
-        # Quesitos Ambientais (IAMB)
         with ui.column().classes("col-span-3 w-full"):
             ui.label(
-                f"Formulário IAMB - Gestão Ambiental ({ano_sel})"
-            ).classes("text-h4 mb-1 font-bold text-emerald-900")
+                f"Formulário iamb - Meio Ambiente ({ano_sel})"
+            ).classes("text-h4 mb-1 font-bold text-blue-900")
             ui.label(
-                "Índice de Avaliação do Meio Ambiente - Registro de Evidências e Metas."
+                "Preencha as evidências e questões do indicador i-amb"
             ).classes("text-gray-600 mb-6")
 
+            ui.label("1.0 Estrutura de TIC").classes(
+                "text-h5 font-bold my-4 text-blue-900"
+            )
             # EIXO 1: ESTRUTURA E POLÍTICA MUNICIPAL DE MEIO AMBIENTE
             opcoes_10 = {
                 "Selecione...": 0.0,
