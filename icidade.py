@@ -158,10 +158,12 @@ def render_quesito(
     valor_atual = dados_q.get("valor", "")
     link_atual = dados_q.get("link", "")
 
-    state = {
-        "opcao": valor_atual,
-        "link": link_atual,
-    }
+    # Para checkboxes, a resposta armazenada é uma lista ou string separada por vírgulas
+    if tipo_input == "checkbox":
+        itens_selecionados = [v.strip() for v in valor_atual.split(",") if v.strip()] if valor_atual else []
+        state = {"opcao": itens_selecionados, "link": link_atual}
+    else:
+        state = {"opcao": valor_atual, "link": link_atual}
 
     with ui.card().classes(
         "w-full p-6 mb-4 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -174,14 +176,34 @@ def render_quesito(
             "ℹ Preencha os campos abaixo e clique no botão de salvar."
         ).classes("text-xs text-gray-400 mb-6")
 
-        # 1. RENDERIZAÇÃO DO CAMPO DE ENTRADA (Texto/Link ou Radio)
-        if tipo_input in ["texto", "link"]:
+        # 1. RENDERIZAÇÃO DO CAMPO DE ENTRADA
+        if tipo_input == "checkbox":
+            if not opcoes:
+                opcoes = {}
+            
+            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                with ui.element("div").classes("flex flex-col gap-2"):
+                    checkboxes = {}
+                    for item in opcoes.keys():
+                        chk = ui.checkbox(
+                            text=item,
+                            value=(item in state["opcao"])
+                        ).props("color=blue")
+                        checkboxes[item] = chk
+
+                ui.textarea(
+                    label="Link de Evidência / Documento:",
+                    value=state["link"],
+                    placeholder=placeholder_link,
+                ).classes("w-full").props("outlined rows=4").bind_value(
+                    state, "link"
+                )
+
+        elif tipo_input in ["texto", "link"]:
             ui.textarea(
                 label="Resposta / Detalhamento:",
                 value=state["opcao"],
-                placeholder=placeholder_texto
-                if tipo_input == "texto"
-                else placeholder_link,
+                placeholder=placeholder_texto if tipo_input == "texto" else placeholder_link,
             ).classes("w-full mb-4").props("outlined rows=3").bind_value(
                 state, "opcao"
             )
@@ -225,12 +247,14 @@ def render_quesito(
 
         # 2. BOTÃO DE SALVAR
         def salvar_acao():
-            opcao_sel = state["opcao"]
-            pts = (
-                opcoes.get(opcao_sel, 0.0)
-                if (opcoes and tipo_input == "radio")
-                else 0.0
-            )
+            if tipo_input == "checkbox":
+                sel = [item for item, chk in checkboxes.items() if chk.value]
+                opcao_sel = ", ".join(sel)
+                pts = 0.0
+            else:
+                opcao_sel = state["opcao"]
+                pts = opcoes.get(opcao_sel, 0.0) if (opcoes and tipo_input == "radio") else 0.0
+
             lnk = state["link"]
 
             save_resposta(
@@ -256,11 +280,9 @@ def render_quesito(
 
         ui.separator().classes("my-2")
 
-        # 3. RENDERIZAÇÃO DO BLOCO DE COMENTÁRIOS (AGORA DENTRO DO CARD)
         bloco_comentarios(
             qid=qid, res_data=res_data, on_save_callback=on_save_callback
         )
-
 
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
