@@ -437,9 +437,9 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS
+# MÓDULO PRINCIPAL DE REQUISITOS (Nome ajustado para corresponder ao main.py)
 # =============================================================================
-def container_formulario_iplan (ano=None):
+def container_formulario_plan(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
@@ -456,7 +456,6 @@ def container_formulario_iplan (ano=None):
         with ui.element("div").classes(
             "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
         ):
-
             # Coluna 1: Painel Lateral (3/12)
             with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
                 render_painel_controle(
@@ -472,3 +471,6 @@ def container_formulario_iplan (ano=None):
                 ui.label(f"📋 Módulo i-Plan — Ano {ano_sel}").classes(
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
+
+    # Inicializa e renderiza o conteúdo do módulo
+    render_conteudo()
