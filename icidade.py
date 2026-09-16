@@ -707,16 +707,26 @@ def container_formulario_icidade(ano=None):
                 )
 
                 # ==========================================
-                # QUESITO 3.1 (Ações Realizadas)
+                # QUESITO 3.1 (Ações Realizadas - Checkbox)
                 # ==========================================
+                opcoes_31 = {
+                    "Workshop / Palestra": 0.0,
+                    "Reunião": 0.0,
+                    "Conferência": 0.0,
+                    "Congresso": 0.0,
+                    "Discussão na Câmara Municipal": 0.0,
+                    "Treinamentos": 0.0,
+                    "Outros": 0.0,
+                }
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
                     qid="3.1",
                     titulo="Ações Realizadas com a Sociedade Civil",
-                    pergunta="Assinale/Informe quais ações foram realizadas (Ex: Workshop / Palestra, Reunião, Conferência, Congresso, Discussão na Câmara Municipal, Treinamentos, Outros):",
-                    tipo_input="texto",
-                    placeholder_texto="Listar e detalhar as ações realizadas...",
+                    pergunta="Assinale quais ações foram realizadas:",
+                    tipo_input="checkbox",
+                    opcoes=opcoes_31,
+                    placeholder_link="Insira o link das atas, fotos ou comprovações das ações...",
                     on_save_callback=render_conteudo.refresh,
                 )
 
