@@ -510,27 +510,29 @@ def container_formulario_icidade(ano=None):
                 # ==========================================
                 # QUESITO 1.1 (Campo de Texto / Normativo)
                 # ==========================================
+                opcoes_11 = {"Preenchido / Verificado": 0.0, "Não Preenchido": 0.0}
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
                     qid="1.1",
                     titulo="Instrumento Normativo de Criação da COMPDEC",
                     pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
-                    tipo_input="texto",
-                    placeholder_texto="Ex: Lei Municipal nº 1.234, de 10 de janeiro de 2020",
+                    opcoes=opcoes_11,
+                    placeholder_link="Ex: Lei Municipal nº 1.234, de 10 de janeiro de 2020",
                     on_save_callback=render_conteudo.refresh,
                 )
 
                 # ==========================================
                 # QUESITO 1.2 (Link / Página Eletrônica)
                 # ==========================================
+                opcoes_12 = {"Link Informado": 0.0, "XYZ (Indisponível)": 0.0}
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
                     qid="1.2",
                     titulo="Link do Instrumento Normativo",
                     pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
-                    tipo_input="link",
+                    opcoes=opcoes_12,
                     placeholder_link="https://... ou digite XYZ",
                     on_save_callback=render_conteudo.refresh,
                 )
