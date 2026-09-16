@@ -1082,16 +1082,64 @@ def container_formulario_icidade(ano=None):
                     "Alerta via SMS": 0.0,
                     "Anúncio por rádio/Televisão": 0.0,
                     "Placas de identificação de área de risco": 0.0,
+                    "Aviso à comunidade por telefone / Aplicativo de mensagens": 0.0,
+                    "Aviso à comunidade por email": 0.0,
+                    "Aviso aos membros do Nupdec": 0.0,
+                    "Outro": 0.0,
                 }
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
                     qid="7.3.1",
                     titulo="Tipos de Sistemas de Alerta Utilizados",
-                    pergunta="Assinale os tipos de sistemas de alerta utilizados pelo Município:",
+                    pergunta="Assinale os tipos de sistemas de alerta utilizados pelo Município (Objetivo: avisar a população vulnerável antes de ocorrer o evento):",
                     tipo_input="checkbox",
                     opcoes=opcoes_731,
-                    placeholder_link="Insira o link com fotos ou registros das mídias/alertas emitidos...",
+                    placeholder_link="Insira o link com fotos, comprovantes de envio ou registros dos alertas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 7.4 (Sistema de Alarme)
+                # ==========================================
+                opcoes_74 = {
+                    "Selecione...": 0.0,
+                    "Sim (50.0 pts)": 50.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.4",
+                    titulo="Sistema de Alarme para Desastres",
+                    pergunta="O Município dispõe de sinal, dispositivo ou sistema de alarme para desastres? (Objetivo: avisar a população sobre o evento que está ocorrendo):",
+                    opcoes=opcoes_74,
+                    placeholder_link="Insira o link da norma, contrato ou registro do sistema de alarme...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 7.4.1 (Tipos de Sistema de Alarme - Checkbox)
+                # ==========================================
+                opcoes_741 = {
+                    "Sinal sonoro (sirene)": 0.0,
+                    "Sinal luminoso": 0.0,
+                    "Carros de emergência equipados de sirenes": 0.0,
+                    "Carros de emergência com alto-falantes": 0.0,
+                    "Aviso aos membros do Nupdec": 0.0,
+                    "Aviso à comunidade por telefone / Aplicativo de mensagens": 0.0,
+                    "Uso da imprensa (TV, rádio, internet)": 0.0,
+                    "Outro": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.4.1",
+                    titulo="Tipos de Sinal, Dispositivo ou Sistema de Alarme",
+                    pergunta="Assinale os tipos de sinal, dispositivo ou sistema de alarme utilizado pelo Município:",
+                    tipo_input="checkbox",
+                    opcoes=opcoes_741,
+                    placeholder_link="Insira o link das evidências dos dispositivos e alarmes acionados...",
                     on_save_callback=render_conteudo.refresh,
                 )
 
