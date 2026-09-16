@@ -1269,6 +1269,223 @@ def container_formulario_iamb(ano=None):
                     placeholder_link="Insira o Plano de Contingência para Estiagem, Decretos de emergência hídrica ou campanhas de racionamento...",
                     on_save_callback=render_conteudo.refresh,
                 )
+
+    # =============================================================================
+                # QUESITO 6.1 (Seleção Múltipla com Pontuação Cumulativa Específica)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("6.1 • Ações e Medidas Preventivas para Períodos de Estiagem").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale as ações e medidas preventivas de contingenciamento executadas pela Prefeitura:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as ações aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d61 = res_data.get("6.1") or {}
+                    try:
+                        sel_61_salvos = json.loads(d61.get("valor", "[]"))
+                        if not isinstance(sel_61_salvos, list): sel_61_salvos = []
+                    except Exception:
+                        sel_61_salvos = []
+
+                    mapa_61 = {
+                        "plano_emergencial": ("Plano emergencial ou de contingenciamento (+30 pts)", 30.0),
+                        "manobra_agua": ("Manejo/manobras de água entre os reservatórios (0 pts)", 0.0),
+                        "campanha": ("Campanha de conscientização da população (+5 pts)", 5.0),
+                        "fontes_alt": ("Busca de fontes alternativas (poços artesianos) (0 pts)", 0.0),
+                        "racionamento": ("Uso racional da distribuição de água (racionamento) (0 pts)", 0.0),
+                        "rodizio": ("Implantação de rodízio de fornecimento de água (0 pts)", 0.0),
+                        "reduc_pressao": ("Redução da pressão no abastecimento de água (0 pts)", 0.0),
+                        "multa": ("Multa em caso de desperdício de água (0 pts)", 0.0),
+                        "tarifa_dif": ("Tarifa/taxa diferenciada para aumento de consumo (0 pts)", 0.0),
+                        "caminhao_pipa": ("Fornecimento de caminhões pipa (0 pts)", 0.0),
+                        "drenagem": ("Drenagem pluvial (0 pts)", 0.0),
+                        "reuso": ("Incentivo à instalação de sistema para água de reúso (+5 pts)", 5.0),
+                        "perdas": ("Redução das perdas na distribuição de água (0 pts)", 0.0),
+                        "desassoreamento": ("Desassoreamento (0 pts)", 0.0),
+                        "divulgacao": ("Divulgação dos resultados obtidos e situação dos mananciais (+10 pts)", 10.0),
+                    }
+
+                    state_61 = {k: k in sel_61_salvos for k in mapa_61.keys()}
+                    state_61["link"] = d61.get("link", "")
+
+                    def calc_pts_61():
+                        pts = sum(peso for k, (_, peso) in mapa_61.items() if state_61.get(k))
+                        return min(pts, 50.0)
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_61a = [ui.checkbox(rotulo).bind_value(state_61, k) for k, (rotulo, _) in list(mapa_61.items())[:8]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_61b = [ui.checkbox(rotulo).bind_value(state_61, k) for k, (rotulo, _) in list(mapa_61.items())[8:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_61["link"],
+                        placeholder="Insira o Plano de Contingência, materiais educativos, Decretos ou relatórios...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_61, "link")
+
+                    lbl_pts_61 = ui.label(f"📊 Impacto de Pontuação no Quesito 6.1: {calc_pts_61():.1f} / 50.0 pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_61():
+                        lbl_pts_61.set_text(f"📊 Impacto de Pontuação no Quesito 6.1: {calc_pts_61():.1f} / 50.0 pontos")
+
+                    for cb in cb_col_61a + cb_col_61b:
+                        cb.on("update:model-value", att_pts_61)
+
+                    def salvar_61():
+                        selecionados = [k for k in mapa_61.keys() if state_61.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="6.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_61(),
+                            link=state_61["link"],
+                            comentarios=d61.get("comentarios", []),
+                            status=d61.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 6.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 6.1", on_click=salvar_61).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("6.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 6.2 (Seleção Múltipla por Setor)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("6.2 • Setores com Contingenciamento para Provisão de Água Potável").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Em quais setores existem ações e medidas de contingenciamento específicos para provisão de água potável?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione os setores contemplados e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d62 = res_data.get("6.2") or {}
+                    try:
+                        sel_62_salvos = json.loads(d62.get("valor", "[]"))
+                        if not isinstance(sel_62_salvos, list): sel_62_salvos = []
+                    except Exception:
+                        sel_62_salvos = []
+
+                    mapa_62 = {
+                        "educacao": ("Rede Municipal de Educação (+10 pts)", 10.0),
+                        "saude": ("Rede Municipal da Atenção Básica da Saúde (+10 pts)", 10.0),
+                        "outro": ("Outro setor (+5 pts)", 5.0),
+                    }
+
+                    state_62 = {k: k in sel_62_salvos for k in mapa_62.keys()}
+                    state_62["link"] = d62.get("link", "")
+
+                    def calc_pts_62():
+                        return sum(peso for k, (_, peso) in mapa_62.items() if state_62.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-2"):
+                            cb_edu = ui.checkbox(mapa_62["educacao"][0]).bind_value(state_62, "educacao")
+                            cb_sau = ui.checkbox(mapa_62["saude"][0]).bind_value(state_62, "saude")
+                            cb_out = ui.checkbox(mapa_62["outro"][0]).bind_value(state_62, "outro")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_62["link"],
+                            placeholder="Insira ordens de serviço, relatórios setoriais ou protocolos de abastecimento de emergência...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_62, "link")
+
+                    lbl_pts_62 = ui.label(f"📊 Impacto de Pontuação no Quesito 6.2: {calc_pts_62():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_62():
+                        lbl_pts_62.set_text(f"📊 Impacto de Pontuação no Quesito 6.2: {calc_pts_62():.1f} pontos")
+
+                    cb_edu.on("update:model-value", att_pts_62)
+                    cb_sau.on("update:model-value", att_pts_62)
+                    cb_out.on("update:model-value", att_pts_62)
+
+                    def salvar_62():
+                        selecionados = [k for k in mapa_62.keys() if state_62.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="6.2",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_62(),
+                            link=state_62["link"],
+                            comentarios=d62.get("comentarios", []),
+                            status=d62.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 6.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 6.2", on_click=salvar_62).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("6.2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 7.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_70 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.0",
+                    titulo="Plano Municipal ou Regional de Saneamento Básico",
+                    pergunta="O município possui seu Plano Municipal ou Regional de Saneamento Básico instituído?",
+                    opcoes=opcoes_70,
+                    placeholder_link="Insira o link da Lei Municipal, Decreto ou publicação oficial do Plano de Saneamento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 7.1 (Campos de Texto para Instrumento Normativo)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.1 • Instrumento Normativo do Plano de Saneamento Básico").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Preencha as informações do ato legal e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d71 = res_data.get("7.1") or {}
+                    raw_val_71 = str(d71.get("valor") or "")
+                    
+                    norma_i, num_i, data_i = "", "", ""
+                    if "|NUM:" in raw_val_71 and "|DATA:" in raw_val_71:
+                        partes_71 = raw_val_71.split("|NUM:")
+                        norma_i = partes_71[0]
+                        num_i, data_i = partes_71[1].split("|DATA:")
+
+                    state_71 = {
+                        "norma": norma_i,
+                        "numero": num_i,
+                        "data": data_i,
+                        "link": d71.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input("Instrumento Normativo (Ex: Lei Municipal, Decreto):", value=norma_i, placeholder="Ex: Lei Municipal").classes("w-full").props("outlined").bind_value(state_71, "norma")
+                            ui.input("Número do Instrumento:", value=num_i, placeholder="Ex: nº 1.234/2020").classes("w-full").props("outlined").bind_value(state_71, "numero")
+                            ui.input("Data da Publicação:", value=data_i, placeholder="Ex: 15/03/2020").classes("w-full").props("outlined").bind_value(state_71, "data")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_71["link"],
+                            placeholder="Insira a cópia do Diário Oficial ou link do documento na íntegra...",
+                        ).classes("w-full").props("outlined rows=6").bind_value(state_71, "link")
+
+                    def salvar_71():
+                        composite_val = f"{state_71['norma']}|NUM:{state_71['numero']}|DATA:{state_71['data']}"
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.1",
+                            valor=composite_val,
+                            pontos=0.0,
+                            link=state_71["link"],
+                            comentarios=d71.get("comentarios", []),
+                            status=d71.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.1", on_click=salvar_71).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
