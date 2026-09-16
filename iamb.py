@@ -596,6 +596,145 @@ def container_formulario_iamb(ano=None):
                         "1.1.1", res_data, render_conteudo.refresh
                     )
 
+                # =============================================================================
+                # QUESITO 1.1.2 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_112 = {
+                    "Selecione...": 0.0,
+                    "Sim – 20 pts": 20.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.1.2",
+                    titulo="Treinamento dos Servidores de Meio Ambiente",
+                    pergunta=f"Os servidores responsáveis pelo Meio Ambiente receberam treinamento específico voltado ao Meio Ambiente em {ano_sel}?",
+                    opcoes=opcoes_112,
+                    placeholder_link="Insira o link do certificado, lista de presença ou relatório do treinamento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 1.1.3 (Seleção Múltipla - Checkboxes)
+                # =============================================================================
+                with ui.card().classes(
+                    "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                ):
+                    ui.label(
+                        "1.1.3 • Público do Treinamento/Cursos em Educação Ambiental"
+                    ).classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label(
+                        "A Secretaria Municipal de Meio Ambiente ou similar ofereceu cursos/treinamento sobre educação ambiental para qual público?"
+                    ).classes("text-base font-bold text-black mb-1")
+                    ui.label(
+                        "ℹ Selecione todas as opções aplicáveis e clique no botão de salvar."
+                    ).classes("text-xs text-gray-400 mb-6")
+
+                    # Recupera dados salvos
+                    d113 = res_data.get("1.1.3") or {}
+                    
+                    # Trata o valor recuperado (pode ser uma lista em formato string JSON ou legada)
+                    try:
+                        selecionados_salvos = json.loads(d113.get("valor", "[]"))
+                        if not isinstance(selecionados_salvos, list):
+                            selecionados_salvos = []
+                    except Exception:
+                        selecionados_salvos = []
+
+                    mapa_opcoes_113 = {
+                        "escolas": ("Para escolas (+5 pts)", 5.0),
+                        "secretarias": ("Para outras secretarias / entidades municipais (+2 pts)", 2.0),
+                        "municipes": ("Para munícipes ou empresas (+3 pts)", 3.0),
+                        "nenhum": ("Não ofereceu nenhum curso/treinamento no ano (0 pts)", 0.0),
+                    }
+
+                    state_113 = {
+                        "escolas": "escolas" in selecionados_salvos,
+                        "secretarias": "secretarias" in selecionados_salvos,
+                        "municipes": "municipes" in selecionados_salvos,
+                        "nenhum": "nenhum" in selecionados_salvos or not selecionados_salvos,
+                        "link": d113.get("link", ""),
+                    }
+
+                    # Cálculo dinâmico da pontuação
+                    def calcular_pts_113():
+                        if state_113["nenhum"]:
+                            return 0.0
+                        pts = 0.0
+                        if state_113["escolas"]: pts += 5.0
+                        if state_113["secretarias"]: pts += 2.0
+                        if state_113["municipes"]: pts += 3.0
+                        return pts
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        # Coluna da esquerda: Checkboxes com regras de dependência
+                        with ui.column().classes("w-full gap-2"):
+                            cb_escolas = ui.checkbox(mapa_opcoes_113["escolas"][0]).bind_value(state_113, "escolas")
+                            cb_sec = ui.checkbox(mapa_opcoes_113["secretarias"][0]).bind_value(state_113, "secretarias")
+                            cb_mun = ui.checkbox(mapa_opcoes_113["municipes"][0]).bind_value(state_113, "municipes")
+                            cb_nenhum = ui.checkbox(mapa_opcoes_113["nenhum"][0]).bind_value(state_113, "nenhum")
+
+                        # Coluna da direita: Link de evidência
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_113["link"],
+                            placeholder="Insira o link das fotos, listas de presença, certificados ou materiais dos cursos...",
+                        ).classes("w-full").props("outlined rows=5").bind_value(state_113, "link")
+
+                    label_pts_113 = ui.label(
+                        f"📊 Impacto de Pontuação no Quesito 1.1.3: {calcular_pts_113():.1f} pontos"
+                    ).classes("text-sm font-bold text-green-600 my-4")
+
+                    def atualizar_estado_113(fonte):
+                        if fonte == "nenhum" and state_113["nenhum"]:
+                            state_113["escolas"] = False
+                            state_113["secretarias"] = False
+                            state_113["municipes"] = False
+                        elif fonte in ["escolas", "secretarias", "municipes"] and state_113[fonte]:
+                            state_113["nenhum"] = False
+
+                        label_pts_113.set_text(
+                            f"📊 Impacto de Pontuação no Quesito 1.1.3: {calcular_pts_113():.1f} pontos"
+                        )
+
+                    cb_escolas.on("update:model-value", lambda: atualizar_estado_113("escolas"))
+                    cb_sec.on("update:model-value", lambda: atualizar_estado_113("secretarias"))
+                    cb_mun.on("update:model-value", lambda: atualizar_estado_113("municipes"))
+                    cb_nenhum.on("update:model-value", lambda: atualizar_estado_113("nenhum"))
+
+                    def salvar_113():
+                        selecionados = []
+                        if state_113["nenhum"]:
+                            selecionados = ["nenhum"]
+                        else:
+                            if state_113["escolas"]: selecionados.append("escolas")
+                            if state_113["secretarias"]: selecionados.append("secretarias")
+                            if state_113["municipes"]: selecionados.append("municipes")
+                            if not selecionados: selecionados = ["nenhum"]
+
+                        pts_finais = calcular_pts_113()
+
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="1.1.3",
+                            valor=json.dumps(selecionados),
+                            pontos=pts_finais,
+                            link=state_113["link"],
+                            comentarios=d113.get("comentarios", []),
+                            status=d113.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 1.1.3 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh:
+                            render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 1.1.3", on_click=salvar_113).classes(
+                        "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                    )
+
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("1.1.3", res_data, render_conteudo.refresh)
+
                 # QUESITO 2.0
                 opcoes_20 = {
                     "Selecione...": 0.0,
