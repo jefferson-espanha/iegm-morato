@@ -517,4 +517,10 @@ def container_formulario_icidade(ano=None):
                 # Exemplo de chamada de quesito caso deseje renderizar dentro do container principal:
                 # render_quesito(ano_sel, res_data, "Q1", "Título do Quesito", "Pergunta de exemplo?", {"Opção A": 10, "Opção B": 5}, on_save_callback=render_conteudo.refresh)
 
+   
+    # Executa a renderização da interface
     render_conteudo()
+                
+# Exporta referências principais para o aplicativo
+mostrar_formulario_iamb = container_formulario_icidade
+main = container_formulario_icidade
