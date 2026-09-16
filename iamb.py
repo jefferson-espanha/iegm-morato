@@ -2109,6 +2109,198 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 7.7.1", on_click=salvar_771).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("7.7.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 7.8 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_78 = {
+                    "Selecione...": 0.0,
+                    "Sim – 20 pts": 20.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.8",
+                    titulo="Cronograma de Metas do Plano de Saneamento",
+                    pergunta="O Plano Municipal ou Regional de Saneamento Básico possui cronograma com as metas a serem cumpridas?",
+                    opcoes=opcoes_78,
+                    placeholder_link="Insira o link da seção/tabela do plano que apresenta o cronograma das metas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 7.8.1 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_781 = {
+                    "Selecione...": 0.0,
+                    "Todas as metas foram cumpridas dentro do prazo – 50 pts": 50.0,
+                    "A maior parte das metas foram cumpridas dentro do prazo – 30 pts": 30.0,
+                    "A menor parte das metas foram cumpridas dentro do prazo – 10 pts": 10.0,
+                    "As metas não foram cumpridas dentro do prazo – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.8.1",
+                    titulo="Cumprimento das Metas de Água e Esgoto",
+                    pergunta="As metas do Plano relacionadas ao abastecimento de água potável e esgotamento sanitário estão sendo cumpridas no prazo estipulado?",
+                    opcoes=opcoes_781,
+                    placeholder_link="Insira relatórios de acompanhamento, pareceres técnicos ou atas de avaliação das metas...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 7.8.1.1 (Seleção Múltipla de Motivos para Descumprimento)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.8.1.1 • Motivos do Não Cumprimento das Metas").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale os motivos pelos quais as metas relacionadas ao abastecimento de água potável e esgotamento sanitário não estão sendo cumpridas:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione os motivos aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d7811 = res_data.get("7.8.1.1") or {}
+                    try:
+                        sel_7811_salvos = json.loads(d7811.get("valor", "[]"))
+                        if not isinstance(sel_7811_salvos, list): sel_7811_salvos = []
+                    except Exception:
+                        sel_7811_salvos = []
+
+                    mapa_7811 = {
+                        "recursos": ("Falta de recursos orçamentários", 0.0),
+                        "legislativo": ("Falta de aprovação legislativa", 0.0),
+                        "atraso_licitacao": ("Atraso na licitação", 0.0),
+                        "nao_licitou": ("Não realizou licitação necessária", 0.0),
+                        "pessoal": ("Falta de pessoal qualificado", 0.0),
+                        "consenso_consorcio": ("Falta de consenso no consórcio intermunicipal", 0.0),
+                        "outros": ("Outros motivos", 0.0),
+                    }
+
+                    state_7811 = {k: k in sel_7811_salvos for k in mapa_7811.keys()}
+                    state_7811["link"] = d7811.get("link", "")
+
+                    def calc_pts_7811():
+                        return sum(peso for k, (_, peso) in mapa_7811.items() if state_7811.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_7811a = [ui.checkbox(rotulo).bind_value(state_7811, k) for k, (rotulo, _) in list(mapa_7811.items())[:4]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_7811b = [ui.checkbox(rotulo).bind_value(state_7811, k) for k, (rotulo, _) in list(mapa_7811.items())[4:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Justificativa Documentada:",
+                        value=state_7811["link"],
+                        placeholder="Insira o link de relatórios, justificativas oficiais ou registros do conselho...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_7811, "link")
+
+                    def salvar_7811():
+                        selecionados = [k for k in mapa_7811.keys() if state_7811.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.8.1.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_7811(),
+                            link=state_7811["link"],
+                            comentarios=d7811.get("comentarios", []),
+                            status=d7811.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.8.1.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.8.1.1", on_click=salvar_7811).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.8.1.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 7.9 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_79 = {
+                    "Selecione...": 0.0,
+                    "Sim – 03 pts": 3.0,
+                    "Não – 00 pts": 0.0,
+                    "Não há áreas prioritárias/críticas no município – 03 pts": 3.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.9",
+                    titulo="Previsão para Áreas Prioritárias / Críticas",
+                    pergunta="Possui previsão para áreas prioritárias/críticas de abastecimento de água potável e esgotamento sanitário do município? (Ex: habitações precárias, mananciais degradados, áreas vulneráveis).",
+                    opcoes=opcoes_79,
+                    placeholder_link="Insira a página do plano ou mapa técnico identificando as áreas prioritárias...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 7.10 (Data da Última Revisão e Penalização de Idade do Plano)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("7.10 • Data da Última Revisão do Plano de Saneamento Básico").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Qual a data da última revisão do Plano Municipal ou Regional de Saneamento Básico?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Se não houve revisão, informe a data do início de vigência. Se Data <= 31/12/2014 = Perde 30 pontos.").classes("text-xs text-gray-400 mb-6")
+
+                    d710 = res_data.get("7.10") or {}
+                    val_710_i = str(d710.get("valor") or "31/12/2020")
+
+                    state_710 = {
+                        "data_rev": val_710_i,
+                        "link": d710.get("link", ""),
+                    }
+
+                    def calc_pts_710():
+                        dt_str = state_710["data_rev"].strip()
+                        try:
+                            if "/" in dt_str:
+                                partes = dt_str.split("/")
+                                ano_num = int(partes[2]) if len(partes) == 3 else 2020
+                            elif "-" in dt_str:
+                                partes = dt_str.split("-")
+                                ano_num = int(partes[0]) if len(partes) == 3 else 2020
+                            else:
+                                ano_num = int(dt_str)
+                            
+                            if ano_num <= 2014:
+                                return -30.0
+                        except Exception:
+                            pass
+                        return 0.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Data da Revisão/Vigência (DD/MM/AAAA):",
+                                value=state_710["data_rev"],
+                                placeholder="Ex: 15/06/2020",
+                            ).classes("w-full").props("outlined").bind_value(state_710, "data_rev")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_710["link"],
+                            placeholder="Insira o link da Lei/Decreto de revisão do plano ou publicação oficial...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_710, "link")
+
+                    lbl_pts_710 = ui.label(f"📊 Impacto de Pontuação no Quesito 7.10: {calc_pts_710():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_710():
+                        lbl_pts_710.set_text(f"📊 Impacto de Pontuação no Quesito 7.10: {calc_pts_710():.1f} pontos")
+
+                    def salvar_710():
+                        pts = calc_pts_710()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="7.10",
+                            valor=state_710["data_rev"],
+                            pontos=pts,
+                            link=state_710["link"],
+                            comentarios=d710.get("comentarios", []),
+                            status=d710.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 7.10 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 7.10", on_click=salvar_710).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("7.10", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
