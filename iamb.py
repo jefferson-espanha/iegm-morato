@@ -959,6 +959,9 @@ def container_formulario_iamb(ano=None):
                     placeholder_link="Insira o link das portarias, fotos das instalações, comprovantes de coleta seletiva nos prédios públicos...",
                     on_save_callback=render_conteudo.refresh,
                 )
+    
+    # Executa a renderização da interface
+    render_conteudo()
                 
 # Exporta referências principais para o aplicativo
 mostrar_formulario_iamb = container_formulario_iamb
