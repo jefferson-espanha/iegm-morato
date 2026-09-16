@@ -481,7 +481,6 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             "bg-blue-600 text-white mt-2"
         )
 
-
 # =============================================================================
 # MÓDULO PRINCIPAL DE REQUISITOS
 # =============================================================================
@@ -519,9 +518,9 @@ def container_formulario_plan(ano=None):
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
 
-                    # =============================================================================
-                    # QUESITO 1.0 (Audiências Públicas Orçamentárias)
-                    # =============================================================================
+                    # ==========================================
+                    # QUESITO 1.0 (Audiências Públicas)
+                    # ==========================================
                     opcoes_10 = {
                         "Selecione...": 0.0,
                         "Sim (1.0 pt)": 1.0,
@@ -538,9 +537,9 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
+                    # ==========================================
                     # QUESITO 1.1 (Peças Orçamentárias - Checkbox)
-                    # =============================================================================
+                    # ==========================================
                     opcoes_11 = {
                         "Não": 0.0,
                         "PPA inicial 2026-2029": 1.0,
@@ -559,11 +558,11 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 1.2 (Dia e Horário das Audiências - Checkbox)
-                    # =============================================================================
+                    # ==========================================
+                    # QUESITO 1.2 (Dia e Horário - Checkbox)
+                    # ==========================================
                     opcoes_12 = {
-                        "Dia de semana em horário comercial (ex: 8 às 18 horas)": 0.0,
+                        "Dia de semana em horário comercial (ex: 8 as 18 horas)": 0.0,
                         "Dia de semana após horário comercial (ex: após às 18 horas)": 2.0,
                         "Aos sábados, domingos e feriados": 2.0,
                     }
