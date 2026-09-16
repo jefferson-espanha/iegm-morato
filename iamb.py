@@ -613,6 +613,235 @@ def container_formulario_iamb(ano=None):
 
     render_conteudo()
 
+# =============================================================================
+                # QUESITO 1.1.3 (Seleção Múltipla - Checkboxes)
+                # =============================================================================
+                with ui.card().classes(
+                    "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                ):
+                    ui.label("1.1.3 • Cursos e Treinamentos de Educação Ambiental").classes(
+                        "text-xl font-semibold text-blue-500 mb-3"
+                    )
+                    ui.label(
+                        "A Secretaria Municipal de Meio Ambiente ou similar ofereceu cursos/treinamento sobre educação ambiental para qual público?"
+                    ).classes("text-base font-bold text-black mb-1")
+                    ui.label(
+                        "ℹ Marque todas as opções aplicáveis e clique no botão de salvar."
+                    ).classes("text-xs text-gray-400 mb-6")
+
+                    # Opções com suas pontuações individuais
+                    opcoes_113 = {
+                        "Para escolas – 05 pts": 5.0,
+                        "Para outras secretarias / entidades municipais – 02 pts": 2.0,
+                        "Para munícipes ou empresas – 03 pts": 3.0,
+                        "Não ofereceu nenhum curso/treinamento no ano – 00 pts": 0.0,
+                    }
+
+                    # Recupera estado salvo
+                    d113 = res_data.get("1.1.3") or {}
+                    valor_salvo_113 = str(d113.get("valor", ""))
+                    selecionados_113 = (
+                        [v.strip() for v in valor_salvo_113.split(";") if v.strip()]
+                        if valor_salvo_113
+                        else []
+                    )
+
+                    state_113 = {
+                        "selecionados": selecionados_113,
+                        "link": d113.get("link", ""),
+                    }
+
+                    # Layout em Grid de 2 colunas
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-2"):
+                            checkboxes_113 = {}
+                            for opt in opcoes_113.keys():
+                                chk = ui.checkbox(
+                                    opt,
+                                    value=(opt in state_113["selecionados"]),
+                                ).props("color=blue")
+                                checkboxes_113[opt] = chk
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_113["link"],
+                            placeholder="Insira o link de relatórios de cursos, listas de presença, fotos...",
+                        ).classes("w-full").props("outlined rows=5").bind_value(
+                            state_113, "link"
+                        )
+
+                    # Cálculo dinâmico do impacto da pontuação
+                    def calc_pts_113():
+                        total = 0.0
+                        for opt, chk in checkboxes_113.items():
+                            if chk.value:
+                                total += opcoes_113[opt]
+                        return total
+
+                    label_impacto_113 = ui.label(
+                        f"📊 Impacto de Pontuação no Quesito 1.1.3: {d113.get('pontos', 0.0):.1f} pontos"
+                    ).classes("text-sm font-bold text-green-600 my-4")
+
+                    def atualizar_impacto_113():
+                        label_impacto_113.set_text(
+                            f"📊 Impacto de Pontuação no Quesito 1.1.3: {calc_pts_113():.1f} pontos"
+                        )
+
+                    for chk in checkboxes_113.values():
+                        chk.on("update:model-value", lambda _: atualizar_impacto_113())
+
+                    # Ação de salvar
+                    def salvar_113():
+                        membros_sel = [
+                            opt for opt, chk in checkboxes_113.items() if chk.value
+                        ]
+                        pts_totais = sum(opcoes_113[opt] for opt in membros_sel)
+                        valor_str = "; ".join(membros_sel)
+
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="1.1.3",
+                            valor=valor_str,
+                            pontos=pts_totais,
+                            link=state_113["link"],
+                            comentarios=d113.get("comentarios", []),
+                            status=d113.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 1.1.3 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh:
+                            render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 1.1.3", on_click=salvar_113).classes(
+                        "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                    )
+
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("1.1.3", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 1.2 (Seleção Múltipla - Checkboxes)
+                # =============================================================================
+                with ui.card().classes(
+                    "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                ):
+                    ui.label(
+                        "1.2 • Recursos Disponibilizados para Meio Ambiente"
+                    ).classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label(
+                        "Assinale os recursos disponibilizados para a operacionalização das atividades de meio ambiente (Não considerar RH e Estrutura Física):"
+                    ).classes("text-base font-bold text-black mb-1")
+                    ui.label(
+                        "ℹ Marque todas as opções aplicáveis e clique no botão de salvar."
+                    ).classes("text-xs text-gray-400 mb-6")
+
+                    # Opções com suas pontuações individuais
+                    opcoes_12 = {
+                        "Recursos Tecnológicos – 05 pts": 5.0,
+                        "Recursos Orçamentários – 05 pts": 5.0,
+                        "Recursos Materiais – 05 pts": 5.0,
+                        "Outros – 05 pts": 5.0,
+                    }
+
+                    # Recupera estado salvo
+                    d12 = res_data.get("1.2") or {}
+                    valor_salvo_12 = str(d12.get("valor", ""))
+                    selecionados_12 = (
+                        [v.strip() for v in valor_salvo_12.split(";") if v.strip()]
+                        if valor_salvo_12
+                        else []
+                    )
+
+                    state_12 = {
+                        "selecionados": selecionados_12,
+                        "link": d12.get("link", ""),
+                    }
+
+                    # Layout em Grid de 2 colunas
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-2"):
+                            checkboxes_12 = {}
+                            for opt in opcoes_12.keys():
+                                chk = ui.checkbox(
+                                    opt,
+                                    value=(opt in state_12["selecionados"]),
+                                ).props("color=blue")
+                                checkboxes_12[opt] = chk
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_12["link"],
+                            placeholder="Insira o link do LOA, inventário de materiais, contratos de TI...",
+                        ).classes("w-full").props("outlined rows=5").bind_value(
+                            state_12, "link"
+                        )
+
+                    # Cálculo dinâmico do impacto da pontuação
+                    def calc_pts_12():
+                        total = 0.0
+                        for opt, chk in checkboxes_12.items():
+                            if chk.value:
+                                total += opcoes_12[opt]
+                        return total
+
+                    label_impacto_12 = ui.label(
+                        f"📊 Impacto de Pontuação no Quesito 1.2: {d12.get('pontos', 0.0):.1f} pontos"
+                    ).classes("text-sm font-bold text-green-600 my-4")
+
+                    def atualizar_impacto_12():
+                        label_impacto_12.set_text(
+                            f"📊 Impacto de Pontuação no Quesito 1.2: {calc_pts_12():.1f} pontos"
+                        )
+
+                    for chk in checkboxes_12.values():
+                        chk.on("update:model-value", lambda _: atualizar_impacto_12())
+
+                    # Ação de salvar
+                    def salvar_12():
+                        membros_sel = [
+                            opt for opt, chk in checkboxes_12.items() if chk.value
+                        ]
+                        pts_totais = sum(opcoes_12[opt] for opt in membros_sel)
+                        valor_str = "; ".join(membros_sel)
+
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="1.2",
+                            valor=valor_str,
+                            pontos=pts_totais,
+                            link=state_12["link"],
+                            comentarios=d12.get("comentarios", []),
+                            status=d12.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 1.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh:
+                            render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 1.2", on_click=salvar_12).classes(
+                        "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                    )
+
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("1.2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 2.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_20 = {
+                    "Selecione...": 0.0,
+                    "Sim – 10 pts": 10.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="2.0",
+                    titulo="Programa de Educação Ambiental",
+                    pergunta="O Município participa de algum Programa de Educação Ambiental?",
+                    opcoes=opcoes_20,
+                    placeholder_link="Insira o link da lei, decreto, convênio ou projeto do programa...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
 
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
