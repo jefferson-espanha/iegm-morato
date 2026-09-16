@@ -2755,6 +2755,204 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 8.4.3.1", on_click=salvar_8431).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("8.4.3.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 8.4.4 (Data da Última Revisão/Vigência - Perda de Pontos)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("8.4.4 • Data da Última Revisão do PMGIRS").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Qual a data da última revisão do Plano Municipal ou Regional de Gestão Integrada de Resíduos Sólidos?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Se não houve revisão, informar a data do início de vigência do plano.").classes("text-xs text-gray-500 mb-1")
+                    ui.label("⚠️ Regra de Pontuação: Se Data <= 31/12/2014 perde 30 pontos (-30.0). Se Data > 31/12/2014 não perde pontos (0.0).").classes("text-xs font-semibold text-red-500 mb-6")
+
+                    d844 = res_data.get("8.4.4") or {}
+                    data_salva_844 = d844.get("valor", "")
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-center mb-4"):
+                        input_data_844 = ui.input(
+                            label="Data (DD/MM/AAAA):",
+                            value=data_salva_844,
+                            placeholder="Ex: 15/08/2018"
+                        ).classes("w-full").props("outlined mask='##/##/####'")
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento do Plano:",
+                        value=d844.get("link", ""),
+                        placeholder="Insira o link da publicação da lei, decreto ou publicação oficial do plano/revisão..."
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(d844, "link")
+
+                    def calc_pts_844(data_str):
+                        if not data_str or len(data_str) < 10:
+                            return 0.0
+                        try:
+                            partes = data_str.split("/")
+                            if len(partes) == 3:
+                                dia, mes, ano = int(partes[0]), int(partes[1]), int(partes[2])
+                                # Data limite: 31/12/2014
+                                if (ano < 2014) or (ano == 2014 and mes <= 12 and dia <= 31):
+                                    return -30.0
+                                else:
+                                    return 0.0
+                        except Exception:
+                            pass
+                        return 0.0
+
+                    def salvar_844():
+                        val_data = input_data_844.value or ""
+                        pts = calc_pts_844(val_data)
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="8.4.4",
+                            valor=val_data,
+                            pontos=pts,
+                            link=d844.get("link", ""),
+                            comentarios=d844.get("comentarios", []),
+                            status=d844.get("status", "Pendente")
+                        )
+                        ui.notify(f"Quesito 8.4.4 salvo! Pontuação/Penalidade calculada: {pts} pts", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 8.4.4", on_click=salvar_844).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("8.4.4", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 9.0 (Seleção Única - Realiza Coleta Seletiva)
+                # =============================================================================
+                opcoes_90 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="9.0",
+                    titulo="Realização de Coleta Seletiva",
+                    pergunta="A prefeitura municipal realiza a coleta seletiva de resíduos sólidos?",
+                    opcoes=opcoes_90,
+                    placeholder_link="Insira o link da página do serviço, contrato ou decreto da coleta seletiva...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 9.1 (Seleção Única - Coleta Programada)
+                # =============================================================================
+                opcoes_91 = {
+                    "Selecione...": 0.0,
+                    "Sim – 00 pts": 0.0,
+                    "Não – -30 pts (perde 30 pontos)": -30.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="9.1",
+                    titulo="Programação da Coleta Seletiva",
+                    pergunta="A coleta seletiva ocorre de forma programada (determinados os horários e dias da semana)?",
+                    opcoes=opcoes_91,
+                    placeholder_link="Insira o link do cronograma oficial de coleta seletiva divulgado...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 9.2 (Seleção Única - Abrangência Territorial)
+                # =============================================================================
+                opcoes_92 = {
+                    "Selecione...": 0.0,
+                    "Todos os bairros do município são atendidos – 100 pts": 100.0,
+                    "A maior parte dos bairros são atendidos – 50 pts": 50.0,
+                    "A menor parte dos bairros são atendidos – 10 pts": 10.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="9.2",
+                    titulo="Abrangência da Coleta Seletiva",
+                    pergunta="Todas as regiões do município são atendidas pela coleta seletiva? (Inclusive zona rural e periferia)",
+                    opcoes=opcoes_92,
+                    placeholder_link="Insira o link do mapa de rotas, relatório de cobertura ou rotas da coleta seletiva...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 9.3 (Seleção Única - Incentivo e Campanhas)
+                # =============================================================================
+                opcoes_93 = {
+                    "Selecione...": 0.0,
+                    "Sim – 05 pts": 5.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="9.3",
+                    titulo="Incentivo e Campanhas sobre Coleta Seletiva",
+                    pergunta="A Prefeitura incentiva e orienta a população por meio de Ações e/ou Campanhas sobre a importância da coleta seletiva? (Não considerar ações/campanhas nas escolas)",
+                    opcoes=opcoes_93,
+                    placeholder_link="Insira o link de relatórios ou publicações das campanhas institucionais...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 9.3.1 (Seleção Múltipla com Pontuações Individuais)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("9.3.1 • Tipos de Ações e/ou Campanhas Realizadas").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale quais Ações e/ou Campanhas foram realizadas:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as opções realizadas para somar as pontuações correspondentes e clique em salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d931 = res_data.get("9.3.1") or {}
+                    try:
+                        sel_931_salvos = json.loads(d931.get("valor", "[]"))
+                        if not isinstance(sel_931_salvos, list): sel_931_salvos = []
+                    except Exception:
+                        sel_931_salvos = []
+
+                    mapa_931 = {
+                        "redes_sociais": ("Divulgações em redes sociais e/ou site da prefeitura", 1.0),
+                        "educacao_ambiental": ("Ações de educação ambiental", 0.5),
+                        "sinalizacoes_impressos": ("Campanhas de conscientização por meio de sinalizações, folders, cartazes, propagandas e materiais impressos", 1.0),
+                        "projetos_incentivo": ("Projetos de incentivo", 1.0),
+                        "workshops_palestras": ("Workshops / Palestras", 0.5),
+                        "lixeiras_sacolas": ("Instalação de lixeiras seletivas e distribuição de sacolas retornáveis para separação dos resíduos recicláveis", 1.0),
+                    }
+
+                    state_931 = {k: k in sel_931_salvos for k in mapa_931.keys()}
+                    state_931["link"] = d931.get("link", "")
+
+                    def calc_pts_931():
+                        return sum(peso for k, (_, peso) in mapa_931.items() if state_931.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_931a = [ui.checkbox(f"{rotulo} (+{peso} pts)").bind_value(state_931, k) for k, (rotulo, peso) in list(mapa_931.items())[:3]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_931b = [ui.checkbox(f"{rotulo} (+{peso} pts)").bind_value(state_931, k) for k, (rotulo, peso) in list(mapa_931.items())[3:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Registros Fotográficos / Publicações:",
+                        value=state_931["link"],
+                        placeholder="Insira o link das divulgações, fotos de eventos, folders ou material de comunicação...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_931, "link")
+
+                    def salvar_931():
+                        selecionados = [k for k in mapa_931.keys() if state_931.get(k)]
+                        pts = calc_pts_931()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="9.3.1",
+                            valor=json.dumps(selecionados),
+                            pontos=pts,
+                            link=state_931["link"],
+                            comentarios=d931.get("comentarios", []),
+                            status=d931.get("status", "Pendente"),
+                        )
+                        ui.notify(f"Quesito 9.3.1 salvo com sucesso! ({pts} pts)", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 9.3.1", on_click=salvar_931).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("9.3.1", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
