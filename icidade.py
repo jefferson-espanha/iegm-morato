@@ -1696,4 +1696,79 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+    # ==========================================
+                # QUESITO 14.1 (Recursos de Acessibilidade - Checkbox)
+                # ==========================================
+                opcoes_141 = {
+                    "Calçadas com dimensões mínimas para a circulação": 0.0,
+                    "Sinalização tátil em pisos": 0.0,
+                    "Rampas de acesso": 0.0,
+                    "Escadas com corrimão": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="14.1",
+                    titulo="Recursos de Acessibilidade Oferecidos",
+                    pergunta="Informe os recursos de acessibilidade oferecidos pela Prefeitura:",
+                    tipo_input="checkbox",
+                    opcoes=opcoes_141,
+                    placeholder_link="Insira o link para relatórios, fotos ou projetos de acessibilidade...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 15.0 (Sinalização de Vias Públicas)
+                # ==========================================
+                opcoes_150 = {
+                    "Selecione...": 0.0,
+                    "Sim, integralmente - Todas as vias públicas municipais (50.0 pts)": 50.0,
+                    "Sim, parcialmente - Em parte das vias municipais (10.0 pts)": 10.0,
+                    "Não estão sinalizadas (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="15.0",
+                    titulo="Sinalização de Vias Públicas Pavimentadas",
+                    pergunta="As vias públicas pavimentadas estão devidamente sinalizadas (vertical e horizontalmente) de forma a garantir as condições adequadas de segurança na circulação?",
+                    opcoes=opcoes_150,
+                    placeholder_link="Insira o link para o plano de sinalização, ordens de serviço ou fotos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 16.0 (Manutenção de Vias Públicas)
+                # ==========================================
+                opcoes_160 = {
+                    "Selecione...": 0.0,
+                    "Sim, integralmente - Todas as vias públicas municipais (50.0 pts)": 50.0,
+                    "Sim, parcialmente - Em parte das vias municipais (10.0 pts)": 10.0,
+                    "Não estão adequadas (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="16.0",
+                    titulo="Manutenção de Vias Públicas Municipais",
+                    pergunta="Há manutenção adequada das vias públicas no Município? (De acordo com os Manuais do DNIT):",
+                    opcoes=opcoes_160,
+                    placeholder_link="Insira o link para relatórios de operação tapa-buracos, recapeamento ou certidões...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 17.1 (Impressões e Sugestões Finais)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="17.1",
+                    titulo="Impressões, Comentários e Sugestões",
+                    pergunta="Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?",
+                    tipo_input="texto",
+                    placeholder_texto="Registre aqui suas impressões, críticas ou sugestões sobre a avaliação...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
