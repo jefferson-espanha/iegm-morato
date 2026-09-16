@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import psycopg2
@@ -130,12 +131,9 @@ def zerar_questionario_db(ano):
 
 
 # =============================================================================
-# PAINEL LATERAL / CONTROLE
+# PAINEL DE CONTROLE LATERAL
 # =============================================================================
-def render_painel_controle(ano_atual=None, on_refresh=None):
-    if ano_atual is None:
-        ano_atual = app.storage.user.get("ano_referencia_global", 2026)
-
+def render_painel_controle(ano_atual, on_refresh):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
     total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
@@ -169,14 +167,14 @@ def render_painel_controle(ano_atual=None, on_refresh=None):
             value=ano_atual,
             label="Ano de Referência:",
             on_change=ao_mudar_ano,
-        ).classes("w-full mb-4")
+        ).classes("w-full mb-4 bg-white")
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
-            ui.label("Pontuação Total").classes(
-                "text-xs text-gray-500 font-bold uppercase"
+            ui.label("PONTUAÇÃO TOTAL").classes(
+                "text-xs text-gray-500 font-bold uppercase tracking-wider"
             )
             ui.label(f"{total_pts:.1f} pts").classes(
-                "text-2xl font-black text-gray-800"
+                "text-3xl font-black text-gray-800 my-1"
             )
             with ui.row().classes("items-center gap-1 mt-1"):
                 ui.label("Faixa:").classes("font-bold text-sm")
@@ -190,17 +188,16 @@ def render_painel_controle(ano_atual=None, on_refresh=None):
             if on_refresh:
                 on_refresh()
 
-        ui.button(
-            "🔄 Atualizar UI",
-            on_click=on_refresh if on_refresh else lambda: None,
-        ).classes("w-full bg-blue-700 text-white mb-2")
-        ui.button("🗑️ Zerar Ano", on_click=zerar_acao).classes(
-            "w-full bg-red-700 text-white"
+        ui.button("🔄 ATUALIZAR UI", on_click=on_refresh).classes(
+            "w-full bg-blue-600 text-white font-bold mb-2"
+        )
+        ui.button("🗑️ ZERAR ANO", on_click=zerar_acao).classes(
+            "w-full bg-red-600 text-white font-bold"
         )
 
         ui.separator().classes("my-4")
         ui.html("""
-            <div style="text-align: center; color: #000000; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
+            <div style="text-align: center; color: #333; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
                 ⚙️ <b>Desenvolvido por:</b><br>
                 <span style="font-size: 12px;">Jefferson Espanha</span><br>
                 <span>Procuradoria do Município</span><br>
@@ -210,90 +207,89 @@ def render_painel_controle(ano_atual=None, on_refresh=None):
 
 
 # =============================================================================
-# PÁGINA PRINCIPAL E LAYOUT LADO A LADO
+# FUNÇÃO CHAMADA PELO MAIN.PY (_executar_modulo)
 # =============================================================================
-@ui.page("/")
-def main_page():
-    # Cabeçalho Superior
-    with ui.row().classes("w-full justify-between items-center mb-4 px-4"):
-        ui.button("← VOLTAR").classes("bg-blue-600 text-white")
-        ano_ref = app.storage.user.get("ano_referencia_global", 2026)
-        ui.label(f"i-Amb - {ano_ref}").classes("text-2xl font-bold text-blue-900")
-        ui.button("🚪 SAIR").classes("bg-blue-600 text-white")
-
-    ui.separator().classes("mb-4")
+def container_formulario_iamb(ano=None):
+    if ano is None:
+        ano = app.storage.user.get("ano_referencia_global", 2026)
 
     @ui.refreshable
-    def render_conteudo_pagina():
-        ano_atual = app.storage.user.get("ano_referencia_global", 2026)
-        respostas = load_respostas(ano_atual)
+    def render_conteudo():
+        respostas = load_respostas(ano)
 
-        # Layout responsivo lado a lado
-        with ui.element("div").classes("w-full flex flex-col md:flex-row gap-6 items-start px-4"):
-            # Coluna Lateral Esquerda (Painel)
-            with ui.element("div").classes("w-full md:w-1/3 lg:w-1/4"):
-                render_painel_controle(
-                    ano_atual, on_refresh=render_conteudo_pagina.refresh
+        # Layout responsivo de 12 colunas (3 para Painel e 9 para Formulário)
+        with ui.element("div").classes(
+            "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
+        ):
+
+            # Coluna 1: Painel Lateral (3/12)
+            with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
+                render_painel_controle(ano, on_refresh=render_conteudo.refresh)
+
+            # Coluna 2: Lista de Quesitos (9/12)
+            with ui.element("div").classes(
+                "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
+            ):
+                ui.label(f"📋 Módulo i-Amb — Ano {ano}").classes(
+                    "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
-
-            # Coluna Direita (Formulário)
-            with ui.element("div").classes("w-full md:w-2/3 lg:w-3/4 bg-white p-6 border rounded-lg shadow-sm"):
-                ui.label(f"📋 Formulário de Quesitos — Ano {ano_atual}").classes("text-xl font-bold mb-4 text-gray-800")
 
                 # Quesito 1.1.2
-                qid_1_1_2 = "1.1.2"
-                dados_1_1_2 = respostas.get(
-                    qid_1_1_2, {"valor": "Não", "pontos": 0.0, "link": ""}
+                qid = "1.1.2"
+                dados_q = respostas.get(
+                    qid, {"valor": "Não", "pontos": 0.0, "link": ""}
                 )
+                opcoes = {"Sim": "Sim – 20", "Não": "Não – 00"}
 
-                opcoes_1_1_2 = {"Sim": "Sim – 20", "Não": "Não – 00"}
-
-                with ui.card().classes("w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"):
-                    ui.label(f"Quesito {qid_1_1_2}").classes("font-bold text-blue-900 text-base")
+                with ui.card().classes(
+                    "w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"
+                ):
+                    ui.label(f"Quesito {qid}").classes(
+                        "font-bold text-blue-900 text-base"
+                    )
                     ui.label(
                         "Os servidores responsáveis pelo Meio Ambiente receberam treinamento "
                         "específico voltado ao Meio Ambiente em 2025?"
                     ).classes("text-sm text-gray-700 my-2 font-medium")
 
                     val_inicial = (
-                        dados_1_1_2["valor"]
-                        if dados_1_1_2["valor"] in opcoes_1_1_2
+                        dados_q["valor"]
+                        if dados_q["valor"] in opcoes
                         else "Não"
                     )
 
-                    select_1_1_2 = ui.select(
-                        options=opcoes_1_1_2,
-                        value=val_inicial,
-                        label="Resposta:",
-                    ).classes("w-full mb-2")
+                    select_input = ui.select(
+                        options=opcoes, value=val_inicial, label="Resposta:"
+                    ).classes("w-full mb-2 bg-white")
 
-                    link_1_1_2 = ui.input(
+                    link_input = ui.input(
                         "Link da Evidência / Comprovação:",
-                        value=dados_1_1_2["link"],
-                    ).classes("w-full mb-2")
+                        value=dados_q["link"],
+                    ).classes("w-full mb-2 bg-white")
 
-                    def salvar_1_1_2():
-                        resposta_sel = select_1_1_2.value
-                        pts = 20.0 if resposta_sel == "Sim" else 0.0
+                    def salvar_quesito():
+                        sel = select_input.value
+                        pts = 20.0 if sel == "Sim" else 0.0
 
                         save_resposta(
-                            ano=ano_atual,
-                            qid=qid_1_1_2,
-                            valor=resposta_sel,
+                            ano=ano,
+                            qid=qid,
+                            valor=sel,
                             pontos=pts,
-                            link=link_1_1_2.value,
+                            link=link_input.value,
                         )
                         ui.notify(
-                            f"Quesito {qid_1_1_2} salvo com sucesso! ({pts} pts)",
-                            type="positive",
+                            f"Quesito {qid} salvo! ({pts} pts)", type="positive"
                         )
-                        render_conteudo_pagina.refresh()
+                        render_conteudo.refresh()
 
                     ui.button(
-                        f"💾 Salvar Quesito {qid_1_1_2}", on_click=salvar_1_1_2
-                    ).classes("bg-green-600 text-white mt-2")
+                        f"💾 Salvar Quesito {qid}", on_click=salvar_quesito
+                    ).classes("bg-green-600 text-white font-bold mt-2")
 
-    render_conteudo_pagina()
+    render_conteudo()
 
 
-ui.run(storage_secret="sua_chave_secreta_aqui")
+# Alias para o main.py encontrar a função
+mostrar_formulario_iamb = container_formulario_iamb
+main = container_formulario_iamb
