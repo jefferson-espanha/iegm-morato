@@ -1260,4 +1260,102 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+    # ==========================================
+                # QUESITO 8.1.1.1 (Atendimento 24h do Telefone 199)
+                # ==========================================
+                opcoes_8111 = {
+                    "Selecione...": 0.0,
+                    "Sim (20.0 pts)": 20.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="8.1.1.1",
+                    titulo="Atendimento 24 Horas do Telefone 199",
+                    pergunta="O telefone 199 tem atendimento 24 horas por dia?",
+                    opcoes=opcoes_8111,
+                    placeholder_link="Insira o link da escala de plantão, decreto ou documento comprobatório...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 8.2 (Registro Eletrônico de Ocorrências)
+                # ==========================================
+                opcoes_82 = {
+                    "Selecione...": 0.0,
+                    "Sim (50.0 pts)": 50.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="8.2",
+                    titulo="Registro Eletrônico de Ocorrências",
+                    pergunta="O Município registra as ocorrências de Defesa Civil de forma eletrônica? (Registro eletrônico refere-se ao sistema auditável sem alteração/exclusão sem log de usuário e data/hora):",
+                    opcoes=opcoes_82,
+                    placeholder_link="Insira o link do sistema, tela do software ou termo de uso...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 9.0 (Estudo de Estrutura de Escolas/Saúde)
+                # ==========================================
+                opcoes_90 = {
+                    "Selecione...": 0.0,
+                    "Sim, em todas as escolas e centros de saúde (100.0 pts)": 100.0,
+                    "Sim, na maior parte das escolas e centros de saúde (50.0 pts)": 50.0,
+                    "Sim, na menor parte das escolas e centros de saúde (20.0 pts)": 20.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="9.0",
+                    titulo="Avaliação Estrutural de Escolas e Unidades de Saúde",
+                    pergunta="O Município realizou um estudo de avaliação da estrutura de todas as escolas e unidades de saúde para garantir abrigo/atendimento em caso de desastre? (Atualizado: até 5 anos, entre 2021 e 2025):",
+                    opcoes=opcoes_90,
+                    placeholder_link="Insira o link do relatório de engenharia ou laudo de vistoria...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 10.0 (Plano de Mobilidade Urbana)
+                # ==========================================
+                opcoes_100 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (-100.0 pts)": -100.0,
+                    "Não se aplica (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="10.0",
+                    titulo="Plano de Mobilidade Urbana",
+                    pergunta="O Município elaborou seu Plano de Mobilidade Urbana?",
+                    opcoes=opcoes_100,
+                    placeholder_link="Insira o link da Lei do Plano de Mobilidade Urbana...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 11.0 (Transporte Público Coletivo)
+                # ==========================================
+                opcoes_110 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="11.0",
+                    titulo="Existência de Transporte Público Coletivo",
+                    pergunta="No Município existe transporte público coletivo? (Atenção: Não considerar transporte intermunicipal, interestadual ou internacional):",
+                    opcoes=opcoes_110,
+                    placeholder_link="Insira o link do contrato de concessão, linhas urbanas ou decreto...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
