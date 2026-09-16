@@ -1146,6 +1146,129 @@ def container_formulario_iamb(ano=None):
                     placeholder_link="Insira o plano de arborização, cronograma de poda ou ordens de serviço...",
                     on_save_callback=render_conteudo.refresh,
                 )
+
+    # =============================================================================
+                # QUESITO 5.2.1 (Seleção Múltipla com Pontuação Dinâmica e Penalização)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("5.2.1 • Destinação dos Resíduos das Podas de Árvores").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Qual a destinação dos resíduos das podas de árvores?").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ 3 ou mais opções válidas = 20 pts | 2 opções = 10 pts | 1 opção = 5 pts | Aterro = -5 pts").classes("text-xs text-gray-400 mb-6")
+
+                    d521 = res_data.get("5.2.1") or {}
+                    try:
+                        sel_521_salvos = json.loads(d521.get("valor", "[]"))
+                        if not isinstance(sel_521_salvos, list): sel_521_salvos = []
+                    except Exception:
+                        sel_521_salvos = []
+
+                    mapa_521 = {
+                        "moveis": "Reaproveitamento para produzir móveis, brinquedos, utensílios ou objetos de decoração",
+                        "compostagem": "Compostagem para produção de mudas, na jardinagem e arborização da cidade",
+                        "queima": "Queima para aquecimento e cocção",
+                        "energia": "Geração de energia",
+                        "construcao": "Uso na construção civil",
+                        "aterro": "Envio para aterro sanitário (-05 pts)",
+                        "armazenamento": "Armazenamento dos resíduos das podas",
+                    }
+
+                    state_521 = {k: k in sel_521_salvos for k in mapa_521.keys()}
+                    state_521["link"] = d521.get("link", "")
+
+                    def calc_pts_521():
+                        # Opções que contam pontuação positiva
+                        opcoes_validas = ["moveis", "compostagem", "queima", "energia", "construcao"]
+                        qtd_validas = sum(1 for k in opcoes_validas if state_521.get(k))
+
+                        pts = 0.0
+                        if qtd_validas >= 3:
+                            pts = 20.0
+                        elif qtd_validas == 2:
+                            pts = 10.0
+                        elif qtd_validas == 1:
+                            pts = 5.0
+
+                        # Aplica a penalização caso vá para aterro sanitário
+                        if state_521.get("aterro"):
+                            pts -= 5.0
+
+                        return pts
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_a = [ui.checkbox(rotulo).bind_value(state_521, k) for k, rotulo in list(mapa_521.items())[:4]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_b = [ui.checkbox(rotulo).bind_value(state_521, k) for k, rotulo in list(mapa_521.items())[4:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_521["link"],
+                        placeholder="Insira notas de envio, controle de compostagem, contratos de destinação de resíduos...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_521, "link")
+
+                    lbl_pts_521 = ui.label(f"📊 Impacto de Pontuação no Quesito 5.2.1: {calc_pts_521():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def att_pts_521():
+                        lbl_pts_521.set_text(f"📊 Impacto de Pontuação no Quesito 5.2.1: {calc_pts_521():.1f} pontos")
+
+                    for cb in cb_col_a + cb_col_b:
+                        cb.on("update:model-value", att_pts_521)
+
+                    def salvar_521():
+                        selecionados = [k for k in mapa_521.keys() if state_521.get(k)]
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="5.2.1",
+                            valor=json.dumps(selecionados),
+                            pontos=calc_pts_521(),
+                            link=state_521["link"],
+                            comentarios=d521.get("comentarios", []),
+                            status=d521.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 5.2.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 5.2.1", on_click=salvar_521).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("5.2.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 5.3 (Seleção Única - Radio Button com Penalização)
+                # =============================================================================
+                opcoes_53 = {
+                    "Selecione...": 0.0,
+                    "Sim – 00 pts": 0.0,
+                    "Não – (-10 pts)": -10.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.3",
+                    titulo="Capacitação da Equipe para Poda de Árvores",
+                    pergunta="O pessoal da prefeitura responsável por manutenção das árvores é devidamente orientado/treinado para realizar a poda de maneira correta?",
+                    opcoes=opcoes_53,
+                    placeholder_link="Insira certificados de treinamento da equipe, listas de presença ou certificados de cursos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 6.0 (Seleção Única - Radio Button)
+                # =============================================================================
+                opcoes_60 = {
+                    "Selecione...": 0.0,
+                    "Sim – 20 pts": 20.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="6.0",
+                    titulo="Medidas Preventivas de Contingenciamento para Estiagem",
+                    pergunta="Existem ações e medidas preventivas de contingenciamento para os períodos de estiagem executados pela Prefeitura? (Estiagem é um período prolongado de baixa pluviosidade ou sua ausência, no qual a perda de umidade do solo é superior à sua reposição).",
+                    opcoes=opcoes_60,
+                    placeholder_link="Insira o Plano de Contingência para Estiagem, Decretos de emergência hídrica ou campanhas de racionamento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
     
     # Executa a renderização da interface
     render_conteudo()
