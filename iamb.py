@@ -611,9 +611,7 @@ def container_formulario_iamb(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-    render_conteudo()
-
-# =============================================================================
+                # =============================================================================
                 # QUESITO 1.1.3 (Seleção Múltipla - Checkboxes)
                 # =============================================================================
                 with ui.card().classes(
@@ -841,7 +839,6 @@ def container_formulario_iamb(ano=None):
                     placeholder_link="Insira o link da lei, decreto, convênio ou projeto do programa...",
                     on_save_callback=render_conteudo.refresh,
                 )
-
-
+                
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
