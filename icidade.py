@@ -1707,18 +1707,10 @@ def container_formulario_icidade(ano=None):
                 opcoes=opcoes_c11,
                 on_save_callback=container_formulario_icidade.refresh,
             )
-# =============================================================================
-# 5. PÁGINA PRINCIPAL (COLOQUE AQUI, DEPOIS DE FECHAR O CONTAINER)
-# =============================================================================
-@ui.refreshable
-def pagina_icidade():
-    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
-    
-    # 1. CABEÇALHO SUPERIOR
-    with ui.header().classes("w-full bg-blue-900 text-white p-4 flex justify-between items-center"):
-        ui.button("← VOLTAR", on_click=lambda: ui.navigate.to("/")).classes("bg-blue-600 text-white")
-        ui.label(f"i-Cidade - {ano_sel}").classes("text-xl font-bold")
-        ui.button("SAIR", on_click=lambda: ui.navigate.to("/login")).classes("bg-orange-600 text-white")
 
-    # 2. CHAMA O CONTAINER COM TODOS OS QUESITOS
-    container_formulario_icidade(on_refresh_pagina=pagina_icidade.refresh)
+    # Executa a renderização da interface
+    render_conteudo()
+                
+# Exporta referências principais para o aplicativo
+mostrar_formulario_iamb = container_formulario_icidade
+main = container_formulario_icidade
