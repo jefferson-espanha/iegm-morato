@@ -149,15 +149,24 @@ def render_quesito(
     titulo,
     pergunta,
     opcoes,
+    tipo_input="radio",
     placeholder_link="Insira o link da evidência...",
     on_save_callback=None,
 ):
     dados_q = res_data.get(qid, {})
-    valor_atual = dados_q.get("valor", "Selecione...")
-    if valor_atual not in opcoes:
-        valor_atual = "Selecione..."
-
     link_atual = dados_q.get("link", "")
+
+    # Define o valor padrão seguro de acordo com o tipo de input
+    if tipo_input == "checkbox":
+        valor_atual = dados_q.get("valor", [])
+        if not isinstance(valor_atual, list):
+            valor_atual = [valor_atual] if valor_atual in opcoes else []
+    else:
+        # Se for Radio, busca o valor ou escolhe a primeira chave válida do dicionário
+        primeira_opcao_valida = list(opcoes.keys())[0] if opcoes else ""
+        valor_atual = dados_q.get("valor", primeira_opcao_valida)
+        if valor_atual not in opcoes:
+            valor_atual = primeira_opcao_valida
 
     state = {
         "opcao": valor_atual,
@@ -176,14 +185,28 @@ def render_quesito(
         ).classes("text-xs text-gray-400 mb-6")
 
         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-            radio_opcao = (
-                ui.radio(
-                    options=list(opcoes.keys()),
-                    value=state["opcao"],
+            # Renderização condicional (Checkbox ou Radio)
+            if tipo_input == "checkbox":
+                input_opcao = (
+                    ui.select(
+                        options=list(opcoes.keys()),
+                        multiple=True,
+                        value=state["opcao"],
+                        label="Selecione as opções aplicáveis",
+                    )
+                    .classes("w-full")
+                    .props("use-chips outlined")
+                    .bind_value(state, "opcao")
                 )
-                .props("color=blue")
-                .bind_value(state, "opcao")
-            )
+            else:
+                input_opcao = (
+                    ui.radio(
+                        options=list(opcoes.keys()),
+                        value=state["opcao"],
+                    )
+                    .props("color=blue")
+                    .bind_value(state, "opcao")
+                )
 
             ui.textarea(
                 label="Link de Evidência / Documento:",
@@ -193,22 +216,28 @@ def render_quesito(
                 state, "link"
             )
 
-        pts_atuais = opcoes.get(state["opcao"], 0.0)
+        # Cálculo inicial da pontuação
+        def calcular_pontos(opcao_sel):
+            if isinstance(opcao_sel, list):
+                return sum(opcoes.get(opt, 0.0) for opt in opcao_sel)
+            return opcoes.get(opcao_sel, 0.0)
+
+        pts_atuais = calcular_pontos(state["opcao"])
         label_impacto = ui.label(
             f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
         ).classes("text-sm font-bold text-green-600 my-4")
 
         def ao_mudar_opcao(e):
-            novos_pts = opcoes.get(e.value, 0.0)
+            novos_pts = calcular_pontos(e.value)
             label_impacto.set_text(
                 f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
             )
 
-        radio_opcao.on("update:model-value", ao_mudar_opcao)
+        input_opcao.on("update:model-value", ao_mudar_opcao)
 
         def salvar_acao():
             opcao_sel = state["opcao"]
-            pts = opcoes.get(opcao_sel, 0.0)
+            pts = calcular_pontos(opcao_sel)
             lnk = state["link"]
 
             save_resposta(
@@ -232,7 +261,6 @@ def render_quesito(
 
         ui.separator().classes("my-2")
         bloco_comentarios(qid, res_data, on_save_callback)
-
 
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
