@@ -1143,4 +1143,121 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+                # ==========================================
+                # QUESITO 7.5 (Cadastro de Abrigos na CEPDEC)
+                # ==========================================
+                opcoes_75 = {
+                    "Selecione...": 0.0,
+                    "Sim, atualizado (10.0 pts)": 10.0,
+                    "Sim, mas não está atualizado (3.0 pts)": 3.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.5",
+                    titulo="Cadastro de Locais para Abrigo na CEPDEC",
+                    pergunta="Possui cadastro dos locais para abrigo à população em situação de desastre junto à Coordenadoria Estadual de Proteção e Defesa Civil (CEPDEC)?",
+                    opcoes=opcoes_75,
+                    placeholder_link="Insira o link da comprovação de cadastro/atualização junto à CEPDEC...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 7.6 (Fornecedores de Ajuda Humanitária)
+                # ==========================================
+                opcoes_76 = {
+                    "Selecione...": 0.0,
+                    "Sim, atualizado (10.0 pts)": 10.0,
+                    "Sim, mas não está atualizado (3.0 pts)": 3.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.6",
+                    titulo="Lista de Fornecedores de Ajuda Humanitária",
+                    pergunta="O Município possui cadastro da lista de fornecedores para coleta e distribuição de suprimentos de ajuda humanitária para o caso de desastre?",
+                    opcoes=opcoes_76,
+                    placeholder_link="Insira o link da relação de fornecedores cadastrados...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 7.7 (Data da Última Atualização do PLANCON)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="7.7",
+                    titulo="Data da Última Atualização do PLANCON",
+                    pergunta="Qual a data da última atualização do PLANCON? (Se não houve atualização, informar a data do início da vigência do PLANCON):",
+                    tipo_input="texto",
+                    placeholder_texto="Informe a data (DD/MM/AAAA) e observações...",
+                    placeholder_link="Insira o link do documento indicando a data de vigência/atualização...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 8.0 (Canal de Atendimento de Emergência)
+                # ==========================================
+                opcoes_80 = {
+                    "Selecione...": 0.0,
+                    "Sim (50.0 pts)": 50.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="8.0",
+                    titulo="Canal de Atendimento de Emergência",
+                    pergunta="O Município possui um canal de atendimento de emergência à população para registro de ocorrências de desastres?",
+                    opcoes=opcoes_80,
+                    placeholder_link="Insira o link comprovando a disponibilização do canal de atendimento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 8.1 (Canais Utilizados - Checkbox)
+                # ==========================================
+                opcoes_81 = {
+                    "Telefone de emergências": 0.0,
+                    "Aplicativo de mensagens": 0.0,
+                    "Correio eletrônico (e-mail)": 0.0,
+                    "Aplicativo da Prefeitura": 0.0,
+                    "Site da Prefeitura": 0.0,
+                    "Redes sociais": 0.0,
+                    "Outros": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="8.1",
+                    titulo="Canais de Contato para Emergências",
+                    pergunta="Assinale os canais que possui (Como a população entra em contato com o Município em caso de desastre):",
+                    tipo_input="checkbox",
+                    opcoes=opcoes_81,
+                    placeholder_link="Insira o link ou divulgação dos canais de atendimento...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 8.1.1 (Utilização do Número 199)
+                # ==========================================
+                opcoes_811 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="8.1.1",
+                    titulo="Uso do Número 199 da Defesa Civil",
+                    pergunta="Sobre o número de telefone de emergência, utiliza o número 199 da Defesa Civil?",
+                    opcoes=opcoes_811,
+                    placeholder_link="Insira o link para a linha ou ato normativo do telefone 199...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
