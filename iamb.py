@@ -839,6 +839,8 @@ def container_formulario_iamb(ano=None):
                     placeholder_link="Insira o link da lei, decreto, convênio ou projeto do programa...",
                     on_save_callback=render_conteudo.refresh,
                 )
-                
+
+
+# Atribuições finais no ESCOPO PRINCIPAL (fora da função/container)
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
