@@ -148,15 +148,14 @@ def render_quesito(
     qid,
     titulo,
     pergunta,
-    opcoes,
+    opcoes=None,
+    tipo_input="radio",  # <--- Adicionado parâmetro com valor padrão
+    placeholder_texto="Digite sua resposta...",
     placeholder_link="Insira o link da evidência...",
     on_save_callback=None,
 ):
     dados_q = res_data.get(qid, {})
-    valor_atual = dados_q.get("valor", "Selecione...")
-    if valor_atual not in opcoes:
-        valor_atual = "Selecione..."
-
+    valor_atual = dados_q.get("valor", "")
     link_atual = dados_q.get("link", "")
 
     state = {
@@ -175,40 +174,52 @@ def render_quesito(
             "ℹ Preencha os campos abaixo e clique no botão de salvar."
         ).classes("text-xs text-gray-400 mb-6")
 
-        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-            radio_opcao = (
-                ui.radio(
-                    options=list(opcoes.keys()),
-                    value=state["opcao"],
+        if tipo_input in ["texto", "link"]:
+            input_resposta = ui.input(
+                label="Resposta:",
+                value=state["opcao"],
+                placeholder=placeholder_texto if tipo_input == "texto" else placeholder_link,
+            ).classes("w-full mb-4").bind_value(state, "opcao")
+            
+            label_impacto = None
+        else:
+            if opcoes and state["opcao"] not in opcoes:
+                state["opcao"] = "Selecione..."
+
+            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                radio_opcao = (
+                    ui.radio(
+                        options=list(opcoes.keys()) if opcoes else [],
+                        value=state["opcao"],
+                    )
+                    .props("color=blue")
+                    .bind_value(state, "opcao")
                 )
-                .props("color=blue")
-                .bind_value(state, "opcao")
-            )
 
-            ui.textarea(
-                label="Link de Evidência / Documento:",
-                value=state["link"],
-                placeholder=placeholder_link,
-            ).classes("w-full").props("outlined rows=4").bind_value(
-                state, "link"
-            )
+                ui.textarea(
+                    label="Link de Evidência / Documento:",
+                    value=state["link"],
+                    placeholder=placeholder_link,
+                ).classes("w-full").props("outlined rows=4").bind_value(
+                    state, "link"
+                )
 
-        pts_atuais = opcoes.get(state["opcao"], 0.0)
-        label_impacto = ui.label(
-            f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
-        ).classes("text-sm font-bold text-green-600 my-4")
+            pts_atuais = opcoes.get(state["opcao"], 0.0) if opcoes else 0.0
+            label_impacto = ui.label(
+                f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
+            ).classes("text-sm font-bold text-green-600 my-4")
 
-        def ao_mudar_opcao(e):
-            novos_pts = opcoes.get(e.value, 0.0)
-            label_impacto.set_text(
-                f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
-            )
+            def ao_mudar_opcao(e):
+                novos_pts = opcoes.get(e.value, 0.0) if opcoes else 0.0
+                label_impacto.set_text(
+                    f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
+                )
 
-        radio_opcao.on("update:model-value", ao_mudar_opcao)
+            radio_opcao.on("update:model-value", ao_mudar_opcao)
 
         def salvar_acao():
             opcao_sel = state["opcao"]
-            pts = opcoes.get(opcao_sel, 0.0)
+            pts = opcoes.get(opcao_sel, 0.0) if (opcoes and tipo_input == "radio") else 0.0
             lnk = state["link"]
 
             save_resposta(
@@ -221,19 +232,16 @@ def render_quesito(
                 status=dados_q.get("status", "Pendente"),
             )
             ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
-            
-            # --- PROTEÇÃO CONTRA O ERRO DE REFRESH ---
+
             if on_save_callback:
                 try:
                     on_save_callback()
-                except TypeError:
-                    ui.run_javascript('window.location.reload()')
                 except Exception:
-                    ui.run_javascript('window.location.reload()')
+                    ui.run_javascript("window.location.reload()")
 
-        ui.button("Salvar Resposta", on_click=salvar_acao).classes("bg-blue-600 text-white font-bold px-4 py-2")
-
-
+        ui.button("Salvar Resposta", on_click=salvar_acao).classes(
+            "bg-blue-600 text-white font-bold px-4 py-2"
+        )
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
