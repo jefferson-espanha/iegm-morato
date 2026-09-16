@@ -164,7 +164,7 @@ def render_quesito(
     }
 
     with ui.card().classes(
-        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+        "w-full p-6 mb-4 border border-gray-300 rounded-lg shadow-sm bg-white"
     ):
         ui.label(f"{qid} • {titulo}").classes(
             "text-xl font-semibold text-blue-500 mb-3"
@@ -174,15 +174,17 @@ def render_quesito(
             "ℹ Preencha os campos abaixo e clique no botão de salvar."
         ).classes("text-xs text-gray-400 mb-6")
 
-        # RENDERIZAÇÃO DE CAMPO TEXTUAL/LINK
+        # 1. RENDERIZAÇÃO DO CAMPO DE ENTRADA (Texto/Link ou Radio)
         if tipo_input in ["texto", "link"]:
             ui.textarea(
                 label="Resposta / Detalhamento:",
                 value=state["opcao"],
-                placeholder=placeholder_texto if tipo_input == "texto" else placeholder_link,
-            ).classes("w-full mb-4").props("outlined rows=3").bind_value(state, "opcao")
-
-        # RENDERIZAÇÃO DE SELEÇÃO POR RADIO BUTTONS
+                placeholder=placeholder_texto
+                if tipo_input == "texto"
+                else placeholder_link,
+            ).classes("w-full mb-4").props("outlined rows=3").bind_value(
+                state, "opcao"
+            )
         else:
             if not opcoes:
                 opcoes = {"Selecione...": 0.0}
@@ -221,9 +223,14 @@ def render_quesito(
 
             radio_opcao.on("update:model-value", ao_mudar_opcao)
 
+        # 2. BOTÃO DE SALVAR
         def salvar_acao():
             opcao_sel = state["opcao"]
-            pts = opcoes.get(opcao_sel, 0.0) if (opcoes and tipo_input == "radio") else 0.0
+            pts = (
+                opcoes.get(opcao_sel, 0.0)
+                if (opcoes and tipo_input == "radio")
+                else 0.0
+            )
             lnk = state["link"]
 
             save_resposta(
@@ -241,9 +248,18 @@ def render_quesito(
                 try:
                     on_save_callback()
                 except Exception:
-                    ui.run_javascript('window.location.reload()')
+                    ui.run_javascript("window.location.reload()")
 
-        ui.button("Salvar Resposta", on_click=salvar_acao).classes("bg-blue-600 text-white font-bold px-4 py-2")
+        ui.button("Salvar Resposta", on_click=salvar_acao).classes(
+            "bg-blue-600 text-white font-bold px-4 py-2 mb-4"
+        )
+
+        ui.separator().classes("my-2")
+
+        # 3. RENDERIZAÇÃO DO BLOCO DE COMENTÁRIOS (AGORA DENTRO DO CARD)
+        bloco_comentarios(
+            qid=qid, res_data=res_data, on_save_callback=on_save_callback
+        )
 
 
 # =============================================================================
