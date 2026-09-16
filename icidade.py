@@ -570,4 +570,99 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+                # ==========================================
+                # QUESITO 1.4 (Seleção com Pontuação)
+                # ==========================================
+                opcoes_14 = {
+                    "Selecione...": 0.0,
+                    "Sim, inclusive com a participação de entidades privadas e da comunidade (50.0 pts)": 50.0,
+                    "Sim, com participação de entidades privadas (20.0 pts)": 20.0,
+                    "Sim, com participação da comunidade (20.0 pts)": 20.0,
+                    "Sim, apenas com participação dos representantes da administração municipal (10.0 pts)": 10.0,
+                    "Não atuam de forma sistêmica (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.4",
+                    titulo="Atuação Sistêmica e Articulada",
+                    pergunta="Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta e recuperação de acordo com a PNPDEC?",
+                    opcoes=opcoes_14,
+                    placeholder_link="Insira o link do documento, ata ou norma comprovatória...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 1.5 (Campo de Texto / Motivo)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.5",
+                    titulo="Motivo da Não Instituição da COMPDEC",
+                    pergunta="Informe o motivo de a COMPDEC ou órgão similar ainda não ter sido instituída (Ex: Instrumento normativo em elaboração, enviado para aprovação, falta de estrutura, outros):",
+                    tipo_input="texto",
+                    placeholder_texto="Detalhe o motivo da não instituição...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 2.0 (Capacitação de Agentes)
+                # ==========================================
+                opcoes_20 = {
+                    "Selecione...": 0.0,
+                    "Sim (20.0 pts)": 20.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="2.0",
+                    titulo="Capacitação de Agentes Municipais",
+                    pergunta="Sobre treinamento e capacitação sobre Proteção e Defesa Civil, a Prefeitura capacita seus agentes para ações municipais de Defesa Civil?",
+                    opcoes=opcoes_20,
+                    placeholder_link="Insira o link do certificado, lista de presença ou registro...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 2.1 (Data da Última Capacitação)
+                # ==========================================
+                opcoes_21 = {
+                    "Selecione...": 0.0,
+                    "Após 31/12/2023 [Até 2025] (30.0 pts)": 30.0,
+                    "Até 31/12/2023 ou Sem Capacitação (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="2.1",
+                    titulo="Data da Última Capacitação dos Agentes",
+                    pergunta="Qual a data da última capacitação dos agentes municipais para ações de Defesa Civil? (Atenção: Não considerar capacitações do ano corrente de 2026):",
+                    opcoes=opcoes_21,
+                    placeholder_link="Informe a data no formato DD/MM/AAAA e insira o link da evidência...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 2.2 (Público-Alvo dos Treinamentos)
+                # ==========================================
+                opcoes_22 = {
+                    "Selecione...": 0.0,
+                    "Para escolas (5.0 pts)": 5.0,
+                    "Para outras secretarias / entidades municipais (3.0 pts)": 3.0,
+                    "Para munícipes ou empresas (2.0 pts)": 2.0,
+                    "Não ofereceu nenhum curso/treinamento no ano (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="2.2",
+                    titulo="Público Alvo dos Cursos e Treinamentos",
+                    pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
+                    opcoes=opcoes_22,
+                    placeholder_link="Insira o link das evidências dos treinamentos oferecidos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
     render_conteudo()
