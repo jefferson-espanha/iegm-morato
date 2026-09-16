@@ -1,8 +1,8 @@
-import re
 import base64
 from datetime import datetime
 import json
 import os
+import re
 from nicegui import app, ui
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
@@ -66,7 +66,9 @@ def load_respostas(ano):
                             else 0.0
                         ),
                         "link": (
-                            row["link"] if row["link"] != "EMPTY_STRING" else ""
+                            row["link"]
+                            if row["link"] != "EMPTY_STRING"
+                            else ""
                         ),
                         "comentarios": (
                             row["comentarios"]
@@ -165,28 +167,24 @@ def render_quesito(
     with ui.card().classes(
         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
     ):
-        # Título principal estilo header (Ex: 1.0 • Setor de Meio Ambiente)
         ui.label(f"{qid} • {titulo}").classes(
             "text-xl font-semibold text-blue-500 mb-3"
         )
-
-        # Enunciado/Pergunta
         ui.label(pergunta).classes("text-base font-bold text-black mb-1")
-
-        # Texto de instrução
         ui.label(
             "ℹ Preencha os campos abaixo e clique no botão de salvar."
         ).classes("text-xs text-gray-400 mb-6")
 
-        # Layout em Grid de 2 colunas (Opções Radio à esquerda e Link à direita)
         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-            # Coluna Esquerda: Radio Group
-            radio_opcao = ui.radio(
-                options=list(opcoes.keys()),
-                value=state["opcao"],
-            ).props("color=blue").bind_value(state, "opcao")
+            radio_opcao = (
+                ui.radio(
+                    options=list(opcoes.keys()),
+                    value=state["opcao"],
+                )
+                .props("color=blue")
+                .bind_value(state, "opcao")
+            )
 
-            # Coluna Direita: Textarea de Evidência
             ui.textarea(
                 label="Link de Evidência / Documento:",
                 value=state["link"],
@@ -195,13 +193,11 @@ def render_quesito(
                 state, "link"
             )
 
-        # Cálculo dinâmico do Impacto da Pontuação para exibição
         pts_atuais = opcoes.get(state["opcao"], 0.0)
         label_impacto = ui.label(
             f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
         ).classes("text-sm font-bold text-green-600 my-4")
 
-        # Atualiza a pontuação exibida ao mudar a seleção
         def ao_mudar_opcao(e):
             novos_pts = opcoes.get(e.value, 0.0)
             label_impacto.set_text(
@@ -210,7 +206,6 @@ def render_quesito(
 
         radio_opcao.on("update:model-value", ao_mudar_opcao)
 
-        # Ação de Salvar
         def salvar_acao():
             opcao_sel = state["opcao"]
             pts = opcoes.get(opcao_sel, 0.0)
@@ -229,15 +224,15 @@ def render_quesito(
             if on_save_callback:
                 on_save_callback()
 
-        # Botão Azul de Salvar
         ui.button(
             f"💾 SALVAR QUESITO {qid}", on_click=salvar_acao
-        ).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+        ).classes(
+            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+        )
 
         ui.separator().classes("my-2")
-
-        # Bloco de Diálogo Interno
         bloco_comentarios(qid, res_data, on_save_callback)
+
 
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
@@ -495,23 +490,20 @@ def container_formulario_iamb(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-                # =============================================================================
-                # QUESITO 1.1.1 (Detalhamento do Quantitativo de Pessoal)
-                # =============================================================================
+                # QUESITO 1.1.1
                 with ui.card().classes(
                     "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                 ):
-                    ui.label("1.1.1 • Detalhamento do Quantitativo de Pessoal").classes(
-                        "text-xl font-semibold text-blue-500 mb-3"
-                    )
-                    ui.label("Informe o quantitativo de servidores por categoria:").classes(
-                        "text-base font-bold text-black mb-1"
-                    )
+                    ui.label(
+                        "1.1.1 • Detalhamento do Quantitativo de Pessoal"
+                    ).classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label(
+                        "Informe o quantitativo de servidores por categoria:"
+                    ).classes("text-base font-bold text-black mb-1")
                     ui.label(
                         "ℹ Preencha os campos abaixo e clique no botão de salvar."
                     ).classes("text-xs text-gray-400 mb-6")
 
-                    # Recupera e trata os dados salvos no banco
                     d111 = res_data.get("1.1.1") or {}
                     raw_link = str(d111.get("link") or "")
 
@@ -519,7 +511,9 @@ def container_formulario_iamb(ano=None):
                     evidencia_111 = raw_link
 
                     if "|LINK:" in raw_link:
-                        contadores_part, evidencia_111 = raw_link.split("|LINK:", 1)
+                        contadores_part, evidencia_111 = raw_link.split(
+                            "|LINK:", 1
+                        )
                         match_e = re.search(r"E:(\d+)", contadores_part)
                         match_co = re.search(r"Co:(\d+)", contadores_part)
                         match_t = re.search(r"T:(\d+)", contadores_part)
@@ -535,15 +529,23 @@ def container_formulario_iamb(ano=None):
                         "link": evidencia_111,
                     }
 
-                    # Grid de 2 colunas: Contadores à esquerda e Textarea à direita
-                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                    with ui.grid(columns=2).classes(
+                        "w-full gap-6 items-start mb-4"
+                    ):
                         with ui.column().classes("w-full gap-3"):
-                            ui.number("Nº de efetivos:", value=v_efet_i, min=0, step=1).classes(
-                                "w-full"
-                            ).props("outlined").bind_value(state_111, "efet")
                             ui.number(
-                                "Nº de comissionados:", value=v_comi_i, min=0, step=1
-                            ).classes("w-full").props("outlined").bind_value(state_111, "comi")
+                                "Nº de efetivos:", value=v_efet_i, min=0, step=1
+                            ).classes("w-full").props("outlined").bind_value(
+                                state_111, "efet"
+                            )
+                            ui.number(
+                                "Nº de comissionados:",
+                                value=v_comi_i,
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined").bind_value(
+                                state_111, "comi"
+                            )
                             ui.number(
                                 "Nº de terceirizados/contratados:",
                                 value=v_terc_i,
@@ -561,15 +563,12 @@ def container_formulario_iamb(ano=None):
                             state_111, "link"
                         )
 
-                    # Função de Salvar Corrigida
                     def salvar_111():
                         ef_val = int(state_111["efet"] or 0)
                         co_val = int(state_111["comi"] or 0)
                         te_val = int(state_111["terc"] or 0)
                         total = ef_val + co_val + te_val
-                        composite = (
-                            f"E:{ef_val},Co:{co_val},T:{te_val}|LINK:{state_111['link']}"
-                        )
+                        composite = f"E:{ef_val},Co:{co_val},T:{te_val}|LINK:{state_111['link']}"
 
                         save_resposta(
                             ano=ano_sel,
@@ -580,19 +579,44 @@ def container_formulario_iamb(ano=None):
                             comentarios=d111.get("comentarios", []),
                             status=d111.get("status", "Pendente"),
                         )
-                        ui.notify("Quesito 1.1.1 salvo com sucesso!", type="positive")
+                        ui.notify(
+                            "Quesito 1.1.1 salvo com sucesso!", type="positive"
+                        )
                         if render_conteudo.refresh:
                             render_conteudo.refresh()
 
-                    # Botão de Salvar
-                    ui.button("💾 SALVAR QUESITO 1.1.1", on_click=salvar_111).classes(
+                    ui.button(
+                        "💾 SALVAR QUESITO 1.1.1", on_click=salvar_111
+                    ).classes(
                         "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                     )
 
                     ui.separator().classes("my-2")
+                    bloco_comentarios(
+                        "1.1.1", res_data, render_conteudo.refresh
+                    )
 
-                    # Bloco de Diálogo Interno
-                    bloco_comentarios("1.1.1", res_data, render_conteudo.refresh)
-                              
+                # QUESITO 2.0
+                opcoes_20 = {
+                    "Selecione...": 0.0,
+                    "Sim – 10 pts": 10.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="2.0",
+                    titulo="Programa de Educação Ambiental",
+                    pergunta="O Município participa de algum Programa de Educação Ambiental?",
+                    opcoes=opcoes_20,
+                    placeholder_link="Insira o link da lei, decreto, convênio ou projeto do programa...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+    # Executa a renderização da interface
+    render_conteudo()
+
+
+# Exporta referências principais para o aplicativo
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
