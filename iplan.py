@@ -539,8 +539,8 @@ def container_formulario_plan(ano=None):
                     # ==========================================
                     opcoes_10 = {
                         "Selecione...": 0.0,
-                        "Sim (1.0 pt)": 1.0,
-                        "Não (0.0 pts)": 0.0,
+                        "Sim – 01 pt": 1.0,
+                        "Não – 00 pts": 0.0,
                     }
                     render_quesito(
                         ano=ano_sel,
@@ -557,10 +557,10 @@ def container_formulario_plan(ano=None):
                     # QUESITO 1.1 (Peças Orçamentárias - Checkbox)
                     # ==========================================
                     opcoes_11 = {
-                        "Não": 0.0,
-                        "PPA inicial 2026-2029": 1.0,
-                        "LDO 2026": 1.0,
-                        "LOA 2026": 1.0,
+                        "Não – 00 pts": 0.0,
+                        "PPA inicial 2026-2029 – 01 pt": 1.0,
+                        "LDO 2026 – 01 pt": 1.0,
+                        "LOA 2026 – 01 pt": 1.0,
                     }
                     render_quesito(
                         ano=ano_sel,
@@ -578,9 +578,9 @@ def container_formulario_plan(ano=None):
                     # QUESITO 1.2 (Dia e Horário - Checkbox)
                     # ==========================================
                     opcoes_12 = {
-                        "Dia de semana em horário comercial (ex: 8 as 18 horas)": 0.0,
-                        "Dia de semana após horário comercial (ex: após às 18 horas)": 2.0,
-                        "Aos sábados, domingos e feriados": 2.0,
+                        "Dia de semana em horário comercial (ex: 8 as 18 horas) – 00 pts": 0.0,
+                        "Dia de semana após horário comercial (ex: após às 18 horas) – 02 pts": 2.0,
+                        "Aos sábados, domingos e feriados – 02 pts": 2.0,
                     }
                     render_quesito(
                         ano=ano_sel,
