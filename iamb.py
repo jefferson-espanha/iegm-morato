@@ -5,7 +5,7 @@ from nicegui import app, ui
 from psycopg2.extras import Json, RealDictCursor
 
 # =============================================================================
-# BANCO DE DADOS
+# BANCO DE DADOS (NEON)
 # =============================================================================
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
@@ -130,11 +130,8 @@ def zerar_questionario_db(ano):
 
 
 # =============================================================================
-# INTERFACE DE USUÁRIO (NICEGUI)
+# PAINEL LATERAL / CONTROLE
 # =============================================================================
-
-
-# CORRIGIDO: Argumentos padrão (ano_atual=None, on_refresh=None) previnem o TypeError
 def render_painel_controle(ano_atual=None, on_refresh=None):
     if ano_atual is None:
         ano_atual = app.storage.user.get("ano_referencia_global", 2026)
@@ -201,8 +198,20 @@ def render_painel_controle(ano_atual=None, on_refresh=None):
             "w-full bg-red-700 text-white"
         )
 
+        ui.separator().classes("my-4")
+        ui.html("""
+            <div style="text-align: center; color: #000000; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
+                ⚙️ <b>Desenvolvido por:</b><br>
+                <span style="font-size: 12px;">Jefferson Espanha</span><br>
+                <span>Procuradoria do Município</span><br>
+                <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
+            </div>
+        """).classes("w-full")
 
-# CONTAINER PRINCIPAL DA PÁGINA
+
+# =============================================================================
+# PÁGINA PRINCIPAL E FORMULÁRIO REATIVO
+# =============================================================================
 @ui.page("/")
 def main_page():
 
@@ -221,42 +230,68 @@ def main_page():
             # Coluna Direita: Formulário de Quesitos
             with ui.column().classes("w-3/4 p-4 border rounded-lg bg-white"):
                 ui.label(
-                    f"📋 Formulario de Quesitos — Ano {ano_atual}"
+                    f"📋 Formulário de Quesitos — Ano {ano_atual}"
                 ).classes("text-xl font-bold mb-4")
 
-                # Exemplo de Quesito
-                qid = "1.1"
-                dados_q = respostas.get(
-                    qid, {"valor": "", "pontos": 0.0, "link": ""}
+                # -------------------------------------------------------------
+                # QUESITO 1.1.2
+                # -------------------------------------------------------------
+                qid_1_1_2 = "1.1.2"
+                dados_1_1_2 = respostas.get(
+                    qid_1_1_2, {"valor": "Não", "pontos": 0.0, "link": ""}
                 )
 
-                ui.label(f"Quesito {qid} - Preservação Ambiental").classes(
-                    "font-bold"
-                )
-                in_valor = ui.input(
-                    "Valor/Resposta", value=dados_q["valor"]
-                ).classes("w-full")
-                in_pontos = ui.number(
-                    "Pontos", value=dados_q["pontos"]
-                ).classes("w-full")
-                in_link = ui.input(
-                    "Link da Evidência", value=dados_q["link"]
-                ).classes("w-full")
+                opcoes_1_1_2 = {"Sim": "Sim – 20", "Não": "Não – 00"}
 
-                def salvar_e_atualizar():
-                    save_resposta(
-                        ano=ano_atual,
-                        qid=qid,
-                        valor=in_valor.value,
-                        pontos=in_pontos.value or 0,
-                        link=in_link.value,
+                with ui.card().classes(
+                    "w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"
+                ):
+                    ui.label(f"Quesito {qid_1_1_2}").classes(
+                        "font-bold text-blue-900"
                     )
-                    ui.notify("Quesito salvo com sucesso!", type="positive")
-                    render_conteudo_pagina.refresh()  # Recarrega a tela instantaneamente
+                    ui.label(
+                        "Os servidores responsáveis pelo Meio Ambiente receberam treinamento "
+                        "específico voltado ao Meio Ambiente em 2025?"
+                    ).classes("text-sm text-gray-700 my-1 font-medium")
 
-                ui.button(
-                    "💾 Salvar Quesito", on_click=salvar_e_atualizar
-                ).classes("bg-green-600 text-white mt-2")
+                    # Valor atual ou padrão 'Não'
+                    val_inicial = (
+                        dados_1_1_2["valor"]
+                        if dados_1_1_2["valor"] in opcoes_1_1_2
+                        else "Não"
+                    )
+
+                    select_1_1_2 = ui.select(
+                        options=opcoes_1_1_2,
+                        value=val_inicial,
+                        label="Resposta:",
+                    ).classes("w-full mb-2")
+
+                    link_1_1_2 = ui.input(
+                        "Link da Evidência / Comprovação:",
+                        value=dados_1_1_2["link"],
+                    ).classes("w-full mb-2")
+
+                    def salvar_1_1_2():
+                        resposta_sel = select_1_1_2.value
+                        pts = 20.0 if resposta_sel == "Sim" else 0.0
+
+                        save_resposta(
+                            ano=ano_atual,
+                            qid=qid_1_1_2,
+                            valor=resposta_sel,
+                            pontos=pts,
+                            link=link_1_1_2.value,
+                        )
+                        ui.notify(
+                            f"Quesito {qid_1_1_2} salvo com sucesso! ({pts} pts)",
+                            type="positive",
+                        )
+                        render_conteudo_pagina.refresh()
+
+                    ui.button(
+                        f"💾 Salvar Quesito {qid_1_1_2}", on_click=salvar_1_1_2
+                    ).classes("bg-green-600 text-white mt-2")
 
     render_conteudo_pagina()
 
