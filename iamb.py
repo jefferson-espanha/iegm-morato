@@ -210,32 +210,37 @@ def render_painel_controle(ano_atual=None, on_refresh=None):
 
 
 # =============================================================================
-# PÁGINA PRINCIPAL E FORMULÁRIO REATIVO
+# PÁGINA PRINCIPAL E LAYOUT LADO A LADO
 # =============================================================================
 @ui.page("/")
 def main_page():
+    # Cabeçalho Superior
+    with ui.row().classes("w-full justify-between items-center mb-4 px-4"):
+        ui.button("← VOLTAR").classes("bg-blue-600 text-white")
+        ano_ref = app.storage.user.get("ano_referencia_global", 2026)
+        ui.label(f"i-Amb - {ano_ref}").classes("text-2xl font-bold text-blue-900")
+        ui.button("🚪 SAIR").classes("bg-blue-600 text-white")
+
+    ui.separator().classes("mb-4")
 
     @ui.refreshable
     def render_conteudo_pagina():
         ano_atual = app.storage.user.get("ano_referencia_global", 2026)
         respostas = load_respostas(ano_atual)
 
-        with ui.row().classes("w-full gap-4 items-start"):
-            # Coluna Esquerda: Painel Lateral
-            with ui.column().classes("w-1/4"):
+        # Layout responsivo lado a lado
+        with ui.element("div").classes("w-full flex flex-col md:flex-row gap-6 items-start px-4"):
+            # Coluna Lateral Esquerda (Painel)
+            with ui.element("div").classes("w-full md:w-1/3 lg:w-1/4"):
                 render_painel_controle(
                     ano_atual, on_refresh=render_conteudo_pagina.refresh
                 )
 
-            # Coluna Direita: Formulário de Quesitos
-            with ui.column().classes("w-3/4 p-4 border rounded-lg bg-white"):
-                ui.label(
-                    f"📋 Formulário de Quesitos — Ano {ano_atual}"
-                ).classes("text-xl font-bold mb-4")
+            # Coluna Direita (Formulário)
+            with ui.element("div").classes("w-full md:w-2/3 lg:w-3/4 bg-white p-6 border rounded-lg shadow-sm"):
+                ui.label(f"📋 Formulário de Quesitos — Ano {ano_atual}").classes("text-xl font-bold mb-4 text-gray-800")
 
-                # -------------------------------------------------------------
-                # QUESITO 1.1.2
-                # -------------------------------------------------------------
+                # Quesito 1.1.2
                 qid_1_1_2 = "1.1.2"
                 dados_1_1_2 = respostas.get(
                     qid_1_1_2, {"valor": "Não", "pontos": 0.0, "link": ""}
@@ -243,18 +248,13 @@ def main_page():
 
                 opcoes_1_1_2 = {"Sim": "Sim – 20", "Não": "Não – 00"}
 
-                with ui.card().classes(
-                    "w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"
-                ):
-                    ui.label(f"Quesito {qid_1_1_2}").classes(
-                        "font-bold text-blue-900"
-                    )
+                with ui.card().classes("w-full p-4 mb-4 border rounded bg-slate-50 shadow-sm"):
+                    ui.label(f"Quesito {qid_1_1_2}").classes("font-bold text-blue-900 text-base")
                     ui.label(
                         "Os servidores responsáveis pelo Meio Ambiente receberam treinamento "
                         "específico voltado ao Meio Ambiente em 2025?"
-                    ).classes("text-sm text-gray-700 my-1 font-medium")
+                    ).classes("text-sm text-gray-700 my-2 font-medium")
 
-                    # Valor atual ou padrão 'Não'
                     val_inicial = (
                         dados_1_1_2["valor"]
                         if dados_1_1_2["valor"] in opcoes_1_1_2
