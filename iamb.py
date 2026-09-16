@@ -3848,6 +3848,310 @@ def container_formulario_iamb(ano=None):
                     ui.button("💾 SALVAR QUESITO 13.1", on_click=salvar_131).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                     ui.separator().classes("my-2")
                     bloco_comentarios("13.1", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                # QUESITO 13.1.1 (Campo de Texto - Data de Fechamento do Aterro)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("13.1.1 • Data Provável de Fechamento do Aterro").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe a data provável de fechamento do aterro:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Digite a data ou previsão e forneça o link da evidência.").classes("text-xs text-gray-400 mb-6")
+
+                    d1311 = res_data.get("13.1.1") or {}
+                    val_1311_i = str(d1311.get("valor") or "").strip()
+
+                    state_1311 = {
+                        "data_fechamento": val_1311_i,
+                        "link": d1311.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Data Provável de Fechamento:",
+                                value=state_1311["data_fechamento"],
+                                placeholder="Ex: 31/12/2030",
+                            ).classes("w-full").props("outlined").bind_value(state_1311, "data_fechamento")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_1311["link"],
+                            placeholder="Insira o link de relatórios ou estudos de vida útil do aterro...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_1311, "link")
+
+                    def salvar_1311():
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="13.1.1",
+                            valor=state_1311["data_fechamento"],
+                            pontos=0.0,
+                            link=state_1311["link"],
+                            comentarios=d1311.get("comentarios", []),
+                            status=d1311.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 13.1.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 13.1.1", on_click=salvar_1311).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("13.1.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 13.2 (Seleção Única - Radio Button com Penalidade)
+                # =============================================================================
+                opcoes_132 = {
+                    "Selecione...": 0.0,
+                    "Sim – 00 pts": 0.0,
+                    "Não – -50 pts": -50.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="13.2",
+                    titulo="Licença de Operação da CETESB para o Aterro",
+                    pergunta="Existe licença de operação da CETESB para a área de aterro?",
+                    opcoes=opcoes_132,
+                    placeholder_link="Insira o link da licença de operação da CETESB...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 13.2.1 (Campo de Texto - Validade da Licença com Regra de Pontuação)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("13.2.1 • Prazo de Validade da Licença do Aterro").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe o prazo de validade da licença:").classes("text-base font-bold text-black mb-1")
+                    ui.label("⚠️ Regra de Pontuação: Se Data <= 31/12/2024 -> perde 50 pontos (-50 pts). Se Data > 31/12/2024 -> 00 pts.").classes("text-xs text-amber-600 font-semibold mb-6")
+
+                    d1321 = res_data.get("13.2.1") or {}
+                    val_1321_i = str(d1321.get("valor") or "").strip()
+
+                    state_1321 = {
+                        "validade": val_1321_i,
+                        "link": d1321.get("link", ""),
+                    }
+
+                    def calc_pts_1321(data_str):
+                        try:
+                            # Tenta fazer o parse da data no formato DD/MM/AAAA
+                            partes = data_str.strip().split("/")
+                            if len(partes) == 3:
+                                dt = datetime.date(int(partes[2]), int(partes[1]), int(partes[0]))
+                                dt_limite = datetime.date(2024, 12, 31)
+                                if dt <= dt_limite:
+                                    return -50.0
+                                else:
+                                    return 0.0
+                        except Exception:
+                            pass
+                        return 0.0
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Prazo de Validade (DD/MM/AAAA):",
+                                value=state_1321["validade"],
+                                placeholder="Ex: 31/12/2025",
+                            ).classes("w-full").props("outlined").bind_value(state_1321, "validade")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_1321["link"],
+                            placeholder="Insira o link da licença ambiental...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_1321, "link")
+
+                    def salvar_1321():
+                        pts = calc_pts_1321(state_1321["validade"])
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="13.2.1",
+                            valor=state_1321["validade"],
+                            pontos=pts,
+                            link=state_1321["link"],
+                            comentarios=d1321.get("comentarios", []),
+                            status=d1321.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 13.2.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 13.2.1", on_click=salvar_1321).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("13.2.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 14.0 (Seleção Única - Radio Button com Penalidade)
+                # =============================================================================
+                opcoes_140 = {
+                    "Selecione...": 0.0,
+                    "Sim – -30 pts": -30.0,
+                    "Não – 00 pts": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="14.0",
+                    titulo="Pontos de Descarte Irregular de Lixo",
+                    pergunta="Existem pontos de descarte irregular de lixo no município (lixo doméstico, saúde e/ou construção civil)?",
+                    opcoes=opcoes_140,
+                    placeholder_link="Insira o link de relatórios, mapeamentos ou denúncias...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # =============================================================================
+                # QUESITO 14.1 (Campo de Texto - Quantidade de Pontos Identificados)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("14.1 • Quantidade de Pontos Identificados").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe a quantidade de pontos identificados:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Informe o número total de pontos de descarte irregular mapeados.").classes("text-xs text-gray-400 mb-6")
+
+                    d141 = res_data.get("14.1") or {}
+                    val_141_i = str(d141.get("valor") or "").strip()
+
+                    state_141 = {
+                        "quantidade": val_141_i,
+                        "link": d141.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-3"):
+                            ui.input(
+                                "Quantidade de Pontos:",
+                                value=state_141["quantidade"],
+                                placeholder="Ex: 5",
+                            ).classes("w-full").props("outlined").bind_value(state_141, "quantidade")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_141["link"],
+                            placeholder="Insira o link com o mapeamento dos pontos...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_141, "link")
+
+                    def salvar_141():
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="14.1",
+                            valor=state_141["quantidade"],
+                            pontos=0.0,
+                            link=state_141["link"],
+                            comentarios=d141.get("comentarios", []),
+                            status=d141.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 14.1 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 14.1", on_click=salvar_141).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("14.1", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 14.2 (Campo de Texto Extenso - Endereço dos Locais)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("14.2 • Endereço dos Locais Identificados").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Informe o endereço dos locais identificados:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Liste os endereços ou coordenadas dos pontos de descarte irregular.").classes("text-xs text-gray-400 mb-6")
+
+                    d142 = res_data.get("14.2") or {}
+                    val_142_i = str(d142.get("valor") or "").strip()
+
+                    state_142 = {
+                        "enderecos": val_142_i,
+                        "link": d142.get("link", ""),
+                    }
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        ui.textarea(
+                            label="Endereços dos Locais:",
+                            value=state_142["enderecos"],
+                            placeholder="Ex: Rua A, Bairro X; Av. B, próximo ao nº 100...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_142, "enderecos")
+
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_142["link"],
+                            placeholder="Insira o link das fotos, mapa ou relatório...",
+                        ).classes("w-full").props("outlined rows=4").bind_value(state_142, "link")
+
+                    def salvar_142():
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="14.2",
+                            valor=state_142["enderecos"],
+                            pontos=0.0,
+                            link=state_142["link"],
+                            comentarios=d142.get("comentarios", []),
+                            status=d142.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 14.2 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 14.2", on_click=salvar_142).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("14.2", res_data, render_conteudo.refresh)
+
+                # =============================================================================
+                # QUESITO 14.3 (Seleção Múltipla - Ações de Combate ao Descarte Irregular)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                    ui.label("14.3 • Ações de Combate ao Descarte Irregular").classes("text-xl font-semibold text-blue-500 mb-3")
+                    ui.label("Assinale as ações promovidas pela Prefeitura para combater o descarte irregular de lixo no ano:").classes("text-base font-bold text-black mb-1")
+                    ui.label("ℹ Selecione as ações realizadas e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+
+                    d143 = res_data.get("14.3") or {}
+                    try:
+                        sel_143_salvos = json.loads(d143.get("valor", "[]"))
+                        if not isinstance(sel_143_salvos, list): sel_143_salvos = []
+                    except Exception:
+                        sel_143_salvos = []
+
+                    mapa_143 = {
+                        "campanhas": ("Campanhas de conscientização – 05 pts", 5.0),
+                        "mobilizacao_bairro": ("Mobilização de grupos de bairro – 05 pts", 5.0),
+                        "retirada_caminhoes": ("Retirada dos resíduos sólidos por caminhões – 05 pts", 5.0),
+                        "sinalizacao_proibicao": ("Sinalização no local sobre a proibição de descarte naquele local – 05 pts", 5.0),
+                        "plantio_arvores": ("Plantio de árvores em áreas que não deveriam receber lixo ou entulho – 05 pts", 5.0),
+                        "notificacoes_multas": ("Notificações e multas aos responsáveis – 05 pts", 5.0),
+                    }
+
+                    state_143 = {k: k in sel_143_salvos for k in mapa_143.keys()}
+                    state_143["link"] = d143.get("link", "")
+
+                    def calc_pts_143():
+                        return sum(peso for k, (_, peso) in mapa_143.items() if state_143.get(k))
+
+                    with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_143a = [ui.checkbox(rotulo).bind_value(state_143, k) for k, (rotulo, _) in list(mapa_143.items())[:3]]
+                        with ui.column().classes("w-full gap-1"):
+                            cb_col_143b = [ui.checkbox(rotulo).bind_value(state_143, k) for k, (rotulo, _) in list(mapa_143.items())[3:]]
+
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=state_143["link"],
+                        placeholder="Insira o link de fotos, relatórios ou ordens de serviço das ações realizadas...",
+                    ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_143, "link")
+
+                    lbl_pts_143 = ui.label(f"📊 Impacto de Pontuação no Quesito 14.3: {calc_pts_143():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+
+                    def salvar_143():
+                        selecionados = [k for k in mapa_143.keys() if state_143.get(k)]
+                        pts = calc_pts_143()
+                        save_resposta(
+                            ano=ano_sel,
+                            qid="14.3",
+                            valor=json.dumps(selecionados),
+                            pontos=pts,
+                            link=state_143["link"],
+                            comentarios=d143.get("comentarios", []),
+                            status=d143.get("status", "Pendente"),
+                        )
+                        ui.notify("Quesito 14.3 salvo com sucesso!", type="positive")
+                        if render_conteudo.refresh: render_conteudo.refresh()
+
+                    ui.button("💾 SALVAR QUESITO 14.3", on_click=salvar_143).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                    ui.separator().classes("my-2")
+                    bloco_comentarios("14.3", res_data, render_conteudo.refresh)
     
     # Executa a renderização da interface
     render_conteudo()
