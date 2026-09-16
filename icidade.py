@@ -472,6 +472,74 @@ def container_formulario_icidade(ano=None):
                 ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
+
+    # ==========================================
+                # QUESITO 1.0 (Seleção com Pontuação)
+                # ==========================================
+                opcoes_10 = {
+                    "Selecione...": 0.0,
+                    "Sim": 40.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.0",
+                    titulo="Criação da COMPDEC ou Órgão Similar",
+                    pergunta="Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil - COMPDEC ou órgão similar responsável pela execução, coordenação e mobilização de todas as ações de defesa civil no município?",
+                    opcoes=opcoes_10,
+                    placeholder_link="Insira o link para a comprovação...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 1.1 (Campo de Texto / Normativo)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.1",
+                    titulo="Instrumento Normativo de Criação da COMPDEC",
+                    pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
+                    tipo_input="texto",
+                    placeholder_texto="Ex: Lei Municipal nº 1.234, de 10 de janeiro de 2020",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 1.2 (Link / Página Eletrônica)
+                # ==========================================
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.2",
+                    titulo="Link do Instrumento Normativo",
+                    pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
+                    tipo_input="link",
+                    placeholder_link="https://... ou digite XYZ",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 1.3 (Seleção com Pontuação)
+                # ==========================================
+                opcoes_13 = {
+                    "Selecione...": 0.0,
+                    "Gabinete do Prefeito": 5.0,
+                    "Secretaria Municipal de Segurança Pública": 0.0,
+                    "Controladoria": 0.0,
+                    "Outra": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.3",
+                    titulo="Vinculação Subordinativa da COMPDEC",
+                    pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
+                    opcoes=opcoes_13,
+                    placeholder_link="Insira o link do organograma ou norma que comprove a vinculação...",
+                    on_save_callback=render_conteudo.refresh,
+                )
                 
                 # Exemplo de chamada de quesito caso deseje renderizar dentro do container principal:
                 # render_quesito(ano_sel, res_data, "Q1", "Título do Quesito", "Pergunta de exemplo?", {"Opção A": 10, "Opção B": 5}, on_save_callback=render_conteudo.refresh)
