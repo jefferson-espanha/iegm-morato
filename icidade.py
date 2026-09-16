@@ -25,7 +25,7 @@ def init_db():
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute("""
-                    CREATE TABLE IF NOT EXISTS respostas_icidade (
+                    CREATE TABLE IF NOT EXISTS respostas_iamb (
                         qid VARCHAR(50) NOT NULL,
                         ano INTEGER NOT NULL,
                         valor TEXT,
@@ -39,7 +39,7 @@ def init_db():
                 """)
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao inicializar tabela respostas_icidade: {e}")
+        print(f"❌ Erro ao inicializar tabela respostas_iamb: {e}")
 
 
 init_db()
@@ -48,7 +48,7 @@ init_db()
 def load_respostas(ano):
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
-        FROM respostas_icidade
+        FROM respostas_iamb
         WHERE ano = %s;
     """
     respostas = {}
@@ -92,7 +92,7 @@ def save_resposta(
     link_final = link.strip() if link else ""
 
     query = """
-        INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
+        INSERT INTO respostas_iamb (ano, qid, valor, pontos, link, comentarios, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (ano, qid) 
         DO UPDATE SET
@@ -124,7 +124,7 @@ def save_resposta(
 
 
 def zerar_questionario_db(ano):
-    query = "DELETE FROM respostas_icidade WHERE ano = %s;"
+    query = "DELETE FROM respostas_iamb WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -140,7 +140,77 @@ def _obter_lista_comentarios(dados_q):
 
 
 # =============================================================================
-# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
+# PAINEL DE CONTROLE LATERAL
+# =============================================================================
+@ui.refreshable
+def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
+    anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    res_data = load_respostas(ano_atual)
+    total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
+
+    if total_pts <= 500:
+        faixa, cor = "C", "text-red-600"
+    elif total_pts <= 599:
+        faixa, cor = "C+", "text-orange-500"
+    elif total_pts <= 749:
+        faixa, cor = "B", "text-yellow-600"
+    elif total_pts <= 899:
+        faixa, cor = "B+", "text-green-500"
+    else:
+        faixa, cor = "A", "text-green-700"
+
+    with ui.card().classes(
+        "w-full bg-slate-100 p-4 border rounded-lg shadow-sm"
+    ):
+        ui.label("🛠️ Painel de Controle (iAmb)").classes(
+            "text-lg font-bold mb-2 text-blue-900"
+        )
+
+        ui.select(
+            options=anos,
+            value=int(ano_atual),
+            label="Ano de Referência:",
+            on_change=lambda e: on_mudar_ano(e.value),
+        ).classes("w-full mb-4 bg-white")
+
+        with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
+            ui.label("PONTUAÇÃO TOTAL").classes(
+                "text-xs text-gray-500 font-bold uppercase tracking-wider"
+            )
+            ui.label(f"{total_pts:.1f} pts").classes(
+                "text-3xl font-black text-gray-800 my-1"
+            )
+            with ui.row().classes("items-center gap-1 mt-1"):
+                ui.label("Faixa:").classes("font-bold text-sm")
+                ui.label(faixa).classes(f"text-xl font-bold {cor}")
+
+        def zerar_acao():
+            zerar_questionario_db(ano_atual)
+            ui.notify(
+                f"✅ Questionário de {ano_atual} zerado!", type="positive"
+            )
+            on_refresh()
+
+        ui.button("🔄 ATUALIZAR UI", on_click=on_refresh).classes(
+            "w-full bg-blue-600 text-white font-bold mb-2"
+        )
+        ui.button("🗑️ ZERAR ANO", on_click=zerar_acao).classes(
+            "w-full bg-red-600 text-white font-bold"
+        )
+
+        ui.separator().classes("my-4")
+        ui.html("""
+            <div style="text-align: center; color: #333; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
+                ⚙️ <b>Desenvolvido por:</b><br>
+                <span style="font-size: 12px;">Jefferson Espanha</span><br>
+                <span>Procuradoria do Município</span><br>
+                <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
+            </div>
+        """).classes("w-full")
+
+
+# =============================================================================
+# COMPONENTE DE QUESITO
 # =============================================================================
 def render_quesito(
     ano,
@@ -226,10 +296,7 @@ def render_quesito(
             ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
 
             if on_save_callback:
-                try:
-                    on_save_callback()
-                except Exception as err:
-                    print(f"Erro ao executar callback: {err}")
+                on_save_callback()
 
         ui.button("Salvar Resposta", on_click=salvar_acao).classes(
             "bg-blue-600 text-white font-bold px-4 py-2"
@@ -237,77 +304,7 @@ def render_quesito(
 
 
 # =============================================================================
-# PAINEL DE CONTROLE LATERAL
-# =============================================================================
-@ui.refreshable
-def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
-    anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
-    res_data = load_respostas(ano_atual)
-    total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
-
-    if total_pts <= 500:
-        faixa, cor = "C", "text-red-600"
-    elif total_pts <= 599:
-        faixa, cor = "C+", "text-orange-500"
-    elif total_pts <= 749:
-        faixa, cor = "B", "text-yellow-600"
-    elif total_pts <= 899:
-        faixa, cor = "B+", "text-green-500"
-    else:
-        faixa, cor = "A", "text-green-700"
-
-    with ui.card().classes(
-        "w-full bg-slate-100 p-4 border rounded-lg shadow-sm"
-    ):
-        ui.label("🛠️ Painel de Controle (icidade)").classes(
-            "text-lg font-bold mb-2 text-blue-900"
-        )
-
-        ui.select(
-            options=anos,
-            value=int(ano_atual),
-            label="Ano de Referência:",
-            on_change=lambda e: on_mudar_ano(e.value),
-        ).classes("w-full mb-4 bg-white")
-
-        with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
-            ui.label("PONTUAÇÃO TOTAL").classes(
-                "text-xs text-gray-500 font-bold uppercase tracking-wider"
-            )
-            ui.label(f"{total_pts:.1f} pts").classes(
-                "text-3xl font-black text-gray-800 my-1"
-            )
-            with ui.row().classes("items-center gap-1 mt-1"):
-                ui.label("Faixa:").classes("font-bold text-sm")
-                ui.label(faixa).classes(f"text-xl font-bold {cor}")
-
-        def zerar_acao():
-            zerar_questionario_db(ano_atual)
-            ui.notify(
-                f"✅ Questionário de {ano_atual} zerado!", type="positive"
-            )
-            on_refresh()
-
-        ui.button("🔄 ATUALIZAR UI", on_click=on_refresh).classes(
-            "w-full bg-blue-600 text-white font-bold mb-2"
-        )
-        ui.button("🗑️ ZERAR ANO", on_click=zerar_acao).classes(
-            "w-full bg-red-600 text-white font-bold"
-        )
-
-        ui.separator().classes("my-4")
-        ui.html("""
-            <div style="text-align: center; color: #333; font-weight: bold; font-style: italic; font-size: 11px; font-family: sans-serif; line-height: 1.5;">
-                ⚙️ <b>Desenvolvido por:</b><br>
-                <span style="font-size: 12px;">Jefferson Espanha</span><br>
-                <span>Procuradoria do Município</span><br>
-                <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
-            </div>
-        """).classes("w-full")
-
-
-# =============================================================================
-# BLOCO DE COMENTÁRIOS INTERNOS
+# COMENTÁRIOS
 # =============================================================================
 def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
@@ -386,21 +383,13 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                 with ui.row().classes(
                     "w-full items-center justify-between no-wrap mb-2"
                 ):
-                    if "Sistema /" in autor:
-                        ui.html(
-                            f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
-                                <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
-                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
-                            </div>"""
-                        ).classes("w-full")
-                    else:
-                        ui.html(
-                            f"""<div style="background-color: #ffffff; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; border: 1px solid #e0e0e0; width: 100%;">
-                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
-                                <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
-                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
-                            </div>"""
-                        ).classes("w-full")
+                    ui.html(
+                        f"""<div style="background-color: #ffffff; padding: 10px; border-radius: 6px; border: 1px solid #e0e0e0; width: 100%;">
+                            <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
+                            <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
+                            <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
+                        </div>"""
+                    ).classes("w-full")
 
                     ui.button("🗑️", on_click=deletar_comentario).props(
                         "flat dense"
@@ -440,114 +429,44 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 # =============================================================================
-# ÁREA DO FORMULÁRIO
+# ÁREA DE CONTEÚDO DO FORMULÁRIO (DIREITA)
 # =============================================================================
-def atualizar_tudo():
-    container_formulario_icidade.refresh()
-    render_painel_controle.refresh()
-
-
 @ui.refreshable
-def container_formulario_icidade():
+def container_formulario_iamb():
     ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
     res_data = load_respostas(ano_sel)
 
-    ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
-        "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
+    ui.label(f"🌿 Módulo i-Amb — Ano {ano_sel}").classes(
+        "text-2xl font-bold mb-4 text-slate-800 border-b pb-2"
     )
 
-    # Quesito 1.0
     render_quesito(
         ano=ano_sel,
         res_data=res_data,
         qid="1.0",
-        titulo="Estrutura de Proteção e Defesa Civil",
-        pergunta=(
-            "Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil-COMPDEC "
-            "ou órgão similar responsável pela execução, coordenação e mobilização "
-            "de todas as ações de defesa civil no município?"
-        ),
+        titulo="Conselho Municipal do Meio Ambiente",
+        pergunta="O município possui Conselho Municipal do Meio Ambiente constituído e em funcionamento?",
         opcoes={
             "Selecione...": 0.0,
-            "Sim - 40.0 pts": 40.0,
-            "Não - 0.0 pts": 0.0,
+            "Sim - Paritário e Ativo - 50.0 pts": 50.0,
+            "Sim - Não Paritário - 25.0 pts": 25.0,
+            "Não possui - 0.0 pts": 0.0,
         },
-        placeholder_link="Insira o link da Lei Municipal ou Decreto de criação da COMPDEC...",
+        placeholder_link="Insira o link da Lei de criação do Conselho...",
         on_save_callback=atualizar_tudo,
     )
     bloco_comentarios("1.0", res_data, atualizar_tudo)
 
-    # Quesito 1.1
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.1",
-        titulo="Dados do Instrumento Normativo COMPDEC",
-        pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
-        opcoes={"Informado": 0.0, "Não informado": 0.0},
-        placeholder_link="Ex: Lei Municipal nº 1.234, de 10/01/2020",
-        on_save_callback=atualizar_tudo,
-    )
-    bloco_comentarios("1.1", res_data, atualizar_tudo)
 
-    # Quesito 1.2
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.2",
-        titulo="Endereço Eletrônico do Instrumento Normativo",
-        pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar:",
-        opcoes={"Disponível Online": 0.0, "Não Disponível": 0.0},
-        placeholder_link="Se não estiver disponível na internet, inserir o texto explicativo...",
-        on_save_callback=atualizar_tudo,
-    )
-    bloco_comentarios("1.2", res_data, atualizar_tudo)
-
-    # Quesito 1.3
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.3",
-        titulo="Secretaria ou Diretoria de Subordinação",
-        pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
-        opcoes={
-            "Selecione...": 0.0,
-            "Gabinete do Prefeito - 5.0 pts": 5.0,
-            "Secretaria Municipal de Segurança Pública - 0.0 pts": 0.0,
-            "Controladoria - 0.0 pts": 0.0,
-            "Outra - 0.0 pts": 0.0,
-        },
-        on_save_callback=atualizar_tudo,
-    )
-    bloco_comentarios("1.3", res_data, atualizar_tudo)
-
-    # Quesito 1.4
-    render_quesito(
-        ano=ano_sel,
-        res_data=res_data,
-        qid="1.4",
-        titulo="Atuação Sistêmica e Articulação da Defesa Civil",
-        pergunta=(
-            "Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, "
-            "articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta "
-            "e recuperação de acordo com a Política Nacional de Proteção e Defesa Civil - PNPDEC?"
-        ),
-        opcoes={
-            "Selecione...": 0.0,
-            "Sim, inclusive com a participação de entidades privadas e da comunidade - 50.0 pts": 50.0,
-            "Sim, com participação de entidades privadas - 20.0 pts": 20.0,
-            "Sim, com participação da comunidade - 20.0 pts": 20.0,
-            "Sim, apenas com participação dos representantes da administração municipal - 10.0 pts": 10.0,
-        },
-        on_save_callback=atualizar_tudo,
-    )
-    bloco_comentarios("1.4", res_data, atualizar_tudo)
+def atualizar_tudo():
+    container_formulario_iamb.refresh()
+    render_painel_controle.refresh()
 
 
 # =============================================================================
-# FUNÇÃO DE ENTRADA DO MÓDULO (INVOCADA NO MAIN.PY)
+# RENDERIZAÇÃO DA PÁGINA (PAINEL NA ESQUERDA + CONTEÚDO NA DIREITA)
 # =============================================================================
-def render_pagina_icidade():
+def render_pagina_iamb():
     ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
 
     def alterar_ano(novo_ano):
@@ -555,17 +474,18 @@ def render_pagina_icidade():
         ui.notify(f"Ano alterado para {novo_ano}", type="info")
         atualizar_tudo()
 
-    with ui.element("div").classes(
-        "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
-    ):
-        with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
+    # Estrutura Flexbox forçando 2 colunas lado a lado
+    with ui.row().classes("w-full items-start no-wrap gap-6 p-2"):
+        # Coluna da Esquerda (Painel Lateral)
+        with ui.element("div").classes("w-80 shrink-0"):
             render_painel_controle(
                 ano_atual=ano_sel,
                 on_mudar_ano=alterar_ano,
                 on_refresh=atualizar_tudo,
             )
 
+        # Coluna da Direita (Formulário)
         with ui.element("div").classes(
-            "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
+            "grow bg-white p-6 border rounded-lg shadow-sm"
         ):
-            container_formulario_icidade()
+            container_formulario_iamb()
