@@ -831,16 +831,28 @@ def container_formulario_icidade(ano=None):
                 )
 
                 # ==========================================
-                # QUESITO 5.1 (Principais Ameaças Identificadas)
+                # QUESITO 5.1 (Principais Ameaças - Checkbox)
                 # ==========================================
+                opcoes_51 = {
+                    "Epidemias": 0.0,
+                    "Estiagem": 0.0,
+                    "Incêndios (urbanos e florestais)": 0.0,
+                    "Ondas de calor ou ondas de frio": 0.0,
+                    "Inundações": 0.0,
+                    "Infestações e Pragas": 0.0,
+                    "Ameaças radioativas": 0.0,
+                    "Deslizamentos": 0.0,
+                    "Outros": 0.0,
+                }
                 render_quesito(
                     ano=ano_sel,
                     res_data=res_data,
                     qid="5.1",
-                    titulo="Principais Ameaças Identificadas no Território",
-                    pergunta="Assinale/Informe as principais ameaças identificadas (Ex: Epidemias, Estiagem, Incêndios, Ondas de calor/frio, Inundações, Infestações/Pragas, Ameaças radioativas, Deslizamentos, Outros):",
-                    tipo_input="texto",
-                    placeholder_texto="Listar as principais ameaças identificadas no município...",
+                    titulo="Principais Ameaças Identificadas",
+                    pergunta="Assinale as principais ameaças identificadas no território municipal:",
+                    tipo_input="checkbox",
+                    opcoes=opcoes_51,
+                    placeholder_link="Insira o link para a comprovação ou mapeamento do risco...",
                     on_save_callback=render_conteudo.refresh,
                 )
 
