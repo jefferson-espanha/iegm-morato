@@ -3532,5 +3532,108 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F7", res_data, render_conteudo.refresh)
 
+    # ==========================================
+                    # QUESITO F8 (Apuração da Dívida Fundada - Aumento/Redução)
+                    # ==========================================
+                    f8_data = res_data.get("F8", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F8 • Apuração da Dívida Fundada (Aumento/Redução)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Relação entre a Dívida Consolidada Líquida (DCL) e a Receita Corrente Líquida (RCL), extraída do item GF28 da AUDESP (AF = DCL / RCL):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AF", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **AF > 1,20 (Acima de 120% da RCL):** Penalidade máxima (**-10,0 pontos**)
+                            * **1,10 <= AF <= 1,20 (Graduação Proporcional):** Penalidade calculada por `((AF - 1,10) / 0,10) * -10,0`
+                            * **AF < 1,10 (Abaixo de 110% da RCL):** Dentro do limite seguro (**0,0 ponto**)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador AF").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f8_bruto = f8_data.get("valor", {})
+                            if not isinstance(val_f8_bruto, dict):
+                                val_f8_bruto = {}
+
+                            state_f8 = {
+                                "val_dcl": float(val_f8_bruto.get("DCL", 0.0) or 0.0),
+                                "val_rcl": float(val_f8_bruto.get("RCL", 0.0) or 0.0),
+                                "link": f8_data.get("link", ""),
+                                "pts": float(f8_data.get("pontos", 0.0) or 0.0)
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_dcl = (
+                                    ui.number(label="Dívida Consolidada Líquida (DCL)", value=state_f8["val_dcl"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_rcl = (
+                                    ui.number(label="Receita Corrente Líquida (RCL)", value=state_f8["val_rcl"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_af = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_af = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_af(_=None):
+                                try:
+                                    dcl = float(input_dcl.value or 0.0)
+                                    rcl = float(input_rcl.value or 0.0)
+                                except (ValueError, TypeError):
+                                    dcl, rcl = 0.0, 0.0
+
+                                state_f8["val_dcl"] = dcl
+                                state_f8["val_rcl"] = rcl
+
+                                if rcl > 0:
+                                    af = dcl / rcl
+                                    if af > 1.20:
+                                        pts = -10.0
+                                        lbl_pts_af.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                    elif 1.10 <= af <= 1.20:
+                                        pts = ((af - 1.10) / 0.10) * -10.0
+                                        lbl_pts_af.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                    else:
+                                        pts = 0.0
+                                        lbl_pts_af.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+                                    
+                                    state_f8["pts"] = pts
+                                    lbl_af.set_text(f"Resultado AF (DCL / RCL): {af:.4f} ({af*100:.2f}%)")
+                                    lbl_pts_af.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_af.set_text("Resultado AF: Indefinido (A RCL deve ser maior que R$ 0,00)")
+                                    lbl_pts_af.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    lbl_pts_af.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+                                    state_f8["pts"] = 0.0
+
+                            input_dcl.on("update:model-value", calcular_af)
+                            input_rcl.on("update:model-value", calcular_af)
+                            calcular_af()
+
+                        input_link_f8 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f8["link"],
+                            placeholder="Insira o link ou relatório GF28 do AUDESP referente à Dívida Consolidada Líquida..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f8():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F8",
+                                valor={"DCL": state_f8["val_dcl"], "RCL": state_f8["val_rcl"]},
+                                pontos=state_f8["pts"],
+                                link=input_link_f8.value,
+                                comentarios=f8_data.get("comentarios", []),
+                                status=f8_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F8 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f8).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F8", res_data, render_conteudo.refresh)
+
                   
     render_conteudo()
