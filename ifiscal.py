@@ -3515,5 +3515,100 @@ def container_formulario_ifiscal(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f7).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F7", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO F8 (Apuração dos Pagamentos dos Precatórios)
+                    # ==========================================
+                    f8_data = res_data.get("F8", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F8 • Apuração dos Pagamentos dos Precatórios – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Relação entre o Estoque Final (AG) e o Estoque Inicial (AH) dos Precatórios no exercício (AI = AG / AH):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AI", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **AI >= 1,0:** Pontuação = **0,0 ponto** *(O estoque de precatórios aumentou ou permaneceu igual)*
+                            * **0,9 < AI < 1,0:** Graduação entre 75 e 0 `((AI - 1,0) * (-1) / 0,10) * 75`
+                            * **AI <= 0,9:** Pontuação máxima = **75,0 pontos** *(Redução de pelo menos 10% no estoque de precatórios)*
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador AI").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f8_bruto = f8_data.get("valor", {})
+                            if not isinstance(val_f8_bruto, dict):
+                                val_f8_bruto = {}
+
+                            state_f8 = {
+                                "val_ag": float(val_f8_bruto.get("AG", 0.0)),
+                                "val_ah": float(val_f8_bruto.get("AH", 0.0)),
+                                "link": f8_data.get("link", ""),
+                                "pts": float(f8_data.get("pontos", 0.0))
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_ag = (
+                                    ui.number(label="Estoque Final de Precatórios (AG)", value=state_f8["val_ag"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_ah = (
+                                    ui.number(label="Estoque Inicial de Precatórios (AH)", value=state_f8["val_ah"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_ai = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_ai = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+
+                            def calcular_ai(_=None):
+                                ag = input_ag.value or 0.0
+                                ah = input_ah.value or 0.0
+                                state_f8["val_ag"] = ag
+                                state_f8["val_ah"] = ah
+
+                                if ah > 0:
+                                    ai_val = ag / ah
+                                    if ai_val >= 1.0:
+                                        pts = 0.0
+                                    elif 0.9 < ai_val < 1.0:
+                                        pts = ((ai_val - 1.0) * (-1.0) / 0.10) * 75.0
+                                    else:
+                                        pts = 75.0
+                                    
+                                    state_f8["pts"] = pts
+                                    lbl_ai.set_text(f"Resultado AI (AG / AH): {ai_val:.4f}")
+                                    lbl_pts_ai.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_ai.set_text("Resultado AI: Indefinido (O Estoque Inicial 'AH' deve ser maior que R$ 0,00)")
+                                    lbl_pts_ai.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    state_f8["pts"] = 0.0
+
+                            input_ag.on("update:model-value", calcular_ai)
+                            input_ah.on("update:model-value", calcular_ai)
+                            calcular_ai()
+
+                        input_link_f8 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f8["link"],
+                            placeholder="Insira o link da demonstração da dívida consolidada / AUDESP referente aos precatórios..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f8():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F8",
+                                valor={"AG": state_f8["val_ag"], "AH": state_f8["val_ah"]},
+                                pontos=state_f8["pts"],
+                                link=input_link_f8.value,
+                                comentarios=f8_data.get("comentarios", []),
+                                status=f8_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F8 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f8).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F8", res_data, render_conteudo.refresh)
                   
     render_conteudo()
