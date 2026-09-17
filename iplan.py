@@ -878,4 +878,111 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 4.1.1.2 (Publicação dos Resultados - Radio)
+                    # ==========================================
+                    opcoes_4112 = {
+                        "Sim, para todos os programas finalísticos avaliados do PPA – 04 pts": 4.0,
+                        "Sim, para a maior parte dos programas finalísticos avaliados – 03 pts": 3.0,
+                        "Sim, para a menor parte dos programas finalísticos avaliados – 01 pt": 1.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.1.1.2",
+                        titulo="Publicação dos Resultados da Avaliação do PPA",
+                        pergunta="Houve publicação dos resultados da avaliação dos programas finalísticos do PPA?",
+                        tipo_input="radio",
+                        opcoes=opcoes_4112,
+                        placeholder_link="Insira o link com a publicação das avaliações do PPA...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 4.1.1.2.1 (Página Eletrônica dos Resultados - Radio)
+                    # ==========================================
+                    opcoes_41121 = {
+                        "Link/Página eletrônica disponível – Pontuação conforme item 4.1.1.2": 0.0,
+                        "Não disponível (Texto XYZ) – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.1.1.2.1",
+                        titulo="Divulgação Eletrônica da Avaliação",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação dos resultados da avaliação dos programas finalísticos do PPA (Se não estiver disponível na internet, inserir no campo de link o texto 'XYZ'):",
+                        tipo_input="radio",
+                        opcoes=opcoes_41121,
+                        placeholder_link="Cole o link dos resultados ou digite XYZ se não estiver disponível...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 4.2 (Coerência dos Indicadores - Radio)
+                    # ==========================================
+                    opcoes_42 = {
+                        "Todos os indicadores do PPA – 25 pts": 25.0,
+                        "A maior parte dos indicadores – 17 pts": 17.0,
+                        "A menor parte dos indicadores – 08 pts": 8.0,
+                        "Nenhum indicador – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.2",
+                        titulo="Mensuração e Coerência dos Indicadores",
+                        pergunta="Os indicadores são mensuráveis e estão coerentes com as metas físico-financeiras estabelecidas?",
+                        tipo_input="radio",
+                        opcoes=opcoes_42,
+                        placeholder_link="Insira o link das tabelas de indicadores do PPA...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 4.3 (Planos Setoriais no PPA - Checkbox)
+                    # ==========================================
+                    opcoes_43 = {
+                        "Plano Municipal da Educação – 2,5 pts": 2.5,
+                        "Plano Municipal da Saúde – 2,5 pts": 2.5,
+                        "Plano de Saneamento Básico – 2,5 pts": 2.5,
+                        "Plano de Resíduos Sólidos – 2,5 pts": 2.5,
+                        "Plano de Contingência Municipal – PLANCON de Defesa Civil – 2,5 pts": 2.5,
+                        "Plano Diretor de Tecnologia da Informação – 2,5 pts": 2.5,
+                        "Plano Diretor – 00 pts": 0.0,
+                        "Plano Municipal pela Primeira Infância – 00 pts": 0.0,
+                        "Plano de Mobilidade Urbana – 00 pts": 0.0,
+                        "Não incorporou nenhum dos planos acima – -10 pts": -10.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.3",
+                        titulo="Planos Setoriais Incorporados ao PPA",
+                        pergunta="Assinale os Planos Setoriais que foram incorporados no Plano Plurianual (PPA):",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_43,
+                        placeholder_link="Insira o link que comprove a incorporação dos planos setoriais no PPA...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.0 (Estudo de Previsão de Receita - Radio)
+                    # ==========================================
+                    opcoes_50 = {
+                        "Sim – 06 pts": 6.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.0",
+                        titulo="Estudo/Análise para Previsão de Receita",
+                        pergunta="É realizado estudo/análise para previsão de receitas, no mínimo, anualmente? (Obs: A simples aplicação de índice inflacionário ao valor arrecadado do exercício anterior NÃO é considerada estudo/análise de previsão de receita):",
+                        tipo_input="radio",
+                        opcoes=50,
+                        placeholder_link="Insira o link da metodologia ou estudo de estimativa de receita...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
