@@ -1522,4 +1522,156 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 13.3 (Retroalimentação do Replanejamento - Radio)
+                    # ==========================================
+                    opcoes_133 = {
+                        "Selecione...": 0.0,
+                        "Sim, com emissão de relatórios e ciência do prefeito – 20 pts": 20.0,
+                        "Sim, com emissão de relatório e sem ciência do prefeito – 10 pts": 10.0,
+                        "Sim, sem emissão de relatório e sem ciência do prefeito – 05 pts": 5.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.3",
+                        titulo="Retroalimentação para Replanejamento Orçamentário",
+                        pergunta="O acompanhamento e avaliação da execução orçamentária serve de retroalimentação para o replanejamento dos programas e metas das peças orçamentárias?",
+                        tipo_input="radio",
+                        opcoes=opcoes_133,
+                        placeholder_link="Insira o link com evidências/relatórios de replanejamento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.0 (Regulamentação do SCI - Radio)
+                    # ==========================================
+                    opcoes_140 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.0",
+                        titulo="Instituição do Sistema de Controle Interno",
+                        pergunta="Houve a instituição e regulamentação das operações do Sistema de Controle Interno?",
+                        tipo_input="radio",
+                        opcoes=opcoes_140,
+                        placeholder_link="Insira o link da norma de criação/regulamentação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.1 (Instrumento Normativo do SCI - Text/Info)
+                    # ==========================================
+                    opcoes_141 = {
+                        "Selecione...": 0.0,
+                        "Instrumento informado/anexado – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.1",
+                        titulo="Instrumento Normativo de Regulamentação do SCI",
+                        pergunta="Informe o instrumento normativo de regulamentação do Sistema de Controle Interno, Número e Data da publicação:",
+                        tipo_input="radio",
+                        opcoes=opcoes_141,
+                        placeholder_link="Informe o número, data da publicação ou insira o link da norma...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.2 (Divulgação do Instrumento do SCI - Text/Radio)
+                    # ==========================================
+                    opcoes_142 = {
+                        "Link/Página eletrônica disponível – 00 pts": 0.0,
+                        "Não disponível (Texto XYZ) – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.2",
+                        titulo="Divulgação do Instrumento de Regulamentação do SCI",
+                        pergunta="Página eletrônica (link na internet) de divulgação do instrumento de regulamentação do sistema de controle interno (Se não estiver disponível, inserir XYZ):",
+                        tipo_input="radio",
+                        opcoes=opcoes_142,
+                        placeholder_link="Cole o link de divulgação ou digite XYZ...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.3 (Funções do Sistema de Controle Interno - Checkbox)
+                    # ==========================================
+                    opcoes_143 = {
+                        "Avaliar o cumprimento das metas físicas e financeiras dos planos orçamentários, bem como a eficiência de seus resultados – 01 pt": 1.0,
+                        "Comprovar a legalidade da gestão orçamentária, financeira e patrimonial – 01 pt": 1.0,
+                        "Comprovar a legalidade dos repasses a entidades do terceiro setor, avaliando a eficácia e a eficiência dos resultados alcançados – 01 pt": 1.0,
+                        "Exercer o controle das operações de crédito, avais e garantias, bem como dos direitos e haveres do Município – 01 pt": 1.0,
+                        "Em conjunto com autoridades da Administração Financeira do Município, assinar o Relatório de Gestão Fiscal – 01 pt": 1.0,
+                        "Atestar a regularidade da tomada de contas dos ordenadores de despesa, recebedores, tesoureiros, pagadores ou assemelhados – 01 pt": 1.0,
+                        "Apoiar o Tribunal de Contas no exercício de sua missão institucional – 01 pt": 1.0,
+                        "Comprovar a eficácia e a eficiência da gestão orçamentária, financeira e patrimonial – 01 pt": 1.0,
+                        "Acompanhar as metas de superávit orçamentário, primário e nominal – 01 pt": 1.0,
+                        "Observar se as operações de créditos sujeitam-se aos limites e condições das Resoluções 40 e 43/2001, do Senado – 01 pt": 1.0,
+                        "Verificar se os empréstimos e financiamentos vêm sendo pagos tal qual previsto nos respectivos contratos – 01 pt": 1.0,
+                        "Verificar se está sendo providenciada a recondução da despesa de pessoal e da dívida consolidada a seus limites fiscais – 01 pt": 1.0,
+                        "Comprovar se os recursos da alienação de ativos estão sendo despendidos em gastos de capital e, não, em despesas correntes – 01 pt": 1.0,
+                        "Constatar se está sendo satisfeito o limite para gastos totais das Câmaras Municipais – 01 pt": 1.0,
+                        "Verificar a fidelidade funcional dos responsáveis por bens e valores públicos – 01 pt": 1.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.3",
+                        titulo="Funções Atribuídas ao Sistema de Controle Interno",
+                        pergunta="Assinale as funções atribuídas ao sistema de controle interno:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_143,
+                        placeholder_link="Insira o link do normativo com a atribuição de funções...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.4 (Recursos Humanos para o SCI - Radio)
+                    # ==========================================
+                    opcoes_144 = {
+                        "Selecione...": 0.0,
+                        "Sim – 0,5 pt": 0.5,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4",
+                        titulo="Recursos Humanos para o Controle Interno",
+                        pergunta="A prefeitura dispõe de recursos humanos para operacionalização das atividades do sistema de controle interno?",
+                        tipo_input="radio",
+                        opcoes=opcoes_144,
+                        placeholder_link="Insira o link da composição do quadro do Controle Interno...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.4.1 (Vínculo do Responsável pela UCCI - Radio)
+                    # ==========================================
+                    opcoes_1441 = {
+                        "Selecione...": 0.0,
+                        "Sim (Ocupa cargo efetivo) – 05 pts": 5.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4.1",
+                        titulo="Cargo Efetivo do Responsável pela UCCI",
+                        pergunta="O responsável pela Unidade Central de Controle Interno (UCCI / Controlador Interno ou Geral) ocupa cargo efetivo na Administração Municipal?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1441,
+                        placeholder_link="Insira o link do ato de nomeação/comprovação de vínculo efetivo...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
