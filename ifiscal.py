@@ -1132,5 +1132,215 @@ def container_formulario_ifiscal(ano=None):
                         placeholder_link="Insira o trecho do Código Tributário com as alíquotas...",
                         on_save_callback=render_conteudo.refresh,
                     )
+
+                    # ==========================================
+                    # QUESITO 7.0 (Radio)
+                    # ==========================================
+                    opcoes_7_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.0",
+                        titulo="Programa de Isenção do IPTU",
+                        pergunta="O município adotou programa de isenção do IPTU?",
+                        tipo_input="radio",
+                        opcoes=opcoes_7_0,
+                        placeholder_link="Insira o link ou comprovante da norma de isenção...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 7.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.1",
+                        titulo="Instrumento Normativo da Isenção do IPTU",
+                        pergunta="Informe o instrumento normativo de regulamentação do programa de isenção do IPTU, Número e Data da publicação: (Caso não esteja disponível na internet, recomendamos anexar o instrumento)",
+                        tipo_input="text",
+                        placeholder_link="Insira a página ou link do documento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 7.2 (Página Eletrônica com Regra de Pontuação XYZ)
+                    # ==========================================
+                    dados_7_2 = res_data.get("7.2", {})
+                    val_7_2 = str(dados_7_2.get("valor", ""))
+                    link_7_2 = dados_7_2.get("link", "")
+
+                    state_7_2 = {
+                        "texto": val_7_2,
+                        "link": link_7_2,
+                    }
+
+                    def calc_pts_7_2():
+                        return -3.0 if state_7_2["texto"].strip().upper() == "XYZ" else 0.0
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("7.2 • Divulgação da Isenção do IPTU na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) de divulgação do Instrumento normativo de regulamentação do programa de isenção do IPTU:").classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Se não estiver disponível na internet, inserir o texto 'XYZ' no campo de resposta. (Regra: Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            txt_7_2 = ui.textarea(
+                                label="Página Eletrônica / Resposta:",
+                                value=state_7_2["texto"],
+                                placeholder="Digite a URL ou o texto XYZ..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_7_2, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_7_2["link"],
+                                placeholder="Insira o link de evidência adicional..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_7_2, "link")
+
+                        pts_7_2 = calc_pts_7_2()
+                        label_impacto_7_2 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 7.2: {pts_7_2:.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def atualizar_impacto_7_2(e=None):
+                            pts_att = calc_pts_7_2()
+                            label_impacto_7_2.set_text(f"📊 Impacto de Pontuação no Quesito 7.2: {pts_att:.1f} pontos")
+
+                        txt_7_2.on("update:model-value", atualizar_impacto_7_2)
+
+                        def salvar_7_2():
+                            pts_final = calc_pts_7_2()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="7.2",
+                                valor=state_7_2["texto"],
+                                pontos=pts_final,
+                                link=state_7_2["link"],
+                                comentarios=dados_7_2.get("comentarios", []),
+                                status=dados_7_2.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 7.2 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_7_2).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("7.2", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO 7.3 (Checkbox - Múltipla Escolha)
+                    # ==========================================
+                    opcoes_7_3 = {
+                        "Aposentado, pensionista ou beneficiário de renda mensal vitalícia": 0.0,
+                        "Não possuir outro imóvel": 0.0,
+                        "Utilizar o único imóvel como residência": 0.0,
+                        "Rendimento mensal máximo": 0.0,
+                        "Valor venal máximo do imóvel": 0.0,
+                        "Outros": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.3",
+                        titulo="Critérios de Concessão de Isenção do IPTU",
+                        pergunta="Assinale os critérios estabelecidos para a concessão de isenção total ou parcial do IPTU:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_7_3,
+                        placeholder_link="Insira o dispositivo legal contendo os critérios...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 8.0 (Radio)
+                    # ==========================================
+                    opcoes_8_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 01": 1.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.0",
+                        titulo="Instituição do ISSQN",
+                        pergunta="O Imposto sobre Serviços de Qualquer Natureza (ISSQN) foi instituído no município?",
+                        tipo_input="radio",
+                        opcoes=opcoes_8_0,
+                        placeholder_link="Insira o link da lei de instituição do ISSQN...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 8.1 (Radio)
+                    # ==========================================
+                    opcoes_8_1 = {
+                        "Selecione...": 0.0,
+                        "Sim – 02": 2.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.1",
+                        titulo="Adequação à LC 157/2016",
+                        pergunta="O Município atualizou sua legislação conforme as novas hipóteses de incidência de ISS previstas na LC 157/2016?",
+                        tipo_input="radio",
+                        opcoes=opcoes_8_1,
+                        placeholder_link="Insira a lei de alteração/adequação ao ISSQN...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 8.2 (Radio)
+                    # ==========================================
+                    opcoes_8_2 = {
+                        "Selecione...": 0.0,
+                        "Sim por meio de sistema automatizado – 15": 15.0,
+                        "Sim, manualmente – 08": 8.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.2",
+                        titulo="Fiscalização de Omissão ou Queda de NFS-e",
+                        pergunta="Houve rotina de fiscalização para detectar contribuintes que deixaram de emitir a Nota Fiscal de Serviços por determinado período ou que apresentaram queda acentuada em suas operações, a fim de detectar o fim das atividades ou a sonegação do ISSQN?",
+                        tipo_input="radio",
+                        opcoes=opcoes_8_2,
+                        placeholder_link="Insira relatórios da rotina de fiscalização...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 8.3 (Radio)
+                    # ==========================================
+                    opcoes_8_3 = {
+                        "Selecione...": 0.0,
+                        "Sim, sem restrição – 00": 0.0,
+                        "Sim, com restrição (Ex.: há necessidade de cadastro para acessar o resultado da pesquisa) – -09": -9.0,
+                        "Serviço não disponibilizado – -15": -15.0,
+                        "Não implantou a NFS-e – -15": -15.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.3",
+                        titulo="Autenticidade de NFS-e",
+                        pergunta="A pesquisa de autenticidade de notas fiscais eletrônicas está disponível ao público?",
+                        tipo_input="radio",
+                        opcoes=opcoes_8_3,
+                        placeholder_link="Insira o link da ferramenta de consulta de autenticidade...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                   
     render_conteudo()
