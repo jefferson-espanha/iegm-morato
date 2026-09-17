@@ -2301,7 +2301,7 @@ def container_formulario_plan(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO 19.0 (Impressões e Comentários - Apenas Texto)
+                    # QUESITO 19.0 (Impressões e Comentários - Texto)
                     # ==========================================
                     render_quesito(
                         ano=ano_sel,
@@ -2310,6 +2310,7 @@ def container_formulario_plan(ano=None):
                         titulo="Impressões, Comentários e Sugestões",
                         pergunta="Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?",
                         tipo_input="text",
+                        opcoes={},  # Dicionário vazio para satisfazer o parâmetro obrigatório
                         placeholder_link="Escreva aqui suas impressões, comentários e sugestões...",
                         on_save_callback=render_conteudo.refresh,
                     )
