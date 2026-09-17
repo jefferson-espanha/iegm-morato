@@ -1548,5 +1548,266 @@ def container_formulario_ifiscal(ano=None):
                         placeholder_link="Insira o trecho do Código Tributário sobre as alíquotas do ITBI...",
                         on_save_callback=render_conteudo.refresh,
                     )
+
+                    # ==========================================
+                    # QUESITO 10.0 (Radio)
+                    # ==========================================
+                    opcoes_10_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="10.0",
+                        titulo="Instituição da CIP/COSIP",
+                        pergunta="A Contribuição para Custeio do Serviço de Iluminação Pública (CIP) foi instituída?",
+                        tipo_input="radio",
+                        opcoes=opcoes_10_0,
+                        placeholder_link="Insira o link ou documento de instituição da CIP/COSIP...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 10.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="10.1",
+                        titulo="Instrumento Normativo de Instituição da CIP",
+                        pergunta="Informe o instrumento normativo de instituição da Contribuição para Custeio do Serviço de Iluminação Pública (CIP), número e data da publicação: (Caso não esteja disponível na internet, recomendamos anexar o instrumento)",
+                        tipo_input="text",
+                        placeholder_link="Insira o link para a norma de instituição da CIP...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 10.2 (Página Eletrônica com Regra XYZ)
+                    # ==========================================
+                    dados_10_2 = res_data.get("10.2", {})
+                    val_10_2 = str(dados_10_2.get("valor", ""))
+                    link_10_2 = dados_10_2.get("link", "")
+
+                    state_10_2 = {
+                        "texto": val_10_2,
+                        "link": link_10_2,
+                    }
+
+                    def calc_pts_10_2():
+                        return -3.0 if state_10_2["texto"].strip().upper() == "XYZ" else 0.0
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("10.2 • Divulgação da CIP na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) de divulgação do instrumento normativo de instituição da Contribuição para Custeio do Serviço de Iluminação Pública (CIP):").classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            txt_10_2 = ui.textarea(
+                                label="Página Eletrônica / Resposta:",
+                                value=state_10_2["texto"],
+                                placeholder="Digite a URL ou o texto XYZ..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_10_2, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_10_2["link"],
+                                placeholder="Insira o link de evidência adicional..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_10_2, "link")
+
+                        pts_10_2 = calc_pts_10_2()
+                        label_impacto_10_2 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 10.2: {pts_10_2:.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def atualizar_impacto_10_2(e=None):
+                            pts_att = calc_pts_10_2()
+                            label_impacto_10_2.set_text(f"📊 Impacto de Pontuação no Quesito 10.2: {pts_att:.1f} pontos")
+
+                        txt_10_2.on("update:model-value", atualizar_impacto_10_2)
+
+                        def salvar_10_2():
+                            pts_final = calc_pts_10_2()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="10.2",
+                                valor=state_10_2["texto"],
+                                pontos=pts_final,
+                                link=state_10_2["link"],
+                                comentarios=dados_10_2.get("comentarios", []),
+                                status=dados_10_2.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 10.2 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_10_2).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("10.2", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO 10.3 (Radio)
+                    # ==========================================
+                    opcoes_10_3 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00": 0.0,
+                        "Não – -05": -5.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="10.3",
+                        titulo="Movimentação da CIP em Contas Específicas",
+                        pergunta="Os recursos da Contribuição para Custeio do Serviço de Iluminação Pública (CIP) foram movimentados em contas específicas?",
+                        tipo_input="radio",
+                        opcoes=opcoes_10_3,
+                        placeholder_link="Insira o extrato bancário ou comprovante da conta específica...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 11.0 (Radio)
+                    # ==========================================
+                    opcoes_11_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 03": 3.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.0",
+                        titulo="Regulamentação da Retenção de IRRF nas Compras Municipais",
+                        pergunta="Houve regulamentação sobre a retenção de IRRF das contratações efetuadas pelo município nas compras de bens e serviços?",
+                        tipo_input="radio",
+                        opcoes=opcoes_11_0,
+                        placeholder_link="Insira o decreto/instrução normativa da retenção de IRRF...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.0 (Radio)
+                    # ==========================================
+                    opcoes_12_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.0",
+                        titulo="Concessão de Benefícios e Incentivos (Renúncia de Receita)",
+                        pergunta="No exercício de 2025, foram concedidos benefícios e incentivos de natureza tributária, financeira e creditícia da qual decorram em renúncia de receitas?",
+                        tipo_input="radio",
+                        opcoes=opcoes_12_0,
+                        placeholder_link="Insira o demonstrativo de incentivos/renúncia de receita...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.1 (Radio)
+                    # ==========================================
+                    opcoes_12_1 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00": 0.0,
+                        "Não – -10": -10.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.1",
+                        titulo="Normas e Procedimentos de Renúncia de Receita",
+                        pergunta="Há normas e procedimentos relativos à renúncia de receita?",
+                        tipo_input="radio",
+                        opcoes=opcoes_12_1,
+                        placeholder_link="Insira a norma com os procedimentos de renúncia...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.1.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.1.1",
+                        titulo="Instrumento Normativo de Renúncia de Receita",
+                        pergunta="Informe o instrumento normativo de regulamentação dos procedimentos relativos à renúncia de receita, Número e Data da publicação: (Caso não esteja disponível na internet, recomendamos anexar o instrumento)",
+                        tipo_input="text",
+                        placeholder_link="Insira o link para a norma de renúncia de receita...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.1.2 (Página Eletrônica com Regra XYZ)
+                    # ==========================================
+                    dados_12_1_2 = res_data.get("12.1.2", {})
+                    val_12_1_2 = str(dados_12_1_2.get("valor", ""))
+                    link_12_1_2 = dados_12_1_2.get("link", "")
+
+                    state_12_1_2 = {
+                        "texto": val_12_1_2,
+                        "link": link_12_1_2,
+                    }
+
+                    def calc_pts_12_1_2():
+                        return -3.0 if state_12_1_2["texto"].strip().upper() == "XYZ" else 0.0
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("12.1.2 • Divulgação da Renúncia de Receita na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) de divulgação do instrumento normativo de regulamentação dos procedimentos relativos à renúncia de receita:").classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            txt_12_1_2 = ui.textarea(
+                                label="Página Eletrônica / Resposta:",
+                                value=state_12_1_2["texto"],
+                                placeholder="Digite a URL ou o texto XYZ..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_12_1_2, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_12_1_2["link"],
+                                placeholder="Insira o link de evidência adicional..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_12_1_2, "link")
+
+                        pts_12_1_2 = calc_pts_12_1_2()
+                        label_impacto_12_1_2 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 12.1.2: {pts_12_1_2:.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def atualizar_impacto_12_1_2(e=None):
+                            pts_att = calc_pts_12_1_2()
+                            label_impacto_12_1_2.set_text(f"📊 Impacto de Pontuação no Quesito 12.1.2: {pts_att:.1f} pontos")
+
+                        txt_12_1_2.on("update:model-value", atualizar_impacto_12_1_2)
+
+                        def salvar_12_1_2():
+                            pts_final = calc_pts_12_1_2()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="12.1.2",
+                                valor=state_12_1_2["texto"],
+                                pontos=pts_final,
+                                link=state_12_1_2["link"],
+                                comentarios=dados_12_1_2.get("comentarios", []),
+                                status=dados_12_1_2.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 12.1.2 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_12_1_2).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("12.1.2", res_data, render_conteudo.refresh)
                   
     render_conteudo()
