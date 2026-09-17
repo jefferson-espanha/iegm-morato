@@ -4133,5 +4133,100 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F13", res_data, render_conteudo.refresh)
 
+    # ==========================================
+                    # QUESITO F14 (Alertas do Sistema AUDESP)
+                    # ==========================================
+                    f14_data = res_data.get("F14", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F14 • Alertas do Sistema AUDESP").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Quantidade total de alertas gerados pelo Sistema AUDESP no exercício:").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Quesito F14", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Até 20 Alertas (<= 20):** Pontuação máxima = **25,0 pontos**
+                            * **Entre 21 e 40 Alertas (20 < Alertas < 41):** Pontuação intermediária = **10,0 pontos**
+                            * **41 Alertas ou mais (>= 41):** Sem pontuação = **0,0 ponto**
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Apuração da Quantidade de Alertas").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f14_bruto = f14_data.get("valor", {})
+                            if not isinstance(val_f14_bruto, dict):
+                                val_f14_bruto = {}
+
+                            state_f14 = {
+                                "qtd_alertas": int(val_f14_bruto.get("qtd_alertas", 0) or 0),
+                                "link": f14_data.get("link", ""),
+                                "pts": float(f14_data.get("pontos", 25.0) or 25.0)
+                            }
+
+                            input_alertas = (
+                                ui.number(
+                                    label="Quantidade de Alertas do AUDESP no Exercício",
+                                    value=state_f14["qtd_alertas"],
+                                    format="%d",
+                                    precision=0
+                                )
+                                .classes("w-full")
+                                .props("outlined bg-white min=0 step=1")
+                            )
+
+                            lbl_pts_f14 = ui.label().classes("text-sm font-bold mt-2")
+
+                            def calcular_f14(_=None):
+                                try:
+                                    qtd = int(input_alertas.value or 0)
+                                except (ValueError, TypeError):
+                                    qtd = 0
+
+                                state_f14["qtd_alertas"] = qtd
+
+                                if qtd <= 20:
+                                    pts = 25.0
+                                    lbl_pts_f14.set_text(f"Alertas apurados: {qtd} | Pontuação: 25.00 pontos (Faixa Ótima)")
+                                    lbl_pts_f14.classes(remove="text-amber-600 text-red-600", add="text-green-600")
+                                elif 20 < qtd < 41:
+                                    pts = 10.0
+                                    lbl_pts_f14.set_text(f"Alertas apurados: {qtd} | Pontuação: 10.00 pontos (Faixa Intermediária)")
+                                    lbl_pts_f14.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                else:
+                                    pts = 0.0
+                                    lbl_pts_f14.set_text(f"Alertas apurados: {qtd} | Pontuação: 0.00 pontos (Faixa Crítica - 41 ou mais alertas)")
+                                    lbl_pts_f14.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+
+                                state_f14["pts"] = pts
+
+                            input_alertas.on("update:model-value", calcular_f14)
+                            calcular_f14()
+
+                        input_link_f14 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f14["link"],
+                            placeholder="Insira o link ou relatório de consolidação de Alertas emitidos pelo Sistema AUDESP..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f14():
+                            if state_f14["qtd_alertas"] < 0:
+                                ui.notify("A quantidade de alertas não pode ser um número negativo!", type="warning")
+                                return
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F14",
+                                valor={"qtd_alertas": state_f14["qtd_alertas"]},
+                                pontos=state_f14["pts"],
+                                link=input_link_f14.value,
+                                comentarios=f14_data.get("comentarios", []),
+                                status=f14_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F14 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f14).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F14", res_data, render_conteudo.refresh)
+
                       
     render_conteudo()
