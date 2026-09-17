@@ -3713,5 +3713,93 @@ def container_formulario_ifiscal(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f9).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F9", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO F10 (Pontualidade na Prestação de Contas)
+                    # ==========================================
+                    f10_data = res_data.get("F10", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F10 • Pontualidade na Prestação de Contas").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Sintese do envio das obrigações no Sistema AUDESP (Atas, Pareceres, Publicações, Balancetes, Precatórios, Conciliações e Questionário IEG-M):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras de Pontualidade", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Encaminhou no prazo:** **50,0 pontos** (Pontuação Máxima)
+                            * **Encaminhou fora do prazo:** **25,0 pontos** (Entrega com Atraso)
+                            * **Não encaminhou:** **0,0 ponto** (Pendência de Envio)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Seleção da Situação de Entrega (AUDESP)").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f10_bruto = f10_data.get("valor", {})
+                            if not isinstance(val_f10_bruto, dict):
+                                val_f10_bruto = {}
+
+                            opcoes_f10 = {
+                                "no_prazo": "Encaminhou no prazo (+50,0 pts)",
+                                "fora_prazo": "Encaminhou fora do prazo (+25,0 pts)",
+                                "nao_encaminhou": "Não encaminhou (0,0 pts)"
+                            }
+
+                            state_f10 = {
+                                "situacao": val_f10_bruto.get("situacao", "no_prazo"),
+                                "link": f10_data.get("link", ""),
+                                "pts": float(f10_data.get("pontos", 50.0))
+                            }
+
+                            select_situacao = ui.select(
+                                options=opcoes_f10,
+                                value=state_f10["situacao"],
+                                label="Situação no Relatório de Situação de Entrega AUDESP"
+                            ).classes("w-full bg-white").props("outlined")
+
+                            lbl_pts_f10 = ui.label().classes("text-sm font-bold mt-2 text-green-600")
+
+                            def atualizar_f10(_=None):
+                                sit = select_situacao.value
+                                state_f10["situacao"] = sit
+
+                                if sit == "no_prazo":
+                                    pts = 50.0
+                                    lbl_pts_f10.set_text("📊 Impacto de Pontuação Calculado: 50.00 pontos (Encaminhamento no prazo)")
+                                    lbl_pts_f10.classes(remove="text-amber-600 text-red-600", add="text-green-600")
+                                elif sit == "fora_prazo":
+                                    pts = 25.0
+                                    lbl_pts_f10.set_text("📊 Impacto de Pontuação Calculado: 25.00 pontos (Encaminhamento com atraso)")
+                                    lbl_pts_f10.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                else:
+                                    pts = 0.0
+                                    lbl_pts_f10.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos (Obrigações não encaminhadas)")
+                                    lbl_pts_f10.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+
+                                state_f10["pts"] = pts
+
+                            select_situacao.on("update:model-value", atualizar_f10)
+                            atualizar_f10()
+
+                        input_link_f10 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f10["link"],
+                            placeholder="Insira o link do Relatório de Situação de Entrega do Sistema AUDESP..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f10():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F10",
+                                valor={"situacao": state_f10["situacao"]},
+                                pontos=state_f10["pts"],
+                                link=input_link_f10.value,
+                                comentarios=f10_data.get("comentarios", []),
+                                status=f10_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F10 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f10).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F10", res_data, render_conteudo.refresh)
                   
     render_conteudo()
