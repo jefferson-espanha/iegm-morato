@@ -3218,5 +3218,103 @@ def container_formulario_ifiscal(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f4).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F4", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO F5 (Despesas com Pessoal – Poder Executivo)
+                    # ==========================================
+                    f5_data = res_data.get("F5", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F5 • Despesas com Pessoal – Poder Executivo").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Índice do comprometimento da receita corrente líquida com despesa de pessoal do Poder Executivo (extraído do item GF27 da AUDESP):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador de Pessoal", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Maior que 0,54 (54% - Limite Máximo LRF):** **Rebaixa 1 faixa do i-Fiscal** (Penalidade máxima / Nota impactada na classificação final)
+                            * **Entre 0,513 e 0,54 (51,3% a 54% - Limite Prudencial LRF):** Penalidade de **-20,0 pontos**
+                            * **Menor que 0,513 (Abaixo de 51,3%):** Sem penalidade (**0,0 ponto**)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática de Despesa com Pessoal").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f5_bruto = f5_data.get("valor", {})
+                            if not isinstance(val_f5_bruto, dict):
+                                val_f5_bruto = {}
+
+                            state_f5 = {
+                                "perc_pessoal": float(val_f5_bruto.get("perc_pessoal", 0.0)),
+                                "link": f5_data.get("link", ""),
+                                "pts": float(f5_data.get("pontos", 0.0)),
+                                "rebaixa": val_f5_bruto.get("rebaixa_faixa", False)
+                            }
+
+                            input_pessoal = (
+                                ui.number(
+                                    label="Índice de Despesa com Pessoal (Ex: 0.52 para 52% ou digite o valor decimal)",
+                                    value=state_f5["perc_pessoal"],
+                                    format="%.4f"
+                                )
+                                .classes("w-full")
+                                .props("outlined bg-white step=0.001")
+                            )
+
+                            lbl_res_pessoal = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_pessoal = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_pessoal(_=None):
+                                val = input_pessoal.value or 0.0
+                                state_f5["perc_pessoal"] = val
+
+                                if val > 0.54:
+                                    pts = 0.0
+                                    state_f5["rebaixa_faixa"] = True
+                                    lbl_res_pessoal.set_text(f"Índice Apurado: {val*100:.2f}% (Acima do Limite Máximo de 54%)")
+                                    lbl_pts_pessoal.set_text("⚠️ ALERTA CRÍTICO: Rebaixa 1 faixa do i-Fiscal!")
+                                    lbl_pts_pessoal.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                elif 0.513 <= val <= 0.54:
+                                    pts = -20.0
+                                    state_f5["rebaixa_faixa"] = False
+                                    lbl_res_pessoal.set_text(f"Índice Apurado: {val*100:.2f}% (Enquadrado no Limite Prudencial - 51,3% a 54%)")
+                                    lbl_pts_pessoal.set_text("📊 Impacto de Pontuação Calculado: -20.00 pontos")
+                                    lbl_pts_pessoal.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                else:
+                                    pts = 0.0
+                                    state_f5["rebaixa_faixa"] = False
+                                    lbl_res_pessoal.set_text(f"Índice Apurado: {val*100:.2f}% (Dentro do limite regular - Menor que 51,3%)")
+                                    lbl_pts_pessoal.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    lbl_pts_pessoal.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+
+                                state_f5["pts"] = pts
+
+                            input_pessoal.on("update:model-value", calcular_pessoal)
+                            calcular_pessoal()
+
+                        input_link_f5 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f5["link"],
+                            placeholder="Insira o link ou relatório GF27 do AUDESP / Relatório de Gestão Fiscal (RGF)..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f5():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F5",
+                                valor={
+                                    "perc_pessoal": state_f5["perc_pessoal"],
+                                    "rebaixa_faixa": state_f5.get("rebaixa_faixa", False)
+                                },
+                                pontos=state_f5["pts"],
+                                link=input_link_f5.value,
+                                comentarios=f5_data.get("comentarios", []),
+                                status=f5_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F5 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f5).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F5", res_data, render_conteudo.refresh)
+                        
                   
     render_conteudo()
