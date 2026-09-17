@@ -60,8 +60,6 @@ def load_respostas(ano):
                 for row in rows:
                     val_bruto = row["valor"] or ""
                     
-                    # Converte JSON em dicionário/lista nativa do Python se necessário
-                    val_final = val_bruto
                     if isinstance(val_bruto, str) and (
                         (val_bruto.startswith("[") and val_bruto.endswith("]")) or 
                         (val_bruto.startswith("{") and val_bruto.endswith("}"))
@@ -70,6 +68,8 @@ def load_respostas(ano):
                             val_final = json.loads(val_bruto)
                         except Exception:
                             val_final = val_bruto
+                    else:
+                        val_final = val_bruto
 
                     respostas[row["qid"]] = {
                         "valor": val_final,
@@ -104,7 +104,6 @@ def save_resposta(
 
     link_final = link.strip() if link else ""
 
-    # Serialização estrita em JSON para Dicionários e Listas
     if isinstance(valor, (list, dict)):
         valor_str = json.dumps(valor, ensure_ascii=False)
     else:
@@ -154,12 +153,10 @@ def zerar_questionario_db(ano):
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
 
 
-# =============================================================================
-# FUNÇÕES AUXILIARES DECLARADAS ANTES DO USO
-# =============================================================================
 def _obter_lista_comentarios(dados_q):
     coms = dados_q.get("comentarios", [])
     return coms if isinstance(coms, list) else []
+
 
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
@@ -181,7 +178,6 @@ def render_quesito(
     dados_q = res_data.get(qid, {})
     link_atual = dados_q.get("link", "")
 
-    # Trata valor inicial conforme o tipo de input
     if tipo_input == "checkbox":
         valor_bruto = dados_q.get("valor", [])
         if isinstance(valor_bruto, list):
@@ -221,7 +217,6 @@ def render_quesito(
         ).classes("text-xs text-gray-400 mb-6")
 
         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-            # Lado Esquerdo: Checkboxes, Radio, Input Numérico ou Texto
             if tipo_input == "checkbox":
                 with ui.column().classes("gap-2 w-full"):
                     chk_states = {}
@@ -245,7 +240,6 @@ def render_quesito(
                         chk_states[opt_key] = chk
 
             elif tipo_input in ["number", "float"]:
-                # Campo numérico
                 input_num = (
                     ui.number(
                         label="Pontuação do Quesito:",
@@ -260,7 +254,6 @@ def render_quesito(
                 )
 
             elif tipo_input == "text":
-                # Campo para textos/respostas dissertativas
                 ui.textarea(
                     label="Resposta / Comentário:",
                     value=state["opcao"],
@@ -279,7 +272,6 @@ def render_quesito(
                     .bind_value(state, "opcao")
                 )
 
-            # Lado Direito: Textarea para o Link
             ui.textarea(
                 label="Link de Evidência / Documento:",
                 value=state["link"],
@@ -288,7 +280,6 @@ def render_quesito(
                 state, "link"
             )
 
-        # Cálculo dinâmico de pontuação
         def calcular_pontos(opcao_sel):
             if tipo_input in ["number", "float"]:
                 try:
@@ -312,13 +303,11 @@ def render_quesito(
                 f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
             )
 
-        # Eventos para atualização em tempo real
         if tipo_input == "radio":
             input_radio.on("update:model-value", atualizar_impacto)
         elif tipo_input in ["number", "float"]:
             input_num.on("update:model-value", atualizar_impacto)
 
-        # Botão Salvar
         def salvar_acao():
             opcao_sel = state["opcao"]
             pts = calcular_pontos(opcao_sel)
