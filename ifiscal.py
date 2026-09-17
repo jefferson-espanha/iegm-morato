@@ -1997,5 +1997,223 @@ def container_formulario_ifiscal(ano=None):
                         )
                         ui.separator().classes("my-2")
                         bloco_comentarios("12.5.2", res_data, render_conteudo.refresh)
+
+    # ==========================================
+                    # QUESITO 13.0 (Radio)
+                    # ==========================================
+                    opcoes_13_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 01": 1.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.0",
+                        titulo="Regulamentação da Dívida Ativa",
+                        pergunta="O município possui regulamentação sobre dívida ativa?",
+                        tipo_input="radio",
+                        opcoes=opcoes_13_0,
+                        placeholder_link="Insira o link ou documento de regulamentação da dívida ativa...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 13.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.1",
+                        titulo="Instrumento Normativo da Dívida Ativa",
+                        pergunta="Instrumento normativo de regulamentação da dívida ativa, Número e Data da publicação: (Caso não esteja disponível na internet, recomendamos anexar o instrumento)",
+                        tipo_input="text",
+                        placeholder_link="Insira o link da norma de regulamentação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 13.2 (Página Eletrônica com Regra XYZ)
+                    # ==========================================
+                    dados_13_2 = res_data.get("13.2", {})
+                    val_13_2 = str(dados_13_2.get("valor", ""))
+                    link_13_2 = dados_13_2.get("link", "")
+
+                    state_13_2 = {
+                        "texto": val_13_2,
+                        "link": link_13_2,
+                    }
+
+                    def calc_pts_13_2():
+                        return -3.0 if state_13_2["texto"].strip().upper() == "XYZ" else 0.0
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("13.2 • Divulgação da Regulamentação da Dívida Ativa na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) de divulgação da regulamentação da dívida ativa:").classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            txt_13_2 = ui.textarea(
+                                label="Página Eletrônica / Resposta:",
+                                value=state_13_2["texto"],
+                                placeholder="Digite a URL ou o texto XYZ..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_13_2, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_13_2["link"],
+                                placeholder="Insira o link de evidência adicional..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_13_2, "link")
+
+                        pts_13_2 = calc_pts_13_2()
+                        label_impacto_13_2 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 13.2: {pts_13_2:.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def atualizar_impacto_13_2(e=None):
+                            pts_att = calc_pts_13_2()
+                            label_impacto_13_2.set_text(f"📊 Impacto de Pontuação no Quesito 13.2: {pts_att:.1f} pontos")
+
+                        txt_13_2.on("update:model-value", atualizar_impacto_13_2)
+
+                        def salvar_13_2():
+                            pts_final = calc_pts_13_2()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="13.2",
+                                valor=state_13_2["texto"],
+                                pontos=pts_final,
+                                link=state_13_2["link"],
+                                comentarios=dados_13_2.get("comentarios", []),
+                                status=dados_13_2.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 13.2 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_13_2).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("13.2", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO 13.3 (Checkbox - Múltipla Escolha com Pontuação)
+                    # ==========================================
+                    opcoes_13_3 = {
+                        "Cobrança administrativa da dívida ativa – 1,5": 1.5,
+                        "Parcelamento da dívida ativa – 1,5": 1.5,
+                        "Restrição e controle da inadimplência nos parcelamentos da dívida ativa – 1,5": 1.5,
+                        "Início do trâmite da execução judicial da dívida ativa – 1,5": 1.5,
+                        "Anistia – 1,5": 1.5,
+                        "Remissão – 1,5": 1.5,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.3",
+                        titulo="Critérios Estabelecidos na Legislação sobre Dívida Ativa",
+                        pergunta="Assinale os critérios estabelecidos na legislação sobre dívida ativa:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_13_3,
+                        placeholder_link="Insira a cópia da lei/decreto onde constam estes critérios...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.0 (Radio)
+                    # ==========================================
+                    opcoes_14_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.0",
+                        titulo="Execução Judicial da Dívida Ativa",
+                        pergunta="O Município possui dívida ativa executada de forma judicial em 2025?",
+                        tipo_input="radio",
+                        opcoes=opcoes_14_0,
+                        placeholder_link="Insira o relatório ou certidão das execuções ajuizadas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.1",
+                        titulo="Valor Total da Dívida Ativa Executada Judicialmente",
+                        pergunta="Informe o valor total da dívida ativa executada de forma judicial no exercício de 2025:",
+                        tipo_input="text",
+                        placeholder_link="Insira o relatório contendo o somatório das execuções fiscais...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 15.0 (Radio)
+                    # ==========================================
+                    opcoes_15_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.0",
+                        titulo="Cobrança Extrajudicial da Dívida Ativa",
+                        pergunta="A prefeitura realiza cobrança de dívida ativa de forma extrajudicial?",
+                        tipo_input="radio",
+                        opcoes=opcoes_15_0,
+                        placeholder_link="Insira o documento comprobatório da cobrança extrajudicial...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 15.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.1",
+                        titulo="Valor Total da Dívida Ativa Cobrada Extrajudicialmente",
+                        pergunta="Informe o valor total da dívida ativa cobrada de forma extrajudicial no exercício de 2025:",
+                        tipo_input="text",
+                        placeholder_link="Insira o demonstrativo financeiro dos valores cobrados extrajudicialmente...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 15.2 (Checkbox - Múltipla Escolha)
+                    # ==========================================
+                    opcoes_15_2 = {
+                        "Protesto Extrajudicial da CDA (Certidão da Dívida Ativa)": 0.0,
+                        "Parcelamento": 0.0,
+                        "Facilitação do Pagamento": 0.0,
+                        "Conciliação extrajudicial": 0.0,
+                        "Inclusão do nome do devedor em Cadastro (Ex. Cadastro Informativo Municipal - CADIN)": 0.0,
+                        "Inclusão do nome do devedor em serviços de proteção ao crédito": 0.0,
+                        "Outros": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.2",
+                        titulo="Modalidades de Cobrança Extrajudicial",
+                        pergunta="Assinale as modalidades de cobrança extrajudicial da dívida ativa:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_15_2,
+                        placeholder_link="Insira os convênios, decretos e comprovantes das modalidades utilizadas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                   
     render_conteudo()
