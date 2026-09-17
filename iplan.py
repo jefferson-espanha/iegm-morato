@@ -1246,4 +1246,27 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+                    # ==========================================
+                    # QUESITO 9.2 (Gerenciamento de Riscos Fiscais - Checkbox)
+                    # ==========================================
+                    opcoes_92 = {
+                        "Identificação do tipo de risco e da exposição ao risco – 0,5 pt": 0.5,
+                        "Mensuração ou quantificação dessa exposição – 0,5 pt": 0.5,
+                        "Estimativa do grau de tolerância das contas públicas ao comportamento frente ao risco – 0,5 pt": 0.5,
+                        "Decisão estratégica sobre as opções para enfrentar o risco – 0,5 pt": 0.5,
+                        "Implementação de condutas de mitigação do risco e de mecanismos de controle para prevenir perdas decorrentes do risco – 0,5 pt": 0.5,
+                        "Monitoramento contínuo da exposição ao longo do tempo, preferencialmente através de sistemas institucionalizados (Controle Interno) – 01 pt": 1.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.2",
+                        titulo="Etapas para Gerenciamento dos Riscos Fiscais",
+                        pergunta="Assinale as etapas para gerenciamento dos riscos contidas no Anexo de Riscos Fiscais:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_92,
+                        placeholder_link="Insira o link das etapas de gerenciamento de riscos...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
