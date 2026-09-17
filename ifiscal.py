@@ -2785,7 +2785,7 @@ def container_formulario_ifiscal(ano=None):
                     )
 
                     # ==========================================
-                    # INDICADOR DE EXECUÇÃO ORÇAMENTÁRIA (Análise da Receita - Q)
+                    # F1. INDICADOR DE EXECUÇÃO ORÇAMENTÁRIA (Análise da Receita - Q)
                     # ==========================================
                     ind_rec_data = res_data.get("IND_REC", {})
 
