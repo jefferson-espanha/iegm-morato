@@ -24,7 +24,6 @@ def init_db():
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                # Criar tabela caso não exista
                 cur.execute("""
                     CREATE TABLE IF NOT EXISTS respostas_ifiscal (
                         qid VARCHAR(50) NOT NULL,
@@ -61,15 +60,16 @@ def load_respostas(ano):
                 for row in rows:
                     val_bruto = row["valor"] or ""
                     
-                    # Converte JSON em objeto Python se for lista ou dicionário
-                    if (val_bruto.startswith("[") and val_bruto.endswith("]")) or \
-                       (val_bruto.startswith("{") and val_bruto.endswith("}")):
+                    # Converte JSON em dicionário/lista nativa do Python se necessário
+                    val_final = val_bruto
+                    if isinstance(val_bruto, str) and (
+                        (val_bruto.startswith("[") and val_bruto.endswith("]")) or 
+                        (val_bruto.startswith("{") and val_bruto.endswith("}"))
+                    ):
                         try:
                             val_final = json.loads(val_bruto)
                         except Exception:
                             val_final = val_bruto
-                    else:
-                        val_final = val_bruto
 
                     respostas[row["qid"]] = {
                         "valor": val_final,
@@ -104,7 +104,7 @@ def save_resposta(
 
     link_final = link.strip() if link else ""
 
-    # Trata dicionários e listas convertendo para JSON string limpo
+    # Serialização estrita em JSON para Dicionários e Listas
     if isinstance(valor, (list, dict)):
         valor_str = json.dumps(valor, ensure_ascii=False)
     else:
@@ -138,26 +138,9 @@ def save_resposta(
                     ),
                 )
                 conn.commit()
-                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso na tabela respostas_ifiscal!")
+                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso no banco!")
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta na tabela respostas_ifiscal: {e}")
-
-
-def zerar_questionario_db(ano):
-    query = "DELETE FROM respostas_ifiscal WHERE ano = %s;"
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
-                conn.commit()
-    except Exception as e:
-        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
-
-
-def _obter_lista_comentarios(dados_q):
-    coms = dados_q.get("comentarios", [])
-    return coms if isinstance(coms, list) else []
-
+        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
 
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
