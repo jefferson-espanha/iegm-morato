@@ -2682,5 +2682,106 @@ def container_formulario_ifiscal(ano=None):
                         placeholder_link="Insira os comprovantes de pagamento das guias/GPS do RGPS de 2025...",
                         on_save_callback=render_conteudo.refresh,
                     )
+
+    # ==========================================
+                    # QUESITO 24.0 (Radio)
+                    # ==========================================
+                    opcoes_24_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="24.0",
+                        titulo="Adesão a Parcelamento do RGPS",
+                        pergunta="A Prefeitura aderiu a algum parcelamento de encargos sociais (Regime Geral de Previdência Social - RGPS)?",
+                        tipo_input="radio",
+                        opcoes=opcoes_24_0,
+                        placeholder_link="Insira o termo de adesão ao parcelamento ou certidão da RFB...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 24.1 (Radio)
+                    # ==========================================
+                    opcoes_24_1 = {
+                        "Selecione...": 0.0,
+                        "Todas as parcelas foram recolhidas dentro do prazo legal – 00": 0.0,
+                        "A maior parte das parcelas recolhidas até 30 dias após o vencimento – -04": -4.0,
+                        "A maior parte das parcelas recolhidas de 31 a 90 dias do vencimento – -15": -15.0,
+                        "A maior parte das parcelas recolhidas acima de 90 dias do vencimento – -21": -21.0,
+                        "As parcelas não foram recolhidas – -30": -30.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="24.1",
+                        titulo="Prazo de Pagamento das Parcelas do RGPS",
+                        pergunta="As parcelas referentes ao parcelamento para o Regime Geral de Previdência Social (RGPS) com vencimento em 2025 foram realizados em qual prazo?",
+                        tipo_input="radio",
+                        opcoes=opcoes_24_1,
+                        placeholder_link="Insira os comprovantes de pagamento das parcelas de 2025...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 25.0 (Radio)
+                    # ==========================================
+                    opcoes_25_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="25.0",
+                        titulo="Compensação de Encargos Sociais junto à RFB",
+                        pergunta="O Município efetuou, no exercício de 2025, compensação de encargos sociais junto à Receita Federal do Brasil?",
+                        tipo_input="radio",
+                        opcoes=opcoes_25_0,
+                        placeholder_link="Insira o relatório de PER/DCOMP ou GFIP/eSocial referente às compensações...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 25.1 (Radio)
+                    # ==========================================
+                    opcoes_25_1 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00": 0.0,
+                        "Não – -25": -25.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="25.1",
+                        titulo="Autorização ou Decisão Judicial para Compensação",
+                        pergunta="Houve autorização formal administrativa da Receita Federal do Brasil (RFB) ou decisão judicial para realizar as compensações?",
+                        tipo_input="radio",
+                        opcoes=opcoes_25_1,
+                        placeholder_link="Insira a cópia do despacho administrativo da RFB ou decisão judicial com trânsito em julgado/liminar...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 26.0 (Texto Dissertativo / Feedback)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="26.0",
+                        titulo="Impressões, Comentários e Sugestões",
+                        pergunta="Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário? Utilize o espaço abaixo para registrar suas observações.",
+                        tipo_input="text",
+                        placeholder_link="Insira anexos ou documentos complementares, se houver...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                   
     render_conteudo()
