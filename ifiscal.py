@@ -3413,6 +3413,107 @@ def container_formulario_ifiscal(ano=None):
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f6).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
-                        bloco_comentarios("F6", res_data, render_conteudo.refresh)                        
+                        bloco_comentarios("F6", res_data, render_conteudo.refresh)  
+
+                    # ==========================================
+                    # QUESITO F7 (Apuração do Resultado Financeiro – Resultado Consolidado)
+                    # ==========================================
+                    f7_data = res_data.get("F7", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F7 • Apuração do Resultado Financeiro (Superávit/Déficit) – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Divisão entre o Ativo Financeiro (AC) e o Passivo Financeiro (AD), extraído do Balanço Patrimonial AUDESP (AE = AC / AD):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AE", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **AE >= 1,30 (Superávit Elevado):** Pontuação = **0,0 ponto** *(Economia excessiva que pode comprometer a qualidade dos serviços públicos)*
+                            * **1,10 < AE < 1,30 (Superávit Moderado):** Graduação entre 75 e 0 `((AE - 1,30) * (-1) / 0,20) * 75`
+                            * **1,00 <= AE <= 1,10 (Equilíbrio Ideal):** Pontuação máxima = **75,0 pontos**
+                            * **0,75 < AE < 1,00 (Déficit Moderado):** Graduação entre 0 e 75 `((AE - 0,75) / 0,25) * 75`
+                            * **AE <= 0,75 (Déficit Elevado):** Pontuação = **0,0 ponto**
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador AE").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f7_bruto = f7_data.get("valor", {})
+                            if not isinstance(val_f7_bruto, dict):
+                                val_f7_bruto = {}
+
+                            state_f7 = {
+                                "val_ac": float(val_f7_bruto.get("AC", 0.0)),
+                                "val_ad": float(val_f7_bruto.get("AD", 0.0)),
+                                "link": f7_data.get("link", ""),
+                                "pts": float(f7_data.get("pontos", 0.0))
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_ac = (
+                                    ui.number(label="Ativo Financeiro (AC)", value=state_f7["val_ac"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_ad = (
+                                    ui.number(label="Passivo Financeiro (AD)", value=state_f7["val_ad"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_ae = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_ae = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+
+                            def calcular_ae(_=None):
+                                ac = input_ac.value or 0.0
+                                ad = input_ad.value or 0.0
+                                state_f7["val_ac"] = ac
+                                state_f7["val_ad"] = ad
+
+                                if ad > 0:
+                                    ae = ac / ad
+                                    if ae >= 1.30:
+                                        pts = 0.0
+                                    elif 1.10 < ae < 1.30:
+                                        pts = ((ae - 1.30) * (-1.0) / 0.20) * 75.0
+                                    elif 1.00 <= ae <= 1.10:
+                                        pts = 75.0
+                                    elif 0.75 < ae < 1.00:
+                                        pts = ((ae - 0.75) / 0.25) * 75.0
+                                    else:
+                                        pts = 0.0
+                                    
+                                    state_f7["pts"] = pts
+                                    lbl_ae.set_text(f"Resultado AE (AC / AD): {ae:.4f}")
+                                    lbl_pts_ae.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_ae.set_text("Resultado AE: Indefinido (O Passivo Financeiro 'AD' deve ser maior que R$ 0,00)")
+                                    lbl_pts_ae.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    state_f7["pts"] = 0.0
+
+                            input_ac.on("update:model-value", calcular_ae)
+                            input_ad.on("update:model-value", calcular_ae)
+                            calcular_ae()
+
+                        input_link_f7 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f7["link"],
+                            placeholder="Insira o link ou relatório do Balanço Patrimonial AUDESP referente ao Ativo e Passivo Financeiro..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f7():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F7",
+                                valor={"AC": state_f7["val_ac"], "AD": state_f7["val_ad"]},
+                                pontos=state_f7["pts"],
+                                link=input_link_f7.value,
+                                comentarios=f7_data.get("comentarios", []),
+                                status=f7_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F7 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f7).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F7", res_data, render_conteudo.refresh)
                   
     render_conteudo()
