@@ -3734,5 +3734,99 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F9", res_data, render_conteudo.refresh)
 
+                    # ==========================================
+                    # QUESITO F10 (Repasse de Duodécimos às Câmaras)
+                    # ==========================================
+                    f10_data = res_data.get("F10", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F10 • Repasse de Duodécimos às Câmaras").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Verificação do limite percentual de repasse à Câmara de Vereadores (Transferências à Câmara / Receita Base):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Repasse de Duodécimos", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Maior que 6,00% (Acima do Limite Constitucional):** **REBAIXA IEG-M PARA A FAIXA C** (Penalidade máxima de rebaixamento de faixa)
+                            * **Menor ou igual a 6,00% (Dentro do Limite):** Conforme a regra (**0,0 ponto** / Sem penalidade)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Repasse de Duodécimo").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f10_bruto = f10_data.get("valor", {})
+                            if not isinstance(val_f10_bruto, dict):
+                                val_f10_bruto = {}
+
+                            state_f10 = {
+                                "perc_duodecimo": float(val_f10_bruto.get("perc_duodecimo", 0.0) or 0.0),
+                                "link": f10_data.get("link", ""),
+                                "pts": float(f10_data.get("pontos", 0.0) or 0.0),
+                                "rebaixa_c": val_f10_bruto.get("rebaixa_faixa_c", False)
+                            }
+
+                            input_duodecimo = (
+                                ui.number(
+                                    label="Percentual de Repasse Apurado (Ex: 0.058 para 5,8% ou digite o valor decimal)",
+                                    value=state_f10["perc_duodecimo"],
+                                    format="%.4f"
+                                )
+                                .classes("w-full")
+                                .props("outlined bg-white step=0.001")
+                            )
+
+                            lbl_res_duodecimo = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_duodecimo = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_duodecimo(_=None):
+                                try:
+                                    val = float(input_duodecimo.value or 0.0)
+                                except (ValueError, TypeError):
+                                    val = 0.0
+
+                                state_f10["perc_duodecimo"] = val
+
+                                if val > 0.06:
+                                    pts = 0.0
+                                    state_f10["rebaixa_faixa_c"] = True
+                                    lbl_res_duodecimo.set_text(f"Percentual Repassado: {val*100:.2f}% (Acima do limite de 6,00%)")
+                                    lbl_pts_duodecimo.set_text("⚠️ ALERTA CRÍTICO: Rebaixa o IEG-M diretamente para a FAIXA C!")
+                                    lbl_pts_duodecimo.classes(remove="text-green-600", add="text-red-600")
+                                else:
+                                    pts = 0.0
+                                    state_f10["rebaixa_faixa_c"] = False
+                                    lbl_res_duodecimo.set_text(f"Percentual Repassado: {val*100:.2f}% (Dentro do limite regular - Até 6,00%)")
+                                    lbl_pts_duodecimo.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos (Sem penalidade)")
+                                    lbl_pts_duodecimo.classes(remove="text-red-600", add="text-green-600")
+
+                                state_f10["pts"] = pts
+
+                            input_duodecimo.on("update:model-value", calcular_duodecimo)
+                            calcular_duodecimo()
+
+                        input_link_f10 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f10["link"],
+                            placeholder="Insira o link da demonstração contábil do repasse de duodécimo / relatório de contas do AUDESP..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f10():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F10",
+                                valor={
+                                    "perc_duodecimo": state_f10["perc_duodecimo"],
+                                    "rebaixa_faixa_c": state_f10.get("rebaixa_faixa_c", False)
+                                },
+                                pontos=state_f10["pts"],
+                                link=input_link_f10.value,
+                                comentarios=f10_data.get("comentarios", []),
+                                status=f10_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F10 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f10).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F10", res_data, render_conteudo.refresh)
+
                   
     render_conteudo()
