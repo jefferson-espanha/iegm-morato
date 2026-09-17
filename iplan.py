@@ -2325,9 +2325,9 @@ def container_formulario_plan(ano=None):
                         titulo="Coerência entre os Resultados dos Indicadores dos Programas e das Metas das Ações",
                         pergunta="Informe a pontuação calculada com base na média dos resultados dos indicadores comparada à média das ações do programa, conforme o Relatório de Atividades:",
                         tipo_input="number",
-                        step=0.01,
+                        opcoes={},  # Dicionário vazio para satisfazer o parâmetro obrigatório
                         placeholder_link="Insira o link ou anexo da memória de cálculo e do Relatório de Atividades...",
                         on_save_callback=render_conteudo.refresh,
                     )
-
+                    
     render_conteudo()
