@@ -1269,4 +1269,51 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+                    # ==========================================
+                    # QUESITO 10.0 (Compatibilidade LOA, PPA e LDO - Checkbox)
+                    # ==========================================
+                    opcoes_100 = {
+                        "Programas constantes do PPA constam na LOA – 01 pt": 1.0,
+                        "Programas e ações constantes da LDO constam da LOA – 02 pts": 2.0,
+                        "As receitas e despesas da LOA são compatíveis com o Resultado Primário da LDO, incluindo, no máximo, a variação da inflação do interregno temporal dos referidos projetos de lei – 02 pts": 2.0,
+                        "O Resultado Nominal constante da LDO consta da LOA, com variação de no máximo a variação da inflação do interregno temporal dos referidos projetos de lei – 02 pts": 2.0,
+                        "A estimativa de renúncia fiscal prevista na LDO coincide com o estimado na LOA com variação limitada à variação da inflação – 02 pts": 2.0,
+                        "A estimativa de receita e respectivos critérios presentes na LOA são compatíveis com os previstos na LDO em relação à receita de IPTU – 02 pts": 2.0,
+                        "A estimativa de receita e respectivos critérios presentes na LOA são compatíveis com os previstos na LDO em relação à receita de ISSQN – 02 pts": 2.0,
+                        "A estimativa de receita e respectivos critérios presentes na LOA são compatíveis com os previstos na LDO em relação à receita de ITBI – 02 pts": 2.0,
+                        "Os investimentos, parte das despesas de capital, previstas na LOA e LDO são compatíveis com as previsões do PPA – 02 pts": 2.0,
+                        "A LDO e a LOA não são compatíveis com o PPA – -10 pts": -10.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="10.0",
+                        titulo="Compatibilidade entre LOA, PPA e LDO",
+                        pergunta="Assinale os itens capazes de atestar a compatibilidade entre a LOA, PPA e LDO:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_100,
+                        placeholder_link="Insira o link demonstrando a compatibilidade entre LOA, PPA e LDO...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 11.0 (Previsão na LOA - Radio)
+                    # ==========================================
+                    opcoes_110 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.0",
+                        titulo="Previsão na Lei Orçamentária Anual (LOA)",
+                        pergunta="Na Lei Orçamentária Anual (LOA), há previsão para:",
+                        tipo_input="radio",
+                        opcoes=opcoes_110,
+                        placeholder_link="Insira o link do trecho correspondente na LOA...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
