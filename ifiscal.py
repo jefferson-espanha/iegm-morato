@@ -1809,5 +1809,193 @@ def container_formulario_ifiscal(ano=None):
                         )
                         ui.separator().classes("my-2")
                         bloco_comentarios("12.1.2", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO 12.2 (Radio)
+                    # ==========================================
+                    opcoes_12_2 = {
+                        "Selecione...": 0.0,
+                        "Sim, de todas as renúncias de receita – 00": 0.0,
+                        "Sim, de parte das renúncias de receita – -02": -2.0,
+                        "Não – -05": -5.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.2",
+                        titulo="Acompanhamento e Reavaliação das Renúncias de Receita",
+                        pergunta="A Prefeitura Municipal realizou acompanhamento e (re)avaliação das renúncias de receita?",
+                        tipo_input="radio",
+                        opcoes=opcoes_12_2,
+                        placeholder_link="Insira os relatórios de acompanhamento e reavaliação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.3 (Radio)
+                    # ==========================================
+                    opcoes_12_3 = {
+                        "Selecione...": 0.0,
+                        "Todas as renúncias concedidas estão contidas no demonstrativo – 00": 0.0,
+                        "A maior parte das renúncias concedidas estão contidas no demonstrativo – -01": -1.0,
+                        "A menor parte das renúncias concedidas estão contidas no demonstrativo – -03": -3.0,
+                        "Não há demonstrativo – -05": -5.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.3",
+                        titulo="Anexo de Metas Fiscais (LDO) - Renúncia de Receita",
+                        pergunta="O Anexo de Metas Fiscais, que integra a LDO, contém demonstrativo da estimativa e compensação da renúncia de receita para o respectivo exercício orçamentário?",
+                        tipo_input="radio",
+                        opcoes=opcoes_12_3,
+                        placeholder_link="Insira a cópia do Anexo de Metas Fiscais da LDO...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.3.1 (Radio)
+                    # ==========================================
+                    opcoes_12_3_1 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00": 0.0,
+                        "Não – -05": -5.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.3.1",
+                        titulo="Compatibilidade da Renúncia de Receita com a LDO",
+                        pergunta="O valor da renúncia de receita de 2025 está compatível com a estimativa constante no Anexo de Metas Fiscais da Lei de Diretrizes Orçamentárias?",
+                        tipo_input="radio",
+                        opcoes=opcoes_12_3_1,
+                        placeholder_link="Insira o demonstrativo de compatibilidade dos valores...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.4 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.4",
+                        titulo="Valor das Renúncias de Receita",
+                        pergunta="Informe o valor das renúncias no exercício de 2025:",
+                        tipo_input="text",
+                        placeholder_link="Insira a memória de cálculo do valor total da renúncia...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.5 (Radio)
+                    # ==========================================
+                    opcoes_12_5 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00": 0.0,
+                        "Não – -10": -10.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.5",
+                        titulo="Transparência dos Benefícios da Renúncia de Receita",
+                        pergunta="Houve publicidade e transparência dos benefícios concedidos por Renúncia de Receitas em 2025?",
+                        tipo_input="radio",
+                        opcoes=opcoes_12_5,
+                        placeholder_link="Insira o link das publicações no Portal da Transparência...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.5.1 (Checkbox - Múltipla Escolha)
+                    # ==========================================
+                    opcoes_12_5_1 = {
+                        "Valor dos benefícios concedidos": 0.0,
+                        "Público beneficiado": 0.0,
+                        "Métodos utilizados na sua mensuração": 0.0,
+                        "Resultados socioeconômicos alcançados com a renúncia": 0.0,
+                        "Outros": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.5.1",
+                        titulo="Informações Divulgadas sobre a Renúncia de Receitas",
+                        pergunta="Assinale as informações divulgadas referente aos benefícios concedidos por Renúncia de Receitas em 2025:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_12_5_1,
+                        placeholder_link="Insira o documento ou link onde constam essas informações...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.5.2 (Página Eletrônica com Regra XYZ)
+                    # ==========================================
+                    dados_12_5_2 = res_data.get("12.5.2", {})
+                    val_12_5_2 = str(dados_12_5_2.get("valor", ""))
+                    link_12_5_2 = dados_12_5_2.get("link", "")
+
+                    state_12_5_2 = {
+                        "texto": val_12_5_2,
+                        "link": link_12_5_2,
+                    }
+
+                    def calc_pts_12_5_2():
+                        return -10.0 if state_12_5_2["texto"].strip().upper() == "XYZ" else 0.0
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("12.5.2 • Divulgação dos Benefícios da Renúncia na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) de divulgação das informações referente aos benefícios concedidos por Renúncia de Receitas em 2025:").classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -10,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            txt_12_5_2 = ui.textarea(
+                                label="Página Eletrônica / Resposta:",
+                                value=state_12_5_2["texto"],
+                                placeholder="Digite a URL ou o texto XYZ..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_12_5_2, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_12_5_2["link"],
+                                placeholder="Insira o link de evidência adicional..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_12_5_2, "link")
+
+                        pts_12_5_2 = calc_pts_12_5_2()
+                        label_impacto_12_5_2 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 12.5.2: {pts_12_5_2:.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def atualizar_impacto_12_5_2(e=None):
+                            pts_att = calc_pts_12_5_2()
+                            label_impacto_12_5_2.set_text(f"📊 Impacto de Pontuação no Quesito 12.5.2: {pts_att:.1f} pontos")
+
+                        txt_12_5_2.on("update:model-value", atualizar_impacto_12_5_2)
+
+                        def salvar_12_5_2():
+                            pts_final = calc_pts_12_5_2()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="12.5.2",
+                                valor=state_12_5_2["texto"],
+                                pontos=pts_final,
+                                link=state_12_5_2["link"],
+                                comentarios=dados_12_5_2.get("comentarios", []),
+                                status=dados_12_5_2.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 12.5.2 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_12_5_2).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("12.5.2", res_data, render_conteudo.refresh)
                   
     render_conteudo()
