@@ -4228,5 +4228,100 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F14", res_data, render_conteudo.refresh)
 
+                    # ==========================================
+                    # QUESITO F15 (Balancetes Rejeitados)
+                    # ==========================================
+                    f15_data = res_data.get("F15", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F15 • Balancetes Rejeitados").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Quantidade média de balancetes rejeitados pelo município no exercício:").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Quesito F15", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Até 1 Balancete Rejeitado (<= 1):** Pontuação máxima = **25,0 pontos**
+                            * **Mais de 1 e menos de 18 (1 < Rejeitados < 18):** Pontuação intermediária = **10,0 pontos**
+                            * **18 Balancetes Rejeitados ou mais (>= 18):** Sem pontuação = **0,0 ponto**
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Apuração da Quantidade Média de Balancetes Rejeitados").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f15_bruto = f15_data.get("valor", {})
+                            if not isinstance(val_f15_bruto, dict):
+                                val_f15_bruto = {}
+
+                            state_f15 = {
+                                "qtd_rejeitados": float(val_f15_bruto.get("qtd_rejeitados", 0.0) or 0.0),
+                                "link": f15_data.get("link", ""),
+                                "pts": float(f15_data.get("pontos", 25.0) or 25.0)
+                            }
+
+                            input_rejeitados = (
+                                ui.number(
+                                    label="Quantidade Média de Balancetes Rejeitados no Exercício",
+                                    value=state_f15["qtd_rejeitados"],
+                                    format="%.2f",
+                                    precision=2
+                                )
+                                .classes("w-full")
+                                .props("outlined bg-white min=0 step=0.1")
+                            )
+
+                            lbl_pts_f15 = ui.label().classes("text-sm font-bold mt-2")
+
+                            def calcular_f15(_=None):
+                                try:
+                                    qtd = float(input_rejeitados.value or 0.0)
+                                except (ValueError, TypeError):
+                                    qtd = 0.0
+
+                                state_f15["qtd_rejeitados"] = qtd
+
+                                if qtd <= 1.0:
+                                    pts = 25.0
+                                    lbl_pts_f15.set_text(f"Balancetes rejeitados: {qtd:.2f} | Pontuação: 25.00 pontos (Faixa Ótima)")
+                                    lbl_pts_f15.classes(remove="text-amber-600 text-red-600", add="text-green-600")
+                                elif 1.0 < qtd < 18.0:
+                                    pts = 10.0
+                                    lbl_pts_f15.set_text(f"Balancetes rejeitados: {qtd:.2f} | Pontuação: 10.00 pontos (Faixa Intermediária)")
+                                    lbl_pts_f15.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                else:
+                                    pts = 0.0
+                                    lbl_pts_f15.set_text(f"Balancetes rejeitados: {qtd:.2f} | Pontuação: 0.00 pontos (Faixa Crítica - 18 ou mais)")
+                                    lbl_pts_f15.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+
+                                state_f15["pts"] = pts
+
+                            input_rejeitados.on("update:model-value", calcular_f15)
+                            calcular_f15()
+
+                        input_link_f15 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f15["link"],
+                            placeholder="Insira o link ou relatório de acompanhamento de balancetes do AUDESP..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f15():
+                            if state_f15["qtd_rejeitados"] < 0:
+                                ui.notify("A quantidade de balancetes rejeitados não pode ser negativa!", type="warning")
+                                return
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F15",
+                                valor={"qtd_rejeitados": state_f15["qtd_rejeitados"]},
+                                pontos=state_f15["pts"],
+                                link=input_link_f15.value,
+                                comentarios=f15_data.get("comentarios", []),
+                                status=f15_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F15 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f15).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F15", res_data, render_conteudo.refresh)
+
                       
     render_conteudo()
