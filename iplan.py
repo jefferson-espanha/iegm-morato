@@ -1316,4 +1316,107 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 11.1 (Percentual de Crédito Adicional Suplementar na LOA - Radio)
+                    # ==========================================
+                    # Nota: Se % alteração <= inflação ganha -6 pts (perde 6), se > inflação ganha 0 pts.
+                    opcoes_111 = {
+                        "Selecione...": 0.0,
+                        "Percentual <= Inflação – -06 pts": -6.0,
+                        "Percentual > Inflação – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.1",
+                        titulo="Percentual Autorizado para Crédito Adicional Suplementar",
+                        pergunta="Qual o percentual autorizado na Lei Orçamentária Anual (LOA) para abertura de crédito adicional suplementar?",
+                        tipo_input="radio",
+                        opcoes=opcoes_111,
+                        placeholder_link="Insira o link ou informe o percentual autorizado na LOA...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.0 (Estrutura Administrativa de Planejamento - Radio)
+                    # ==========================================
+                    opcoes_120 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.0",
+                        titulo="Estrutura Administrativa para Planejamento",
+                        pergunta="Há estrutura administrativa voltada para planejamento?",
+                        tipo_input="radio",
+                        opcoes=opcoes_120,
+                        placeholder_link="Insira o link da lei de estrutura administrativa...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.1 (Recursos Humanos para Planejamento - Radio)
+                    # ==========================================
+                    opcoes_121 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.1",
+                        titulo="Recursos Humanos para Planejamento",
+                        pergunta="A prefeitura dispõe de recursos humanos para operacionalização das atividades de planejamento?",
+                        tipo_input="radio",
+                        opcoes=opcoes_121,
+                        placeholder_link="Insira o link com comprovação do quadro de pessoal...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.1.1 (Qualificação Técnica da Equipe - Radio)
+                    # ==========================================
+                    opcoes_1211 = {
+                        "Selecione...": 0.0,
+                        "Sim, todos os servidores possuem qualificação técnica – 00 pts": 0.0,
+                        "Sim, a maior parte dos servidores possuem qualificação técnica – -05 pts": -5.0,
+                        "Sim, a menor parte dos servidores possuem qualificação técnica – -08 pts": -8.0,
+                        "Não – -10 pts": -10.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.1.1",
+                        titulo="Qualificação Técnica da Equipe de Planejamento",
+                        pergunta="Os servidores da equipe de planejamento possuem qualificação técnica para o exercício das atividades de planejamento, gestão e orçamento?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1211,
+                        placeholder_link="Insira o link dos currículos ou comprovantes de qualificação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 12.1.2 (Treinamento Específico da Equipe - Radio)
+                    # ==========================================
+                    opcoes_1212 = {
+                        "Selecione...": 0.0,
+                        "Sim (Treinamento periódico pelo menos 1 vez ao ano) – 00 pts": 0.0,
+                        "Não – -10 pts": -10.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.1.2",
+                        titulo="Treinamento Específico em Planejamento",
+                        pergunta="Os servidores responsáveis pelo planejamento recebem treinamento específico para a matéria (Treinamento periódico pelo menos 1 vez ao ano)?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1212,
+                        placeholder_link="Insira o link dos certificados/comprovantes de treinamento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
