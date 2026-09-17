@@ -2404,7 +2404,7 @@ def container_formulario_ifiscal(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO 19.1 (Checkbox - Múltipla Escolha com Pontuação)
                     # ==========================================
                     opcoes_19_1 = {
@@ -2486,6 +2486,200 @@ def container_formulario_ifiscal(ano=None):
                         tipo_input="checkbox",
                         opcoes=opcoes_20_1,
                         placeholder_link="Insira o link da página do Portal da Transparência onde constam os detalhes das despesas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+    # ==========================================
+                    # QUESITO 21.0 (Radio)
+                    # ==========================================
+                    opcoes_21_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 03": 3.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="21.0",
+                        titulo="Divulgação da Remuneração Individualizada",
+                        pergunta="Houve divulgação de remuneração individualizada por nome do agente público, contendo dados sobre os vencimentos, descontos, indenizações e valor líquido?",
+                        tipo_input="radio",
+                        opcoes=opcoes_21_0,
+                        placeholder_link="Insira o link da folha de pagamento no Portal da Transparência...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 21.1 (Página Eletrônica com Regra XYZ)
+                    # ==========================================
+                    dados_21_1 = res_data.get("21.1", {})
+                    val_21_1 = str(dados_21_1.get("valor", ""))
+                    link_21_1 = dados_21_1.get("link", "")
+
+                    state_21_1 = {
+                        "texto": val_21_1,
+                        "link": link_21_1,
+                    }
+
+                    def calc_pts_21_1():
+                        return -3.0 if state_21_1["texto"].strip().upper() == "XYZ" else 0.0
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("21.1 • Divulgação da Remuneração na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) de divulgação da remuneração individualizada por nome do agente público:").classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            txt_21_1 = ui.textarea(
+                                label="Página Eletrônica / Resposta:",
+                                value=state_21_1["texto"],
+                                placeholder="Digite a URL ou o texto XYZ..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_21_1, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_21_1["link"],
+                                placeholder="Insira o link de evidência adicional..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_21_1, "link")
+
+                        pts_21_1 = calc_pts_21_1()
+                        label_impacto_21_1 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 21.1: {pts_21_1:.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def atualizar_impacto_21_1(e=None):
+                            pts_att = calc_pts_21_1()
+                            label_impacto_21_1.set_text(f"📊 Impacto de Pontuação no Quesito 21.1: {pts_att:.1f} pontos")
+
+                        txt_21_1.on("update:model-value", atualizar_impacto_21_1)
+
+                        def salvar_21_1():
+                            pts_final = calc_pts_21_1()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="21.1",
+                                valor=state_21_1["texto"],
+                                pontos=pts_final,
+                                link=state_21_1["link"],
+                                comentarios=dados_21_1.get("comentarios", []),
+                                status=dados_21_1.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 21.1 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_21_1).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("21.1", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO 22.0 (Radio)
+                    # ==========================================
+                    opcoes_22_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 03": 3.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="22.0",
+                        titulo="Divulgação de Diárias e Passagens",
+                        pergunta="Houve divulgação de diárias e passagens por nome de favorecido e constando data, destino, cargo e motivo de viagem?",
+                        tipo_input="radio",
+                        opcoes=opcoes_22_0,
+                        placeholder_link="Insira o link da consulta de diárias e passagens no Portal da Transparência...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 22.1 (Página Eletrônica com Regra XYZ)
+                    # ==========================================
+                    dados_22_1 = res_data.get("22.1", {})
+                    val_22_1 = str(dados_22_1.get("valor", ""))
+                    link_22_1 = dados_22_1.get("link", "")
+
+                    state_22_1 = {
+                        "texto": val_22_1,
+                        "link": link_22_1,
+                    }
+
+                    def calc_pts_22_1():
+                        return -3.0 if state_22_1["texto"].strip().upper() == "XYZ" else 0.0
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("22.1 • Divulgação de Diárias e Passagens na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) de divulgação de diárias e passagens:").classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            txt_22_1 = ui.textarea(
+                                label="Página Eletrônica / Resposta:",
+                                value=state_22_1["texto"],
+                                placeholder="Digite a URL ou o texto XYZ..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_22_1, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_22_1["link"],
+                                placeholder="Insira o link de evidência adicional..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_22_1, "link")
+
+                        pts_22_1 = calc_pts_22_1()
+                        label_impacto_22_1 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 22.1: {pts_22_1:.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def atualizar_impacto_22_1(e=None):
+                            pts_att = calc_pts_22_1()
+                            label_impacto_22_1.set_text(f"📊 Impacto de Pontuação no Quesito 22.1: {pts_att:.1f} pontos")
+
+                        txt_22_1.on("update:model-value", atualizar_impacto_22_1)
+
+                        def salvar_22_1():
+                            pts_final = calc_pts_22_1()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="22.1",
+                                valor=state_22_1["texto"],
+                                pontos=pts_final,
+                                link=state_22_1["link"],
+                                comentarios=dados_22_1.get("comentarios", []),
+                                status=dados_22_1.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 22.1 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_22_1).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("22.1", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO 23.0 (Radio)
+                    # ==========================================
+                    opcoes_23_0 = {
+                        "Selecione...": 0.0,
+                        "Todos os repasses foram dentro do prazo legal – 00": 0.0,
+                        "A maior parte dos repasses recolhidos até 30 dias após o vencimento – -04": -4.0,
+                        "A maior parte dos repasses recolhidos de 31 a 90 dias do vencimento – -15": -15.0,
+                        "A maior parte dos repasses recolhidos acima de 90 dias do vencimento – -21": -21.0,
+                        "Os repasses não foram realizados – -30": -30.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="23.0",
+                        titulo="Prazo dos Repasses para o RGPS",
+                        pergunta="Os repasses para o Regime Geral de Previdência Social (RGPS) da competência de 2025 foram realizados em qual prazo?",
+                        tipo_input="radio",
+                        opcoes=opcoes_23_0,
+                        placeholder_link="Insira os comprovantes de pagamento das guias/GPS do RGPS de 2025...",
                         on_save_callback=render_conteudo.refresh,
                     )
                   
