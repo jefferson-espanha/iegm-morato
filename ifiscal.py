@@ -4881,5 +4881,111 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F20", res_data, render_conteudo.refresh)
 
+    # ==========================================
+                    # QUESITO F21 (Liquidez dos Restos a Pagar - LRP)
+                    # ==========================================
+                    f21_data = res_data.get("F21", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F21 • Liquidez dos Restos a Pagar").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Verifica a cobertura financeira do estoque de Restos a Pagar (LRP = RPA / D):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador LRP", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **LRP <= 1,0 (Restos a Pagar <= Disponibilidade de Caixa):** Cobertura suficiente (**0,0 ponto**)
+                            * **LRP > 1,0 (Restos a Pagar > Disponibilidade de Caixa):** Insuficiência de caixa para cobrir restos a pagar (**-5,0 pontos**)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora do Indicador LRP").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f21_bruto = f21_data.get("valor", {})
+                            if not isinstance(val_f21_bruto, dict):
+                                val_f21_bruto = {}
+
+                            state_f21 = {
+                                "val_rpa": float(val_f21_bruto.get("rpa", 0.0) or 0.0),
+                                "val_d": float(val_f21_bruto.get("disponivel", 0.0) or 0.0),
+                                "link": f21_data.get("link", ""),
+                                "pts": float(f21_data.get("pontos", 0.0) or 0.0)
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_rpa = (
+                                    ui.number(label="Estoque de Restos a Pagar - Processados e Não Processados (RPA)", value=state_f21["val_rpa"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_d = (
+                                    ui.number(label="Disponibilidade de Caixa / Disponível (D)", value=state_f21["val_d"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_lrp = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_f21 = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_f21(_=None):
+                                try:
+                                    rpa = float(input_rpa.value or 0.0)
+                                    d = float(input_d.value or 0.0)
+                                except (ValueError, TypeError):
+                                    rpa, d = 0.0, 0.0
+
+                                state_f21["val_rpa"] = rpa
+                                state_f21["val_d"] = d
+
+                                if d > 0:
+                                    lrp = rpa / d
+                                    if lrp > 1.0:
+                                        pts = -5.0
+                                        lbl_pts_f21.classes(remove="text-green-600 text-gray-500", add="text-red-600")
+                                    else:
+                                        pts = 0.0
+                                        lbl_pts_f21.classes(remove="text-red-600 text-gray-500", add="text-green-600")
+
+                                    state_f21["pts"] = pts
+                                    lbl_lrp.set_text(f"Resultado LRP (RPA / D): {lrp:.4f}")
+                                    lbl_pts_f21.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_lrp.set_text("Resultado LRP: Indefinido (A Disponibilidade de Caixa deve ser maior que R$ 0,00)")
+                                    lbl_pts_f21.set_text("⚠️ Informe os valores válidos de Restos a Pagar e Disponibilidade.")
+                                    lbl_pts_f21.classes(remove="text-green-600 text-red-600", add="text-gray-500")
+                                    state_f21["pts"] = 0.0
+
+                            input_rpa.on("update:model-value", calcular_f21)
+                            input_d.on("update:model-value", calcular_f21)
+                            calcular_f21()
+
+                        input_link_f21 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f21["link"],
+                            placeholder="Insira o link do Relatório de Análises Anuais Eletrônicas (RAAE) / Relatório de Instrução (RI)..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f21():
+                            if state_f21["val_d"] <= 0:
+                                ui.notify("Por favor, informe um valor válido para a Disponibilidade de Caixa (D)!", type="warning")
+                                return
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F21",
+                                valor={
+                                    "rpa": state_f21["val_rpa"],
+                                    "disponivel": state_f21["val_d"]
+                                },
+                                pontos=state_f21["pts"],
+                                link=input_link_f21.value,
+                                comentarios=f21_data.get("comentarios", []),
+                                status=f21_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F21 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f21).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F21", res_data, render_conteudo.refresh)
+
                       
     render_conteudo()
