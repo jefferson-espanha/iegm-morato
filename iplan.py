@@ -594,4 +594,87 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 1.3 (Transcrição de Audiências - Radio)
+                    # ==========================================
+                    opcoes_13 = {
+                        "Sim – 02 pts": 2.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.3",
+                        titulo="Atas e Registro das Audiências Públicas",
+                        pergunta="As audiências públicas são transcritas em atas ou outro documento de registro das demandas/sugestões apresentadas pela participação popular?",
+                        tipo_input="radio",
+                        opcoes=opcoes_13,
+                        placeholder_link="Insira o link direto para as atas ou digite XYZ...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.3.1 (Página Eletrônica das Atas)
+                    # ==========================================
+                    # Nota: Este quesito valida se há link publicado. Se contiver 'XYZ' ganha 0 pts, caso contrário ganha 3 pts.
+                    opcoes_131 = {
+                        "Link/Página eletrônica disponível – 03 pts": 3.0,
+                        "Não disponível (Texto XYZ) – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.3.1",
+                        titulo="Divulgação das Atas na Internet",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação das atas de audiências públicas (Se não estiver disponível na internet, inserir no campo de link o texto 'XYZ'):",
+                        tipo_input="radio",
+                        opcoes=opcoes_131,
+                        placeholder_link="Cole o link das atas ou digite XYZ se não estiver disponível...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.4 (Planejamento e Organização - Checkbox)
+                    # ==========================================
+                    opcoes_14 = {
+                        "Convocação contendo o dia, horário e local através dos jornais, rádios, Portal da Prefeitura e plataformas digitais – 0,5 pt": 0.5,
+                        "Estabelecimento da Pauta – 0,5 pt": 0.5,
+                        "Disponibilização prévia de material de apoio a respeito dos temas a serem debatidos – 0,5 pt": 0.5,
+                        "Planejamento logístico (localização, acomodações, som, vídeo, iluminação, transmissão) – 01 pt": 1.0,
+                        "Indicação de mediador qualificado – 0,5 pt": 0.5,
+                        "Estabelecimento da abordagem de interação – 0,5 pt": 0.5,
+                        "Definição de mecanismos de avaliação – 0,5 pt": 0.5,
+                        "Elaboração e divulgação do Relatório contendo a análise das demandas e sugestões coletadas – 01 pt": 1.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.4",
+                        titulo="Planejamento e Organização das Audiências",
+                        pergunta="Assinale os elementos considerados no processo de planejamento e organização das audiências públicas:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_14,
+                        placeholder_link="Insira o link das comprovações organizacionais (editais, fotos, relatórios, pautas)...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 2.0 (Consulta Pública Online - Radio)
+                    # ==========================================
+                    opcoes_20 = {
+                        "Sim – 06 pts": 6.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="2.0",
+                        titulo="Consulta Pública Online PPA 2026-2029",
+                        pergunta="Houve a realização de consulta pública online para coleta de sugestões para a elaboração do PPA 2026-2029?",
+                        tipo_input="radio",
+                        opcoes=opcoes_20,
+                        placeholder_link="Insira o link do formulário ou plataforma da consulta pública online...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
