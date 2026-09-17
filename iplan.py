@@ -1817,4 +1817,184 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 14.4.5.1 (Providências do Prefeito - Radio)
+                    # ==========================================
+                    opcoes_14451 = {
+                        "Selecione...": 0.0,
+                        "Sim - de todos os apontamentos – 06 pts": 6.0,
+                        "Sim - de parte dos apontamentos – 02 pts": 2.0,
+                        "Não – 00 pts": 0.0,
+                        "Não foram relatadas irregularidades – 06 pts": 6.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4.5.1",
+                        titulo="Providências do Prefeito Diante dos Apontamentos do Controle Interno",
+                        pergunta="Com base no relatório do Controle Interno, o Prefeito determinou as providências cabíveis diante das irregularidades e ilegalidades apontadas?",
+                        tipo_input="radio",
+                        opcoes=opcoes_14451,
+                        placeholder_link="Insira o link com despachos, determinações ou atos do Prefeito...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.4.5.1.1 (Acompanhamento das Medidas pelo SCI - Radio)
+                    # ==========================================
+                    opcoes_144511 = {
+                        "Selecione...": 0.0,
+                        "Sim - de todas as providências determinadas pelo Prefeito – 00 pts": 0.0,
+                        "Sim - de parte das providências determinadas pelo Prefeito – 00 pts": 0.0,
+                        "Não – -03 pts": -3.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4.5.1.1",
+                        titulo="Acompanhamento das Medidas e Prazos pelo Controle Interno",
+                        pergunta="O Controle Interno acompanhou as medidas e os prazos das providências determinadas pelo Prefeito diante dos apontamentos do relatório do Controle Interno?",
+                        tipo_input="radio",
+                        opcoes=opcoes_144511,
+                        placeholder_link="Insira o link das planilhas/relatórios de acompanhamento de providências...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.5 (Elaboração do Plano Operativo Anual - Radio)
+                    # ==========================================
+                    opcoes_145 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.5",
+                        titulo="Elaboração do Plano Operativo Anual do Controle Interno",
+                        pergunta="Houve a elaboração de Plano Operativo Anual? (Obs.: Planejamento das atividades a serem executadas no exercício seguinte)",
+                        tipo_input="radio",
+                        opcoes=opcoes_145,
+                        placeholder_link="Insira o link do Plano Operativo Anual elaborado...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.5.1 (Atividades no Plano Operativo Anual - Checkbox)
+                    # ==========================================
+                    # Regra de cálculo: 1 a 5 opções = 1.0 pt; 6 a 10 opções = 3.0 pts; >= 11 opções = 5.0 pts.
+                    opcoes_1451 = {
+                        "Receitas": 0.0,
+                        "Despesas": 0.0,
+                        "Administração de pessoal": 0.0,
+                        "Estoques e almoxarifados": 0.0,
+                        "Administração do patrimônio": 0.0,
+                        "Cumprimento das metas do PPA e a execução dos programas de governo e dos orçamentos (LOA e LDO)": 0.0,
+                        "Cumprimento das metas fiscais, físicas e de resultados dos programas de governo, no que tange a eficiência, eficácia e efetividade": 0.0,
+                        "Aplicação de recursos públicos por entidades de direito público": 0.0,
+                        "Aplicação de recursos públicos por entidades de direito privado": 0.0,
+                        "Os limites e condições para a inscrição de despesas em Restos a Pagar": 0.0,
+                        "Cumprimento da legislação de licitações e fiscalização de contratos": 0.0,
+                        "Cumprimento do limite de gastos totais dos legislativos municipais, inclusive no que se refere ao atingimento de metas fiscais (Gestão Fiscal)": 0.0,
+                        "Transferência para o Legislativo Municipal (Repasses de Duodécimos)": 0.0,
+                        "Contabilidade": 0.0,
+                        "Transparência": 0.0,
+                        "Lei de Acesso à Informação": 0.0,
+                        "Outros": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.5.1",
+                        titulo="Atividades Previstas no Plano Operativo Anual",
+                        pergunta="Assinale as atividades previstas no Plano Operativo Anual (1 a 5 assinalados = 1 pt | 6 a 10 = 3 pts | 11 ou mais = 5 pts):",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_1451,
+                        placeholder_link="Insira o link comprovando o escopo do Plano Operativo...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 15.0 (Criação da Ouvidoria Pública - Radio)
+                    # ==========================================
+                    opcoes_150 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.0",
+                        titulo="Criação da Ouvidoria Pública Municipal",
+                        pergunta="Houve a criação da ouvidoria pública no âmbito do Poder Executivo Municipal?",
+                        tipo_input="radio",
+                        opcoes=opcoes_150,
+                        placeholder_link="Insira o link da norma de criação da Ouvidoria...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 15.1 (Instrumento Normativo da Ouvidoria - Radio/Text)
+                    # ==========================================
+                    opcoes_151 = {
+                        "Selecione...": 0.0,
+                        "Instrumento informado/anexado – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.1",
+                        titulo="Instrumento Normativo de Criação da Ouvidoria",
+                        pergunta="Informe o instrumento normativo de criação da ouvidoria pública, número e data da publicação:",
+                        tipo_input="radio",
+                        opcoes=opcoes_151,
+                        placeholder_link="Informe número, data da publicação e insira o link da norma...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 15.2 (Divulgação da Norma da Ouvidoria - Radio/Text)
+                    # ==========================================
+                    opcoes_152 = {
+                        "Link/Página eletrônica disponível – 00 pts": 0.0,
+                        "Não disponível (Texto XYZ) – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.2",
+                        titulo="Divulgação do Instrumento Normativo da Ouvidoria",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação do instrumento normativo de criação da Ouvidoria Pública (Se não estiver disponível, inserir XYZ):",
+                        tipo_input="radio",
+                        opcoes=opcoes_152,
+                        placeholder_link="Cole o link de divulgação ou digite XYZ...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 15.3 (Características da Ouvidoria - Checkbox)
+                    # ==========================================
+                    # Regra de cálculo: Perde -0.5 pt para cada item principal NÃO assinalado (pontuação varia de 0 a -2,5 pts).
+                    opcoes_153 = {
+                        "Independência": 0.0,
+                        "Isenção": 0.0,
+                        "Acessibilidade": 0.0,
+                        "Transparência": 0.0,
+                        "Confidencialidade": 0.0,
+                        "Outros": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.3",
+                        titulo="Características de Execução da Ouvidoria",
+                        pergunta="Assinale as características que a ouvidoria dispõe para a execução de suas atribuições (Cada item principal não marcado perde -0,5 pt):",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_153,
+                        placeholder_link="Insira o link demonstrando o regimento/funcionamento da Ouvidoria...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
