@@ -3123,5 +3123,100 @@ def container_formulario_ifiscal(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f3).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F3", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO F4 (Análise do Nível de Cancelamento de Restos a Pagar)
+                    # ==========================================
+                    f4_data = res_data.get("F4", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F4 • Análise do Nível de Cancelamento de Restos a Pagar – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Divisão dos cancelamentos realizados dos restos a pagar (C) pela sua posição inicial (B), com base na AUDESP (K = C / B):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador K", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **K >= 0,20:** Pontuação = **0,0 ponto**
+                            * **0,05 < K < 0,20:** Graduação entre 0 e 25 `((0,20 - K) / 0,15) * 25`
+                            * **K <= 0,05:** Pontuação máxima = **25,0 pontos**
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador K").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f4_bruto = f4_data.get("valor", {})
+                            if not isinstance(val_f4_bruto, dict):
+                                val_f4_bruto = {}
+
+                            state_f4 = {
+                                "val_c": float(val_f4_bruto.get("C", 0.0)),
+                                "val_b": float(val_f4_bruto.get("B", 0.0)),
+                                "link": f4_data.get("link", ""),
+                                "pts": float(f4_data.get("pontos", 0.0))
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_c = (
+                                    ui.number(label="Cancelamentos de Restos a Pagar (C)", value=state_f4["val_c"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_b = (
+                                    ui.number(label="Posição Inicial dos Restos a Pagar (B)", value=state_f4["val_b"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_k = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_k = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+
+                            def calcular_k(_=None):
+                                c = input_c.value or 0.0
+                                b = input_b.value or 0.0
+                                state_f4["val_c"] = c
+                                state_f4["val_b"] = b
+
+                                if b > 0:
+                                    k = c / b
+                                    if k >= 0.20:
+                                        pts = 0.0
+                                    elif 0.05 < k < 0.20:
+                                        pts = ((0.20 - k) / 0.15) * 25.0
+                                    else:
+                                        pts = 25.0
+                                    
+                                    state_f4["pts"] = pts
+                                    lbl_k.set_text(f"Resultado K (C / B): {k:.4f}")
+                                    lbl_pts_k.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_k.set_text("Resultado K: Indefinido (A Posição Inicial 'B' deve ser maior que R$ 0,00)")
+                                    lbl_pts_k.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    state_f4["pts"] = 0.0
+
+                            input_c.on("update:model-value", calcular_k)
+                            input_b.on("update:model-value", calcular_k)
+                            calcular_k()
+
+                        input_link_f4 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f4["link"],
+                            placeholder="Insira o link ou relatório GF26 do AUDESP referente aos Restos a Pagar..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f4():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F4",
+                                valor={"C": state_f4["val_c"], "B": state_f4["val_b"]},
+                                pontos=state_f4["pts"],
+                                link=input_link_f4.value,
+                                comentarios=f4_data.get("comentarios", []),
+                                status=f4_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F4 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f4).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F4", res_data, render_conteudo.refresh)
                   
     render_conteudo()
