@@ -2388,5 +2388,19 @@ def container_formulario_plan(ano=None):
                         placeholder_link="Insira o link ou anexo da memória de cálculo e do demonstrativo financeiro...",
                         on_save_callback=render_conteudo.refresh,
                     )
+
+                    # ==========================================
+                    # QUESITO P3 (Percentual de Alteração do Planejamento Inicial - Entrada Manual)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="P3",
+                        titulo="Percentual de Alteração do Planejamento Inicial",
+                        pergunta="Total dos valores dos programas estabelecidos inicialmente na LOA comparado com os valores finais apurados (K = J / I). Informe a pontuação apurada conforme a regra do indicador (de 0 a -30 pontos):",
+                        tipo_input="number",
+                        placeholder_link="Insira o link ou anexo da memória de cálculo dos programas (Valores Inicial I e Final J)...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                     
     render_conteudo()
