@@ -815,4 +815,67 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 4.1.1 (Avaliação da Implementação - Radio)
+                    # ==========================================
+                    opcoes_411 = {
+                        "Sim, para todos os programas finalísticos monitorados – 10 pts": 10.0,
+                        "Sim, para a maior parte dos programas finalísticos monitorados – 07 pts": 7.0,
+                        "Sim, para a menor parte dos programas finalísticos monitorados – 03 pts": 3.0,
+                        "Não houve avaliação – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.1.1",
+                        titulo="Avaliação da Implementação dos Programas Finalísticos",
+                        pergunta="Houve avaliação da implementação dos programas finalísticos em relação a seus indicadores, objetivos e metas?",
+                        tipo_input="radio",
+                        opcoes=opcoes_411,
+                        placeholder_link="Insira o link das avaliações dos programas finalísticos...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 4.1.1.1 (Relatório Anual de Avaliação - Radio)
+                    # ==========================================
+                    opcoes_4111 = {
+                        "Sim, para todos os programas finalísticos do PPA – 07 pts": 7.0,
+                        "Sim, para a maior parte dos programas finalísticos – 04 pts": 4.0,
+                        "Sim, para a menor parte dos programas finalísticos – 01 pt": 1.0,
+                        "Não houve elaboração do Relatório Anual de Avaliação – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.1.1.1",
+                        titulo="Relatório Anual de Avaliação do PPA",
+                        pergunta="Houve a elaboração de Relatório Anual de Avaliação dos programas finalísticos do PPA? (Caso não esteja disponível na internet, recomenda-se anexar o relatório conforme a Instrução de Preenchimento):",
+                        tipo_input="radio",
+                        opcoes=opcoes_4111,
+                        placeholder_link="Insira o link do Relatório Anual de Avaliação do PPA...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 4.1.1.1.1 (Aspectos Analisados no Acompanhamento - Checkbox)
+                    # ==========================================
+                    opcoes_41111 = {
+                        "Percepção de coerência, em todos os programas, do necessário encadeamento lógico-causal entre os insumos mobilizados, os produtos/ações gerados, os resultados provocados e os impactos esperados pela sociedade – 20 pts": 20.0,
+                        "Análise quanto a se Programas, Metas e Ações são mensurados por um ou mais indicadores próprios e adequados, permitindo aferir a situação atual e os avanços obtidos – 20 pts": 20.0,
+                        "Avaliação entre os produtos ofertados à população e as reais demandas da sociedade, coletadas nas audiências públicas e demais instrumentos de diagnóstico – 20 pts": 20.0,
+                        "Outros – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.1.1.1.1",
+                        titulo="Aspectos Analisados no Acompanhamento e Avaliação do PPA",
+                        pergunta="Assinale os aspectos analisados no processo de acompanhamento e avaliação do PPA:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_41111,
+                        placeholder_link="Insira o link com os documentos comprobatórios das análises e acompanhamento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
