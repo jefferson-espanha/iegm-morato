@@ -2985,5 +2985,143 @@ def container_formulario_ifiscal(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f2).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F2", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO F3 (Análise do Resultado da Execução Orçamentária)
+                    # ==========================================
+                    f3_data = res_data.get("F3", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F3 • Análise do Resultado da Execução Orçamentária – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Relação entre Despesa Executada (R) e Receita Arrecadada (O), considerando a cobertura do déficit por Superávit Financeiro (V = R / O):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador V", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **V >= 1,2:** Pontuação = **0,0 ponto**
+                            * **1,1 < V < 1,2 (COM cobertura do déficit):** Graduação entre 100 e 0 `((V - 1,2) * (-1) / 0,10) * 100`
+                            * **1,0 < V < 1,2 (SEM cobertura do déficit):** Pontuação = **0,0 ponto**
+                            * **1,0 < V <= 1,1 (COM cobertura do déficit):** Pontuação máxima = **100,0 pontos**
+                            * **0,9 <= V <= 1,0:** Pontuação máxima = **100,0 pontos**
+                            * **0,75 < V < 0,9:** Graduação entre 0 e 100 `((V - 0,75) / 0,15) * 100`
+                            * **V <= 0,75:** Pontuação = **0,0 ponto**
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador V").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f3_bruto = f3_data.get("valor", {})
+                            if not isinstance(val_f3_bruto, dict):
+                                val_f3_bruto = {}
+
+                            state_f3 = {
+                                "val_r": float(val_f3_bruto.get("R", 0.0)),
+                                "val_o": float(val_f3_bruto.get("O", 0.0)),
+                                "val_superavit": float(val_f3_bruto.get("superavit", 0.0)),
+                                "link": f3_data.get("link", ""),
+                                "pts": float(f3_data.get("pontos", 0.0))
+                            }
+
+                            with ui.grid(columns=3).classes("w-full gap-4"):
+                                input_r = (
+                                    ui.number(label="Despesa Executada (R)", value=state_f3["val_r"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_o = (
+                                    ui.number(label="Receita Arrecadada (O)", value=state_f3["val_o"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_superavit = (
+                                    ui.number(label="Créditos de Superávit Financeiro", value=state_f3["val_superavit"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_v = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_cobertura = ui.label().classes("text-sm font-semibold text-blue-800 mt-1")
+                            lbl_pts_v = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+
+                            def calcular_v(_=None):
+                                r = input_r.value or 0.0
+                                o = input_o.value or 0.0
+                                sup = input_superavit.value or 0.0
+
+                                state_f3["val_r"] = r
+                                state_f3["val_o"] = o
+                                state_f3["val_superavit"] = sup
+
+                                if o > 0:
+                                    v = r / o
+                                    deficit = abs(o - r)
+                                    tem_cobertura = sup >= deficit
+
+                                    if v >= 1.2:
+                                        pts = 0.0
+                                        lbl_cobertura.set_text("Déficit excessivo (V >= 1,2)")
+                                    elif 1.1 < v < 1.2:
+                                        if tem_cobertura:
+                                            pts = ((v - 1.2) * (-1.0) / 0.10) * 100.0
+                                            lbl_cobertura.set_text(f"Déficit (R$ {deficit:,.2f}) COBERTO por Superávit (R$ {sup:,.2f})")
+                                        else:
+                                            pts = 0.0
+                                            lbl_cobertura.set_text(f"Déficit (R$ {deficit:,.2f}) NÃO COBERTO por Superávit (R$ {sup:,.2f})")
+                                    elif 1.0 < v <= 1.1:
+                                        if tem_cobertura:
+                                            pts = 100.0
+                                            lbl_cobertura.set_text(f"Déficit (R$ {deficit:,.2f}) COBERTO por Superávit (R$ {sup:,.2f})")
+                                        else:
+                                            pts = 0.0
+                                            lbl_cobertura.set_text(f"Déficit (R$ {deficit:,.2f}) NÃO COBERTO por Superávit (R$ {sup:,.2f})")
+                                    elif 0.9 <= v <= 1.0:
+                                        pts = 100.0
+                                        lbl_cobertura.set_text("Execução em equilíbrio/superavitária")
+                                    elif 0.75 < v < 0.9:
+                                        pts = ((v - 0.75) / 0.15) * 100.0
+                                        lbl_cobertura.set_text("Execução abaixo do ideal (Graduação proporcional)")
+                                    else:
+                                        pts = 0.0
+                                        lbl_cobertura.set_text("Execução criticamente abaixo do planejado (V <= 0,75)")
+
+                                    state_f3["pts"] = pts
+                                    lbl_v.set_text(f"Resultado V (R / O): {v:.4f}")
+                                    lbl_pts_v.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_v.set_text("Resultado V: Indefinido (A Receita Arrecadada 'O' deve ser maior que R$ 0,00)")
+                                    lbl_cobertura.set_text("")
+                                    lbl_pts_v.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    state_f3["pts"] = 0.0
+
+                            input_r.on("update:model-value", calcular_v)
+                            input_o.on("update:model-value", calcular_v)
+                            input_superavit.on("update:model-value", calcular_v)
+                            calcular_v()
+
+                        input_link_f3 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f3["link"],
+                            placeholder="Insira o link do balanço orçamentário, apuração do superávit ou demonstrativos..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f3():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F3",
+                                valor={
+                                    "R": state_f3["val_r"],
+                                    "O": state_f3["val_o"],
+                                    "superavit": state_f3["val_superavit"],
+                                },
+                                pontos=state_f3["pts"],
+                                link=input_link_f3.value,
+                                comentarios=f3_data.get("comentarios", []),
+                                status=f3_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F3 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f3).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F3", res_data, render_conteudo.refresh)
                   
     render_conteudo()
