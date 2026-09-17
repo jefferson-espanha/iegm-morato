@@ -142,6 +142,25 @@ def save_resposta(
     except Exception as e:
         print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
 
+
+def zerar_questionario_db(ano):
+    query = "DELETE FROM respostas_ifiscal WHERE ano = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (int(ano),))
+                conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
+
+
+# =============================================================================
+# FUNÇÕES AUXILIARES DECLARADAS ANTES DO USO
+# =============================================================================
+def _obter_lista_comentarios(dados_q):
+    coms = dados_q.get("comentarios", [])
+    return coms if isinstance(coms, list) else []
+
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
 # =============================================================================
