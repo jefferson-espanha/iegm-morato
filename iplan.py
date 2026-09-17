@@ -985,4 +985,96 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 5.1 (Tipos de Tributos e Repasses - Checkbox)
+                    # ==========================================
+                    opcoes_51 = {
+                        "Imposto sobre a Propriedade Predial e Territorial Urbano (IPTU) – 0,5 pt": 0.5,
+                        "Imposto sobre a Transmissão de Bens Imóveis (ITBI) – 0,5 pt": 0.5,
+                        "Imposto Sobre Serviços de Qualquer Natureza (ISSQN) – 0,5 pt": 0.5,
+                        "Taxas – 0,25 pt": 0.25,
+                        "Contribuições – 0,25 pt": 0.25,
+                        "Transferências Obrigatórias Recebidas da União (ex: FPM, CIDE, ITR, Royalties e FUNDEB) – 01 pt": 1.0,
+                        "Transferências Obrigatórias Recebidas do Estado (ex: ICMS, IPVA) – 01 pt": 1.0,
+                        "Outros – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.1",
+                        titulo="Tributos e Transferências na Previsão da Receita",
+                        pergunta="Assinale os tipos de tributos e repasses/transferências avaliados na análise e estudo da previsão da receita:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_51,
+                        placeholder_link="Insira o link com a metodologia ou memória de cálculo por fonte de receita...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.1.1 (Previsão de Repasse do ICMS - Radio)
+                    # ==========================================
+                    opcoes_511 = {
+                        "Sim, com reestimativa da receita prevista na LOA no decorrer da execução orçamentária-financeira – 02 pts": 2.0,
+                        "Sim, somente para elaborar a LOA – 01 pt": 1.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.1.1",
+                        titulo="Estimativa de Transferências Obrigatórias (ICMS)",
+                        pergunta="A estimativa de transferências obrigatórias leva em consideração o cálculo de previsão de repasse do ICMS realizado periodicamente pela Fazenda Pública Estadual?",
+                        tipo_input="radio",
+                        opcoes=opcoes_511,
+                        placeholder_link="Insira o link das memórias de cálculo ou acompanhamentos da Fazenda Estadual...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.2 (Metodologia de Projeção por Espécie - Radio)
+                    # ==========================================
+                    opcoes_52 = {
+                        "Sim – 06 pts": 6.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.2",
+                        titulo="Variabilidade da Metodologia de Projeção",
+                        pergunta="A metodologia utilizada para projeção da receita varia de acordo com a espécie da receita orçamentária projetada?",
+                        tipo_input="radio",
+                        opcoes=opcoes_52,
+                        placeholder_link="Insira o link do documento metodológico detalhado por categoria de receita...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 6.0 (Disposições da LDO - Checkbox)
+                    # ==========================================
+                    opcoes_60 = {
+                        "Custos estimados, indicadores e metas físicas que se correlacionam com as ações do governo municipal – 0,5 pt": 0.5,
+                        "Critérios para limitação de empenho e movimentação financeira (ressalvados dívida e inovação/desenvolvimento científico/tecnológico por fundo) – 0,5 pt": 0.5,
+                        "Critérios para o Poder Executivo estabelecer a programação financeira mensal para todo o Município, nele incluído a Câmara – 01 pt": 1.0,
+                        "Percentual da RCL que será retido na peça orçamentária enquanto Reserva de Contingência – 01 pt": 1.0,
+                        "Critérios para contratação de horas extras quando o Poder superar o limite prudencial para pessoal (Executivo: 51,30%; Legislativo: 5,7%) – 0,5 pt": 0.5,
+                        "Requisitos para início de novos projetos após adequado atendimento/manutenção dos em andamento – 0,5 pt": 0.5,
+                        "Critérios para repasses a entidades do terceiro setor – 00 pts": 0.0,
+                        "Critérios para ajuda financeira a entidades da Administração indireta – 00 pts": 0.0,
+                        "Determinação do índice de preços para atualização monetária da Dívida Mobiliária Refinanciada – 00 pts": 0.0,
+                        "Autorização para o Município auxiliar o custeio de despesas próprias do Estado e da União – 00 pts": 0.0,
+                        "Dispor sobre pagamento de servidor com recursos vinculados à parceria com terceiro setor – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="6.0",
+                        titulo="Disposições Gerais da LDO",
+                        pergunta="Assinale os itens que a LDO dispõe:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_60,
+                        placeholder_link="Insira o link do texto da LDO aprovada contendo os dispositivos citados...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
