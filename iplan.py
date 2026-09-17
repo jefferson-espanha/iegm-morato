@@ -2390,16 +2390,27 @@ def container_formulario_plan(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO P3 (Percentual de Alteração do Planejamento Inicial - Entrada Manual)
+                    # QUESITO P3 (Percentual de Alteração do Planejamento Inicial - Radio)
                     # ==========================================
+                    # Faixas de pontuação predefinidas de acordo com a fórmula do indicador:
+                    opcoes_p3 = {
+                        "Selecione...": 0.0,
+                        "K >= 1,3 (Alteração excessiva) – -30 pts": -30.0,
+                        "0,9 < K < 1,3 (Dentro do limite aceitável) – 00 pts": 0.0,
+                        "K = 0,8 (Graduação proporcional) – -7,5 pts": -7.5,
+                        "K = 0,7 (Graduação proporcional) – -15,0 pts": -15.0,
+                        "K = 0,6 (Graduação proporcional) – -22,5 pts": -22.5,
+                        "K <= 0,5 (Execução muito abaixo) – -30 pts": -30.0,
+                    }
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
                         qid="P3",
                         titulo="Percentual de Alteração do Planejamento Inicial",
-                        pergunta="Total dos valores dos programas estabelecidos inicialmente na LOA comparado com os valores finais apurados (K = J / I). Informe a pontuação apurada conforme a regra do indicador (de 0 a -30 pontos):",
-                        tipo_input="number",
-                        placeholder_link="Insira o link ou anexo da memória de cálculo dos programas (Valores Inicial I e Final J)...",
+                        pergunta="Total dos valores dos programas estabelecidos na LOA (I) comparado aos valores finais apurados (J), onde K = J / I. Selecione a faixa do indicador K correspondente (Fórmula: ((0,9 - K) / 0,4) * -30 para 0,5 < K <= 0,9):",
+                        tipo_input="radio",
+                        opcoes=opcoes_p3,
+                        placeholder_link="Insira o link com os valores de I, J e a memória de cálculo do indicador K...",
                         on_save_callback=render_conteudo.refresh,
                     )
                     
