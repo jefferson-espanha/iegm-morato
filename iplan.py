@@ -795,9 +795,9 @@ def container_formulario_plan(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO 4.1.1 (Programas Finalísticos - Radio)
+                    # QUESITO 4.1 (Programas Finalísticos - Radio)
                     # ==========================================
-                    opcoes_411 = {
+                    opcoes_41 = {
                         "Todos os programas finalísticos do PPA – 15 pts": 15.0,
                         "A maior parte dos programas finalísticos – 10 pts": 10.0,
                         "A menor parte dos programas finalísticos – 05 pts": 5.0,
@@ -806,7 +806,7 @@ def container_formulario_plan(ano=None):
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="4.1.1",
+                        qid="4.1",
                         titulo="Articulação dos Programas Finalísticos",
                         pergunta="Os programas finalísticos articulam um conjunto de ações que concorrem para um objetivo comum preestabelecido, visando à solução de um problema ou necessidade da sociedade?",
                         tipo_input="radio",
