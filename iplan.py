@@ -1997,4 +1997,129 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 15.4 (Relatório de Gestão da Ouvidoria 2025 - Radio)
+                    # ==========================================
+                    opcoes_154 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – -10 pts": -10.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.4",
+                        titulo="Relatório de Gestão da Ouvidoria (Exercício 2025)",
+                        pergunta="A ouvidoria elaborou Relatório de Gestão do exercício de 2025 contendo a consolidação das manifestações encaminhadas pelos usuários de serviços públicos, e com base nelas, apontou falhas e sugeriu melhorias em sua prestação?",
+                        tipo_input="radio",
+                        opcoes=opcoes_154,
+                        placeholder_link="Insira o link do Relatório de Gestão da Ouvidoria 2025...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 15.4.1 (Conteúdo dos Relatórios da Ouvidoria - Checkbox)
+                    # ==========================================
+                    # Regra de cálculo: Perde -2,5 pts para cada item não assinalado (pontuação de 0 a -10 pts).
+                    opcoes_1541 = {
+                        "Número de manifestações recebidas no exercício anterior": 0.0,
+                        "Motivos das Manifestações": 0.0,
+                        "Análise dos Pontos recorrentes": 0.0,
+                        "Providências adotadas pela administração pública nas soluções apresentadas": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.4.1",
+                        titulo="Informações Constantes nos Relatórios Gerenciais da Ouvidoria",
+                        pergunta="Assinale as informações constantes nos relatórios gerenciais elaborados pela ouvidoria (Cada item não marcado perde -2,5 pts):",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_1541,
+                        placeholder_link="Insira o link demonstrando o conteúdo dos relatórios...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 15.4.2 (Divulgação do Relatório de Gestão 2025 - Radio/Text)
+                    # ==========================================
+                    # Regra de cálculo: Se XYZ perde -10 pts; Se <> XYZ ganha 0 pts.
+                    opcoes_1542 = {
+                        "Link/Página eletrônica disponível (<> XYZ) – 00 pts": 0.0,
+                        "Não disponível (Texto XYZ) – -10 pts": -10.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.4.2",
+                        titulo="Divulgação do Relatório de Gestão de 2025 na Internet",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação do Relatório de Gestão do exercício de 2025 (Se não estiver disponível, inserir XYZ):",
+                        tipo_input="radio",
+                        opcoes=opcoes_1542,
+                        placeholder_link="Cole o link do relatório ou digite XYZ...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 15.5 (Iniciativas de Divulgação da Ouvidoria - Checkbox)
+                    # ==========================================
+                    # Regra de cálculo: Perde -0,5 pt para cada item principal não assinalado.
+                    opcoes_155 = {
+                        "Link da página eletrônica da ouvidoria no sítio da Prefeitura Municipal": 0.0,
+                        "Utilização de outras plataformas digitais para a divulgação da missão, do modo de trabalho das ouvidorias e incentivando a participação popular. Ex.: instagram, facebook, twitter etc.": 0.0,
+                        "Realização de palestras para grupos e instituições. Ex.: escolas, igrejas, associações civis, outros grupos organizados etc.": 0.0,
+                        "Realização de eventos que estimulem a participação e coleta das demandas sociais. Ex.: realização de audiências públicas para divulgação dos trabalhos desempenhados pela ouvidoria e ouvir as demandas da população.": 0.0,
+                        "Outras": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.5",
+                        titulo="Iniciativas de Divulgação e Mobilização Social das Ouvidorias",
+                        pergunta="Assinale as iniciativas de divulgação e mobilização social das ouvidorias (Perde -0,5 pt para cada item não assinalado):",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_155,
+                        placeholder_link="Insira o link com comprovação das ações de divulgação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 16.0 (Elaboração da Carta de Serviços ao Usuário - Radio)
+                    # ==========================================
+                    opcoes_160 = {
+                        "Selecione...": 0.0,
+                        "Sim – 04 pts": 4.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.0",
+                        titulo="Carta de Serviços ao Usuário (Lei 13.460/2017)",
+                        pergunta="A prefeitura elaborou a 'Carta de Serviço ao Usuário', que trata dos serviços prestados pelos seus órgãos e entidades, as formas de acesso a esses serviços e seus compromissos e padrões de qualidade de atendimento ao público?",
+                        tipo_input="radio",
+                        opcoes=opcoes_160,
+                        placeholder_link="Insira o link do ato de instituição da Carta de Serviços...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 16.1 (Divulgação da Carta de Serviços - Radio/Text)
+                    # ==========================================
+                    # Regra de cálculo: Se XYZ ganha 0 pts; Se <> XYZ ganha 2 pts.
+                    opcoes_161 = {
+                        "Link/Página eletrônica disponível (<> XYZ) – 02 pts": 2.0,
+                        "Não disponível (Texto XYZ) – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.1",
+                        titulo="Divulgação da Carta de Serviços ao Usuário na Internet",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação da 'Carta de Serviço ao Usuário' (Se não estiver disponível, inserir XYZ):",
+                        tipo_input="radio",
+                        opcoes=opcoes_161,
+                        placeholder_link="Cole o link da Carta de Serviços ou digite XYZ...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
