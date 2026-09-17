@@ -2884,5 +2884,106 @@ def container_formulario_ifiscal(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f1).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F1", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO F2 (Análise da Despesa - Execução Orçamentária)
+                    # ==========================================
+                    f2_data = res_data.get("F2", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F2 • Análise da Despesa (Execução Orçamentária) – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Divisão da despesa executada (R) pela despesa fixada final (S), com base nos dados da LOA (T = R / S):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador T", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **T >= 1,1:** Pontuação = **0,0 ponto**
+                            * **1,0 < T < 1,1:** Graduação entre 75 e 0 `((T - 1,1) * (-1) / 0,10) * 75`
+                            * **0,9 <= T <= 1,0:** Pontuação máxima = **75,0 pontos**
+                            * **0,5 < T < 0,9:** Graduação entre 0 e 75 `((T - 0,5) / 0,40) * 75`
+                            * **T <= 0,5:** Pontuação = **0,0 ponto**
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador T").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f2_bruto = f2_data.get("valor", {})
+                            if not isinstance(val_f2_bruto, dict):
+                                val_f2_bruto = {}
+
+                            state_f2 = {
+                                "val_r": float(val_f2_bruto.get("R", 0.0)),
+                                "val_s": float(val_f2_bruto.get("S", 0.0)),
+                                "link": f2_data.get("link", ""),
+                                "pts": float(f2_data.get("pontos", 0.0))
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_r = (
+                                    ui.number(label="Despesa Executada (R)", value=state_f2["val_r"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_s = (
+                                    ui.number(label="Despesa Fixada Final (S)", value=state_f2["val_s"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_t = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_t = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+
+                            def calcular_t(_=None):
+                                r = input_r.value or 0.0
+                                s = input_s.value or 0.0
+                                state_f2["val_r"] = r
+                                state_f2["val_s"] = s
+
+                                if s > 0:
+                                    t = r / s
+                                    if t >= 1.1:
+                                        pts = 0.0
+                                    elif 1.0 < t < 1.1:
+                                        pts = ((t - 1.1) * (-1.0) / 0.10) * 75.0
+                                    elif 0.9 <= t <= 1.0:
+                                        pts = 75.0
+                                    elif 0.5 < t < 0.9:
+                                        pts = ((t - 0.5) / 0.40) * 75.0
+                                    else:
+                                        pts = 0.0
+                                    
+                                    state_f2["pts"] = pts
+                                    lbl_t.set_text(f"Resultado T (R / S): {t:.4f}")
+                                    lbl_pts_t.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_t.set_text("Resultado T: Indefinido (A Despesa Fixada 'S' deve ser maior que R$ 0,00)")
+                                    lbl_pts_t.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    state_f2["pts"] = 0.0
+
+                            input_r.on("update:model-value", calcular_t)
+                            input_s.on("update:model-value", calcular_t)
+                            calcular_t()
+
+                        input_link_f2 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f2["link"],
+                            placeholder="Insira o link do balanço orçamentário ou relatório contábil..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f2():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F2",
+                                valor={"R": state_f2["val_r"], "S": state_f2["val_s"]},
+                                pontos=state_f2["pts"],
+                                link=input_link_f2.value,
+                                comentarios=f2_data.get("comentarios", []),
+                                status=f2_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F2 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f2).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F2", res_data, render_conteudo.refresh)
                   
     render_conteudo()
