@@ -2488,5 +2488,25 @@ def container_formulario_plan(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_p3).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("P3", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO P4 (Pontualidade na Entrega de Documentos AUDESP)
+                    # ==========================================
+                    opcoes_p4 = {
+                        "Documentos relativos às Peças de Planejamento entregues no prazo": 150.0,
+                        "Documentos relativos às Peças de Planejamento entregues fora do prazo ou não entregue": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="P4",
+                        titulo="Pontualidade na Entrega de Documentos relativos às Peças de Planejamento",
+                        pergunta="A resposta à seguinte questão será extraída do sistema AUDESP: 'Os documentos relativos às peças de planejamento (Atas de audiência de avaliação do cumprimento de metas, Relatório de Atividades, PPA, LDO e LOA) são entregues no prazo ao Tribunal de Contas do Estado de São Paulo?'",
+                        tipo_input="radio",
+                        opcoes=opcoes_p4,
+                        placeholder_link="Insira o link ou comprovante do protocolo de envio no AUDESP...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                     
     render_conteudo()
