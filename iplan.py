@@ -557,6 +557,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 1.1 (Peças Orçamentárias - Checkbox)
                     # ==========================================
                     opcoes_11 = {
+                        ""Selecione...": 0.0,
                         "Não – 00 pts": 0.0,
                         "PPA inicial 2026-2029 – 01 pt": 1.0,
                         "LDO 2026 – 01 pt": 1.0,
@@ -578,6 +579,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 1.2 (Dia e Horário - Checkbox)
                     # ==========================================
                     opcoes_12 = {
+                        "Selecione...": 0.0,
                         "Dia de semana em horário comercial (ex: 8 as 18 horas) – 00 pts": 0.0,
                         "Dia de semana após horário comercial (ex: após às 18 horas) – 02 pts": 2.0,
                         "Aos sábados, domingos e feriados – 02 pts": 2.0,
@@ -598,6 +600,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 1.3 (Transcrição de Audiências - Radio)
                     # ==========================================
                     opcoes_13 = {
+                        "Selecione...": 0.0,
                         "Sim – 02 pts": 2.0,
                         "Não – 00 pts": 0.0,
                     }
@@ -618,6 +621,7 @@ def container_formulario_plan(ano=None):
                     # ==========================================
                     # Nota: Este quesito valida se há link publicado. Se contiver 'XYZ' ganha 0 pts, caso contrário ganha 3 pts.
                     opcoes_131 = {
+                        "Selecione...": 0.0,
                         "Link/Página eletrônica disponível – 03 pts": 3.0,
                         "Não disponível (Texto XYZ) – 00 pts": 0.0,
                     }
@@ -637,6 +641,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 1.4 (Planejamento e Organização - Checkbox)
                     # ==========================================
                     opcoes_14 = {
+                        "Selecione...": 0.0,
                         "Convocação contendo o dia, horário e local através dos jornais, rádios, Portal da Prefeitura e plataformas digitais – 0,5 pt": 0.5,
                         "Estabelecimento da Pauta – 0,5 pt": 0.5,
                         "Disponibilização prévia de material de apoio a respeito dos temas a serem debatidos – 0,5 pt": 0.5,
@@ -662,6 +667,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 2.0 (Consulta Pública Online - Radio)
                     # ==========================================
                     opcoes_20 = {
+                        "Selecione...": 0.0,
                         "Sim – 06 pts": 6.0,
                         "Não – 00 pts": 0.0,
                     }
@@ -677,10 +683,11 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO 2.1 (Glossário na Consulta - Radio)
                     # ==========================================
                     opcoes_21 = {
+                        "Selecione...": 0.0,
                         "Sim – 02 pts": 2.0,
                         "Não – 00 pts": 0.0,
                     }
@@ -700,6 +707,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 3.0 (Diagnóstico Prévio - Radio)
                     # ==========================================
                     opcoes_30 = {
+                        "Selecione...": 0.0,
                         "Sim – 14 pts": 14.0,
                         "Não – 00 pts": 0.0,
                     }
@@ -719,6 +727,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 3.1 (Planos Federal/Estadual - Radio)
                     # ==========================================
                     opcoes_31 = {
+                        "Selecione...": 0.0,
                         "Sim – 02 pts": 2.0,
                         "Não – 00 pts": 0.0,
                     }
@@ -756,6 +765,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 3.2 (Diagnóstico por Programa - Radio)
                     # ==========================================
                     opcoes_32 = {
+                        "Selecione...": 0.0,
                         "Sim, para todos os programas do PPA – 10 pts": 10.0,
                         "Sim, para a maior parte dos programas do PPA – 05 pts": 5.0,
                         "Sim, para a menor parte dos programas do PPA – 03 pts": 3.0,
@@ -777,6 +787,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 4.0 (Metas Físicas e Financeiras - Radio)
                     # ==========================================
                     opcoes_40 = {
+                        "Selecione...": 0.0,
                         "Sim, com metas físicas e financeiras – 10 pts": 10.0,
                         "Sim, apenas com metas financeiras – 05 pts": 5.0,
                         "Sim, apenas com metas físicas – 05 pts": 5.0,
@@ -798,6 +809,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 4.1 (Programas Finalísticos - Radio)
                     # ==========================================
                     opcoes_41 = {
+                        "Selecione...": 0.0,
                         "Todos os programas finalísticos do PPA – 15 pts": 15.0,
                         "A maior parte dos programas finalísticos – 10 pts": 10.0,
                         "A menor parte dos programas finalísticos – 05 pts": 5.0,
@@ -819,6 +831,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 4.1.1 (Avaliação da Implementação - Radio)
                     # ==========================================
                     opcoes_411 = {
+                        "Selecione...": 0.0,
                         "Sim, para todos os programas finalísticos monitorados – 10 pts": 10.0,
                         "Sim, para a maior parte dos programas finalísticos monitorados – 07 pts": 7.0,
                         "Sim, para a menor parte dos programas finalísticos monitorados – 03 pts": 3.0,
@@ -840,6 +853,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 4.1.1.1 (Relatório Anual de Avaliação - Radio)
                     # ==========================================
                     opcoes_4111 = {
+                        "Selecione...": 0.0,
                         "Sim, para todos os programas finalísticos do PPA – 07 pts": 7.0,
                         "Sim, para a maior parte dos programas finalísticos – 04 pts": 4.0,
                         "Sim, para a menor parte dos programas finalísticos – 01 pt": 1.0,
@@ -861,6 +875,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 4.1.1.1.1 (Aspectos Analisados no Acompanhamento - Checkbox)
                     # ==========================================
                     opcoes_41111 = {
+                        "Selecione...": 0.0,
                         "Percepção de coerência, em todos os programas, do necessário encadeamento lógico-causal entre os insumos mobilizados, os produtos/ações gerados, os resultados provocados e os impactos esperados pela sociedade – 20 pts": 20.0,
                         "Análise quanto a se Programas, Metas e Ações são mensurados por um ou mais indicadores próprios e adequados, permitindo aferir a situação atual e os avanços obtidos – 20 pts": 20.0,
                         "Avaliação entre os produtos ofertados à população e as reais demandas da sociedade, coletadas nas audiências públicas e demais instrumentos de diagnóstico – 20 pts": 20.0,
@@ -882,6 +897,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 4.1.1.2 (Publicação dos Resultados - Radio)
                     # ==========================================
                     opcoes_4112 = {
+                        "Selecione...": 0.0,
                         "Sim, para todos os programas finalísticos avaliados do PPA – 04 pts": 4.0,
                         "Sim, para a maior parte dos programas finalísticos avaliados – 03 pts": 3.0,
                         "Sim, para a menor parte dos programas finalísticos avaliados – 01 pt": 1.0,
@@ -922,6 +938,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 4.2 (Coerência dos Indicadores - Radio)
                     # ==========================================
                     opcoes_42 = {
+                        "Selecione...": 0.0,
                         "Todos os indicadores do PPA – 25 pts": 25.0,
                         "A maior parte dos indicadores – 17 pts": 17.0,
                         "A menor parte dos indicadores – 08 pts": 8.0,
@@ -970,6 +987,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 5.0 (Estudo de Previsão de Receita - Radio)
                     # ==========================================
                     opcoes_50 = {
+                        "Selecione...": 0.0,
                         "Sim – 06 pts": 6.0,
                         "Não – 00 pts": 0.0,
                     }
@@ -1014,6 +1032,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 5.1.1 (Previsão de Repasse do ICMS - Radio)
                     # ==========================================
                     opcoes_511 = {
+                        "Selecione...": 0.0,
                         "Sim, com reestimativa da receita prevista na LOA no decorrer da execução orçamentária-financeira – 02 pts": 2.0,
                         "Sim, somente para elaborar a LOA – 01 pt": 1.0,
                         "Não – 00 pts": 0.0,
@@ -1034,6 +1053,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 5.2 (Metodologia de Projeção por Espécie - Radio)
                     # ==========================================
                     opcoes_52 = {
+                        "Selecione...": 0.0,
                         "Sim – 06 pts": 6.0,
                         "Não – 00 pts": 0.0,
                     }
