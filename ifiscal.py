@@ -4771,5 +4771,115 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F19", res_data, render_conteudo.refresh)
 
+    # ==========================================
+                    # QUESITO F20 (Relação Despesas Correntes / Receitas Correntes - Art. 167-A)
+                    # ==========================================
+                    f20_data = res_data.get("F20", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F20 • Relação entre Despesas Correntes e Receitas Correntes").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Verifica o limite do Art. 167-A da CF (LDC = Despesa Corrente Liquidada [DC] / Receita Corrente Arrecadada [RC]):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador LDC (Art. 167-A da CF)", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **LDC <= 0,85 (Gastos Correntes <= 85%):** Sem penalização (**0,0 ponto**)
+                            * **0,85 < LDC <= 0,95 (Graduação Proporcional de Penalidade):** Perda de pontos calculada por `((LDC - 0,85) / 0,10) * (-50,0)`
+                            * **LDC > 0,95 (Ultrpassou o limite de 95% do Art. 167-A):** Penalidade máxima (**-50,0 pontos**)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador LDC").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f20_bruto = f20_data.get("valor", {})
+                            if not isinstance(val_f20_bruto, dict):
+                                val_f20_bruto = {}
+
+                            state_f20 = {
+                                "val_dc": float(val_f20_bruto.get("despesa_corrente", 0.0) or 0.0),
+                                "val_rc": float(val_f20_bruto.get("receita_corrente", 0.0) or 0.0),
+                                "link": f20_data.get("link", ""),
+                                "pts": float(f20_data.get("pontos", 0.0) or 0.0)
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_dc = (
+                                    ui.number(label="Despesa Corrente Liquidada (DC)", value=state_f20["val_dc"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_rc = (
+                                    ui.number(label="Receita Corrente Arrecadada (RC)", value=state_f20["val_rc"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_ldc = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_f20 = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_f20(_=None):
+                                try:
+                                    dc = float(input_dc.value or 0.0)
+                                    rc = float(input_rc.value or 0.0)
+                                except (ValueError, TypeError):
+                                    dc, rc = 0.0, 0.0
+
+                                state_f20["val_dc"] = dc
+                                state_f20["val_rc"] = rc
+
+                                if rc > 0:
+                                    ldc = dc / rc
+                                    if ldc <= 0.85:
+                                        pts = 0.0
+                                        lbl_pts_f20.classes(remove="text-red-600 text-amber-600 text-gray-500", add="text-green-600")
+                                    elif 0.85 < ldc <= 0.95:
+                                        pts = ((ldc - 0.85) / 0.10) * (-50.0)
+                                        lbl_pts_f20.classes(remove="text-green-600 text-red-600 text-gray-500", add="text-amber-600")
+                                    else:
+                                        pts = -50.0
+                                        lbl_pts_f20.classes(remove="text-green-600 text-amber-600 text-gray-500", add="text-red-600")
+
+                                    state_f20["pts"] = pts
+                                    lbl_ldc.set_text(f"Resultado LDC (Despesa Corrente / Receita Corrente): {ldc:.4f} ({ldc*100:.2f}%)")
+                                    lbl_pts_f20.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_ldc.set_text("Resultado LDC: Indefinido (A Receita Corrente deve ser maior que R$ 0,00)")
+                                    lbl_pts_f20.set_text("⚠️ Informe os valores válidos de Despesa e Receita Corrente.")
+                                    lbl_pts_f20.classes(remove="text-green-600 text-amber-600 text-red-600", add="text-gray-500")
+                                    state_f20["pts"] = 0.0
+
+                            input_dc.on("update:model-value", calcular_f20)
+                            input_rc.on("update:model-value", calcular_f20)
+                            calcular_f20()
+
+                        input_link_f20 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f20["link"],
+                            placeholder="Insira o link do Relatório de Instrução (Item GF56 Audesp)..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f20():
+                            if state_f20["val_rc"] <= 0:
+                                ui.notify("Por favor, informe um valor válido para a Receita Corrente!", type="warning")
+                                return
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F20",
+                                valor={
+                                    "despesa_corrente": state_f20["val_dc"],
+                                    "receita_corrente": state_f20["val_rc"]
+                                },
+                                pontos=state_f20["pts"],
+                                link=input_link_f20.value,
+                                comentarios=f20_data.get("comentarios", []),
+                                status=f20_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F20 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f20).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F20", res_data, render_conteudo.refresh)
+
                       
     render_conteudo()
