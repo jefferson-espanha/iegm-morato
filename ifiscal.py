@@ -4651,5 +4651,125 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F18", res_data, render_conteudo.refresh)
 
+    # ==========================================
+                    # QUESITO F19 (Percentual da Taxa de Investimento)
+                    # ==========================================
+                    f19_data = res_data.get("F19", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F19 • Percentual da Taxa de Investimento").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Taxa de investimento em relação à receita arrecadada (N = (Despesas Liquidadas em Investimentos [L] + Liquidação de RPNP [F]) / Receita Total Arrecadada [M]):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador N (Taxa de Investimento)", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **N >= 0,15 (Investimento >= 15% da Receita):** Pontuação máxima (**50,0 pontos**)
+                            * **0,02 < N < 0,15 (Graduação Proporcional):** Pontuação calculada por `((N - 0,02) / 0,13) * 50,0`
+                            * **N <= 0,02 (Investimento <= 2% da Receita):** Sem pontuação (**0,0 ponto**)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador N").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f19_bruto = f19_data.get("valor", {})
+                            if not isinstance(val_f19_bruto, dict):
+                                val_f19_bruto = {}
+
+                            state_f19 = {
+                                "val_l": float(val_f19_bruto.get("desp_investimentos", 0.0) or 0.0),
+                                "val_f": float(val_f19_bruto.get("liq_rpnp", 0.0) or 0.0),
+                                "val_m": float(val_f19_bruto.get("receita_total", 0.0) or 0.0),
+                                "link": f19_data.get("link", ""),
+                                "pts": float(f19_data.get("pontos", 0.0) or 0.0)
+                            }
+
+                            with ui.grid(columns=3).classes("w-full gap-4"):
+                                input_l = (
+                                    ui.number(label="Despesa Liquidada - Grupo 44 (L)", value=state_f19["val_l"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_f = (
+                                    ui.number(label="Liquidação de RPNP (F)", value=state_f19["val_f"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_m = (
+                                    ui.number(label="Receita Total Arrecadada (M)", value=state_f19["val_m"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_n = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_f19 = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_f19(_=None):
+                                try:
+                                    l_val = float(input_l.value or 0.0)
+                                    f_val = float(input_f.value or 0.0)
+                                    m_val = float(input_m.value or 0.0)
+                                except (ValueError, TypeError):
+                                    l_val, f_val, m_val = 0.0, 0.0, 0.0
+
+                                state_f19["val_l"] = l_val
+                                state_f19["val_f"] = f_val
+                                state_f19["val_m"] = m_val
+
+                                if m_val > 0:
+                                    n_ind = (l_val + f_val) / m_val
+                                    if n_ind >= 0.15:
+                                        pts = 50.0
+                                        lbl_pts_f19.classes(remove="text-red-600 text-amber-600 text-gray-500", add="text-green-600")
+                                    elif 0.02 < n_ind < 0.15:
+                                        pts = ((n_ind - 0.02) / 0.13) * 50.0
+                                        lbl_pts_f19.classes(remove="text-green-600 text-red-600 text-gray-500", add="text-amber-600")
+                                    else:
+                                        pts = 0.0
+                                        lbl_pts_f19.classes(remove="text-green-600 text-amber-600 text-gray-500", add="text-red-600")
+
+                                    state_f19["pts"] = pts
+                                    lbl_n.set_text(f"Resultado N (Investimento Total / Receita Total): {n_ind:.4f} ({n_ind*100:.2f}%)")
+                                    lbl_pts_f19.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_n.set_text("Resultado N: Indefinido (A Receita Total deve ser maior que R$ 0,00)")
+                                    lbl_pts_f19.set_text("⚠️ Informe valores válidos para calcular o indicador.")
+                                    lbl_pts_f19.classes(remove="text-green-600 text-amber-600 text-red-600", add="text-gray-500")
+                                    state_f19["pts"] = 0.0
+
+                            input_l.on("update:model-value", calcular_f19)
+                            input_f.on("update:model-value", calcular_f19)
+                            input_m.on("update:model-value", calcular_f19)
+                            calcular_f19()
+
+                        input_link_f19 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f19["link"],
+                            placeholder="Insira o link das demonstrações contábeis / balanço orçamentário do AUDESP..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f19():
+                            if state_f19["val_m"] <= 0:
+                                ui.notify("Por favor, informe um valor válido para a Receita Total!", type="warning")
+                                return
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F19",
+                                valor={
+                                    "desp_investimentos": state_f19["val_l"],
+                                    "liq_rpnp": state_f19["val_f"],
+                                    "receita_total": state_f19["val_m"]
+                                },
+                                pontos=state_f19["pts"],
+                                link=input_link_f19.value,
+                                comentarios=f19_data.get("comentarios", []),
+                                status=f19_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F19 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f19).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F19", res_data, render_conteudo.refresh)
+
                       
     render_conteudo()
