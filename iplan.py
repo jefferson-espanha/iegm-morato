@@ -1674,4 +1674,147 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 14.4.2 (Treinamento do Quadro do SCI - Radio)
+                    # ==========================================
+                    opcoes_1442 = {
+                        "Selecione...": 0.0,
+                        "Sim (Treinamento periódico pelo menos 1 vez ao ano) – 06 pts": 6.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4.2",
+                        titulo="Treinamento Específico da Equipe do SCI",
+                        pergunta="O quadro funcional do Sistema de Controle Interno recebe treinamento específico para execução das atividades inerentes ao cargo (Periodicidade mínima de 1 vez ao ano)?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1442,
+                        placeholder_link="Insira o link dos comprovantes/certificados de treinamento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.4.3 (Segregação de Funções - Radio)
+                    # ==========================================
+                    opcoes_1443 = {
+                        "Selecione...": 0.0,
+                        "Sim – 05 pts": 5.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4.3",
+                        titulo="Segregação de Funções Financeiras e de Controle",
+                        pergunta="Na Prefeitura existe formalização da segregação de funções financeiras e de controle?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1443,
+                        placeholder_link="Insira o link do ato normativo ou organograma que formaliza a segregação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.4.4 (Autonomia e Independência da UCCI - Radio)
+                    # ==========================================
+                    opcoes_1444 = {
+                        "Selecione...": 0.0,
+                        "Sim – 06 pts": 6.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4.4",
+                        titulo="Autonomia e Independência da UCCI",
+                        pergunta="A Unidade Central de Controle Interno (UCCI) possui autonomia e independência para o exercício de suas funções?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1444,
+                        placeholder_link="Insira o link do regimento interno ou norma que ateste a autonomia...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.4.4.1 (Subordinação da UCCI - Radio)
+                    # ==========================================
+                    opcoes_14441 = {
+                        "Selecione...": 0.0,
+                        "Gabinete do Prefeito – 00 pts": 0.0,
+                        "Administração – -06 pts": -6.0,
+                        "Finanças/Fazenda – -06 pts": -6.0,
+                        "Planejamento/Orçamento/Gestão – -06 pts": -6.0,
+                        "Outra – -06 pts": -6.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4.4.1",
+                        titulo="Subordinação Hierárquica da UCCI",
+                        pergunta="A estrutura organizacional da Unidade Central de Controle Interno (UCCI) está associada ou subordinada a qual secretaria/diretoria?",
+                        tipo_input="radio",
+                        opcoes=opcoes_14441,
+                        placeholder_link="Insira o link do organograma ou lei de estrutura...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.4.4.2 (Comunicação de Irregularidade em 2025 - Radio)
+                    # ==========================================
+                    opcoes_14442 = {
+                        "Selecione...": 0.0,
+                        "Sim, houve comunicação da irregularidade ou ilegalidade – 00 pts": 0.0,
+                        "Houve irregularidade ou ilegalidade, mas não procedeu a comunicação – -03 pts": -3.0,
+                        "Não houve irregularidades nem ilegalidades – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4.4.2",
+                        titulo="Comunicação de Irregularidades em 2025",
+                        pergunta="A Unidade Central de Controle Interno (UCCI) procedeu com alguma comunicação de irregularidade ou ilegalidade em 2025?",
+                        tipo_input="radio",
+                        opcoes=opcoes_14442,
+                        placeholder_link="Insira o link com comprovação das comunicações expedidas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.4.4.2.1 (Quantidade de Comunicações ao TCESP e MPSP - Radio/Text)
+                    # ==========================================
+                    opcoes_144421 = {
+                        "Selecione...": 0.0,
+                        "Informado / Sem pontuação aplicada – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4.4.2.1",
+                        titulo="Quantidade de Irregularidades Comunicadas (TCESP / MPSP)",
+                        pergunta="Informe a quantidade de irregularidades ou ilegalidades comunicadas ao Tribunal de Contas do Estado de São Paulo (TCESP) e ao Ministério Público do Estado de São Paulo (MPSP):",
+                        tipo_input="radio",
+                        opcoes=opcoes_144421,
+                        placeholder_link="Informe os quantitativos (ex: TCESP: X, MPSP: Y) e insira o link...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 14.4.5 (Relatórios Periódicos da UCCI - Radio)
+                    # ==========================================
+                    opcoes_1445 = {
+                        "Selecione...": 0.0,
+                        "Sim (Periodicidade mínima anual) – 05 pts": 5.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.4.5",
+                        titulo="Apresentação de Relatórios Periódicos da UCCI",
+                        pergunta="O responsável pela Unidade Central de Controle Interno (UCCI) apresentou relatórios periódicos que demonstram efetivo exercício de suas atribuições (Periodicidade mínima anual)?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1445,
+                        placeholder_link="Insira o link dos relatórios periódicos apresentados...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
