@@ -8,7 +8,7 @@ import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
 # =============================================================================
-# BANCO DE DADOS (NEON)
+# BANCO DE DADOS (NEON - ESTRUTURA REAL RESPOSTAS_IFISCAL)
 # =============================================================================
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
@@ -20,34 +20,9 @@ def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
-def init_db():
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    CREATE TABLE IF NOT EXISTS respostas_ifiscal (
-                        qid VARCHAR(50) NOT NULL,
-                        ano INTEGER NOT NULL,
-                        valor TEXT,
-                        pontos REAL DEFAULT 0,
-                        link TEXT,
-                        comentarios JSONB DEFAULT '[]'::jsonb,
-                        status VARCHAR(20) DEFAULT 'Pendente',
-                        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        PRIMARY KEY (ano, qid)
-                    );
-                """)
-                conn.commit()
-    except Exception as e:
-        print(f"❌ Erro ao inicializar tabela respostas_ifiscal: {e}")
-
-
-init_db()
-
-
 def load_respostas(ano):
     query = """
-        SELECT qid, valor, pontos, link, comentarios, status
+        SELECT id, ano, quesito, resposta, pontos, detalhes
         FROM respostas_ifiscal
         WHERE ano = %s;
     """
@@ -58,8 +33,11 @@ def load_respostas(ano):
                 cur.execute(query, (int(ano),))
                 rows = cur.fetchall()
                 for row in rows:
-                    val_bruto = row["valor"] or ""
-                    
+                    q_id = row["quesito"]
+                    val_bruto = row["resposta"] or ""
+
+                    # Tenta converter resposta de JSON caso seja dicionário/lista salvos como string
+                    val_final = val_bruto
                     if isinstance(val_bruto, str) and (
                         (val_bruto.startswith("[") and val_bruto.endswith("]")) or 
                         (val_bruto.startswith("{") and val_bruto.endswith("}"))
@@ -68,30 +46,34 @@ def load_respostas(ano):
                             val_final = json.loads(val_bruto)
                         except Exception:
                             val_final = val_bruto
-                    else:
-                        val_final = val_bruto
 
-                    respostas[row["qid"]] = {
+                    # Extrai link e comentarios dentro do campo JSONB 'detalhes'
+                    detalhes_obj = row["detalhes"] or {}
+                    if isinstance(detalhes_obj, str):
+                        try:
+                            detalhes_obj = json.loads(detalhes_obj)
+                        except Exception:
+                            detalhes_obj = {}
+
+                    link_val = detalhes_obj.get("link", "")
+                    if link_val == "EMPTY_STRING":
+                        link_val = ""
+
+                    comentarios_val = detalhes_obj.get("comentarios", [])
+                    if not isinstance(comentarios_val, list):
+                        comentarios_val = []
+
+                    status_val = detalhes_obj.get("status", "Pendente")
+
+                    respostas[q_id] = {
                         "valor": val_final,
-                        "pontos": (
-                            float(row["pontos"])
-                            if row["pontos"] is not None
-                            else 0.0
-                        ),
-                        "link": (
-                            row["link"]
-                            if row["link"] != "EMPTY_STRING"
-                            else ""
-                        ),
-                        "comentarios": (
-                            row["comentarios"]
-                            if isinstance(row["comentarios"], list)
-                            else []
-                        ),
-                        "status": row["status"] or "Pendente",
+                        "pontos": float(row["pontos"]) if row["pontos"] is not None else 0.0,
+                        "link": link_val,
+                        "comentarios": comentarios_val,
+                        "status": status_val,
                     }
     except Exception as e:
-        print(f"❌ Erro ao carregar respostas do Neon DB: {e}")
+        print(f"❌ Erro ao carregar respostas de respostas_ifiscal: {e}")
     return respostas
 
 
@@ -104,22 +86,31 @@ def save_resposta(
 
     link_final = link.strip() if link else ""
 
+    # Serialização do campo 'resposta'
     if isinstance(valor, (list, dict)):
-        valor_str = json.dumps(valor, ensure_ascii=False)
+        resposta_str = json.dumps(valor, ensure_ascii=False)
     else:
-        valor_str = str(valor) if valor is not None else ""
+        resposta_str = str(valor) if valor is not None else ""
+
+    # Estrutura do objeto 'detalhes' (JSONB)
+    detalhes_data = {
+        "link": link_final,
+        "comentarios": comentarios,
+        "status": status,
+    }
+
+    # Gera um ID único simples combinando Ano e Quesito se necessário
+    registro_id = f"{ano}_{qid}"
 
     query = """
-        INSERT INTO respostas_ifiscal (ano, qid, valor, pontos, link, comentarios, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (ano, qid) 
+        INSERT INTO respostas_ifiscal (id, ano, quesito, resposta, pontos, detalhes, atualizado_em)
+        VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+        ON CONFLICT (ano, quesito) 
         DO UPDATE SET
-            valor = EXCLUDED.valor,
+            resposta = EXCLUDED.resposta,
             pontos = EXCLUDED.pontos,
-            link = EXCLUDED.link,
-            comentarios = EXCLUDED.comentarios,
-            status = EXCLUDED.status,
-            updated_at = CURRENT_TIMESTAMP;
+            detalhes = EXCLUDED.detalhes,
+            atualizado_em = CURRENT_TIMESTAMP;
     """
     try:
         with get_db_connection() as conn:
@@ -127,19 +118,18 @@ def save_resposta(
                 cur.execute(
                     query,
                     (
+                        registro_id,
                         int(ano),
                         str(qid),
-                        valor_str,
+                        resposta_str,
                         float(pontos),
-                        link_final,
-                        Json(comentarios),
-                        str(status),
+                        Json(detalhes_data),
                     ),
                 )
                 conn.commit()
-                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso no banco!")
+                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso na tabela respostas_ifiscal!")
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
+        print(f"❌ Erro ao salvar resposta na tabela respostas_ifiscal: {e}")
 
 
 def zerar_questionario_db(ano):
@@ -156,7 +146,6 @@ def zerar_questionario_db(ano):
 def _obter_lista_comentarios(dados_q):
     coms = dados_q.get("comentarios", [])
     return coms if isinstance(coms, list) else []
-
 
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
