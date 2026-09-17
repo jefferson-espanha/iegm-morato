@@ -1342,5 +1342,211 @@ def container_formulario_ifiscal(ano=None):
                         placeholder_link="Insira o link da ferramenta de consulta de autenticidade...",
                         on_save_callback=render_conteudo.refresh,
                     )
+
+                    # ==========================================
+                    # QUESITO 9.0 (Radio)
+                    # ==========================================
+                    opcoes_9_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.0",
+                        titulo="Regulamentação do ITBI",
+                        pergunta="O Imposto sobre Transmissão de Bens Imóveis (ITBI) foi regulamentado?",
+                        tipo_input="radio",
+                        opcoes=opcoes_9_0,
+                        placeholder_link="Insira o link ou documento de regulamentação do ITBI...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 9.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.1",
+                        titulo="Instrumento Normativo do ITBI",
+                        pergunta="Informe o instrumento normativo de regulamentação do ITBI, Número e Data da publicação: (Caso não esteja disponível na internet, recomendamos anexar o instrumento normativo)",
+                        tipo_input="text",
+                        placeholder_link="Insira o link para a norma de regulamentação do ITBI...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 9.2 (Página Eletrônica com Regra XYZ)
+                    # ==========================================
+                    dados_9_2 = res_data.get("9.2", {})
+                    val_9_2 = str(dados_9_2.get("valor", ""))
+                    link_9_2 = dados_9_2.get("link", "")
+
+                    state_9_2 = {
+                        "texto": val_9_2,
+                        "link": link_9_2,
+                    }
+
+                    def calc_pts_9_2():
+                        return -3.0 if state_9_2["texto"].strip().upper() == "XYZ" else 0.0
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("9.2 • Divulgação do ITBI na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) de divulgação da regulamentação do ITBI:").classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            txt_9_2 = ui.textarea(
+                                label="Página Eletrônica / Resposta:",
+                                value=state_9_2["texto"],
+                                placeholder="Digite a URL ou o texto XYZ..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_9_2, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_9_2["link"],
+                                placeholder="Insira o link de evidência adicional..."
+                            ).classes("w-full").props("outlined rows=5").bind_value(state_9_2, "link")
+
+                        pts_9_2 = calc_pts_9_2()
+                        label_impacto_9_2 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 9.2: {pts_9_2:.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def atualizar_impacto_9_2(e=None):
+                            pts_att = calc_pts_9_2()
+                            label_impacto_9_2.set_text(f"📊 Impacto de Pontuação no Quesito 9.2: {pts_att:.1f} pontos")
+
+                        txt_9_2.on("update:model-value", atualizar_impacto_9_2)
+
+                        def salvar_9_2():
+                            pts_final = calc_pts_9_2()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="9.2",
+                                valor=state_9_2["texto"],
+                                pontos=pts_final,
+                                link=state_9_2["link"],
+                                comentarios=dados_9_2.get("comentarios", []),
+                                status=dados_9_2.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 9.2 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_9_2).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("9.2", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO 9.3 (Checkbox - Múltipla Escolha)
+                    # ==========================================
+                    opcoes_9_3 = {
+                        "Site da Prefeitura": 0.0,
+                        "Órgão Fazendário": 0.0,
+                        "Cartório autorizado": 0.0,
+                        "Outros": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.3",
+                        titulo="Registro e Emissão da Guia do ITBI",
+                        pergunta="Assinale a forma de registro e emissão da guia de recolhimento do ITBI: (Obs: A mera impressão da guia não é considerada forma de emissão)",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_9_3,
+                        placeholder_link="Insira o link ou documento comprobatório dos canais de emissão...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 9.4 (Radio)
+                    # ==========================================
+                    opcoes_9_4 = {
+                        "Selecione...": 0.0,
+                        "Sim – 02": 2.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.4",
+                        titulo="Obrigação de Informação pelos Cartórios",
+                        pergunta="O município instituiu normativo que obrigue o(s) Cartório(s) de Registro de Imóveis e Distribuidor(es) a informar periodicamente as transmissões imobiliárias realizadas no seu território, para fins de incidência do ITBI?",
+                        tipo_input="radio",
+                        opcoes=opcoes_9_4,
+                        placeholder_link="Insira a lei ou decreto com a exigência aos cartórios...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 9.4.1 (Radio)
+                    # ==========================================
+                    opcoes_9_4_1 = {
+                        "Selecione...": 0.0,
+                        "Sim – 03": 3.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.4.1",
+                        titulo="Penalidades aos Cartórios",
+                        pergunta="O município aplica penalidade ou multa aos Cartórios, quando não cumpridos os termos da lei mencionada na resposta do item anterior?",
+                        tipo_input="radio",
+                        opcoes=opcoes_9_4_1,
+                        placeholder_link="Insira o dispositivo legal da penalidade aos cartórios...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 9.5 (Checkbox - Múltipla Escolha)
+                    # ==========================================
+                    opcoes_9_5 = {
+                        "Sistema Bancário": 0.0,
+                        "Diretamente no Caixa da Prefeitura": 0.0,
+                        "Lotérica": 0.0,
+                        "Outros": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.5",
+                        titulo="Forma de Recolhimento do ITBI",
+                        pergunta="Assinale a forma de recolhimento da guia do ITBI:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_9_5,
+                        placeholder_link="Insira o comprovante ou norma dos locais aceitos para pagamento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 9.6 (Radio - Penalidade Súmula 656 STF)
+                    # ==========================================
+                    opcoes_9_6 = {
+                        "Selecione...": 0.0,
+                        "Sim – -30": -30.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.6",
+                        titulo="Alíquotas Progressivas no ITBI",
+                        pergunta="O município estabelece alíquotas progressivas para o ITBI, com base no valor venal do imóvel? (Atenção: Súmula 656 do STF)",
+                        tipo_input="radio",
+                        opcoes=opcoes_9_6,
+                        placeholder_link="Insira o trecho do Código Tributário sobre as alíquotas do ITBI...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                   
     render_conteudo()
