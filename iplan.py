@@ -2390,57 +2390,103 @@ def container_formulario_plan(ano=None):
                     )
  
                     # ==========================================
-                    # QUESITO P3 (Percentual de Alteração do Planejamento Inicial - Calculadora Integrada)
+                    # QUESITO P3 (Percentual de Alteração do Planejamento Inicial - Calculadora Monetária)
                     # ==========================================
-                    opcoes_p3 = {
-                        "K >= 1,3 (Penalidade máxima) – -30 pts": -30.0,
-                        "0,9 < K < 1,3 (Dentro do limite) – 00 pts": 0.0,
-                        "0,5 < K <= 0,9 (Proporcional: ((0.9-K)/0.4)*-30)": 0.0,
-                        "K <= 0,5 (Penalidade máxima) – -30 pts": -30.0,
-                    }
-
-                    # Dicionário local para armazenar o estado da calculadora
-                    calc_p3_state = {"pts": 0.0}
-
-                    with ui.card().classes("w-full p-4 mb-2 bg-blue-50 border border-blue-200 rounded-lg"):
-                        ui.label("🧮 Calculadora Automática do Indicador K (Quesito P3)").classes("font-bold text-blue-700 mb-2")
-                        with ui.grid(columns=2).classes("w-full gap-4"):
-                            input_i = ui.number(label="Valor Inicial LOA (I)", value=0.0, format="%.2f").classes("w-full").props("outlined bg-white")
-                            input_j = ui.number(label="Valor Final Apurado (J)", value=0.0, format="%.2f").classes("w-full").props("outlined bg-white")
+                    # Estado local para persistência e cálculo dos valores monetários
+                    p3_data = res_data.get("P3", {})
+                    
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("P3 • Percentual de Alteração do Planejamento Inicial").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Total dos valores dos programas estabelecidos inicialmente na LOA comparado com os valores finais apurados para os mesmos programas (K = J / I):").classes("text-base font-bold text-black mb-2")
                         
-                        lbl_resultado_k = ui.label("Informe os valores acima para calcular K e a pontuação.").classes("text-sm font-semibold text-gray-700 mt-2")
+                        # Bloco Informativo de Regras de Pontuação
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador K", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **K >= 1,3:** Penalidade máxima (**-30,0 pontos**)
+                            * **0,9 < K < 1,3:** Dentro do limite aceitável (**0,0 ponto**)
+                            * **0,5 < K <= 0,9:** Graduação proporcional **`((0,9 - K) / 0,4) * -30`**
+                            * **K <= 0,5:** Penalidade máxima (**-30,0 pontos**)
+                            """).classes("text-sm text-gray-700 p-2")
 
-                        def recalcular_p3(_=None):
-                            i = input_i.value or 0.0
-                            j = input_j.value or 0.0
-                            if i > 0:
-                                k = j / i
-                                if k >= 1.3:
-                                    pts = -30.0
-                                elif 0.9 < k < 1.3:
-                                    pts = 0.0
-                                elif 0.5 < k <= 0.9:
-                                    pts = ((0.9 - k) / 0.4) * -30.0
+                        # Seção da Calculadora Monetária
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador K").classes("font-bold text-blue-700 mb-2")
+                            
+                            state_p3 = {
+                                "val_i": float(p3_data.get("valor_i", 0.0)),
+                                "val_j": float(p3_data.get("valor_j", 0.0)),
+                                "link": p3_data.get("link", ""),
+                                "pts": float(p3_data.get("pontos", 0.0))
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_i = (
+                                    ui.number(label="Valor Total Inicial LOA (I)", value=state_p3["val_i"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_j = (
+                                    ui.number(label="Valor Total Final Apurado (J)", value=state_p3["val_j"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_k = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+
+                            def calcular_k(_=None):
+                                i = input_i.value or 0.0
+                                j = input_j.value or 0.0
+                                state_p3["val_i"] = i
+                                state_p3["val_j"] = j
+
+                                if i > 0:
+                                    k = j / i
+                                    if k >= 1.3:
+                                        pts = -30.0
+                                    elif 0.9 < k < 1.3:
+                                        pts = 0.0
+                                    elif 0.5 < k <= 0.9:
+                                        pts = ((0.9 - k) / 0.4) * -30.0
+                                    else:
+                                        pts = -30.0
+                                    
+                                    state_p3["pts"] = pts
+                                    lbl_k.set_text(f"Resultado K (J / I): {k:.4f}")
+                                    lbl_pts.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
                                 else:
-                                    pts = -30.0
-                                calc_p3_state["pts"] = pts
-                                lbl_resultado_k.set_text(f"Resultado: K = {k:.4f} ➔ Pontuação Calculada: {pts:.2f} pontos")
-                            else:
-                                lbl_resultado_k.set_text("Aguardando valor de 'I' maior que zero...")
+                                    lbl_k.set_text("Resultado K: Indefinido (O Valor Inicial 'I' deve ser maior que R$ 0,00)")
+                                    lbl_pts.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    state_p3["pts"] = 0.0
 
-                        input_i.on("update:model-value", recalcular_p3)
-                        input_j.on("update:model-value", recalcular_p3)
+                            input_i.on("update:model-value", calcular_k)
+                            input_j.on("update:model-value", calcular_k)
+                            calcular_k()
 
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="P3",
-                        titulo="Percentual de Alteração do Planejamento Inicial",
-                        pergunta="Total dos valores dos programas na LOA (I) comparado aos valores finais (J). Selecione a faixa apurada na calculadora acima:",
-                        tipo_input="radio",
-                        opcoes=opcoes_p3,
-                        placeholder_link="Insira o link ou anexo com a memória de cálculo dos valores I e J...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                        # Campo de Evidência / Link
+                        input_link = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_p3["link"],
+                            placeholder="Insira o link ou anexo com a memória de cálculo dos valores I e J..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        # Ação de Salvamento
+                        def salvar_p3():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="P3",
+                                valor={"I": state_p3["val_i"], "J": state_p3["val_j"]},
+                                pontos=state_p3["pts"],
+                                link=input_link.value,
+                                comentarios=p3_data.get("comentarios", []),
+                                status=p3_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito P3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_p3).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("P3", res_data, render_conteudo.refresh)
                     
     render_conteudo()
