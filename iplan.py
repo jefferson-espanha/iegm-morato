@@ -793,7 +793,7 @@ def container_formulario_plan(ano=None):
                         placeholder_link="Insira o link dos anexos de metas do PPA...",
                         on_save_callback=render_conteudo.refresh,
                     )
-
+                    
                     # ==========================================
                     # QUESITO 4.1 (Programas Finalísticos - Radio)
                     # ==========================================
@@ -810,7 +810,7 @@ def container_formulario_plan(ano=None):
                         titulo="Articulação dos Programas Finalísticos",
                         pergunta="Os programas finalísticos articulam um conjunto de ações que concorrem para um objetivo comum preestabelecido, visando à solução de um problema ou necessidade da sociedade?",
                         tipo_input="radio",
-                        opcoes=opcoes_411,
+                        opcoes=opcoes_41,
                         placeholder_link="Insira o link da estrutura dos programas do PPA...",
                         on_save_callback=render_conteudo.refresh,
                     )
