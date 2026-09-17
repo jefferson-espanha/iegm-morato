@@ -4323,5 +4323,110 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F15", res_data, render_conteudo.refresh)
 
+                    # ==========================================
+                    # QUESITO F16 (Resultado Primário - Operacional)
+                    # ==========================================
+                    f16_data = res_data.get("F16", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F16 • Resultado Primário (Operacional)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Capacidade de reduzir o endividamento municipal (RP = Receitas Realizadas [RR] - Despesas Liquidadas [DL] do 6º Bimestre):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Quesito F16", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Resultado Primário Acima de ZERO (RP > 0):** Pontuação máxima = **75,0 pontos**
+                            * **Resultado Primário Igual a ZERO (RP = 0):** Pontuação intermediária = **40,0 pontos**
+                            * **Resultado Primário Abaixo de ZERO (RP < 0):** Sem pontuação = **0,0 ponto**
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Apuração do Resultado Primário (RP = RR - DL)").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f16_bruto = f16_data.get("valor", {})
+                            if not isinstance(val_f16_bruto, dict):
+                                val_f16_bruto = {}
+
+                            state_f16 = {
+                                "val_rr": float(val_f16_bruto.get("receitas_realizadas", 0.0) or 0.0),
+                                "val_dl": float(val_f16_bruto.get("despesas_liquidadas", 0.0) or 0.0),
+                                "rp": float(val_f16_bruto.get("resultado_primario", 0.0) or 0.0),
+                                "link": f16_data.get("link", ""),
+                                "pts": float(f16_data.get("pontos", 0.0) or 0.0)
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_rr = (
+                                    ui.number(label="Receitas Realizadas (RR) - RLR", value=state_f16["val_rr"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_dl = (
+                                    ui.number(label="Despesas Liquidadas (DL) - DPL", value=state_f16["val_dl"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_rp = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_f16 = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_f16(_=None):
+                                try:
+                                    rr = float(input_rr.value or 0.0)
+                                    dl = float(input_dl.value or 0.0)
+                                except (ValueError, TypeError):
+                                    rr, dl = 0.0, 0.0
+
+                                state_f16["val_rr"] = rr
+                                state_f16["val_dl"] = dl
+                                rp = rr - dl
+                                state_f16["rp"] = rp
+
+                                if rp > 0.0:
+                                    pts = 75.0
+                                    lbl_pts_f16.set_text("📊 Impacto de Pontuação Calculado: 75.00 pontos (Resultado Primário Superavitário)")
+                                    lbl_pts_f16.classes(remove="text-amber-600 text-red-600", add="text-green-600")
+                                elif rp == 0.0:
+                                    pts = 40.0
+                                    lbl_pts_f16.set_text("📊 Impacto de Pontuação Calculado: 40.00 pontos (Resultado Primário Equilibrado)")
+                                    lbl_pts_f16.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                else:
+                                    pts = 0.0
+                                    lbl_pts_f16.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos (Resultado Primário Deficitário)")
+                                    lbl_pts_f16.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+
+                                state_f16["pts"] = pts
+                                lbl_rp.set_text(f"Resultado Primário Calculado (RP): R$ {rp:,.2f}")
+
+                            input_rr.on("update:model-value", calcular_f16)
+                            input_dl.on("update:model-value", calcular_f16)
+                            calcular_f16()
+
+                        input_link_f16 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f16["link"],
+                            placeholder="Insira o link do Demonstrativo do Resultado Primário do 6º bimestre (Item GF20 AUDESP)..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f16():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F16",
+                                valor={
+                                    "receitas_realizadas": state_f16["val_rr"],
+                                    "despesas_liquidadas": state_f16["val_dl"],
+                                    "resultado_primario": state_f16["rp"]
+                                },
+                                pontos=state_f16["pts"],
+                                link=input_link_f16.value,
+                                comentarios=f16_data.get("comentarios", []),
+                                status=f16_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F16 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f16).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F16", res_data, render_conteudo.refresh)
+
                       
     render_conteudo()
