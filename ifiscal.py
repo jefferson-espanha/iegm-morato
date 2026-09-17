@@ -3148,10 +3148,10 @@ def container_formulario_ifiscal(ano=None):
                                 val_f4_bruto = {}
 
                             state_f4 = {
-                                "val_c": float(val_f4_bruto.get("C", 0.0)),
-                                "val_b": float(val_f4_bruto.get("B", 0.0)),
+                                "val_c": float(val_f4_bruto.get("C", 0.0) or 0.0),
+                                "val_b": float(val_f4_bruto.get("B", 0.0) or 0.0),
                                 "link": f4_data.get("link", ""),
-                                "pts": float(f4_data.get("pontos", 0.0))
+                                "pts": float(f4_data.get("pontos", 0.0) or 0.0)
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
@@ -3170,8 +3170,12 @@ def container_formulario_ifiscal(ano=None):
                             lbl_pts_k = ui.label().classes("text-sm font-bold text-green-600 mt-1")
 
                             def calcular_k(_=None):
-                                c = input_c.value or 0.0
-                                b = input_b.value or 0.0
+                                try:
+                                    c = float(input_c.value or 0.0)
+                                    b = float(input_b.value or 0.0)
+                                except (ValueError, TypeError):
+                                    c, b = 0.0, 0.0
+
                                 state_f4["val_c"] = c
                                 state_f4["val_b"] = b
 
@@ -3243,9 +3247,9 @@ def container_formulario_ifiscal(ano=None):
                                 val_f5_bruto = {}
 
                             state_f5 = {
-                                "perc_pessoal": float(val_f5_bruto.get("perc_pessoal", 0.0)),
+                                "perc_pessoal": float(val_f5_bruto.get("perc_pessoal", 0.0) or 0.0),
                                 "link": f5_data.get("link", ""),
-                                "pts": float(f5_data.get("pontos", 0.0)),
+                                "pts": float(f5_data.get("pontos", 0.0) or 0.0),
                                 "rebaixa": val_f5_bruto.get("rebaixa_faixa", False)
                             }
 
@@ -3263,7 +3267,11 @@ def container_formulario_ifiscal(ano=None):
                             lbl_pts_pessoal = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_pessoal(_=None):
-                                val = input_pessoal.value or 0.0
+                                try:
+                                    val = float(input_pessoal.value or 0.0)
+                                except (ValueError, TypeError):
+                                    val = 0.0
+
                                 state_f5["perc_pessoal"] = val
 
                                 if val > 0.54:
@@ -3340,10 +3348,10 @@ def container_formulario_ifiscal(ano=None):
                                 val_f6_bruto = {}
 
                             state_f6 = {
-                                "val_dppl": float(val_f6_bruto.get("DPPL", 0.0)),
-                                "val_rcl": float(val_f6_bruto.get("RCL", 0.0)),
+                                "val_dppl": float(val_f6_bruto.get("DPPL", 0.0) or 0.0),
+                                "val_rcl": float(val_f6_bruto.get("RCL", 0.0) or 0.0),
                                 "link": f6_data.get("link", ""),
-                                "pts": float(f6_data.get("pontos", 0.0))
+                                "pts": float(f6_data.get("pontos", 0.0) or 0.0)
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
@@ -3362,8 +3370,12 @@ def container_formulario_ifiscal(ano=None):
                             lbl_pts_ab = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_ab(_=None):
-                                dppl = input_dppl.value or 0.0
-                                rcl = input_rcl.value or 0.0
+                                try:
+                                    dppl = float(input_dppl.value or 0.0)
+                                    rcl = float(input_rcl.value or 0.0)
+                                except (ValueError, TypeError):
+                                    dppl, rcl = 0.0, 0.0
+
                                 state_f6["val_dppl"] = dppl
                                 state_f6["val_rcl"] = rcl
 
@@ -3413,7 +3425,7 @@ def container_formulario_ifiscal(ano=None):
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f6).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
-                        bloco_comentarios("F6", res_data, render_conteudo.refresh)  
+                        bloco_comentarios("F6", res_data, render_conteudo.refresh)
 
                     # ==========================================
                     # QUESITO F7 (Apuração do Resultado Financeiro – Resultado Consolidado)
@@ -3426,8 +3438,8 @@ def container_formulario_ifiscal(ano=None):
                         
                         with ui.expansion("ℹ️ Tabela de Regras do Indicador AE", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                             ui.markdown("""
-                            * **AE >= 1,30 (Superávit Elevado):** Pontuação = **0,0 ponto** *(Economia excessiva que pode comprometer a qualidade dos serviços públicos)*
-                            * **1,10 < AE < 1,30 (Superávit Moderado):** Graduação entre 75 e 0 `((AE - 1,30) * (-1) / 0,20) * 75`
+                            * **AE >= 1,30 (Superávit Elevado):** Pontuação = **0,0 ponto** *(Economia excessiva)*
+                            * **1,10 < AE < 1,30 (Superávit Moderado):** Graduação entre 75 e 0 `((1,30 - AE) / 0,20) * 75`
                             * **1,00 <= AE <= 1,10 (Equilíbrio Ideal):** Pontuação máxima = **75,0 pontos**
                             * **0,75 < AE < 1,00 (Déficit Moderado):** Graduação entre 0 e 75 `((AE - 0,75) / 0,25) * 75`
                             * **AE <= 0,75 (Déficit Elevado):** Pontuação = **0,0 ponto**
@@ -3441,10 +3453,10 @@ def container_formulario_ifiscal(ano=None):
                                 val_f7_bruto = {}
 
                             state_f7 = {
-                                "val_ac": float(val_f7_bruto.get("AC", 0.0)),
-                                "val_ad": float(val_f7_bruto.get("AD", 0.0)),
+                                "val_ac": float(val_f7_bruto.get("AC", 0.0) or 0.0),
+                                "val_ad": float(val_f7_bruto.get("AD", 0.0) or 0.0),
                                 "link": f7_data.get("link", ""),
-                                "pts": float(f7_data.get("pontos", 0.0))
+                                "pts": float(f7_data.get("pontos", 0.0) or 0.0)
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
@@ -3463,8 +3475,12 @@ def container_formulario_ifiscal(ano=None):
                             lbl_pts_ae = ui.label().classes("text-sm font-bold text-green-600 mt-1")
 
                             def calcular_ae(_=None):
-                                ac = input_ac.value or 0.0
-                                ad = input_ad.value or 0.0
+                                try:
+                                    ac = float(input_ac.value or 0.0)
+                                    ad = float(input_ad.value or 0.0)
+                                except (ValueError, TypeError):
+                                    ac, ad = 0.0, 0.0
+
                                 state_f7["val_ac"] = ac
                                 state_f7["val_ad"] = ad
 
@@ -3473,7 +3489,7 @@ def container_formulario_ifiscal(ano=None):
                                     if ae >= 1.30:
                                         pts = 0.0
                                     elif 1.10 < ae < 1.30:
-                                        pts = ((ae - 1.30) * (-1.0) / 0.20) * 75.0
+                                        pts = ((1.30 - ae) / 0.20) * 75.0
                                     elif 1.00 <= ae <= 1.10:
                                         pts = 75.0
                                     elif 0.75 < ae < 1.00:
