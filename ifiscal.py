@@ -3315,6 +3315,104 @@ def container_formulario_ifiscal(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f5).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F5", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO F6 (Despesas com Pessoal – Poder Legislativo)
+                    # ==========================================
+                    f6_data = res_data.get("F6", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F6 • Despesas com Pessoal – Poder Legislativo").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Relação entre a Despesa de Pessoal do Poder Legislativo (DPPL) e a Receita Corrente Líquida (RCL), extraída do item GF27 da AUDESP (AB = DPPL / RCL):").classes("text-base font-bold text-black mb-2")
                         
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AB", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **AB > 0,06 (Acima de 6,0% - Limite Máximo LRF):** Penalidade máxima (**-10,0 pontos**)
+                            * **0,057 < AB <= 0,06 (Graduação Proporcional):** Penalidade calculada por `((AB - 0,057) / 0,003) * -10`
+                            * **AB <= 0,057 (Até 5,7%):** Dentro do limite regular (**0,0 ponto**)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador AB").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f6_bruto = f6_data.get("valor", {})
+                            if not isinstance(val_f6_bruto, dict):
+                                val_f6_bruto = {}
+
+                            state_f6 = {
+                                "val_dppl": float(val_f6_bruto.get("DPPL", 0.0)),
+                                "val_rcl": float(val_f6_bruto.get("RCL", 0.0)),
+                                "link": f6_data.get("link", ""),
+                                "pts": float(f6_data.get("pontos", 0.0))
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_dppl = (
+                                    ui.number(label="Despesa de Pessoal - Legislativo (DPPL)", value=state_f6["val_dppl"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_rcl = (
+                                    ui.number(label="Receita Corrente Líquida (RCL)", value=state_f6["val_rcl"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_ab = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_ab = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_ab(_=None):
+                                dppl = input_dppl.value or 0.0
+                                rcl = input_rcl.value or 0.0
+                                state_f6["val_dppl"] = dppl
+                                state_f6["val_rcl"] = rcl
+
+                                if rcl > 0:
+                                    ab = dppl / rcl
+                                    if ab > 0.06:
+                                        pts = -10.0
+                                        lbl_pts_ab.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                    elif 0.057 < ab <= 0.06:
+                                        pts = ((ab - 0.057) / 0.003) * -10.0
+                                        lbl_pts_ab.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                    else:
+                                        pts = 0.0
+                                        lbl_pts_ab.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+                                    
+                                    state_f6["pts"] = pts
+                                    lbl_ab.set_text(f"Resultado AB (DPPL / RCL): {ab:.4f} ({ab*100:.2f}%)")
+                                    lbl_pts_ab.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_ab.set_text("Resultado AB: Indefinido (A RCL deve ser maior que R$ 0,00)")
+                                    lbl_pts_ab.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    lbl_pts_ab.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+                                    state_f6["pts"] = 0.0
+
+                            input_dppl.on("update:model-value", calcular_ab)
+                            input_rcl.on("update:model-value", calcular_ab)
+                            calcular_ab()
+
+                        input_link_f6 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f6["link"],
+                            placeholder="Insira o link do Relatório GF27 do AUDESP ou Relatório de Gestão Fiscal (RGF) da Câmara..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f6():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F6",
+                                valor={"DPPL": state_f6["val_dppl"], "RCL": state_f6["val_rcl"]},
+                                pontos=state_f6["pts"],
+                                link=input_link_f6.value,
+                                comentarios=f6_data.get("comentarios", []),
+                                status=f6_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F6 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f6).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F6", res_data, render_conteudo.refresh)                        
                   
     render_conteudo()
