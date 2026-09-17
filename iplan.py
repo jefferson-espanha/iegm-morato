@@ -166,15 +166,18 @@ def render_quesito(
     qid,
     titulo,
     pergunta,
-    opcoes,
+    opcoes=None,
     tipo_input="radio",
     placeholder_link="Insira o link da evidência...",
     on_save_callback=None,
 ):
+    if opcoes is None:
+        opcoes = {}
+
     dados_q = res_data.get(qid, {})
     link_atual = dados_q.get("link", "")
 
-    # Trata valor inicial
+    # Trata valor inicial conforme o tipo de input
     if tipo_input == "checkbox":
         valor_bruto = dados_q.get("valor", [])
         if isinstance(valor_bruto, list):
@@ -183,10 +186,18 @@ def render_quesito(
             valor_atual = [valor_bruto]
         else:
             valor_atual = []
-    else:
+    elif tipo_input in ["number", "float"]:
+        valor_bruto = dados_q.get("valor", 0.0)
+        try:
+            valor_atual = float(valor_bruto)
+        except (ValueError, TypeError):
+            valor_atual = 0.0
+    elif tipo_input == "text":
+        valor_atual = str(dados_q.get("valor", ""))
+    else:  # radio
         primeira_opcao_valida = list(opcoes.keys())[0] if opcoes else ""
         valor_atual = dados_q.get("valor", primeira_opcao_valida)
-        if valor_atual not in opcoes:
+        if valor_atual not in opcoes and opcoes:
             valor_atual = primeira_opcao_valida
 
     state = {
@@ -206,10 +217,9 @@ def render_quesito(
         ).classes("text-xs text-gray-400 mb-6")
 
         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-            # Lado Esquerdo: Checkboxes ou Radio Buttons
+            # Lado Esquerdo: Checkboxes, Radio, Input Numérico ou Texto
             if tipo_input == "checkbox":
                 with ui.column().classes("gap-2 w-full"):
-                    # Dicionário interno para monitorar o estado individual de cada checkbox
                     chk_states = {}
 
                     def make_on_change(opt):
@@ -229,7 +239,33 @@ def render_quesito(
                             on_change=make_on_change(opt_key)
                         ).props("color=blue")
                         chk_states[opt_key] = chk
-            else:
+
+            elif tipo_input in ["number", "float"]:
+                # Campo numérico de 0 a 250 pontos
+                input_num = (
+                    ui.number(
+                        label="Pontuação do Quesito (0 a 250):",
+                        value=state["opcao"],
+                        min=0,
+                        max=250,
+                        step=0.1,
+                    )
+                    .classes("w-full")
+                    .props("outlined color=blue")
+                    .bind_value(state, "opcao")
+                )
+
+            elif tipo_input == "text":
+                # Campo para textos/respostas dissertativas
+                ui.textarea(
+                    label="Resposta / Comentário:",
+                    value=state["opcao"],
+                    placeholder="Digite sua resposta...",
+                ).classes("w-full").props("outlined rows=4").bind_value(
+                    state, "opcao"
+                )
+
+            else:  # radio
                 input_radio = (
                     ui.radio(
                         options=list(opcoes.keys()),
@@ -250,7 +286,14 @@ def render_quesito(
 
         # Cálculo dinâmico de pontuação
         def calcular_pontos(opcao_sel):
-            if isinstance(opcao_sel, list):
+            if tipo_input in ["number", "float"]:
+                try:
+                    return float(opcao_sel)
+                except (ValueError, TypeError):
+                    return 0.0
+            elif tipo_input == "text":
+                return 0.0
+            elif isinstance(opcao_sel, list):
                 return sum(opcoes.get(opt, 0.0) for opt in opcao_sel)
             return opcoes.get(opcao_sel, 0.0)
 
@@ -259,14 +302,17 @@ def render_quesito(
             f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
         ).classes("text-sm font-bold text-green-600 my-4")
 
-        def atualizar_impacto():
+        def atualizar_impacto(e=None):
             novos_pts = calcular_pontos(state["opcao"])
             label_impacto.set_text(
                 f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
             )
 
-        if tipo_input != "checkbox":
-            input_radio.on("update:model-value", lambda e: atualizar_impacto())
+        # Eventos para atualização em tempo real
+        if tipo_input == "radio":
+            input_radio.on("update:model-value", atualizar_impacto)
+        elif tipo_input in ["number", "float"]:
+            input_num.on("update:model-value", atualizar_impacto)
 
         # Botão Salvar
         def salvar_acao():
