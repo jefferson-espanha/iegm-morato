@@ -966,7 +966,7 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   # ==========================================
                     # QUESITO 5.0 (Estudo de Previsão de Receita - Radio)
                     # ==========================================
                     opcoes_50 = {
@@ -980,12 +980,12 @@ def container_formulario_plan(ano=None):
                         titulo="Estudo/Análise para Previsão de Receita",
                         pergunta="É realizado estudo/análise para previsão de receitas, no mínimo, anualmente? (Obs: A simples aplicação de índice inflacionário ao valor arrecadado do exercício anterior NÃO é considerada estudo/análise de previsão de receita):",
                         tipo_input="radio",
-                        opcoes=50,
+                        opcoes=opcoes_50,
                         placeholder_link="Insira o link da metodologia ou estudo de estimativa de receita...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO 5.1 (Tipos de Tributos e Repasses - Checkbox)
                     # ==========================================
                     opcoes_51 = {
