@@ -3610,5 +3610,108 @@ def container_formulario_ifiscal(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f8).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F8", res_data, render_conteudo.refresh)
+
+    # ==========================================
+                    # QUESITO F9 (Repasse de Duodécimos às Câmaras)
+                    # ==========================================
+                    f9_data = res_data.get("F9", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F9 • Repasse de Duodécimos às Câmaras").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Avaliação do limite constitucional repassado à Câmara de Vereadores (com base nas 'Transferências à Câmara dos Vereadores' da contabilidade):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Repasse de Duodécimos", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Maior que o limite constitucional (Art. 29-A CF):** **REBAIXAR IEG-M PARA FAIXA C** (Penalidade gravíssima/veto de nota)
+                            * **Menor ou igual ao limite:** **0,0 ponto** (Sem penalidade / Situação Regular)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Validação Automática do Repasse de Duodécimos").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f9_bruto = f9_data.get("valor", {})
+                            if not isinstance(val_f9_bruto, dict):
+                                val_f9_bruto = {}
+
+                            state_f9 = {
+                                "val_repasse": float(val_f9_bruto.get("repasse", 0.0)),
+                                "val_limite": float(val_f9_bruto.get("limite", 0.0)),
+                                "link": f9_data.get("link", ""),
+                                "pts": float(f9_data.get("pontos", 0.0)),
+                                "rebaixa": val_f9_bruto.get("rebaixa_faixa_c", False)
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_repasse = (
+                                    ui.number(label="Valor Efetivamente Repassado (R$)", value=state_f9["val_repasse"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_limite = (
+                                    ui.number(label="Limite Constitucional Calculado (R$)", value=state_f9["val_limite"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_res_f9 = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_f9 = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_f9(_=None):
+                                repasse = input_repasse.value or 0.0
+                                limite = input_limite.value or 0.0
+                                state_f9["val_repasse"] = repasse
+                                state_f9["val_limite"] = limite
+
+                                if limite > 0:
+                                    if repasse > limite:
+                                        pts = 0.0
+                                        state_f9["rebaixa_faixa_c"] = True
+                                        lbl_res_f9.set_text(f"Repasse R$ {repasse:,.2f} ultrapassou o limite R$ {limite:,.2f} em R$ {(repasse - limite):,.2f}")
+                                        lbl_pts_f9.set_text("🚨 PENALIDADE EXTREMA: REBAIXAR IEG-M PARA FAIXA C!")
+                                        lbl_pts_f9.classes(remove="text-green-600", add="text-red-600")
+                                    else:
+                                        pts = 0.0
+                                        state_f9["rebaixa_faixa_c"] = False
+                                        lbl_res_f9.set_text(f"Repasse R$ {repasse:,.2f} dentro do limite permitido de R$ {limite:,.2f}")
+                                        lbl_pts_f9.set_text("✅ Situação Regular: Dentro do limite constitucional (0,0 ponto / Sem rebaixamento)")
+                                        lbl_pts_f9.classes(remove="text-red-600", add="text-green-600")
+                                else:
+                                    lbl_res_f9.set_text("Informe o Limite Constitucional (R$) para validação.")
+                                    lbl_pts_f9.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    lbl_pts_f9.classes(remove="text-red-600", add="text-green-600")
+                                    state_f9["rebaixa_faixa_c"] = False
+
+                                state_f9["pts"] = pts
+
+                            input_repasse.on("update:model-value", calcular_f9)
+                            input_limite.on("update:model-value", calcular_f9)
+                            calcular_f9()
+
+                        input_link_f9 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f9["link"],
+                            placeholder="Insira o link do Relatório de Contas Municipais / Demostrativo de Transferências à Câmara..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f9():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F9",
+                                valor={
+                                    "repasse": state_f9["val_repasse"],
+                                    "limite": state_f9["val_limite"],
+                                    "rebaixa_faixa_c": state_f9.get("rebaixa_faixa_c", False)
+                                },
+                                pontos=state_f9["pts"],
+                                link=input_link_f9.value,
+                                comentarios=f9_data.get("comentarios", []),
+                                status=f9_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F9 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f9).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F9", res_data, render_conteudo.refresh)
                   
     render_conteudo()
