@@ -1180,4 +1180,70 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 8.2 (Demonstrativos do Anexo de Metas Fiscais - Checkbox)
+                    # ==========================================
+                    opcoes_82 = {
+                        "Metas Anuais – 0,7 pt": 0.7,
+                        "Avaliação do Cumprimento das Metas Fiscais do Exercício Anterior – 0,7 pt": 0.7,
+                        "Metas Fiscais Atuais Comparadas com as Metas Fiscais Fixadas nos três exercícios anteriores – 0,7 pt": 0.7,
+                        "Evolução do Patrimônio Líquido – 0,7 pt": 0.7,
+                        "Origem e Aplicação dos Recursos Obtidos com a Alienação de Ativos – 00 pts": 0.0,
+                        "Avaliação da Situação Financeira e Atuarial do RPPS – 00 pts": 0.0,
+                        "Estimativa e Compensação da Renúncia de Receita – 00 pts": 0.0,
+                        "Margem de Expansão das Despesas Obrigatórias de Caráter Continuado – 1,2 pt": 1.2,
+                        "Outros – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.2",
+                        titulo="Demonstrativos do Anexo de Metas Fiscais",
+                        pergunta="Assinale os demonstrativos contidos no Anexo de Metas Fiscais:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_82,
+                        placeholder_link="Insira o link dos demonstrativos do Anexo de Metas Fiscais...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 9.0 (Anexo de Riscos Fiscais - Radio)
+                    # ==========================================
+                    opcoes_90 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.0",
+                        titulo="Anexo de Riscos Fiscais na LDO",
+                        pergunta="O Anexo de Riscos Fiscais integra a Lei de Diretrizes Orçamentárias (LDO), nos termos exigidos pela Lei de Responsabilidade Fiscal? (Avalia os passivos contingentes e outros riscos capazes de afetar as contas públicas, informando as providências a serem tomadas, caso se concretizem):",
+                        tipo_input="radio",
+                        opcoes=opcoes_90,
+                        placeholder_link="Insira o link do Anexo de Riscos Fiscais na LDO...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 9.1 (Divulgação do Anexo de Riscos Fiscais - Radio)
+                    # ==========================================
+                    # Nota: Validação de link. Se contiver 'XYZ' perde 10 pts (-10.0), caso contrário ganha 0 pts.
+                    opcoes_91 = {
+                        "Link/Página eletrônica disponível – 00 pts": 0.0,
+                        "Não disponível (Texto XYZ) – -10 pts": -10.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.1",
+                        titulo="Divulgação do Anexo de Riscos Fiscais na Internet",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação do Anexo de Riscos Fiscais (Se não estiver disponível na internet, inserir no campo de link o texto 'XYZ'):",
+                        tipo_input="radio",
+                        opcoes=opcoes_91,
+                        placeholder_link="Cole o link do Anexo de Riscos Fiscais ou digite XYZ se não estiver disponível...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
