@@ -4538,5 +4538,118 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F17", res_data, render_conteudo.refresh)
 
+    # ==========================================
+                    # QUESITO F18 (Limite de Endividamento - Regra de Ouro)
+                    # ==========================================
+                    f18_data = res_data.get("F18", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F18 • Limite de Endividamento – Regra de Ouro").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Verifica se as Operações de Crédito excedem as Despesas de Capital (RO = Operações de Crédito [OC] - Despesas de Capital [DC] - Créditos Autorizados por Maioria Absoluta [AL]):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador RO (Regra de Ouro)", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **RO <= 0 (Cumpre a Regra de Ouro):** Pontuação neutra (**0,0 ponto**) - Sem penalidade na nota/faixa.
+                            * **RO > 0 (Aumentou o endividamento para despesas correntes):** **Rebaixa 1 faixa na classificação do i-Fiscal**.
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Apuração do Indicador Regra de Ouro (RO = OC - DC - AL)").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f18_bruto = f18_data.get("valor", {})
+                            if not isinstance(val_f18_bruto, dict):
+                                val_f18_bruto = {}
+
+                            state_f18 = {
+                                "val_oc": float(val_f18_bruto.get("operacoes_credito", 0.0) or 0.0),
+                                "val_dc": float(val_f18_bruto.get("despesas_capital", 0.0) or 0.0),
+                                "val_al": float(val_f18_bruto.get("creditos_legislativo", 0.0) or 0.0),
+                                "ro": float(val_f18_bruto.get("ro_calculado", 0.0) or 0.0),
+                                "rebaixar_faixa": bool(val_f18_bruto.get("rebaixar_faixa", False)),
+                                "link": f18_data.get("link", ""),
+                                "pts": 0.0
+                            }
+
+                            with ui.grid(columns=3).classes("w-full gap-4"):
+                                input_oc = (
+                                    ui.number(label="Operações de Crédito (OC)", value=state_f18["val_oc"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_dc = (
+                                    ui.number(label="Despesas de Capital Liquidadas (DC)", value=state_f18["val_dc"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_al = (
+                                    ui.number(label="Créditos Aut. Legislativo (AL)", value=state_f18["val_al"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_ro = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_f18 = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_f18(_=None):
+                                try:
+                                    oc = float(input_oc.value or 0.0)
+                                    dc = float(input_dc.value or 0.0)
+                                    al = float(input_al.value or 0.0)
+                                except (ValueError, TypeError):
+                                    oc, dc, al = 0.0, 0.0, 0.0
+
+                                state_f18["val_oc"] = oc
+                                state_f18["val_dc"] = dc
+                                state_f18["val_al"] = al
+                                
+                                ro = oc - dc - al
+                                state_f18["ro"] = ro
+
+                                if ro <= 0.0:
+                                    state_f18["rebaixar_faixa"] = False
+                                    lbl_pts_f18.set_text("✅ Cumpre a Regra de Ouro (RO <= 0) - Sem rebaixamento de faixa no i-Fiscal.")
+                                    lbl_pts_f18.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+                                else:
+                                    state_f18["rebaixar_faixa"] = True
+                                    lbl_pts_f18.set_text("⚠️ RO > 0: Descumprimento da Regra de Ouro! O município REBAIARÁ 1 FAIXA no i-Fiscal.")
+                                    lbl_pts_f18.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+
+                                state_f18["pts"] = 0.0
+                                lbl_ro.set_text(f"Resultado RO Calculado: R$ {ro:,.2f}")
+
+                            input_oc.on("update:model-value", calcular_f18)
+                            input_dc.on("update:model-value", calcular_f18)
+                            input_al.on("update:model-value", calcular_f18)
+                            calcular_f18()
+
+                        input_link_f18 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f18["link"],
+                            placeholder="Insira o link das demonstrações contábeis e relatórios de Operações de Crédito..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f18():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F18",
+                                valor={
+                                    "operacoes_credito": state_f18["val_oc"],
+                                    "despesas_capital": state_f18["val_dc"],
+                                    "creditos_legislativo": state_f18["val_al"],
+                                    "ro_calculado": state_f18["ro"],
+                                    "rebaixar_faixa": state_f18["rebaixar_faixa"]
+                                },
+                                pontos=state_f18["pts"],
+                                link=input_link_f18.value,
+                                comentarios=f18_data.get("comentarios", []),
+                                status=f18_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F18 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f18).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F18", res_data, render_conteudo.refresh)
+
                       
     render_conteudo()
