@@ -983,5 +983,154 @@ def container_formulario_ifiscal(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+                    # ==========================================
+                    # QUESITO 5.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.1",
+                        titulo="Instrumento Normativo de Aprovação da PGV",
+                        pergunta="Informe o Instrumento normativo de aprovação da Planta Genérica de Valores (PGV), Número e Data da publicação: (Caso não esteja disponível na internet, recomendamos anexar o documento conforme IP)",
+                        tipo_input="text",
+                        placeholder_link="Insira o link do instrumento normativo da PGV...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.2 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.2",
+                        titulo="Página Eletrônica de Divulgação da PGV",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação do Instrumento Normativo de aprovação da Planta Genérica de Valores (PGV): (Se não estiver disponível na internet, inserir o texto XYZ)",
+                        tipo_input="text",
+                        placeholder_link="Insira a página eletrônica / link na internet...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.3 (Radio)
+                    # ==========================================
+                    opcoes_5_3 = {
+                        "Selecione...": 0.0,
+                        "Sim – 03": 3.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.3",
+                        titulo="Previsão de Revisão Periódica Obrigatória da PGV",
+                        pergunta="O Código Tributário Municipal ou Lei específica que tenha instituído o IPTU prevê a revisão periódica obrigatória da Planta Genérica de Valores (PGV)?",
+                        tipo_input="radio",
+                        opcoes=opcoes_5_3,
+                        placeholder_link="Insira a lei com a previsão de revisão obrigatória...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.3.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.3.1",
+                        titulo="Instrumento Normativo de Revisão da PGV",
+                        pergunta="Informe o instrumento normativo de revisão da Planta Genérica de Valores (PGV), Número e Data da publicação: (Caso não esteja disponível na internet, recomendamos anexar o documento)",
+                        tipo_input="text",
+                        placeholder_link="Insira o link da norma de revisão da PGV...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.3.2 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.3.2",
+                        titulo="Página Eletrônica de Divulgação da Revisão da PGV",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação do Instrumento normativo de revisão da Planta Genérica de Valores (PGV): (Se não estiver disponível na internet, inserir o texto XYZ)",
+                        tipo_input="text",
+                        placeholder_link="Insira o link oficial da divulgação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.3.3 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.3.3",
+                        titulo="Data da Última Revisão da PGV",
+                        pergunta="Informe a data da última revisão da PGV:",
+                        tipo_input="text",
+                        placeholder_link="Insira o documento comprobatório da última revisão...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.3.4 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.3.4",
+                        titulo="Periodicidade de Revisão da PGV",
+                        pergunta="Informe a periodicidade de revisão da PGV (em anos):",
+                        tipo_input="text",
+                        placeholder_link="Insira a fundamentação normativo-legal da periodicidade...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.4 (Radio)
+                    # ==========================================
+                    opcoes_5_4 = {
+                        "Selecione...": 0.0,
+                        "Sim, de forma automática no sistema – 06": 6.0,
+                        "Sim, de forma manual – 02": 2.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.4",
+                        titulo="Atualização da Base de Cálculo do IPTU",
+                        pergunta="Os dados da Planta Genérica de Valores (PGV) e do Cadastro Imobiliário atualizam a base de cálculo do IPTU?",
+                        tipo_input="radio",
+                        opcoes=opcoes_5_4,
+                        placeholder_link="Insira comprovantes do sistema ou rotina de atualização...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 6.0 (Checkbox - Múltipla Escolha)
+                    # ==========================================
+                    opcoes_6_0 = {
+                        "Alíquotas progressivas em razão do valor do imóvel – 01": 1.0,
+                        "Alíquotas diferenciadas em razão da localização do imóvel – 0,5": 0.5,
+                        "Alíquotas diferenciadas em razão do uso do imóvel – 0,5": 0.5,
+                        "Outros – 00": 0.0,
+                        "Não há diferenciação nas alíquotas dos imóveis – -01": -1.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="6.0",
+                        titulo="Critérios de Alíquota do IPTU",
+                        pergunta="Sobre a alíquota do IPTU, quais critérios o município instituiu para a cobrança do imposto?",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_6_0,
+                        placeholder_link="Insira o trecho do Código Tributário com as alíquotas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                   
     render_conteudo()
