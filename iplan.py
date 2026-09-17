@@ -2388,29 +2388,58 @@ def container_formulario_plan(ano=None):
                         placeholder_link="Insira o link ou anexo da memória de cálculo e do demonstrativo financeiro...",
                         on_save_callback=render_conteudo.refresh,
                     )
-
+ 
                     # ==========================================
-                    # QUESITO P3 (Percentual de Alteração do Planejamento Inicial - Radio)
+                    # QUESITO P3 (Percentual de Alteração do Planejamento Inicial - Calculadora Integrada)
                     # ==========================================
-                    # Faixas de pontuação predefinidas de acordo com a fórmula do indicador:
                     opcoes_p3 = {
-                        "Selecione...": 0.0,
-                        "K >= 1,3 (Alteração excessiva) – -30 pts": -30.0,
-                        "0,9 < K < 1,3 (Dentro do limite aceitável) – 00 pts": 0.0,
-                        "K = 0,8 (Graduação proporcional) – -7,5 pts": -7.5,
-                        "K = 0,7 (Graduação proporcional) – -15,0 pts": -15.0,
-                        "K = 0,6 (Graduação proporcional) – -22,5 pts": -22.5,
-                        "K <= 0,5 (Execução muito abaixo) – -30 pts": -30.0,
+                        "K >= 1,3 (Penalidade máxima) – -30 pts": -30.0,
+                        "0,9 < K < 1,3 (Dentro do limite) – 00 pts": 0.0,
+                        "0,5 < K <= 0,9 (Proporcional: ((0.9-K)/0.4)*-30)": 0.0,
+                        "K <= 0,5 (Penalidade máxima) – -30 pts": -30.0,
                     }
+
+                    # Dicionário local para armazenar o estado da calculadora
+                    calc_p3_state = {"pts": 0.0}
+
+                    with ui.card().classes("w-full p-4 mb-2 bg-blue-50 border border-blue-200 rounded-lg"):
+                        ui.label("🧮 Calculadora Automática do Indicador K (Quesito P3)").classes("font-bold text-blue-700 mb-2")
+                        with ui.grid(columns=2).classes("w-full gap-4"):
+                            input_i = ui.number(label="Valor Inicial LOA (I)", value=0.0, format="%.2f").classes("w-full").props("outlined bg-white")
+                            input_j = ui.number(label="Valor Final Apurado (J)", value=0.0, format="%.2f").classes("w-full").props("outlined bg-white")
+                        
+                        lbl_resultado_k = ui.label("Informe os valores acima para calcular K e a pontuação.").classes("text-sm font-semibold text-gray-700 mt-2")
+
+                        def recalcular_p3(_=None):
+                            i = input_i.value or 0.0
+                            j = input_j.value or 0.0
+                            if i > 0:
+                                k = j / i
+                                if k >= 1.3:
+                                    pts = -30.0
+                                elif 0.9 < k < 1.3:
+                                    pts = 0.0
+                                elif 0.5 < k <= 0.9:
+                                    pts = ((0.9 - k) / 0.4) * -30.0
+                                else:
+                                    pts = -30.0
+                                calc_p3_state["pts"] = pts
+                                lbl_resultado_k.set_text(f"Resultado: K = {k:.4f} ➔ Pontuação Calculada: {pts:.2f} pontos")
+                            else:
+                                lbl_resultado_k.set_text("Aguardando valor de 'I' maior que zero...")
+
+                        input_i.on("update:model-value", recalcular_p3)
+                        input_j.on("update:model-value", recalcular_p3)
+
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
                         qid="P3",
                         titulo="Percentual de Alteração do Planejamento Inicial",
-                        pergunta="Total dos valores dos programas estabelecidos na LOA (I) comparado aos valores finais apurados (J), onde K = J / I. Selecione a faixa do indicador K correspondente (Fórmula: ((0,9 - K) / 0,4) * -30 para 0,5 < K <= 0,9):",
+                        pergunta="Total dos valores dos programas na LOA (I) comparado aos valores finais (J). Selecione a faixa apurada na calculadora acima:",
                         tipo_input="radio",
                         opcoes=opcoes_p3,
-                        placeholder_link="Insira o link com os valores de I, J e a memória de cálculo do indicador K...",
+                        placeholder_link="Insira o link ou anexo com a memória de cálculo dos valores I e J...",
                         on_save_callback=render_conteudo.refresh,
                     )
                     
