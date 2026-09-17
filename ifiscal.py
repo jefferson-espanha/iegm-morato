@@ -2785,12 +2785,12 @@ def container_formulario_ifiscal(ano=None):
                     )
 
                     # ==========================================
-                    # F1. INDICADOR DE EXECUÇÃO ORÇAMENTÁRIA (Análise da Receita - Q)
+                    # QUESITO F1 (Análise da Receita - Execução Orçamentária)
                     # ==========================================
-                    ind_rec_data = res_data.get("IND_REC", {})
+                    f1_data = res_data.get("F1", {})
 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("Análise da Receita (Execução Orçamentária) – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("F1 • Análise da Receita (Execução Orçamentária) – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Divisão da receita arrecadada (O) pela receita prevista atualizada (P), com base nos dados da LOA (Q = O / P):").classes("text-base font-bold text-black mb-2")
                         
                         with ui.expansion("ℹ️ Tabela de Regras do Indicador Q", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
@@ -2805,25 +2805,25 @@ def container_formulario_ifiscal(ano=None):
                         with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
                             ui.label("🧮 Calculadora Automática do Indicador Q").classes("font-bold text-blue-700 mb-2")
                             
-                            val_rec_bruto = ind_rec_data.get("valor", {})
-                            if not isinstance(val_rec_bruto, dict):
-                                val_rec_bruto = {}
+                            val_f1_bruto = f1_data.get("valor", {})
+                            if not isinstance(val_f1_bruto, dict):
+                                val_f1_bruto = {}
 
-                            state_ind_rec = {
-                                "val_o": float(val_rec_bruto.get("O", 0.0)),
-                                "val_p": float(val_rec_bruto.get("P", 0.0)),
-                                "link": ind_rec_data.get("link", ""),
-                                "pts": float(ind_rec_data.get("pontos", 0.0))
+                            state_f1 = {
+                                "val_o": float(val_f1_bruto.get("O", 0.0)),
+                                "val_p": float(val_f1_bruto.get("P", 0.0)),
+                                "link": f1_data.get("link", ""),
+                                "pts": float(f1_data.get("pontos", 0.0))
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_o = (
-                                    ui.number(label="Receita Arrecadada (O)", value=state_ind_rec["val_o"], format="%.2f")
+                                    ui.number(label="Receita Arrecadada (O)", value=state_f1["val_o"], format="%.2f")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_p = (
-                                    ui.number(label="Receita Prevista Atualizada (P)", value=state_ind_rec["val_p"], format="%.2f")
+                                    ui.number(label="Receita Prevista Atualizada (P)", value=state_f1["val_p"], format="%.2f")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
@@ -2834,8 +2834,8 @@ def container_formulario_ifiscal(ano=None):
                             def calcular_q(_=None):
                                 o = input_o.value or 0.0
                                 p = input_p.value or 0.0
-                                state_ind_rec["val_o"] = o
-                                state_ind_rec["val_p"] = p
+                                state_f1["val_o"] = o
+                                state_f1["val_p"] = p
 
                                 if p > 0:
                                     q = o / p
@@ -2850,39 +2850,39 @@ def container_formulario_ifiscal(ano=None):
                                     else:
                                         pts = 0.0
                                     
-                                    state_ind_rec["pts"] = pts
+                                    state_f1["pts"] = pts
                                     lbl_q.set_text(f"Resultado Q (O / P): {q:.4f}")
                                     lbl_pts_q.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
                                 else:
                                     lbl_q.set_text("Resultado Q: Indefinido (A Receita Prevista 'P' deve ser maior que R$ 0,00)")
                                     lbl_pts_q.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
-                                    state_ind_rec["pts"] = 0.0
+                                    state_f1["pts"] = 0.0
 
                             input_o.on("update:model-value", calcular_q)
                             input_p.on("update:model-value", calcular_q)
                             calcular_q()
 
-                        input_link_ind_rec = ui.textarea(
+                        input_link_f1 = ui.textarea(
                             label="Link de Evidência / Documento:",
-                            value=state_ind_rec["link"],
+                            value=state_f1["link"],
                             placeholder="Insira o link do balanço orçamentário ou relatório contábil..."
                         ).classes("w-full mb-4").props("outlined rows=3")
 
-                        def salvar_ind_rec():
+                        def salvar_f1():
                             save_resposta(
                                 ano=ano_sel,
-                                qid="IND_REC",
-                                valor={"O": state_ind_rec["val_o"], "P": state_ind_rec["val_p"]},
-                                pontos=state_ind_rec["pts"],
-                                link=input_link_ind_rec.value,
-                                comentarios=ind_rec_data.get("comentarios", []),
-                                status=ind_rec_data.get("status", "Pendente"),
+                                qid="F1",
+                                valor={"O": state_f1["val_o"], "P": state_f1["val_p"]},
+                                pontos=state_f1["pts"],
+                                link=input_link_f1.value,
+                                comentarios=f1_data.get("comentarios", []),
+                                status=f1_data.get("status", "Pendente"),
                             )
-                            ui.notify("Indicador de Análise da Receita salvo com sucesso!", type="positive")
+                            ui.notify("Quesito F1 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_ind_rec).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f1).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
-                        bloco_comentarios("IND_REC", res_data, render_conteudo.refresh)
+                        bloco_comentarios("F1", res_data, render_conteudo.refresh)
                   
     render_conteudo()
