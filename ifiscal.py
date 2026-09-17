@@ -4428,5 +4428,115 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F16", res_data, render_conteudo.refresh)
 
+    # ==========================================
+                    # QUESITO F17 (Índice de Liquidez Imediata)
+                    # ==========================================
+                    f17_data = res_data.get("F17", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F17 • Índice de Liquidez Imediata").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Capacidade de pagamento com recursos do Ativo Disponível (IL = Disponível [D] / Passivo Circulante [PC]):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador IL", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **IL >= 1,00 (Disponível cobre integralmente o PC):** Pontuação máxima (**75,0 pontos**)
+                            * **0,80 < IL < 1,00 (Graduação Proporcional):** Pontuação calculada por `((IL - 0.80) * 75.0) / 0.20`
+                            * **IL <= 0,80 (Liquidez Insuficiente):** Sem pontuação (**0,0 ponto**)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador IL").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f17_bruto = f17_data.get("valor", {})
+                            if not isinstance(val_f17_bruto, dict):
+                                val_f17_bruto = {}
+
+                            state_f17 = {
+                                "val_disponivel": float(val_f17_bruto.get("disponivel", 0.0) or 0.0),
+                                "val_passivo_circulante": float(val_f17_bruto.get("passivo_circulante", 0.0) or 0.0),
+                                "link": f17_data.get("link", ""),
+                                "pts": float(f17_data.get("pontos", 0.0) or 0.0)
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_disponivel = (
+                                    ui.number(label="Ativo Disponível (D)", value=state_f17["val_disponivel"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_passivo = (
+                                    ui.number(label="Passivo Circulante (PC)", value=state_f17["val_passivo_circulante"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_il = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_f17 = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_f17(_=None):
+                                try:
+                                    d = float(input_disponivel.value or 0.0)
+                                    pc = float(input_passivo.value or 0.0)
+                                except (ValueError, TypeError):
+                                    d, pc = 0.0, 0.0
+
+                                state_f17["val_disponivel"] = d
+                                state_f17["val_passivo_circulante"] = pc
+
+                                if pc > 0:
+                                    il = d / pc
+                                    if il >= 1.0:
+                                        pts = 75.0
+                                        lbl_pts_f17.classes(remove="text-red-600 text-amber-600 text-gray-500", add="text-green-600")
+                                    elif 0.80 < il < 1.0:
+                                        pts = ((il - 0.80) * 75.0) / 0.20
+                                        lbl_pts_f17.classes(remove="text-green-600 text-red-600 text-gray-500", add="text-amber-600")
+                                    else:
+                                        pts = 0.0
+                                        lbl_pts_f17.classes(remove="text-green-600 text-amber-600 text-gray-500", add="text-red-600")
+
+                                    state_f17["pts"] = pts
+                                    lbl_il.set_text(f"Resultado IL (Disponível / Passivo Circulante): {il:.4f}")
+                                    lbl_pts_f17.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_il.set_text("Resultado IL: Indefinido (O Passivo Circulante deve ser maior que R$ 0,00)")
+                                    lbl_pts_f17.set_text("⚠️ Informe os valores válidos de Disponível e Passivo Circulante.")
+                                    lbl_pts_f17.classes(remove="text-green-600 text-amber-600 text-red-600", add="text-gray-500")
+                                    state_f17["pts"] = 0.0
+
+                            input_disponivel.on("update:model-value", calcular_f17)
+                            input_passivo.on("update:model-value", calcular_f17)
+                            calcular_f17()
+
+                        input_link_f17 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f17["link"],
+                            placeholder="Insira o link do Relatório RAAE - Item 4.1 (Capacidade de Pagamento)..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f17():
+                            if state_f17["val_passivo_circulante"] <= 0:
+                                ui.notify("Por favor, informe um valor válido para o Passivo Circulante!", type="warning")
+                                return
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F17",
+                                valor={
+                                    "disponivel": state_f17["val_disponivel"],
+                                    "passivo_circulante": state_f17["val_passivo_circulante"]
+                                },
+                                pontos=state_f17["pts"],
+                                link=input_link_f17.value,
+                                comentarios=f17_data.get("comentarios", []),
+                                status=f17_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F17 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f17).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F17", res_data, render_conteudo.refresh)
+
                       
     render_conteudo()
