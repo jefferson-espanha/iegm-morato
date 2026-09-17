@@ -142,6 +142,23 @@ def save_resposta(
     except Exception as e:
         print(f"❌ Erro ao salvar resposta na tabela respostas_ifiscal: {e}")
 
+
+def zerar_questionario_db(ano):
+    query = "DELETE FROM respostas_ifiscal WHERE ano = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (int(ano),))
+                conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
+
+
+def _obter_lista_comentarios(dados_q):
+    coms = dados_q.get("comentarios", [])
+    return coms if isinstance(coms, list) else []
+
+
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
 # =============================================================================
@@ -180,10 +197,10 @@ def render_quesito(
     elif tipo_input == "text":
         valor_atual = str(dados_q.get("valor", ""))
     else:  # radio
-        primeira_opcao_valida = list(opcoes.keys())[0] if opcoes else ""
-        valor_atual = dados_q.get("valor", primeira_opcao_valida)
+        padrao = "Selecione..." if "Selecione..." in opcoes else (list(opcoes.keys())[0] if opcoes else "")
+        valor_atual = dados_q.get("valor", padrao)
         if valor_atual not in opcoes and opcoes:
-            valor_atual = primeira_opcao_valida
+            valor_atual = padrao
 
     state = {
         "opcao": valor_atual,
@@ -566,7 +583,7 @@ def container_formulario_ifiscal(ano=None):
                         ui.label(f"📋 Módulo i-Fiscal — Ano {ano_sel}").classes(
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
-
+                        
                     # ==========================================
                     # QUESITO 1.0
                     # ==========================================
