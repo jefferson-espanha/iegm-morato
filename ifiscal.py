@@ -26,7 +26,7 @@ def init_db():
             with conn.cursor() as cur:
                 # Criar tabela caso não exista
                 cur.execute("""
-                    CREATE TABLE IF NOT EXISTS respostas_iplan (
+                    CREATE TABLE IF NOT EXISTS respostas_ifiscal (
                         qid VARCHAR(50) NOT NULL,
                         ano INTEGER NOT NULL,
                         valor TEXT,
@@ -40,7 +40,7 @@ def init_db():
                 """)
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao inicializar tabela respostas_iplan: {e}")
+        print(f"❌ Erro ao inicializar tabela respostas_ifiscal: {e}")
 
 
 init_db()
@@ -49,7 +49,7 @@ init_db()
 def load_respostas(ano):
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
-        FROM respostas_iplan
+        FROM respostas_ifiscal
         WHERE ano = %s;
     """
     respostas = {}
@@ -110,7 +110,7 @@ def save_resposta(
         valor_str = str(valor) if valor is not None else ""
 
     query = """
-        INSERT INTO respostas_iplan (ano, qid, valor, pontos, link, comentarios, status)
+        INSERT INTO respostas_ifiscal (ano, qid, valor, pontos, link, comentarios, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (ano, qid) 
         DO UPDATE SET
@@ -143,7 +143,7 @@ def save_resposta(
 
 
 def zerar_questionario_db(ano):
-    query = "DELETE FROM respostas_iplan WHERE ano = %s;"
+    query = "DELETE FROM respostas_ifiscal WHERE ano = %s;"
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -364,7 +364,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     with ui.card().classes(
         "w-full bg-slate-100 p-4 border rounded-lg shadow-sm"
     ):
-        ui.label("🛠️ Painel de Controle (iPlan)").classes(
+        ui.label("🛠️ Painel de Controle (iFiscal)").classes(
             "text-lg font-bold mb-2 text-blue-900"
         )
 
