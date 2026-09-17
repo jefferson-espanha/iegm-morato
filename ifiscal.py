@@ -3635,5 +3635,104 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F8", res_data, render_conteudo.refresh)
 
+    # ==========================================
+                    # QUESITO F9 (Apuração dos Pagamentos dos Precatórios)
+                    # ==========================================
+                    f9_data = res_data.get("F9", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F9 • Apuração dos Pagamentos dos Precatórios").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Relação entre o Estoque Final (AG) e o Estoque Inicial (AH) dos Precatórios, extraídos da contabilidade AUDESP (AI = AG / AH):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AI", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **AI >= 1,00 (Estoque Mantido ou Aumentado):** Pontuação = **0,0 ponto**
+                            * **0,90 < AI < 1,00 (Redução Parcial):** Graduação entre 0 e 75 `((1,00 - AI) / 0,10) * 75,0`
+                            * **AI <= 0,90 (Redução de 10% ou mais):** Pontuação máxima = **75,0 pontos**
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador AI").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f9_bruto = f9_data.get("valor", {})
+                            if not isinstance(val_f9_bruto, dict):
+                                val_f9_bruto = {}
+
+                            state_f9 = {
+                                "val_ag": float(val_f9_bruto.get("AG", 0.0) or 0.0),
+                                "val_ah": float(val_f9_bruto.get("AH", 0.0) or 0.0),
+                                "link": f9_data.get("link", ""),
+                                "pts": float(f9_data.get("pontos", 0.0) or 0.0)
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_ag = (
+                                    ui.number(label="Estoque Final dos Precatórios (AG)", value=state_f9["val_ag"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_ah = (
+                                    ui.number(label="Estoque Inicial dos Precatórios (AH)", value=state_f9["val_ah"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_ai = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_ai = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+
+                            def calcular_ai(_=None):
+                                try:
+                                    ag = float(input_ag.value or 0.0)
+                                    ah = float(input_ah.value or 0.0)
+                                except (ValueError, TypeError):
+                                    ag, ah = 0.0, 0.0
+
+                                state_f9["val_ag"] = ag
+                                state_f9["val_ah"] = ah
+
+                                if ah > 0:
+                                    ai_val = ag / ah
+                                    if ai_val >= 1.0:
+                                        pts = 0.0
+                                    elif 0.90 < ai_val < 1.0:
+                                        pts = ((1.0 - ai_val) / 0.10) * 75.0
+                                    else:
+                                        pts = 75.0
+                                    
+                                    state_f9["pts"] = pts
+                                    lbl_ai.set_text(f"Resultado AI (AG / AH): {ai_val:.4f}")
+                                    lbl_pts_ai.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_ai.set_text("Resultado AI: Indefinido (O Estoque Inicial 'AH' deve ser maior que R$ 0,00)")
+                                    lbl_pts_ai.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    state_f9["pts"] = 0.0
+
+                            input_ag.on("update:model-value", calcular_ai)
+                            input_ah.on("update:model-value", calcular_ai)
+                            calcular_ai()
+
+                        input_link_f9 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f9["link"],
+                            placeholder="Insira o link ou relatório AUDESP referente ao Estoque de Precatórios..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f9():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F9",
+                                valor={"AG": state_f9["val_ag"], "AH": state_f9["val_ah"]},
+                                pontos=state_f9["pts"],
+                                link=input_link_f9.value,
+                                comentarios=f9_data.get("comentarios", []),
+                                status=f9_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F9 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f9).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F9", res_data, render_conteudo.refresh)
+
                   
     render_conteudo()
