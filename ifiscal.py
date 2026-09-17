@@ -2403,5 +2403,90 @@ def container_formulario_ifiscal(ano=None):
                         placeholder_link="Insira o link da consulta de receita em tempo real no Portal da Transparência...",
                         on_save_callback=render_conteudo.refresh,
                     )
+
+    # ==========================================
+                    # QUESITO 19.1 (Checkbox - Múltipla Escolha com Pontuação)
+                    # ==========================================
+                    opcoes_19_1 = {
+                        "Categoria econômica – 0,3": 0.3,
+                        "Origem – 0,3": 0.3,
+                        "Espécie – 0,3": 0.3,
+                        "Desdobramento para identificação de peculiaridades – 0,3": 0.3,
+                        "Tipo – 0,3": 0.3,
+                        "Valor previsto – 0,3": 0.3,
+                        "Valor arrecadado – 0,3": 0.3,
+                        "Data de arrecadação – 0,3": 0.3,
+                        "Recursos extraordinários – 0,3": 0.3,
+                        "Outros – 0,3": 0.3,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="19.1",
+                        titulo="Itens da Receita Divulgados em Tempo Real",
+                        pergunta="Assinale os itens da receita divulgados em tempo real:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_19_1,
+                        placeholder_link="Insira o link da página do Portal da Transparência onde constam os detalhes da receita...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 20.0 (Radio)
+                    # ==========================================
+                    opcoes_20_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 03": 3.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="20.0",
+                        titulo="Divulgação das Despesas em Tempo Real",
+                        pergunta="Houve divulgação das despesas executadas em tempo real? (Nota: Tempo real é até o 1º dia útil que sucede o do registro contábil)",
+                        tipo_input="radio",
+                        opcoes=opcoes_20_0,
+                        placeholder_link="Insira o link da consulta de despesas executadas no Portal da Transparência...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 20.1 (Checkbox - Múltipla Escolha com Pontuação)
+                    # ==========================================
+                    opcoes_20_1 = {
+                        "Valor empenhado – 0,3": 0.3,
+                        "Valor liquidado – 0,3": 0.3,
+                        "Valor pago – 0,3": 0.3,
+                        "Número do processo da execução - nº empenho – 0,3": 0.3,
+                        "Unidade Orçamentária - UO – 0,3": 0.3,
+                        "Função – 0,3": 0.3,
+                        "Subfunção – 0,3": 0.3,
+                        "Categoria Econômica da despesa – 0,3": 0.3,
+                        "Grupo de Natureza da despesa – 0,3": 0.3,
+                        "Modalidade de aplicação – 0,3": 0.3,
+                        "Elemento – 0,6": 0.6,
+                        "Subelemento – 0,6": 0.6,
+                        "Fonte de recurso – 0,3": 0.3,
+                        "Favorecido do pagamento – 0,3": 0.3,
+                        "Modalidade da licitação – 0,3": 0.3,
+                        "Número do processo licitatório – 0,3": 0.3,
+                        "Bem fornecido ou serviço prestado – 0,3": 0.3,
+                        "Outros – 0,3": 0.3,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="20.1",
+                        titulo="Itens das Despesas Divulgados em Tempo Real",
+                        pergunta="Assinale os itens das despesas divulgados em tempo real:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_20_1,
+                        placeholder_link="Insira o link da página do Portal da Transparência onde constam os detalhes das despesas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                   
     render_conteudo()
