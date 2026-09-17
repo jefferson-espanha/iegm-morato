@@ -2215,5 +2215,193 @@ def container_formulario_ifiscal(ano=None):
                         placeholder_link="Insira os convênios, decretos e comprovantes das modalidades utilizadas...",
                         on_save_callback=render_conteudo.refresh,
                     )
+
+                    # ==========================================
+                    # QUESITO 16.0 (Radio)
+                    # ==========================================
+                    opcoes_16_0 = {
+                        "Selecione...": 0.0,
+                        "Sim, houve prescrição ordinária – -10": -10.0,
+                        "Sim, houve prescrição intercorrente – 00": 0.0,
+                        "Não houve prescrição de dívidas em 2025 – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.0",
+                        titulo="Prescrição de Dívidas em 2025",
+                        pergunta="No exercício de 2025 houve dívidas prescritas? (Considerar na prescrição ordinária apenas os valores passíveis de cobrança via judicial, conforme regulamento específico local)",
+                        tipo_input="radio",
+                        opcoes=opcoes_16_0,
+                        placeholder_link="Insira o relatório de prescrição ou parecer jurídico...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 16.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.1",
+                        titulo="Valor da Dívida Ativa Prescrita na Execução Judicial",
+                        pergunta="Informe o valor da dívida ativa prescrita na execução judicial em 2025:",
+                        tipo_input="text",
+                        placeholder_link="Insira a certidão ou demonstrativo contendo o valor prescrito judicialmente...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 16.2 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.2",
+                        titulo="Valor da Dívida Ativa Prescrita Cobrada Extrajudicialmente",
+                        pergunta="Informe o valor da dívida ativa cobrada de forma extrajudicial prescrita no exercício de 2025:",
+                        tipo_input="text",
+                        placeholder_link="Insira o demonstrativo do montante prescrito extrajudicialmente...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 16.3 (Radio)
+                    # ==========================================
+                    opcoes_16_3 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00": 0.0,
+                        "Não – -05": -5.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.3",
+                        titulo="Provisão para Perdas de Dívida Ativa",
+                        pergunta="O montante da dívida ativa prescrita cobrada de forma judicial e extrajudicial estava registrado na conta de Provisão para Perdas de Dívida Ativa?",
+                        tipo_input="radio",
+                        opcoes=opcoes_16_3,
+                        placeholder_link="Insira o balancete/razão contábil comprovando o registro da provisão...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 17.0 (Radio)
+                    # ==========================================
+                    opcoes_17_0 = {
+                        "Selecione...": 0.0,
+                        "Sim, de todas as ações – 00": 0.0,
+                        "Sim, da maior parte das ações – -01": -1.0,
+                        "Sim, da menor parte das ações – -03": -3.0,
+                        "Não – -05": -5.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="17.0",
+                        titulo="Controle das Ações Judiciais (Polo Passivo)",
+                        pergunta="A Prefeitura possui controle das ações judiciais em que é parte (polo passivo)?",
+                        tipo_input="radio",
+                        opcoes=opcoes_17_0,
+                        placeholder_link="Insira o relatório de acompanhamento do contencioso judicial...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 17.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="17.1",
+                        titulo="Forma de Controle das Ações Judiciais",
+                        pergunta="Descreva de que forma é realizado o controle das ações judiciais em que é parte (polo passivo):",
+                        tipo_input="text",
+                        placeholder_link="Insira o comprovante do sistema de gestão jurídica utilizado...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 17.2 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="17.2",
+                        titulo="Valor Atualizado das Ações Judiciais no Polo Passivo",
+                        pergunta="Qual o valor atualizado em 31/12/2025 de todas as ações judiciais em que é parte (polo passivo)?",
+                        tipo_input="text",
+                        placeholder_link="Insira a planilha ou parecer de risco fiscal e provisões com o valor atualizado...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 18.0 (Radio)
+                    # ==========================================
+                    opcoes_18_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="18.0",
+                        titulo="Divulgação da Transparência Fiscal na Internet",
+                        pergunta="Os dados relativos à transparência na gestão fiscal são divulgados na página eletrônica do Município?",
+                        tipo_input="radio",
+                        opcoes=opcoes_18_0,
+                        placeholder_link="Insira o link principal do Portal da Transparência...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 18.1 (Checkbox - Múltipla Escolha com Pontuação)
+                    # ==========================================
+                    opcoes_18_1 = {
+                        "PPA, LDO e LOA – 2,5": 2.5,
+                        "Balanços de exercício – 2,5": 2.5,
+                        "Prestação de contas do ano anterior – 2,5": 2.5,
+                        "Parecer prévio do TCE – 2,5": 2.5,
+                        "Relatório de Gestão Fiscal (RGF) – 2,5": 2.5,
+                        "Relatório Resumido da Execução Orçamentária (RREO) – 2,5": 2.5,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="18.1",
+                        titulo="Itens Divulgados no Portal da Transparência",
+                        pergunta="Assinale os itens que são divulgados na página eletrônica do Município:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_18_1,
+                        placeholder_link="Insira o link das seções onde esses relatórios e leis estão publicados...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 19.0 (Radio)
+                    # ==========================================
+                    opcoes_19_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 03": 3.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="19.0",
+                        titulo="Divulgação das Receitas em Tempo Real",
+                        pergunta="Houve divulgação das receitas arrecadadas em tempo real? (Nota: Tempo real é até o 1º dia útil que sucede o do registro contábil)",
+                        tipo_input="radio",
+                        opcoes=opcoes_19_0,
+                        placeholder_link="Insira o link da consulta de receita em tempo real no Portal da Transparência...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                   
     render_conteudo()
