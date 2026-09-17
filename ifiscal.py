@@ -583,8 +583,184 @@ def container_formulario_ifiscal(ano=None):
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
 
-                    # AQUI ENTRARÃO OS QUESITOS DO IFISCAL
-                    # Exemplo de chamada:
-                    # render_quesito(ano=ano_sel, res_data=res_data, ...)
+                    # ==========================================
+                    # QUESITO 1.0
+                    # ==========================================
+                    opcoes_1_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
 
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.0",
+                        titulo="Estrutura Administrativa",
+                        pergunta="Há estrutura administrativa voltada para a administração tributária?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_0,
+                        placeholder_link="Insira o link ou documento de comprovação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.1
+                    # ==========================================
+                    opcoes_1_1 = {
+                        "Selecione...": 0.0,
+                        "Sim – 0,5": 0.5,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.1",
+                        titulo="Lei de Estrutura Organizacional",
+                        pergunta="O Município possui lei que defina a estrutura organizacional da Administração Tributária?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_1,
+                        placeholder_link="Insira o link ou documento da lei...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.2 (Cargos Preenchidos - Quantitativo)
+                    # ==========================================
+                    dados_1_2 = res_data.get("1.2", {})
+                    val_1_2 = dados_1_2.get("valor", {})
+                    if not isinstance(val_1_2, dict):
+                        val_1_2 = {"efetivo": 0, "comissao": 0, "terceirizado": 0}
+
+                    state_1_2 = {
+                        "efetivo": int(val_1_2.get("efetivo", 0)),
+                        "comissao": int(val_1_2.get("comissao", 0)),
+                        "terceirizado": int(val_1_2.get("terceirizado", 0)),
+                        "link": dados_1_2.get("link", ""),
+                    }
+
+                    def calc_pts_1_2():
+                        ef = state_1_2["efetivo"]
+                        co = state_1_2["comissao"]
+                        ter = state_1_2["terceirizado"]
+                        if ef > 0 and co == 0 and ter == 0:
+                            return 1.5
+                        return 0.0
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("1.2 • Número de Cargos de Fiscais/Auditores Tributários Preenchidos").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Qual o número de cargos de fiscais/auditores tributários preenchidos?").classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Fórmula: Se efetivos > 0 E comissão = 0 E terceirizados = 0 -> 1,5 pts | Caso contrário -> 0,0 pts").classes("text-xs text-gray-500 mb-6")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-3 w-full"):
+                                num_efetivo = ui.number(
+                                    label="Efetivo:",
+                                    value=state_1_2["efetivo"],
+                                    min=0,
+                                    precision=0
+                                ).classes("w-full").props("outlined color=blue").bind_value(state_1_2, "efetivo")
+
+                                num_comissao = ui.number(
+                                    label="Em comissão:",
+                                    value=state_1_2["comissao"],
+                                    min=0,
+                                    precision=0
+                                ).classes("w-full").props("outlined color=blue").bind_value(state_1_2, "comissao")
+
+                                num_terceirizado = ui.number(
+                                    label="Terceirizado:",
+                                    value=state_1_2["terceirizado"],
+                                    min=0,
+                                    precision=0
+                                ).classes("w-full").props("outlined color=blue").bind_value(state_1_2, "terceirizado")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_1_2["link"],
+                                placeholder="Insira o link com a relação de cargos e quadro de pessoal..."
+                            ).classes("w-full").props("outlined rows=7").bind_value(state_1_2, "link")
+
+                        pts_1_2 = calc_pts_1_2()
+                        label_impacto_1_2 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 1.2: {pts_1_2:.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def atualizar_impacto_1_2(e=None):
+                            pts_att = calc_pts_1_2()
+                            label_impacto_1_2.set_text(f"📊 Impacto de Pontuação no Quesito 1.2: {pts_att:.1f} pontos")
+
+                        num_efetivo.on("update:model-value", atualizar_impacto_1_2)
+                        num_comissao.on("update:model-value", atualizar_impacto_1_2)
+                        num_terceirizado.on("update:model-value", atualizar_impacto_1_2)
+
+                        def salvar_1_2():
+                            valor_dict = {
+                                "efetivo": state_1_2["efetivo"],
+                                "comissao": state_1_2["comissao"],
+                                "terceirizado": state_1_2["terceirizado"],
+                            }
+                            pts_final = calc_pts_1_2()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.2",
+                                valor=valor_dict,
+                                pontos=pts_final,
+                                link=state_1_2["link"],
+                                comentarios=dados_1_2.get("comentarios", []),
+                                status=dados_1_2.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 1.2 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_1_2).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.2", res_data, render_conteudo.refresh)
+
+                    # ==========================================
+                    # QUESITO 1.3
+                    # ==========================================
+                    opcoes_1_3 = {
+                        "Selecione...": 0.0,
+                        "Sim – 10": 10.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.3",
+                        titulo="Treinamento de Fiscais Tributários",
+                        pergunta="Os fiscais tributários recebem treinamento específico para execução das atividades inerentes ao cargo? (Treinamento periódico pelo menos 1 vez ao ano)",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_3,
+                        placeholder_link="Insira o link ou certificado dos treinamentos...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.4
+                    # ==========================================
+                    opcoes_1_4 = {
+                        "Selecione...": 0.0,
+                        "Sim – 03": 3.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.4",
+                        titulo="Plano de Cargos e Salários Específico",
+                        pergunta="O Município possui Plano de Cargos e Salários específico para seus fiscais tributários? (Obs: PCCS geral dos servidores públicos do município não é PCCS específico para os fiscais tributários)",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_4,
+                        placeholder_link="Insira a lei do PCCS específico da categoria...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                  
     render_conteudo()
