@@ -557,7 +557,7 @@ def container_formulario_plan(ano=None):
                     # QUESITO 1.1 (Peças Orçamentárias - Checkbox)
                     # ==========================================
                     opcoes_11 = {
-                        ""Selecione...": 0.0,
+                        "Selecione...": 0.0,
                         "Não – 00 pts": 0.0,
                         "PPA inicial 2026-2029 – 01 pt": 1.0,
                         "LDO 2026 – 01 pt": 1.0,
@@ -596,7 +596,7 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO 1.3 (Transcrição de Audiências - Radio)
                     # ==========================================
                     opcoes_13 = {
@@ -804,7 +804,7 @@ def container_formulario_plan(ano=None):
                         placeholder_link="Insira o link dos anexos de metas do PPA...",
                         on_save_callback=render_conteudo.refresh,
                     )
-                    
+
                     # ==========================================
                     # QUESITO 4.1 (Programas Finalísticos - Radio)
                     # ==========================================
@@ -827,7 +827,7 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO 4.1.1 (Avaliação da Implementação - Radio)
                     # ==========================================
                     opcoes_411 = {
@@ -893,7 +893,7 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO 4.1.1.2 (Publicação dos Resultados - Radio)
                     # ==========================================
                     opcoes_4112 = {
@@ -983,7 +983,7 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                   # ==========================================
+                    # ==========================================
                     # QUESITO 5.0 (Estudo de Previsão de Receita - Radio)
                     # ==========================================
                     opcoes_50 = {
@@ -1068,7 +1068,6 @@ def container_formulario_plan(ano=None):
                         placeholder_link="Insira o link do documento metodológico detalhado por categoria de receita...",
                         on_save_callback=render_conteudo.refresh,
                     )
-
                     # ==========================================
                     # QUESITO 6.0 (Disposições da LDO - Checkbox)
                     # ==========================================
