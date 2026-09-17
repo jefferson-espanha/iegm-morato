@@ -61,8 +61,9 @@ def load_respostas(ano):
                 for row in rows:
                     val_bruto = row["valor"] or ""
                     
-                    # Se for uma lista salva como JSON string, converte de volta para Python
-                    if val_bruto.startswith("[") and val_bruto.endswith("]"):
+                    # Converte JSON em objeto Python se for lista ou dicionário
+                    if (val_bruto.startswith("[") and val_bruto.endswith("]")) or \
+                       (val_bruto.startswith("{") and val_bruto.endswith("}")):
                         try:
                             val_final = json.loads(val_bruto)
                         except Exception:
@@ -103,9 +104,9 @@ def save_resposta(
 
     link_final = link.strip() if link else ""
 
-    # Trata lista (Checkboxes) convertendo para JSON em texto
-    if isinstance(valor, list):
-        valor_str = json.dumps(valor)
+    # Trata dicionários e listas convertendo para JSON string limpo
+    if isinstance(valor, (list, dict)):
+        valor_str = json.dumps(valor, ensure_ascii=False)
     else:
         valor_str = str(valor) if valor is not None else ""
 
@@ -137,26 +138,9 @@ def save_resposta(
                     ),
                 )
                 conn.commit()
-                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso no banco!")
+                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso na tabela respostas_ifiscal!")
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
-
-
-def zerar_questionario_db(ano):
-    query = "DELETE FROM respostas_ifiscal WHERE ano = %s;"
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
-                conn.commit()
-    except Exception as e:
-        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
-
-
-def _obter_lista_comentarios(dados_q):
-    coms = dados_q.get("comentarios", [])
-    return coms if isinstance(coms, list) else []
-
+        print(f"❌ Erro ao salvar resposta na tabela respostas_ifiscal: {e}")
 
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
