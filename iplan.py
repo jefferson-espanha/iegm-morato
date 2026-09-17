@@ -677,4 +677,142 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 2.1 (Glossário na Consulta - Radio)
+                    # ==========================================
+                    opcoes_21 = {
+                        "Sim – 02 pts": 2.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="2.1",
+                        titulo="Glossário em Linguagem Simples",
+                        pergunta="Na consulta pública online de elaboração do Plano Plurianual (PPA) foi disponibilizado glossário explicando os objetivos, como contribuir, em linguagem clara e simples?",
+                        tipo_input="radio",
+                        opcoes=opcoes_21,
+                        placeholder_link="Insira o link de acesso ao glossário ou da plataforma...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 3.0 (Diagnóstico Prévio - Radio)
+                    # ==========================================
+                    opcoes_30 = {
+                        "Sim – 14 pts": 14.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.0",
+                        titulo="Diagnóstico do Planejamento do PPA",
+                        pergunta="Além das audiências públicas, a Prefeitura realizou diagnóstico anteriormente ao planejamento, através do levantamento formal de seus problemas, necessidades e deficiências? (Obs: Os Planos Municipais Setoriais só podem ser considerados se neles houver evidências do levantamento formal dos problemas):",
+                        tipo_input="radio",
+                        opcoes=opcoes_30,
+                        placeholder_link="Insira o link do documento do diagnóstico ou planos municipais setoriais...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 3.1 (Planos Federal/Estadual - Radio)
+                    # ==========================================
+                    opcoes_31 = {
+                        "Sim – 02 pts": 2.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.1",
+                        titulo="Articulação com Planos Federal/Estadual",
+                        pergunta="A elaboração do diagnóstico levou em conta algum plano do governo federal e/ou estadual?",
+                        tipo_input="radio",
+                        opcoes=opcoes_31,
+                        placeholder_link="Insira o link das evidências de alinhamento com planos federais ou estaduais...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 3.1.1 (Descrição dos Programas - Text Area/Radio)
+                    # ==========================================
+                    opcoes_311 = {
+                        "Descrição apresentada no campo de evidências": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.1.1",
+                        titulo="Programas Federal/Estadual Utilizados",
+                        pergunta="Descreva quais programas do governo federal ou estadual foram utilizados para elaboração do diagnóstico:",
+                        tipo_input="radio",
+                        opcoes=opcoes_311,
+                        placeholder_link="Descreva os programas utilizados e/ou insira o link...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 3.2 (Diagnóstico por Programa - Radio)
+                    # ==========================================
+                    opcoes_32 = {
+                        "Sim, para todos os programas do PPA – 10 pts": 10.0,
+                        "Sim, para a maior parte dos programas do PPA – 05 pts": 5.0,
+                        "Sim, para a menor parte dos programas do PPA – 03 pts": 3.0,
+                        "Não foi realizado diagnóstico prévio para nenhum programa do PPA – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.2",
+                        titulo="Diagnóstico Prévio dos Programas do PPA",
+                        pergunta="Os programas do PPA 2026-2029 tiveram diagnóstico prévio? (Obs: Os Planos Municipais Setoriais só podem ser considerados se neles houver evidências do levantamento formal dos problemas):",
+                        tipo_input="radio",
+                        opcoes=opcoes_32,
+                        placeholder_link="Insira o link com os diagnósticos específicos por programa...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 4.0 (Metas Físicas e Financeiras - Radio)
+                    # ==========================================
+                    opcoes_40 = {
+                        "Sim, com metas físicas e financeiras – 10 pts": 10.0,
+                        "Sim, apenas com metas financeiras – 05 pts": 5.0,
+                        "Sim, apenas com metas físicas – 05 pts": 5.0,
+                        "Não houve o estabelecimento de metas anuais – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.0",
+                        titulo="Estabelecimento de Metas Anuais no PPA",
+                        pergunta="Há o estabelecimento de metas físicas e financeiras de forma anual nas ações previstas no PPA?",
+                        tipo_input="radio",
+                        opcoes=opcoes_40,
+                        placeholder_link="Insira o link dos anexos de metas do PPA...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 4.1.1 (Programas Finalísticos - Radio)
+                    # ==========================================
+                    opcoes_411 = {
+                        "Todos os programas finalísticos do PPA – 15 pts": 15.0,
+                        "A maior parte dos programas finalísticos – 10 pts": 10.0,
+                        "A menor parte dos programas finalísticos – 05 pts": 5.0,
+                        "Nenhum programa finalístico – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.1.1",
+                        titulo="Articulação dos Programas Finalísticos",
+                        pergunta="Os programas finalísticos articulam um conjunto de ações que concorrem para um objetivo comum preestabelecido, visando à solução de um problema ou necessidade da sociedade?",
+                        tipo_input="radio",
+                        opcoes=opcoes_411,
+                        placeholder_link="Insira o link da estrutura dos programas do PPA...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
