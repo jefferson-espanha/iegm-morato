@@ -3828,5 +3828,90 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F10", res_data, render_conteudo.refresh)
 
+    # ==========================================
+                    # QUESITO F11 (Pontualidade na Prestação de Contas)
+                    # ==========================================
+                    f11_data = res_data.get("F11", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F11 • Pontualidade na Prestação de Contas").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Avaliação do cumprimento dos prazos na entrega de relatórios, peças contábeis, conciliações e questionários no Sistema AUDESP:").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras de Pontualidade", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Encaminhou no prazo:** Pontuação máxima = **50,0 pontos**
+                            * **Encaminhou fora do prazo:** Pontuação parcial = **25,0 pontos**
+                            * **Não encaminhou:** Sem pontuação = **0,0 ponto**
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Seleção de Status do Envio").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f11_bruto = f11_data.get("valor", {})
+                            if not isinstance(val_f11_bruto, dict):
+                                val_f11_bruto = {"status_envio": "Encaminhou no prazo"}
+
+                            state_f11 = {
+                                "status_envio": val_f11_bruto.get("status_envio", "Encaminhou no prazo"),
+                                "link": f11_data.get("link", ""),
+                                "pts": float(f11_data.get("pontos", 50.0) or 50.0)
+                            }
+
+                            radio_pontualidade = ui.radio(
+                                options=[
+                                    "Encaminhou no prazo",
+                                    "Encaminhou fora do prazo",
+                                    "Não encaminhou"
+                                ],
+                                value=state_f11["status_envio"]
+                            ).classes("w-full mb-2")
+
+                            lbl_pts_f11 = ui.label().classes("text-sm font-bold mt-2")
+
+                            def calcular_f11(_=None):
+                                opcao = radio_pontualidade.value
+                                state_f11["status_envio"] = opcao
+
+                                if opcao == "Encaminhou no prazo":
+                                    pts = 50.0
+                                    lbl_pts_f11.set_text("📊 Impacto de Pontuação Calculado: 50.00 pontos (Pontuação Máxima)")
+                                    lbl_pts_f11.classes(remove="text-amber-600 text-red-600", add="text-green-600")
+                                elif opcao == "Encaminhou fora do prazo":
+                                    pts = 25.0
+                                    lbl_pts_f11.set_text("📊 Impacto de Pontuação Calculado: 25.00 pontos (Envio com Atraso)")
+                                    lbl_pts_f11.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                else:
+                                    pts = 0.0
+                                    lbl_pts_f11.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos (Inadimplente / Não Enviado)")
+                                    lbl_pts_f11.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+
+                                state_f11["pts"] = pts
+
+                            radio_pontualidade.on("update:model-value", calcular_f11)
+                            calcular_f11()
+
+                        input_link_f11 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f11["link"],
+                            placeholder="Insira o link do Relatório de Situação de Entrega do Sistema AUDESP..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f11():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F11",
+                                valor={"status_envio": state_f11["status_envio"]},
+                                pontos=state_f11["pts"],
+                                link=input_link_f11.value,
+                                comentarios=f11_data.get("comentarios", []),
+                                status=f11_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F11 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f11).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F11", res_data, render_conteudo.refresh)
+
                   
     render_conteudo()
