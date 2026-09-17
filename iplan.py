@@ -1096,4 +1096,88 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 7.0 (Alteração Orçamentária por Decreto - Radio)
+                    # ==========================================
+                    opcoes_70 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.0",
+                        titulo="Alterações Orçamentárias por Decreto",
+                        pergunta="Houve alteração orçamentária decorrente de remanejamento, transposição ou transferência de uma categoria de programação para outra ou de um órgão para outro por decreto?",
+                        tipo_input="radio",
+                        opcoes=opcoes_70,
+                        placeholder_link="Insira o link dos decretos de alteração orçamentária...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 7.1 (Classificação Funcional Afetada - Checkbox)
+                    # ==========================================
+                    opcoes_71 = {
+                        "Selecione...": 0.0,
+                        "10 - Saúde – -05 pts": -5.0,
+                        "12 - Educação – -05 pts": -5.0,
+                        "17 - Saneamento – -05 pts": -5.0,
+                        "19 - Ciência e Tecnologia – 00 pts": 0.0,
+                        "26 - Transporte – -05 pts": -5.0,
+                        "Outras – -05 pts": -5.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.1",
+                        titulo="Classificação Funcional das Alterações Orçamentárias",
+                        pergunta="Assinale a classificação funcional da despesa, objeto de alterações orçamentárias decorrentes de remanejamento, transposição e transferências realizadas por decreto:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_71,
+                        placeholder_link="Insira o link dos atos de alteração por função...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 8.0 (Anexo de Metas Fiscais - Radio)
+                    # ==========================================
+                    opcoes_80 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.0",
+                        titulo="Anexo de Metas Fiscais na LDO",
+                        pergunta="O Anexo de Metas Fiscais integra a Lei de Diretrizes Orçamentárias (LDO), nos termos exigidos pela Lei de Responsabilidade Fiscal? (Obs: Estabelecidas metas anuais, em valores correntes e constantes, relativas a receitas, despesas, resultados nominal e primário e montante da dívida pública, para o exercício a que se referirem e para os dois seguintes):",
+                        tipo_input="radio",
+                        opcoes=opcoes_80,
+                        placeholder_link="Insira o link do Anexo de Metas Fiscais na LDO...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 8.1 (Divulgação do Anexo de Metas Fiscais - Radio)
+                    # ==========================================
+                    # Nota: Validação de link. Se contiver 'XYZ' perde 10 pts (-10.0), caso contrário ganha 0 pts.
+                    opcoes_81 = {
+                        "Link/Página eletrônica disponível – 00 pts": 0.0,
+                        "Não disponível (Texto XYZ) – -10 pts": -10.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.1",
+                        titulo="Divulgação do Anexo de Metas Fiscais na Internet",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação do Anexo de Metas Fiscais (Se não estiver disponível na internet, inserir no campo de link o texto 'XYZ'):",
+                        tipo_input="radio",
+                        opcoes=opcoes_81,
+                        placeholder_link="Cole o link do Anexo de Metas Fiscais ou digite XYZ se não estiver disponível...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
