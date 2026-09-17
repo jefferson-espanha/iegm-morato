@@ -4023,5 +4023,115 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F12", res_data, render_conteudo.refresh)
 
+                    # ==========================================
+                    # QUESITO F13 (Dívida Ativa: Percentual de Cancelamento)
+                    # ==========================================
+                    f13_data = res_data.get("F13", {})
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("F13 • Dívida Ativa: Percentual de Cancelamento").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Nível de cancelamento da Dívida Ativa em relação ao estoque inicial (AM = Valor Cancelado / Estoque Inicial da Dívida Ativa):").classes("text-base font-bold text-black mb-2")
+                        
+                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AM", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **AM = 0,00 (Nenhum cancelamento):** Pontuação máxima (**50,0 pontos**)
+                            * **0,00 < AM < 0,10 (Graduação Proporcional):** Pontuação calculada por `((AM - 0,10) * (-1) / 0,10) * 50,0`
+                            * **AM >= 0,10 (Cancelamento >= 10% do estoque):** Sem pontuação (**0,0 ponto**)
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("🧮 Calculadora Automática do Indicador AM").classes("font-bold text-blue-700 mb-2")
+                            
+                            val_f13_bruto = f13_data.get("valor", {})
+                            if not isinstance(val_f13_bruto, dict):
+                                val_f13_bruto = {}
+
+                            state_f13 = {
+                                "val_cancelado": float(val_f13_bruto.get("cancelado", 0.0) or 0.0),
+                                "val_estoque": float(val_f13_bruto.get("estoque_inicial", 0.0) or 0.0),
+                                "link": f13_data.get("link", ""),
+                                "pts": float(f13_data.get("pontos", 50.0) or 50.0)
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_cancelado = (
+                                    ui.number(label="Valor Cancelado da Dívida Ativa", value=state_f13["val_cancelado"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+                                input_estoque = (
+                                    ui.number(label="Estoque Inicial da Dívida Ativa", value=state_f13["val_estoque"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white prefix='R$'")
+                                )
+
+                            lbl_am = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_f13 = ui.label().classes("text-sm font-bold mt-1")
+
+                            def calcular_f13(_=None):
+                                try:
+                                    cancelado = float(input_cancelado.value or 0.0)
+                                    estoque = float(input_estoque.value or 0.0)
+                                except (ValueError, TypeError):
+                                    cancelado, estoque = 0.0, 0.0
+
+                                state_f13["val_cancelado"] = cancelado
+                                state_f13["val_estoque"] = estoque
+
+                                if estoque > 0:
+                                    am = cancelado / estoque
+                                    if am == 0.0:
+                                        pts = 50.0
+                                        lbl_pts_f13.classes(remove="text-red-600 text-amber-600 text-gray-500", add="text-green-600")
+                                    elif 0.0 < am < 0.10:
+                                        pts = ((am - 0.10) * (-1) / 0.10) * 50.0
+                                        lbl_pts_f13.classes(remove="text-green-600 text-red-600 text-gray-500", add="text-amber-600")
+                                    else:
+                                        pts = 0.0
+                                        lbl_pts_f13.classes(remove="text-green-600 text-amber-600 text-gray-500", add="text-red-600")
+
+                                    state_f13["pts"] = pts
+                                    lbl_am.set_text(f"Resultado AM (Cancelado / Estoque): {am:.4f} ({am*100:.2f}%)")
+                                    lbl_pts_f13.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                else:
+                                    lbl_am.set_text("Resultado AM: Indefinido (O Estoque Inicial deve ser maior que R$ 0,00)")
+                                    lbl_pts_f13.set_text("⚠️ Informe os valores válidos de Estoque Inicial e Cancelamento.")
+                                    lbl_pts_f13.classes(remove="text-green-600 text-amber-600 text-red-600", add="text-gray-500")
+                                    state_f13["pts"] = 0.0
+
+                            input_cancelado.on("update:model-value", calcular_f13)
+                            input_estoque.on("update:model-value", calcular_f13)
+                            calcular_f13()
+
+                        input_link_f13 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_f13["link"],
+                            placeholder="Insira o link do Relatório de Análises Anuais Eletrônicas do Sistema AUDESP..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        def salvar_f13():
+                            if state_f13["val_estoque"] <= 0:
+                                ui.notify("Por favor, informe um valor válido para o Estoque Inicial da Dívida Ativa!", type="warning")
+                                return
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="F13",
+                                valor={
+                                    "cancelado": state_f13["val_cancelado"],
+                                    "estoque_inicial": state_f13["val_estoque"]
+                                },
+                                pontos=state_f13["pts"],
+                                link=input_link_f13.value,
+                                comentarios=f13_data.get("comentarios", []),
+                                status=f13_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito F13 salvo com sucesso!", type="positive")
+                            render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f13).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("F13", res_data, render_conteudo.refresh)
+
                       
     render_conteudo()
