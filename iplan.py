@@ -2493,8 +2493,8 @@ def container_formulario_plan(ano=None):
                     # QUESITO P4 (Pontualidade na Entrega de Documentos AUDESP)
                     # ==========================================
                     opcoes_p4 = {
-                        "Documentos relativos às Peças de Planejamento entregues no prazo": 150.0,
-                        "Documentos relativos às Peças de Planejamento entregues fora do prazo ou não entregue": 0.0,
+                        "Documentos relativos às Peças de Planejamento entregues no prazo – 150 pts": 150.0,
+                        "Documentos relativos às Peças de Planejamento entregues fora do prazo ou não entregue – 00 pts": 0.0,
                     }
 
                     render_quesito(
