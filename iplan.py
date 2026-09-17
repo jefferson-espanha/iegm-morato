@@ -2374,5 +2374,19 @@ def container_formulario_plan(ano=None):
                         placeholder_link="Insira o link ou anexo da memória de cálculo e do Relatório de Atividades...",
                         on_save_callback=render_conteudo.refresh,
                     )
+
+                    # ==========================================
+                    # QUESITO P2 (Resultado Físico x Recursos Financeiros - Entrada Manual)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="P2",
+                        titulo="Confronto entre o Resultado Físico Alcançado pelas Metas das Ações e os Recursos Financeiros Utilizados",
+                        pergunta="Apresenta o valor alcançado de cada uma das ações, dividindo-se o valor da meta física realizada pelo valor estipulado inicialmente no planejamento; e o quanto dos recursos disponibilizados foram utilizados, dividindo-se o valor liquidado pelo valor fixado atualizado, a partir dos dados constantes da Lei Orçamentária Anual, por meio do seguinte cálculo:",
+                        tipo_input="number",
+                        placeholder_link="Insira o link ou anexo da memória de cálculo e do demonstrativo financeiro...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                     
     render_conteudo()
