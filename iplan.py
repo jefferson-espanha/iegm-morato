@@ -2316,16 +2316,19 @@ def container_formulario_plan(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO P1 (Coerência Indicadores x Metas - Entrada Manual)
+                    # QUESITO P1 (Coerência Indicadores x Metas - Caixas de Seleção 0 a 250)
                     # ==========================================
+                    # Gera as opções de 0 até 250 (ex: "0 pts", "1 pt", "2 pts", ..., "250 pts")
+                    opcoes_p1 = {f"{i} pts": float(i) for i in range(251)}
+
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
                         qid="P1",
                         titulo="Coerência entre os Resultados dos Indicadores dos Programas e das Metas das Ações",
                         pergunta="Informe a pontuação calculada com base na média dos resultados dos indicadores comparada à média das ações do programa, conforme o Relatório de Atividades:",
-                        tipo_input="number",  # Garanta que sua função trate tipo_input="number"
-                        opcoes={},
+                        tipo_input="radio",  # ou "selectbox", conforme aceito pela sua render_quesito
+                        opcoes=opcoes_p1,
                         placeholder_link="Insira o link ou anexo da memória de cálculo e do Relatório de Atividades...",
                         on_save_callback=render_conteudo.refresh,
                     )
