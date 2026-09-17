@@ -2301,21 +2301,16 @@ def container_formulario_plan(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO 19.0 (Impressões e Comentários - Radio/Text)
+                    # QUESITO 19.0 (Impressões e Comentários - Apenas Texto)
                     # ==========================================
-                    opcoes_190 = {
-                        "Comentários/Sugestões registrados – 00 pts": 0.0,
-                        "Sem comentários – 00 pts": 0.0,
-                    }
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
                         qid="19.0",
                         titulo="Impressões, Comentários e Sugestões",
                         pergunta="Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?",
-                        tipo_input="radio",
-                        opcoes=opcoes_190,
-                        placeholder_link="Escreva aqui suas impressões e sugestões...",
+                        tipo_input="text",
+                        placeholder_link="Escreva aqui suas impressões, comentários e sugestões...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
