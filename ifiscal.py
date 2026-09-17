@@ -883,5 +883,105 @@ def container_formulario_ifiscal(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+                    # ==========================================
+                    # QUESITO 4.0 (Radio)
+                    # ==========================================
+                    opcoes_4_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.0",
+                        titulo="Revisão do Cadastro Imobiliário",
+                        pergunta="Foi instituído procedimento de revisão do cadastro imobiliário estabelecendo a sua periodicidade? (Obs.: a mera atualização cadastral por solicitação do contribuinte realizada de forma pontual e esporádica não será considerada na questão como revisão periódica e geral).",
+                        tipo_input="radio",
+                        opcoes=opcoes_4_0,
+                        placeholder_link="Insira o link ou documento do procedimento de revisão...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 4.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.1",
+                        titulo="Instrumento Normativo de Revisão do Cadastro",
+                        pergunta="Informe o instrumento normativo (número e data da aprovação) e endereço eletrônico de divulgação do procedimento de revisão do cadastro imobiliário:",
+                        tipo_input="text",
+                        placeholder_link="Insira a página eletrônica / link do instrumento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 4.2 (Radio)
+                    # ==========================================
+                    opcoes_4_2 = {
+                        "Selecione...": 0.0,
+                        "Menor ou igual a 1 ano": 0.0,
+                        "Maior que 1 e menor ou igual a 4 anos": 0.0,
+                        "Maior que 4 e menor ou igual a 8 anos": 0.0,
+                        "Maior que 8 anos": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.2",
+                        titulo="Periodicidade da Revisão do Cadastro Imobiliário",
+                        pergunta="Qual a periodicidade da revisão geral do Cadastro Imobiliário?",
+                        tipo_input="radio",
+                        opcoes=opcoes_4_2,
+                        placeholder_link="Insira o documento informando a periodicidade...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 4.3 (Radio)
+                    # ==========================================
+                    opcoes_4_3 = {
+                        "Selecione...": 0.0,
+                        "Sim – 05": 5.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.3",
+                        titulo="Atualização da Revisão do Cadastro Imobiliário",
+                        pergunta="O cadastro imobiliário está com a revisão periódica ou geral atualizada? (Obs.: a mera atualização cadastral por solicitação do contribuinte realizada de forma pontual e esporádica não será considerada na questão).",
+                        tipo_input="radio",
+                        opcoes=opcoes_4_3,
+                        placeholder_link="Insira a evidência da atualização periódica...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.0 (Radio)
+                    # ==========================================
+                    opcoes_5_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 03": 3.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.0",
+                        titulo="Planta Genérica de Valores (PGV)",
+                        pergunta="O instrumento da Planta Genérica de Valores (PGV) foi aprovado por lei, conforme previsto no Código Tributário Nacional (CTN)?",
+                        tipo_input="radio",
+                        opcoes=opcoes_5_0,
+                        placeholder_link="Insira o link ou documento da lei da PGV...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
                   
     render_conteudo()
