@@ -2122,4 +2122,201 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 16.2 (Atualização da Carta de Serviços - Radio)
+                    # ==========================================
+                    opcoes_162 = {
+                        "Selecione...": 0.0,
+                        "Sim – 02 pts": 2.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.2",
+                        titulo="Atualização da Carta de Serviços ao Usuário",
+                        pergunta="A 'Carta de Serviço ao Usuário' está atualizada?",
+                        tipo_input="radio",
+                        opcoes=opcoes_162,
+                        placeholder_link="Insira o link demonstrando a atualização...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 16.3 (Regulamentação da Carta de Serviços - Radio)
+                    # ==========================================
+                    opcoes_163 = {
+                        "Selecione...": 0.0,
+                        "Sim – 04 pts": 4.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.3",
+                        titulo="Regulamentação da Carta de Serviços ao Usuário",
+                        pergunta="A prefeitura regulamentou a operacionalização da Carta de Serviços ao Usuário, conforme o artigo 7°, § 5°, da Lei Federal n° 13.460/2017?",
+                        tipo_input="radio",
+                        opcoes=opcoes_163,
+                        placeholder_link="Insira o link do decreto ou norma regulamentadora...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 16.3.1 (Instrumento Normativo da Carta de Serviços - Radio/Text)
+                    # ==========================================
+                    opcoes_1631 = {
+                        "Selecione...": 0.0,
+                        "Instrumento informado/anexado – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.3.1",
+                        titulo="Instrumento Normativo da Carta de Serviços",
+                        pergunta="Informe o instrumento normativo que regulamentou a 'Carta de Serviço ao Usuário', Número e Data da publicação:",
+                        tipo_input="radio",
+                        opcoes=opcoes_1631,
+                        placeholder_link="Informe o número, data da publicação e insira o link da norma...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 16.3.2 (Divulgação da Regulamentação da Carta - Radio/Text)
+                    # ==========================================
+                    opcoes_1632 = {
+                        "Link/Página eletrônica disponível – 00 pts": 0.0,
+                        "Não disponível (Texto XYZ) – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.3.2",
+                        titulo="Divulgação da Regulamentação da Carta de Serviços",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação do instrumento normativo que regulamentou a 'Carta de Serviço ao Usuário' (Se não disponível, inserir XYZ):",
+                        tipo_input="radio",
+                        opcoes=opcoes_1632,
+                        placeholder_link="Cole o link de divulgação ou digite XYZ...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 17.0 (Conselho de Usuários - Radio)
+                    # ==========================================
+                    opcoes_170 = {
+                        "Selecione...": 0.0,
+                        "Sim – 04 pts": 4.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="17.0",
+                        titulo="Instituição do Conselho de Usuários",
+                        pergunta="A prefeitura regulamentou e instituiu o Conselho de Usuários, nos termos definidos nos artigos 18 a 21 da Lei Federal nº 13.460/2017?",
+                        tipo_input="radio",
+                        opcoes=opcoes_170,
+                        placeholder_link="Insira o link do ato de criação do Conselho de Usuários...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 17.1 (Instrumento Normativo do Conselho - Radio/Text)
+                    # ==========================================
+                    opcoes_171 = {
+                        "Selecione...": 0.0,
+                        "Instrumento informado/anexado – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="17.1",
+                        titulo="Instrumento Normativo do Conselho de Usuários",
+                        pergunta="Informe o instrumento normativo que regulamentou os Conselhos de Usuários, Número e Data da publicação:",
+                        tipo_input="radio",
+                        opcoes=opcoes_171,
+                        placeholder_link="Informe o número, data da publicação e insira o link da norma...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 17.2 (Divulgação da Norma do Conselho - Radio/Text)
+                    # ==========================================
+                    opcoes_172 = {
+                        "Link/Página eletrônica disponível – 00 pts": 0.0,
+                        "Não disponível (Texto XYZ) – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="17.2",
+                        titulo="Divulgação da Regulamentação do Conselho de Usuários",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação da regulamentação do Conselho de Usuários (Se não disponível, inserir XYZ):",
+                        tipo_input="radio",
+                        opcoes=opcoes_172,
+                        placeholder_link="Cole o link de divulgação ou digite XYZ...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 18.0 (Plano Diretor - Radio)
+                    # ==========================================
+                    opcoes_180 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                        "Não se aplica – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="18.0",
+                        titulo="Elaboração do Plano Diretor",
+                        pergunta="O município elaborou Plano Diretor conforme Lei nº 10.257/01?",
+                        tipo_input="radio",
+                        opcoes=opcoes_180,
+                        placeholder_link="Insira o link da Lei do Plano Diretor...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 18.1 (Atualização do Plano Diretor - Radio)
+                    # ==========================================
+                    # Regra de cálculo: Se a data de atualização <= 31/12/2015 perde -10 pts. Se > 31/12/2015 ganha 0 pts.
+                    opcoes_181 = {
+                        "Selecione...": 0.0,
+                        "Data <= 31/12/2015 – -10 pts": -10.0,
+                        "Data > 31/12/2015 – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="18.1",
+                        titulo="Data da Última Atualização do Plano Diretor",
+                        pergunta="Informe a data da última atualização do Plano Diretor (Se <= 31/12/2015 perde -10 pts | Se > 31/12/2015 ganha 0 pts):",
+                        tipo_input="radio",
+                        opcoes=opcoes_181,
+                        placeholder_link="Informe a data de atualização e insira o link da lei alteradora...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 19.0 (Impressões e Comentários - Radio/Text)
+                    # ==========================================
+                    opcoes_190 = {
+                        "Comentários/Sugestões registrados – 00 pts": 0.0,
+                        "Sem comentários – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="19.0",
+                        titulo="Impressões, Comentários e Sugestões",
+                        pergunta="Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?",
+                        tipo_input="radio",
+                        opcoes=opcoes_190,
+                        placeholder_link="Escreva aqui suas impressões e sugestões...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
