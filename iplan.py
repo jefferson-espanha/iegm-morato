@@ -1419,4 +1419,107 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 13.0 (Acompanhamento da Execução do Planejamento - Radio)
+                    # ==========================================
+                    opcoes_130 = {
+                        "Selecione...": 0.0,
+                        "Sim – 00 pts": 0.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.0",
+                        titulo="Acompanhamento da Execução do Planejamento",
+                        pergunta="Há acompanhamento da execução do planejamento?",
+                        tipo_input="radio",
+                        opcoes=opcoes_130,
+                        placeholder_link="Insira o link com evidências do acompanhamento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 13.1 (Audiências Públicas Quadrimestrais - Checkbox)
+                    # ==========================================
+                    opcoes_131 = {
+                        "Realizou Audiência pública do 1º Quadrimestre até o final do mês de maio de 2025 – 02 pts": 2.0,
+                        "Realizou Audiência pública do 2º Quadrimestre até o final do mês de setembro de 2025 – 02 pts": 2.0,
+                        "Realizou Audiência pública do 3º Quadrimestre até o final do mês de fevereiro de 2026 – 02 pts": 2.0,
+                        "Não realizou audiência pública quadrimestral dentro do prazo – 00 pts": 0.0,
+                        "Não realizou nenhuma audiência pública quadrimestral na Câmara Municipal – -10 pts": -10.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.1",
+                        titulo="Audiências Públicas Quadrimestrais das Metas Fiscais",
+                        pergunta="A prefeitura demonstra e avalia, com periodicidade quadrimestral, o cumprimento das metas fiscais em audiências públicas? (Art. 9º, § 4º, da LRF)",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_131,
+                        placeholder_link="Insira o link das atas/convocações das audiências públicas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 13.1.1 (Relatórios Quadrimestrais das Metas Fiscais - Checkbox)
+                    # ==========================================
+                    opcoes_1311 = {
+                        "Relatório da Audiência pública do 1º Quadrimestre – 01 pt": 1.0,
+                        "Relatório da Audiência pública do 2º Quadrimestre – 01 pt": 1.0,
+                        "Relatório da Audiência pública do 3º Quadrimestre – 01 pt": 1.0,
+                        "Não elaborou relatório de nenhuma audiência pública quadrimestral – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.1.1",
+                        titulo="Relatórios Quadrimestrais das Metas Fiscais",
+                        pergunta="Foram elaborados os Relatórios Quadrimestrais das metas fiscais para as audiências públicas?",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_1311,
+                        placeholder_link="Insira o link dos relatórios quadrimestrais elaborados...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 13.1.1.1 (Divulgação dos Relatórios Quadrimestrais - Radio)
+                    # ==========================================
+                    # Nota: Se XYZ ganha 0 pts, se for diferente de XYZ (<> XYZ) ganha 2 pts.
+                    opcoes_13111 = {
+                        "Link/Página eletrônica disponível (<> XYZ) – 02 pts": 2.0,
+                        "Não disponível (Texto XYZ) – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.1.1.1",
+                        titulo="Divulgação dos Relatórios Quadrimestrais de Metas Fiscais",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação dos Relatórios Quadrimestrais de Metas Fiscais (Se não estiver disponível na internet, inserir no campo de link o texto 'XYZ'):",
+                        tipo_input="radio",
+                        opcoes=opcoes_13111,
+                        placeholder_link="Cole o link dos Relatórios Quadrimestrais ou digite XYZ se não estiver disponível...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 13.2 (Acompanhamento Mensal com o Prefeito - Radio)
+                    # ==========================================
+                    opcoes_132 = {
+                        "Selecione...": 0.0,
+                        "Sim – 04 pts": 4.0,
+                        "Não – 00 pts": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.2",
+                        titulo="Acompanhamento Mensal com Participação do Prefeito",
+                        pergunta="Houve acompanhamento mensal da execução orçamentária com participação do Prefeito?",
+                        tipo_input="radio",
+                        opcoes=opcoes_132,
+                        placeholder_link="Insira o link das atas de reunião ou comprovações do acompanhamento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
