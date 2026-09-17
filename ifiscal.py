@@ -743,5 +743,145 @@ def container_formulario_ifiscal(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    # ==========================================
+                    # QUESITO 1.4.1 (Texto Dissertativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.4.1",
+                        titulo="Instrumento Normativo do PCCS",
+                        pergunta="Informe o instrumento normativo de regulamentação do Plano de Cargos e Salários específico para seus fiscais tributários, Número e Data da publicação: (Caso não esteja disponível na internet, recomendamos anexar o documento)",
+                        tipo_input="text",
+                        placeholder_link="Insira o link do documento do PCCS...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.4.2 (Texto / Link)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.4.2",
+                        titulo="Divulgação do PCCS na Internet",
+                        pergunta="Informe a página eletrônica (link na internet) de divulgação do Plano de Cargos e Salários específico para os fiscais tributários: (Se não estiver disponível na internet, inserir no campo o texto XYZ)",
+                        tipo_input="text",
+                        placeholder_link="Insira a página eletrônica oficial...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.5 (Radio)
+                    # ==========================================
+                    opcoes_1_5 = {
+                        "Selecione...": 0.0,
+                        "Sim – 05": 5.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.5",
+                        titulo="Segregação de Funções Tributárias",
+                        pergunta="Há segregação de funções entre os setores de lançadoria, arrecadação, fiscalização e contabilidade?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_5,
+                        placeholder_link="Insira o link ou organograma comprovando a segregação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.5.1 (Radio)
+                    # ==========================================
+                    opcoes_1_5_1 = {
+                        "Selecione...": 0.0,
+                        "Sim – 05": 5.0,
+                        "Não – 00": 0.0,
+                        "Não possui sistema (software) para lançamento, arrecadação ou fiscalização dos tributos – -03": -3.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.5.1",
+                        titulo="Segregação de Permissões no Sistema",
+                        pergunta="Há segregação nas permissões de acesso do sistema, com identificação do usuário e registro das transações efetuadas?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_5_1,
+                        placeholder_link="Insira o link ou relatório de perfis/logs do sistema...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 2.0 (Radio)
+                    # ==========================================
+                    opcoes_2_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 04": 4.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="2.0",
+                        titulo="Contabilidade - Servidor Efetivo",
+                        pergunta="O servidor responsável pela contabilidade do município é ocupante de cargo de provimento efetivo?",
+                        tipo_input="radio",
+                        opcoes=opcoes_2_0,
+                        placeholder_link="Insira o termo de posse ou portaria do contador...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 3.0 (Radio)
+                    # ==========================================
+                    opcoes_3_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 30": 30.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.0",
+                        titulo="Medidas para Aumento da Arrecadação",
+                        pergunta="O Município adotou medidas efetivas para aumento da arrecadação?",
+                        tipo_input="radio",
+                        opcoes=opcoes_3_0,
+                        placeholder_link="Insira o link das leis ou relatórios das medidas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 3.1 (Checkbox - Múltipla Escolha)
+                    # ==========================================
+                    opcoes_3_1 = {
+                        "Recadastramento de Imóveis": 0.0,
+                        "Programas de Recuperação Fiscal": 0.0,
+                        "Implementação de Nota Fiscal Eletrônica": 0.0,
+                        "Convênios com a União e o Estado para compartilhamento de Informações": 0.0,
+                        "Parceria/Convênio com os tabelionatos de notas e Registros de Imóveis": 0.0,
+                        "Protesto da Certidão de Dívida Ativa": 0.0,
+                        "Convênios com órgãos de proteção ao crédito": 0.0,
+                        "Convênio com o Governo Federal para a cobrança do ITR": 0.0,
+                        "Outros": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.1",
+                        titulo="Medidas Implementadas para Arrecadação",
+                        pergunta="Assinale as medidas implementadas para aumento da arrecadação:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_3_1,
+                        placeholder_link="Insira o link dos convênios, decretos e leis que comprovem as medidas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
                   
     render_conteudo()
