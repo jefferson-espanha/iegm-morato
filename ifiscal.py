@@ -157,6 +157,7 @@ def _obter_lista_comentarios(dados_q):
     coms = dados_q.get("comentarios", [])
     return coms if isinstance(coms, list) else []
 
+
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
 # =============================================================================
@@ -241,10 +242,10 @@ def render_quesito(
                         chk_states[opt_key] = chk
 
             elif tipo_input in ["number", "float"]:
-                # Campo numérico de 0 a 250 pontos
+                # Campo numérico
                 input_num = (
                     ui.number(
-                        label="Pontuação do Quesito (0 a 250):",
+                        label="Pontuação do Quesito:",
                         value=state["opcao"],
                         min=0,
                         max=250,
@@ -341,6 +342,7 @@ def render_quesito(
 
         ui.separator().classes("my-2")
         bloco_comentarios(qid, res_data, on_save_callback)
+
 
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
@@ -543,10 +545,11 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             "bg-blue-600 text-white mt-2"
         )
 
+
 # =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS
+# MÓDULO PRINCIPAL DE REQUISITOS (IFISCAL)
 # =============================================================================
-def container_formulario_plan(ano=None):
+def container_formulario_ifiscal(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
@@ -576,7 +579,12 @@ def container_formulario_plan(ano=None):
                 # Coluna 2: Formulário Principal (9/12)
                 with ui.element("div").classes("md:col-span-8 lg:col-span-9 flex flex-col gap-4"):
                     with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
-                        ui.label(f"📋 Módulo i-Plan — Ano {ano_sel}").classes(
+                        ui.label(f"📋 Módulo i-Fiscal — Ano {ano_sel}").classes(
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
 
+                    # AQUI ENTRARÃO OS QUESITOS DO IFISCAL
+                    # Exemplo de chamada:
+                    # render_quesito(ano=ano_sel, res_data=res_data, ...)
+
+    render_conteudo()
