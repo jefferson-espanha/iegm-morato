@@ -565,6 +565,166 @@ def container_formulario_ieduc(ano=None):
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
 
+                    # ==========================================
+                    # QUESITO 1.0
+                    # ==========================================
+                    opcoes_1_0 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.0",
+                        titulo="Oferta de Creche",
+                        pergunta="A Prefeitura municipal oferece Creche?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_0,
+                        placeholder_link="Insira o link ou documento de comprovação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.1
+                    # ==========================================
+                    opcoes_1_1 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.1",
+                        titulo="Infraestrutura de Creche",
+                        pergunta="Algum estabelecimento que oferece Creche possui brinquedos no Pátio Infantil?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_1,
+                        placeholder_link="Insira o link ou documento de comprovação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.1.1
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.1.1",
+                        titulo="Brinquedos no Pátio Infantil",
+                        pergunta="Informe quantos estabelecimentos que oferecem Creche possuem Brinquedos no Pátio Infantil (BPI). (Cálculo: NF = (nº de creches com BPI / nº total de creches) x 2,0 pts)",
+                        tipo_input="number",
+                        opcoes={},
+                        placeholder_link="Insira o link ou relatório de vistoria...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.1.2
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.1.2",
+                        titulo="Manutenção de Brinquedos no Pátio Infantil",
+                        pergunta="Informe os dados de manutenção (CRON: cumpriram cronograma [+3 pts], NCRON: não cumpriram [+1 pt], SOLIC: apenas por solicitação [0 pts], NMANU: não realizam [-2 pts]):",
+                        tipo_input="text",
+                        opcoes={},
+                        placeholder_link="Insira o link ou comprovante do cronograma de manutenção...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.2
+                    # ==========================================
+                    opcoes_1_2 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.2",
+                        titulo="Materiais Pedagógicos",
+                        pergunta="A Prefeitura disponibiliza brinquedos/materiais pedagógicos para as crianças em todos os estabelecimentos de Creche do município?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_2,
+                        placeholder_link="Insira o link ou documento de distribuição...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.2.1
+                    # ==========================================
+                    opcoes_1_2_1 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.2.1",
+                        titulo="Higienização de Materiais",
+                        pergunta="Realiza higienização dos brinquedos/materiais pedagógicos?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_2_1,
+                        placeholder_link="Insira o link ou protocolo de higienização...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.2.1.1
+                    # ==========================================
+                    opcoes_1_2_1_1 = {
+                        "Selecione...": 0.0,
+                        "Diária – 05": 5.0,
+                        "A cada 2 dias – 04": 4.0,
+                        "A cada 3 dias – 03": 3.0,
+                        "Semanal – 02": 2.0,
+                        "Mensal – 01": 1.0,
+                        "> 30 dias – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.2.1.1",
+                        titulo="Frequência de Higienização",
+                        pergunta="Qual a frequência de higienização aplicada na maior parte dos estabelecimentos que oferecem creche?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_2_1_1,
+                        placeholder_link="Insira o link do registro/relatório de higienização...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.2.2
+                    # ==========================================
+                    opcoes_1_2_2 = {
+                        "Selecione...": 0.0,
+                        "Sim – 05": 5.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.2.2",
+                        titulo="Planejamento de Aquisição",
+                        pergunta="Possui cronograma para compra de brinquedos/materiais pedagógicos para cada estabelecimento de ensino?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_2_2,
+                        placeholder_link="Insira o link ou documento do planejamento de compra...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     render_conteudo()
     return main_container
 
