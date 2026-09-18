@@ -2229,12 +2229,16 @@ def container_formulario_ieduc(ano=None):
                         }
 
                         val_110_bruto = str(d110.get("valor") or "")
-                        
-                        # Limpa string caso venha com sufixos de versões anteriores e valida a chave
-                        val_110_limpo = re.sub(r"\s*\([\d,\.\s]+pontos?\)", "", val_110_bruto, flags=re.IGNORECASE).strip()
-                        val_110_valido = (
-                            val_110_limpo if val_110_limpo in opcoes_110 else "Sobre planejamento e desempenho da criança"
-                        )
+
+                        # Remove sufixos como '(2,0 pontos)', '(2.0 pontos)', '(1,5 pontos)', etc.
+                        val_limpo = re.sub(r"\s*\([\d,\.\s]+pontos?\)", "", val_110_bruto, flags=re.IGNORECASE).strip()
+
+                        # Procura uma correspondência aproximada ou define a opção padrão
+                        val_110_valido = "Sobre planejamento e desempenho da criança"
+                        for chave in opcoes_110.keys():
+                            if chave.lower() in val_110_bruto.lower() or val_limpo.lower() == chave.lower():
+                                val_110_valido = chave
+                                break
 
                         raw_link_110 = str(d110.get("link") or "")
 
