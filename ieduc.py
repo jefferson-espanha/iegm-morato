@@ -8,7 +8,7 @@ from psycopg2.extras import RealDictCursor
 from nicegui import app, ui
 
 # =============================================================================
-# BANCO DE DADOS (NEON - ESTRUTURA REAL COM COLUNAS link E comentario)
+# BANCO DE DADOS (NEON - ESTRUTURA REAL RESPOSTAS_IEDUC)
 # =============================================================================
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
@@ -21,7 +21,7 @@ def get_db_connection():
 
 
 def _obter_lista_comentarios(dados_q):
-    """Extrai a lista de comentários a partir do dicionário do quesito ou retorna lista vazia."""
+    """Extrai e garante o retorno da lista de comentários."""
     if isinstance(dados_q, dict):
         coms = dados_q.get("comentarios", [])
         return coms if isinstance(coms, list) else []
@@ -46,7 +46,7 @@ def load_respostas(ano):
                     q_id = str(row["quesito"])
                     val_bruto = row["resposta"] or ""
 
-                    # Tenta converter resposta de JSON caso seja dicionário/lista salvos como string
+                    # Tenta converter resposta de JSON caso seja dicionário/lista
                     val_final = val_bruto
                     if isinstance(val_bruto, str) and (
                         (val_bruto.startswith("[") and val_bruto.endswith("]"))
@@ -60,12 +60,12 @@ def load_respostas(ano):
                         except Exception:
                             val_final = val_bruto
 
-                    # Processa campo link
+                    # Trata campo link
                     link_val = row.get("link") or ""
                     if link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    # Processa campo comentario
+                    # Trata campo comentario
                     coment_raw = row.get("comentario") or ""
                     comentarios_val = []
                     if coment_raw and coment_raw != "EMPTY_STRING":
@@ -151,7 +151,7 @@ def zerar_questionario_db(ano):
                 cur.execute(query, (int(ano),))
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao zerar questionário no DB: {e}")
+        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
 
 # ==========================================
 # FUNÇÃO AUXILIAR (CORRIGE O NameError)
