@@ -20,16 +20,19 @@ def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
-def _obter_lista_comentarios(dados_q):
-    """
-    Aceita o dicionário do quesito ou uma lista direta e devolve a lista de comentários.
-    Previne o erro de argumento ausente ('qid').
-    """
-    if isinstance(dados_q, dict):
+def _obter_lista_comentarios(dados_ou_ano, qid=None):
+    """Trata chamadas com 1 ou 2 argumentos para evitar TypeError."""
+    if qid is not None and isinstance(dados_ou_ano, dict):
+        dados_q = dados_ou_ano.get(str(qid), {})
         coms = dados_q.get("comentarios", [])
         return coms if isinstance(coms, list) else []
-    elif isinstance(dados_q, list):
-        return dados_q
+
+    if isinstance(dados_ou_ano, dict):
+        coms = dados_ou_ano.get("comentarios", [])
+        return coms if isinstance(coms, list) else []
+    elif isinstance(dados_ou_ano, list):
+        return dados_ou_ano
+
     return []
 
 
@@ -49,7 +52,6 @@ def load_respostas(ano):
                     q_id = str(row["quesito"])
                     val_bruto = row["resposta"] or ""
 
-                    # Desserializa respostas salvas como JSON em string
                     val_final = val_bruto
                     if isinstance(val_bruto, str) and (
                         (val_bruto.startswith("[") and val_bruto.endswith("]"))
@@ -63,12 +65,10 @@ def load_respostas(ano):
                         except Exception:
                             val_final = val_bruto
 
-                    # Trata o campo link
                     link_val = row.get("link") or ""
                     if link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    # Trata o campo comentario
                     coment_raw = row.get("comentario") or ""
                     comentarios_val = []
                     if coment_raw and coment_raw != "EMPTY_STRING":
@@ -102,7 +102,6 @@ def save_resposta(
 
     link_final = link.strip() if link else "EMPTY_STRING"
 
-    # Serializa o campo 'resposta'
     if isinstance(valor, (list, dict)):
         resposta_str = json.dumps(valor, ensure_ascii=False)
     else:
@@ -155,25 +154,6 @@ def zerar_questionario_db(ano):
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no DB: {e}")
-# ==========================================
-# FUNÇÃO AUXILIAR (CORRIGE O NameError)
-# ==========================================
-def _obter_lista_comentarios(ano, qid):
-    """Busca os comentários atuais salvos no banco para não os sobrescrever."""
-    query = "SELECT comentario FROM respostas_ieduc WHERE ano = %s AND quesito = %s;"
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (int(ano), str(qid)))
-                row = cur.fetchone()
-                if row and row.get("comentario"):
-                    coment_raw = row["comentario"]
-                    if coment_raw != "EMPTY_STRING":
-                        return json.loads(coment_raw)
-    except Exception as e:
-        print(f"⚠️ Erro ao obter comentários existentes: {e}")
-    return []
-
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
 # =============================================================================
