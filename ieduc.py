@@ -704,44 +704,81 @@ def container_formulario_ieduc(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                  # =============================================================================
-                    # QUESITO 1.1.1 - BRINQUEDOS NO PÁTIO INFANTIL (IEDUC)
-                    # Exemplo de resposta no BD: "BPI:14,TOTAL:26"
+                 # =============================================================================
+                    # QUESITO 1.1.1 - BRINQUEDOS NO PÁTIO INFANTIL (IEDUC / NICEGUI)
                     # =============================================================================
                     def render_quesito_1_1_1(ano_sel, res_data, save_resp, bloco_comentarios, on_save_callback=None):
-                        # Resgate da string armazenada no banco
-                        str_resposta = str(res_data.get("resposta", ""))
+                        # Recupera os dados salvos ou define o padrão
+                        d111 = res_data.get("1.1.1", {"valor": "BPI:0,TOTAL:0", "pontos": 0.0, "link": ""})
+                        str_banco = d111.get("valor", "BPI:0,TOTAL:0")
+                        link_banco = d111.get("link", "")
 
-                        # Parse da string (ex: "BPI:14,TOTAL:26")
-                        dados_dict = {}
-                        if str_resposta and ":" in str_resposta:
-                            for item in str_resposta.split(","):
-                                if ":" in item:
-                                    chave, valor = item.split(":", 1)
-                                    dados_dict[chave.strip().upper()] = float(valor.strip() or 0)
+                        # Split seguro para carregar os campos
+                        try:
+                            parts = str_banco.split(",")
+                            v_bpi = int(parts[0].split(":")[1])
+                            v_total = int(parts[1].split(":")[1])
+                        except Exception:
+                            v_bpi, v_total = 0, 0
 
-                        bpi_val = dados_dict.get("BPI", 0.0)
-                        total_val = dados_dict.get("TOTAL", 0.0)
+                        with ui.expansion("🔍 QUESITO 1.1.1 - Dados de Brinquedos no Pátio Infantil (BPI)", value=True).classes('w-full'):
+                            with ui.card().classes('w-full p-4'):
+                                ui.label("QUESITO 1.1.1").classes('text-lg font-bold')
+                                ui.label("Informe os dados para o cálculo de brinquedos no Pátio Infantil (BPI):")
+                                ui.label("ℹ️ O salvamento é automático. Qualquer alteração grava os dados na hora.").classes('text-xs text-gray-500 mb-2')
 
-                        # PmáxBPI = 2 pontos
-                        pmax_bpi = 2.0
+                                with ui.row().classes('w-full grid grid-cols-1 md:grid-cols-2 gap-4'):
+                                    with ui.column().classes('w-full'):
+                                        ui.label("Nº de creches com brinquedos no pátio infantil:").classes('text-xs font-medium')
+                                        input_bpi = ui.number(value=v_bpi, min=0, step=1).classes('w-full')
 
-                        # Fórmula: BPI_prop = nº creches brinquedos / nº creches município
-                        # Pontos: NF = (BPI / TOTAL) * PmáxBPI
-                        if total_val > 0:
-                            bpi_proporcao = bpi_val / total_val
-                            pontos_1_1_1 = bpi_proporcao * pmax_bpi
-                        else:
-                            bpi_proporcao = 0.0
-                            pontos_1_1_1 = 0.0
+                                        ui.label("Nº TOTAL de creches no município:").classes('text-xs font-medium')
+                                        input_total = ui.number(value=v_total, min=0, step=1).classes('w-full')
 
-                        print(f"[Quesito 1.1.1] BPI={bpi_val}, TOTAL={total_val} -> Pontos: {pontos_1_1_1:.15f}")
+                                    with ui.column().classes('w-full'):
+                                        ui.label("Link/Evidência (1.1.1):").classes('text-xs font-medium')
+                                        input_link = ui.textarea(value=link_banco).classes('w-full h-32')
+                                        lbl_links_ativos = ui.markdown("").classes('text-xs mt-1')
 
-                        # Salva o resultado numérico na coluna 'pontos'
-                        save_resp("1.1.1", str_resposta, pontos_1_1_1)
+                                lbl_score = ui.markdown("").classes('w-full p-2 bg-gray-100 rounded text-sm font-semibold mt-2')
 
-                        if bloco_comentarios:
-                            bloco_comentarios("1.1.1", res_data, on_save_callback)
+                                # Processamento Matemático e Reatividade do 1.1.1
+                                def recalcular_111():
+                                    b_val = int(input_bpi.value or 0)
+                                    t_val = int(input_total.value or 0)
+                                    lk_val = input_link.value or ""
+
+                                    pts_111 = 0.0
+                                    if t_val > 0:
+                                        proporcao_p = b_val / t_val
+                                        pts_111 = float(min(2.0, proporcao_p * 2.0))
+
+                                    lbl_score.set_content(f"📊 **Pontuação Calculada na Questão 1.1.1:** `{pts_111:.2f} pontos` (Máximo: 2.0 pontos)")
+
+                                    # Formatação de links
+                                    links_f = re.findall(r'(https?://[^\s]+)', lk_val)
+                                    if links_f:
+                                        botoes = " | ".join([f"🔗 [{lk}]({lk})" for lk in links_f])
+                                        lbl_links_ativos.set_content(f"**Links Ativos:** {botoes}")
+                                    else:
+                                        lbl_links_ativos.set_content("Nenhum link ativo")
+
+                                    str_valor_novo = f"BPI:{b_val},TOTAL:{t_val}"
+                                    if str_valor_novo != d111.get("valor", "") or lk_val != d111.get("link", ""):
+                                        save_resp("1.1.1", str_valor_novo, pts_111, lk_val)
+                                        res_data["1.1.1"] = {"valor": str_valor_novo, "pontos": pts_111, "link": lk_val}
+                                        if on_save_callback:
+                                            on_save_callback()
+
+                                input_bpi.on('update:model-value', recalcular_111)
+                                input_total.on('update:model-value', recalcular_111)
+                                input_link.on('update:model-value', recalcular_111)
+
+                                # Executa o cálculo inicial da interface
+                                recalcular_111()
+
+                                if bloco_comentarios:
+                                    bloco_comentarios("1.1.1", res_data, ano_sel)
 
 
                     # Execução do Quesito 1.1.1
@@ -755,49 +792,108 @@ def container_formulario_ieduc(ano=None):
 
 
                     # =============================================================================
-                    # QUESITO 1.1.2 - MANUTENÇÃO DAS CRECHES (IEDUC)
-                    # Exemplo de resposta no BD: "CRON:8,NCRON:18,SOLIC:0,NMANU:0"
+                    # QUESITO 1.1.2 - MANUTENÇÃO DAS CRECHES (IEDUC / NICEGUI)
                     # =============================================================================
                     def render_quesito_1_1_2(ano_sel, res_data, save_resp, bloco_comentarios, on_save_callback=None):
-                        # Resgate da string armazenada no banco
-                        str_resposta = str(res_data.get("resposta", ""))
+                        # Recupera os dados salvos ou define o padrão
+                        d112 = res_data.get("1.1.2", {"valor": "CRON:0,NCRON:0,SOLIC:0,NMANU:0,TOTAL:0", "pontos": 0.0, "link": ""})
+                        str_banco = d112.get("valor", "CRON:0,NCRON:0,SOLIC:0,NMANU:0,TOTAL:0")
+                        link_banco = d112.get("link", "")
 
-                        # Parse da string em dicionário
-                        dados_dict = {}
-                        if str_resposta and ":" in str_resposta:
-                            for item in str_resposta.split(","):
-                                if ":" in item:
-                                    chave, valor = item.split(":", 1)
-                                    dados_dict[chave.strip().upper()] = float(valor.strip() or 0)
+                        # Split seguro dos 4 quantitativos
+                        try:
+                            parts = str_banco.split(",")
+                            v_cron = int(parts[0].split(":")[1])
+                            v_ncron = int(parts[1].split(":")[1])
+                            v_solic = int(parts[2].split(":")[1])
+                            v_nmanu = int(parts[3].split(":")[1])
+                        except Exception:
+                            v_cron, v_ncron, v_solic, v_nmanu = 0, 0, 0, 0
 
-                        cron = dados_dict.get("CRON", 0.0)
-                        ncron = dados_dict.get("NCRON", 0.0)
-                        solic = dados_dict.get("SOLIC", 0.0)
-                        nmanu = dados_dict.get("NMANU", 0.0)
+                        with ui.expansion(f"🔍 QUESITO 1.1.2 - Manutenção das Creches ({ano_sel})", value=True).classes('w-full'):
+                            with ui.card().classes('w-full p-4'):
+                                ui.label("QUESITO 1.1.2").classes('text-lg font-bold')
+                                ui.label("Informe os dados para o cálculo de manutenção das creches:")
+                                ui.markdown("""
+                                *Fórmulas de cálculo:*
+                                * $P1 = (NMANU / TOTAL) \\times Pmáx1$ *(Pmáx1 = -2 pontos)*
+                                * $P2 = (NCRON / TOTAL) \\times Pmáx2$ *(Pmáx2 = 1 ponto)*
+                                * $P3 = (CRON / TOTAL) \\times Pmáx3$ *(Pmáx3 = 3 pontos)*
+                                * $P = P1 + P2 + P3$
+                                """).classes('text-xs text-gray-600')
+                                ui.label("ℹ️ Os cálculos e salvamento ocorrem em tempo real.").classes('text-xs text-gray-500 mb-2')
 
-                        # Denominador: (CRON + NCRON + SOLIC + NMANU)
-                        total_creches = cron + ncron + solic + nmanu
+                                with ui.row().classes('w-full grid grid-cols-1 md:grid-cols-2 gap-4'):
+                                    with ui.column().classes('w-full'):
+                                        ui.label("Quantas creches possuem e CUMPRIRAM o cronograma (CRON):").classes('text-xs font-medium')
+                                        input_cron = ui.number(value=v_cron, min=0, step=1).classes('w-full')
 
-                        # Pesos das parcelas
-                        pmax1 = -2.0  # NMANU perde 2
-                        pmax2 = 1.0   # NCRON ganha 1
-                        pmax3 = 3.0   # CRON ganha 3
+                                        ui.label("Quantas creches possuem e NÃO CUMPRIRAM o cronograma (NCRON):").classes('text-xs font-medium')
+                                        input_ncron = ui.number(value=v_ncron, min=0, step=1).classes('w-full')
 
-                        if total_creches > 0:
-                            p1 = (nmanu / total_creches) * pmax1
-                            p2 = (ncron / total_creches) * pmax2
-                            p3 = (cron / total_creches) * pmax3
-                            pontos_1_1_2 = p1 + p2 + p3
-                        else:
-                            p1 = p2 = p3 = pontos_1_1_2 = 0.0
+                                        ui.label("Quantas creches realizam manutenção SOMENTE por solicitação (SOLIC):").classes('text-xs font-medium')
+                                        input_solic = ui.number(value=v_solic, min=0, step=1).classes('w-full')
 
-                        print(f"[Quesito 1.1.2] CRON={cron}, NCRON={ncron}, SOLIC={solic}, NMANU={nmanu} -> Pontos: {pontos_1_1_2:.15f}")
+                                        ui.label("Quantas creches NÃO realizam manutenção (NMANU):").classes('text-xs font-medium')
+                                        input_nmanu = ui.number(value=v_nmanu, min=0, step=1).classes('w-full')
 
-                        # Salva o resultado numérico na coluna 'pontos'
-                        save_resp("1.1.2", str_resposta, pontos_1_1_2)
+                                        ui.label("Total de Creches (Somatório Automático):").classes('text-xs font-bold text-blue-900 mt-2')
+                                        input_total_calc = ui.number(value=0).props('readonly disabled').classes('w-full bg-gray-100')
 
-                        if bloco_comentarios:
-                            bloco_comentarios("1.1.2", res_data, on_save_callback)
+                                    with ui.column().classes('w-full'):
+                                        ui.label("Link/Evidência (1.1.2):").classes('text-xs font-medium')
+                                        input_link_112 = ui.textarea(value=link_banco).classes('w-full h-64')
+                                        lbl_links_112 = ui.markdown("").classes('text-xs mt-1')
+
+                                score_box_112 = ui.markdown("").classes('w-full p-2 bg-slate-800 text-white font-mono text-sm rounded mt-2')
+
+                                # Processamento Matemático Integrado para NiceGUI
+                                def recalcular_112():
+                                    c_val = int(input_cron.value or 0)
+                                    nc_val = int(input_ncron.value or 0)
+                                    s_val = int(input_solic.value or 0)
+                                    nm_val = int(input_nmanu.value or 0)
+                                    lk_val = input_link_112.value or ""
+
+                                    total_at = c_val + nc_val + s_val + nm_val
+                                    input_total_calc.value = total_at
+
+                                    pts_112 = 0.0
+                                    if total_at > 0:
+                                        p1 = (nm_val / total_at) * (-2.0)
+                                        p2 = (nc_val / total_at) * 1.0
+                                        p3 = (c_val / total_at) * 3.0
+                                        pts_112 = float(max(0.0, p1 + p2 + p3))
+                                        score_box_112.set_content(f"📊 Pontuação Calculada no Quesito 1.1.2: {pts_112:.2f} pontos / 3.0 pontos máximos.")
+                                    else:
+                                        score_box_112.set_content("💡 Insira os quantitativos para realizar o cálculo dinâmico ponderado da nota.")
+
+                                    # Processamento de Links
+                                    links_f = re.findall(r'(https?://[^\s]+)', lk_val)
+                                    if links_f:
+                                        botoes = " | ".join([f"🔗 [{lk}]({lk})" for lk in links_f])
+                                        lbl_links_112.set_content(f"**Links Ativos:** {botoes}")
+                                    else:
+                                        lbl_links_112.set_content("Nenhum link ativo")
+
+                                    str_valor_novo = f"CRON:{c_val},NCRON:{nc_val},SOLIC:{s_val},NMANU:{nm_val},TOTAL:{total_at}"
+                                    if str_valor_novo != d112.get("valor", "") or lk_val != d112.get("link", ""):
+                                        save_resp("1.1.2", str_valor_novo, pts_112, lk_val)
+                                        res_data["1.1.2"] = {"valor": str_valor_novo, "pontos": pts_112, "link": lk_val}
+                                        if on_save_callback:
+                                            on_save_callback()
+
+                                input_cron.on('update:model-value', recalcular_112)
+                                input_ncron.on('update:model-value', recalcular_112)
+                                input_solic.on('update:model-value', recalcular_112)
+                                input_nmanu.on('update:model-value', recalcular_112)
+                                input_link_112.on('update:model-value', recalcular_112)
+
+                                # Executa o cálculo inicial da interface
+                                recalcular_112()
+
+                                if bloco_comentarios:
+                                    bloco_comentarios("1.1.2", res_data, ano_sel)
 
 
                     # Execução do Quesito 1.1.2
