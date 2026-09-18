@@ -587,74 +587,89 @@ def container_formulario_ieduc(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO 1.1
+                    # QUESITO 1.1.1
                     # ==========================================
-                    opcoes_1_1 = {
-                        "Selecione...": 0.0,
-                        "Sim": 0.0,
-                        "Não": 0.0,
-                    }
-
+                    # Fórmula: NF = (n_creches_bpi / total_creches) * 2.0
+                    
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="1.1",
-                        titulo="Infraestrutura de Creche",
-                        pergunta="Algum estabelecimento que oferece Creche possui brinquedos no Pátio Infantil?",
-                        tipo_input="radio",
-                        opcoes=opcoes_1_1,
-                        placeholder_link="Insira o link ou documento de comprovação...",
+                        qid="1.1.1_total",
+                        titulo="Total de Creches do Município",
+                        pergunta="Informe o número total de creches no município:",
+                        tipo_input="number",
+                        opcoes={},
+                        placeholder_link="Documento oficial de mapeamento da rede...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
-                    # QUESITO 1.1.1
-                    # ==========================================
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="1.1.1",
-                        titulo="Brinquedos no Pátio Infantil",
-                        pergunta="Informe quantos estabelecimentos que oferecem Creche possuem Brinquedos no Pátio Infantil (BPI). (Cálculo: NF = (nº de creches com BPI / nº total de creches) x 2,0 pts)",
+                        qid="1.1.1_bpi",
+                        titulo="Brinquedos no Pátio Infantil (BPI)",
+                        pergunta="Informe quantos estabelecimentos que oferecem Creche possuem Brinquedos no Pátio Infantil:",
                         tipo_input="number",
                         opcoes={},
-                        placeholder_link="Insira o link ou relatório de vistoria...",
+                        placeholder_link="Relatório de vistoria/fotos do pátio...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
                     # ==========================================
                     # QUESITO 1.1.2
                     # ==========================================
+                    # Fórmula: 
+                    # Total = CRON + NCRON + SOLIC + NMANU
+                    # P1 = (NMANU / Total) * (-2)
+                    # P2 = (NCRON / Total) * 1
+                    # P3 = (CRON / Total) * 3
+                    # P = P1 + P2 + P3
+
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="1.1.2",
-                        titulo="Manutenção de Brinquedos no Pátio Infantil",
-                        pergunta="Informe os dados de manutenção (CRON: cumpriram cronograma [+3 pts], NCRON: não cumpriram [+1 pt], SOLIC: apenas por solicitação [0 pts], NMANU: não realizam [-2 pts]):",
-                        tipo_input="text",
+                        qid="1.1.2_cron",
+                        titulo="Manutenção Preventiva - Cumpriram Cronograma (CRON)",
+                        pergunta="Quantas creches possuem e CUMPRIRAM o cronograma de manutenção preventiva/troca dos brinquedos no Pátio infantil? (Peso: +3.0 pts)",
+                        tipo_input="number",
                         opcoes={},
-                        placeholder_link="Insira o link ou comprovante do cronograma de manutenção...",
+                        placeholder_link="Comprovante do cumprimento de cronograma...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
-                    # QUESITO 1.2
-                    # ==========================================
-                    opcoes_1_2 = {
-                        "Selecione...": 0.0,
-                        "Sim": 0.0,
-                        "Não": 0.0,
-                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.1.2_ncron",
+                        titulo="Manutenção Preventiva - Não Cumpriram Cronograma (NCRON)",
+                        pergunta="Quantas creches possuem e NÃO CUMPRIRAM o cronograma de manutenção preventiva/troca dos brinquedos no Pátio infantil? (Peso: +1.0 pt)",
+                        tipo_input="number",
+                        opcoes={},
+                        placeholder_link="Relatório ou justificativa...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="1.2",
-                        titulo="Materiais Pedagógicos",
-                        pergunta="A Prefeitura disponibiliza brinquedos/materiais pedagógicos para as crianças em todos os estabelecimentos de Creche do município?",
-                        tipo_input="radio",
-                        opcoes=opcoes_1_2,
-                        placeholder_link="Insira o link ou documento de distribuição...",
+                        qid="1.1.2_solic",
+                        titulo="Manutenção Apenas por Solicitação (SOLIC)",
+                        pergunta="Quantas creches realizam manutenção/troca dos brinquedos no Pátio Infantil SOMENTE por solicitação? (Peso: 0.0 pts)",
+                        tipo_input="number",
+                        opcoes={},
+                        placeholder_link="Registros de chamados/solicitações...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.1.2_nmanu",
+                        titulo="Sem Manutenção (NMANU)",
+                        pergunta="Quantas creches NÃO realizam manutenção/troca dos brinquedos no Pátio Infantil? (Peso: -2.0 pts)",
+                        tipo_input="number",
+                        opcoes={},
+                        placeholder_link="Documentação / laudos de vistoria...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
