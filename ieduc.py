@@ -589,29 +589,20 @@ def container_formulario_ieduc(ano=None):
                     # ==========================================
                     # QUESITO 1.1.1
                     # ==========================================
-                    # Fórmula: NF = (n_creches_bpi / total_creches) * 2.0
-                    
+                    # Fórmula: BPI = (creches_bpi / total_creches) * PmáxBPI (2.0 pts)
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="1.1.1_total",
-                        titulo="Total de Creches do Município",
-                        pergunta="Informe o número total de creches no município:",
-                        tipo_input="number",
-                        opcoes={},
-                        placeholder_link="Documento oficial de mapeamento da rede...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
-
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="1.1.1_bpi",
-                        titulo="Brinquedos no Pátio Infantil (BPI)",
-                        pergunta="Informe quantos estabelecimentos que oferecem Creche possuem Brinquedos no Pátio Infantil:",
-                        tipo_input="number",
-                        opcoes={},
-                        placeholder_link="Relatório de vistoria/fotos do pátio...",
+                        qid="1.1.1",
+                        titulo="Brinquedos no Pátio Infantil",
+                        pergunta="Informe os valores para cálculo proporcional de creches com brinquedos no pátio infantil:",
+                        tipo_input="calculo_proporcao",
+                        opcoes={
+                            "bpi": "Nº de creches com brinquedos no pátio infantil (BPI)",
+                            "total": "Nº total de creches no município",
+                        },
+                        formula=" (bpi / total) * 2.0 if total > 0 else 0.0 ",
+                        placeholder_link="Insira o link do relatório de vistoria...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
@@ -620,56 +611,22 @@ def container_formulario_ieduc(ano=None):
                     # ==========================================
                     # Fórmula: 
                     # Total = CRON + NCRON + SOLIC + NMANU
-                    # P1 = (NMANU / Total) * (-2)
-                    # P2 = (NCRON / Total) * 1
-                    # P3 = (CRON / Total) * 3
-                    # P = P1 + P2 + P3
-
+                    # P = (NMANU/Total)*(-2) + (NCRON/Total)*(1) + (CRON/Total)*(3)
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="1.1.2_cron",
-                        titulo="Manutenção Preventiva - Cumpriram Cronograma (CRON)",
-                        pergunta="Quantas creches possuem e CUMPRIRAM o cronograma de manutenção preventiva/troca dos brinquedos no Pátio infantil? (Peso: +3.0 pts)",
-                        tipo_input="number",
-                        opcoes={},
-                        placeholder_link="Comprovante do cumprimento de cronograma...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
-
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="1.1.2_ncron",
-                        titulo="Manutenção Preventiva - Não Cumpriram Cronograma (NCRON)",
-                        pergunta="Quantas creches possuem e NÃO CUMPRIRAM o cronograma de manutenção preventiva/troca dos brinquedos no Pátio infantil? (Peso: +1.0 pt)",
-                        tipo_input="number",
-                        opcoes={},
-                        placeholder_link="Relatório ou justificativa...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
-
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="1.1.2_solic",
-                        titulo="Manutenção Apenas por Solicitação (SOLIC)",
-                        pergunta="Quantas creches realizam manutenção/troca dos brinquedos no Pátio Infantil SOMENTE por solicitação? (Peso: 0.0 pts)",
-                        tipo_input="number",
-                        opcoes={},
-                        placeholder_link="Registros de chamados/solicitações...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
-
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="1.1.2_nmanu",
-                        titulo="Sem Manutenção (NMANU)",
-                        pergunta="Quantas creches NÃO realizam manutenção/troca dos brinquedos no Pátio Infantil? (Peso: -2.0 pts)",
-                        tipo_input="number",
-                        opcoes={},
-                        placeholder_link="Documentação / laudos de vistoria...",
+                        qid="1.1.2",
+                        titulo="Manutenção dos Brinquedos no Pátio Infantil",
+                        pergunta="Informe a quantidade de creches por situação de manutenção preventiva/troca:",
+                        tipo_input="calculo_proporcao",
+                        opcoes={
+                            "cron": "Cumpriram o cronograma (CRON) [Peso: +3]",
+                            "ncron": "NÃO cumpriram o cronograma (NCRON) [Peso: +1]",
+                            "solic": "Manutenção SOMENTE por solicitação (SOLIC) [Peso: 0]",
+                            "nmanu": "NÃO realizam manutenção (NMANU) [Peso: -2]",
+                        },
+                        formula=" ((cron * 3.0) + (ncron * 1.0) + (nmanu * -2.0)) / (cron + ncron + solic + nmanu) if (cron + ncron + solic + nmanu) > 0 else 0.0 ",
+                        placeholder_link="Insira o link ou comprovante do cronograma de manutenção...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
