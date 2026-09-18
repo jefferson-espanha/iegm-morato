@@ -128,6 +128,25 @@ def save_resposta(
     except Exception as e:
         print(f"❌ Erro ao salvar resposta: {e}")
 
+# ==========================================
+# FUNÇÃO AUXILIAR (CORRIGE O NameError)
+# ==========================================
+def _obter_lista_comentarios(ano, qid):
+    """Busca os comentários atuais salvos no banco para não os sobrescrever."""
+    query = "SELECT comentario FROM respostas_ieduc WHERE ano = %s AND quesito = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (int(ano), str(qid)))
+                row = cur.fetchone()
+                if row and row.get("comentario"):
+                    coment_raw = row["comentario"]
+                    if coment_raw != "EMPTY_STRING":
+                        return json.loads(coment_raw)
+    except Exception as e:
+        print(f"⚠️ Erro ao obter comentários existentes: {e}")
+    return []
+
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
 # =============================================================================
