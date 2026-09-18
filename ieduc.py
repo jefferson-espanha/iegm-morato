@@ -1911,6 +1911,417 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("1.7.2", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 1.8 (Rotatividade do Corpo Docente em Creches)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.8 • Rotatividade de Professores de Creche").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o número de escolas em cada faixa de rotatividade de professores de Creche:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Cálculo: NF = 3.0 × (3×Q1 + 2×Q2 + 1×Q3 + 0×Q4) | Pmáx = 3.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d18 = res_data.get("1.8") or {}
+                        raw_link_18 = str(d18.get("link") or "")
+
+                        q1_i, q2_i, q3_i, q4_i = 0, 0, 0, 0
+                        evidencia_18 = raw_link_18
+
+                        if "|LINK:" in raw_link_18:
+                            partes_18, evidencia_18 = raw_link_18.split("|LINK:", 1)
+                            m_q1 = re.search(r"Q1:(\d+)", partes_18)
+                            m_q2 = re.search(r"Q2:(\d+)", partes_18)
+                            m_q3 = re.search(r"Q3:(\d+)", partes_18)
+                            m_q4 = re.search(r"Q4:(\d+)", partes_18)
+                            q1_i = int(m_q1.group(1)) if m_q1 else 0
+                            q2_i = int(m_q2.group(1)) if m_q2 else 0
+                            q3_i = int(m_q3.group(1)) if m_q3 else 0
+                            q4_i = int(m_q4.group(1)) if m_q4 else 0
+
+                        state_18 = {
+                            "q1": q1_i,
+                            "q2": q2_i,
+                            "q3": q3_i,
+                            "q4": q4_i,
+                            "link": evidencia_18,
+                        }
+
+                        def calc_pts_18():
+                            c1 = int(state_18["q1"] or 0)
+                            c2 = int(state_18["q2"] or 0)
+                            c3 = int(state_18["q3"] or 0)
+                            c4 = int(state_18["q4"] or 0)
+                            tot_escolas = c1 + c2 + c3 + c4
+                            if tot_escolas <= 0:
+                                return 0.0
+
+                            prop1 = c1 / tot_escolas
+                            prop2 = c2 / tot_escolas
+                            prop3 = c3 / tot_escolas
+                            prop4 = c4 / tot_escolas
+
+                            n1 = 3.0 * prop1
+                            n2 = 2.0 * prop2
+                            n3 = 1.0 * prop3
+                            n4 = 0.0 * prop4
+
+                            return min(3.0 * (n1 + n2 + n3 + n4), 3.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_q1 = (
+                                    ui.number(
+                                        "Escolas com rotatividade MENOR que 20%:",
+                                        value=q1_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_18, "q1")
+                                )
+
+                                inp_q2 = (
+                                    ui.number(
+                                        "Escolas com rotatividade entre 20% e 29,9%:",
+                                        value=q2_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_18, "q2")
+                                )
+
+                                inp_q3 = (
+                                    ui.number(
+                                        "Escolas com rotatividade entre 30% e 39,9%:",
+                                        value=q3_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_18, "q3")
+                                )
+
+                                inp_q4 = (
+                                    ui.number(
+                                        "Escolas com rotatividade MAIOR ou igual a 40%:",
+                                        value=q4_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_18, "q4")
+                                )
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_18,
+                                placeholder="Insira relatórios de atribuição de aulas, remoção de docentes ou folhas de ponto...",
+                            ).classes("w-full").props("outlined rows=10").bind_value(
+                                state_18, "link"
+                            )
+
+                        lbl_pts_18 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 1.8: {calc_pts_18():.2f} / 3.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_18():
+                            lbl_pts_18.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 1.8: {calc_pts_18():.2f} / 3.0 pontos"
+                            )
+
+                        inp_q1.on("update:model-value", att_pts_18)
+                        inp_q2.on("update:model-value", att_pts_18)
+                        inp_q3.on("update:model-value", att_pts_18)
+                        inp_q4.on("update:model-value", att_pts_18)
+
+                        def salvar_18():
+                            c1 = int(state_18["q1"] or 0)
+                            c2 = int(state_18["q2"] or 0)
+                            c3 = int(state_18["q3"] or 0)
+                            c4 = int(state_18["q4"] or 0)
+                            pts_finais = calc_pts_18()
+                            composite = f"Q1:{c1},Q2:{c2},Q3:{c3},Q4:{c4}|LINK:{state_18['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.8",
+                                valor=f"Q1:{c1}/Q2:{c2}/Q3:{c3}/Q4:{c4}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d18.get("comentarios", []),
+                                status=d18.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 1.8 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.8", on_click=salvar_18).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.8", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 1.9 (Regularidade / Permanência dos Gestores de Creche)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.9 • Regularidade e Permanência dos Gestores de Creche").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Indique a quantidade de escolas por tempo de permanência do diretor/gestor de Creche (ao final de 2025):"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Cálculo: NF = 0×Q1 + 0.5×Q2 + 1.0×Q3 + 1.5×Q4 + 1.75×Q5 + 2.0×Q6 | Pmáx = 2.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d19 = res_data.get("1.9") or {}
+                        raw_link_19 = str(d19.get("link") or "")
+
+                        g1_i, g2_i, g3_i, g4_i, g5_i, g6_i = 0, 0, 0, 0, 0, 0
+                        evidencia_19 = raw_link_19
+
+                        if "|LINK:" in raw_link_19:
+                            partes_19, evidencia_19 = raw_link_19.split("|LINK:", 1)
+                            m_g1 = re.search(r"G1:(\d+)", partes_19)
+                            m_g2 = re.search(r"G2:(\d+)", partes_19)
+                            m_g3 = re.search(r"G3:(\d+)", partes_19)
+                            m_g4 = re.search(r"G4:(\d+)", partes_19)
+                            m_g5 = re.search(r"G5:(\d+)", partes_19)
+                            m_g6 = re.search(r"G6:(\d+)", partes_19)
+
+                            g1_i = int(m_g1.group(1)) if m_g1 else 0
+                            g2_i = int(m_g2.group(1)) if m_g2 else 0
+                            g3_i = int(m_g3.group(1)) if m_g3 else 0
+                            g4_i = int(m_g4.group(1)) if m_g4 else 0
+                            g5_i = int(m_g5.group(1)) if m_g5 else 0
+                            g6_i = int(m_g6.group(1)) if m_g6 else 0
+
+                        state_19 = {
+                            "g1": g1_i,
+                            "g2": g2_i,
+                            "g3": g3_i,
+                            "g4": g4_i,
+                            "g5": g5_i,
+                            "g6": g6_i,
+                            "link": evidencia_19,
+                        }
+
+                        def calc_pts_19():
+                            c1 = int(state_19["g1"] or 0)
+                            c2 = int(state_19["g2"] or 0)
+                            c3 = int(state_19["g3"] or 0)
+                            c4 = int(state_19["g4"] or 0)
+                            c5 = int(state_19["g5"] or 0)
+                            c6 = int(state_19["g6"] or 0)
+
+                            tot = c1 + c2 + c3 + c4 + c5 + c6
+                            if tot <= 0:
+                                return 0.0
+
+                            q1 = c1 / tot
+                            q2 = c2 / tot
+                            q3 = c3 / tot
+                            q4 = c4 / tot
+                            q5 = c5 / tot
+                            q6 = c6 / tot
+
+                            n1 = 0.0 * q1
+                            n2 = 0.5 * q2
+                            n3 = 1.0 * q3
+                            n4 = 1.5 * q4
+                            n5 = 1.75 * q5
+                            n6 = 2.0 * q6
+
+                            return min(n1 + n2 + n3 + n4 + n5 + n6, 2.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_g1 = ui.number("Menor que 1 ano:", value=g1_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g1")
+                                inp_g2 = ui.number("De 1 ano a 2,9 anos:", value=g2_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g2")
+                                inp_g3 = ui.number("De 3 anos a 4,9 anos:", value=g3_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g3")
+                                inp_g4 = ui.number("De 5 anos a 9,9 anos:", value=g4_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g4")
+                                inp_g5 = ui.number("De 10 anos a 14,9 anos:", value=g5_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g5")
+                                inp_g6 = ui.number("Maior ou igual a 15 anos:", value=g6_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g6")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_19,
+                                placeholder="Insira o histórico funcional dos gestores, atos de nomeação ou portarias...",
+                            ).classes("w-full").props("outlined rows=12").bind_value(
+                                state_19, "link"
+                            )
+
+                        lbl_pts_19 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 1.9: {calc_pts_19():.2f} / 2.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_19():
+                            lbl_pts_19.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 1.9: {calc_pts_19():.2f} / 2.0 pontos"
+                            )
+
+                        for inp in [inp_g1, inp_g2, inp_g3, inp_g4, inp_g5, inp_g6]:
+                            inp.on("update:model-value", att_pts_19)
+
+                        def salvar_19():
+                            c1, c2, c3 = state_19["g1"], state_19["g2"], state_19["g3"]
+                            c4, c5, c6 = state_19["g4"], state_19["g5"], state_19["g6"]
+                            pts_finais = calc_pts_19()
+
+                            composite = f"G1:{c1},G2:{c2},G3:{c3},G4:{c4},G5:{c5},G6:{c6}|LINK:{state_19['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.9",
+                                valor=f"G1:{c1}/G2:{c2}/G3:{c3}/G4:{c4}/G5:{c5}/G6:{c6}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d19.get("comentarios", []),
+                                status=d19.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 1.9 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.9", on_click=salvar_19).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.9", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITOS 1.10 e 1.10.1 (Reuniões Periódicas com Pais e Periodicidade)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.10 / 1.10.1 • Reuniões Periódicas com Pais dos Alunos").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o escopo e a periodicidade das reuniões com pais na etapa de Creche:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Pontuação 1.10: Ambos os pautas (2.0 pts) | Apenas PPP (1.5 pts) | Apenas Desempenho (1.0 pt) | Não realiza (0.0 pt)."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d110 = res_data.get("1.10") or {}
+                        d1101 = res_data.get("1.10.1") or {}
+
+                        opcoes_110 = {
+                            "Sobre planejamento e desempenho da criança": 2.0,
+                            "Apenas sobre o projeto político-pedagógico": 1.5,
+                            "Apenas sobre o desempenho da criança": 1.0,
+                            "Não realiza reuniões periódicas": 0.0,
+                        }
+
+                        opcoes_1101 = [
+                            "Mensal",
+                            "Bimestral",
+                            "Trimestral",
+                            "Quadrimestral",
+                            "Semestral",
+                            "Anual",
+                        ]
+
+                        val_110_i = d110.get("valor") or "Sobre planejamento e desempenho da criança"
+                        val_1101_i = d1101.get("valor") or "Bimestral"
+                        link_110_i = str(d110.get("link") or "")
+
+                        state_110 = {
+                            "escopo": val_110_i,
+                            "periodicidade": val_1101_i,
+                            "link": link_110_i,
+                        }
+
+                        def calc_pts_110():
+                            return float(opcoes_110.get(state_110["escopo"], 0.0))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-4"):
+                                ui.label("Escopo da Reunião (Quesito 1.10):").classes("font-bold text-xs text-blue-800 uppercase")
+                                rad_110 = ui.radio(
+                                    options=list(opcoes_110.keys()),
+                                    value=state_110["escopo"],
+                                ).props("color=blue").bind_value(state_110, "escopo")
+
+                                ui.label("Periodicidade (Quesito 1.10.1):").classes("font-bold text-xs text-blue-800 uppercase mt-2")
+                                rad_1101 = ui.radio(
+                                    options=opcoes_1101,
+                                    value=state_110["periodicidade"],
+                                ).props("color=blue").bind_value(state_110, "periodicidade")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=link_110_i,
+                                placeholder="Insira atas de reunião com pais, calendário escolar ou convocatórias...",
+                            ).classes("w-full").props("outlined rows=10").bind_value(
+                                state_110, "link"
+                            )
+
+                        lbl_pts_110 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 1.10: {calc_pts_110():.1f} / 2.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_110():
+                            lbl_pts_110.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 1.10: {calc_pts_110():.1f} / 2.0 pontos"
+                            )
+
+                        rad_110.on("update:model-value", att_pts_110)
+
+                        def salvar_110():
+                            pts_110 = calc_pts_110()
+                            escopo_sel = state_110["escopo"]
+                            per_sel = state_110["periodicidade"]
+                            lnk = state_110["link"]
+
+                            # Salva quesito 1.10
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.10",
+                                valor=escopo_sel,
+                                pontos=pts_110,
+                                link=lnk,
+                                comentarios=d110.get("comentarios", []),
+                                status=d110.get("status", "Pendente"),
+                            )
+
+                            # Salva quesito 1.10.1 (declaratório)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.10.1",
+                                valor=per_sel,
+                                pontos=0.0,
+                                link=lnk,
+                                comentarios=d1101.get("comentarios", []),
+                                status=d1101.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesitos 1.10 e 1.10.1 salvos com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITOS 1.10 E 1.10.1", on_click=salvar_110).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.10", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
