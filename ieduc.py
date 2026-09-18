@@ -2216,29 +2216,32 @@ def container_formulario_ieduc(ano=None):
                             "Os professores realizam reuniões periódicas com os pais dos alunos de Creche sobre planejamento/projeto escolar e desempenho/desenvolvimento da criança?"
                         ).classes("text-base font-bold text-black mb-1")
                         ui.label(
-                            "ℹ Pontuação: Ambos (2.0 pts) | Apenas PPP (1.5 pts) | Apenas Desempenho (1.0 pt) | Não realiza (0.0 pt)."
+                            "ℹ Selecione uma das opções abaixo para registrar a pontuação."
                         ).classes("text-xs text-gray-400 mb-6")
 
                         d110 = res_data.get("1.10") or {}
 
+                        # Mapeamento com a exibição textual das opções incluindo a pontuação ao lado
                         opcoes_110 = {
-                            "Sobre planejamento e desempenho da criança": 2.0,
-                            "Apenas sobre o projeto político-pedagógico": 1.5,
-                            "Apenas sobre o desempenho da criança": 1.0,
-                            "Não realiza reuniões periódicas": 0.0,
+                            "Selecione...": 0.0,
+                            "Sobre planejamento e desempenho da criança (2,0 pontos)": 2.0,
+                            "Apenas sobre o projeto político-pedagógico (1,5 pontos)": 1.5,
+                            "Apenas sobre o desempenho da criança (1,0 ponto)": 1.0,
+                            "Não realiza reuniões periódicas (0,0 pontos)": 0.0,
                         }
 
                         val_110_bruto = str(d110.get("valor") or "")
 
-                        # Remove sufixos como '(2,0 pontos)', '(2.0 pontos)', '(1,5 pontos)', etc.
-                        val_limpo = re.sub(r"\s*\([\d,\.\s]+pontos?\)", "", val_110_bruto, flags=re.IGNORECASE).strip()
-
-                        # Procura uma correspondência aproximada ou define a opção padrão
-                        val_110_valido = "Sobre planejamento e desempenho da criança"
-                        for chave in opcoes_110.keys():
-                            if chave.lower() in val_110_bruto.lower() or val_limpo.lower() == chave.lower():
-                                val_110_valido = chave
-                                break
+                        # Valida se o valor salvo no banco bate com alguma opção da lista
+                        val_110_valido = "Selecione..."
+                        if val_110_bruto in opcoes_110:
+                            val_110_valido = val_110_bruto
+                        else:
+                            # Tenta mapear valores legados sem o texto da pontuação
+                            for chave in opcoes_110.keys():
+                                if chave != "Selecione..." and chave.startswith(val_110_bruto):
+                                    val_110_valido = chave
+                                    break
 
                         raw_link_110 = str(d110.get("link") or "")
 
