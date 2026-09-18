@@ -6761,6 +6761,444 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("3.5", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 3.5.1 (Proporção de Profissionais Capacitados - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.5.1 • Proporção de Profissionais Capacitados (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o número de profissionais capacitados e o total de profissionais (Professores, Apoio e Gestores):"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Fórmula: PC = (Prof. Cap. + Apoio Cap. + Gestores Cap.) / (Total Prof. + Total Apoio + Total Gestores)\n"
+                            "ℹ Pontuação: PC = 100% -> 7,0 pts | 70% <= PC < 100% -> 5,0 pts | 50% <= PC < 70% -> 3,0 pts | PC < 50% -> 0,0 pts."
+                        ).classes("text-xs text-gray-400 mb-6 whitespace-pre-line")
+
+                        d351 = res_data.get("3.5.1") or {}
+                        raw_link_351 = str(d351.get("link") or "")
+
+                        prof_cap_i, apo_cap_i, ges_cap_i = 0, 0, 0
+                        tot_prof_351_i, tot_apo_351_i, tot_ges_351_i = 0, 0, 0
+                        evidencia_351 = raw_link_351
+
+                        if "|LINK:" in raw_link_351:
+                            partes_351, evidencia_351 = raw_link_351.split("|LINK:", 1)
+                            m_pc = re.search(r"PROF_CAP:(\d+)", partes_351)
+                            m_ac = re.search(r"APO_CAP:(\d+)", partes_351)
+                            m_gc = re.search(r"GES_CAP:(\d+)", partes_351)
+                            m_tp = re.search(r"TOT_PROF:(\d+)", partes_351)
+                            m_ta = re.search(r"TOT_APO:(\d+)", partes_351)
+                            m_tg = re.search(r"TOT_GES:(\d+)", partes_351)
+
+                            prof_cap_i = int(m_pc.group(1)) if m_pc else 0
+                            apo_cap_i = int(m_ac.group(1)) if m_ac else 0
+                            ges_cap_i = int(m_gc.group(1)) if m_gc else 0
+                            tot_prof_351_i = int(m_tp.group(1)) if m_tp else 0
+                            tot_apo_351_i = int(m_ta.group(1)) if m_ta else 0
+                            tot_ges_351_i = int(m_tg.group(1)) if m_tg else 0
+
+                        state_351 = {
+                            "prof_cap": prof_cap_i,
+                            "apo_cap": apo_cap_i,
+                            "ges_cap": ges_cap_i,
+                            "tot_prof": tot_prof_351_i,
+                            "tot_apo": tot_apo_351_i,
+                            "tot_ges": tot_ges_351_i,
+                            "link": evidencia_351,
+                        }
+
+                        def calc_pts_351():
+                            num = int(state_351["prof_cap"] or 0) + int(state_351["apo_cap"] or 0) + int(state_351["ges_cap"] or 0)
+                            den = int(state_351["tot_prof"] or 0) + int(state_351["tot_apo"] or 0) + int(state_351["tot_ges"] or 0)
+
+                            if den <= 0:
+                                return 0.0
+
+                            pc = (num / den) * 100.0
+
+                            if pc >= 100.0:
+                                return 7.0
+                            elif pc >= 70.0:
+                                return 5.0
+                            elif pc >= 50.0:
+                                return 3.0
+                            else:
+                                return 0.0
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_pc = ui.number("Professores regentes capacitados:", value=prof_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_351, "prof_cap")
+                                inp_ac = ui.number("Profissionais de apoio capacitados:", value=apo_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_351, "apo_cap")
+                                inp_gc = ui.number("Gestores escolares capacitados:", value=ges_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_351, "ges_cap")
+                                ui.separator().classes("my-1")
+                                inp_tp = ui.number("Total de professores regentes:", value=tot_prof_351_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_351, "tot_prof")
+                                inp_ta = ui.number("Total de profissionais de apoio:", value=tot_apo_351_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_351, "tot_apo")
+                                inp_tg = ui.number("Total de gestores escolares:", value=tot_ges_351_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_351, "tot_ges")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_351,
+                                placeholder="Insira relatórios de formação continuada, listas de presença com CPF ou declarações do setor...",
+                            ).classes("w-full").props("outlined rows=16").bind_value(
+                                state_351, "link"
+                            )
+
+                        lbl_pts_351 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.5.1: {calc_pts_351():.1f} / 7.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_351():
+                            lbl_pts_351.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.5.1: {calc_pts_351():.1f} / 7.0 pontos"
+                            )
+
+                        for input_comp in [inp_pc, inp_ac, inp_gc, inp_tp, inp_ta, inp_tg]:
+                            input_comp.on("update:model-value", att_pts_351)
+
+                        def salvar_351():
+                            p_cap, a_cap, g_cap = state_351["prof_cap"], state_351["apo_cap"], state_351["ges_cap"]
+                            t_prof, t_apo, t_ges = state_351["tot_prof"], state_351["tot_apo"], state_351["tot_ges"]
+                            pts = calc_pts_351()
+
+                            composite = (
+                                f"PROF_CAP:{p_cap},APO_CAP:{a_cap},GES_CAP:{g_cap},"
+                                f"TOT_PROF:{t_prof},TOT_APO:{t_apo},TOT_GES:{t_ges}|LINK:{state_351['link']}"
+                            )
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.5.1",
+                                valor=f"Capacitados: {p_cap+a_cap+g_cap} / Total: {t_prof+t_apo+t_ges}",
+                                pontos=pts,
+                                link=composite,
+                                comentarios=d351.get("comentarios", []),
+                                status=d351.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.5.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.5.1", on_click=salvar_351).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.5.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.5.2 (Forma de Capacitação - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.5.2 • Forma de Capacitação (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale as modalidades de capacitação utilizadas em 2025:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Quesito declaratório de múltipla escolha."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d352 = res_data.get("3.5.2") or {}
+                        val_352_bruto = str(d352.get("valor") or "")
+                        raw_link_352 = str(d352.get("link") or "")
+
+                        state_352 = {
+                            "presencial": "Presencial" in val_352_bruto,
+                            "ead": "EAD" in val_352_bruto or "distância" in val_352_bruto,
+                            "multiplicadores": "Multiplicadores" in val_352_bruto,
+                            "outros": "Outros" in val_352_bruto,
+                            "link": raw_link_352,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-2"):
+                                ui.checkbox("Presencialmente").bind_value(state_352, "presencial")
+                                ui.checkbox("À distância / Remotamente").bind_value(state_352, "ead")
+                                ui.checkbox("Por meio de multiplicadores").bind_value(state_352, "multiplicadores")
+                                ui.checkbox("Outros").bind_value(state_352, "outros")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_352,
+                                placeholder="Insira o plano de formação, links de plataformas EAD ou relatórios das oficinas...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_352, "link"
+                            )
+
+                        def salvar_352():
+                            selecionados = []
+                            if state_352["presencial"]:
+                                selecionados.append("Presencial")
+                            if state_352["ead"]:
+                                selecionados.append("À distância/remotamente")
+                            if state_352["multiplicadores"]:
+                                selecionados.append("Por meio de multiplicadores")
+                            if state_352["outros"]:
+                                selecionados.append("Outros")
+
+                            val_str = ", ".join(selecionados) if selecionados else "Nenhuma selecionada"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.5.2",
+                                valor=val_str,
+                                pontos=0.0,
+                                link=state_352["link"],
+                                comentarios=d352.get("comentarios", []),
+                                status=d352.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.5.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.5.2", on_click=salvar_352).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.5.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.6 (Rotatividade de Professores - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.6 • Rotatividade do Corpo Docente (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o número de escolas distribuídas por faixa de rotatividade de professores:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Fórmula: NF = (3×Q1 + 2×Q2 + 1×Q3 + 0×Q4) | Pmáx = 3.0 pontos.\n"
+                            "ℹ Qi = Proporção de escolas na faixa de rotatividade correspondente."
+                        ).classes("text-xs text-gray-400 mb-6 whitespace-pre-line")
+
+                        d36 = res_data.get("3.6") or {}
+                        raw_link_36 = str(d36.get("link") or "")
+
+                        q1_36_i, q2_36_i, q3_36_i, q4_36_i = 0, 0, 0, 0
+                        evidencia_36 = raw_link_36
+
+                        if "|LINK:" in raw_link_36:
+                            partes_36, evidencia_36 = raw_link_36.split("|LINK:", 1)
+                            m_q1 = re.search(r"Q1:(\d+)", partes_36)
+                            m_q2 = re.search(r"Q2:(\d+)", partes_36)
+                            m_q3 = re.search(r"Q3:(\d+)", partes_36)
+                            m_q4 = re.search(r"Q4:(\d+)", partes_36)
+
+                            q1_36_i = int(m_q1.group(1)) if m_q1 else 0
+                            q2_36_i = int(m_q2.group(1)) if m_q2 else 0
+                            q3_36_i = int(m_q3.group(1)) if m_q3 else 0
+                            q4_36_i = int(m_q4.group(1)) if m_q4 else 0
+
+                        state_36 = {
+                            "q1": q1_36_i,
+                            "q2": q2_36_i,
+                            "q3": q3_36_i,
+                            "q4": q4_36_i,
+                            "link": evidencia_36,
+                        }
+
+                        def calc_pts_36():
+                            c1 = int(state_36["q1"] or 0)
+                            c2 = int(state_36["q2"] or 0)
+                            c3 = int(state_36["q3"] or 0)
+                            c4 = int(state_36["q4"] or 0)
+                            tot = c1 + c2 + c3 + c4
+
+                            if tot <= 0:
+                                return 0.0
+
+                            prop1 = c1 / tot
+                            prop2 = c2 / tot
+                            prop3 = c3 / tot
+                            prop4 = c4 / tot
+
+                            return min(3.0 * prop1 + 2.0 * prop2 + 1.0 * prop3 + 0.0 * prop4, 3.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_q1_36 = ui.number("Menor que 20% dos professores (Q1):", value=q1_36_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_36, "q1")
+                                inp_q2_36 = ui.number("De 20% a menor que 30% dos professores (Q2):", value=q2_36_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_36, "q2")
+                                inp_q3_36 = ui.number("De 30% a menor que 40% dos professores (Q3):", value=q3_36_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_36, "q3")
+                                inp_q4_36 = ui.number("Maior ou igual a 40% dos professores (Q4):", value=q4_36_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_36, "q4")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_36,
+                                placeholder="Insira relatórios de remoção/lotação docente, histórico de transferência do RH...",
+                            ).classes("w-full").props("outlined rows=10").bind_value(
+                                state_36, "link"
+                            )
+
+                        lbl_pts_36 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.6: {calc_pts_36():.2f} / 3.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_36():
+                            lbl_pts_36.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.6: {calc_pts_36():.2f} / 3.0 pontos"
+                            )
+
+                        for inp_comp in [inp_q1_36, inp_q2_36, inp_q3_36, inp_q4_36]:
+                            inp_comp.on("update:model-value", att_pts_36)
+
+                        def salvar_36():
+                            c1, c2, c3, c4 = state_36["q1"], state_36["q2"], state_36["q3"], state_36["q4"]
+                            pts = calc_pts_36()
+                            composite = f"Q1:{c1},Q2:{c2},Q3:{c3},Q4:{c4}|LINK:{state_36['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.6",
+                                valor=f"Q1:{c1} | Q2:{c2} | Q3:{c3} | Q4:{c4}",
+                                pontos=pts,
+                                link=composite,
+                                comentarios=d36.get("comentarios", []),
+                                status=d36.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.6 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.6", on_click=salvar_36).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.6", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.7 (Permanência do Diretor/Gestor Escolar - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.7 • Permanência do Diretor/Gestor na Mesma Unidade (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Indique a quantidade de escolas municipais divididas pelo tempo de permanência do Diretor/Gestor ao final de 2025:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Fórmula: NF = (0×Q1 + 0,5×Q2 + 1,0×Q3 + 1,5×Q4 + 1,75×Q5 + 2,0×Q6) | Pmáx = 2.0 pontos.\n"
+                            "ℹ Qi = Proporção de escolas na faixa de permanência correspondente."
+                        ).classes("text-xs text-gray-400 mb-6 whitespace-pre-line")
+
+                        d37 = res_data.get("3.7") or {}
+                        raw_link_37 = str(d37.get("link") or "")
+
+                        q1_37_i, q2_37_i, q3_37_i, q4_37_i, q5_37_i, q6_37_i = 0, 0, 0, 0, 0, 0
+                        evidencia_37 = raw_link_37
+
+                        if "|LINK:" in raw_link_37:
+                            partes_37, evidencia_37 = raw_link_37.split("|LINK:", 1)
+                            m_q1 = re.search(r"Q1:(\d+)", partes_37)
+                            m_q2 = re.search(r"Q2:(\d+)", partes_37)
+                            m_q3 = re.search(r"Q3:(\d+)", partes_37)
+                            m_q4 = re.search(r"Q4:(\d+)", partes_37)
+                            m_q5 = re.search(r"Q5:(\d+)", partes_37)
+                            m_q6 = re.search(r"Q6:(\d+)", partes_37)
+
+                            q1_37_i = int(m_q1.group(1)) if m_q1 else 0
+                            q2_37_i = int(m_q2.group(1)) if m_q2 else 0
+                            q3_37_i = int(m_q3.group(1)) if m_q3 else 0
+                            q4_37_i = int(m_q4.group(1)) if m_q4 else 0
+                            q5_37_i = int(m_q5.group(1)) if m_q5 else 0
+                            q6_37_i = int(m_q6.group(1)) if m_q6 else 0
+
+                        state_37 = {
+                            "q1": q1_37_i,
+                            "q2": q2_37_i,
+                            "q3": q3_37_i,
+                            "q4": q4_37_i,
+                            "q5": q5_37_i,
+                            "q6": q6_37_i,
+                            "link": evidencia_37,
+                        }
+
+                        def calc_pts_37():
+                            c1 = int(state_37["q1"] or 0)
+                            c2 = int(state_37["q2"] or 0)
+                            c3 = int(state_37["q3"] or 0)
+                            c4 = int(state_37["q4"] or 0)
+                            c5 = int(state_37["q5"] or 0)
+                            c6 = int(state_37["q6"] or 0)
+                            tot = c1 + c2 + c3 + c4 + c5 + c6
+
+                            if tot <= 0:
+                                return 0.0
+
+                            p1, p2, p3 = c1 / tot, c2 / tot, c3 / tot
+                            p4, p5, p6 = c4 / tot, c5 / tot, c6 / tot
+
+                            return min(0.0*p1 + 0.5*p2 + 1.0*p3 + 1.5*p4 + 1.75*p5 + 2.0*p6, 2.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_q1_37 = ui.number("Menor que 1 ano (Q1):", value=q1_37_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_37, "q1")
+                                inp_q2_37 = ui.number("De 1 ano a menor que 3 anos (Q2):", value=q2_37_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_37, "q2")
+                                inp_q3_37 = ui.number("De 3 anos a menor que 5 anos (Q3):", value=q3_37_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_37, "q3")
+                                inp_q4_37 = ui.number("De 5 anos a menor que 10 anos (Q4):", value=q4_37_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_37, "q4")
+                                inp_q5_37 = ui.number("De 10 anos a menor que 15 anos (Q5):", value=q5_37_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_37, "q5")
+                                inp_q6_37 = ui.number("Maior ou igual a 15 anos (Q6):", value=q6_37_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_37, "q6")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_37,
+                                placeholder="Insira portarias de designação/nomeação dos gestores, histórico funcional ou atos oficiais...",
+                            ).classes("w-full").props("outlined rows=14").bind_value(
+                                state_37, "link"
+                            )
+
+                        lbl_pts_37 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.7: {calc_pts_37():.2f} / 2.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_37():
+                            lbl_pts_37.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.7: {calc_pts_37():.2f} / 2.0 pontos"
+                            )
+
+                        for inp_comp in [inp_q1_37, inp_q2_37, inp_q3_37, inp_q4_37, inp_q5_37, inp_q6_37]:
+                            inp_comp.on("update:model-value", att_pts_37)
+
+                        def salvar_37():
+                            c1, c2, c3 = state_37["q1"], state_37["q2"], state_37["q3"]
+                            c4, c5, c6 = state_37["q4"], state_37["q5"], state_37["q6"]
+                            pts = calc_pts_37()
+
+                            composite = f"Q1:{c1},Q2:{c2},Q3:{c3},Q4:{c4},Q5:{c5},Q6:{c6}|LINK:{state_37['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.7",
+                                valor=f"Q1:{c1}|Q2:{c2}|Q3:{c3}|Q4:{c4}|Q5:{c5}|Q6:{c6}",
+                                pontos=pts,
+                                link=composite,
+                                comentarios=d37.get("comentarios", []),
+                                status=d37.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.7 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.7", on_click=salvar_37).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.7", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
