@@ -3707,6 +3707,565 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("2.2", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 2.2.1 (Higienização dos Brinquedos/Materiais Pedagógicos)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.2.1 • Higienização dos Brinquedos e Materiais Pedagógicos").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Realiza higienização dos brinquedos/materiais pedagógicos na Pré-escola?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Quesito triagem.").classes(
+                            "text-xs text-gray-400 mb-6"
+                        )
+
+                        d221 = res_data.get("2.2.1") or {}
+                        opcoes_221 = ["Selecione...", "Sim", "Não"]
+
+                        val_221_bruto = str(d221.get("valor") or "")
+                        val_221_valido = val_221_bruto if val_221_bruto in opcoes_221 else "Selecione..."
+                        raw_link_221 = str(d221.get("link") or "")
+
+                        state_221 = {
+                            "opcao": val_221_valido,
+                            "link": raw_link_221,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_221 = ui.radio(
+                                options=opcoes_221,
+                                value=state_221["opcao"],
+                            ).props("color=blue").bind_value(state_221, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_221,
+                                placeholder="Insira o protocolo de higienização, regimento de limpeza ou orientações técnicas...",
+                            ).classes("w-full").props("outlined rows=4").bind_value(
+                                state_221, "link"
+                            )
+
+                        def salvar_221():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.2.1",
+                                valor=state_221["opcao"],
+                                pontos=0.0,
+                                link=state_221["link"],
+                                comentarios=d221.get("comentarios", []),
+                                status=d221.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 2.2.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.2.1", on_click=salvar_221).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.2.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 2.2.1.1 (Frequência de Higienização)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.2.1.1 • Frequência de Higienização dos Brinquedos").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Qual a frequência de higienização aplicada na maior parte dos estabelecimentos de Pré-escola?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Pontuação: Diária (5.0 pts) | A cada 2 dias (4.0 pts) | A cada 3 dias (3.0 pts) | Semanal (2.0 pts) | Mensal (1.0 pt) | > 30 dias (0.0 pts)."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d2211 = res_data.get("2.2.1.1") or {}
+
+                        opcoes_2211 = {
+                            "Selecione...": 0.0,
+                            "Diária (5,0 pontos)": 5.0,
+                            "A cada 2 dias (4,0 pontos)": 4.0,
+                            "A cada 3 dias (3,0 pontos)": 3.0,
+                            "Semanal (2,0 pontos)": 2.0,
+                            "Mensal (1,0 ponto)": 1.0,
+                            "> 30 dias (0,0 pontos)": 0.0,
+                        }
+
+                        val_2211_bruto = str(d2211.get("valor") or "")
+                        val_2211_valido = "Selecione..."
+                        if val_2211_bruto in opcoes_2211:
+                            val_2211_valido = val_2211_bruto
+                        else:
+                            for chave in opcoes_2211.keys():
+                                if chave != "Selecione..." and chave.startswith(val_2211_bruto):
+                                    val_2211_valido = chave
+                                    break
+
+                        raw_link_2211 = str(d2211.get("link") or "")
+
+                        state_2211 = {
+                            "opcao": val_2211_valido,
+                            "link": raw_link_2211,
+                        }
+
+                        def calc_pts_2211():
+                            return float(opcoes_2211.get(state_2211["opcao"], 0.0))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_2211 = ui.radio(
+                                    options=list(opcoes_2211.keys()),
+                                    value=state_2211["opcao"],
+                                ).props("color=blue").bind_value(state_2211, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_2211,
+                                placeholder="Insira a rotina de limpeza fixada nas creches/escolas ou escala do pessoal de apoio...",
+                            ).classes("w-full").props("outlined rows=6").bind_value(
+                                state_2211, "link"
+                            )
+
+                        lbl_pts_2211 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 2.2.1.1: {calc_pts_2211():.1f} / 5.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_2211():
+                            lbl_pts_2211.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 2.2.1.1: {calc_pts_2211():.1f} / 5.0 pontos"
+                            )
+
+                        rad_2211.on("update:model-value", att_pts_2211)
+
+                        def salvar_2211():
+                            pts = calc_pts_2211()
+                            opt_sel = state_2211["opcao"]
+                            lnk = state_2211["link"]
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.2.1.1",
+                                valor=opt_sel,
+                                pontos=pts,
+                                link=lnk,
+                                comentarios=d2211.get("comentarios", []),
+                                status=d2211.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 2.2.1.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.2.1.1", on_click=salvar_2211).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.2.1.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 2.2.2 (Cronograma de Compra de Brinquedos/Materiais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.2.2 • Cronograma para Compra de Brinquedos/Materiais").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Possui cronograma/planejamento para compra de brinquedos/materiais pedagógicos para cada estabelecimento de ensino?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Pontuação: Sim = 5.0 pts | Não = 0.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d222 = res_data.get("2.2.2") or {}
+
+                        opcoes_222 = {
+                            "Selecione...": 0.0,
+                            "Sim (5,0 pontos)": 5.0,
+                            "Não (0,0 pontos)": 0.0,
+                        }
+
+                        val_222_bruto = str(d222.get("valor") or "")
+                        val_222_valido = "Selecione..."
+                        if val_222_bruto in opcoes_222:
+                            val_222_valido = val_222_bruto
+                        else:
+                            for chave in opcoes_222.keys():
+                                if chave != "Selecione..." and chave.startswith(val_222_bruto):
+                                    val_222_valido = chave
+                                    break
+
+                        raw_link_222 = str(d222.get("link") or "")
+
+                        state_222 = {
+                            "opcao": val_222_valido,
+                            "link": raw_link_222,
+                        }
+
+                        def calc_pts_222():
+                            return float(opcoes_222.get(state_222["opcao"], 0.0))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_222 = ui.radio(
+                                    options=list(opcoes_222.keys()),
+                                    value=state_222["opcao"],
+                                ).props("color=blue").bind_value(state_222, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_222,
+                                placeholder="Insira o plano anual de compras, cronograma físico-financeiro ou processo licitatório...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_222, "link"
+                            )
+
+                        lbl_pts_222 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 2.2.2: {calc_pts_222():.1f} / 5.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_222():
+                            lbl_pts_222.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 2.2.2: {calc_pts_222():.1f} / 5.0 pontos"
+                            )
+
+                        rad_222.on("update:model-value", att_pts_222)
+
+                        def salvar_222():
+                            pts = calc_pts_222()
+                            opt_sel = state_222["opcao"]
+                            lnk = state_222["link"]
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.2.2",
+                                valor=opt_sel,
+                                pontos=pts,
+                                link=lnk,
+                                comentarios=d222.get("comentarios", []),
+                                status=d222.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 2.2.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.2.2", on_click=salvar_222).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.2.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 2.2.3 (Data da Última Entrega em Pré-escola)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.2.3 • Última Entrega de Brinquedos/Materiais na Pré-escola").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a data da última entrega de brinquedos e/ou materiais pedagógicos na Pré-escola:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Quesito declaratório.").classes(
+                            "text-xs text-gray-400 mb-6"
+                        )
+
+                        d223 = res_data.get("2.2.3") or {}
+                        raw_link_223 = str(d223.get("link") or "")
+                        data_val_223 = str(d223.get("valor") or "")
+                        evidencia_223 = raw_link_223
+
+                        state_223 = {
+                            "data": data_val_223,
+                            "link": evidencia_223,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_data_223 = (
+                                    ui.input(
+                                        label="Data da Entrega (DD/MM/AAAA):",
+                                        value=data_val_223,
+                                        placeholder="Ex: 20/02/2025",
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_223, "data")
+                                )
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_223,
+                                placeholder="Insira o comprovante de recebimento, guia de transporte ou nota fiscal...",
+                            ).classes("w-full").props("outlined rows=4").bind_value(
+                                state_223, "link"
+                            )
+
+                        def salvar_223():
+                            dt_val = state_223["data"].strip()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.2.3",
+                                valor=dt_val,
+                                pontos=0.0,
+                                link=state_223["link"],
+                                comentarios=d223.get("comentarios", []),
+                                status=d223.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 2.2.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.2.3", on_click=salvar_223).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.2.3", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 2.3 (Espaço por Aluno em Sala de Aula - Pré-escola)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.3 • Espaço por Aluno em Sala de Aula (Pré-escola)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de turmas de Pré-escola em cada faixa de área por aluno (m²):"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Cálculo: NF = 10.0 × (1.0×P1 + 0.5×P2 + 0.25×P3 + 0×P4) | Pmáx = 10.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d23 = res_data.get("2.3") or {}
+                        raw_link_23 = str(d23.get("link") or "")
+
+                        pf1_i, pf2_i, pf3_i, pf4_i = 0, 0, 0, 0
+                        evidencia_23 = raw_link_23
+
+                        if "|LINK:" in raw_link_23:
+                            partes_23, evidencia_23 = raw_link_23.split("|LINK:", 1)
+                            m_pf1 = re.search(r"F1:(\d+)", partes_23)
+                            m_pf2 = re.search(r"F2:(\d+)", partes_23)
+                            m_pf3 = re.search(r"F3:(\d+)", partes_23)
+                            m_pf4 = re.search(r"F4:(\d+)", partes_23)
+                            pf1_i = int(m_pf1.group(1)) if m_pf1 else 0
+                            pf2_i = int(m_pf2.group(1)) if m_pf2 else 0
+                            pf3_i = int(m_pf3.group(1)) if m_pf3 else 0
+                            pf4_i = int(m_pf4.group(1)) if m_pf4 else 0
+
+                        state_23 = {
+                            "f1": pf1_i,
+                            "f2": pf2_i,
+                            "f3": pf3_i,
+                            "f4": pf4_i,
+                            "link": evidencia_23,
+                        }
+
+                        def calc_pts_23():
+                            c1 = int(state_23["f1"] or 0)
+                            c2 = int(state_23["f2"] or 0)
+                            c3 = int(state_23["f3"] or 0)
+                            c4 = int(state_23["f4"] or 0)
+                            tot_turmas = c1 + c2 + c3 + c4
+                            if tot_turmas <= 0:
+                                return 0.0
+
+                            p1 = c1 / tot_turmas
+                            p2 = c2 / tot_turmas
+                            p3 = c3 / tot_turmas
+                            p4 = c4 / tot_turmas
+
+                            n1 = 1.0 * p1
+                            n2 = 0.5 * p2
+                            n3 = 0.25 * p3
+                            n4 = 0.0 * p4
+
+                            return min(10.0 * (n1 + n2 + n3 + n4), 10.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_pf1 = ui.number("Turmas com área ≥ 1,36 m²/aluno:", value=pf1_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_23, "f1")
+                                inp_pf2 = ui.number("Turmas com área ≥ 1,10 m² e < 1,36 m²/aluno:", value=pf2_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_23, "f2")
+                                inp_pf3 = ui.number("Turmas com área ≥ 0,90 m² e < 1,10 m²/aluno:", value=pf3_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_23, "f3")
+                                inp_pf4 = ui.number("Turmas com área < 0,90 m²/aluno:", value=pf4_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_23, "f4")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_23,
+                                placeholder="Insira o laudo metrológico das salas, medição física ou relatório técnico...",
+                            ).classes("w-full").props("outlined rows=10").bind_value(
+                                state_23, "link"
+                            )
+
+                        lbl_pts_23 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 2.3: {calc_pts_23():.2f} / 10.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_23():
+                            lbl_pts_23.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 2.3: {calc_pts_23():.2f} / 10.0 pontos"
+                            )
+
+                        for inp in [inp_pf1, inp_pf2, inp_pf3, inp_pf4]:
+                            inp.on("update:model-value", att_pts_23)
+
+                        def salvar_23():
+                            c1, c2, c3, c4 = state_23["f1"], state_23["f2"], state_23["f3"], state_23["f4"]
+                            pts_finais = calc_pts_23()
+                            composite = f"F1:{c1},F2:{c2},F3:{c3},F4:{c4}|LINK:{state_23['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.3",
+                                valor=f"F1:{c1}/F2:{c2}/F3:{c3}/F4:{c4}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d23.get("comentarios", []),
+                                status=d23.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 2.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.3", on_click=salvar_23).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.3", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 2.4 (Formação e Pós-Graduação dos Professores de Pré-escola)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.4 • Titulação e Formação de Professores de Pré-escola").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o total de professores de Pré-escola e a quantidade com Licenciatura e Pós-Graduação:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Cálculo: NF = N1 (Graduação - máx 11 pts) + N2 (Pós-Graduação - máx 7 pts) | Pmáx = 18 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d24 = res_data.get("2.4") or {}
+                        raw_link_24 = str(d24.get("link") or "")
+
+                        tot_prof_p_i, grad_p_i, pgrad_p_i = 0, 0, 0
+                        evidencia_24 = raw_link_24
+
+                        if "|LINK:" in raw_link_24:
+                            partes_24, evidencia_24 = raw_link_24.split("|LINK:", 1)
+                            m_tot = re.search(r"TOT:(\d+)", partes_24)
+                            m_grad = re.search(r"GRAD:(\d+)", partes_24)
+                            m_pgrad = re.search(r"PGRAD:(\d+)", partes_24)
+                            tot_prof_p_i = int(m_tot.group(1)) if m_tot else 0
+                            grad_p_i = int(m_grad.group(1)) if m_grad else 0
+                            pgrad_p_i = int(m_pgrad.group(1)) if m_pgrad else 0
+
+                        state_24 = {
+                            "tot": tot_prof_p_i,
+                            "grad": grad_p_i,
+                            "pgrad": pgrad_p_i,
+                            "link": evidencia_24,
+                        }
+
+                        def calc_pts_24():
+                            tot = int(state_24["tot"] or 0)
+                            grad = int(state_24["grad"] or 0)
+                            pgrad = int(state_24["pgrad"] or 0)
+                            if tot <= 0:
+                                return 0.0
+
+                            g_pct = grad / tot
+                            if g_pct >= 1.0:
+                                n1 = 11.0
+                            elif g_pct >= 0.90:
+                                n1 = 7.0
+                            elif g_pct >= 0.80:
+                                n1 = 3.0
+                            elif g_pct >= 0.70:
+                                n1 = 1.0
+                            else:
+                                n1 = 0.0
+
+                            p_pct = pgrad / tot
+                            if p_pct >= 0.50:
+                                n2 = 7.0
+                            elif p_pct >= 0.40:
+                                n2 = 5.0
+                            elif p_pct >= 0.20:
+                                n2 = 3.0
+                            else:
+                                n2 = 0.0
+
+                            return n1 + n2
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_tot_24 = ui.number("TOTAL de professores da etapa (Efetivos + Temporários):", value=tot_prof_p_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_24, "tot")
+                                inp_grad_p = ui.number("Professores com Nível Superior / Licenciatura (GRAD):", value=grad_p_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_24, "grad")
+                                inp_pgrad_p = ui.number("Professores com Pós-Graduação (PGRAD):", value=pgrad_p_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_24, "pgrad")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_24,
+                                placeholder="Insira os relatórios do Censo Escolar 2025 ou relação de professores da pré-escola...",
+                            ).classes("w-full").props("outlined rows=8").bind_value(
+                                state_24, "link"
+                            )
+
+                        lbl_pts_24 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 2.4: {calc_pts_24():.1f} / 18.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_24():
+                            lbl_pts_24.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 2.4: {calc_pts_24():.1f} / 18.0 pontos"
+                            )
+
+                        inp_tot_24.on("update:model-value", att_pts_24)
+                        inp_grad_p.on("update:model-value", att_pts_24)
+                        inp_pgrad_p.on("update:model-value", att_pts_24)
+
+                        def salvar_24():
+                            tot = int(state_24["tot"] or 0)
+                            g = int(state_24["grad"] or 0)
+                            pg = int(state_24["pgrad"] or 0)
+                            pts_finais = calc_pts_24()
+                            composite = f"TOT:{tot},GRAD:{g},PGRAD:{pg}|LINK:{state_24['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.4",
+                                valor=f"GRAD:{g}/PGRAD:{pg}/TOT:{tot}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d24.get("comentarios", []),
+                                status=d24.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 2.4 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.4", on_click=salvar_24).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.4", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
