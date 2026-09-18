@@ -21,7 +21,10 @@ def get_db_connection():
 
 
 def _obter_lista_comentarios(dados_q):
-    """Extrai e garante o retorno da lista de comentários."""
+    """
+    Aceita o dicionário do quesito ou uma lista direta e devolve a lista de comentários.
+    Previne o erro de argumento ausente ('qid').
+    """
     if isinstance(dados_q, dict):
         coms = dados_q.get("comentarios", [])
         return coms if isinstance(coms, list) else []
@@ -46,7 +49,7 @@ def load_respostas(ano):
                     q_id = str(row["quesito"])
                     val_bruto = row["resposta"] or ""
 
-                    # Tenta converter resposta de JSON caso seja dicionário/lista
+                    # Desserializa respostas salvas como JSON em string
                     val_final = val_bruto
                     if isinstance(val_bruto, str) and (
                         (val_bruto.startswith("[") and val_bruto.endswith("]"))
@@ -60,12 +63,12 @@ def load_respostas(ano):
                         except Exception:
                             val_final = val_bruto
 
-                    # Trata campo link
+                    # Trata o campo link
                     link_val = row.get("link") or ""
                     if link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    # Trata campo comentario
+                    # Trata o campo comentario
                     coment_raw = row.get("comentario") or ""
                     comentarios_val = []
                     if coment_raw and coment_raw != "EMPTY_STRING":
@@ -99,7 +102,7 @@ def save_resposta(
 
     link_final = link.strip() if link else "EMPTY_STRING"
 
-    # Serialização do campo 'resposta'
+    # Serializa o campo 'resposta'
     if isinstance(valor, (list, dict)):
         resposta_str = json.dumps(valor, ensure_ascii=False)
     else:
@@ -151,8 +154,7 @@ def zerar_questionario_db(ano):
                 cur.execute(query, (int(ano),))
                 conn.commit()
     except Exception as e:
-        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
-
+        print(f"❌ Erro ao zerar questionário no DB: {e}")
 # ==========================================
 # FUNÇÃO AUXILIAR (CORRIGE O NameError)
 # ==========================================
