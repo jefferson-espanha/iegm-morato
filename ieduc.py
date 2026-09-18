@@ -703,8 +703,6 @@ def container_formulario_ieduc(ano=None):
                         placeholder_link="Insira o link ou documento de comprovação...",
                         on_save_callback=render_conteudo.refresh,
                     )
-import re
-                    from nicegui import ui
 
                     # =============================================================================
                     # QUESITO 1.1.1 (Brinquedos no Pátio Infantil - BPI)
