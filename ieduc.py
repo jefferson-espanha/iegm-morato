@@ -2203,24 +2203,23 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("1.9", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITOS 1.10 e 1.10.1 (Reuniões Periódicas com Pais e Periodicidade)
+                   # =============================================================================
+                    # QUESITO 1.10 (Reuniões Periódicas com Pais - Escopo)
                     # =============================================================================
                     with ui.card().classes(
                         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                     ):
-                        ui.label("1.10 / 1.10.1 • Reuniões Periódicas com Pais dos Alunos").classes(
+                        ui.label("1.10 • Reuniões Periódicas com Pais dos Alunos").classes(
                             "text-xl font-semibold text-blue-500 mb-3"
                         )
                         ui.label(
-                            "Informe o escopo e a periodicidade das reuniões com pais na etapa de Creche:"
+                            "Os professores realizam reuniões periódicas com os pais dos alunos de Creche sobre planejamento/projeto escolar e desempenho/desenvolvimento da criança?"
                         ).classes("text-base font-bold text-black mb-1")
                         ui.label(
-                            "ℹ Pontuação 1.10: Ambos os pautas (2.0 pts) | Apenas PPP (1.5 pts) | Apenas Desempenho (1.0 pt) | Não realiza (0.0 pt)."
+                            "ℹ Pontuação: Ambos (2.0 pts) | Apenas PPP (1.5 pts) | Apenas Desempenho (1.0 pt) | Não realiza (0.0 pt)."
                         ).classes("text-xs text-gray-400 mb-6")
 
                         d110 = res_data.get("1.10") or {}
-                        d1101 = res_data.get("1.10.1") or {}
 
                         opcoes_110 = {
                             "Sobre planejamento e desempenho da criança": 2.0,
@@ -2229,47 +2228,36 @@ def container_formulario_ieduc(ano=None):
                             "Não realiza reuniões periódicas": 0.0,
                         }
 
-                        opcoes_1101 = [
-                            "Mensal",
-                            "Bimestral",
-                            "Trimestral",
-                            "Quadrimestral",
-                            "Semestral",
-                            "Anual",
-                        ]
+                        val_110_bruto = str(d110.get("valor") or "")
+                        
+                        # Limpa string caso venha com sufixos de versões anteriores e valida a chave
+                        val_110_limpo = re.sub(r"\s*\([\d,\.\s]+pontos?\)", "", val_110_bruto, flags=re.IGNORECASE).strip()
+                        val_110_valido = (
+                            val_110_limpo if val_110_limpo in opcoes_110 else "Sobre planejamento e desempenho da criança"
+                        )
 
-                        val_110_i = d110.get("valor") or "Sobre planejamento e desempenho da criança"
-                        val_1101_i = d1101.get("valor") or "Bimestral"
-                        link_110_i = str(d110.get("link") or "")
+                        raw_link_110 = str(d110.get("link") or "")
 
                         state_110 = {
-                            "escopo": val_110_i,
-                            "periodicidade": val_1101_i,
-                            "link": link_110_i,
+                            "escopo": val_110_valido,
+                            "link": raw_link_110,
                         }
 
                         def calc_pts_110():
                             return float(opcoes_110.get(state_110["escopo"], 0.0))
 
                         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            with ui.column().classes("w-full gap-4"):
-                                ui.label("Escopo da Reunião (Quesito 1.10):").classes("font-bold text-xs text-blue-800 uppercase")
+                            with ui.column().classes("w-full gap-3"):
                                 rad_110 = ui.radio(
                                     options=list(opcoes_110.keys()),
                                     value=state_110["escopo"],
                                 ).props("color=blue").bind_value(state_110, "escopo")
 
-                                ui.label("Periodicidade (Quesito 1.10.1):").classes("font-bold text-xs text-blue-800 uppercase mt-2")
-                                rad_1101 = ui.radio(
-                                    options=opcoes_1101,
-                                    value=state_110["periodicidade"],
-                                ).props("color=blue").bind_value(state_110, "periodicidade")
-
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
-                                value=link_110_i,
+                                value=raw_link_110,
                                 placeholder="Insira atas de reunião com pais, calendário escolar ou convocatórias...",
-                            ).classes("w-full").props("outlined rows=10").bind_value(
+                            ).classes("w-full").props("outlined rows=6").bind_value(
                                 state_110, "link"
                             )
 
@@ -2285,23 +2273,88 @@ def container_formulario_ieduc(ano=None):
                         rad_110.on("update:model-value", att_pts_110)
 
                         def salvar_110():
-                            pts_110 = calc_pts_110()
+                            pts = calc_pts_110()
                             escopo_sel = state_110["escopo"]
-                            per_sel = state_110["periodicidade"]
                             lnk = state_110["link"]
 
-                            # Salva quesito 1.10
                             save_resposta(
                                 ano=ano_sel,
                                 qid="1.10",
                                 valor=escopo_sel,
-                                pontos=pts_110,
+                                pontos=pts,
                                 link=lnk,
                                 comentarios=d110.get("comentarios", []),
                                 status=d110.get("status", "Pendente"),
                             )
 
-                            # Salva quesito 1.10.1 (declaratório)
+                            ui.notify("Quesito 1.10 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.10", on_click=salvar_110).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.10", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 1.10.1 (Periodicidade das Reuniões com Pais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.10.1 • Periodicidade das Reuniões com Pais").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Qual a periodicidade das reuniões com os pais?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Quesito declaratório.").classes(
+                            "text-xs text-gray-400 mb-6"
+                        )
+
+                        d1101 = res_data.get("1.10.1") or {}
+
+                        opcoes_1101 = [
+                            "Mensal",
+                            "Bimestral",
+                            "Trimestral",
+                            "Quadrimestral",
+                            "Semestral",
+                            "Anual",
+                        ]
+
+                        val_1101_bruto = str(d1101.get("valor") or "")
+                        val_1101_valido = (
+                            val_1101_bruto if val_1101_bruto in opcoes_1101 else "Bimestral"
+                        )
+
+                        raw_link_1101 = str(d1101.get("link") or "")
+
+                        state_1101 = {
+                            "periodicidade": val_1101_valido,
+                            "link": raw_link_1101,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_1101 = ui.radio(
+                                    options=opcoes_1101,
+                                    value=state_1101["periodicidade"],
+                                ).props("color=blue").bind_value(state_1101, "periodicidade")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_1101,
+                                placeholder="Insira o calendário escolar ou regulamento com a periodicidade...",
+                            ).classes("w-full").props("outlined rows=6").bind_value(
+                                state_1101, "link"
+                            )
+
+                        def salvar_1101():
+                            per_sel = state_1101["periodicidade"]
+                            lnk = state_1101["link"]
+
                             save_resposta(
                                 ano=ano_sel,
                                 qid="1.10.1",
@@ -2312,15 +2365,15 @@ def container_formulario_ieduc(ano=None):
                                 status=d1101.get("status", "Pendente"),
                             )
 
-                            ui.notify("Quesitos 1.10 e 1.10.1 salvos com sucesso!", type="positive")
+                            ui.notify("Quesito 1.10.1 salvo com sucesso!", type="positive")
                             if render_conteudo.refresh:
                                 render_conteudo.refresh()
 
-                        ui.button("💾 SALVAR QUESITOS 1.10 E 1.10.1", on_click=salvar_110).classes(
+                        ui.button("💾 SALVAR QUESITO 1.10.1", on_click=salvar_1101).classes(
                             "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                         )
                         ui.separator().classes("my-2")
-                        bloco_comentarios("1.10", res_data, render_conteudo.refresh)
+                        bloco_comentarios("1.10.1", res_data, render_conteudo.refresh)
 
     render_conteudo()
     return main_container
