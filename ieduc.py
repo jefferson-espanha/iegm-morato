@@ -703,207 +703,286 @@ def container_formulario_ieduc(ano=None):
                         placeholder_link="Insira o link ou documento de comprovação...",
                         on_save_callback=render_conteudo.refresh,
                     )
-
-                 # =============================================================================
-                    # QUESITO 1.1.1 - BRINQUEDOS NO PÁTIO INFANTIL (IEDUC / NICEGUI)
-                    # =============================================================================
-                    def render_quesito_1_1_1(ano_sel, res_data, save_resp, bloco_comentarios, on_save_callback=None):
-                        # Recupera os dados salvos ou define o padrão
-                        d111 = res_data.get("1.1.1", {"valor": "BPI:0,TOTAL:0", "pontos": 0.0, "link": ""})
-                        str_banco = d111.get("valor", "BPI:0,TOTAL:0")
-                        link_banco = d111.get("link", "")
-
-                        # Split seguro para carregar os campos
-                        try:
-                            parts = str_banco.split(",")
-                            v_bpi = int(parts[0].split(":")[1])
-                            v_total = int(parts[1].split(":")[1])
-                        except Exception:
-                            v_bpi, v_total = 0, 0
-
-                        with ui.expansion("🔍 QUESITO 1.1.1 - Dados de Brinquedos no Pátio Infantil (BPI)", value=True).classes('w-full'):
-                            with ui.card().classes('w-full p-4'):
-                                ui.label("QUESITO 1.1.1").classes('text-lg font-bold')
-                                ui.label("Informe os dados para o cálculo de brinquedos no Pátio Infantil (BPI):")
-                                ui.label("ℹ️ O salvamento é automático. Qualquer alteração grava os dados na hora.").classes('text-xs text-gray-500 mb-2')
-
-                                with ui.row().classes('w-full grid grid-cols-1 md:grid-cols-2 gap-4'):
-                                    with ui.column().classes('w-full'):
-                                        ui.label("Nº de creches com brinquedos no pátio infantil:").classes('text-xs font-medium')
-                                        input_bpi = ui.number(value=v_bpi, min=0, step=1).classes('w-full')
-
-                                        ui.label("Nº TOTAL de creches no município:").classes('text-xs font-medium')
-                                        input_total = ui.number(value=v_total, min=0, step=1).classes('w-full')
-
-                                    with ui.column().classes('w-full'):
-                                        ui.label("Link/Evidência (1.1.1):").classes('text-xs font-medium')
-                                        input_link = ui.textarea(value=link_banco).classes('w-full h-32')
-                                        lbl_links_ativos = ui.markdown("").classes('text-xs mt-1')
-
-                                lbl_score = ui.markdown("").classes('w-full p-2 bg-gray-100 rounded text-sm font-semibold mt-2')
-
-                                # Processamento Matemático e Reatividade do 1.1.1
-                                def recalcular_111():
-                                    b_val = int(input_bpi.value or 0)
-                                    t_val = int(input_total.value or 0)
-                                    lk_val = input_link.value or ""
-
-                                    pts_111 = 0.0
-                                    if t_val > 0:
-                                        proporcao_p = b_val / t_val
-                                        pts_111 = float(min(2.0, proporcao_p * 2.0))
-
-                                    lbl_score.set_content(f"📊 **Pontuação Calculada na Questão 1.1.1:** `{pts_111:.2f} pontos` (Máximo: 2.0 pontos)")
-
-                                    # Formatação de links
-                                    links_f = re.findall(r'(https?://[^\s]+)', lk_val)
-                                    if links_f:
-                                        botoes = " | ".join([f"🔗 [{lk}]({lk})" for lk in links_f])
-                                        lbl_links_ativos.set_content(f"**Links Ativos:** {botoes}")
-                                    else:
-                                        lbl_links_ativos.set_content("Nenhum link ativo")
-
-                                    str_valor_novo = f"BPI:{b_val},TOTAL:{t_val}"
-                                    if str_valor_novo != d111.get("valor", "") or lk_val != d111.get("link", ""):
-                                        save_resp("1.1.1", str_valor_novo, pts_111, lk_val)
-                                        res_data["1.1.1"] = {"valor": str_valor_novo, "pontos": pts_111, "link": lk_val}
-                                        if on_save_callback:
-                                            on_save_callback()
-
-                                input_bpi.on('update:model-value', recalcular_111)
-                                input_total.on('update:model-value', recalcular_111)
-                                input_link.on('update:model-value', recalcular_111)
-
-                                # Executa o cálculo inicial da interface
-                                recalcular_111()
-
-                                if bloco_comentarios:
-                                    bloco_comentarios("1.1.1", res_data, ano_sel)
-
-
-                    # Execução do Quesito 1.1.1
-                    render_quesito_1_1_1(
-                        ano_sel=ano_sel,
-                        res_data=res_data,
-                        save_resp=save_resp,
-                        bloco_comentarios=bloco_comentarios,
-                        on_save_callback=render_conteudo.refresh if hasattr(render_conteudo, 'refresh') else None,
-                    )
-
+import re
+                    from nicegui import ui
 
                     # =============================================================================
-                    # QUESITO 1.1.2 - MANUTENÇÃO DAS CRECHES (IEDUC / NICEGUI)
+                    # QUESITO 1.1.1 (Brinquedos no Pátio Infantil - BPI)
                     # =============================================================================
-                    def render_quesito_1_1_2(ano_sel, res_data, save_resp, bloco_comentarios, on_save_callback=None):
-                        # Recupera os dados salvos ou define o padrão
-                        d112 = res_data.get("1.1.2", {"valor": "CRON:0,NCRON:0,SOLIC:0,NMANU:0,TOTAL:0", "pontos": 0.0, "link": ""})
-                        str_banco = d112.get("valor", "CRON:0,NCRON:0,SOLIC:0,NMANU:0,TOTAL:0")
-                        link_banco = d112.get("link", "")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.1.1 • Brinquedos no Pátio Infantil (BPI)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o número de creches com brinquedos no pátio e o total de creches no município:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Cálculo: (Creches com brinquedos / Total de creches) × 2.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
 
-                        # Split seguro dos 4 quantitativos
-                        try:
-                            parts = str_banco.split(",")
-                            v_cron = int(parts[0].split(":")[1])
-                            v_ncron = int(parts[1].split(":")[1])
-                            v_solic = int(parts[2].split(":")[1])
-                            v_nmanu = int(parts[3].split(":")[1])
-                        except Exception:
-                            v_cron, v_ncron, v_solic, v_nmanu = 0, 0, 0, 0
+                        d111 = res_data.get("1.1.1") or {}
+                        raw_link_111 = str(d111.get("link") or "")
 
-                        with ui.expansion(f"🔍 QUESITO 1.1.2 - Manutenção das Creches ({ano_sel})", value=True).classes('w-full'):
-                            with ui.card().classes('w-full p-4'):
-                                ui.label("QUESITO 1.1.2").classes('text-lg font-bold')
-                                ui.label("Informe os dados para o cálculo de manutenção das creches:")
-                                ui.markdown("""
-                                *Fórmulas de cálculo:*
-                                * $P1 = (NMANU / TOTAL) \\times Pmáx1$ *(Pmáx1 = -2 pontos)*
-                                * $P2 = (NCRON / TOTAL) \\times Pmáx2$ *(Pmáx2 = 1 ponto)*
-                                * $P3 = (CRON / TOTAL) \\times Pmáx3$ *(Pmáx3 = 3 pontos)*
-                                * $P = P1 + P2 + P3$
-                                """).classes('text-xs text-gray-600')
-                                ui.label("ℹ️ Os cálculos e salvamento ocorrem em tempo real.").classes('text-xs text-gray-500 mb-2')
+                        bpi_com_i, total_creches_i = 0, 0
+                        evidencia_111 = raw_link_111
 
-                                with ui.row().classes('w-full grid grid-cols-1 md:grid-cols-2 gap-4'):
-                                    with ui.column().classes('w-full'):
-                                        ui.label("Quantas creches possuem e CUMPRIRAM o cronograma (CRON):").classes('text-xs font-medium')
-                                        input_cron = ui.number(value=v_cron, min=0, step=1).classes('w-full')
+                        if "|LINK:" in raw_link_111:
+                            partes_111, evidencia_111 = raw_link_111.split("|LINK:", 1)
+                            match_bpi = re.search(r"BPI:(\d+)", partes_111)
+                            match_tot = re.search(r"TOT:(\d+)", partes_111)
+                            bpi_com_i = int(match_bpi.group(1)) if match_bpi else 0
+                            total_creches_i = int(match_tot.group(1)) if match_tot else 0
 
-                                        ui.label("Quantas creches possuem e NÃO CUMPRIRAM o cronograma (NCRON):").classes('text-xs font-medium')
-                                        input_ncron = ui.number(value=v_ncron, min=0, step=1).classes('w-full')
+                        state_111 = {
+                            "bpi": bpi_com_i,
+                            "total": total_creches_i,
+                            "link": evidencia_111,
+                        }
 
-                                        ui.label("Quantas creches realizam manutenção SOMENTE por solicitação (SOLIC):").classes('text-xs font-medium')
-                                        input_solic = ui.number(value=v_solic, min=0, step=1).classes('w-full')
+                        def calc_pts_111():
+                            tot = int(state_111["total"] or 0)
+                            bpi = int(state_111["bpi"] or 0)
+                            if tot <= 0 or bpi <= 0:
+                                return 0.0
+                            prop = min(bpi / tot, 1.0)
+                            return prop * 2.0
 
-                                        ui.label("Quantas creches NÃO realizam manutenção (NMANU):").classes('text-xs font-medium')
-                                        input_nmanu = ui.number(value=v_nmanu, min=0, step=1).classes('w-full')
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_bpi = (
+                                    ui.number(
+                                        "Nº de creches COM brinquedos no pátio:",
+                                        value=bpi_com_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined")
+                                    .bind_value(state_111, "bpi")
+                                )
 
-                                        ui.label("Total de Creches (Somatório Automático):").classes('text-xs font-bold text-blue-900 mt-2')
-                                        input_total_calc = ui.number(value=0).props('readonly disabled').classes('w-full bg-gray-100')
+                                inp_tot_111 = (
+                                    ui.number(
+                                        "TOTAL de creches no município:",
+                                        value=total_creches_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined")
+                                    .bind_value(state_111, "total")
+                                )
 
-                                    with ui.column().classes('w-full'):
-                                        ui.label("Link/Evidência (1.1.2):").classes('text-xs font-medium')
-                                        input_link_112 = ui.textarea(value=link_banco).classes('w-full h-64')
-                                        lbl_links_112 = ui.markdown("").classes('text-xs mt-1')
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_111,
+                                placeholder="Insira a lista de creches, relatórios de vistoria ou fotos...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_111, "link"
+                            )
 
-                                score_box_112 = ui.markdown("").classes('w-full p-2 bg-slate-800 text-white font-mono text-sm rounded mt-2')
+                        lbl_pts_111 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 1.1.1: {calc_pts_111():.2f} / 2.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
 
-                                # Processamento Matemático Integrado para NiceGUI
-                                def recalcular_112():
-                                    c_val = int(input_cron.value or 0)
-                                    nc_val = int(input_ncron.value or 0)
-                                    s_val = int(input_solic.value or 0)
-                                    nm_val = int(input_nmanu.value or 0)
-                                    lk_val = input_link_112.value or ""
+                        def att_pts_111():
+                            lbl_pts_111.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 1.1.1: {calc_pts_111():.2f} / 2.0 pontos"
+                            )
 
-                                    total_at = c_val + nc_val + s_val + nm_val
-                                    input_total_calc.value = total_at
+                        inp_bpi.on("update:model-value", att_pts_111)
+                        inp_tot_111.on("update:model-value", att_pts_111)
 
-                                    pts_112 = 0.0
-                                    if total_at > 0:
-                                        p1 = (nm_val / total_at) * (-2.0)
-                                        p2 = (nc_val / total_at) * 1.0
-                                        p3 = (c_val / total_at) * 3.0
-                                        pts_112 = float(max(0.0, p1 + p2 + p3))
-                                        score_box_112.set_content(f"📊 Pontuação Calculada no Quesito 1.1.2: {pts_112:.2f} pontos / 3.0 pontos máximos.")
-                                    else:
-                                        score_box_112.set_content("💡 Insira os quantitativos para realizar o cálculo dinâmico ponderado da nota.")
+                        def salvar_111():
+                            b_val = int(state_111["bpi"] or 0)
+                            t_val = int(state_111["total"] or 0)
+                            pts_finais = calc_pts_111()
+                            composite = f"BPI:{b_val},TOT:{t_val}|LINK:{state_111['link']}"
 
-                                    # Processamento de Links
-                                    links_f = re.findall(r'(https?://[^\s]+)', lk_val)
-                                    if links_f:
-                                        botoes = " | ".join([f"🔗 [{lk}]({lk})" for lk in links_f])
-                                        lbl_links_112.set_content(f"**Links Ativos:** {botoes}")
-                                    else:
-                                        lbl_links_112.set_content("Nenhum link ativo")
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.1.1",
+                                valor=f"{b_val}/{t_val}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d111.get("comentarios", []),
+                                status=d111.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 1.1.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
 
-                                    str_valor_novo = f"CRON:{c_val},NCRON:{nc_val},SOLIC:{s_val},NMANU:{nm_val},TOTAL:{total_at}"
-                                    if str_valor_novo != d112.get("valor", "") or lk_val != d112.get("link", ""):
-                                        save_resp("1.1.2", str_valor_novo, pts_112, lk_val)
-                                        res_data["1.1.2"] = {"valor": str_valor_novo, "pontos": pts_112, "link": lk_val}
-                                        if on_save_callback:
-                                            on_save_callback()
-
-                                input_cron.on('update:model-value', recalcular_112)
-                                input_ncron.on('update:model-value', recalcular_112)
-                                input_solic.on('update:model-value', recalcular_112)
-                                input_nmanu.on('update:model-value', recalcular_112)
-                                input_link_112.on('update:model-value', recalcular_112)
-
-                                # Executa o cálculo inicial da interface
-                                recalcular_112()
-
-                                if bloco_comentarios:
-                                    bloco_comentarios("1.1.2", res_data, ano_sel)
+                        ui.button("💾 SALVAR QUESITO 1.1.1", on_click=salvar_111).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.1.1", res_data, render_conteudo.refresh)
 
 
-                    # Execução do Quesito 1.1.2
-                    render_quesito_1_1_2(
-                        ano_sel=ano_sel,
-                        res_data=res_data,
-                        save_resp=save_resp,
-                        bloco_comentarios=bloco_comentarios,
-                        on_save_callback=render_conteudo.refresh if hasattr(render_conteudo, 'refresh') else None,
-                    )
+                    # =============================================================================
+                    # QUESITO 1.1.2 (Manutenção Preventiva / Troca de Brinquedos)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.1.2 • Manutenção Preventiva dos Brinquedos do Pátio").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a distribuição das creches quanto à realização e cumprimento do cronograma de manutenção:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Cálculo: P = P1 + P2 + P3 (CRON = 3.0 pts | NCRON = 1.0 pt | SOLIC = 0.0 pts | NMANU = -2.0 pts)"
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d112 = res_data.get("1.1.2") or {}
+                        raw_link_112 = str(d112.get("link") or "")
+
+                        cron_i, ncron_i, solic_i, nmanu_i = 0, 0, 0, 0
+                        evidencia_112 = raw_link_112
+
+                        if "|LINK:" in raw_link_112:
+                            partes_112, evidencia_112 = raw_link_112.split("|LINK:", 1)
+                            m_cron = re.search(r"CRON:(\d+)", partes_112)
+                            m_ncron = re.search(r"NCRON:(\d+)", partes_112)
+                            m_solic = re.search(r"SOLIC:(\d+)", partes_112)
+                            m_nmanu = re.search(r"NMANU:(\d+)", partes_112)
+
+                            cron_i = int(m_cron.group(1)) if m_cron else 0
+                            ncron_i = int(m_ncron.group(1)) if m_ncron else 0
+                            solic_i = int(m_solic.group(1)) if m_solic else 0
+                            nmanu_i = int(m_nmanu.group(1)) if m_nmanu else 0
+
+                        state_112 = {
+                            "cron": cron_i,
+                            "ncron": ncron_i,
+                            "solic": solic_i,
+                            "nmanu": nmanu_i,
+                            "link": evidencia_112,
+                        }
+
+                        def calc_pts_112():
+                            c = int(state_112["cron"] or 0)
+                            nc = int(state_112["ncron"] or 0)
+                            s = int(state_112["solic"] or 0)
+                            nm = int(state_112["nmanu"] or 0)
+
+                            total_resp = c + nc + s + nm
+                            if total_resp <= 0:
+                                return 0.0
+
+                            p1 = (nm / total_resp) * (-2.0)
+                            p2 = (nc / total_resp) * 1.0
+                            p3 = (c / total_resp) * 3.0
+
+                            return p1 + p2 + p3
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_cron = (
+                                    ui.number(
+                                        "Possuem e CUMPRIRAM o cronograma (CRON):",
+                                        value=cron_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined")
+                                    .bind_value(state_112, "cron")
+                                )
+
+                                inp_ncron = (
+                                    ui.number(
+                                        "Possuem e NÃO cumpriram o cronograma (NCRON):",
+                                        value=ncron_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined")
+                                    .bind_value(state_112, "ncron")
+                                )
+
+                                inp_solic = (
+                                    ui.number(
+                                        "Manutenção SOMENTE por solicitação (SOLIC):",
+                                        value=solic_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined")
+                                    .bind_value(state_112, "solic")
+                                )
+
+                                inp_nmanu = (
+                                    ui.number(
+                                        "NÃO realizam manutenção/troca (NMANU):",
+                                        value=nmanu_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined")
+                                    .bind_value(state_112, "nmanu")
+                                )
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_112,
+                                placeholder="Insira os relatórios de manutenção, cronogramas ou ordem de serviço...",
+                            ).classes("w-full").props("outlined rows=10").bind_value(
+                                state_112, "link"
+                            )
+
+                        lbl_pts_112 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 1.1.2: {calc_pts_112():.2f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_112():
+                            pts = calc_pts_112()
+                            cor = "text-red-600" if pts < 0 else "text-green-600"
+                            lbl_pts_112.classes(remove="text-red-600 text-green-600", add=cor)
+                            lbl_pts_112.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 1.1.2: {pts:.2f} pontos"
+                            )
+
+                        inp_cron.on("update:model-value", att_pts_112)
+                        inp_ncron.on("update:model-value", att_pts_112)
+                        inp_solic.on("update:model-value", att_pts_112)
+                        inp_nmanu.on("update:model-value", att_pts_112)
+
+                        def salvar_112():
+                            c = int(state_112["cron"] or 0)
+                            nc = int(state_112["ncron"] or 0)
+                            s = int(state_112["solic"] or 0)
+                            nm = int(state_112["nmanu"] or 0)
+
+                            pts_finais = calc_pts_112()
+                            composite = (
+                                f"CRON:{c},NCRON:{nc},SOLIC:{s},NMANU:{nm}|LINK:{state_112['link']}"
+                            )
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.1.2",
+                                valor=f"CRON:{c}/NCRON:{nc}/SOLIC:{s}/NMANU:{nm}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d112.get("comentarios", []),
+                                status=d112.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 1.1.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.1.2", on_click=salvar_112).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.1.2", res_data, render_conteudo.refresh)
                     # ==========================================
                     # QUESITO 1.2
                     # ==========================================
