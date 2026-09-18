@@ -1460,6 +1460,457 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("1.4", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 1.5 (Piso Salarial Mensal dos Professores de Creche)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.5 • Piso Salarial Mensal dos Professores de Creche").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o piso salarial mensal dos professores de Creche (base para 40h semanais):"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Regra: Se piso < Salário Mínimo Nacional → Perde 20.0 pts (-20.0) | Se piso ≥ Salário Mínimo → 0.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d15 = res_data.get("1.5") or {}
+                        raw_link_15 = str(d15.get("link") or "")
+
+                        piso_i = 0.0
+                        sal_min_i = 1412.0  # Valor base de referência
+                        evidencia_15 = raw_link_15
+
+                        if "|LINK:" in raw_link_15:
+                            partes_15, evidencia_15 = raw_link_15.split("|LINK:", 1)
+                            m_piso = re.search(r"PISO:([\d\.]+)", partes_15)
+                            m_smin = re.search(r"SMIN:([\d\.]+)", partes_15)
+                            piso_i = float(m_piso.group(1)) if m_piso else 0.0
+                            sal_min_i = float(m_smin.group(1)) if m_smin else 1412.0
+                        elif d15.get("valor"):
+                            try:
+                                piso_i = float(d15.get("valor"))
+                            except (ValueError, TypeError):
+                                piso_i = 0.0
+
+                        state_15 = {
+                            "piso": piso_i,
+                            "smin": sal_min_i,
+                            "link": evidencia_15,
+                        }
+
+                        def calc_pts_15():
+                            piso = float(state_15["piso"] or 0.0)
+                            smin = float(state_15["smin"] or 0.0)
+                            if piso <= 0:
+                                return 0.0
+                            return -20.0 if piso < smin else 0.0
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_piso = (
+                                    ui.number(
+                                        "Piso Salarial do Professor (40h) - R$:",
+                                        value=piso_i,
+                                        min=0,
+                                        step=0.01,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue prefix=R$")
+                                    .bind_value(state_15, "piso")
+                                )
+
+                                inp_smin = (
+                                    ui.number(
+                                        "Salário Mínimo Nacional de Referência - R$:",
+                                        value=sal_min_i,
+                                        min=0,
+                                        step=0.01,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue prefix=R$")
+                                    .bind_value(state_15, "smin")
+                                )
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_15,
+                                placeholder="Insira a Lei Municipal, Plano de Cargos e Salários ou Holerite modelo...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_15, "link"
+                            )
+
+                        lbl_pts_15 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 1.5: {calc_pts_15():.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_15():
+                            pts = calc_pts_15()
+                            cor = "text-red-600" if pts < 0 else "text-green-600"
+                            lbl_pts_15.classes(remove="text-red-600 text-green-600", add=cor)
+                            lbl_pts_15.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 1.5: {pts:.1f} pontos"
+                            )
+
+                        inp_piso.on("update:model-value", att_pts_15)
+                        inp_smin.on("update:model-value", att_pts_15)
+
+                        def salvar_15():
+                            p_val = float(state_15["piso"] or 0.0)
+                            sm_val = float(state_15["smin"] or 0.0)
+                            pts_finais = calc_pts_15()
+                            composite = f"PISO:{p_val},SMIN:{sm_val}|LINK:{state_15['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.5",
+                                valor=f"R$ {p_val:.2f}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d15.get("comentarios", []),
+                                status=d15.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 1.5 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.5", on_click=salvar_15).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.5", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 1.6 (Quantidade Total de Dias de Ausência dos Professores - QTA)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.6 • Dias de Ausência de Professores de Creche (QTA)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o total de dias de ausência dos professores de Creche por categoria (ano de 2025):"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Quesito declaratório / levantamento de absenteísmo."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d16 = res_data.get("1.6") or {}
+                        raw_link_16 = str(d16.get("link") or "")
+
+                        finj_i, fjus_i, lmed_i, lmat_i, abo_i, out_i = 0, 0, 0, 0, 0, 0
+                        evidencia_16 = raw_link_16
+
+                        if "|LINK:" in raw_link_16:
+                            partes_16, evidencia_16 = raw_link_16.split("|LINK:", 1)
+                            m_inj = re.search(r"INJ:(\d+)", partes_16)
+                            m_jus = re.search(r"JUS:(\d+)", partes_16)
+                            m_med = re.search(r"MED:(\d+)", partes_16)
+                            m_mat = re.search(r"MAT:(\d+)", partes_16)
+                            m_abo = re.search(r"ABO:(\d+)", partes_16)
+                            m_out = re.search(r"OUT:(\d+)", partes_16)
+
+                            finj_i = int(m_inj.group(1)) if m_inj else 0
+                            fjus_i = int(m_jus.group(1)) if m_jus else 0
+                            lmed_i = int(m_med.group(1)) if m_med else 0
+                            lmat_i = int(m_mat.group(1)) if m_mat else 0
+                            abo_i = int(m_abo.group(1)) if m_abo else 0
+                            out_i = int(m_out.group(1)) if m_out else 0
+
+                        state_16 = {
+                            "inj": finj_i,
+                            "jus": fjus_i,
+                            "med": lmed_i,
+                            "mat": lmat_i,
+                            "abo": abo_i,
+                            "out": out_i,
+                            "link": evidencia_16,
+                        }
+
+                        def calc_tot_ausencias_16():
+                            return (
+                                int(state_16["inj"] or 0)
+                                + int(state_16["jus"] or 0)
+                                + int(state_16["med"] or 0)
+                                + int(state_16["mat"] or 0)
+                                + int(state_16["abo"] or 0)
+                                + int(state_16["out"] or 0)
+                            )
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_inj = ui.number("Faltas injustificadas (dias):", value=finj_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_16, "inj")
+                                inp_jus = ui.number("Faltas justificadas (dias):", value=fjus_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_16, "jus")
+                                inp_med = ui.number("Licença médica (dias):", value=lmed_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_16, "med")
+                                inp_mat = ui.number("Licença maternidade/paternidade (dias):", value=lmat_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_16, "mat")
+                                inp_abo = ui.number("Abonos (dias):", value=abo_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_16, "abo")
+                                inp_out = ui.number("Outros / ausências amparadas por lei (dias):", value=out_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_16, "out")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_16,
+                                placeholder="Insira o relatório de frequência, sistema de RH ou espelho de ponto...",
+                            ).classes("w-full").props("outlined rows=12").bind_value(
+                                state_16, "link"
+                            )
+
+                        lbl_tot_16 = ui.label(
+                            f"📊 Total de Dias de Ausência Registrados: {calc_tot_ausencias_16()} dias"
+                        ).classes("text-sm font-bold text-blue-600 my-4")
+
+                        def att_tot_16():
+                            lbl_tot_16.set_text(
+                                f"📊 Total de Dias de Ausência Registrados: {calc_tot_ausencias_16()} dias"
+                            )
+
+                        for inp in [inp_inj, inp_jus, inp_med, inp_mat, inp_abo, inp_out]:
+                            inp.on("update:model-value", att_tot_16)
+
+                        def salvar_16():
+                            tot = calc_tot_ausencias_16()
+                            inj, jus = state_16["inj"], state_16["jus"]
+                            med, mat = state_16["med"], state_16["mat"]
+                            abo, out = state_16["abo"], state_16["out"]
+
+                            composite = f"INJ:{inj},JUS:{jus},MED:{med},MAT:{mat},ABO:{abo},OUT:{out}|LINK:{state_16['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.6",
+                                valor=f"Total: {tot} dias",
+                                pontos=0.0,
+                                link=composite,
+                                comentarios=d16.get("comentarios", []),
+                                status=d16.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 1.6 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.6", on_click=salvar_16).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.6", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITOS 1.7 e 1.7.1 (Capacitação de Profissionais da Creche em 2025)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.7 / 1.7.1 • Capacitação dos Profissionais de Creche").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o número de profissionais capacitados e o total do quadro em 2025:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Cálculo: PC = (Prof. Capacitados + Apoio Capacitados + Gestores Capacitados) / (Total Geral) | PC ≥ 100%: 7 pts | 70% ≤ PC < 100%: 5 pts | 50% ≤ PC < 70%: 3 pts"
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d171 = res_data.get("1.7.1") or {}
+                        raw_link_171 = str(d171.get("link") or "")
+
+                        prof_cap_i, apoio_cap_i, gest_cap_i = 0, 0, 0
+                        tot_prof_i, tot_apoio_i, tot_gest_i = 0, 0, 0
+                        evidencia_171 = raw_link_171
+
+                        if "|LINK:" in raw_link_171:
+                            partes_171, evidencia_171 = raw_link_171.split("|LINK:", 1)
+                            m_pcap = re.search(r"PCAP:(\d+)", partes_171)
+                            m_acap = re.search(r"ACAP:(\d+)", partes_171)
+                            m_gcap = re.search(r"GCAP:(\d+)", partes_171)
+                            m_tprof = re.search(r"TPROF:(\d+)", partes_171)
+                            m_tapoi = re.search(r"TAPOI:(\d+)", partes_171)
+                            m_tgest = re.search(r"TGEST:(\d+)", partes_171)
+
+                            prof_cap_i = int(m_pcap.group(1)) if m_pcap else 0
+                            apoio_cap_i = int(m_acap.group(1)) if m_acap else 0
+                            gest_cap_i = int(m_gcap.group(1)) if m_gcap else 0
+                            tot_prof_i = int(m_tprof.group(1)) if m_tprof else 0
+                            tot_apoio_i = int(m_tapoi.group(1)) if m_tapoi else 0
+                            tot_gest_i = int(m_tgest.group(1)) if m_tgest else 0
+
+                        state_171 = {
+                            "prof_cap": prof_cap_i,
+                            "apoio_cap": apoio_cap_i,
+                            "gest_cap": gest_cap_i,
+                            "tot_prof": tot_prof_i,
+                            "tot_apoio": tot_apoio_i,
+                            "tot_gest": tot_gest_i,
+                            "link": evidencia_171,
+                        }
+
+                        def calc_pts_171():
+                            num = int(state_171["prof_cap"] or 0) + int(state_171["apoio_cap"] or 0) + int(state_171["gest_cap"] or 0)
+                            den = int(state_171["tot_prof"] or 0) + int(state_171["tot_apoio"] or 0) + int(state_171["tot_gest"] or 0)
+
+                            if den <= 0 or num <= 0:
+                                return 0.0
+
+                            pc = num / den
+                            if pc >= 1.0:
+                                return 7.0
+                            elif pc >= 0.70:
+                                return 5.0
+                            elif pc >= 0.50:
+                                return 3.0
+                            else:
+                                return 0.0
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                ui.label("CAPACITADOS EM 2025:").classes("font-bold text-xs text-blue-800 uppercase")
+                                inp_pcap = ui.number("Professores regentes capacitados:", value=prof_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "prof_cap")
+                                inp_acap = ui.number("Profissionais de apoio/supervisão capacitados:", value=apoio_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "apoio_cap")
+                                inp_gcap = ui.number("Gestores escolares capacitados:", value=gest_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "gest_cap")
+
+                                ui.label("QUADRO TOTAL (ETAPA CRECHE):").classes("font-bold text-xs text-blue-800 uppercase mt-2")
+                                inp_tprof = ui.number("TOTAL de professores regentes:", value=tot_prof_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_prof")
+                                inp_tapoi = ui.number("TOTAL de profissionais de apoio/supervisão:", value=tot_apoio_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_apoio")
+                                inp_tgest = ui.number("TOTAL de gestores escolares de creche:", value=tot_gest_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_gest")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_171,
+                                placeholder="Insira as listas de presença, certificados ou relatórios de capacitação...",
+                            ).classes("w-full").props("outlined rows=14").bind_value(
+                                state_171, "link"
+                            )
+
+                        lbl_pts_171 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 1.7.1: {calc_pts_171():.1f} / 7.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_171():
+                            lbl_pts_171.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 1.7.1: {calc_pts_171():.1f} / 7.0 pontos"
+                            )
+
+                        for inp in [inp_pcap, inp_acap, inp_gcap, inp_tprof, inp_tapoi, inp_tgest]:
+                            inp.on("update:model-value", att_pts_171)
+
+                        def salvar_171():
+                            p_cap, a_cap, g_cap = state_171["prof_cap"], state_171["apoio_cap"], state_171["gest_cap"]
+                            t_prof, t_apoi, t_gest = state_171["tot_prof"], state_171["tot_apoio"], state_171["tot_gest"]
+                            pts_finais = calc_pts_171()
+
+                            composite = (
+                                f"PCAP:{p_cap},ACAP:{a_cap},GCAP:{g_cap},"
+                                f"TPROF:{t_prof},TAPOI:{t_apoi},TGEST:{t_gest}|LINK:{state_171['link']}"
+                            )
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.7.1",
+                                valor=f"Capacitados: {p_cap + a_cap + g_cap} / Total: {t_prof + t_apoi + t_gest}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d171.get("comentarios", []),
+                                status=d171.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 1.7.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.7.1", on_click=salvar_171).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.7.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 1.7.2 (Formas de Capacitação Oferecidas)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.7.2 • Formas de Capacitação Oferecidas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale as modalidades de capacitação adotadas:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Quesito qualitativo de seleção múltipla.").classes(
+                            "text-xs text-gray-400 mb-6"
+                        )
+
+                        d172 = res_data.get("1.7.2") or {}
+                        raw_link_172 = str(d172.get("link") or "")
+                        val_172_bruto = d172.get("valor") or []
+
+                        if isinstance(val_172_bruto, str):
+                            try:
+                                sel_172 = json.loads(val_172_bruto)
+                            except Exception:
+                                sel_172 = [val_172_bruto]
+                        elif isinstance(val_172_bruto, list):
+                            sel_172 = val_172_bruto
+                        else:
+                            sel_172 = []
+
+                        state_172 = {
+                            "opcoes": sel_172,
+                            "link": raw_link_172,
+                        }
+
+                        opcoes_172 = [
+                            "Presencialmente",
+                            "À distância/remotamente",
+                            "Por meio de multiplicadores",
+                            "Outros",
+                        ]
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2 w-full"):
+                                def make_chk_172(opt_text):
+                                    def on_chk_change(e):
+                                        if e.value and opt_text not in state_172["opcoes"]:
+                                            state_172["opcoes"].append(opt_text)
+                                        elif not e.value and opt_text in state_172["opcoes"]:
+                                            state_172["opcoes"].remove(opt_text)
+                                    return on_chk_change
+
+                                for opt in opcoes_172:
+                                    ui.checkbox(
+                                        text=opt,
+                                        value=(opt in state_172["opcoes"]),
+                                        on_change=make_chk_172(opt),
+                                    ).props("color=blue")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_172,
+                                placeholder="Insira o plano de formação, contratos das plataformas de EAD ou relatórios...",
+                            ).classes("w-full").props("outlined rows=6").bind_value(
+                                state_172, "link"
+                            )
+
+                        def salvar_172():
+                            opts_sel = state_172["opcoes"]
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.7.2",
+                                valor=opts_sel,
+                                pontos=0.0,
+                                link=state_172["link"],
+                                comentarios=d172.get("comentarios", []),
+                                status=d172.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 1.7.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.7.2", on_click=salvar_172).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.7.2", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
