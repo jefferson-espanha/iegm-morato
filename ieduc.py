@@ -168,6 +168,7 @@ def render_quesito(
     dados_q = res_data.get(qid, {})
     link_atual = dados_q.get("link", "")
 
+    # Tratamento inicial do valor armazenado
     if tipo_input == "checkbox":
         valor_bruto = dados_q.get("valor", [])
         if isinstance(valor_bruto, list):
@@ -184,6 +185,14 @@ def render_quesito(
             valor_atual = 0.0
     elif tipo_input == "text":
         valor_atual = str(dados_q.get("valor", ""))
+    elif tipo_input == "calculo_1_1_1":
+        valor_atual = dados_q.get("valor", {"bpi": 0, "total": 0})
+        if not isinstance(valor_atual, dict):
+            valor_atual = {"bpi": 0, "total": 0}
+    elif tipo_input == "calculo_1_1_2":
+        valor_atual = dados_q.get("valor", {"cron": 0, "ncron": 0, "solic": 0, "nmanu": 0})
+        if not isinstance(valor_atual, dict):
+            valor_atual = {"cron": 0, "ncron": 0, "solic": 0, "nmanu": 0}
     else:  # radio
         padrao = "Selecione..." if "Selecione..." in opcoes else (list(opcoes.keys())[0] if opcoes else "")
         valor_atual = dados_q.get("valor", padrao)
@@ -252,6 +261,70 @@ def render_quesito(
                     state, "opcao"
                 )
 
+            elif tipo_input == "calculo_1_1_1":
+                with ui.column().classes("gap-3 w-full"):
+                    in_bpi = ui.number(
+                        label="Nº de creches com BPI:",
+                        value=state["opcao"].get("bpi", 0),
+                        min=0,
+                    ).classes("w-full").props("outlined color=blue")
+
+                    in_total = ui.number(
+                        label="Nº total de creches no município:",
+                        value=state["opcao"].get("total", 0),
+                        min=0,
+                    ).classes("w-full").props("outlined color=blue")
+
+                    def sync_1_1_1(e=None):
+                        state["opcao"] = {
+                            "bpi": float(in_bpi.value or 0),
+                            "total": float(in_total.value or 0),
+                        }
+                        atualizar_impacto()
+
+                    in_bpi.on("update:model-value", sync_1_1_1)
+                    in_total.on("update:model-value", sync_1_1_1)
+
+            elif tipo_input == "calculo_1_1_2":
+                with ui.column().classes("gap-3 w-full"):
+                    in_cron = ui.number(
+                        label="Cumpriram o cronograma (CRON - Pmáx: +3):",
+                        value=state["opcao"].get("cron", 0),
+                        min=0,
+                    ).classes("w-full").props("outlined color=blue")
+
+                    in_ncron = ui.number(
+                        label="NÃO cumpriram o cronograma (NCRON - Pmáx: +1):",
+                        value=state["opcao"].get("ncron", 0),
+                        min=0,
+                    ).classes("w-full").props("outlined color=blue")
+
+                    in_solic = ui.number(
+                        label="Apenas por solicitação (SOLIC - Pmáx: 0):",
+                        value=state["opcao"].get("solic", 0),
+                        min=0,
+                    ).classes("w-full").props("outlined color=blue")
+
+                    in_nmanu = ui.number(
+                        label="NÃO realizam manutenção (NMANU - Perde 2 pts):",
+                        value=state["opcao"].get("nmanu", 0),
+                        min=0,
+                    ).classes("w-full").props("outlined color=blue")
+
+                    def sync_1_1_2(e=None):
+                        state["opcao"] = {
+                            "cron": float(in_cron.value or 0),
+                            "ncron": float(in_ncron.value or 0),
+                            "solic": float(in_solic.value or 0),
+                            "nmanu": float(in_nmanu.value or 0),
+                        }
+                        atualizar_impacto()
+
+                    in_cron.on("update:model-value", sync_1_1_2)
+                    in_ncron.on("update:model-value", sync_1_1_2)
+                    in_solic.on("update:model-value", sync_1_1_2)
+                    in_nmanu.on("update:model-value", sync_1_1_2)
+
             else:  # radio
                 input_radio = (
                     ui.radio(
@@ -278,19 +351,44 @@ def render_quesito(
                     return 0.0
             elif tipo_input == "text":
                 return 0.0
+            elif tipo_input == "calculo_1_1_1":
+                if isinstance(opcao_sel, dict):
+                    bpi = float(opcao_sel.get("bpi", 0) or 0)
+                    total = float(opcao_sel.get("total", 0) or 0)
+                    if total > 0 and bpi <= total:
+                        return (bpi / total) * 2.0
+                return 0.0
+            elif tipo_input == "calculo_1_1_2":
+                if isinstance(opcao_sel, dict):
+                    cron = float(opcao_sel.get("cron", 0) or 0)
+                    ncron = float(opcao_sel.get("ncron", 0) or 0)
+                    solic = float(opcao_sel.get("solic", 0) or 0)
+                    nmanu = float(opcao_sel.get("nmanu", 0) or 0)
+                    total = cron + ncron + solic + nmanu
+                    if total > 0:
+                        p1 = (nmanu / total) * (-2.0)
+                        p2 = (ncron / total) * 1.0
+                        p3 = (cron / total) * 3.0
+                        return p1 + p2 + p3
+                return 0.0
             elif isinstance(opcao_sel, list):
-                return sum(opcoes.get(opt, 0.0) for opt in opcao_sel)
-            return opcoes.get(opcao_sel, 0.0)
+                return sum(float(opcoes.get(opt, 0.0)) for opt in opcao_sel)
+            
+            val = opcoes.get(opcao_sel, 0.0)
+            try:
+                return float(val)
+            except (ValueError, TypeError):
+                return 0.0
 
         pts_atuais = calcular_pontos(state["opcao"])
         label_impacto = ui.label(
-            f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
+            f"📊 Impacto de Pontuação no Quesito {qid}: {float(pts_atuais):.2f} pontos"
         ).classes("text-sm font-bold text-green-600 my-4")
 
         def atualizar_impacto(e=None):
             novos_pts = calcular_pontos(state["opcao"])
             label_impacto.set_text(
-                f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
+                f"📊 Impacto de Pontuação no Quesito {qid}: {float(novos_pts):.2f} pontos"
             )
 
         if tipo_input == "radio":
@@ -324,7 +422,6 @@ def render_quesito(
 
         ui.separator().classes("my-2")
         bloco_comentarios(qid, res_data, on_save_callback)
-
 
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
