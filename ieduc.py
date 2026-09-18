@@ -704,25 +704,44 @@ def container_formulario_ieduc(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                   # Definição de uma função de salvamento simples para evitar o NameError
-                    def save_resp(quesito_id, valor):
-                        print(f"Salvando resposta do Quesito {quesito_id}: {valor}")
-                        # Aqui você colocaria a lógica de salvar no banco de dados ou dicionário
-                        res_data[quesito_id] = valor
-
-                    # =============================================================================
+                  # =============================================================================
                     # QUESITO 1.1.1 - BRINQUEDOS NO PÁTIO INFANTIL (IEDUC)
+                    # Exemplo de resposta no BD: "BPI:14,TOTAL:26"
                     # =============================================================================
                     def render_quesito_1_1_1(ano_sel, res_data, save_resp, bloco_comentarios, on_save_callback=None):
-                        n_creches_com_brinquedos = float(res_data.get("n_creches_brinquedos", 0))
-                        n_creches_total = float(res_data.get("n_creches_total", 1))
+                        # Resgate da string armazenada no banco
+                        str_resposta = str(res_data.get("resposta", ""))
 
+                        # Parse da string (ex: "BPI:14,TOTAL:26")
+                        dados_dict = {}
+                        if str_resposta and ":" in str_resposta:
+                            for item in str_resposta.split(","):
+                                if ":" in item:
+                                    chave, valor = item.split(":", 1)
+                                    dados_dict[chave.strip().upper()] = float(valor.strip() or 0)
+
+                        bpi_val = dados_dict.get("BPI", 0.0)
+                        total_val = dados_dict.get("TOTAL", 0.0)
+
+                        # PmáxBPI = 2 pontos
                         pmax_bpi = 2.0
-                        bpi = n_creches_com_brinquedos / n_creches_total if n_creches_total > 0 else 0.0
-                        nf_1_1_1 = bpi * pmax_bpi
 
-                        print(f"[Quesito 1.1.1] BPI: {bpi:.4f} | Nota Final: {nf_1_1_1:.2f} / {pmax_bpi}")
-                        bloco_comentarios("1.1.1", res_data, on_save_callback)
+                        # Fórmula: BPI_prop = nº creches brinquedos / nº creches município
+                        # Pontos: NF = (BPI / TOTAL) * PmáxBPI
+                        if total_val > 0:
+                            bpi_proporcao = bpi_val / total_val
+                            pontos_1_1_1 = bpi_proporcao * pmax_bpi
+                        else:
+                            bpi_proporcao = 0.0
+                            pontos_1_1_1 = 0.0
+
+                        print(f"[Quesito 1.1.1] BPI={bpi_val}, TOTAL={total_val} -> Pontos: {pontos_1_1_1:.15f}")
+
+                        # Salva o resultado numérico na coluna 'pontos'
+                        save_resp("1.1.1", str_resposta, pontos_1_1_1)
+
+                        if bloco_comentarios:
+                            bloco_comentarios("1.1.1", res_data, on_save_callback)
 
 
                     # Execução do Quesito 1.1.1
@@ -737,29 +756,48 @@ def container_formulario_ieduc(ano=None):
 
                     # =============================================================================
                     # QUESITO 1.1.2 - MANUTENÇÃO DAS CRECHES (IEDUC)
+                    # Exemplo de resposta no BD: "CRON:8,NCRON:18,SOLIC:0,NMANU:0"
                     # =============================================================================
                     def render_quesito_1_1_2(ano_sel, res_data, save_resp, bloco_comentarios, on_save_callback=None):
-                        cron = float(res_data.get("cron", 0))
-                        ncron = float(res_data.get("ncron", 0))
-                        solic = float(res_data.get("solic", 0))
-                        nmanu = float(res_data.get("nmanu", 0))
+                        # Resgate da string armazenada no banco
+                        str_resposta = str(res_data.get("resposta", ""))
 
+                        # Parse da string em dicionário
+                        dados_dict = {}
+                        if str_resposta and ":" in str_resposta:
+                            for item in str_resposta.split(","):
+                                if ":" in item:
+                                    chave, valor = item.split(":", 1)
+                                    dados_dict[chave.strip().upper()] = float(valor.strip() or 0)
+
+                        cron = dados_dict.get("CRON", 0.0)
+                        ncron = dados_dict.get("NCRON", 0.0)
+                        solic = dados_dict.get("SOLIC", 0.0)
+                        nmanu = dados_dict.get("NMANU", 0.0)
+
+                        # Denominador: (CRON + NCRON + SOLIC + NMANU)
                         total_creches = cron + ncron + solic + nmanu
 
-                        pmax1 = -2.0
-                        pmax2 = 1.0
-                        pmax3 = 3.0
+                        # Pesos das parcelas
+                        pmax1 = -2.0  # NMANU perde 2
+                        pmax2 = 1.0   # NCRON ganha 1
+                        pmax3 = 3.0   # CRON ganha 3
 
                         if total_creches > 0:
                             p1 = (nmanu / total_creches) * pmax1
                             p2 = (ncron / total_creches) * pmax2
                             p3 = (cron / total_creches) * pmax3
-                            p_total = p1 + p2 + p3
+                            pontos_1_1_2 = p1 + p2 + p3
                         else:
-                            p1 = p2 = p3 = p_total = 0.0
+                            p1 = p2 = p3 = pontos_1_1_2 = 0.0
 
-                        print(f"[Quesito 1.1.2] P1: {p1:.2f} | P2: {p2:.2f} | P3: {p3:.2f} | Pontuação Total (P): {p_total:.2f}")
-                        bloco_comentarios("1.1.2", res_data, on_save_callback)
+                        print(f"[Quesito 1.1.2] CRON={cron}, NCRON={ncron}, SOLIC={solic}, NMANU={nmanu} -> Pontos: {pontos_1_1_2:.15f}")
+
+                        # Salva o resultado numérico na coluna 'pontos'
+                        save_resp("1.1.2", str_resposta, pontos_1_1_2)
+
+                        if bloco_comentarios:
+                            bloco_comentarios("1.1.2", res_data, on_save_callback)
 
 
                     # Execução do Quesito 1.1.2
