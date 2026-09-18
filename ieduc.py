@@ -587,13 +587,33 @@ def container_formulario_ieduc(ano=None):
                     )
 
                     # ==========================================
+                    # QUESITO 1.1
+                    # ==========================================
+                    opcoes_1_1 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.1",
+                        titulo="Infraestrutura de Creche",
+                        pergunta="Algum estabelecimento que oferece Creche possui brinquedos no Pátio Infantil?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_1,
+                        placeholder_link="Insira o link ou documento de comprovação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
                     # QUESITO 1.1.1
                     # ==========================================
-                    # Fórmula: (BPI / Total) * 2.0
+                    # Fórmula: NF = (bpi / total) * 2.0
                     opcoes_1_1_1 = {
                         "bpi": "Nº de creches com brinquedos no pátio infantil (BPI)",
                         "total": "Nº total de creches no município",
-                        "pmax": 2.0,
                     }
 
                     render_quesito(
@@ -611,12 +631,12 @@ def container_formulario_ieduc(ano=None):
                     # ==========================================
                     # QUESITO 1.1.2
                     # ==========================================
-                    # Fórmula: ((CRON * 3) + (NCRON * 1) + (NMANU * -2)) / Total
+                    # Fórmula: P = ((cron * 3) + (ncron * 1) + (nmanu * -2)) / (cron + ncron + solic + nmanu)
                     opcoes_1_1_2 = {
-                        "cron": "Quantas CUMPRIRAM o cronograma de manutenção (CRON) [+3 pts]",
-                        "ncron": "Quantas NÃO CUMPRIRAM o cronograma de manutenção (NCRON) [+1 pt]",
-                        "solic": "Quantas realizam manutenção SOMENTE por solicitação (SOLIC) [0 pts]",
-                        "nmanu": "Quantas NÃO realizam manutenção (NMANU) [-2 pts]",
+                        "cron": "Quantas CUMPRIRAM o cronograma de manutenção (CRON)",
+                        "ncron": "Quantas NÃO CUMPRIRAM o cronograma de manutenção (NCRON)",
+                        "solic": "Quantas realizam manutenção SOMENTE por solicitação (SOLIC)",
+                        "nmanu": "Quantas NÃO realizam manutenção (NMANU)",
                     }
 
                     render_quesito(
@@ -628,6 +648,27 @@ def container_formulario_ieduc(ano=None):
                         tipo_input="calculo",
                         opcoes=opcoes_1_1_2,
                         placeholder_link="Insira o link do cronograma de manutenção...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 1.2
+                    # ==========================================
+                    opcoes_1_2 = {
+                        "Selecione...": 0.0,
+                        "Sim": 0.0,
+                        "Não": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.2",
+                        titulo="Materiais Pedagógicos",
+                        pergunta="A Prefeitura disponibiliza brinquedos/materiais pedagógicos para as crianças em todos os estabelecimentos de Creche do município?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_2,
+                        placeholder_link="Insira o link ou documento de distribuição...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
