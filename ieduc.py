@@ -4940,6 +4940,521 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("2.8", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 2.9 (Regularidade e Permanência dos Gestores de Pré-escola)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.9 • Regularidade e Permanência dos Gestores de Pré-escola").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Indique a quantidade de escolas por tempo de permanência do diretor/gestor de Pré-escola (ao final de 2025):"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Cálculo: NF = 0×Q1 + 0.5×Q2 + 1.0×Q3 + 1.5×Q4 + 1.75×Q5 + 2.0×Q6 | Pmáx = 2.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d29 = res_data.get("2.9") or {}
+                        raw_link_29 = str(d29.get("link") or "")
+
+                        pg1_i, pg2_i, pg3_i, pg4_i, pg5_i, pg6_i = 0, 0, 0, 0, 0, 0
+                        evidencia_29 = raw_link_29
+
+                        if "|LINK:" in raw_link_29:
+                            partes_29, evidencia_29 = raw_link_29.split("|LINK:", 1)
+                            m_g1 = re.search(r"G1:(\d+)", partes_29)
+                            m_g2 = re.search(r"G2:(\d+)", partes_29)
+                            m_g3 = re.search(r"G3:(\d+)", partes_29)
+                            m_g4 = re.search(r"G4:(\d+)", partes_29)
+                            m_g5 = re.search(r"G5:(\d+)", partes_29)
+                            m_g6 = re.search(r"G6:(\d+)", partes_29)
+
+                            pg1_i = int(m_g1.group(1)) if m_g1 else 0
+                            pg2_i = int(m_g2.group(1)) if m_g2 else 0
+                            pg3_i = int(m_g3.group(1)) if m_g3 else 0
+                            pg4_i = int(m_g4.group(1)) if m_g4 else 0
+                            pg5_i = int(m_g5.group(1)) if m_g5 else 0
+                            pg6_i = int(m_g6.group(1)) if m_g6 else 0
+
+                        state_29 = {
+                            "g1": pg1_i,
+                            "g2": pg2_i,
+                            "g3": pg3_i,
+                            "g4": pg4_i,
+                            "g5": pg5_i,
+                            "g6": pg6_i,
+                            "link": evidencia_29,
+                        }
+
+                        def calc_pts_29():
+                            c1 = int(state_29["g1"] or 0)
+                            c2 = int(state_29["g2"] or 0)
+                            c3 = int(state_29["g3"] or 0)
+                            c4 = int(state_29["g4"] or 0)
+                            c5 = int(state_29["g5"] or 0)
+                            c6 = int(state_29["g6"] or 0)
+
+                            tot = c1 + c2 + c3 + c4 + c5 + c6
+                            if tot <= 0:
+                                return 0.0
+
+                            q1 = c1 / tot
+                            q2 = c2 / tot
+                            q3 = c3 / tot
+                            q4 = c4 / tot
+                            q5 = c5 / tot
+                            q6 = c6 / tot
+
+                            n1 = 0.0 * q1
+                            n2 = 0.5 * q2
+                            n3 = 1.0 * q3
+                            n4 = 1.5 * q4
+                            n5 = 1.75 * q5
+                            n6 = 2.0 * q6
+
+                            return min(n1 + n2 + n3 + n4 + n5 + n6, 2.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_pg1 = ui.number("Menor que 1 ano:", value=pg1_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_29, "g1")
+                                inp_pg2 = ui.number("De 1 ano a 2,9 anos:", value=pg2_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_29, "g2")
+                                inp_pg3 = ui.number("De 3 anos a 4,9 anos:", value=pg3_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_29, "g3")
+                                inp_pg4 = ui.number("De 5 anos a 9,9 anos:", value=pg4_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_29, "g4")
+                                inp_pg5 = ui.number("De 10 anos a 14,9 anos:", value=pg5_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_29, "g5")
+                                inp_pg6 = ui.number("Maior ou igual a 15 anos:", value=pg6_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_29, "g6")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_29,
+                                placeholder="Insira o histórico funcional dos gestores, atos de nomeação ou portarias...",
+                            ).classes("w-full").props("outlined rows=12").bind_value(
+                                state_29, "link"
+                            )
+
+                        lbl_pts_29 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 2.9: {calc_pts_29():.2f} / 2.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_29():
+                            lbl_pts_29.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 2.9: {calc_pts_29():.2f} / 2.0 pontos"
+                            )
+
+                        for inp in [inp_pg1, inp_pg2, inp_pg3, inp_pg4, inp_pg5, inp_pg6]:
+                            inp.on("update:model-value", att_pts_29)
+
+                        def salvar_29():
+                            c1, c2, c3 = state_29["g1"], state_29["g2"], state_29["g3"]
+                            c4, c5, c6 = state_29["g4"], state_29["g5"], state_29["g6"]
+                            pts_finais = calc_pts_29()
+
+                            composite = f"G1:{c1},G2:{c2},G3:{c3},G4:{c4},G5:{c5},G6:{c6}|LINK:{state_29['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.9",
+                                valor=f"G1:{c1}/G2:{c2}/G3:{c3}/G4:{c4}/G5:{c5}/G6:{c6}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d29.get("comentarios", []),
+                                status=d29.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 2.9 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.9", on_click=salvar_29).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.9", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 2.10 (Reuniões Periódicas com Pais - Pré-escola)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.10 • Reuniões Periódicas com Pais na Pré-escola").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Os professores realizam reuniões periódicas com os pais dos alunos de Pré-escola sobre planejamento/projeto escolar e desempenho/desenvolvimento da criança?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Selecione uma das opções abaixo para registrar a pontuação."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d210 = res_data.get("2.10") or {}
+
+                        opcoes_210 = {
+                            "Selecione...": 0.0,
+                            "Sobre planejamento e desempenho da criança (2,0 pontos)": 2.0,
+                            "Apenas sobre o projeto político-pedagógico (1,5 pontos)": 1.5,
+                            "Apenas sobre o desempenho da criança (1,0 ponto)": 1.0,
+                            "Não realiza reuniões periódicas (0,0 pontos)": 0.0,
+                        }
+
+                        val_210_bruto = str(d210.get("valor") or "")
+                        val_210_valido = "Selecione..."
+                        if val_210_bruto in opcoes_210:
+                            val_210_valido = val_210_bruto
+                        else:
+                            for chave in opcoes_210.keys():
+                                if chave != "Selecione..." and chave.startswith(val_210_bruto):
+                                    val_210_valido = chave
+                                    break
+
+                        raw_link_210 = str(d210.get("link") or "")
+
+                        state_210 = {
+                            "escopo": val_210_valido,
+                            "link": raw_link_210,
+                        }
+
+                        def calc_pts_210():
+                            return float(opcoes_210.get(state_210["escopo"], 0.0))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_210 = ui.radio(
+                                    options=list(opcoes_210.keys()),
+                                    value=state_210["escopo"],
+                                ).props("color=blue").bind_value(state_210, "escopo")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_210,
+                                placeholder="Insira atas de reunião com pais, calendário escolar ou convocatórias...",
+                            ).classes("w-full").props("outlined rows=6").bind_value(
+                                state_210, "link"
+                            )
+
+                        lbl_pts_210 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 2.10: {calc_pts_210():.1f} / 2.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_210():
+                            lbl_pts_210.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 2.10: {calc_pts_210():.1f} / 2.0 pontos"
+                            )
+
+                        rad_210.on("update:model-value", att_pts_210)
+
+                        def salvar_210():
+                            pts = calc_pts_210()
+                            escopo_sel = state_210["escopo"]
+                            lnk = state_210["link"]
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.10",
+                                valor=escopo_sel,
+                                pontos=pts,
+                                link=lnk,
+                                comentarios=d210.get("comentarios", []),
+                                status=d210.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 2.10 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.10", on_click=salvar_210).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.10", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 2.10.1 (Periodicidade das Reuniões com Pais - Pré-escola)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.10.1 • Periodicidade das Reuniões na Pré-escola").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Qual a periodicidade das reuniões com os pais na Pré-escola?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Quesito declaratório.").classes(
+                            "text-xs text-gray-400 mb-6"
+                        )
+
+                        d2101 = res_data.get("2.10.1") or {}
+
+                        opcoes_2101 = [
+                            "Selecione...",
+                            "Mensal",
+                            "Bimestral",
+                            "Trimestral",
+                            "Quadrimestral",
+                            "Semestral",
+                            "Anual",
+                        ]
+
+                        val_2101_bruto = str(d2101.get("valor") or "")
+                        val_2101_valido = (
+                            val_2101_bruto if val_2101_bruto in opcoes_2101 else "Selecione..."
+                        )
+
+                        raw_link_2101 = str(d2101.get("link") or "")
+
+                        state_2101 = {
+                            "periodicidade": val_2101_valido,
+                            "link": raw_link_2101,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_2101 = ui.radio(
+                                    options=opcoes_2101,
+                                    value=state_2101["periodicidade"],
+                                ).props("color=blue").bind_value(state_2101, "periodicidade")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_2101,
+                                placeholder="Insira o calendário escolar ou regulamento da unidade...",
+                            ).classes("w-full").props("outlined rows=6").bind_value(
+                                state_2101, "link"
+                            )
+
+                        def salvar_2101():
+                            per_sel = state_2101["periodicidade"]
+                            lnk = state_2101["link"]
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.10.1",
+                                valor=per_sel,
+                                pontos=0.0,
+                                link=lnk,
+                                comentarios=d2101.get("comentarios", []),
+                                status=d2101.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 2.10.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.10.1", on_click=salvar_2101).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.10.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 2.11 (Entrega do Kit Escolar às Pré-escolas em 2025)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.11 • Entrega do Kit Escolar às Pré-escolas em 2025").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Houve entrega do Kit escolar às Pré-Escolas municipais em 2025?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Kit escolar = material escolar e pedagógico."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d211 = res_data.get("2.11") or {}
+
+                        opcoes_211 = {
+                            "Selecione...": 0.0,
+                            "Sim (0,0 pontos)": 0.0,
+                            "O kit escolar permanece no almoxarifado da escola e é retirado no momento do uso pelos alunos (18,0 pontos)": 18.0,
+                            "Não (0,0 pontos)": 0.0,
+                        }
+
+                        val_211_bruto = str(d211.get("valor") or "")
+                        val_211_valido = "Selecione..."
+                        if val_211_bruto in opcoes_211:
+                            val_211_valido = val_211_bruto
+                        else:
+                            for chave in opcoes_211.keys():
+                                if chave != "Selecione..." and chave.startswith(val_211_bruto):
+                                    val_211_valido = chave
+                                    break
+
+                        raw_link_211_m = str(d211.get("link") or "")
+
+                        state_211_m = {
+                            "opcao": val_211_valido,
+                            "link": raw_link_211_m,
+                        }
+
+                        def calc_pts_211_m():
+                            return float(opcoes_211.get(state_211_m["opcao"], 0.0))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_211_m = ui.radio(
+                                    options=list(opcoes_211.keys()),
+                                    value=state_211_m["opcao"],
+                                ).props("color=blue").bind_value(state_211_m, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_211_m,
+                                placeholder="Insira o comprovante de distribuição, fotos ou termo de entrega...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_211_m, "link"
+                            )
+
+                        lbl_pts_211_m = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 2.11: {calc_pts_211_m():.1f} / 18.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_211_m():
+                            lbl_pts_211_m.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 2.11: {calc_pts_211_m():.1f} / 18.0 pontos"
+                            )
+
+                        rad_211_m.on("update:model-value", att_pts_211_m)
+
+                        def salvar_211_m():
+                            pts = calc_pts_211_m()
+                            opt_sel = state_211_m["opcao"]
+                            lnk = state_211_m["link"]
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.11",
+                                valor=opt_sel,
+                                pontos=pts,
+                                link=lnk,
+                                comentarios=d211.get("comentarios", []),
+                                status=d211.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 2.11 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.11", on_click=salvar_211_m).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.11", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 2.11.1 (Data da Última Entrega do Kit Escolar - Pré-escola)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.11.1 • Data da Última Entrega do Kit Escolar na Pré-escola").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a data da última entrega e a data de início das aulas em 2025:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Cálculo: ≤ Início Aulas = 18.0 pts | < Início + 15 dias = 9.0 pts | ≥ Início + 15 dias = 3.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d2111 = res_data.get("2.11.1") or {}
+                        raw_link_2111 = str(d2111.get("link") or "")
+
+                        dt_entrega_p_i, dt_inicio_p_i = "", "05/02/2025"
+                        evidencia_2111 = raw_link_2111
+
+                        if "|LINK:" in raw_link_2111:
+                            partes_2111, evidencia_2111 = raw_link_2111.split("|LINK:", 1)
+                            m_ent = re.search(r"ENTREGA:([\d/]+)", partes_2111)
+                            m_ini = re.search(r"INICIO:([\d/]+)", partes_2111)
+                            dt_entrega_p_i = m_ent.group(1) if m_ent else ""
+                            dt_inicio_p_i = m_ini.group(1) if m_ini else "05/02/2025"
+                        elif d2111.get("valor"):
+                            dt_entrega_p_i = str(d2111.get("valor"))
+
+                        state_2111 = {
+                            "dt_entrega": dt_entrega_p_i,
+                            "dt_inicio": dt_inicio_p_i,
+                            "link": evidencia_2111,
+                        }
+
+                        def calc_pts_2111():
+                            try:
+                                ent = datetime.strptime(state_2111["dt_entrega"].strip(), "%d/%m/%Y")
+                                ini = datetime.strptime(state_2111["dt_inicio"].strip(), "%d/%m/%Y")
+                                diff_dias = (ent - ini).days
+
+                                if diff_dias <= 0:
+                                    return 18.0
+                                elif diff_dias < 15:
+                                    return 9.0
+                                else:
+                                    return 3.0
+                            except Exception:
+                                return 0.0
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_dt_ent_2111 = ui.input(
+                                    label="Data da última entrega (DD/MM/AAAA):",
+                                    value=dt_entrega_p_i,
+                                    placeholder="Ex: 03/02/2025",
+                                ).classes("w-full").props("outlined color=blue").bind_value(state_2111, "dt_entrega")
+
+                                inp_dt_ini_2111 = ui.input(
+                                    label="Data de início das aulas (DD/MM/AAAA):",
+                                    value=dt_inicio_p_i,
+                                    placeholder="Ex: 05/02/2025",
+                                ).classes("w-full").props("outlined color=blue").bind_value(state_2111, "dt_inicio")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_2111,
+                                placeholder="Insira o protocolo de entrega nas escolas ou calendário escolar oficial...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_2111, "link"
+                            )
+
+                        lbl_pts_2111 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 2.11.1: {calc_pts_2111():.1f} / 18.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_2111():
+                            lbl_pts_2111.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 2.11.1: {calc_pts_2111():.1f} / 18.0 pontos"
+                            )
+
+                        inp_dt_ent_2111.on("update:model-value", att_pts_2111)
+                        inp_dt_ini_2111.on("update:model-value", att_pts_2111)
+
+                        def salvar_2111():
+                            pts = calc_pts_2111()
+                            ent_v = state_2111["dt_entrega"].strip()
+                            ini_v = state_2111["dt_inicio"].strip()
+                            composite = f"ENTREGA:{ent_v},INICIO:{ini_v}|LINK:{state_2111['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.11.1",
+                                valor=ent_v,
+                                pontos=pts,
+                                link=composite,
+                                comentarios=d2111.get("comentarios", []),
+                                status=d2111.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 2.11.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.11.1", on_click=salvar_2111).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.11.1", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
