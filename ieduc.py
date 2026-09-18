@@ -21,8 +21,9 @@ def get_db_connection():
 
 
 def load_respostas(ano):
+    # Ajustado para usar as colunas reais: link e comentario
     query = """
-        SELECT id, ano, quesito, resposta, pontos, detalhes
+        SELECT id, ano, quesito, resposta, pontos, link, comentario
         FROM respostas_ieduc
         WHERE ano = %s;
     """
@@ -33,47 +34,47 @@ def load_respostas(ano):
                 cur.execute(query, (int(ano),))
                 rows = cur.fetchall()
                 for row in rows:
-                    q_id = row["quesito"]
+                    q_id = str(row["quesito"])
                     val_bruto = row["resposta"] or ""
 
-                    # Tenta converter resposta de JSON caso seja dicionário/lista salvos como string
+                    # Tenta desserializar JSON
                     val_final = val_bruto
                     if isinstance(val_bruto, str) and (
-                        (val_bruto.startswith("[") and val_bruto.endswith("]")) or 
-                        (val_bruto.startswith("{") and val_bruto.endswith("}"))
+                        (val_bruto.startswith("[") and val_bruto.endswith("]"))
+                        or (val_bruto.startswith("{") and val_bruto.endswith("}"))
                     ):
                         try:
                             val_final = json.loads(val_bruto)
                         except Exception:
                             val_final = val_bruto
 
-                    # Extrai link e comentarios dentro do campo JSONB 'detalhes'
-                    detalhes_obj = row["detalhes"] or {}
-                    if isinstance(detalhes_obj, str):
-                        try:
-                            detalhes_obj = json.loads(detalhes_obj)
-                        except Exception:
-                            detalhes_obj = {}
-
-                    link_val = detalhes_obj.get("link", "")
+                    # Trata o campo link
+                    link_val = row.get("link") or ""
                     if link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    comentarios_val = detalhes_obj.get("comentarios", [])
-                    if not isinstance(comentarios_val, list):
-                        comentarios_val = []
-
-                    status_val = detalhes_obj.get("status", "Pendente")
+                    # Trata o campo comentario
+                    coment_raw = row.get("comentario") or ""
+                    comentarios_val = []
+                    if coment_raw and coment_raw != "EMPTY_STRING":
+                        try:
+                            comentarios_val = json.loads(coment_raw)
+                        except Exception:
+                            comentarios_val = []
 
                     respostas[q_id] = {
                         "valor": val_final,
-                        "pontos": float(row["pontos"]) if row["pontos"] is not None else 0.0,
+                        "pontos": (
+                            float(row["pontos"])
+                            if row["pontos"] is not None
+                            else 0.0
+                        ),
                         "link": link_val,
                         "comentarios": comentarios_val,
-                        "status": status_val,
+                        "status": "Pendente",
                     }
     except Exception as e:
-        print(f"❌ Erro ao carregar respostas de respostas_ieduc: {e}")
+        print(f"❌ Erro ao carregar respostas: {e}")
     return respostas
 
 
@@ -84,33 +85,29 @@ def save_resposta(
         dados_atuais = load_respostas(ano).get(str(qid), {})
         comentarios = dados_atuais.get("comentarios", [])
 
-    link_final = link.strip() if link else ""
+    link_final = link.strip() if link else "EMPTY_STRING"
 
-    # Serialização do campo 'resposta'
+    # Serialização do valor da resposta
     if isinstance(valor, (list, dict)):
         resposta_str = json.dumps(valor, ensure_ascii=False)
     else:
         resposta_str = str(valor) if valor is not None else ""
 
-    # Estrutura do objeto 'detalhes' (JSONB)
-    detalhes_data = {
-        "link": link_final,
-        "comentarios": comentarios,
-        "status": status,
-    }
-
-    # Gera um ID único simples combinando Ano e Quesito
-    registro_id = f"{ano}_{qid}"
+    comentario_str = (
+        json.dumps(comentarios, ensure_ascii=False)
+        if comentarios
+        else "EMPTY_STRING"
+    )
 
     query = """
-        INSERT INTO respostas_ieduc (id, ano, quesito, resposta, pontos, detalhes, atualizado_em)
-        VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
+        INSERT INTO respostas_ieduc (ano, quesito, resposta, pontos, link, comentario)
+        VALUES (%s, %s, %s, %s, %s, %s)
         ON CONFLICT (ano, quesito) 
         DO UPDATE SET
             resposta = EXCLUDED.resposta,
             pontos = EXCLUDED.pontos,
-            detalhes = EXCLUDED.detalhes,
-            atualizado_em = CURRENT_TIMESTAMP;
+            link = EXCLUDED.link,
+            comentario = EXCLUDED.comentario;
     """
     try:
         with get_db_connection() as conn:
@@ -118,35 +115,18 @@ def save_resposta(
                 cur.execute(
                     query,
                     (
-                        registro_id,
                         int(ano),
                         str(qid),
                         resposta_str,
                         float(pontos),
-                        Json(detalhes_data),
+                        link_final,
+                        comentario_str,
                     ),
                 )
                 conn.commit()
-                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso na tabela respostas_ieduc!")
+                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso!")
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta na tabela respostas_ieduc: {e}")
-
-
-def zerar_questionario_db(ano):
-    query = "DELETE FROM respostas_ieduc WHERE ano = %s;"
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
-                conn.commit()
-    except Exception as e:
-        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
-
-
-def _obter_lista_comentarios(dados_q):
-    coms = dados_q.get("comentarios", [])
-    return coms if isinstance(coms, list) else []
-
+        print(f"❌ Erro ao salvar resposta: {e}")
 
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
