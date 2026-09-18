@@ -4503,16 +4503,78 @@ def container_formulario_ieduc(ano=None):
                         bloco_comentarios("2.6", res_data, render_conteudo.refresh)
 
                     # =============================================================================
-                    # QUESITOS 2.7 e 2.7.1 (Capacitação de Profissionais da Pré-escola em 2025)
+                    # QUESITO 2.7 (Participação em Capacitação - Pré-escola)
                     # =============================================================================
                     with ui.card().classes(
                         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                     ):
-                        ui.label("2.7 / 2.7.1 • Capacitação dos Profissionais de Pré-escola").classes(
+                        ui.label("2.7 • Capacitação dos Profissionais de Pré-escola em 2025").classes(
                             "text-xl font-semibold text-blue-500 mb-3"
                         )
                         ui.label(
-                            "Informe o número de profissionais capacitados e o total do quadro em 2025:"
+                            "Os profissionais de Pré-escola da rede municipal participaram de cursos de capacitação durante o ano de 2025?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Quesito triagem.").classes(
+                            "text-xs text-gray-400 mb-6"
+                        )
+
+                        d27 = res_data.get("2.7") or {}
+                        opcoes_27 = ["Selecione...", "Sim", "Não"]
+
+                        val_27_bruto = str(d27.get("valor") or "")
+                        val_27_valido = val_27_bruto if val_27_bruto in opcoes_27 else "Selecione..."
+                        raw_link_27 = str(d27.get("link") or "")
+
+                        state_27 = {
+                            "opcao": val_27_valido,
+                            "link": raw_link_27,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_27 = ui.radio(
+                                options=opcoes_27,
+                                value=state_27["opcao"],
+                            ).props("color=blue").bind_value(state_27, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_27,
+                                placeholder="Insira o plano de formação anual, declarações ou relatórios da secretaria...",
+                            ).classes("w-full").props("outlined rows=4").bind_value(
+                                state_27, "link"
+                            )
+
+                        def salvar_27():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.7",
+                                valor=state_27["opcao"],
+                                pontos=0.0,
+                                link=state_27["link"],
+                                comentarios=d27.get("comentarios", []),
+                                status=d27.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 2.7 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.7", on_click=salvar_27).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.7", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 2.7.1 (Quantidade e Cálculo de Profissionais Capacitados - Pré-escola)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.7.1 • Proporção de Profissionais de Pré-escola Capacitados").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de profissionais de Pré-escola capacitados e o total do quadro em 2025:"
                         ).classes("text-base font-bold text-black mb-1")
                         ui.label(
                             "ℹ Cálculo: PC = (Prof. Capacitados + Apoio Capacitados + Gestores Capacitados) / (Total Geral) | PC = 100%: 7 pts | 70% ≤ PC < 100%: 5 pts | 50% ≤ PC < 70%: 3 pts"
