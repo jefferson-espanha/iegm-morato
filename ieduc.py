@@ -7199,6 +7199,425 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("3.7", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 3.8 (Reuniões Periódicas com Pais - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.8 • Reuniões Periódicas com Pais (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Os professores realizam reuniões periódicas com os pais dos alunos sobre planejamento/projeto escolar e desempenho/desenvolvimento da criança?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Pontuações: Planejamento e Desempenho (2,0 pts) | Apenas Projeto Político-Pedagógico (1,5 pts) | Apenas Desempenho (1,0 pt) | Não realiza (0,0 pts)."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d38 = res_data.get("3.8") or {}
+
+                        opcoes_38 = {
+                            "Selecione...": 0.0,
+                            "Sobre planejamento e desempenho da criança": 2.0,
+                            "Apenas sobre o projeto político-pedagógico": 1.5,
+                            "Apenas sobre o desempenho da criança": 1.0,
+                            "Não realiza reuniões periódicas": 0.0,
+                        }
+
+                        val_38_bruto = str(d38.get("valor") or "")
+                        val_38_valido = "Selecione..."
+                        if val_38_bruto in opcoes_38:
+                            val_38_valido = val_38_bruto
+                        else:
+                            for chave in opcoes_38.keys():
+                                if chave != "Selecione..." and chave.startswith(val_38_bruto):
+                                    val_38_valido = chave
+                                    break
+
+                        raw_link_38 = str(d38.get("link") or "")
+
+                        state_38 = {
+                            "opcao": val_38_valido,
+                            "link": raw_link_38,
+                        }
+
+                        def calc_pts_38():
+                            return opcoes_38.get(state_38["opcao"], 0.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_38 = ui.radio(
+                                    options=list(opcoes_38.keys()),
+                                    value=state_38["opcao"],
+                                ).props("color=blue").bind_value(state_38, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_38,
+                                placeholder="Insira atas de reuniões, calendários escolares ou convocatórias das escolas...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_38, "link"
+                            )
+
+                        lbl_pts_38 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.8: {calc_pts_38():.1f} / 2.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_38():
+                            lbl_pts_38.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.8: {calc_pts_38():.1f} / 2.0 pontos"
+                            )
+
+                        rad_38.on("update:model-value", att_pts_38)
+
+                        def salvar_38():
+                            pts = calc_pts_38()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.8",
+                                valor=state_38["opcao"],
+                                pontos=pts,
+                                link=state_38["link"],
+                                comentarios=d38.get("comentarios", []),
+                                status=d38.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.8 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.8", on_click=salvar_38).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.8", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.8.1 (Periodicidade das Reuniões com Pais - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.8.1 • Periodicidade das Reuniões (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Qual a periodicidade das reuniões com pais nos Anos Iniciais?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Quesito declaratório associado ao quesito 3.8."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d381 = res_data.get("3.8.1") or {}
+
+                        opcoes_381 = {
+                            "Selecione...": 0.0,
+                            "Mensal": 0.0,
+                            "Bimestral": 0.0,
+                            "Trimestral": 0.0,
+                            "Quadrimestral": 0.0,
+                            "Semestral": 0.0,
+                            "Anual": 0.0,
+                        }
+
+                        val_381_bruto = str(d381.get("valor") or "")
+                        val_381_valido = "Selecione..."
+                        if val_381_bruto in opcoes_381:
+                            val_381_valido = val_381_bruto
+                        else:
+                            for chave in opcoes_381.keys():
+                                if chave != "Selecione..." and chave.startswith(val_381_bruto):
+                                    val_381_valido = chave
+                                    break
+
+                        raw_link_381 = str(d381.get("link") or "")
+
+                        state_381 = {
+                            "opcao": val_381_valido,
+                            "link": raw_link_381,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_381 = ui.radio(
+                                    options=list(opcoes_381.keys()),
+                                    value=state_381["opcao"],
+                                ).props("color=blue").bind_value(state_381, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_381,
+                                placeholder="Insira o calendário escolar homologado ou regimento interno...",
+                            ).classes("w-full").props("outlined rows=6").bind_value(
+                                state_381, "link"
+                            )
+
+                        def salvar_381():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.8.1",
+                                valor=state_381["opcao"],
+                                pontos=0.0,
+                                link=state_381["link"],
+                                comentarios=d381.get("comentarios", []),
+                                status=d381.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.8.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.8.1", on_click=salvar_381).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.8.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.9 (Média de Dias Letivos - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.9 • Média de Dias Letivos no Ano (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Qual a média de dias letivos do ano de 2025 para as turmas dos Anos Iniciais?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Regra: Se Dias Letivos < 200 → Penalidade de -50.0 pts | Se Dias Letivos ≥ 200 → 0.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d39 = res_data.get("3.9") or {}
+                        raw_link_39 = str(d39.get("link") or "")
+
+                        dias_39_i = 200
+                        evidencia_39 = raw_link_39
+
+                        if "|LINK:" in raw_link_39:
+                            partes_39, evidencia_39 = raw_link_39.split("|LINK:", 1)
+                            m_dias = re.search(r"DIAS:(\d+)", partes_39)
+                            dias_39_i = int(m_dias.group(1)) if m_dias else 200
+                        elif d39.get("valor") and str(d39.get("valor")).isdigit():
+                            dias_39_i = int(d39.get("valor"))
+
+                        state_39 = {
+                            "dias": dias_39_i,
+                            "link": evidencia_39,
+                        }
+
+                        def calc_pts_39():
+                            d_v = int(state_39["dias"] or 0)
+                            return -50.0 if d_v < 200 else 0.0
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_dias_39 = ui.number("Média de dias letivos cumpridos:", value=dias_39_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_39, "dias")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_39,
+                                placeholder="Insira o relatório de cumprimento do calendário escolar homologado...",
+                            ).classes("w-full").props("outlined rows=4").bind_value(
+                                state_39, "link"
+                            )
+
+                        lbl_pts_39 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.9: {calc_pts_39():.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_39():
+                            pts = calc_pts_39()
+                            cor = "text-red-600" if pts < 0 else "text-green-600"
+                            lbl_pts_39.classes(remove="text-red-600 text-green-600", add=cor)
+                            lbl_pts_39.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.9: {pts:.1f} pontos"
+                            )
+
+                        inp_dias_39.on("update:model-value", att_pts_39)
+
+                        def salvar_39():
+                            d_v = int(state_39["dias"] or 0)
+                            pts = calc_pts_39()
+                            composite = f"DIAS:{d_v}|LINK:{state_39['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.9",
+                                valor=f"{d_v} dias letivos",
+                                pontos=pts,
+                                link=composite,
+                                comentarios=d39.get("comentarios", []),
+                                status=d39.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.9 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.9", on_click=salvar_39).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.9", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.10 (Programa de Competências de Leitura e Escrita - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.10 • Programa de Leitura e Escrita (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município utilizou algum programa/atividade/projeto específico que desenvolveu as competências de leitura e escrita de seus alunos na rede municipal?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Pontuação: Sim (12,0 pts) | Não (0,0 pts)."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d310 = res_data.get("3.10") or {}
+
+                        opcoes_310 = {
+                            "Selecione...": 0.0,
+                            "Sim": 12.0,
+                            "Não": 0.0,
+                        }
+
+                        val_310_bruto = str(d310.get("valor") or "")
+                        val_310_valido = "Selecione..."
+                        if val_310_bruto in opcoes_310:
+                            val_310_valido = val_310_bruto
+                        else:
+                            for chave in opcoes_310.keys():
+                                if chave != "Selecione..." and chave.startswith(val_310_bruto):
+                                    val_310_valido = chave
+                                    break
+
+                        raw_link_310 = str(d310.get("link") or "")
+
+                        state_310 = {
+                            "opcao": val_310_valido,
+                            "link": raw_link_310,
+                        }
+
+                        def calc_pts_310():
+                            return opcoes_310.get(state_310["opcao"], 0.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_310 = ui.radio(
+                                    options=list(opcoes_310.keys()),
+                                    value=state_310["opcao"],
+                                ).props("color=blue").bind_value(state_310, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_310,
+                                placeholder="Insira o decreto de instituição do programa, material estruturado ou ato da SEMED...",
+                            ).classes("w-full").props("outlined rows=4").bind_value(
+                                state_310, "link"
+                            )
+
+                        lbl_pts_310 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.10: {calc_pts_310():.1f} / 12.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_310():
+                            lbl_pts_310.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.10: {calc_pts_310():.1f} / 12.0 pontos"
+                            )
+
+                        rad_310.on("update:model-value", att_pts_310)
+
+                        def salvar_310():
+                            pts = calc_pts_310()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.10",
+                                valor=state_310["opcao"],
+                                pontos=pts,
+                                link=state_310["link"],
+                                comentarios=d310.get("comentarios", []),
+                                status=d310.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.10 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.10", on_click=salvar_310).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.10", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.10.1 (Descrição do Programa de Leitura e Escrita - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.10.1 • Descrição do Programa/Projeto de Alfabetização").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Descreva o programa/atividade/projeto específico de competências de leitura e escrita desenvolvido:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Quesito descritivo e qualitativo associado ao quesito 3.10."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d3101 = res_data.get("3.10.1") or {}
+                        desc_3101_i = str(d3101.get("valor") or "")
+                        raw_link_3101 = str(d3101.get("link") or "")
+
+                        state_3101 = {
+                            "descricao": desc_3101_i,
+                            "link": raw_link_3101,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.textarea(
+                                label="Descrição detalhada do programa/projeto:",
+                                value=desc_3101_i,
+                                placeholder="Descreva os objetivos, metodologia, público-alvo, materiais didáticos e resultados de alfabetização...",
+                            ).classes("w-full").props("outlined rows=6").bind_value(
+                                state_3101, "descricao"
+                            )
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_3101,
+                                placeholder="Insira o projeto pedagógico, material do programa ou relatório de avaliação...",
+                            ).classes("w-full").props("outlined rows=6").bind_value(
+                                state_3101, "link"
+                            )
+
+                        def salvar_3101():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.10.1",
+                                valor=state_3101["descricao"],
+                                pontos=0.0,
+                                link=state_3101["link"],
+                                comentarios=d3101.get("comentarios", []),
+                                status=d3101.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.10.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.10.1", on_click=salvar_3101).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.10.1", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
