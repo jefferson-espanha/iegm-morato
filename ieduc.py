@@ -589,44 +589,45 @@ def container_formulario_ieduc(ano=None):
                     # ==========================================
                     # QUESITO 1.1.1
                     # ==========================================
-                    # Fórmula: BPI = (creches_bpi / total_creches) * PmáxBPI (2.0 pts)
+                    # Fórmula: (BPI / Total) * 2.0
+                    opcoes_1_1_1 = {
+                        "bpi": "Nº de creches com brinquedos no pátio infantil (BPI)",
+                        "total": "Nº total de creches no município",
+                        "pmax": 2.0,
+                    }
+
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
                         qid="1.1.1",
                         titulo="Brinquedos no Pátio Infantil",
-                        pergunta="Informe os valores para cálculo proporcional de creches com brinquedos no pátio infantil:",
-                        tipo_input="calculo_proporcao",
-                        opcoes={
-                            "bpi": "Nº de creches com brinquedos no pátio infantil (BPI)",
-                            "total": "Nº total de creches no município",
-                        },
-                        formula=" (bpi / total) * 2.0 if total > 0 else 0.0 ",
-                        placeholder_link="Insira o link do relatório de vistoria...",
+                        pergunta="Informe a quantidade de creches com brinquedos no pátio infantil e o total do município para o cálculo da proporção (Pontuação Máxima: 2,0):",
+                        tipo_input="calculo",
+                        opcoes=opcoes_1_1_1,
+                        placeholder_link="Insira o link ou relatório de vistoria...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
                     # ==========================================
                     # QUESITO 1.1.2
                     # ==========================================
-                    # Fórmula: 
-                    # Total = CRON + NCRON + SOLIC + NMANU
-                    # P = (NMANU/Total)*(-2) + (NCRON/Total)*(1) + (CRON/Total)*(3)
+                    # Fórmula: ((CRON * 3) + (NCRON * 1) + (NMANU * -2)) / Total
+                    opcoes_1_1_2 = {
+                        "cron": "Quantas CUMPRIRAM o cronograma de manutenção (CRON) [+3 pts]",
+                        "ncron": "Quantas NÃO CUMPRIRAM o cronograma de manutenção (NCRON) [+1 pt]",
+                        "solic": "Quantas realizam manutenção SOMENTE por solicitação (SOLIC) [0 pts]",
+                        "nmanu": "Quantas NÃO realizam manutenção (NMANU) [-2 pts]",
+                    }
+
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
                         qid="1.1.2",
-                        titulo="Manutenção dos Brinquedos no Pátio Infantil",
-                        pergunta="Informe a quantidade de creches por situação de manutenção preventiva/troca:",
-                        tipo_input="calculo_proporcao",
-                        opcoes={
-                            "cron": "Cumpriram o cronograma (CRON) [Peso: +3]",
-                            "ncron": "NÃO cumpriram o cronograma (NCRON) [Peso: +1]",
-                            "solic": "Manutenção SOMENTE por solicitação (SOLIC) [Peso: 0]",
-                            "nmanu": "NÃO realizam manutenção (NMANU) [Peso: -2]",
-                        },
-                        formula=" ((cron * 3.0) + (ncron * 1.0) + (nmanu * -2.0)) / (cron + ncron + solic + nmanu) if (cron + ncron + solic + nmanu) > 0 else 0.0 ",
-                        placeholder_link="Insira o link ou comprovante do cronograma de manutenção...",
+                        titulo="Manutenção de Brinquedos no Pátio Infantil",
+                        pergunta="Informe a quantidade de creches em cada situação de manutenção preventiva/troca de brinquedos:",
+                        tipo_input="calculo",
+                        opcoes=opcoes_1_1_2,
+                        placeholder_link="Insira o link do cronograma de manutenção...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
