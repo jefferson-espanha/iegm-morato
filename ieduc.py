@@ -704,232 +704,86 @@ def container_formulario_ieduc(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
+                   # =============================================================================
                     # QUESITO 1.1.1 - BRINQUEDOS NO PÁTIO INFANTIL (IEDUC)
                     # =============================================================================
                     def render_quesito_1_1_1(ano_sel, res_data, save_resp, bloco_comentarios, on_save_callback=None):
-                        d111 = res_data.get("1.1.1", {"valor": "BPI:0,TOTAL:0", "pontos": 0.0, "link": ""})
-                        
-                        # Parse inicial do formato do banco
-                        try:
-                            parts = str(d111.get("valor", "")).split(",")
-                            v_bpi = int(parts[0].split(":")[1])
-                            v_total = int(parts[1].split(":")[1])
-                        except (IndexError, ValueError):
-                            v_bpi, v_total = 0, 0
+                        # Extração dos dados das creches
+                        n_creches_com_brinquedos = float(res_data.get("n_creches_brinquedos", 0))
+                        n_creches_total = float(res_data.get("n_creches_total", 1))  # Evita divisão por zero
 
-                        state = {
-                            "bpi": v_bpi,
-                            "total": v_total,
-                            "link": d111.get("link", ""),
-                        }
+                        # Pontuação Máxima
+                        pmax_bpi = 2.0
 
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("1.1.1 • QUESITO 1.1.1").classes("text-xl font-semibold text-blue-500 mb-1")
-                            ui.label("Informe os dados para o cálculo de brinquedos no Pátio Infantil (BPI):").classes("text-base font-bold text-black mb-1")
-                            ui.label("ℹ️ Os cálculos e salvamentos ocorrem em tempo real ao alterar os valores.").classes("text-xs text-gray-400 mb-6")
+                        # Cálculo: BPI = nº de creches com brinquedos no pátio / nº total de creches
+                        bpi = n_creches_com_brinquedos / n_creches_total if n_creches_total > 0 else 0.0
 
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("w-full gap-3"):
-                                    in_bpi = ui.number(
-                                        label="Nº de creches com brinquedos no pátio infantil:",
-                                        value=state["bpi"],
-                                        min=0,
-                                        step=1,
-                                    ).classes("w-full").props("outlined color=blue")
+                        # Cálculo da Nota Final: NF = P * PmáxBPI (onde P é a proporção BPI)
+                        nf_1_1_1 = bpi * pmax_bpi
 
-                                    in_total = ui.number(
-                                        label="Nº TOTAL de creches no município:",
-                                        value=state["total"],
-                                        min=0,
-                                        step=1,
-                                    ).classes("w-full").props("outlined color=blue")
+                        print(f"[Quesito 1.1.1] BPI: {bpi:.4f} | Nota Final: {nf_1_1_1:.2f} / {pmax_bpi}")
 
-                                with ui.column().classes("w-full gap-2"):
-                                    in_link = ui.textarea(
-                                        label="Link/Evidência (1.1.1):",
-                                        value=state["link"],
-                                        placeholder="https://...",
-                                    ).classes("w-full").props("outlined rows=5")
+                        # Interface do NiceGUI
+                        bloco_comentarios("1.1.1", res_data, on_save_callback)
 
-                                    container_links = ui.row().classes("w-full gap-1 items-center text-xs text-gray-600")
 
-                            lbl_score = ui.label().classes("text-sm font-bold text-green-600 my-2")
-
-                            def recarregar_links():
-                                container_links.clear()
-                                links = re.findall(r"(https?://[^\s]+)", in_link.value or "")
-                                if links:
-                                    ui.label("Links Ativos: ").classes("font-bold")
-                                    for lk in links:
-                                        ui.link(lk, lk, new_tab=True).classes("text-blue-600 underline mr-2")
-                                else:
-                                    ui.label("Nenhum link ativo.")
-
-                            def processar_e_salvar(e=None):
-                                bpi = int(in_bpi.value or 0)
-                                total = int(in_total.value or 0)
-                                link = in_link.value or ""
-
-                                pts = 0.0
-                                if total > 0:
-                                    proporcao_p = bpi / total
-                                    pts = float(min(2.0, proporcao_p * 2.0))
-
-                                lbl_score.set_text(f"📊 Pontuação Calculada no Quesito 1.1.1: {pts:.2f} pontos (Máximo: 2.0 pontos)")
-                                recarregar_links()
-
-                                str_valor = f"BPI:{bpi},TOTAL:{total}"
-                                
-                                # Salva na persistência e atualiza dicionário local
-                                save_resp("1.1.1", str_valor, pts, link)
-                                res_data["1.1.1"] = {"valor": str_valor, "pontos": pts, "link": link}
-
-                            # Eventos para cálculo e auto-save em tempo real
-                            in_bpi.on("update:model-value", processar_e_salvar)
-                            in_total.on("update:model-value", processar_e_salvar)
-                            in_link.on("update:model-value", processar_e_salvar)
-
-                            # Execução inicial
-                            processar_e_salvar()
-
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("1.1.1", res_data, on_save_callback)
+                    # Execução do Quesito 1.1.1
+                    render_quesito_1_1_1(
+                        ano_sel=ano_sel,
+                        res_data=res_data,
+                        save_resp=save_resp,
+                        bloco_comentarios=bloco_comentarios,
+                        on_save_callback=render_conteudo.refresh if hasattr(render_conteudo, 'refresh') else None,
+                    )
 
 
                     # =============================================================================
                     # QUESITO 1.1.2 - MANUTENÇÃO DAS CRECHES (IEDUC)
                     # =============================================================================
                     def render_quesito_1_1_2(ano_sel, res_data, save_resp, bloco_comentarios, on_save_callback=None):
-                        d112 = res_data.get("1.1.2", {"valor": "CRON:0,NCRON:0,SOLIC:0,NMANU:0,TOTAL:0", "pontos": 0.0, "link": ""})
+                        # Variáveis de contagem de creches
+                        cron = float(res_data.get("cron", 0))    # Possuem e CUMPRIRAM o cronograma
+                        ncron = float(res_data.get("ncron", 0))  # Possuem e NÃO CUMPRIRAM o cronograma
+                        solic = float(res_data.get("solic", 0))  # Realizam SOMENTE por solicitação
+                        nmanu = float(res_data.get("nmanu", 0))  # NÃO realizam manutenção
 
-                        # Parse inicial do formato do banco
-                        try:
-                            parts = str(d112.get("valor", "")).split(",")
-                            v_cron = int(parts[0].split(":")[1])
-                            v_ncron = int(parts[1].split(":")[1])
-                            v_solic = int(parts[2].split(":")[1])
-                            v_nmanu = int(parts[3].split(":")[1])
-                        except (IndexError, ValueError):
-                            v_cron, v_ncron, v_solic, v_nmanu = 0, 0, 0, 0
+                        # Total de creches (CRON + NCRON + SOLIC + NMANU)
+                        total_creches = cron + ncron + solic + nmanu
 
-                        state = {
-                            "cron": v_cron,
-                            "ncron": v_ncron,
-                            "solic": v_solic,
-                            "nmanu": v_nmanu,
-                            "link": d112.get("link", ""),
-                        }
+                        # Pesos/Pontuações Máximas das parcelas
+                        pmax1 = -2.0  # Pmáx1 = -2 (perde 2 pontos)
+                        pmax2 = 1.0   # Pmáx2 = 01 ponto
+                        pmax3 = 3.0   # Pmáx3 = 03 pontos
 
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("1.1.2 • QUESITO 1.1.2").classes("text-xl font-semibold text-blue-500 mb-1")
-                            ui.label("Informe os dados para o cálculo de manutenção das creches:").classes("text-base font-bold text-black mb-1")
-                            
-                            with ui.expansion("Fórmulas de cálculo", icon="functions").classes("w-full bg-gray-50 text-xs mb-4"):
-                                ui.markdown("""
-                                * **P1** = (NMANU / TOTAL) × -2.0 pontos
-                                * **P2** = (NCRON / TOTAL) × 1.0 ponto
-                                * **P3** = (CRON / TOTAL) × 3.0 pontos
-                                * **P** = P1 + P2 + P3
-                                """)
+                        if total_creches > 0:
+                            # P1 = NMANU / (CRON + NCRON + SOLIC + NMANU) * Pmáx1
+                            p1 = (nmanu / total_creches) * pmax1
 
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("w-full gap-3"):
-                                    in_cron = ui.number(
-                                        label="Cumpriram o cronograma (CRON):",
-                                        value=state["cron"],
-                                        min=0,
-                                        step=1,
-                                    ).classes("w-full").props("outlined color=blue")
+                            # P2 = NCRON / (CRON + NCRON + SOLIC + NMANU) * Pmáx2
+                            p2 = (ncron / total_creches) * pmax2
 
-                                    in_ncron = ui.number(
-                                        label="NÃO cumpriram o cronograma (NCRON):",
-                                        value=state["ncron"],
-                                        min=0,
-                                        step=1,
-                                    ).classes("w-full").props("outlined color=blue")
+                            # P3 = CRON / (CRON + NCRON + SOLIC + NMANU) * Pmáx3
+                            p3 = (cron / total_creches) * pmax3
 
-                                    in_solic = ui.number(
-                                        label="Apenas por solicitação (SOLIC):",
-                                        value=state["solic"],
-                                        min=0,
-                                        step=1,
-                                    ).classes("w-full").props("outlined color=blue")
+                            # P = P1 + P2 + P3
+                            p_total = p1 + p2 + p3
+                        else:
+                            p1 = p2 = p3 = p_total = 0.0
 
-                                    in_nmanu = ui.number(
-                                        label="NÃO realizam manutenção (NMANU):",
-                                        value=state["nmanu"],
-                                        min=0,
-                                        step=1,
-                                    ).classes("w-full").props("outlined color=blue")
+                        print(f"[Quesito 1.1.2] P1: {p1:.2f} | P2: {p2:.2f} | P3: {p3:.2f} | Pontuação Total (P): {p_total:.2f}")
 
-                                    in_total_read = ui.number(
-                                        label="Total de Creches (Somatório Automático):",
-                                        value=0,
-                                    ).classes("w-full").props("outlined disabled")
+                        # Interface do NiceGUI
+                        bloco_comentarios("1.1.2", res_data, on_save_callback)
 
-                                with ui.column().classes("w-full gap-2"):
-                                    in_link = ui.textarea(
-                                        label="Link/Evidência (1.1.2):",
-                                        value=state["link"],
-                                        placeholder="https://...",
-                                    ).classes("w-full").props("outlined rows=10")
 
-                                    container_links = ui.row().classes("w-full gap-1 items-center text-xs text-gray-600")
-
-                            lbl_score = ui.label().classes("text-sm font-bold text-green-600 my-2")
-
-                            def recarregar_links():
-                                container_links.clear()
-                                links = re.findall(r"(https?://[^\s]+)", in_link.value or "")
-                                if links:
-                                    ui.label("Links Ativos: ").classes("font-bold")
-                                    for lk in links:
-                                        ui.link(lk, lk, new_tab=True).classes("text-blue-600 underline mr-2")
-                                else:
-                                    ui.label("Nenhum link ativo.")
-
-                            def processar_e_salvar(e=None):
-                                cron = int(in_cron.value or 0)
-                                ncron = int(in_ncron.value or 0)
-                                solic = int(in_solic.value or 0)
-                                nmanu = int(in_nmanu.value or 0)
-                                link = in_link.value or ""
-
-                                total = cron + ncron + solic + nmanu
-                                in_total_read.value = total
-
-                                pts = 0.0
-                                if total > 0:
-                                    p1 = (nmanu / total) * (-2.0)
-                                    p2 = (ncron / total) * 1.0
-                                    p3 = (cron / total) * 3.0
-                                    pts = float(max(0.0, p1 + p2 + p3))
-                                    lbl_score.set_text(f"📊 Pontuação Calculada no Quesito 1.1.2: {pts:.2f} pontos / 3.0 pontos máximos.")
-                                else:
-                                    lbl_score.set_text("💡 Insira os quantitativos para realizar o cálculo dinâmico da nota.")
-
-                                recarregar_links()
-
-                                str_valor = f"CRON:{cron},NCRON:{ncron},SOLIC:{solic},NMANU:{nmanu},TOTAL:{total}"
-
-                                # Salva na persistência e atualiza dicionário local
-                                save_resp("1.1.2", str_valor, pts, link)
-                                res_data["1.1.2"] = {"valor": str_valor, "pontos": pts, "link": link}
-
-                            # Eventos para cálculo e auto-save em tempo real
-                            in_cron.on("update:model-value", processar_e_salvar)
-                            in_ncron.on("update:model-value", processar_e_salvar)
-                            in_solic.on("update:model-value", processar_e_salvar)
-                            in_nmanu.on("update:model-value", processar_e_salvar)
-                            in_link.on("update:model-value", processar_e_salvar)
-
-                            # Execução inicial
-                            processar_e_salvar()
-
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("1.1.2", res_data, on_save_callback)
-
+                    # Execução do Quesito 1.1.2
+                    render_quesito_1_1_2(
+                        ano_sel=ano_sel,
+                        res_data=res_data,
+                        save_resp=save_resp,
+                        bloco_comentarios=bloco_comentarios,
+                        on_save_callback=render_conteudo.refresh if hasattr(render_conteudo, 'refresh') else None,
+                    )
                     # ==========================================
                     # QUESITO 1.2
                     # ==========================================
