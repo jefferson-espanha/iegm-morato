@@ -6177,6 +6177,590 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("2.15", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 3.0 (Oferta dos Anos Iniciais do Ensino Fundamental)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.0 • Oferta dos Anos Iniciais do Ensino Fundamental (1º ao 5º ano)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A Prefeitura Municipal oferece os Anos Iniciais do Ensino Fundamental (1º ao 5º ano)?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Quesito declaratório e condicional para o Bloco 3."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d30 = res_data.get("3.0") or {}
+
+                        opcoes_30 = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": 0.0,
+                        }
+
+                        val_30_bruto = str(d30.get("valor") or "")
+                        val_30_valido = "Selecione..."
+                        if val_30_bruto in opcoes_30:
+                            val_30_valido = val_30_bruto
+                        else:
+                            for chave in opcoes_30.keys():
+                                if chave != "Selecione..." and chave.startswith(val_30_bruto):
+                                    val_30_valido = chave
+                                    break
+
+                        raw_link_30 = str(d30.get("link") or "")
+
+                        state_30 = {
+                            "opcao": val_30_valido,
+                            "link": raw_link_30,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_30 = ui.radio(
+                                    options=list(opcoes_30.keys()),
+                                    value=state_30["opcao"],
+                                ).props("color=blue").bind_value(state_30, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_30,
+                                placeholder="Insira o ato de criação das escolas, dados do Censo Escolar ou decreto...",
+                            ).classes("w-full").props("outlined rows=4").bind_value(
+                                state_30, "link"
+                            )
+
+                        def salvar_30():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.0",
+                                valor=state_30["opcao"],
+                                pontos=0.0,
+                                link=state_30["link"],
+                                comentarios=d30.get("comentarios", []),
+                                status=d30.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.0", on_click=salvar_30).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.0", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.1 (Espaço por Aluno em Sala de Aula - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.1 • Área por Aluno em Sala de Aula (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de turmas dos Anos Iniciais por faixa de área disponível por aluno (m²):"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Fórmula: NF = 10.0×P1 + 5.0×P2 + 2.5×P3 + 0×P4 | Pmáx = 10.0 pontos."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d31 = res_data.get("3.1") or {}
+                        raw_link_31 = str(d31.get("link") or "")
+
+                        f1_i, f2_i, f3_i, f4_i = 0, 0, 0, 0
+                        evidencia_31 = raw_link_31
+
+                        if "|LINK:" in raw_link_31:
+                            partes_31, evidencia_31 = raw_link_31.split("|LINK:", 1)
+                            m_f1 = re.search(r"F1:(\d+)", partes_31)
+                            m_f2 = re.search(r"F2:(\d+)", partes_31)
+                            m_f3 = re.search(r"F3:(\d+)", partes_31)
+                            m_f4 = re.search(r"F4:(\d+)", partes_31)
+                            f1_i = int(m_f1.group(1)) if m_f1 else 0
+                            f2_i = int(m_f2.group(1)) if m_f2 else 0
+                            f3_i = int(m_f3.group(1)) if m_f3 else 0
+                            f4_i = int(m_f4.group(1)) if m_f4 else 0
+
+                        state_31 = {
+                            "f1": f1_i,
+                            "f2": f2_i,
+                            "f3": f3_i,
+                            "f4": f4_i,
+                            "link": evidencia_31,
+                        }
+
+                        def calc_pts_31():
+                            c1 = int(state_31["f1"] or 0)
+                            c2 = int(state_31["f2"] or 0)
+                            c3 = int(state_31["f3"] or 0)
+                            c4 = int(state_31["f4"] or 0)
+                            tot = c1 + c2 + c3 + c4
+                            if tot <= 0:
+                                return 0.0
+
+                            p1 = c1 / tot
+                            p2 = c2 / tot
+                            p3 = c3 / tot
+                            p4 = c4 / tot
+
+                            return min(10.0 * p1 + 5.0 * p2 + 2.5 * p3, 10.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_f1_31 = ui.number("Superior ou igual a 1,875 m²:", value=f1_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_31, "f1")
+                                inp_f2_31 = ui.number("Superior ou igual a 1,20 m² e < 1,875 m²:", value=f2_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_31, "f2")
+                                inp_f3_31 = ui.number("Superior ou igual a 1,00 m² e < 1,20 m²:", value=f3_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_31, "f3")
+                                inp_f4_31 = ui.number("Inferior a 1,00 m²:", value=f4_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_31, "f4")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_31,
+                                placeholder="Insira a planta baixa das salas, laudo de medição ou inventário das unidades...",
+                            ).classes("w-full").props("outlined rows=10").bind_value(
+                                state_31, "link"
+                            )
+
+                        lbl_pts_31 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.1: {calc_pts_31():.2f} / 10.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_31():
+                            lbl_pts_31.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.1: {calc_pts_31():.2f} / 10.0 pontos"
+                            )
+
+                        for inp in [inp_f1_31, inp_f2_31, inp_f3_31, inp_f4_31]:
+                            inp.on("update:model-value", att_pts_31)
+
+                        def salvar_31():
+                            c1, c2, c3, c4 = state_31["f1"], state_31["f2"], state_31["f3"], state_31["f4"]
+                            pts = calc_pts_31()
+                            composite = f"F1:{c1},F2:{c2},F3:{c3},F4:{c4}|LINK:{state_31['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.1",
+                                valor=f"F1:{c1}/F2:{c2}/F3:{c3}/F4:{c4}",
+                                pontos=pts,
+                                link=composite,
+                                comentarios=d31.get("comentarios", []),
+                                status=d31.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.1", on_click=salvar_31).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.2 (Qualificação dos Professores - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.2 • Qualificação Acadêmica dos Professores (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o total de professores regentes dos Anos Iniciais e a quantidade com Licenciatura e Pós-graduação:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Graduação (Grad): 100%=12pts | 90-99%=7pts | 80-89%=3pts | 70-79%=1pt | <70%=0pt.\n"
+                            "ℹ Pós-Graduação (Pgrad): ≥50%=7pts | 40-49%=5pts | 20-39%=3pts | <20%=0pt. Pmáx = 19.0 pontos."
+                        ).classes("text-xs text-gray-400 mb-6 whitespace-pre-line")
+
+                        d32 = res_data.get("3.2") or {}
+                        raw_link_32 = str(d32.get("link") or "")
+
+                        tot_prof_32_i, grad_32_i, pgrad_32_i = 0, 0, 0
+                        evidencia_32 = raw_link_32
+
+                        if "|LINK:" in raw_link_32:
+                            partes_32, evidencia_32 = raw_link_32.split("|LINK:", 1)
+                            m_tot = re.search(r"TOT:(\d+)", partes_32)
+                            m_grad = re.search(r"GRAD:(\d+)", partes_32)
+                            m_pgrad = re.search(r"PGRAD:(\d+)", partes_32)
+                            tot_prof_32_i = int(m_tot.group(1)) if m_tot else 0
+                            grad_32_i = int(m_grad.group(1)) if m_grad else 0
+                            pgrad_32_i = int(m_pgrad.group(1)) if m_pgrad else 0
+
+                        state_32 = {
+                            "tot_prof": tot_prof_32_i,
+                            "grad": grad_32_i,
+                            "pgrad": pgrad_32_i,
+                            "link": evidencia_32,
+                        }
+
+                        def calc_pts_32():
+                            tot = int(state_32["tot_prof"] or 0)
+                            grd = int(state_32["grad"] or 0)
+                            pgrd = int(state_32["pgrad"] or 0)
+
+                            if tot <= 0:
+                                return 0.0
+
+                            g_pct = (grd / tot) * 100.0
+                            p_pct = (pgrd / tot) * 100.0
+
+                            # Pontuação Graduação (N1)
+                            if g_pct >= 100.0:
+                                n1 = 12.0
+                            elif g_pct >= 90.0:
+                                n1 = 7.0
+                            elif g_pct >= 80.0:
+                                n1 = 3.0
+                            elif g_pct >= 70.0:
+                                n1 = 1.0
+                            else:
+                                n1 = 0.0
+
+                            # Pontuação Pós-Graduação (N2)
+                            if p_pct >= 50.0:
+                                n2 = 7.0
+                            elif p_pct >= 40.0:
+                                n2 = 5.0
+                            elif p_pct >= 20.0:
+                                n2 = 3.0
+                            else:
+                                n2 = 0.0
+
+                            return min(n1 + n2, 19.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_tot_32 = ui.number("Total de professores regentes:", value=tot_prof_32_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_32, "tot_prof")
+                                inp_grad_32 = ui.number("Professores com Licenciatura (GRAD):", value=grad_32_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_32, "grad")
+                                inp_pgrad_32 = ui.number("Professores com Pós-Graduação (PGRAD):", value=pgrad_32_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_32, "pgrad")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_32,
+                                placeholder="Insira os relatórios do Censo Escolar 2025, diplomas ou dados do RH...",
+                            ).classes("w-full").props("outlined rows=8").bind_value(
+                                state_32, "link"
+                            )
+
+                        lbl_pts_32 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.2: {calc_pts_32():.1f} / 19.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_32():
+                            lbl_pts_32.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.2: {calc_pts_32():.1f} / 19.0 pontos"
+                            )
+
+                        inp_tot_32.on("update:model-value", att_pts_32)
+                        inp_grad_32.on("update:model-value", att_pts_32)
+                        inp_pgrad_32.on("update:model-value", att_pts_32)
+
+                        def salvar_32():
+                            tot, grd, pgrd = state_32["tot_prof"], state_32["grad"], state_32["pgrad"]
+                            pts = calc_pts_32()
+                            composite = f"TOT:{tot},GRAD:{grd},PGRAD:{pgrd}|LINK:{state_32['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.2",
+                                valor=f"Total: {tot} | GRAD: {grd} | PGRAD: {pgrd}",
+                                pontos=pts,
+                                link=composite,
+                                comentarios=d32.get("comentarios", []),
+                                status=d32.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.2", on_click=salvar_32).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.3 (Piso Salarial dos Professores - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.3 • Piso Salarial dos Professores (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o valor do piso salarial mensal dos professores dos Anos Iniciais (base 40h/semanais) e o salário mínimo legal:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Regra: Se Piso < Salário Mínimo → Penalidade de -20.0 pts | Se Piso ≥ Salário Mínimo → 0.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d33 = res_data.get("3.3") or {}
+                        raw_link_33 = str(d33.get("link") or "")
+
+                        piso_33_i, sm_33_i = 0.0, 1518.00
+                        evidencia_33 = raw_link_33
+
+                        if "|LINK:" in raw_link_33:
+                            partes_33, evidencia_33 = raw_link_33.split("|LINK:", 1)
+                            m_piso = re.search(r"PISO:([\d\.]+)", partes_33)
+                            m_sm = re.search(r"SM:([\d\.]+)", partes_33)
+                            piso_33_i = float(m_piso.group(1)) if m_piso else 0.0
+                            sm_33_i = float(m_sm.group(1)) if m_sm else 1518.00
+
+                        state_33 = {
+                            "piso": piso_33_i,
+                            "sm": sm_33_i,
+                            "link": evidencia_33,
+                        }
+
+                        def calc_pts_33():
+                            piso_v = float(state_33["piso"] or 0.0)
+                            sm_v = float(state_33["sm"] or 0.0)
+                            if piso_v <= 0:
+                                return 0.0
+                            return -20.0 if piso_v < sm_v else 0.0
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_piso_33 = ui.number("Piso Salarial (40h) R$:", value=piso_33_i, min=0.0, step=50.0, format="%.2f").classes("w-full").props("outlined color=blue").bind_value(state_33, "piso")
+                                inp_sm_33 = ui.number("Salário Mínimo de Referência R$:", value=sm_33_i, min=0.0, step=10.0, format="%.2f").classes("w-full").props("outlined color=blue").bind_value(state_33, "sm")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_33,
+                                placeholder="Insira a lei municipal do plano de cargos e carreiras, holerite modelo ou tabela salarial...",
+                            ).classes("w-full").props("outlined rows=6").bind_value(
+                                state_33, "link"
+                            )
+
+                        lbl_pts_33 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.3: {calc_pts_33():.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_33():
+                            pts = calc_pts_33()
+                            cor = "text-red-600" if pts < 0 else "text-green-600"
+                            lbl_pts_33.classes(remove="text-red-600 text-green-600", add=cor)
+                            lbl_pts_33.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.3: {pts:.1f} pontos"
+                            )
+
+                        inp_piso_33.on("update:model-value", att_pts_33)
+                        inp_sm_33.on("update:model-value", att_pts_33)
+
+                        def salvar_33():
+                            p_v = float(state_33["piso"] or 0.0)
+                            sm_v = float(state_33["sm"] or 0.0)
+                            pts = calc_pts_33()
+                            composite = f"PISO:{p_v:.2f},SM:{sm_v:.2f}|LINK:{state_33['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.3",
+                                valor=f"Piso: R$ {p_v:.2f} (SM: R$ {sm_v:.2f})",
+                                pontos=pts,
+                                link=composite,
+                                comentarios=d33.get("comentarios", []),
+                                status=d33.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.3", on_click=salvar_33).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.3", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.4 (Ausência de Professores - Anos Iniciais - QTA)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.4 • Quantidade Total de Ausências de Professores (QTA) - Anos Iniciais").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade total de dias de ausência dos professores dos Anos Iniciais em 2025:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Quesito quantitativo e declaratório para composição do indicador de faltas/licenças."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d34 = res_data.get("3.4") or {}
+                        raw_link_34 = str(d34.get("link") or "")
+
+                        injust_i, just_i, med_i, mat_i, abon_i, out_i = 0, 0, 0, 0, 0, 0
+                        evidencia_34 = raw_link_34
+
+                        if "|LINK:" in raw_link_34:
+                            partes_34, evidencia_34 = raw_link_34.split("|LINK:", 1)
+                            m_in = re.search(r"INJUST:(\d+)", partes_34)
+                            m_ju = re.search(r"JUST:(\d+)", partes_34)
+                            m_me = re.search(r"MED:(\d+)", partes_34)
+                            m_ma = re.search(r"MAT:(\d+)", partes_34)
+                            m_ab = re.search(r"ABON:(\d+)", partes_34)
+                            m_ou = re.search(r"OUT:(\d+)", partes_34)
+
+                            injust_i = int(m_in.group(1)) if m_in else 0
+                            just_i = int(m_ju.group(1)) if m_ju else 0
+                            med_i = int(m_me.group(1)) if m_me else 0
+                            mat_i = int(m_ma.group(1)) if m_ma else 0
+                            abon_i = int(m_ab.group(1)) if m_ab else 0
+                            out_i = int(m_ou.group(1)) if m_ou else 0
+
+                        state_34 = {
+                            "injustificadas": injust_i,
+                            "justificadas": just_i,
+                            "medica": med_i,
+                            "maternidade": mat_i,
+                            "abonos": abon_i,
+                            "outros": out_i,
+                            "link": evidencia_34,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_inj_34 = ui.number("Faltas injustificadas (dias):", value=injust_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_34, "injustificadas")
+                                inp_jus_34 = ui.number("Faltas justificadas (dias):", value=just_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_34, "justificadas")
+                                inp_med_34 = ui.number("Licença médica (dias):", value=med_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_34, "medica")
+                                inp_mat_34 = ui.number("Licença maternidade/paternidade (dias):", value=mat_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_34, "maternidade")
+                                inp_abo_34 = ui.number("Abonos (dias):", value=abon_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_34, "abonos")
+                                inp_out_34 = ui.number("Outros afastamentos legais (dias):", value=out_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_34, "outros")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_34,
+                                placeholder="Insira os relatórios consolidados do RH, mapas de frequência ou registros do sistema...",
+                            ).classes("w-full").props("outlined rows=14").bind_value(
+                                state_34, "link"
+                            )
+
+                        def salvar_34():
+                            v_inj = int(state_34["injustificadas"] or 0)
+                            v_jus = int(state_34["justificadas"] or 0)
+                            v_med = int(state_34["medica"] or 0)
+                            v_mat = int(state_34["maternidade"] or 0)
+                            v_abo = int(state_34["abonos"] or 0)
+                            v_out = int(state_34["outros"] or 0)
+                            tot_dias = v_inj + v_jus + v_med + v_mat + v_abo + v_out
+
+                            composite = (
+                                f"INJUST:{v_inj},JUST:{v_jus},MED:{v_med},"
+                                f"MAT:{v_mat},ABON:{v_abo},OUT:{v_out}|LINK:{state_34['link']}"
+                            )
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.4",
+                                valor=f"Total: {tot_dias} dias ausentes",
+                                pontos=0.0,
+                                link=composite,
+                                comentarios=d34.get("comentarios", []),
+                                status=d34.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.4 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.4", on_click=salvar_34).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.4", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.5 (Capacitação dos Profissionais - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.5 • Participação em Cursos de Capacitação (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Os profissionais dos Anos Iniciais da rede municipal participaram de cursos de capacitação durante o ano de 2025?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Quesito declaratório."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d35 = res_data.get("3.5") or {}
+
+                        opcoes_35 = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": 0.0,
+                        }
+
+                        val_35_bruto = str(d35.get("valor") or "")
+                        val_35_valido = "Selecione..."
+                        if val_35_bruto in opcoes_35:
+                            val_35_valido = val_35_bruto
+                        else:
+                            for chave in opcoes_35.keys():
+                                if chave != "Selecione..." and chave.startswith(val_35_bruto):
+                                    val_35_valido = chave
+                                    break
+
+                        raw_link_35 = str(d35.get("link") or "")
+
+                        state_35 = {
+                            "opcao": val_35_valido,
+                            "link": raw_link_35,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_35 = ui.radio(
+                                    options=list(opcoes_35.keys()),
+                                    value=state_35["opcao"],
+                                ).props("color=blue").bind_value(state_35, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_35,
+                                placeholder="Insira listas de presença, certificados, programa dos cursos ou relatórios de formação...",
+                            ).classes("w-full").props("outlined rows=4").bind_value(
+                                state_35, "link"
+                            )
+
+                        def salvar_35():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.5",
+                                valor=state_35["opcao"],
+                                pontos=0.0,
+                                link=state_35["link"],
+                                comentarios=d35.get("comentarios", []),
+                                status=d35.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.5 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.5", on_click=salvar_35).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.5", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
