@@ -704,26 +704,24 @@ def container_formulario_ieduc(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                   # =============================================================================
+                   # Definição de uma função de salvamento simples para evitar o NameError
+                    def save_resp(quesito_id, valor):
+                        print(f"Salvando resposta do Quesito {quesito_id}: {valor}")
+                        # Aqui você colocaria a lógica de salvar no banco de dados ou dicionário
+                        res_data[quesito_id] = valor
+
+                    # =============================================================================
                     # QUESITO 1.1.1 - BRINQUEDOS NO PÁTIO INFANTIL (IEDUC)
                     # =============================================================================
                     def render_quesito_1_1_1(ano_sel, res_data, save_resp, bloco_comentarios, on_save_callback=None):
-                        # Extração dos dados das creches
                         n_creches_com_brinquedos = float(res_data.get("n_creches_brinquedos", 0))
-                        n_creches_total = float(res_data.get("n_creches_total", 1))  # Evita divisão por zero
+                        n_creches_total = float(res_data.get("n_creches_total", 1))
 
-                        # Pontuação Máxima
                         pmax_bpi = 2.0
-
-                        # Cálculo: BPI = nº de creches com brinquedos no pátio / nº total de creches
                         bpi = n_creches_com_brinquedos / n_creches_total if n_creches_total > 0 else 0.0
-
-                        # Cálculo da Nota Final: NF = P * PmáxBPI (onde P é a proporção BPI)
                         nf_1_1_1 = bpi * pmax_bpi
 
                         print(f"[Quesito 1.1.1] BPI: {bpi:.4f} | Nota Final: {nf_1_1_1:.2f} / {pmax_bpi}")
-
-                        # Interface do NiceGUI
                         bloco_comentarios("1.1.1", res_data, on_save_callback)
 
 
@@ -741,38 +739,26 @@ def container_formulario_ieduc(ano=None):
                     # QUESITO 1.1.2 - MANUTENÇÃO DAS CRECHES (IEDUC)
                     # =============================================================================
                     def render_quesito_1_1_2(ano_sel, res_data, save_resp, bloco_comentarios, on_save_callback=None):
-                        # Variáveis de contagem de creches
-                        cron = float(res_data.get("cron", 0))    # Possuem e CUMPRIRAM o cronograma
-                        ncron = float(res_data.get("ncron", 0))  # Possuem e NÃO CUMPRIRAM o cronograma
-                        solic = float(res_data.get("solic", 0))  # Realizam SOMENTE por solicitação
-                        nmanu = float(res_data.get("nmanu", 0))  # NÃO realizam manutenção
+                        cron = float(res_data.get("cron", 0))
+                        ncron = float(res_data.get("ncron", 0))
+                        solic = float(res_data.get("solic", 0))
+                        nmanu = float(res_data.get("nmanu", 0))
 
-                        # Total de creches (CRON + NCRON + SOLIC + NMANU)
                         total_creches = cron + ncron + solic + nmanu
 
-                        # Pesos/Pontuações Máximas das parcelas
-                        pmax1 = -2.0  # Pmáx1 = -2 (perde 2 pontos)
-                        pmax2 = 1.0   # Pmáx2 = 01 ponto
-                        pmax3 = 3.0   # Pmáx3 = 03 pontos
+                        pmax1 = -2.0
+                        pmax2 = 1.0
+                        pmax3 = 3.0
 
                         if total_creches > 0:
-                            # P1 = NMANU / (CRON + NCRON + SOLIC + NMANU) * Pmáx1
                             p1 = (nmanu / total_creches) * pmax1
-
-                            # P2 = NCRON / (CRON + NCRON + SOLIC + NMANU) * Pmáx2
                             p2 = (ncron / total_creches) * pmax2
-
-                            # P3 = CRON / (CRON + NCRON + SOLIC + NMANU) * Pmáx3
                             p3 = (cron / total_creches) * pmax3
-
-                            # P = P1 + P2 + P3
                             p_total = p1 + p2 + p3
                         else:
                             p1 = p2 = p3 = p_total = 0.0
 
                         print(f"[Quesito 1.1.2] P1: {p1:.2f} | P2: {p2:.2f} | P3: {p3:.2f} | Pontuação Total (P): {p_total:.2f}")
-
-                        # Interface do NiceGUI
                         bloco_comentarios("1.1.2", res_data, on_save_callback)
 
 
