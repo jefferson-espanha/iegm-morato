@@ -2861,6 +2861,344 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("1.12.1", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 1.12.2 (Motivo da Não Entrega do Material Didático)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.12.2 • Motivo da Não Entrega do Material Didático").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Caso o material didático não tenha sido entregue, informe o motivo:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Quesito justificativo / declaratório.").classes(
+                            "text-xs text-gray-400 mb-6"
+                        )
+
+                        d1122 = res_data.get("1.12.2") or {}
+                        motivo_mat_i = str(d1122.get("valor") or "")
+                        link_1122_i = str(d1122.get("link") or "")
+
+                        state_1122 = {
+                            "motivo": motivo_mat_i,
+                            "link": link_1122_i,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.textarea(
+                                label="Motivo da não entrega:",
+                                value=motivo_mat_i,
+                                placeholder="Descreva os problemas de compra, adesão ao PNLD ou atraso de distribuição...",
+                            ).classes("w-full").props("outlined rows=4").bind_value(
+                                state_1122, "motivo"
+                            )
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=link_1122_i,
+                                placeholder="Insira relatórios administrativos, comunicação oficial ou justificativa...",
+                            ).classes("w-full").props("outlined rows=4").bind_value(
+                                state_1122, "link"
+                            )
+
+                        def salvar_1122():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.12.2",
+                                valor=state_1122["motivo"],
+                                pontos=0.0,
+                                link=state_1122["link"],
+                                comentarios=d1122.get("comentarios", []),
+                                status=d1122.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 1.12.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.12.2", on_click=salvar_1122).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.12.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 1.13 (Pesquisa/Estudo sobre Demanda por Creches em 2025)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.13 • Pesquisa/Estudo de Demanda por Vagas de Creche").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A Prefeitura municipal fez uma pesquisa/estudo para levantar o número de crianças que necessitavam de Creches em 2025?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Pontuação: Sim = 50.0 pts | Não = 0.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d113 = res_data.get("1.13") or {}
+
+                        opcoes_113 = {
+                            "Selecione...": 0.0,
+                            "Sim (50,0 pontos)": 50.0,
+                            "Não (0,0 pontos)": 0.0,
+                        }
+
+                        val_113_bruto = str(d113.get("valor") or "")
+                        val_113_valido = "Selecione..."
+                        if val_113_bruto in opcoes_113:
+                            val_113_valido = val_113_bruto
+                        else:
+                            for chave in opcoes_113.keys():
+                                if chave != "Selecione..." and chave.startswith(val_113_bruto):
+                                    val_113_valido = chave
+                                    break
+
+                        raw_link_113 = str(d113.get("link") or "")
+
+                        state_113 = {
+                            "opcao": val_113_valido,
+                            "link": raw_link_113,
+                        }
+
+                        def calc_pts_113():
+                            return float(opcoes_113.get(state_113["opcao"], 0.0))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_113 = ui.radio(
+                                    options=list(opcoes_113.keys()),
+                                    value=state_113["opcao"],
+                                ).props("color=blue").bind_value(state_113, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_113,
+                                placeholder="Insira a cópia do estudo de demanda, busca ativa ou relatório de mapeamento...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_113, "link"
+                            )
+
+                        lbl_pts_113 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 1.13: {calc_pts_113():.1f} / 50.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_113():
+                            lbl_pts_113.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 1.13: {calc_pts_113():.1f} / 50.0 pontos"
+                            )
+
+                        rad_113.on("update:model-value", att_pts_113)
+
+                        def salvar_113():
+                            pts = calc_pts_113()
+                            opt_sel = state_113["opcao"]
+                            lnk = state_113["link"]
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.13",
+                                valor=opt_sel,
+                                pontos=pts,
+                                link=lnk,
+                                comentarios=d113.get("comentarios", []),
+                                status=d113.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 1.13 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.13", on_click=salvar_113).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.13", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 1.13.1 (Descrição do Estudo de Demanda)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.13.1 • Descrição da Pesquisa / Estudo de Demanda").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Descreva a metodologia e os resultados da pesquisa/estudo realizada:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label("ℹ Quesito descritivo / declaratório.").classes(
+                            "text-xs text-gray-400 mb-6"
+                        )
+
+                        d1131 = res_data.get("1.13.1") or {}
+                        desc_i = str(d1131.get("valor") or "")
+                        link_1131_i = str(d1131.get("link") or "")
+
+                        state_1131 = {
+                            "descricao": desc_i,
+                            "link": link_1131_i,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.textarea(
+                                label="Descrição do Estudo / Pesquisa:",
+                                value=desc_i,
+                                placeholder="Descreva como foi feito o mapeamento, órgãos envolvidos e conclusões...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_1131, "descricao"
+                            )
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=link_1131_i,
+                                placeholder="Insira o link do documento da pesquisa, ato normativo ou publicação oficial...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_1131, "link"
+                            )
+
+                        def salvar_1131():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.13.1",
+                                valor=state_1131["descricao"],
+                                pontos=0.0,
+                                link=state_1131["link"],
+                                comentarios=d1131.get("comentarios", []),
+                                status=d1131.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 1.13.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.13.1", on_click=salvar_1131).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.13.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 1.14 (Demanda vs. Oferta de Vagas de Creche)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.14 • Demanda Manifesta vs. Oferta de Vagas de Creche").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o número de solicitações de vagas (0 a 3 anos) até 31/12/2025 e o total de vagas ofertadas:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Regra: Se Solicitações (Demanda) > Vagas Ofertadas (Oferta) → Perde 50.0 pts (-50.0) | Caso contrário → 0.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d114 = res_data.get("1.14") or {}
+                        raw_link_114 = str(d114.get("link") or "")
+
+                        demanda_i, oferta_i = 0, 0
+                        evidencia_114 = raw_link_114
+
+                        if "|LINK:" in raw_link_114:
+                            partes_114, evidencia_114 = raw_link_114.split("|LINK:", 1)
+                            m_dem = re.search(r"DEMANDA:(\d+)", partes_114)
+                            m_ofe = re.search(r"OFERTA:(\d+)", partes_114)
+                            demanda_i = int(m_dem.group(1)) if m_dem else 0
+                            oferta_i = int(m_ofe.group(1)) if m_ofe else 0
+
+                        state_114 = {
+                            "demanda": demanda_i,
+                            "oferta": oferta_i,
+                            "link": evidencia_114,
+                        }
+
+                        def calc_pts_114():
+                            dem = int(state_114["demanda"] or 0)
+                            ofe = int(state_114["oferta"] or 0)
+                            if dem <= 0 and ofe <= 0:
+                                return 0.0
+                            return -50.0 if dem > ofe else 0.0
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_demanda = (
+                                    ui.number(
+                                        "Nº de crianças (0-3 anos) que solicitaram vaga até 31/12/2025:",
+                                        value=demanda_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_114, "demanda")
+                                )
+
+                                inp_oferta = (
+                                    ui.number(
+                                        "Nº de vagas de creche OFERTADAS em 2025:",
+                                        value=oferta_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_114, "oferta")
+                                )
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_114,
+                                placeholder="Insira a lista de espera unificada, relatório de matrículas do Censo ou sistema municipal...",
+                            ).classes("w-full").props("outlined rows=6").bind_value(
+                                state_114, "link"
+                            )
+
+                        lbl_pts_114 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 1.14: {calc_pts_114():.1f} pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_114():
+                            pts = calc_pts_114()
+                            cor = "text-red-600" if pts < 0 else "text-green-600"
+                            lbl_pts_114.classes(remove="text-red-600 text-green-600", add=cor)
+                            lbl_pts_114.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 1.14: {pts:.1f} pontos"
+                            )
+
+                        inp_demanda.on("update:model-value", att_pts_114)
+                        inp_oferta.on("update:model-value", att_pts_114)
+
+                        def salvar_114():
+                            d_val = int(state_114["demanda"] or 0)
+                            o_val = int(state_114["oferta"] or 0)
+                            pts_finais = calc_pts_114()
+                            composite = f"DEMANDA:{d_val},OFERTA:{o_val}|LINK:{state_114['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="1.14",
+                                valor=f"Solicitadas: {d_val} / Ofertadas: {o_val}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d114.get("comentarios", []),
+                                status=d114.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 1.14 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 1.14", on_click=salvar_114).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.14", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
