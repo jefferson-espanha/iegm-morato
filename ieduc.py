@@ -3,12 +3,12 @@ from datetime import datetime
 import json
 import os
 import re
-from nicegui import app, ui
 import psycopg2
-from psycopg2.extras import Json, RealDictCursor
+from psycopg2.extras import RealDictCursor
+from nicegui import app, ui
 
 # =============================================================================
-# BANCO DE DADOS (NEON - ESTRUTURA REAL RESPOSTAS_IEDUC)
+# BANCO DE DADOS (NEON - ESTRUTURA REAL COM COLUNAS link E comentario)
 # =============================================================================
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
@@ -20,8 +20,17 @@ def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 
+def _obter_lista_comentarios(dados_q):
+    """Extrai a lista de comentários a partir do dicionário do quesito ou retorna lista vazia."""
+    if isinstance(dados_q, dict):
+        coms = dados_q.get("comentarios", [])
+        return coms if isinstance(coms, list) else []
+    elif isinstance(dados_q, list):
+        return dados_q
+    return []
+
+
 def load_respostas(ano):
-    # Ajustado para usar as colunas reais: link e comentario
     query = """
         SELECT id, ano, quesito, resposta, pontos, link, comentario
         FROM respostas_ieduc
@@ -37,23 +46,26 @@ def load_respostas(ano):
                     q_id = str(row["quesito"])
                     val_bruto = row["resposta"] or ""
 
-                    # Tenta desserializar JSON
+                    # Tenta converter resposta de JSON caso seja dicionário/lista salvos como string
                     val_final = val_bruto
                     if isinstance(val_bruto, str) and (
                         (val_bruto.startswith("[") and val_bruto.endswith("]"))
-                        or (val_bruto.startswith("{") and val_bruto.endswith("}"))
+                        or (
+                            val_bruto.startswith("{")
+                            and val_bruto.endswith("}")
+                        )
                     ):
                         try:
                             val_final = json.loads(val_bruto)
                         except Exception:
                             val_final = val_bruto
 
-                    # Trata o campo link
+                    # Processa campo link
                     link_val = row.get("link") or ""
                     if link_val == "EMPTY_STRING":
                         link_val = ""
 
-                    # Trata o campo comentario
+                    # Processa campo comentario
                     coment_raw = row.get("comentario") or ""
                     comentarios_val = []
                     if coment_raw and coment_raw != "EMPTY_STRING":
@@ -74,7 +86,7 @@ def load_respostas(ano):
                         "status": "Pendente",
                     }
     except Exception as e:
-        print(f"❌ Erro ao carregar respostas: {e}")
+        print(f"❌ Erro ao carregar respostas de respostas_ieduc: {e}")
     return respostas
 
 
@@ -83,11 +95,11 @@ def save_resposta(
 ):
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(str(qid), {})
-        comentarios = dados_atuais.get("comentarios", [])
+        comentarios = _obter_lista_comentarios(dados_atuais)
 
     link_final = link.strip() if link else "EMPTY_STRING"
 
-    # Serialização do valor da resposta
+    # Serialização do campo 'resposta'
     if isinstance(valor, (list, dict)):
         resposta_str = json.dumps(valor, ensure_ascii=False)
     else:
@@ -124,9 +136,22 @@ def save_resposta(
                     ),
                 )
                 conn.commit()
-                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso!")
+                print(
+                    f"✅ Quesito {qid} ({ano}) salvo com sucesso na tabela respostas_ieduc!"
+                )
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta: {e}")
+        print(f"❌ Erro ao salvar resposta na tabela respostas_ieduc: {e}")
+
+
+def zerar_questionario_db(ano):
+    query = "DELETE FROM respostas_ieduc WHERE ano = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (int(ano),))
+                conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao zerar questionário no DB: {e}")
 
 # ==========================================
 # FUNÇÃO AUXILIAR (CORRIGE O NameError)
