@@ -17317,6 +17317,421 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("E3.6", res_data, render_conteudo.refresh)
 
+# -----------------------------------------------------------------------------
+                    # QUESITO E3.7 - Taxa de Reprovação dos Anos Iniciais
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.7 • Taxa de Reprovação nos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a taxa de reprovação para a etapa de ensino dos Anos Iniciais (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e37 = res_data.get("E3.7") or res_data.get("E37") or {}
+                        val_e37 = d_e37.get("taxa_reprovacao") or 0.0
+                        link_e37 = str(d_e37.get("link") or "")
+
+                        state_e37 = {
+                            "taxa_reprovacao": float(val_e37) if str(val_e37).replace(".", "", 1).isdigit() else 0.0,
+                            "link": link_e37,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Taxa de Reprovação (%):",
+                                value=state_e37["taxa_reprovacao"],
+                                min=0.0,
+                                max=100.0,
+                                step=0.1,
+                                format="%.2f",
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_e37, "taxa_reprovacao")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e37["link"],
+                            placeholder="Link do relatório do Censo Escolar com a taxa de reprovação...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e37, "link")
+
+                        ui.label("📊 Pontuação Quesito E3.7: 0,00 ponto(s) (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_e37():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.7",
+                                valor=f"{state_e37['taxa_reprovacao']}%",
+                                pontos=0.0,
+                                link=state_e37["link"],
+                                comentarios=d_e37.get("comentarios", []),
+                                status=d_e37.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.7 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.7", on_click=salvar_e37).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.7", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.8 - Taxa de Abandono e Distorção Idade-Série
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.8 • Taxa de Abandono e Distorção Idade-Série").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe as taxas dos Anos Iniciais dos anos de 2022, 2023 e 2024 (Dados Censo Escolar 2024):").classes("text-base font-bold text-black mb-4")
+
+                        d_e38 = res_data.get("E3.8") or res_data.get("E38") or {}
+                        link_e38 = str(d_e38.get("link") or "")
+
+                        state_e38 = {
+                            "ta_2022": float(d_e38.get("ta_2022") or 0.0),
+                            "ta_2023": float(d_e38.get("ta_2023") or 0.0),
+                            "ta_2024": float(d_e38.get("ta_2024") or 0.0),
+                            "td_2022": float(d_e38.get("td_2022") or 0.0),
+                            "td_2023": float(d_e38.get("td_2023") or 0.0),
+                            "td_2024": float(d_e38.get("td_2024") or 0.0),
+                            "link": link_e38,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e38():
+                            ta2 = state_e38["ta_2022"]
+                            ta1 = state_e38["ta_2023"]
+                            ta = state_e38["ta_2024"]
+
+                            td2 = state_e38["td_2022"]
+                            td1 = state_e38["td_2023"]
+                            td = state_e38["td_2024"]
+
+                            media_ta = (ta2 + ta1) / 2.0
+                            pts_ta = -5.0 if ta >= media_ta else 0.0
+
+                            media_td = (td2 + td1) / 2.0
+                            pts_td = -5.0 if td >= media_td else 0.0
+
+                            total_pts = pts_ta + pts_td
+                            state_e38["pontos"] = total_pts
+
+                            str_pts = f"{total_pts:.1f}".replace(".", ",")
+                            lbl_pontos_e38.set_text(
+                                f"📊 Média TA (22/23): {media_ta:.2f}% | Média TD (22/23): {media_td:.2f}%\n"
+                                f"Penalidade TA: {pts_ta:.1f} pts | Penalidade TD: {pts_td:.1f} pts | Pontuação Final: {str_pts} ponto(s)"
+                            )
+
+                        with ui.grid(columns=3).classes("w-full gap-4 items-start mb-4"):
+                            ui.number(
+                                label="Taxa de Abandono 2022 (TA-2):",
+                                value=state_e38["ta_2022"],
+                                min=0.0,
+                                step=0.01,
+                                format="%.2f",
+                                on_change=lambda e: [state_e38.update({"ta_2022": float(e.value or 0.0)}), calc_e38()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Taxa de Abandono 2023 (TA-1):",
+                                value=state_e38["ta_2023"],
+                                min=0.0,
+                                step=0.01,
+                                format="%.2f",
+                                on_change=lambda e: [state_e38.update({"ta_2023": float(e.value or 0.0)}), calc_e38()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Taxa de Abandono 2024 (TA):",
+                                value=state_e38["ta_2024"],
+                                min=0.0,
+                                step=0.01,
+                                format="%.2f",
+                                on_change=lambda e: [state_e38.update({"ta_2024": float(e.value or 0.0)}), calc_e38()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Distorção Idade-Série 2022 (TD-2):",
+                                value=state_e38["td_2022"],
+                                min=0.0,
+                                step=0.01,
+                                format="%.2f",
+                                on_change=lambda e: [state_e38.update({"td_2022": float(e.value or 0.0)}), calc_e38()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Distorção Idade-Série 2023 (TD-1):",
+                                value=state_e38["td_2023"],
+                                min=0.0,
+                                step=0.01,
+                                format="%.2f",
+                                on_change=lambda e: [state_e38.update({"td_2023": float(e.value or 0.0)}), calc_e38()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Distorção Idade-Série 2024 (TD):",
+                                value=state_e38["td_2024"],
+                                min=0.0,
+                                step=0.01,
+                                format="%.2f",
+                                on_change=lambda e: [state_e38.update({"td_2024": float(e.value or 0.0)}), calc_e38()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2024):",
+                            value=state_e38["link"],
+                            placeholder="Link das relatórios de rendimento e distorção idade-série...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e38, "link")
+
+                        lbl_pontos_e38 = ui.label("📊 Pontuação Quesito E3.8: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
+                        calc_e38()
+
+                        def salvar_e38():
+                            val_str = (
+                                f"TA22:{state_e38['ta_2022']}%, TA23:{state_e38['ta_2023']}%, TA24:{state_e38['ta_2024']}% | "
+                                f"TD22:{state_e38['td_2022']}%, TD23:{state_e38['td_2023']}%, TD24:{state_e38['td_2024']}%"
+                            )
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.8",
+                                valor=val_str,
+                                pontos=state_e38["pontos"],
+                                link=state_e38["link"],
+                                comentarios=d_e38.get("comentarios", []),
+                                status=d_e38.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.8 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.8", on_click=salvar_e38).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.8", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.9 - Estabelecimentos com Turmas em Tempo Integral
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.9 • Estabelecimentos de Tempo Integral (Anos Iniciais)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe quantos estabelecimentos dos Anos Iniciais ofereciam turmas em tempo integral (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e39 = res_data.get("E3.9") or res_data.get("E39") or {}
+                        val_e39_integ = d_e39.get("escolas_integral") or 0
+                        val_e39_tot = d_e39.get("total_escolas") or 0
+                        link_e39 = str(d_e39.get("link") or "")
+
+                        state_e39 = {
+                            "escolas_integral": int(val_e39_integ) if str(val_e39_integ).isdigit() else 0,
+                            "total_escolas": int(val_e39_tot) if str(val_e39_tot).isdigit() else 0,
+                            "link": link_e39,
+                            "porcentagem": 0.0,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e39():
+                            integ = state_e39["escolas_integral"]
+                            tot = state_e39["total_escolas"]
+                            if tot > 0:
+                                p = (integ / tot) * 100.0
+                                state_e39["porcentagem"] = p
+
+                                if p >= 50.0:
+                                    pts = 12.5
+                                elif 40.0 <= p < 50.0:
+                                    pts = 7.0
+                                elif 30.0 <= p < 40.0:
+                                    pts = 3.0
+                                else:
+                                    pts = 0.0
+
+                                state_e39["pontos"] = pts
+                            else:
+                                state_e39["porcentagem"] = 0.0
+                                state_e39["pontos"] = 0.0
+
+                            str_p = f"{state_e39['porcentagem']:.2f}".replace(".", ",")
+                            str_pts = f"{state_e39['pontos']:.1f}".replace(".", ",")
+                            lbl_pontos_e39.set_text(f"📊 Porcentagem de Escolas em Tempo Integral: {str_p}% | Pontuação Quesito E3.9: {str_pts} ponto(s)")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Escolas com Turmas em Tempo Integral:",
+                                value=state_e39["escolas_integral"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e39.update({"escolas_integral": int(e.value or 0)}), calc_e39()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Total de Escolas (Anos Iniciais):",
+                                value=state_e39["total_escolas"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e39.update({"total_escolas": int(e.value or 0)}), calc_e39()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e39["link"],
+                            placeholder="Link do relatório de escolas com turmas integrais...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e39, "link")
+
+                        lbl_pontos_e39 = ui.label("📊 Porcentagem de Escolas em Tempo Integral: 0,00% | Pontuação Quesito E3.9: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e39()
+
+                        def salvar_e39():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.9",
+                                valor=f"{state_e39['escolas_integral']}/{state_e39['total_escolas']} ({state_e39['porcentagem']:.1f}%)",
+                                pontos=state_e39["pontos"],
+                                link=state_e39["link"],
+                                comentarios=d_e39.get("comentarios", []),
+                                status=d_e39.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.9 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.9", on_click=salvar_e39).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.9", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.10 - Alunos Matriculados em Tempo Integral
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.10 • Alunos em Tempo Integral (Anos Iniciais)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe quantos alunos dos Anos Iniciais foram matriculados em turmas de tempo integral (>= 7 horas/dia - Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e310 = res_data.get("E3.10") or res_data.get("E310") or {}
+                        val_e310_alunos = d_e310.get("alunos_integral") or 0
+                        val_e310_tot = d_e310.get("total_alunos") or 0
+                        link_e310 = str(d_e310.get("link") or "")
+
+                        state_e310 = {
+                            "alunos_integral": int(val_e310_alunos) if str(val_e310_alunos).isdigit() else 0,
+                            "total_alunos": int(val_e310_tot) if str(val_e310_tot).isdigit() else 0,
+                            "link": link_e310,
+                            "porcentagem": 0.0,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e310():
+                            al_integ = state_e310["alunos_integral"]
+                            tot = state_e310["total_alunos"]
+                            if tot > 0:
+                                p = (al_integ / tot) * 100.0
+                                state_e310["porcentagem"] = p
+
+                                if p >= 25.0:
+                                    pts = 12.5
+                                elif 20.0 <= p < 25.0:
+                                    pts = 7.0
+                                elif 15.0 <= p < 20.0:
+                                    pts = 3.0
+                                else:
+                                    pts = 0.0
+
+                                state_e310["pontos"] = pts
+                            else:
+                                state_e310["porcentagem"] = 0.0
+                                state_e310["pontos"] = 0.0
+
+                            str_p = f"{state_e310['porcentagem']:.2f}".replace(".", ",")
+                            str_pts = f"{state_e310['pontos']:.1f}".replace(".", ",")
+                            lbl_pontos_e310.set_text(f"📊 Porcentagem de Alunos em Tempo Integral: {str_p}% | Pontuação Quesito E3.10: {str_pts} ponto(s)")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Alunos Matriculados em Tempo Integral:",
+                                value=state_e310["alunos_integral"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e310.update({"alunos_integral": int(e.value or 0)}), calc_e310()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Total de Alunos (Anos Iniciais):",
+                                value=state_e310["total_alunos"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e310.update({"total_alunos": int(e.value or 0)}), calc_e310()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e310["link"],
+                            placeholder="Link do relatório de matrículas do Censo Escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e310, "link")
+
+                        lbl_pontos_e310 = ui.label("📊 Porcentagem de Alunos em Tempo Integral: 0,00% | Pontuação Quesito E3.10: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e310()
+
+                        def salvar_e310():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.10",
+                                valor=f"{state_e310['alunos_integral']}/{state_e310['total_alunos']} ({state_e310['porcentagem']:.1f}%)",
+                                pontos=state_e310["pontos"],
+                                link=state_e310["link"],
+                                comentarios=d_e310.get("comentarios", []),
+                                status=d_e310.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.10 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.10", on_click=salvar_e310).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.10", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.11 - Alunos Matriculados no Período Noturno
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.11 • Alunos do Período Noturno (Anos Iniciais)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe quantos alunos dos Anos Iniciais foram matriculados em turmas de período noturno (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e311 = res_data.get("E3.11") or res_data.get("E311") or {}
+                        val_e311 = d_e311.get("alunos_noturno") or 0
+                        link_e311 = str(d_e311.get("link") or "")
+
+                        state_e311 = {
+                            "alunos_noturno": int(val_e311) if str(val_e311).isdigit() else 0,
+                            "link": link_e311,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Alunos Matriculados no Turno Noturno:",
+                                value=state_e311["alunos_noturno"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_e311, "alunos_noturno")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e311["link"],
+                            placeholder="Link do relatório de matrículas por turno do Censo Escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e311, "link")
+
+                        ui.label("📊 Pontuação Quesito E3.11: 0,00 ponto(s) (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_e311():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.11",
+                                valor=f"{state_e311['alunos_noturno']} aluno(s)",
+                                pontos=0.0,
+                                link=state_e311["link"],
+                                comentarios=d_e311.get("comentarios", []),
+                                status=d_e311.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.11 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.11", on_click=salvar_e311).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.11", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
