@@ -15627,6 +15627,223 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("E1.4", res_data, render_conteudo.refresh)
 
+# -----------------------------------------------------------------------------
+                    # QUESITO E1.5 - PPP Atualizado nos Estabelecimentos de Creche (Censo Escolar)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E1.5 • PPP Atualizado nos Estabelecimentos de Creche").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a quantidade de estabelecimentos que oferecem Creche na rede municipal de ensino (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e15 = res_data.get("E1.5") or res_data.get("E15") or {}
+                        val_e15_ppp = d_e15.get("com_ppp") or 0
+                        val_e15_tot = d_e15.get("total") or 0
+                        link_e15 = str(d_e15.get("link") or "")
+
+                        state_e15 = {
+                            "com_ppp": int(val_e15_ppp) if str(val_e15_ppp).isdigit() else 0,
+                            "total": int(val_e15_tot) if str(val_e15_tot).isdigit() else 0,
+                            "link": link_e15,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e15():
+                            tot = state_e15["total"]
+                            com = state_e15["com_ppp"]
+                            if tot > 0:
+                                p = min(com / tot, 1.0)
+                                state_e15["pontos"] = round(p * 6.0, 2)
+                            else:
+                                state_e15["pontos"] = 0.0
+                            lbl_pontos_e15.set_text(f"📊 Pontuação Quesito E1.5: {state_e15['pontos']:.2f} ponto(s)".replace(".", ","))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Estabelecimentos com Creche e PPP Atualizado:",
+                                value=state_e15["com_ppp"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e15.update({"com_ppp": int(e.value or 0)}), calc_e15()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Total de Estabelecimentos que Oferecem Creche:",
+                                value=state_e15["total"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e15.update({"total": int(e.value or 0)}), calc_e15()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e15["link"],
+                            placeholder="Link do relatório ou extrato do Censo Escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e15, "link")
+
+                        lbl_pontos_e15 = ui.label("📊 Pontuação Quesito E1.5: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e15()
+
+                        def salvar_e15():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E1.5",
+                                valor=f"{state_e15['com_ppp']}/{state_e15['total']}",
+                                pontos=state_e15["pontos"],
+                                link=state_e15["link"],
+                                comentarios=d_e15.get("comentarios", []),
+                                status=d_e15.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E1.5 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E1.5", on_click=salvar_e15).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E1.5", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E1.6 - Quantidade de Professores de Creche (Efetivos vs Temporários)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E1.6 • Proporção de Professores Temporários na Creche").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a quantidade de professores de Creche (Efetivos e Temporários - Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e16 = res_data.get("E1.6") or res_data.get("E16") or {}
+                        val_e16_e = d_e16.get("efetivos") or 0
+                        val_e16_t = d_e16.get("temporarios") or 0
+                        link_e16 = str(d_e16.get("link") or "")
+
+                        state_e16 = {
+                            "efetivos": int(val_e16_e) if str(val_e16_e).isdigit() else 0,
+                            "temporarios": int(val_e16_t) if str(val_e16_t).isdigit() else 0,
+                            "link": link_e16,
+                            "pontos": 0.0,
+                            "porcentagem": 0.0,
+                        }
+
+                        def calc_e16():
+                            e = state_e16["efetivos"]
+                            t = state_e16["temporarios"]
+                            total = e + t
+                            if total > 0:
+                                p = (t / total) * 100.0
+                                state_e16["porcentagem"] = p
+                                if p <= 10.0:
+                                    state_e16["pontos"] = 2.0
+                                else:
+                                    state_e16["pontos"] = 0.0
+                            else:
+                                state_e16["porcentagem"] = 0.0
+                                state_e16["pontos"] = 0.0
+
+                            str_p = f"{state_e16['porcentagem']:.1f}".replace(".", ",")
+                            str_pts = f"{state_e16['pontos']:.1f}".replace(".", ",")
+                            lbl_pontos_e16.set_text(f"📊 Porcentagem de Temporários: {str_p}% | Pontuação Quesito E1.6: {str_pts} ponto(s)")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Professores Efetivos (E):",
+                                value=state_e16["efetivos"],
+                                min=0,
+                                step=1,
+                                on_change=lambda ev: [state_e16.update({"efetivos": int(ev.value or 0)}), calc_e16()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Professores Temporários (T):",
+                                value=state_e16["temporarios"],
+                                min=0,
+                                step=1,
+                                on_change=lambda ev: [state_e16.update({"temporarios": int(ev.value or 0)}), calc_e16()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e16["link"],
+                            placeholder="Link do extrato de docentes do Censo Escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e16, "link")
+
+                        lbl_pontos_e16 = ui.label("📊 Porcentagem de Temporários: 0,0% | Pontuação Quesito E1.6: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e16()
+
+                        def salvar_e16():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E1.6",
+                                valor=f"Efetivos: {state_e16['efetivos']}, Temporários: {state_e16['temporarios']}",
+                                pontos=state_e16["pontos"],
+                                link=state_e16["link"],
+                                comentarios=d_e16.get("comentarios", []),
+                                status=d_e16.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E1.6 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E1.6", on_click=salvar_e16).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E1.6", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E1.7 - Quantidade de Profissionais de Creche (Regentes e Apoio)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E1.7 • Quantidade de Profissionais de Creche").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a quantidade de profissionais de creche relativos ao exercício de 2025:").classes("text-base font-bold text-black mb-4")
+
+                        d_e17 = res_data.get("E1.7") or res_data.get("E17") or {}
+                        val_e17_reg = d_e17.get("regentes") or 0
+                        val_e17_apo = d_e17.get("apoio") or 0
+                        link_e17 = str(d_e17.get("link") or "")
+
+                        state_e17 = {
+                            "regentes": int(val_e17_reg) if str(val_e17_reg).isdigit() else 0,
+                            "apoio": int(val_e17_apo) if str(val_e17_apo).isdigit() else 0,
+                            "link": link_e17,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Total de professores regentes de creche:",
+                                value=state_e17["regentes"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_e17, "regentes")
+
+                            ui.number(
+                                label="Total de profissionais de apoio e supervisão pedagógica:",
+                                value=state_e17["apoio"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_e17, "apoio")
+
+                        ui.textarea(
+                            label="Link de Evidência / Quadro de Pessoal (Exercício 2025):",
+                            value=state_e17["link"],
+                            placeholder="Link da folha/quadro demonstrativo de profissionais...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e17, "link")
+
+                        ui.label("📊 Pontuação Quesito E1.7: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_e17():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E1.7",
+                                valor=f"Regentes: {state_e17['regentes']}, Apoio/Supervisão: {state_e17['apoio']}",
+                                pontos=0.0,
+                                link=state_e17["link"],
+                                comentarios=d_e17.get("comentarios", []),
+                                status=d_e17.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E1.7 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E1.7", on_click=salvar_e17).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E1.7", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
