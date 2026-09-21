@@ -671,6 +671,120 @@ def container_formulario_saude(ano=None):
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
 
+    # ==========================================
+                    # QUESITO 1.0
+                    # ==========================================
+                    opcoes_1_0 = {
+                        "Selecione...": 0.0,
+                        "Sim, com propostas para construção das diretrizes e metas da saúde municipal – 05": 5.0,
+                        "Sim, apenas aprovando as propostas da gestão (Secretaria Municipal) – 02": 2.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.0",
+                        titulo="Elaboração do Plano Municipal de Saúde",
+                        pergunta="O Conselho Municipal de Saúde participou da elaboração do Plano Municipal de Saúde 2026-2029?",
+                        tipo_input="radio",
+                        opcoes=opcoes_1_0,
+                        placeholder_link="Insira o link da ata da reunião do CMS ou documento comprovatório...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 2.0
+                    # ==========================================
+                    opcoes_2_0 = {
+                        "Selecione...": 0.0,
+                        "Até prazo de envio à Câmara Municipal do projeto de lei sobre PPA 2026-2029 – 10": 10.0,
+                        "Aprovado após prazo de envio à Câmara Municipal do projeto de lei sobre o PPA 2026-2029, mas antes da aprovação do PPA 2026-2029 pela Câmara Municipal – 07": 7.0,
+                        "Aprovado após a aprovação do PPA 2026-2029 pela Câmara Municipal – 03": 3.0,
+                        "Não aprovado – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="2.0",
+                        titulo="Aprovação do Plano Municipal de Saúde",
+                        pergunta="Quando ocorreu a aprovação do Plano Municipal de Saúde 2026-2029 pelo Conselho Municipal da Saúde?",
+                        tipo_input="radio",
+                        opcoes=opcoes_2_0,
+                        placeholder_link="Insira o link da resolução de aprovação do CMS ou ata...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 3.0
+                    # ==========================================
+                    opcoes_3_0 = {
+                        "Selecione...": 0.0,
+                        "Até prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2025 – 10": 10.0,
+                        "Aprovado após prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2025, mas antes da aprovação da LDO 2025 pela Câmara Municipal – 07": 7.0,
+                        "Aprovado após a aprovação da LDO 2025 pela Câmara Municipal – 03": 3.0,
+                        "Não aprovado – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.0",
+                        titulo="Aprovação da Programação Anual de Saúde",
+                        pergunta="Quando ocorreu a aprovação da Programação Anual de Saúde de 2025 pelo Conselho Municipal de Saúde?",
+                        tipo_input="radio",
+                        opcoes=opcoes_3_0,
+                        placeholder_link="Insira o link do ato de aprovação/resolução do CMS...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 3.1
+                    # ==========================================
+                    opcoes_3_1 = {
+                        "Selecione...": 0.0,
+                        "Sim, todas as ações foram executadas – 04": 4.0,
+                        "Sim, a maior parte das ações foram executadas – 02": 2.0,
+                        "Sim, a menor parte das ações foram executadas – 01": 1.0,
+                        "Nenhuma ação foi executada – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.1",
+                        titulo="Execução da Programação Anual de Saúde",
+                        pergunta="As ações previstas na Programação Anual de Saúde de 2025 foram executadas?",
+                        tipo_input="radio",
+                        opcoes=opcoes_3_1,
+                        placeholder_link="Insira o link do Relatório Anual de Gestão (RAG) ou monitoramento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 3.2
+                    # ==========================================
+                    opcoes_3_2 = {
+                        "Selecione...": 0.0,
+                        "Sim, todas as metas foram atingidas – 04": 4.0,
+                        "Sim, a maior parte das metas foram atingidas – 02": 2.0,
+                        "Sim, a menor parte das metas foram atingidas – 01": 1.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.2",
+                        titulo="Metas dos Indicadores da PAS",
+                        pergunta="As metas previstas para os indicadores foram atingidas na Programação Anual de Saúde de 2025?",
+                        tipo_input="radio",
+                        opcoes=opcoes_3_2,
+                        placeholder_link="Insira o link da avaliação de indicadores / RAG 2025...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
 
     render_conteudo()
 
