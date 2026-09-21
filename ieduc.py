@@ -10391,6 +10391,173 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("4.0", res_data, render_conteudo.refresh)
 
+                    # =============================================================================
+                    # QUESITO 5.0 (Infraestrutura, Segurança e Capacitação - Creche, Pré e Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("5.0 • Infraestrutura e Segurança da Rede Municipal (Creche, Pré-Escola e Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de estabelecimentos de ensino da rede municipal que oferecem Creche, Pré-escola e Anos Iniciais do Ensino Fundamental:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Considerar somente os estabelecimentos sob gestão municipal (Database - CENSO 2025)."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d50 = res_data.get("5.0") or res_data.get("5") or {}
+                        raw_val_50 = d50.get("valor") or {}
+
+                        if not isinstance(raw_val_50, dict):
+                            raw_val_50 = {}
+
+                        raw_link_50 = str(d50.get("link") or "")
+
+                        state_50 = {
+                            "total_escolas": str(raw_val_50.get("total_escolas", 0)),
+                            "qtd_avcb": str(raw_val_50.get("qtd_avcb", 0)),
+                            "qtd_reparos": str(raw_val_50.get("qtd_reparos", 0)),
+                            "qtd_socorros": str(raw_val_50.get("qtd_socorros", 0)),
+                            "link": raw_link_50,
+                        }
+
+                        # --- Campo Base: Total de Estabelecimentos ---
+                        with ui.row().classes("w-full items-center mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200"):
+                            ui.label("Total de estabelecimentos municipais (CENSO 2025):").classes(
+                                "text-sm font-bold text-blue-900 w-2/3"
+                            )
+                            inp_total = ui.input(
+                                value=state_50["total_escolas"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/3 bg-white")
+                            inp_total.bind_value(state_50, "total_escolas")
+
+                        ui.separator().classes("mb-6")
+
+                        # --- Item 1: AVCB Vigente em 2025 (Pmax = 50 pts) ---
+                        ui.label("1. Estabelecimentos que possuíam AVCB (Auto de Vistoria do Corpo de Bombeiros) vigente no ano de 2025:").classes(
+                            "text-sm font-bold text-gray-800 mb-2"
+                        )
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Quantidade de unidades com AVCB:").classes("text-sm text-gray-700 w-1/2")
+                            inp_avcb = ui.input(
+                                value=state_50["qtd_avcb"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_avcb.bind_value(state_50, "qtd_avcb")
+
+                        lbl_pts_avcb = ui.label("Nota AVCB: 0.0 / 50.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        # --- Item 2: Necessidade de Reparos em Dezembro/2025 (Pmax = 25 pts) ---
+                        ui.label("2. Estabelecimentos que necessitavam de reparos (conserto de janelas, rachaduras, infiltrações, fiação elétrica, substituição de azulejos danificados, etc) em dezembro de 2025:").classes(
+                            "text-sm font-bold text-gray-800 mb-2"
+                        )
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Quantidade de unidades que necessitavam de reparos:").classes("text-sm text-gray-700 w-1/2")
+                            inp_reparos = ui.input(
+                                value=state_50["qtd_reparos"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_reparos.bind_value(state_50, "qtd_reparos")
+
+                        lbl_pts_reparos = ui.label("Nota Reparos: 0.0 / 25.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        # --- Item 3: Capacitação em Primeiros Socorros em 2025 ---
+                        ui.label("3. Estabelecimentos que capacitaram professores e funcionários em noções de primeiros socorros no ano de 2025:").classes(
+                            "text-sm font-bold text-gray-800 mb-2"
+                        )
+                        with ui.row().classes("w-full items-center mb-6 gap-4"):
+                            ui.label("Quantidade de unidades capacitadas:").classes("text-sm text-gray-700 w-1/2")
+                            inp_socorros = ui.input(
+                                value=state_50["qtd_socorros"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_socorros.bind_value(state_50, "qtd_socorros")
+
+                        # --- Lógica de Cálculo de Pontuações Finais ---
+                        def recalc_pontos_50():
+                            try:
+                                total = float(state_50["total_escolas"])
+                            except ValueError:
+                                total = 0.0
+
+                            try:
+                                qtd_avcb = float(state_50["qtd_avcb"])
+                            except ValueError:
+                                qtd_avcb = 0.0
+
+                            try:
+                                qtd_reparos = float(state_50["qtd_reparos"])
+                            except ValueError:
+                                qtd_reparos = 0.0
+
+                            # Cálculo AVCB: NF = P * 50
+                            if total > 0:
+                                p_avcb = min(max(qtd_avcb / total, 0.0), 1.0)
+                                nf_avcb = p_avcb * 50.0
+                            else:
+                                nf_avcb = 0.0
+
+                            # Cálculo Reparos: NF = (1 - P) * 25
+                            if total > 0:
+                                p_reparos = min(max(qtd_reparos / total, 0.0), 1.0)
+                                nf_reparos = (1.0 - p_reparos) * 25.0
+                            else:
+                                nf_reparos = 0.0
+
+                            lbl_pts_avcb.set_text(f"📊 Nota AVCB: {nf_avcb:.2f} / 50.0 pontos (Proporção: {(p_avcb*100 if total > 0 else 0):.1f}%)")
+                            lbl_pts_reparos.set_text(f"📊 Nota Conservação/Reparos: {nf_reparos:.2f} / 25.0 pontos (Proporção com reparos: {(p_reparos*100 if total > 0 else 0):.1f}%)")
+
+                            return round(nf_avcb + nf_reparos, 2)
+
+                        inp_total.on("update:model-value", recalc_pontos_50)
+                        inp_avcb.on("update:model-value", recalc_pontos_50)
+                        inp_reparos.on("update:model-value", recalc_pontos_50)
+                        inp_socorros.on("update:model-value", recalc_pontos_50)
+
+                        # Inicializar os textos informativos de notas
+                        recalc_pontos_50()
+
+                        ui.textarea(
+                            label="Link de Evidência / Laudos do Corpo de Bombeiros / Relatórios de Manutenção / Certificados de Primeiros Socorros:",
+                            value=raw_link_50,
+                            placeholder="Link das pastas com AVCBs, ordens de serviço de manutenção predial e lista da Lei Lucas...",
+                        ).classes("w-full mb-4").props("outlined rows=3").bind_value(
+                            state_50, "link"
+                        )
+
+                        def salvar_50():
+                            pts_totais = recalc_pontos_50()
+
+                            dados_salvar = {
+                                "total_escolas": int(state_50["total_escolas"]) if state_50["total_escolas"].isdigit() else 0,
+                                "qtd_avcb": int(state_50["qtd_avcb"]) if state_50["qtd_avcb"].isdigit() else 0,
+                                "qtd_reparos": int(state_50["qtd_reparos"]) if state_50["qtd_reparos"].isdigit() else 0,
+                                "qtd_socorros": int(state_50["qtd_socorros"]) if state_50["qtd_socorros"].isdigit() else 0,
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="5.0",
+                                valor=dados_salvar,
+                                pontos=pts_totais,
+                                link=state_50["link"],
+                                comentarios=d50.get("comentarios", []),
+                                status=d50.get("status", "Pendente"),
+                            )
+
+                            ui.notify(f"Quesito 5.0 salvo com sucesso! (Pontuação acumulada: {pts_totais:.2f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 5.0", on_click=salvar_50).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("5.0", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
