@@ -10219,6 +10219,178 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("3.23.1", res_data, render_conteudo.refresh)
 
+                    # =============================================================================
+                    # QUESITO 3.23.2 (Motivos do Abandono Escolar)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.23.2 • Quantidade de Crianças que Abandonaram a Escola por Motivo").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de crianças que abandonaram a escola pelos seguintes motivos:"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d3232 = res_data.get("3.232") or res_data.get("3.23.2") or {}
+                        raw_val_3232 = d3232.get("valor") or {}
+
+                        # Garantir estrutura em dicionário para persistência individualizada
+                        if not isinstance(raw_val_3232, dict):
+                            raw_val_3232 = {}
+
+                        motivos_3232 = [
+                            ("acesso", "Dificuldade de acesso à escola:"),
+                            ("desinteresse", "Desinteresse:"),
+                            ("trabalho", "Necessidade de trabalhar:"),
+                            ("infraestrutura", "Falta de infraestrutura escolar:"),
+                            ("bullying", "Bullying:"),
+                            ("mudanca", "Mudança de localidade (país, estado ou município):"),
+                            ("outros", "Outros (especifique no campo Comentários):"),
+                        ]
+
+                        state_3232 = {
+                            key: str(raw_val_3232.get(key, 0)) for key, _ in motivos_3232
+                        }
+                        raw_link_3232 = str(d3232.get("link") or "")
+                        state_3232["link"] = raw_link_3232
+
+                        inputs_3232 = {}
+
+                        with ui.grid(columns=2).classes("w-full gap-4 items-center mb-4"):
+                            for key, label_text in motivos_3232:
+                                ui.label(label_text).classes("text-sm font-medium text-gray-700")
+                                inp = ui.input(
+                                    value=state_3232[key]
+                                ).props("type=number outlined dense color=blue").classes("w-full")
+                                inp.bind_value(state_3232, key)
+                                inputs_3232[key] = inp
+
+                        def calcular_total_3232():
+                            total = 0
+                            for key, _ in motivos_3232:
+                                try:
+                                    total += int(state_3232.get(key, 0))
+                                except ValueError:
+                                    pass
+                            return total
+
+                        lbl_total_3232 = ui.label(
+                            f"Total de alunos contabilizados: {calcular_total_3232()}"
+                        ).classes("text-sm font-bold text-gray-800 my-2")
+
+                        def atualizar_total_3232():
+                            lbl_total_3232.set_text(
+                                f"Total de alunos contabilizados: {calcular_total_3232()}"
+                            )
+
+                        for inp in inputs_3232.values():
+                            inp.on("update:model-value", atualizar_total_3232)
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório de Motivos de Abandono Escolar:",
+                            value=raw_link_3232,
+                            placeholder="Link do relatório consolidado de evadidos / desistentes no ano...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_3232, "link"
+                        )
+
+                        def salvar_3232():
+                            # Montar objeto estruturado com as quantificações por motivo
+                            dados_salvar = {
+                                key: int(state_3232[key]) if state_3232[key].isdigit() else 0
+                                for key, _ in motivos_3232
+                            }
+                            dados_salvar["total"] = calcular_total_3232()
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.23.2",
+                                valor=dados_salvar,
+                                pontos=0.0,
+                                link=state_3232["link"],
+                                comentarios=d3232.get("comentarios", []),
+                                status=d3232.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.23.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.23.2", on_click=salvar_3232).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.23.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 4.0 (Oferta dos Anos Finais do Ensino Fundamental)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("4.0 • Oferta dos Anos Finais do Ensino Fundamental").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A Prefeitura Municipal oferece os Anos Finais do Ensino Fundamental (6º ao 9º ano)?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d40 = res_data.get("4.0") or res_data.get("4") or {}
+
+                        opcoes_40 = [
+                            "Selecione...",
+                            "Sim",
+                            "Não",
+                        ]
+
+                        val_40_bruto = str(d40.get("valor") or "")
+                        val_40_valido = "Selecione..."
+                        if val_40_bruto in opcoes_40:
+                            val_40_valido = val_40_bruto
+
+                        raw_link_40 = str(d40.get("link") or "")
+
+                        state_40 = {
+                            "opcao": val_40_valido,
+                            "link": raw_link_40,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_40 = ui.radio(
+                                options=opcoes_40,
+                                value=state_40["opcao"],
+                            ).props("color=blue").bind_value(state_40, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Censo Escolar / Decreto de Criação:",
+                                value=raw_link_40,
+                                placeholder="Link do ato normativo de criação da rede dos anos finais ou dado oficial do Censo Escolar...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_40, "link"
+                            )
+
+                        def salvar_40():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="4.0",
+                                valor=state_40["opcao"],
+                                pontos=0.0,
+                                link=state_40["link"],
+                                comentarios=d40.get("comentarios", []),
+                                status=d40.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 4.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 4.0", on_click=salvar_40).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("4.0", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
