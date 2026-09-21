@@ -17732,6 +17732,366 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("E3.11", res_data, render_conteudo.refresh)
 
+            # -----------------------------------------------------------------------------
+                    # QUESITO E3.12 - Alunos com Deficiência / TGD / Altas Habilidades
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.12 • Alunos de Educação Especial (Anos Iniciais)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Há alunos dos Anos Iniciais que possuem deficiência, transtornos globais do desenvolvimento ou altas habilidades/superdotação? (Dados Censo Escolar 2025)").classes("text-base font-bold text-black mb-4")
+
+                        d_e312 = res_data.get("E3.12") or res_data.get("E312") or {}
+                        val_e312 = str(d_e312.get("possui_alunos") or "Não")
+                        link_e312 = str(d_e312.get("link") or "")
+
+                        state_e312 = {
+                            "possui_alunos": val_e312 if val_e312 in ["Sim", "Não"] else "Não",
+                            "link": link_e312,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.select(
+                                options=["Sim", "Não"],
+                                label="Possui alunos da Educação Especial?",
+                                value=state_e312["possui_alunos"],
+                                on_change=lambda e: [state_e312.update({"possui_alunos": e.value}), render_conteudo.refresh() if render_conteudo.refresh else None],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e312["link"],
+                            placeholder="Link do relatório do Censo Escolar para Educação Especial...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e312, "link")
+
+                        ui.label("📊 Pontuação Quesito E3.12: 0,00 ponto(s) (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_e312():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.12",
+                                valor=state_e312["possui_alunos"],
+                                pontos=0.0,
+                                link=state_e312["link"],
+                                comentarios=d_e312.get("comentarios", []),
+                                status=d_e312.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.12 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.12", on_click=salvar_e312).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.12", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.12.1 - Atendimento Pedagógico Especializado (APE)
+                    # -----------------------------------------------------------------------------
+                    if state_e312["possui_alunos"] == "Sim":
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("E3.12.1 • Atendimento Pedagógico Especializado (APE)").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Houve Atendimento Pedagógico Especializado (APE) na Rede Municipal de Ensino? (Dados Censo Escolar 2025)").classes("text-base font-bold text-black mb-4")
+
+                            d_e3121 = res_data.get("E3.12.1") or res_data.get("E3121") or {}
+                            val_e3121 = str(d_e3121.get("houve_ape") or "Não")
+                            link_e3121 = str(d_e3121.get("link") or "")
+
+                            state_e3121 = {
+                                "houve_ape": val_e3121 if val_e3121 in ["Sim", "Não"] else "Não",
+                                "link": link_e3121,
+                                "pontos": 0.0 if val_e3121 == "Sim" else -10.0,
+                            }
+
+                            def calc_e3121():
+                                pts = 0.0 if state_e3121["houve_ape"] == "Sim" else -10.0
+                                state_e3121["pontos"] = pts
+                                str_pts = f"{pts:.1f}".replace(".", ",")
+                                lbl_pontos_e3121.set_text(f"📊 Pontuação Quesito E3.12.1: {str_pts} ponto(s)")
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.select(
+                                    options=["Sim", "Não"],
+                                    label="Houve Atendimento Pedagógico Especializado?",
+                                    value=state_e3121["houve_ape"],
+                                    on_change=lambda e: [state_e3121.update({"houve_ape": e.value}), calc_e3121()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                            ui.textarea(
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                value=state_e3121["link"],
+                                placeholder="Link que comprova a oferta do Atendimento Pedagógico Especializado...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e3121, "link")
+
+                            lbl_pontos_e3121 = ui.label("📊 Pontuação Quesito E3.12.1: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                            calc_e3121()
+
+                            def salvar_e3121():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="E3.12.1",
+                                    valor=state_e3121["houve_ape"],
+                                    pontos=state_e3121["pontos"],
+                                    link=state_e3121["link"],
+                                    comentarios=d_e3121.get("comentarios", []),
+                                    status=d_e3121.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito E3.12.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO E3.12.1", on_click=salvar_e3121).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("E3.12.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.13 - Participação Prova Brasil/SAEB
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.13 • Participação no Prova Brasil/SAEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("O Município participou da última edição da Prova Brasil/SAEB? (Dados INEP)").classes("text-base font-bold text-black mb-4")
+
+                        d_e313 = res_data.get("E3.13") or res_data.get("E313") or {}
+                        val_e313 = str(d_e313.get("participou") or "Sim")
+                        link_e313 = str(d_e313.get("link") or "")
+
+                        state_e313 = {
+                            "participou": val_e313 if val_e313 in ["Sim", "Não"] else "Sim",
+                            "link": link_e313,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.select(
+                                options=["Sim", "Não"],
+                                label="Participou do Prova Brasil/SAEB?",
+                                value=state_e313["participou"],
+                                on_change=lambda e: [state_e313.update({"participou": e.value}), render_conteudo.refresh() if render_conteudo.refresh else None],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (INEP):",
+                            value=state_e313["link"],
+                            placeholder="Link dos resultados do SAEB/INEP para o município...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e313, "link")
+
+                        ui.label("📊 Pontuação Quesito E3.13: 0,00 ponto(s) (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_e313():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.13",
+                                valor=state_e313["participou"],
+                                pontos=0.0,
+                                link=state_e313["link"],
+                                comentarios=d_e313.get("comentarios", []),
+                                status=d_e313.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.13 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.13", on_click=salvar_e313).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.13", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.13.1 - Metas e Resultados do IDEB (5º Ano)
+                    # -----------------------------------------------------------------------------
+                    if state_e313["participou"] == "Sim":
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("E3.13.1 • Metas e Resultados do IDEB (5º Ano)").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe as metas e resultados do IDEB do Município em sua última edição (Dados INEP):").classes("text-base font-bold text-black mb-4")
+
+                            # Verifica se possui indicador próprio a partir do Q3.15
+                            d_q315 = res_data.get("Q3.15") or res_data.get("Q315") or {}
+                            possui_indicador_proprio = str(d_q315.get("valor") or d_q315.get("resposta") or "Não").strip().lower() == "sim"
+
+                            # Pmax = 18 se possuir indicador próprio, 36 se NÃO possuir
+                            pmax_e3131 = 18.0 if possui_indicador_proprio else 36.0
+
+                            d_e3131 = res_data.get("E3.13.1") or res_data.get("E3131") or {}
+                            val_ano_ed = str(d_e3131.get("ano_edicao") or "2023")
+                            val_meta = float(d_e3131.get("meta") or 0.0)
+                            val_res = float(d_e3131.get("resultado") or 0.0)
+                            link_e3131 = str(d_e3131.get("link") or "")
+
+                            state_e3131 = {
+                                "ano_edicao": val_ano_ed,
+                                "meta": val_meta,
+                                "resultado": val_res,
+                                "link": link_e3131,
+                                "pontos": 0.0,
+                            }
+
+                            def calc_e3131():
+                                res = state_e3131["resultado"]
+                                meta = state_e3131["meta"]
+
+                                if res >= meta and (res > 0 or meta > 0):
+                                    pts = pmax_e3131
+                                else:
+                                    pts = 0.0
+
+                                state_e3131["pontos"] = pts
+                                str_pts = f"{pts:.1f}".replace(".", ",")
+                                str_pmax = f"{pmax_e3131:.1f}".replace(".", ",")
+                                ind_text = "Possui indicador próprio (Pmáx=18)" if possui_indicador_proprio else "Não possui indicador próprio (Pmáx=36)"
+                                lbl_pontos_e3131.set_text(
+                                    f"📊 {ind_text} | Resultado: {res:.1f} | Meta: {meta:.1f}\n"
+                                    f"Pontuação Quesito E3.13.1: {str_pts} / {str_pmax} ponto(s)"
+                                )
+
+                            with ui.grid(columns=3).classes("w-full gap-4 items-start mb-4"):
+                                ui.input(
+                                    label="Ano da Última Edição:",
+                                    value=state_e3131["ano_edicao"],
+                                    placeholder="ex: 2023",
+                                ).classes("w-full").props("outlined color=blue").bind_value(state_e3131, "ano_edicao")
+
+                                ui.number(
+                                    label="5º Ano - Meta do IDEB:",
+                                    value=state_e3131["meta"],
+                                    min=0.0,
+                                    max=10.0,
+                                    step=0.1,
+                                    format="%.1f",
+                                    on_change=lambda e: [state_e3131.update({"meta": float(e.value or 0.0)}), calc_e3131()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.number(
+                                    label="5º Ano - Resultado do IDEB:",
+                                    value=state_e3131["resultado"],
+                                    min=0.0,
+                                    max=10.0,
+                                    step=0.1,
+                                    format="%.1f",
+                                    on_change=lambda e: [state_e3131.update({"resultado": float(e.value or 0.0)}), calc_e3131()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                            ui.textarea(
+                                label="Link de Evidência / Fonte dos Dados (INEP/IDEB):",
+                                value=state_e3131["link"],
+                                placeholder="Link do painel de resultados do IDEB no INEP...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e3131, "link")
+
+                            lbl_pontos_e3131 = ui.label("📊 Pontuação Quesito E3.13.1: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
+                            calc_e3131()
+
+                            def salvar_e3131():
+                                val_str = f"Edição:{state_e3131['ano_edicao']} | Meta:{state_e3131['meta']} | Resultado:{state_e3131['resultado']}"
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="E3.13.1",
+                                    valor=val_str,
+                                    pontos=state_e3131["pontos"],
+                                    link=state_e3131["link"],
+                                    comentarios=d_e3131.get("comentarios", []),
+                                    status=d_e3131.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito E3.13.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO E3.13.1", on_click=salvar_e3131).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("E3.13.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.13.2 - Alunos Avaliados no Prova Brasil/SAEB (5º Ano)
+                    # -----------------------------------------------------------------------------
+                    if state_e313["participou"] == "Sim":
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("E3.13.2 • Percentual de Alunos Avaliados no SAEB (5º Ano)").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe o número de alunos presentes e ausentes na última edição do Prova Brasil/SAEB (Dados INEP):").classes("text-base font-bold text-black mb-4")
+
+                            # Verifica se possui indicador próprio a partir do Q3.15
+                            d_q315 = res_data.get("Q3.15") or res_data.get("Q315") or {}
+                            possui_indicador_proprio = str(d_q315.get("valor") or d_q315.get("resposta") or "Não").strip().lower() == "sim"
+
+                            # Pmax = 18 se possuir indicador próprio, 0 se NÃO possuir
+                            pmax_e3132 = 18.0 if possui_indicador_proprio else 0.0
+
+                            d_e3132 = res_data.get("E3.13.2") or res_data.get("E3132") or {}
+                            val_pres = int(d_e3132.get("alunos_presentes") or 0)
+                            val_aus = int(d_e3132.get("alunos_ausentes") or 0)
+                            link_e3132 = str(d_e3132.get("link") or "")
+
+                            state_e3132 = {
+                                "alunos_presentes": val_pres,
+                                "alunos_ausentes": val_aus,
+                                "link": link_e3132,
+                                "p1": 0.0,
+                                "pontos": 0.0,
+                            }
+
+                            def calc_e3132():
+                                pres = state_e3132["alunos_presentes"]
+                                aus = state_e3132["alunos_ausentes"]
+                                total = pres + aus
+
+                                if total > 0:
+                                    p1 = pres / total
+                                    state_e3132["p1"] = p1
+                                    pts = pmax_e3132 * p1
+                                    state_e3132["pontos"] = pts
+                                else:
+                                    state_e3132["p1"] = 0.0
+                                    state_e3132["pontos"] = 0.0
+
+                                str_pct = f"{(state_e3132['p1'] * 100):.2f}".replace(".", ",")
+                                str_pts = f"{state_e3132['pontos']:.2f}".replace(".", ",")
+                                str_pmax = f"{pmax_e3132:.1f}".replace(".", ",")
+                                ind_text = "Possui indicador próprio (Pmáx=18)" if possui_indicador_proprio else "Não possui indicador próprio (Pmáx=0)"
+                                lbl_pontos_e3132.set_text(
+                                    f"📊 {ind_text} | Total Inscritos: {total} | Percentual Avaliados (P1): {str_pct}%\n"
+                                    f"Pontuação Quesito E3.13.2: {str_pts} / {str_pmax} ponto(s)"
+                                )
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.number(
+                                    label="5º Ano - Alunos Presentes:",
+                                    value=state_e3132["alunos_presentes"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e3132.update({"alunos_presentes": int(e.value or 0)}), calc_e3132()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.number(
+                                    label="5º Ano - Alunos Ausentes:",
+                                    value=state_e3132["alunos_ausentes"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e3132.update({"alunos_ausentes": int(e.value or 0)}), calc_e3132()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                            ui.textarea(
+                                label="Link de Evidência / Fonte dos Dados (INEP):",
+                                value=state_e3132["link"],
+                                placeholder="Link do relatório de participação do SAEB...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e3132, "link")
+
+                            lbl_pontos_e3132 = ui.label("📊 Pontuação Quesito E3.13.2: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
+                            calc_e3132()
+
+                            def salvar_e3132():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="E3.13.2",
+                                    valor=f"Presentes: {state_e3132['alunos_presentes']} | Ausentes: {state_e3132['alunos_ausentes']} (P1={state_e3132['p1']*100:.1f}%)",
+                                    pontos=state_e3132["pontos"],
+                                    link=state_e3132["link"],
+                                    comentarios=d_e3132.get("comentarios", []),
+                                    status=d_e3132.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito E3.13.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO E3.13.2", on_click=salvar_e3132).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("E3.13.2", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
