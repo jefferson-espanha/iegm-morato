@@ -18216,6 +18216,226 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E3.13.3", res_data, render_conteudo.refresh)
 
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E5 - Infraestrutura das Escolas da Rede Municipal
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E5 • Infraestrutura das Escolas da Rede Municipal").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a quantidade de estabelecimentos de ensino da rede municipal (Creche, Pré-escola e Anos Iniciais do Ensino Fundamental) e suas condições de infraestrutura (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e5 = res_data.get("E5") or res_data.get("E50") or {}
+
+                        state_e5 = {
+                            "total_escolas": int(d_e5.get("total_escolas") or 0),
+                            "adaptadas": int(d_e5.get("adaptadas") or 0),
+                            "quadra_coberta": int(d_e5.get("quadra_coberta") or 0),
+                            "biblioteca": int(d_e5.get("biblioteca") or 0),
+                            "sala_leitura": int(d_e5.get("sala_leitura") or 0),
+                            "encerradas": int(d_e5.get("encerradas") or 0),
+                            "suspensas": int(d_e5.get("suspensas") or 0),
+                            "sem_agua": int(d_e5.get("sem_agua") or 0),
+                            "sem_esgoto": int(d_e5.get("sem_esgoto") or 0),
+                            "sem_lixo": int(d_e5.get("sem_lixo") or 0),
+                            "sem_banheiro": int(d_e5.get("sem_banheiro") or 0),
+                            "climatizadas": int(d_e5.get("climatizadas") or 0),
+                            "link": str(d_e5.get("link") or ""),
+                            "pts_adaptadas": 0.0,
+                            "pts_quadra": 0.0,
+                            "pts_biblio": 0.0,
+                            "pts_encerradas": 0.0,
+                            "pts_suspensas": 0.0,
+                            "pts_banheiro": 0.0,
+                            "pts_climatizadas": 0.0,
+                            "total_pontos": 0.0,
+                        }
+
+                        lbl_pontos_e5 = ui.label("📊 Pontuação Quesito E5: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
+
+                        def calc_e5():
+                            tot = state_e5["total_escolas"]
+                            
+                            if tot > 0:
+                                # 1. Adaptadas para PWD (Pmáx = 20)
+                                p_adapt = min(state_e5["adaptadas"] / tot, 1.0)
+                                pts_adapt = p_adapt * 20.0
+
+                                # 2. Quadra Poliesportiva Coberta (Pmáx = 15)
+                                p_quadra = min(state_e5["quadra_coberta"] / tot, 1.0)
+                                pts_quadra = p_quadra * 15.0
+
+                                # 3. Biblioteca ou Sala de Leitura (Pmáx = 35)
+                                # Considera escolas que possuem biblioteca OU sala de leitura (máximo limitado ao total)
+                                unicas_bib_leit = min(state_e5["biblioteca"] + state_e5["sala_leitura"], tot)
+                                p_bib = unicas_bib_leit / tot
+                                pts_bib = p_bib * 35.0
+
+                                # 4. Atividades Definitivamente Encerradas (Perde 5 pontos se >= 1)
+                                pts_enc = -5.0 if state_e5["encerradas"] >= 1 else 0.0
+
+                                # 5. Atividades Temporariamente Suspensas (Pmáx = -25)
+                                p_susp = min(state_e5["suspensas"] / tot, 1.0)
+                                pts_susp = -25.0 * p_susp
+
+                                # 6. Sem Banheiros (Pmáx = -30)
+                                p_banh = min(state_e5["sem_banheiro"] / tot, 1.0)
+                                pts_banh = -30.0 * p_banh
+
+                                # 7. Salas Climatizadas (Pmáx = 5)
+                                p_clim = min(state_e5["climatizadas"] / tot, 1.0)
+                                pts_clim = p_clim * 5.0
+                            else:
+                                pts_adapt = pts_quadra = pts_bib = pts_enc = pts_susp = pts_banh = pts_clim = 0.0
+
+                            total_pts = pts_adapt + pts_quadra + pts_bib + pts_enc + pts_susp + pts_banh + pts_clim
+
+                            state_e5["pts_adaptadas"] = pts_adapt
+                            state_e5["pts_quadra"] = pts_quadra
+                            state_e5["pts_biblio"] = pts_bib
+                            state_e5["pts_encerradas"] = pts_enc
+                            state_e5["pts_suspensas"] = pts_susp
+                            state_e5["pts_banheiro"] = pts_banh
+                            state_e5["pts_climatizadas"] = pts_clim
+                            state_e5["total_pontos"] = total_pts
+
+                            lbl_pontos_e5.set_text(
+                                f"📊 Detalhamento da Pontuação E5 (Total Escolas: {tot}):\n"
+                                f" • Adaptadas (PWD): {pts_adapt:.2f} / 20,00 pts\n"
+                                f" • Quadra Coberta: {pts_quadra:.2f} / 15,00 pts\n"
+                                f" • Biblioteca/Sala Leitura: {pts_bib:.2f} / 35,00 pts\n"
+                                f" • Ativ. Encerradas: {pts_enc:.2f} pts\n"
+                                f" • Ativ. Suspensas: {pts_susp:.2f} pts\n"
+                                f" • Sem Banheiro: {pts_banh:.2f} pts\n"
+                                f" • Climatizadas: {pts_clim:.2f} / 5,00 pts\n"
+                                f"🏆 Pontuação Final Quesito E5: {total_pts:.2f} ponto(s)"
+                            )
+
+                        # --- Inputs do Quesito ---
+                        with ui.grid(columns=3).classes("w-full gap-4 items-start mb-4"):
+                            ui.number(
+                                label="Total de Estabelecimentos:",
+                                value=state_e5["total_escolas"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e5.update({"total_escolas": int(e.value or 0)}), calc_e5()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Adaptados p/ Deficiência (PWD):",
+                                value=state_e5["adaptadas"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e3.update({"adaptadas": int(e.value or 0)}) if 'state_e3' in locals() else state_e5.update({"adaptadas": int(e.value or 0)}), calc_e5()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Com Quadra Coberta (Anos Iniciais):",
+                                value=state_e5["quadra_coberta"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e5.update({"quadra_coberta": int(e.value or 0)}), calc_e5()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Com Biblioteca:",
+                                value=state_e5["biblioteca"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e5.update({"biblioteca": int(e.value or 0)}), calc_e5()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Com Sala de Leitura:",
+                                value=state_e5["sala_leitura"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e5.update({"sala_leitura": int(e.value or 0)}), calc_e5()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Com Salas Climatizadas:",
+                                value=state_e5["climatizadas"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e5.update({"climatizadas": int(e.value or 0)}), calc_e5()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.label("⚠️ Indicadores Informativos / Penalidades").classes("text-md font-bold text-red-700 mt-2 mb-2")
+                        
+                        with ui.grid(columns=4).classes("w-full gap-4 items-start mb-4"):
+                            ui.number(
+                                label="Atividades Encerradas:",
+                                value=state_e5["encerradas"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e5.update({"encerradas": int(e.value or 0)}), calc_e5()],
+                            ).classes("w-full").props("outlined color=red")
+
+                            ui.number(
+                                label="Atividades Suspensas:",
+                                value=state_e5["suspensas"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e5.update({"suspensas": int(e.value or 0)}), calc_e5()],
+                            ).classes("w-full").props("outlined color=red")
+
+                            ui.number(
+                                label="Sem Banheiros:",
+                                value=state_e5["sem_banheiro"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e5.update({"sem_banheiro": int(e.value or 0)}), calc_e5()],
+                            ).classes("w-full").props("outlined color=red")
+
+                            ui.number(
+                                label="Sem Abastecimento Água (Inf.):",
+                                value=state_e5["sem_agua"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: state_e5.update({"sem_agua": int(e.value or 0)}),
+                            ).classes("w-full").props("outlined color=gray")
+
+                            ui.number(
+                                label="Sem Esgotamento Sanitário (Inf.):",
+                                value=state_e5["sem_esgoto"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: state_e5.update({"sem_esgoto": int(e.value or 0)}),
+                            ).classes("w-full").props("outlined color=gray")
+
+                            ui.number(
+                                label="Sem Coleta de Lixo (Inf.):",
+                                value=state_e5["sem_lixo"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: state_e5.update({"sem_lixo": int(e.value or 0)}),
+                            ).classes("w-full").props("outlined color=gray")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e5["link"],
+                            placeholder="Link com a relação de escolas e infraestrutura informada ao MEC/Censo...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e5, "link")
+
+                        calc_e5()
+
+                        def salvar_e5():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E5",
+                                valor=state_e5,
+                                pontos=state_e5["total_pontos"],
+                                link=state_e5["link"],
+                                comentarios=d_e5.get("comentarios", []),
+                                status=d_e5.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E5 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E5", on_click=salvar_e5).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E5", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
