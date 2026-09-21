@@ -8624,6 +8624,504 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("3.15.2", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # QUESITO 3.15.2.1 (Classificação por Nível de Desempenho)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.15.2.1 • Especificação dos Níveis de Desempenho").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Especifique como são classificados os alunos por nível de desempenho:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Descreva as faixas de corte ou os critérios qualitativos utilizados para enquadrar os alunos."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d31521 = res_data.get("3.1521") or res_data.get("3.15.2.1") or {}
+                        desc_31521_i = str(d31521.get("valor") or "")
+                        raw_link_31521 = str(d31521.get("link") or "")
+
+                        state_31521 = {
+                            "descricao": desc_31521_i,
+                            "link": raw_link_31521,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.textarea(
+                                label="Classificação por nível de desempenho:",
+                                value=desc_31521_i,
+                                placeholder="Ex: Nível 1 - Insuficiente (0 a 3,9), Nível 2 - Básico (4,0 a 6,9), Nível 3 - Proficiente (7,0 a 10,0)...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_31521, "descricao"
+                            )
+
+                            ui.textarea(
+                                label="Link de Evidência / Tabela de Escalas:",
+                                value=raw_link_31521,
+                                placeholder="Link do documento pedagógico ou escala oficial de proficiência...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_31521, "link"
+                            )
+
+                        def salvar_31521():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.15.2.1",
+                                valor=state_31521["descricao"],
+                                pontos=0.0,
+                                link=state_31521["link"],
+                                comentarios=d31521.get("comentarios", []),
+                                status=d31521.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.15.2.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.15.2.1", on_click=salvar_31521).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.15.2.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.15.3 (Metas Específicas do Indicador Próprio)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.15.3 • Metas Específicas do Indicador Próprio").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O indicador próprio de qualidade de ensino do Município possui metas específicas?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Meta específica = nota numérica estabelecida previamente para avaliação da rede municipal."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d3153 = res_data.get("3.153") or res_data.get("3.15.3") or {}
+
+                        opcoes_3153 = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": 0.0,
+                        }
+
+                        val_3153_bruto = str(d3153.get("valor") or "")
+                        val_3153_valido = "Selecione..."
+                        if val_3153_bruto in opcoes_3153:
+                            val_3153_valido = val_3153_bruto
+
+                        raw_link_3153 = str(d3153.get("link") or "")
+
+                        state_3153 = {
+                            "opcao": val_3153_valido,
+                            "link": raw_link_3153,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_3153 = ui.radio(
+                                options=list(opcoes_3153.keys()),
+                                value=state_3153["opcao"],
+                            ).props("color=blue").bind_value(state_3153, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Plano de Metas:",
+                                value=raw_link_3153,
+                                placeholder="Link da portaria, plano de educação ou documento oficial fixando as metas...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_3153, "link"
+                            )
+
+                        def salvar_3153():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.15.3",
+                                valor=state_3153["opcao"],
+                                pontos=0.0,
+                                link=state_3153["link"],
+                                comentarios=d3153.get("comentarios", []),
+                                status=d3153.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.15.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.15.3", on_click=salvar_3153).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.15.3", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.15.3.1 (Metas e Resultados do Indicador Próprio)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.15.3.1 • Metas e Resultados da Última Edição").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe as metas e os resultados da última edição do indicador próprio:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Fórmula: Se Resultado >= Meta = 18,0 pontos | Se Resultado < Meta = 0,0 ponto."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d31531 = res_data.get("3.1531") or res_data.get("3.15.3.1") or {}
+                        raw_val_31531 = str(d31531.get("valor") or "")
+                        raw_link_31531 = str(d31531.get("link") or "")
+
+                        # Parsing das chaves salvas no formato JSON ou padrão chave-valor
+                        meta_i, res_i, ano_i = "0.0", "0.0", "2024"
+                        try:
+                            if "META:" in raw_val_31531:
+                                partes = raw_val_31531.split(";")
+                                for p in partes:
+                                    if "META:" in p:
+                                        meta_i = p.replace("META:", "").strip()
+                                    elif "RES:" in p:
+                                        res_i = p.replace("RES:", "").strip()
+                                    elif "ANO:" in p:
+                                        ano_i = p.replace("ANO:", "").strip()
+                        except Exception:
+                            pass
+
+                        state_31531 = {
+                            "meta": meta_i,
+                            "resultado": res_i,
+                            "ano_edicao": ano_i,
+                            "link": raw_link_31531,
+                        }
+
+                        def calc_pts_31531():
+                            try:
+                                m = float(state_31531["meta"].replace(",", "."))
+                                r = float(state_31531["resultado"].replace(",", "."))
+                                if r >= m and m > 0:
+                                    return 18.0
+                            except Exception:
+                                pass
+                            return 0.0
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_meta_31531 = ui.input(
+                                "4º ou 5º Ano - Meta:",
+                                value=state_31531["meta"]
+                            ).props("outlined color=blue").bind_value(state_31531, "meta")
+
+                            inp_res_31531 = ui.input(
+                                "4º ou 5º Ano - Resultado:",
+                                value=state_31531["resultado"]
+                            ).props("outlined color=blue").bind_value(state_31531, "resultado")
+
+                            inp_ano_31531 = ui.input(
+                                "Ano da Última Edição:",
+                                value=state_31531["ano_edicao"]
+                            ).props("outlined color=blue").bind_value(state_31531, "ano_edicao")
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório Oficial de Resultados:",
+                            value=raw_link_31531,
+                            placeholder="Link para a publicação oficial com os resultados consolidados...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_31531, "link"
+                        )
+
+                        lbl_pts_31531 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.15.3.1: {calc_pts_31531():.1f} / 18.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_31531():
+                            lbl_pts_31531.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.15.3.1: {calc_pts_31531():.1f} / 18.0 pontos"
+                            )
+
+                        inp_meta_31531.on("update:model-value", att_pts_31531)
+                        inp_res_31531.on("update:model-value", att_pts_31531)
+
+                        def salvar_31531():
+                            pts = calc_pts_31531()
+                            valor_str = f"META:{state_31531['meta']}; RES:{state_31531['resultado']}; ANO:{state_31531['ano_edicao']}"
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.15.3.1",
+                                valor=valor_str,
+                                pontos=pts,
+                                link=state_31531["link"],
+                                comentarios=d31531.get("comentarios", []),
+                                status=d31531.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.15.3.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.15.3.1", on_click=salvar_31531).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.15.3.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.15.4 (Avaliação de Participação na Prova Municipal)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.15.4 • Quantidade de Participantes na Avaliação Municipal").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "É possível avaliar a quantidade de participantes da última edição da avaliação municipal própria?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d3154 = res_data.get("3.154") or res_data.get("3.15.4") or {}
+
+                        opcoes_3154 = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": 0.0,
+                        }
+
+                        val_3154_bruto = str(d3154.get("valor") or "")
+                        val_3154_valido = "Selecione..."
+                        if val_3154_bruto in opcoes_3154:
+                            val_3154_valido = val_3154_bruto
+
+                        raw_link_3154 = str(d3154.get("link") or "")
+
+                        state_3154 = {
+                            "opcao": val_3154_valido,
+                            "link": raw_link_3154,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_3154 = ui.radio(
+                                options=list(opcoes_3154.keys()),
+                                value=state_3154["opcao"],
+                            ).props("color=blue").bind_value(state_3154, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Listagem de Frequência:",
+                                value=raw_link_3154,
+                                placeholder="Link com relatório consolidado de alunos avaliados e ausentes...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_3154, "link"
+                            )
+
+                        def salvar_3154():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.15.4",
+                                valor=state_3154["opcao"],
+                                pontos=0.0,
+                                link=state_3154["link"],
+                                comentarios=d3154.get("comentarios", []),
+                                status=d3154.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.15.4 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.15.4", on_click=salvar_3154).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.15.4", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.15.4.1 (Alunos Avaliados e Ausentes na Avaliação Municipal)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.15.4.1 • Alunos Avaliados e Ausentes no Público-Alvo").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o quantitativo de alunos avaliados e ausentes (4º ou 5º Ano do Ensino Fundamental):"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Fórmula: Nota Final = 18,0 pontos × % de Alunos Avaliados sobre o Total do Público-Alvo."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d31541 = res_data.get("3.1541") or res_data.get("3.15.4.1") or {}
+                        raw_val_31541 = str(d31541.get("valor") or "")
+                        raw_link_31541 = str(d31541.get("link") or "")
+
+                        avaliados_i, ausentes_i = "0", "0"
+                        try:
+                            if "AVAL:" in raw_val_31541:
+                                partes = raw_val_31541.split(";")
+                                for p in partes:
+                                    if "AVAL:" in p:
+                                        avaliados_i = p.replace("AVAL:", "").strip()
+                                    elif "AUS:" in p:
+                                        ausentes_i = p.replace("AUS:", "").strip()
+                        except Exception:
+                            pass
+
+                        state_31541 = {
+                            "avaliados": avaliados_i,
+                            "ausentes": ausentes_i,
+                            "link": raw_link_31541,
+                        }
+
+                        def calc_pts_31541():
+                            try:
+                                av = float(state_31541["avaliados"].replace(",", "."))
+                                au = float(state_31541["ausentes"].replace(",", "."))
+                                total = av + au
+                                if total > 0:
+                                    p1 = av / total
+                                    return round(18.0 * p1, 2)
+                            except Exception:
+                                pass
+                            return 0.0
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            inp_av_31541 = ui.input(
+                                "4º ou 5º Ano - Alunos Avaliados:",
+                                value=state_31541["avaliados"]
+                            ).props("type=number outlined color=blue").bind_value(state_31541, "avaliados")
+
+                            inp_au_31541 = ui.input(
+                                "4º ou 5º Ano - Alunos Ausentes:",
+                                value=state_31541["ausentes"]
+                            ).props("type=number outlined color=blue").bind_value(state_31541, "ausentes")
+
+                        ui.textarea(
+                            label="Link de Evidência / Boletim de Frequência:",
+                            value=raw_link_31541,
+                            placeholder="Link do documento comprovante do total de inscritos e participantes...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_31541, "link"
+                        )
+
+                        lbl_pts_31541 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.15.4.1: {calc_pts_31541():.1f} / 18.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_31541():
+                            lbl_pts_31541.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.15.4.1: {calc_pts_31541():.1f} / 18.0 pontos"
+                            )
+
+                        inp_av_31541.on("update:model-value", att_pts_31541)
+                        inp_au_31541.on("update:model-value", att_pts_31541)
+
+                        def salvar_31541():
+                            pts = calc_pts_31541()
+                            valor_str = f"AVAL:{state_31541['avaliados']}; AUS:{state_31541['ausentes']}"
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.15.4.1",
+                                valor=valor_str,
+                                pontos=pts,
+                                link=state_31541["link"],
+                                comentarios=d31541.get("comentarios", []),
+                                status=d31541.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.15.4.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.15.4.1", on_click=salvar_31541).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.15.4.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.16 (Pesquisa/Estudo sobre Demanda de Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.16 • Levantamento de Demanda nos Anos Iniciais").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A Prefeitura municipal fez uma pesquisa/estudo para levantar o número de crianças que necessitavam dos Anos Iniciais escolares em 2025?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d316 = res_data.get("3.16") or {}
+
+                        opcoes_316 = {
+                            "Selecione...": 0.0,
+                            "Sim": 20.0,
+                            "Não": 0.0,
+                        }
+
+                        val_316_bruto = str(d316.get("valor") or "")
+                        val_316_valido = "Selecione..."
+                        if val_316_bruto in opcoes_316:
+                            val_316_valido = val_316_bruto
+
+                        raw_link_316 = str(d316.get("link") or "")
+
+                        state_316 = {
+                            "opcao": val_316_valido,
+                            "link": raw_link_316,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_316 = ui.radio(
+                                options=list(opcoes_316.keys()),
+                                value=state_316["opcao"],
+                            ).props("color=blue").bind_value(state_316, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Estudo Técnico / Busca Ativa:",
+                                value=raw_link_316,
+                                placeholder="Link do estudo de demanda, diagnóstico municipal ou relatório de busca ativa...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_316, "link"
+                            )
+
+                        lbl_pts_316 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.16: {opcoes_316.get(state_316['opcao'], 0.0):.1f} / 20.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_316():
+                            pts = opcoes_316.get(state_316["opcao"], 0.0)
+                            lbl_pts_316.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.16: {pts:.1f} / 20.0 pontos"
+                            )
+
+                        rad_316.on("update:model-value", att_pts_316)
+
+                        def salvar_316():
+                            pts = opcoes_316.get(state_316["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.16",
+                                valor=state_316["opcao"],
+                                pontos=pts,
+                                link=state_316["link"],
+                                comentarios=d316.get("comentarios", []),
+                                status=d316.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.16 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.16", on_click=salvar_316).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.16", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
