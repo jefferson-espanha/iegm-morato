@@ -1137,6 +1137,258 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("10.0", res_data, render_conteudo.refresh)
 
+                    # =============================================================================
+                    # QUESITO 11.0 (Existência de PCCS Específico da Saúde)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("11.0 • PCCS Específico para Profissionais de Saúde").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município possui Plano de Carreira, Cargos e Salários (PCCS) específico elaborado e implantado para seus profissionais de saúde?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Atenção: PCCS geral dos servidores públicos não é considerado PCCS específico da saúde. (Sim = 10 pts | Não = 00 pts)"
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d110 = res_data.get("11.0") or res_data.get("11") or {}
+                        raw_val_110 = d110.get("valor") or {}
+                        if not isinstance(raw_val_110, dict):
+                            raw_val_110 = {}
+
+                        val_pccs_110 = str(raw_val_110.get("pccs_especifico", "Não"))
+
+                        state_110 = {"pccs_especifico": val_pccs_110 if val_pccs_110 in ["Sim", "Não"] else "Não"}
+
+                        opt_pccs_110 = ui.radio(
+                            options=["Sim", "Não"],
+                            value=state_110["pccs_especifico"]
+                        ).props("inline color=blue").classes("mb-2")
+                        opt_pccs_110.bind_value(state_110, "pccs_especifico")
+
+                        lbl_pts_110 = ui.label("Nota Quesito 11.0: 0.0 / 10.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        def recalc_pontos_110():
+                            pts = 10.0 if state_110["pccs_especifico"] == "Sim" else 0.0
+                            lbl_pts_110.set_text(f"📊 Nota Quesito 11.0: {pts:.2f} / 10.0 pontos")
+                            return pts
+
+                        opt_pccs_110.on("update:model-value", recalc_pontos_110)
+                        ui.timer(0.1, recalc_pontos_110, once=True)
+
+                        def salvar_110():
+                            pts_totais = recalc_pontos_110()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="11.0",
+                                valor={"pccs_especifico": state_110["pccs_especifico"]},
+                                pontos=pts_totais,
+                                link=d110.get("link", ""),
+                                comentarios=d110.get("comentarios", []),
+                                status=d110.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 11.0 salvo com sucesso! (Nota: {pts_totais:.2f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 11.0", on_click=salvar_110).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("11.0", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 11.1 (Norma de Regulamentação do PCCS Específico)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("11.1 • Instrumento Normativo do PCCS da Saúde").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o instrumento normativo de regulamentação do Plano de Carreira, Cargos e Salários (PCCS) específico para os profissionais da saúde, Número e Data da publicação:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Anexar o documento em PDF por meio do botão de ANEXO."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d111 = res_data.get("11.1") or res_data.get("11_1") or {}
+                        raw_val_111 = d111.get("valor") or {}
+                        if isinstance(raw_val_111, dict):
+                            val_norma = str(raw_val_111.get("norma_num_data", ""))
+                        else:
+                            val_norma = str(raw_val_111)
+
+                        state_111 = {"norma_num_data": val_norma}
+
+                        inp_norma_111 = ui.input(
+                            label="Número e Data da Publicação:",
+                            value=state_111["norma_num_data"],
+                            placeholder="Ex: Lei Complementar nº 123, de 15/03/2021"
+                        ).props("outlined dense color=blue").classes("w-full mb-6")
+                        inp_norma_111.bind_value(state_111, "norma_num_data")
+
+                        def salvar_111():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="11.1",
+                                valor={"norma_num_data": state_111["norma_num_data"]},
+                                pontos=0.0,
+                                link=d111.get("link", ""),
+                                comentarios=d111.get("comentarios", []),
+                                status=d111.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 11.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 11.1", on_click=salvar_111).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("11.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 11.2 (Divulgação do PCCS da Saúde na Internet)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("11.2 • Divulgação do PCCS da Saúde na Internet").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) de divulgação do Plano de Carreira, Cargos e Salários (PCCS) específico para os profissionais de saúde:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Se não estiver disponível na internet, inserir no campo o texto XYZ. (XYZ = 00 pts | Diferente de XYZ = 02 pts)"
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d112 = res_data.get("11.2") or res_data.get("11_2") or {}
+                        raw_link_112 = str(d112.get("link") or "")
+
+                        state_112 = {"link": raw_link_112}
+
+                        inp_link_112 = ui.textarea(
+                            label="Página eletrônica (link na internet) ou XYZ:",
+                            value=raw_link_112,
+                            placeholder="Insira o link completo ou o texto XYZ...",
+                        ).classes("w-full mb-2").props("outlined rows=2").bind_value(state_112, "link")
+
+                        lbl_pts_112 = ui.label("Nota Quesito 11.2: 0.0 / 2.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        def recalc_pontos_112():
+                            link_val = state_112["link"].strip()
+                            pts = 0.0 if (link_val.upper() == "XYZ" or not link_val) else 2.0
+                            lbl_pts_112.set_text(f"📊 Nota Quesito 11.2: {pts:.2f} / 2.0 pontos")
+                            return pts
+
+                        ui.timer(0.1, recalc_pontos_112, once=True)
+
+                        def salvar_112():
+                            pts_totais = recalc_pontos_112()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="11.2",
+                                valor={"link_informado": state_112["link"]},
+                                pontos=pts_totais,
+                                link=state_112["link"],
+                                comentarios=d112.get("comentarios", []),
+                                status=d112.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 11.2 salvo com sucesso! (Nota: {pts_totais:.2f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 11.2", on_click=salvar_112).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("11.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 12.0 (Adoção da Estratégia de Saúde da Família)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("12.0 • Adoção da Estratégia de Saúde da Família (ESF)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município adotou a Estratégia de Saúde da Família em sua rede de serviços como a estratégia prioritária de organização da Atenção Básica?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "Sim – 10 pontos | Não – 00 pontos"
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d120 = res_data.get("12.0") or res_data.get("12") or {}
+                        raw_val_120 = d120.get("valor") or {}
+
+                        if isinstance(raw_val_120, dict):
+                            val_esf = str(raw_val_120.get("adotou_esf", "Não"))
+                        else:
+                            val_esf = str(raw_val_120) if raw_val_120 else "Não"
+
+                        raw_link_120 = str(d120.get("link") or "")
+
+                        state_120 = {
+                            "adotou_esf": val_esf if val_esf in ["Sim", "Não"] else "Não",
+                            "link": raw_link_120,
+                        }
+
+                        opt_esf = ui.radio(
+                            options=["Sim", "Não"],
+                            value=state_120["adotou_esf"]
+                        ).props("inline color=blue").classes("mb-2")
+                        opt_esf.bind_value(state_120, "adotou_esf")
+
+                        lbl_pts_120 = ui.label("Nota Quesito 12.0: 0.0 / 10.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        def recalc_pontos_120():
+                            pts = 10.0 if state_120["adotou_esf"] == "Sim" else 0.0
+                            lbl_pts_120.set_text(f"📊 Nota Quesito 12.0: {pts:.2f} / 10.0 pontos")
+                            return pts
+
+                        opt_esf.on("update:model-value", recalc_pontos_120)
+                        ui.timer(0.1, recalc_pontos_120, once=True)
+
+                        ui.textarea(
+                            label="Link de Evidência / Plano Municipal de Saúde / Portarias ESF:",
+                            value=raw_link_120,
+                            placeholder="Insira o link para verificação da adoção da ESF...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(state_120, "link")
+
+                        def salvar_120():
+                            pts_totais = recalc_pontos_120()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="12.0",
+                                valor={"adotou_esf": state_120["adotou_esf"]},
+                                pontos=pts_totais,
+                                link=state_120["link"],
+                                comentarios=d120.get("comentarios", []),
+                                status=d120.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 12.0 salvo com sucesso! (Nota: {pts_totais:.2f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 12.0", on_click=salvar_120).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("12.0", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
