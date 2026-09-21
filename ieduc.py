@@ -18436,6 +18436,468 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("E5", res_data, render_conteudo.refresh)
 
+# -----------------------------------------------------------------------------
+                    # QUESITO E6 - Compartilhamento de Espaços com a Comunidade
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E6 • Compartilhamento de Espaços com a Comunidade").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("As escolas compartilham espaços com a comunidade? (Dados Censo Escolar 2025)").classes("text-base font-bold text-black mb-4")
+
+                        d_e6 = res_data.get("E6") or res_data.get("E60") or {}
+                        val_e6 = str(d_e6.get("valor") or "As escolas não compartilham")
+                        link_e6 = str(d_e6.get("link") or "")
+
+                        opts_e6 = [
+                            "Todas as escolas compartilham",
+                            "A maior parte das escolas compartilham",
+                            "A menor parte das escolas compartilham",
+                            "As escolas não compartilham",
+                        ]
+
+                        state_e6 = {
+                            "opcao": val_e6 if val_e6 in opts_e6 else "As escolas não compartilham",
+                            "link": link_e6,
+                            "pontos": 0.0,
+                        }
+
+                        lbl_pontos_e6 = ui.label("📊 Pontuação Quesito E6: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def calc_e6():
+                            pts_map = {
+                                "Todas as escolas compartilham": 5.0,
+                                "A maior parte das escolas compartilham": 3.0,
+                                "A menor parte das escolas compartilham": 1.0,
+                                "As escolas não compartilham": 0.0,
+                            }
+                            pts = pts_map.get(state_e6["opcao"], 0.0)
+                            state_e6["pontos"] = pts
+                            str_pts = f"{pts:.2f}".replace(".", ",")
+                            lbl_pontos_e6.set_text(f"📊 Pontuação Quesito E6: {str_pts} / 5,00 ponto(s)")
+
+                        with ui.grid(columns=1).classes("w-full gap-4 items-start mb-4"):
+                            ui.select(
+                                options=opts_e6,
+                                label="Grau de compartilhamento com a comunidade:",
+                                value=state_e6["opcao"],
+                                on_change=lambda e: [state_e6.update({"opcao": e.value}), calc_e6()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e6["link"],
+                            placeholder="Link do relatório ou documento comprobatório...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e6, "link")
+
+                        calc_e6()
+
+                        def salvar_e6():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E6",
+                                valor=state_e6["opcao"],
+                                pontos=state_e6["pontos"],
+                                link=state_e6["link"],
+                                comentarios=d_e6.get("comentarios", []),
+                                status=d_e6.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E6 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E6", on_click=salvar_e6).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E6", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E7 - Utilização de Espaços do Entorno Escolar
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E7 • Utilização do Entorno Escolar").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("As escolas utilizam espaços e equipamentos do entorno escolar? (Dados Censo Escolar 2025)").classes("text-base font-bold text-black mb-4")
+
+                        d_e7 = res_data.get("E7") or res_data.get("E70") or {}
+                        val_e7 = str(d_e7.get("valor") or "As escolas não utilizam")
+                        link_e7 = str(d_e7.get("link") or "")
+
+                        opts_e7 = [
+                            "Todas as escolas utilizam",
+                            "A maior parte das escolas utilizam",
+                            "A menor parte das escolas utilizam",
+                            "As escolas não utilizam",
+                        ]
+
+                        state_e7 = {
+                            "opcao": val_e7 if val_e7 in opts_e7 else "As escolas não utilizam",
+                            "link": link_e7,
+                            "pontos": 0.0,
+                        }
+
+                        lbl_pontos_e7 = ui.label("📊 Pontuação Quesito E7: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def calc_e7():
+                            pts_map = {
+                                "Todas as escolas utilizam": 5.0,
+                                "A maior parte das escolas utilizam": 3.0,
+                                "A menor parte das escolas utilizam": 1.0,
+                                "As escolas não utilizam": 0.0,
+                            }
+                            pts = pts_map.get(state_e7["opcao"], 0.0)
+                            state_e7["pontos"] = pts
+                            str_pts = f"{pts:.2f}".replace(".", ",")
+                            lbl_pontos_e7.set_text(f"📊 Pontuação Quesito E7: {str_pts} / 5,00 ponto(s)")
+
+                        with ui.grid(columns=1).classes("w-full gap-4 items-start mb-4"):
+                            ui.select(
+                                options=opts_e7,
+                                label="Grau de utilização de espaços do entorno:",
+                                value=state_e7["opcao"],
+                                on_change=lambda e: [state_e7.update({"opcao": e.value}), calc_e7()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e7["link"],
+                            placeholder="Link do relatório ou comprovação...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e7, "link")
+
+                        calc_e7()
+
+                        def salvar_e7():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E7",
+                                valor=state_e7["opcao"],
+                                pontos=state_e7["pontos"],
+                                link=state_e7["link"],
+                                comentarios=d_e7.get("comentarios", []),
+                                status=d_e7.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E7 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E7", on_click=salvar_e7).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E7", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E8 - Exame de Seleção para Ingresso de Alunos
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E8 • Exame de Seleção para Ingresso de Alunos").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("A Prefeitura realiza Exame de Seleção para ingresso de alunos nas escolas municipais? (Dados Censo Escolar 2025)").classes("text-base font-bold text-black mb-4")
+
+                        d_e8 = res_data.get("E8") or res_data.get("E80") or {}
+                        val_e8 = str(d_e8.get("valor") or "Não")
+                        link_e8 = str(d_e8.get("link") or "")
+
+                        state_e8 = {
+                            "realiza_exame": val_e8 if val_e8 in ["Sim", "Não"] else "Não",
+                            "link": link_e8,
+                            "pontos": 0.0,
+                        }
+
+                        lbl_pontos_e8 = ui.label("📊 Pontuação Quesito E8: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def calc_e8():
+                            pts = -10.0 if state_e8["realiza_exame"] == "Sim" else 0.0
+                            state_e8["pontos"] = pts
+                            str_pts = f"{pts:.2f}".replace(".", ",")
+                            lbl_pontos_e8.set_text(f"📊 Penalidade Quesito E8: {str_pts} ponto(s)")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.select(
+                                options=["Sim", "Não"],
+                                label="Realiza exame de seleção para alunos?",
+                                value=state_e8["realiza_exame"],
+                                on_change=lambda e: [state_e8.update({"realiza_exame": e.value}), calc_e8()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e8["link"],
+                            placeholder="Link referente às regras de ingresso escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e8, "link")
+
+                        calc_e8()
+
+                        def salvar_e8():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E8",
+                                valor=state_e8["realiza_exame"],
+                                pontos=state_e8["pontos"],
+                                link=state_e8["link"],
+                                comentarios=d_e8.get("comentarios", []),
+                                status=d_e8.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E8 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E8", on_click=salvar_e8).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E8", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E9 - Aplicação de Recursos do FUNDEB
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E9 • Aplicação Geral do FUNDEB (Regra de Rebaixamento)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Percentual de Aplicação dos Recursos do FUNDEB (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
+
+                        d_e9 = res_data.get("E9") or res_data.get("E90") or {}
+                        val_e9 = float(d_e9.get("pct_fundeb") or 0.0)
+                        link_e9 = str(d_e9.get("link") or "")
+
+                        state_e9 = {
+                            "pct_fundeb": val_e9,
+                            "link": link_e9,
+                            "rebaixar": False,
+                        }
+
+                        lbl_pontos_e9 = ui.label("📊 Status Quesito E9: Ok").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
+
+                        def calc_e9():
+                            pct = state_e9["pct_fundeb"]
+                            rebaixar = pct < 90.0
+                            state_e9["rebaixar"] = rebaixar
+
+                            str_pct = f"{pct:.2f}".replace(".", ",")
+                            if rebaixar:
+                                lbl_pontos_e9.set_text(
+                                    f"📊 Aplicação FUNDEB: {str_pct}% (Abaixo do mínimo de 90,00%)\n"
+                                    f"⚠️ ATENÇÃO: REBAIXAR 1 FAIXA DO RESULTADO DO i-Educ!"
+                                )
+                                lbl_pontos_e9.classes(replace="text-green-600 text-red-600")
+                            else:
+                                lbl_pontos_e9.set_text(
+                                    f"📊 Aplicação FUNDEB: {str_pct}% (Conforme regra >= 90,00%)\n"
+                                    f"✅ Requisito cumprido. Não há rebaixamento de faixa."
+                                )
+                                lbl_pontos_e9.classes(replace="text-red-600 text-green-600")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Percentual Aplicado do FUNDEB (%):",
+                                value=state_e9["pct_fundeb"],
+                                min=0.0,
+                                max=100.0,
+                                step=0.1,
+                                format="%.2f",
+                                on_change=lambda e: [state_e9.update({"pct_fundeb": float(e.value or 0.0)}), calc_e9()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (AUDESP):",
+                            value=state_e9["link"],
+                            placeholder="Link do relatório AUDESP da aplicação do FUNDEB...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e9, "link")
+
+                        calc_e9()
+
+                        def salvar_e9():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E9",
+                                valor={"pct_fundeb": state_e9["pct_fundeb"], "rebaixar": state_e9["rebaixar"]},
+                                pontos=0.0,
+                                link=state_e9["link"],
+                                comentarios=d_e9.get("comentarios", []),
+                                status=d_e9.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E9 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E9", on_click=salvar_e9).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E9", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E10 - FUNDEB Profissionais da Educação
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E10 • FUNDEB - Profissionais da Educação (Regra de Rebaixamento)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Percentual de Aplicação do FUNDEB nos Profissionais da Educação (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
+
+                        d_e10 = res_data.get("E10") or res_data.get("E100") or {}
+                        val_e10 = float(d_e10.get("pct_profissionais") or 0.0)
+                        link_e10 = str(d_e10.get("link") or "")
+
+                        state_e10 = {
+                            "pct_profissionais": val_e10,
+                            "link": link_e10,
+                            "rebaixar": False,
+                        }
+
+                        lbl_pontos_e10 = ui.label("📊 Status Quesito E10: Ok").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
+
+                        def calc_e10():
+                            pct = state_e10["pct_profissionais"]
+                            rebaixar = pct < 70.0
+                            state_e10["rebaixar"] = rebaixar
+
+                            str_pct = f"{pct:.2f}".replace(".", ",")
+                            if rebaixar:
+                                lbl_pontos_e10.set_text(
+                                    f"📊 Aplicação com Profissionais: {str_pct}% (Abaixo do mínimo de 70,00%)\n"
+                                    f"⚠️ ATENÇÃO: REBAIXAR 1 FAIXA DO RESULTADO DO i-Educ!"
+                                )
+                                lbl_pontos_e10.classes(replace="text-green-600 text-red-600")
+                            else:
+                                lbl_pontos_e10.set_text(
+                                    f"📊 Aplicação com Profissionais: {str_pct}% (Conforme regra >= 70,00%)\n"
+                                    f"✅ Requisito cumprido. Não há rebaixamento de faixa."
+                                )
+                                lbl_pontos_e10.classes(replace="text-red-600 text-green-600")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Percentual Aplicado em Profissionais (%):",
+                                value=state_e10["pct_profissionais"],
+                                min=0.0,
+                                max=100.0,
+                                step=0.1,
+                                format="%.2f",
+                                on_change=lambda e: [state_e10.update({"pct_profissionais": float(e.value or 0.0)}), calc_e10()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (AUDESP):",
+                            value=state_e10["link"],
+                            placeholder="Link do relatório AUDESP da aplicação nos profissionais...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e10, "link")
+
+                        calc_e10()
+
+                        def salvar_e10():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E10",
+                                valor={"pct_profissionais": state_e10["pct_profissionais"], "rebaixar": state_e10["rebaixar"]},
+                                pontos=0.0,
+                                link=state_e10["link"],
+                                comentarios=d_e10.get("comentarios", []),
+                                status=d_e10.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E10 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E10", on_click=salvar_e10).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E10", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E11 - Aplicação do Mínimo Constitucional em Educação (25%)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E11 • Mínimo Constitucional em Educação (Regra de Rebaixamento)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Aplicação da Despesa em Ensino com Recursos Próprios sobre a Receita de Impostos (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
+
+                        d_e11 = res_data.get("E11") or res_data.get("E110") or {}
+                        val_desp = float(d_e11.get("despesa_propria") or 0.0)
+                        val_rec = float(d_e11.get("receita_impostos") or 0.0)
+                        link_e11 = str(d_e11.get("link") or "")
+
+                        state_e11 = {
+                            "despesa_propria": val_desp,
+                            "receita_impostos": val_rec,
+                            "pct_educacao": 0.0,
+                            "link": link_e11,
+                            "rebaixar": False,
+                        }
+
+                        lbl_pontos_e11 = ui.label("📊 Status Quesito E11: Ok").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
+
+                        def calc_e11():
+                            desp = state_e11["despesa_propria"]
+                            rec = state_e11["receita_impostos"]
+
+                            if rec > 0:
+                                pct = (desp / rec) * 100.0
+                            else:
+                                pct = 0.0
+
+                            rebaixar = pct < 25.0
+                            state_e11["pct_educacao"] = pct
+                            state_e11["rebaixar"] = rebaixar
+
+                            str_pct = f"{pct:.2f}".replace(".", ",")
+                            str_desp = f"R$ {desp:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                            str_rec = f"R$ {rec:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+                            if rebaixar:
+                                lbl_pontos_e11.set_text(
+                                    f"📊 Despesa Ensino: {str_desp} | Receita Impostos: {str_rec}\n"
+                                    f"Índice Apurado: {str_pct}% (Abaixo do mínimo constitucional de 25,00%)\n"
+                                    f"⚠️ ATENÇÃO: REBAIXAR 1 FAIXA DO RESULTADO DO i-Educ!"
+                                )
+                                lbl_pontos_e11.classes(replace="text-green-600 text-red-600")
+                            else:
+                                lbl_pontos_e11.set_text(
+                                    f"📊 Despesa Ensino: {str_desp} | Receita Impostos: {str_rec}\n"
+                                    f"Índice Apurado: {str_pct}% (Conforme exigência constitucional >= 25,00%)\n"
+                                    f"✅ Requisito cumprido. Não há rebaixamento de faixa."
+                                )
+                                lbl_pontos_e11.classes(replace="text-red-600 text-green-600")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Despesa Aplicada com Recursos Próprios (R$):",
+                                value=state_e11["despesa_propria"],
+                                min=0.0,
+                                step=1000.0,
+                                format="%.2f",
+                                on_change=lambda e: [state_e11.update({"despesa_propria": float(e.value or 0.0)}), calc_e11()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Receita de Impostos e Transferências (R$):",
+                                value=state_e11["receita_impostos"],
+                                min=0.0,
+                                step=1000.0,
+                                format="%.2f",
+                                on_change=lambda e: [state_e11.update({"receita_impostos": float(e.value or 0.0)}), calc_e11()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (AUDESP):",
+                            value=state_e11["link"],
+                            placeholder="Link do balancete/relatório AUDESP comprobatório dos 25%...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e11, "link")
+
+                        calc_e11()
+
+                        def salvar_e11():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E11",
+                                valor={
+                                    "despesa_propria": state_e11["despesa_propria"],
+                                    "receita_impostos": state_e11["receita_impostos"],
+                                    "pct_educacao": state_e11["pct_educacao"],
+                                    "rebaixar": state_e11["rebaixar"],
+                                },
+                                pontos=0.0,
+                                link=state_e11["link"],
+                                comentarios=d_e11.get("comentarios", []),
+                                status=d_e11.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E11 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E11", on_click=salvar_e11).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E11", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
