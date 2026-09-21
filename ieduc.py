@@ -15844,6 +15844,227 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("E1.7", res_data, render_conteudo.refresh)
 
+# -----------------------------------------------------------------------------
+                    # QUESITO E1.8 - Estabelecimentos de Creche com Tempo Integral
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E1.8 • Estabelecimentos com Turmas em Tempo Integral").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe quantos estabelecimentos de Creche ofereciam turmas em tempo integral (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e18 = res_data.get("E1.8") or res_data.get("E18") or {}
+                        val_e18_int = d_e18.get("integral") or 0
+                        val_e18_tot = d_e18.get("total") or 0
+                        link_e18 = str(d_e18.get("link") or "")
+
+                        state_e18 = {
+                            "integral": int(val_e18_int) if str(val_e18_int).isdigit() else 0,
+                            "total": int(val_e18_tot) if str(val_e18_tot).isdigit() else 0,
+                            "link": link_e18,
+                            "porcentagem": 0.0,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e18():
+                            tot = state_e18["total"]
+                            integ = state_e18["integral"]
+                            if tot > 0:
+                                p = (integ / tot) * 100.0
+                                state_e18["porcentagem"] = p
+                                if p >= 50.0:
+                                    state_e18["pontos"] = 12.5
+                                elif 40.0 <= p < 50.0:
+                                    state_e18["pontos"] = 7.0
+                                elif 30.0 <= p < 40.0:
+                                    state_e18["pontos"] = 3.0
+                                else:
+                                    state_e18["pontos"] = 0.0
+                            else:
+                                state_e18["porcentagem"] = 0.0
+                                state_e18["pontos"] = 0.0
+
+                            str_p = f"{state_e18['porcentagem']:.1f}".replace(".", ",")
+                            str_pts = f"{state_e18['pontos']:.1f}".replace(".", ",")
+                            lbl_pontos_e18.set_text(f"📊 Porcentagem: {str_p}% | Pontuação Quesito E1.8: {str_pts} ponto(s) (Máx: 12,5)")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Escolas de Creche com Tempo Integral:",
+                                value=state_e18["integral"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e18.update({"integral": int(e.value or 0)}), calc_e18()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Total de Escolas de Creche no Município:",
+                                value=state_e18["total"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e18.update({"total": int(e.value or 0)}), calc_e18()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e18["link"],
+                            placeholder="Link do relatório ou documento comprovatório...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e18, "link")
+
+                        lbl_pontos_e18 = ui.label("📊 Porcentagem: 0,0% | Pontuação Quesito E1.8: 0,0 ponto(s) (Máx: 12,5)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e18()
+
+                        def salvar_e18():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E1.8",
+                                valor=f"{state_e18['integral']}/{state_e18['total']} ({state_e18['porcentagem']:.1f}%)",
+                                pontos=state_e18["pontos"],
+                                link=state_e18["link"],
+                                comentarios=d_e18.get("comentarios", []),
+                                status=d_e18.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E1.8 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E1.8", on_click=salvar_e18).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E1.8", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E1.9 - Alunos de Creche em Tempo Integral (7h ou mais/dia)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E1.9 • Alunos de Creche Matriculados em Tempo Integral").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe quantos alunos de Creche foram matriculados em turmas de tempo integral - 7 horas ou mais por dia (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e19 = res_data.get("E1.9") or res_data.get("E19") or {}
+                        val_e19_mat = d_e19.get("alunos_integral") or 0
+                        val_e19_tot = d_e19.get("total_alunos") or 0
+                        link_e19 = str(d_e19.get("link") or "")
+
+                        state_e19 = {
+                            "alunos_integral": int(val_e19_mat) if str(val_e19_mat).isdigit() else 0,
+                            "total_alunos": int(val_e19_tot) if str(val_e19_tot).isdigit() else 0,
+                            "link": link_e19,
+                            "porcentagem": 0.0,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e19():
+                            tot = state_e19["total_alunos"]
+                            mat = state_e19["alunos_integral"]
+                            if tot > 0:
+                                p = (mat / tot) * 100.0
+                                state_e19["porcentagem"] = p
+                                if p >= 25.0:
+                                    state_e19["pontos"] = 12.5
+                                elif 20.0 <= p < 25.0:
+                                    state_e19["pontos"] = 7.0
+                                elif 15.0 <= p < 20.0:
+                                    state_e19["pontos"] = 3.0
+                                else:
+                                    state_e19["pontos"] = 0.0
+                            else:
+                                state_e19["porcentagem"] = 0.0
+                                state_e19["pontos"] = 0.0
+
+                            str_p = f"{state_e19['porcentagem']:.1f}".replace(".", ",")
+                            str_pts = f"{state_e19['pontos']:.1f}".replace(".", ",")
+                            lbl_pontos_e19.set_text(f"📊 Porcentagem: {str_p}% | Pontuação Quesito E1.9: {str_pts} ponto(s) (Máx: 12,5)")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Alunos de Creche em Tempo Integral (>=7h):",
+                                value=state_e19["alunos_integral"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e19.update({"alunos_integral": int(e.value or 0)}), calc_e19()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Total de Alunos de Creche no Município:",
+                                value=state_e19["total_alunos"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e19.update({"total_alunos": int(e.value or 0)}), calc_e19()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e19["link"],
+                            placeholder="Link do extrato de matrículas do Censo Escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e19, "link")
+
+                        lbl_pontos_e19 = ui.label("📊 Porcentagem: 0,0% | Pontuação Quesito E1.9: 0,0 ponto(s) (Máx: 12,5)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e19()
+
+                        def salvar_e19():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E1.9",
+                                valor=f"{state_e19['alunos_integral']}/{state_e19['total_alunos']} ({state_e19['porcentagem']:.1f}%)",
+                                pontos=state_e19["pontos"],
+                                link=state_e19["link"],
+                                comentarios=d_e19.get("comentarios", []),
+                                status=d_e19.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E1.9 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E1.9", on_click=salvar_e19).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E1.9", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E1.10 - Alunos de Creche com Deficiência / TGD / Superdotação
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E1.10 • Alunos de Creche com Deficiência, TGD ou Superdotação").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Há alunos de Creche que possuem deficiência, transtornos globais do desenvolvimento ou altas habilidades/superdotação? (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e110 = res_data.get("E1.10") or res_data.get("E110") or {}
+                        val_e110 = str(d_e110.get("resposta") or d_e110.get("valor") or "Não")
+                        link_e110 = str(d_e110.get("link") or "")
+
+                        state_e110 = {
+                            "opcao": val_e110 if val_e110 in ["Sim", "Não"] else "Não",
+                            "link": link_e110,
+                        }
+
+                        ui.radio(
+                            options=["Sim", "Não"],
+                            value=state_e110["opcao"],
+                        ).classes("mb-4").bind_value(state_e110, "opcao")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e110["link"],
+                            placeholder="Link do relatório de educação especial...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e110, "link")
+
+                        ui.label("📊 Pontuação Quesito E1.10: Informativo (Sem pontuação associada)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_e110():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E1.10",
+                                valor=state_e110["opcao"],
+                                pontos=0.0,
+                                link=state_e110["link"],
+                                comentarios=d_e110.get("comentarios", []),
+                                status=d_e110.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E1.10 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E1.10", on_click=salvar_e110).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E1.10", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
