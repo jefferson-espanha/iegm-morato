@@ -671,5 +671,8 @@ def container_formulario_saude(ano=None):
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
 
-  render_conteudo()
-  return main_container
+
+# Aliases para compatibilidade com o roteamento no main.py
+container_formulario_isaude = container_formulario_saude
+mostrar_formulario_saude = container_formulario_saude
+main = container_formulario_saude
