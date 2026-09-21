@@ -14544,6 +14544,425 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("17.3", res_data, render_conteudo.refresh)
 
+# -----------------------------------------------------------------------------
+                    # QUESITO 17.6 - Parecer da Prestação de Contas CACS FUNDEB
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.6 • Parecer da Prestação de Contas emitido pelo CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Qual foi o parecer da prestação de contas emitido pelo CACS FUNDEB referente ao exercício de 2025?").classes("text-base font-bold text-black mb-4")
+
+                        d176 = res_data.get("17.6") or res_data.get("176") or {}
+                        val_176 = str(d176.get("valor") or "Aprovado sem ressalva")
+                        link_176 = str(d176.get("link") or "")
+
+                        state_176 = {
+                            "opcao": val_176,
+                            "link": link_176,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_176():
+                            op = state_176["opcao"]
+                            if op == "Não aprovado":
+                                state_176["pontos"] = -50.0
+                            elif op == "Não apreciado":
+                                state_176["pontos"] = -20.0
+                            else:
+                                state_176["pontos"] = 0.0
+                            lbl_pontos_176.set_text(f"📊 Pontuação Quesito 17.6: {state_176['pontos']:.1f} pontos".replace(".", ","))
+
+                        opts_176 = [
+                            "Aprovado sem ressalva",
+                            "Aprovado com ressalva",
+                            "Não aprovado",
+                            "Não apreciado",
+                        ]
+
+                        ui.radio(
+                            options=opts_176,
+                            value=state_176["opcao"],
+                            on_change=lambda e: [state_176.update({"opcao": e.value}), calc_176()],
+                        ).classes("mb-4")
+
+                        ui.textarea(
+                            label="Link do Parecer / Anexo (Quesito 17.6):",
+                            value=state_176["link"],
+                            placeholder="Link para o parecer anexado...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_176, "link")
+
+                        lbl_pontos_176 = ui.label("📊 Pontuação Quesito 17.6: 0,0 pontos").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_176()
+
+                        def salvar_176():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.6",
+                                valor=state_176["opcao"],
+                                pontos=state_176["pontos"],
+                                link=state_176["link"],
+                                comentarios=d176.get("comentarios", []),
+                                status=d176.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.6 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.6", on_click=salvar_176).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.6", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 17.6.1 - Motivos da Não Aprovação CACS FUNDEB
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.6.1 • Motivos da Não Aprovação").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe quais os motivos da não aprovação:").classes("text-base font-bold text-black mb-4")
+
+                        d1761 = res_data.get("17.6.1") or res_data.get("1761") or {}
+                        val_1761 = str(d1761.get("valor") or "")
+                        link_1761 = str(d1761.get("link") or "")
+
+                        state_1761 = {
+                            "texto": val_1761,
+                            "link": link_1761,
+                        }
+
+                        ui.textarea(
+                            label="Motivos da não aprovação:",
+                            value=state_1761["texto"],
+                            placeholder="Descreva detalhadamente os motivos caso a prestação de contas não tenha sido aprovada...",
+                        ).classes("w-full mb-4").props("outlined rows=4 color=blue").bind_value(state_1761, "texto")
+
+                        ui.textarea(
+                            label="Link de Evidência (Quesito 17.6.1):",
+                            value=state_1761["link"],
+                            placeholder="Link de documentos comprobatórios...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_1761, "link")
+
+                        ui.label("📊 Pontuação Quesito 17.6.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_1761():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.6.1",
+                                valor=state_1761["texto"],
+                                pontos=0.0,
+                                link=state_1761["link"],
+                                comentarios=d1761.get("comentarios", []),
+                                status=d1761.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.6.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.6.1", on_click=salvar_1761).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.6.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 17.7 - Reuniões do Conselho do FUNDEB
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.7 • Reuniões do Conselho do FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Quantas reuniões foram realizadas pelo Conselho do FUNDEB no último exercício?").classes("text-base font-bold text-black mb-1")
+                        ui.label("(Não considerar reuniões de eleição/exclusão de membros, aprovação de orçamento ou outro assunto não relacionado à natureza do Conselho)").classes("text-sm text-gray-600 italic mb-4")
+
+                        d177 = res_data.get("17.7") or res_data.get("177") or {}
+                        val_177 = str(d177.get("valor") or "0")
+                        link_177 = str(d177.get("link") or "")
+
+                        state_177 = {
+                            "reunioes": int(val_177) if val_177.isdigit() else 0,
+                            "link": link_177,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_177():
+                            n = state_177["reunioes"]
+                            if n >= 12:
+                                state_177["pontos"] = 3.0
+                            elif n >= 8:
+                                state_177["pontos"] = 1.5
+                            elif n >= 4:
+                                state_177["pontos"] = 1.0
+                            else:
+                                state_177["pontos"] = 0.0
+                            lbl_pontos_177.set_text(f"📊 Pontuação Quesito 17.7: {state_177['pontos']:.1f} ponto(s)".replace(".", ","))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Número de Reuniões:",
+                                value=state_177["reunioes"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_177.update({"reunioes": int(e.value or 0)}), calc_177()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.7):",
+                                value=state_177["link"],
+                                placeholder="Link das atas das reuniões...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_177, "link")
+
+                        lbl_pontos_177 = ui.label("📊 Pontuação Quesito 17.7: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_177()
+
+                        def salvar_177():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.7",
+                                valor=str(state_177["reunioes"]),
+                                pontos=state_177["pontos"],
+                                link=state_177["link"],
+                                comentarios=d177.get("comentarios", []),
+                                status=d177.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.7 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.7", on_click=salvar_177).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.7", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 18.0 - Conselho de Alimentação Escolar (CAE)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("18.0 • Conselho de Alimentação Escolar (CAE)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("O município constituiu o CAE (Conselho de Alimentação Escolar)?").classes("text-base font-bold text-black mb-4")
+
+                        d180 = res_data.get("18.0") or res_data.get("180") or {}
+                        val_180 = str(d180.get("valor") or "Sim")
+                        link_180 = str(d180.get("link") or "")
+
+                        state_180 = {
+                            "opcao": val_180,
+                            "link": link_180,
+                        }
+
+                        opts_180 = ["Sim", "Não"]
+
+                        ui.radio(
+                            options=opts_180,
+                            value=state_180["opcao"],
+                        ).classes("mb-4").bind_value(state_180, "opcao")
+
+                        ui.textarea(
+                            label="Link de Evidência (Quesito 18.0):",
+                            value=state_180["link"],
+                            placeholder="Link da lei/decreto de criação do CAE...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_180, "link")
+
+                        ui.label("📊 Pontuação Quesito 18.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_180():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.0",
+                                valor=state_180["opcao"],
+                                pontos=0.0,
+                                link=state_180["link"],
+                                comentarios=d180.get("comentarios", []),
+                                status=d180.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.0", on_click=salvar_180).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.0", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 18.1 - Recursos Fornecidos ao CAE
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("18.1 • Recursos Fornecidos ao CAE").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal para o funcionamento do Conselho de Alimentação Escolar:").classes("text-base font-bold text-black mb-4")
+
+                        d181 = res_data.get("18.1") or res_data.get("181") or {}
+                        sel_181 = d181.get("valor") or []
+                        if isinstance(sel_181, str):
+                            sel_181 = [x.strip() for x in sel_181.split(";") if x.strip()]
+                        link_181 = str(d181.get("link") or "")
+
+                        state_181 = {
+                            "selecionados": sel_181,
+                            "link": link_181,
+                            "pontos": 0.0,
+                        }
+
+                        items_181 = [
+                            ("humanos", "Recursos Humanos", 0.5),
+                            ("tecnologicos", "Recursos Tecnológicos", 0.5),
+                            ("fisica", "Estrutura Física", 0.5),
+                            ("orcamentarios", "Recursos Orçamentários", 0.5),
+                            ("materiais", "Recursos Materiais", 0.5),
+                            ("outros", "Outros", 0.5),
+                        ]
+
+                        def calc_181():
+                            pts = sum(peso for key, _, peso in items_181 if key in state_181["selecionados"])
+                            state_181["pontos"] = round(pts, 2)
+                            lbl_pontos_181.set_text(f"📊 Pontuação Quesito 18.1: {state_181['pontos']:.1f} ponto(s)".replace(".", ","))
+
+                        def toggle_181(key, val):
+                            if val and key not in state_181["selecionados"]:
+                                state_181["selecionados"].append(key)
+                            elif not val and key in state_181["selecionados"]:
+                                state_181["selecionados"].remove(key)
+                            calc_181()
+
+                        with ui.column().classes("w-full gap-2 mb-4"):
+                            for key, rotulo, peso in items_181:
+                                ui.checkbox(
+                                    text=f"{rotulo} (+{str(peso).replace('.', ',')} pt)",
+                                    value=(key in state_181["selecionados"]),
+                                    on_change=lambda e, k=key: toggle_181(k, e.value),
+                                )
+
+                        ui.textarea(
+                            label="Link de Evidência (Quesito 18.1):",
+                            value=state_181["link"],
+                            placeholder="Link dos comprovantes do suporte ao CAE...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_181, "link")
+
+                        lbl_pontos_181 = ui.label("📊 Pontuação Quesito 18.1: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_181()
+
+                        def salvar_181():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.1",
+                                valor="; ".join(state_181["selecionados"]),
+                                pontos=state_181["pontos"],
+                                link=state_181["link"],
+                                comentarios=d181.get("comentarios", []),
+                                status=d181.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.1", on_click=salvar_181).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 18.2 - Formação aos Conselheiros sobre o PNAE
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("18.2 • Formação aos Conselheiros sobre o PNAE").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("A Prefeitura ofereceu formação aos conselheiros sobre a execução do PNAE e temas que possuam interfaces com este Programa?").classes("text-base font-bold text-black mb-4")
+
+                        d182 = res_data.get("18.2") or res_data.get("182") or {}
+                        val_182 = str(d182.get("valor") or "Sim")
+                        link_182 = str(d182.get("link") or "")
+
+                        state_182 = {
+                            "opcao": val_182,
+                            "link": link_182,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_182():
+                            if state_182["opcao"] == "Sim":
+                                state_182["pontos"] = 6.0
+                            else:
+                                state_182["pontos"] = 0.0
+                            lbl_pontos_182.set_text(f"📊 Pontuação Quesito 18.2: {state_182['pontos']:.1f} pontos".replace(".", ","))
+
+                        opts_182 = ["Sim", "Não"]
+
+                        ui.radio(
+                            options=opts_182,
+                            value=state_182["opcao"],
+                            on_change=lambda e: [state_182.update({"opcao": e.value}), calc_182()],
+                        ).classes("mb-4")
+
+                        ui.textarea(
+                            label="Link de Evidência (Quesito 18.2):",
+                            value=state_182["link"],
+                            placeholder="Link dos certificados, ata da capacitação...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_182, "link")
+
+                        lbl_pontos_182 = ui.label("📊 Pontuação Quesito 18.2: 0,0 pontos").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_182()
+
+                        def salvar_182():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.2",
+                                valor=state_182["opcao"],
+                                pontos=state_182["pontos"],
+                                link=state_182["link"],
+                                comentarios=d182.get("comentarios", []),
+                                status=d182.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.2", on_click=salvar_182).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.2", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 18.3 - Divulgação das Atividades do CAE
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("18.3 • Divulgação das Atividades do CAE").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("A Prefeitura divulga as atividades do CAE por meio de comunicação oficial?").classes("text-base font-bold text-black mb-4")
+
+                        d183 = res_data.get("18.3") or res_data.get("183") or {}
+                        val_183 = str(d183.get("valor") or "Sim")
+                        link_183 = str(d183.get("link") or "")
+
+                        state_183 = {
+                            "opcao": val_183,
+                            "link": link_183,
+                        }
+
+                        opts_183 = ["Sim", "Não"]
+
+                        ui.radio(
+                            options=opts_183,
+                            value=state_183["opcao"],
+                        ).classes("mb-4").bind_value(state_183, "opcao")
+
+                        ui.textarea(
+                            label="Link de Evidência (Quesito 18.3):",
+                            value=state_183["link"],
+                            placeholder="Link das publicações oficiais...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_183, "link")
+
+                        ui.label("📊 Pontuação Quesito 18.3: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_183():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.3",
+                                valor=state_183["opcao"],
+                                pontos=0.0,
+                                link=state_183["link"],
+                                comentarios=d183.get("comentarios", []),
+                                status=d183.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.3", on_click=salvar_183).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.3", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
