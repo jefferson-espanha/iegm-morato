@@ -13705,6 +13705,410 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("15.4", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # GRUPO 16 - CONSELHO MUNICIPAL DE EDUCAÇÃO
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 16.0 - Existência do Conselho
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("16.0 • Conselho Municipal de Educação").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("O município possui Conselho Municipal de Educação?").classes("text-base font-bold text-black mb-6")
+
+                        d160 = res_data.get("16.0") or res_data.get("160") or {}
+
+                        opcoes_160_pts = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": 0.0,
+                        }
+
+                        opcoes_160_labels = {
+                            "Selecione...": "Selecione...",
+                            "Sim": "Sim (0,0 pts)",
+                            "Não": "Não (0,0 pts)",
+                        }
+
+                        val_160_bruto = str(d160.get("valor") or "Selecione...")
+                        raw_link_160 = str(d160.get("link") or "")
+
+                        state_160 = {
+                            "opcao": val_160_bruto if val_160_bruto in opcoes_160_pts else "Selecione...",
+                            "link": raw_link_160,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_160 = ui.radio(
+                                options=opcoes_160_labels,
+                                value=state_160["opcao"],
+                            ).props("color=blue").bind_value(state_160, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.0):",
+                                value=raw_link_160,
+                                placeholder="Link da norma de criação ou do site do conselho...",
+                            ).classes("w-full").props("outlined rows=4 color=blue").bind_value(state_160, "link")
+
+                        lbl_pts_160 = ui.label(f"📊 Pontuação Quesito 16.0: {opcoes_160_pts.get(state_160['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_160():
+                            pts = opcoes_160_pts.get(state_160["opcao"], 0.0)
+                            cor = "text-green-600" if pts >= 0 else "text-red-600"
+                            lbl_pts_160.classes(replace=cor)
+                            lbl_pts_160.set_text(f"📊 Pontuação Quesito 16.0: {pts:.1f} pontos")
+
+                        rad_160.on("update:model-value", att_pts_160)
+
+                        def salvar_160():
+                            pts = opcoes_160_pts.get(state_160["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.0",
+                                valor=state_160["opcao"],
+                                pontos=pts,
+                                link=state_160["link"],
+                                comentarios=d160.get("comentarios", []),
+                                status=d160.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 16.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 16.0", on_click=salvar_160).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.0", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 16.1 - Recursos fornecidos para funcionamento
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("16.1 • Recursos para Funcionamento do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal para o funcionamento do Conselho Municipal de Educação:").classes("text-base font-bold text-black mb-6")
+
+                        d161 = res_data.get("16.1") or res_data.get("161") or {}
+                        val_161_lista = d161.get("valor") if isinstance(d161.get("valor"), list) else []
+                        raw_link_161 = str(d161.get("link") or "")
+
+                        recursos_161 = [
+                            ("Recursos Humanos", 0.5),
+                            ("Recursos Tecnológicos", 0.5),
+                            ("Estrutura Física", 0.5),
+                            ("Recursos Orçamentários", 0.5),
+                            ("Recursos Materiais", 0.5),
+                            ("Outros", 0.5),
+                        ]
+
+                        state_161 = {
+                            "selecionados": val_161_lista,
+                            "link": raw_link_161,
+                        }
+
+                        def calc_pts_161():
+                            return sum(pt for item, pt in recursos_161 if item in state_161["selecionados"])
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in recursos_161:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)",
+                                        value=(item in state_161["selecionados"]),
+                                        on_change=lambda e, it=item: (
+                                            state_161["selecionados"].append(it) if e.value and it not in state_161["selecionados"]
+                                            else state_161["selecionados"].remove(it) if not e.value and it in state_161["selecionados"]
+                                            else None,
+                                            att_pts_161()
+                                        )
+                                    )
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.1):",
+                                value=raw_link_161,
+                                placeholder="Link do ato normativo, estrutura ou dotação orçamentária...",
+                            ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_161, "link")
+
+                        lbl_pts_161 = ui.label(f"📊 Pontuação Quesito 16.1: {calc_pts_161():.1f} pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_161():
+                            pts = calc_pts_161()
+                            lbl_pts_161.set_text(f"📊 Pontuação Quesito 16.1: {pts:.1f} pontos")
+
+                        def salvar_161():
+                            pts = calc_pts_161()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.1",
+                                valor=state_161["selecionados"],
+                                pontos=pts,
+                                link=state_161["link"],
+                                comentarios=d161.get("comentarios", []),
+                                status=d161.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 16.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 16.1", on_click=salvar_161).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 16.2 - Principais Funções do Conselho
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("16.2 • Principais Funções do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale as principais funções do Conselho Municipal de Educação:").classes("text-base font-bold text-black mb-6")
+
+                        d162 = res_data.get("16.2") or res_data.get("162") or {}
+                        val_162_lista = d162.get("valor") if isinstance(d162.get("valor"), list) else []
+                        raw_link_162 = str(d162.get("link") or "")
+
+                        funcoes_162 = [
+                            ("Consultiva", 0.5),
+                            ("Normativa", 0.5),
+                            ("Deliberativa", 0.5),
+                            ("Fiscalizadora", 0.5),
+                            ("Mobilizadora", 0.5),
+                            ("Propositiva", 0.5),
+                        ]
+
+                        state_162 = {
+                            "selecionados": val_162_lista,
+                            "link": raw_link_162,
+                        }
+
+                        def calc_pts_162():
+                            return sum(pt for item, pt in funcoes_162 if item in state_162["selecionados"])
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in funcoes_162:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)",
+                                        value=(item in state_162["selecionados"]),
+                                        on_change=lambda e, it=item: (
+                                            state_162["selecionados"].append(it) if e.value and it not in state_162["selecionados"]
+                                            else state_162["selecionados"].remove(it) if not e.value and it in state_162["selecionados"]
+                                            else None,
+                                            att_pts_162()
+                                        )
+                                    )
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.2):",
+                                value=raw_link_162,
+                                placeholder="Link da lei de criação/regimento interno do conselho...",
+                            ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_162, "link")
+
+                        lbl_pts_162 = ui.label(f"📊 Pontuação Quesito 16.2: {calc_pts_162():.1f} pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_162():
+                            pts = calc_pts_162()
+                            lbl_pts_162.set_text(f"📊 Pontuação Quesito 16.2: {pts:.1f} pontos")
+
+                        def salvar_162():
+                            pts = calc_pts_162()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.2",
+                                valor=state_162["selecionados"],
+                                pontos=pts,
+                                link=state_162["link"],
+                                comentarios=d162.get("comentarios", []),
+                                status=d162.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 16.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 16.2", on_click=salvar_162).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.2", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 16.3 - Atividades Realizadas no Ano
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("16.3 • Atividades Realizadas no Ano pelo Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale as atividades que o Conselho Municipal de Educação realizou no ano:").classes("text-base font-bold text-black mb-6")
+
+                        d163 = res_data.get("16.3") or res_data.get("163") or {}
+                        val_163_lista = d163.get("valor") if isinstance(d163.get("valor"), list) else []
+                        raw_link_163 = str(d163.get("link") or "")
+
+                        atividades_163 = [
+                            ("Consultas à sociedade sobre as necessidades e prioridades locais de educação", 0.6),
+                            ("Participação na discussão e definição das políticas e do planejamento educacional", 0.6),
+                            ("Acompanhamento e controle dos atos praticados pelos gestores da educação", 0.6),
+                            ("Elaboração de propostas para melhoria do fluxo escolar", 0.6),
+                            ("Elaboração de propostas para melhoria do rendimento escolar", 0.6),
+                            ("Sugestões de medidas para atualização e capacitação dos professores por meio da educação continuada", 0.6),
+                            ("Acompanhamento e avaliação do cumprimento do Plano Municipal de Educação", 0.6),
+                            ("Fiscalização da implementação da BNCC (Base Nacional Comum Curricular)", 0.6),
+                            ("Emissão de pareceres, resoluções, instruções e recomendações sobre a educação", 0.6),
+                            ("Aprovação dos regimentos escolares e suas alterações", 0.6),
+                            ("Apuração da existência de irregularidades na gerência dos recursos educacionais", 0.0),
+                            ("Outros", 0.0),
+                        ]
+
+                        state_163 = {
+                            "selecionados": val_163_lista,
+                            "link": raw_link_163,
+                        }
+
+                        def calc_pts_163():
+                            return sum(pt for item, pt in atividades_163 if item in state_163["selecionados"])
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in atividades_163:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)" if pt > 0 else item,
+                                        value=(item in state_163["selecionados"]),
+                                        on_change=lambda e, it=item: (
+                                            state_163["selecionados"].append(it) if e.value and it not in state_163["selecionados"]
+                                            else state_163["selecionados"].remove(it) if not e.value and it in state_163["selecionados"]
+                                            else None,
+                                            att_pts_163()
+                                        )
+                                    )
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.3):",
+                                value=raw_link_163,
+                                placeholder="Link das atas, resoluções, relatórios de gestão...",
+                            ).classes("w-full").props("outlined rows=10 color=blue").bind_value(state_163, "link")
+
+                        lbl_pts_163 = ui.label(f"📊 Pontuação Quesito 16.3: {calc_pts_163():.1f} pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_163():
+                            pts = calc_pts_163()
+                            lbl_pts_163.set_text(f"📊 Pontuação Quesito 16.3: {pts:.1f} pontos")
+
+                        def salvar_163():
+                            pts = calc_pts_163()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.3",
+                                valor=state_163["selecionados"],
+                                pontos=pts,
+                                link=state_163["link"],
+                                comentarios=d163.get("comentarios", []),
+                                status=d163.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 16.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 16.3", on_click=salvar_163).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.3", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 16.3.1 - Quantidade de Irregularidades Apontadas
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("16.3.1 • Irregularidades Apontadas").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe quantas irregularidades foram apontadas:").classes("text-base font-bold text-black mb-6")
+
+                        d1631 = res_data.get("16.3.1") or res_data.get("1631") or {}
+                        val_1631 = str(d1631.get("valor") or "0")
+                        raw_link_1631 = str(d1631.get("link") or "")
+
+                        state_1631 = {
+                            "quantidade": int(val_1631) if val_1631.isdigit() else 0,
+                            "link": raw_link_1631,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Quantidade de irregularidades apontadas:",
+                                value=state_1631["quantidade"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_1631, "quantidade")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.3.1):",
+                                value=raw_link_1631,
+                                placeholder="Link dos relatórios/denúncias de irregularidades apontadas...",
+                            ).classes("w-full").props("outlined rows=4 color=blue").bind_value(state_1631, "link")
+
+                        ui.label("📊 Pontuação Quesito 16.3.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_1631():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.3.1",
+                                valor=str(state_1631["quantidade"]),
+                                pontos=0.0,
+                                link=state_1631["link"],
+                                comentarios=d1631.get("comentarios", []),
+                                status=d1631.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 16.3.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 16.3.1", on_click=salvar_1631).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.3.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 16.3.2 - Quantidade de Irregularidades Solucionadas
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("16.3.2 • Irregularidades Solucionadas").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe quantas irregularidades foram solucionadas:").classes("text-base font-bold text-black mb-6")
+
+                        d1632 = res_data.get("16.3.2") or res_data.get("1632") or {}
+                        val_1632 = str(d1632.get("valor") or "0")
+                        raw_link_1632 = str(d1632.get("link") or "")
+
+                        state_1632 = {
+                            "quantidade": int(val_1632) if val_1632.isdigit() else 0,
+                            "link": raw_link_1632,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Quantidade de irregularidades solucionadas:",
+                                value=state_1632["quantidade"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_1632, "quantidade")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.3.2):",
+                                value=raw_link_1632,
+                                placeholder="Link dos comprovantes de regularização...",
+                            ).classes("w-full").props("outlined rows=4 color=blue").bind_value(state_1632, "link")
+
+                        ui.label("📊 Pontuação Quesito 16.3.2: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_1632():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.3.2",
+                                valor=str(state_1632["quantidade"]),
+                                pontos=0.0,
+                                link=state_1632["link"],
+                                comentarios=d1632.get("comentarios", []),
+                                status=d1632.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 16.3.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 16.3.2", on_click=salvar_1632).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.3.2", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
