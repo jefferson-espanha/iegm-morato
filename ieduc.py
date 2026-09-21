@@ -16065,6 +16065,315 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("E1.10", res_data, render_conteudo.refresh)
 
+# -----------------------------------------------------------------------------
+                    # QUESITO E1.10.1 - Atendimento Educacional Especializado (AEE) na Creche
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E1.10.1 • Atendimento Educacional Especializado (AEE)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Houve Atendimento Educacional Especializado (AEE) na Rede Municipal de Ensino? (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e1101 = res_data.get("E1.10.1") or res_data.get("E1101") or {}
+                        val_e1101 = str(d_e1101.get("resposta") or d_e1101.get("valor") or "Sim")
+                        link_e1101 = str(d_e1101.get("link") or "")
+
+                        state_e1101 = {
+                            "opcao": val_e1101 if val_e1101 in ["Sim", "Não"] else "Sim",
+                            "link": link_e1101,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e1101():
+                            if state_e1101["opcao"] == "Sim":
+                                state_e1101["pontos"] = 0.0
+                                lbl_pontos_e1101.set_text("📊 Pontuação Quesito E1.10.1: 0,00 ponto(s) (Sem penalidade)")
+                                lbl_pontos_e1101.classes(replace="text-red-600 text-green-600")
+                            else:
+                                state_e1101["pontos"] = -10.0
+                                lbl_pontos_e1101.set_text("📊 Pontuação Quesito E1.10.1: -10,00 ponto(s) (Penalidade aplicada)")
+                                lbl_pontos_e1101.classes(replace="text-green-600 text-red-600")
+
+                        ui.radio(
+                            options=["Sim", "Não"],
+                            value=state_e1101["opcao"],
+                            on_change=lambda e: [state_e1101.update({"opcao": e.value}), calc_e1101()],
+                        ).classes("mb-4")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e1101["link"],
+                            placeholder="Link da documentação/relatório sobre o AEE...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e1101, "link")
+
+                        lbl_pontos_e1101 = ui.label("📊 Pontuação Quesito E1.10.1: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e1101()
+
+                        def salvar_e1101():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E1.10.1",
+                                valor=state_e1101["opcao"],
+                                pontos=state_e1101["pontos"],
+                                link=state_e1101["link"],
+                                comentarios=d_e1101.get("comentarios", []),
+                                status=d_e1101.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E1.10.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E1.10.1", on_click=salvar_e1101).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E1.10.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E2.1 - Estabelecimentos de Pré-escola com Pátio Infantil
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E2.1 • Estabelecimentos de Pré-escola com Pátio Infantil").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe quantos estabelecimentos que oferecem Pré-escola possuem Pátio Infantil (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e21 = res_data.get("E2.1") or res_data.get("E21") or {}
+                        val_e21_com = d_e21.get("com_patio") or 0
+                        val_e21_tot = d_e21.get("total") or 0
+                        link_e21 = str(d_e21.get("link") or "")
+
+                        state_e21 = {
+                            "com_patio": int(val_e21_com) if str(val_e21_com).isdigit() else 0,
+                            "total": int(val_e21_tot) if str(val_e21_tot).isdigit() else 0,
+                            "link": link_e21,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e21():
+                            tot = state_e21["total"]
+                            com = state_e21["com_patio"]
+                            if tot > 0:
+                                p = min(com / tot, 1.0)
+                                state_e21["pontos"] = round(p * 2.0, 2)
+                            else:
+                                state_e21["pontos"] = 0.0
+                            lbl_pontos_e21.set_text(f"📊 Pontuação Quesito E2.1: {state_e21['pontos']:.2f} ponto(s)".replace(".", ","))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Nº de Pré-escolas COM Pátio Infantil:",
+                                value=state_e21["com_patio"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e21.update({"com_patio": int(e.value or 0)}), calc_e21()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Total de Estabelecimentos com Pré-escola no Município:",
+                                value=state_e21["total"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e21.update({"total": int(e.value or 0)}), calc_e21()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e21["link"],
+                            placeholder="Link do relatório ou extrato do Censo Escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e21, "link")
+
+                        lbl_pontos_e21 = ui.label("📊 Pontuação Quesito E2.1: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e21()
+
+                        def salvar_e21():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E2.1",
+                                valor=f"{state_e21['com_patio']}/{state_e21['total']}",
+                                pontos=state_e21["pontos"],
+                                link=state_e21["link"],
+                                comentarios=d_e21.get("comentarios", []),
+                                status=d_e21.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E2.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E2.1", on_click=salvar_e21).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E2.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E2.2 - Brinquedos e Materiais Pedagógicos na Pré-escola
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E2.2 • Disponibilidade de Brinquedos/Materiais Pedagógicos (Pré-escola)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe quantos estabelecimentos que oferecem Pré-escola disponibilizam brinquedos/materiais pedagógicos (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e22 = res_data.get("E2.2") or res_data.get("E22") or {}
+                        val_e22_com = d_e22.get("com_brinquedos") or 0
+                        val_e22_tot = d_e22.get("total") or 0
+                        link_e22 = str(d_e22.get("link") or "")
+
+                        state_e22 = {
+                            "com_brinquedos": int(val_e22_com) if str(val_e22_com).isdigit() else 0,
+                            "total": int(val_e22_tot) if str(val_e22_tot).isdigit() else 0,
+                            "link": link_e22,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e22():
+                            te = state_e22["total"]
+                            bp = state_e22["com_brinquedos"]
+                            if te > 0:
+                                p = min(bp / te, 1.0)
+                                state_e22["pontos"] = round(p * 4.0, 2)
+                            else:
+                                state_e22["pontos"] = 0.0
+                            lbl_pontos_e22.set_text(f"📊 Pontuação Quesito E2.2: {state_e22['pontos']:.2f} ponto(s)".replace(".", ","))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Nº de Pré-escolas com Brinquedos (BP):",
+                                value=state_e22["com_brinquedos"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e22.update({"com_brinquedos": int(e.value or 0)}), calc_e22()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Total de Estabelecimentos com Pré-escola (TE):",
+                                value=state_e22["total"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e22.update({"total": int(e.value or 0)}), calc_e22()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e22["link"],
+                            placeholder="Link do relatório ou extrato do Censo Escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e22, "link")
+
+                        lbl_pontos_e22 = ui.label("📊 Pontuação Quesito E2.2: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e22()
+
+                        def salvar_e22():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E2.2",
+                                valor=f"{state_e22['com_brinquedos']}/{state_e22['total']}",
+                                pontos=state_e22["pontos"],
+                                link=state_e22["link"],
+                                comentarios=d_e22.get("comentarios", []),
+                                status=d_e22.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E2.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E2.2", on_click=salvar_e22).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E2.2", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E2.3 - Crianças Matriculadas na Pré-escola
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E2.3 • Número de Crianças Matriculadas na Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe o número de crianças matriculadas na pré-escola (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e23 = res_data.get("E2.3") or res_data.get("E23") or {}
+                        val_e23 = str(d_e23.get("valor") or "0")
+                        link_e23 = str(d_e23.get("link") or "")
+
+                        state_e23 = {
+                            "matriculas": int(val_e23) if val_e23.isdigit() else 0,
+                            "link": link_e23,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Número de Crianças Matriculadas:",
+                                value=state_e23["matriculas"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_e23, "matriculas")
+
+                            ui.textarea(
+                                label="Link de Evidência (Censo Escolar 2025):",
+                                value=state_e23["link"],
+                                placeholder="Link do extrato de matrículas da pré-escola...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_e23, "link")
+
+                        ui.label("📊 Pontuação Quesito E2.3: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_e23():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E2.3",
+                                valor=str(state_e23["matriculas"]),
+                                pontos=0.0,
+                                link=state_e23["link"],
+                                comentarios=d_e23.get("comentarios", []),
+                                status=d_e23.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E2.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E2.3", on_click=salvar_e23).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E2.3", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E2.4 - Data de Início do Ano Letivo para a Pré-escola
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E2.4 • Data de Início do Ano Letivo para a Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a data de início do ano letivo para a pré-escola (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e24 = res_data.get("E2.4") or res_data.get("E24") or {}
+                        val_e24 = str(d_e24.get("valor") or "")
+                        link_e24 = str(d_e24.get("link") or "")
+
+                        state_e24 = {
+                            "data_inicio": val_e24,
+                            "link": link_e24,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.input(
+                                label="Data de Início (DD/MM/AAAA):",
+                                value=state_e24["data_inicio"],
+                                placeholder="ex: 05/02/2025",
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_e24, "data_inicio")
+
+                            ui.textarea(
+                                label="Link de Evidência (Censo Escolar / Calendário Letivo):",
+                                value=state_e24["link"],
+                                placeholder="Link da portaria ou calendário do ano letivo...",
+                            ).classes("w-full").props("outlined rows=2 color=blue").bind_value(state_e24, "link")
+
+                        ui.label("📊 Pontuação Quesito E2.4: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_e24():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E2.4",
+                                valor=state_e24["data_inicio"],
+                                pontos=0.0,
+                                link=state_e24["link"],
+                                comentarios=d_e24.get("comentarios", []),
+                                status=d_e24.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E2.4 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E2.4", on_click=salvar_e24).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E2.4", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
