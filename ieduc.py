@@ -9056,15 +9056,23 @@ def container_formulario_ieduc(ano=None):
 
                         d316 = res_data.get("3.16") or {}
 
-                        opcoes_316 = {
+                        # Mapeamento com pontuação associada
+                        opcoes_316_pontos = {
                             "Selecione...": 0.0,
                             "Sim": 20.0,
                             "Não": 0.0,
                         }
 
+                        # Dicionário de rótulos exibindo a pontuação ao lado
+                        opcoes_316_labels = {
+                            "Selecione...": "Selecione...",
+                            "Sim": "Sim (+20.0 pts)",
+                            "Não": "Não (0.0 pts)",
+                        }
+
                         val_316_bruto = str(d316.get("valor") or "")
                         val_316_valido = "Selecione..."
-                        if val_316_bruto in opcoes_316:
+                        if val_316_bruto in opcoes_316_pontos:
                             val_316_valido = val_316_bruto
 
                         raw_link_316 = str(d316.get("link") or "")
@@ -9076,7 +9084,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                             rad_316 = ui.radio(
-                                options=list(opcoes_316.keys()),
+                                options=opcoes_316_labels,
                                 value=state_316["opcao"],
                             ).props("color=blue").bind_value(state_316, "opcao")
 
@@ -9089,11 +9097,11 @@ def container_formulario_ieduc(ano=None):
                             )
 
                         lbl_pts_316 = ui.label(
-                            f"📊 Impacto de Pontuação no Quesito 3.16: {opcoes_316.get(state_316['opcao'], 0.0):.1f} / 20.0 pontos"
+                            f"📊 Impacto de Pontuação no Quesito 3.16: {opcoes_316_pontos.get(state_316['opcao'], 0.0):.1f} / 20.0 pontos"
                         ).classes("text-sm font-bold text-green-600 my-4")
 
                         def att_pts_316():
-                            pts = opcoes_316.get(state_316["opcao"], 0.0)
+                            pts = opcoes_316_pontos.get(state_316["opcao"], 0.0)
                             lbl_pts_316.set_text(
                                 f"📊 Impacto de Pontuação no Quesito 3.16: {pts:.1f} / 20.0 pontos"
                             )
@@ -9101,7 +9109,7 @@ def container_formulario_ieduc(ano=None):
                         rad_316.on("update:model-value", att_pts_316)
 
                         def salvar_316():
-                            pts = opcoes_316.get(state_316["opcao"], 0.0)
+                            pts = opcoes_316_pontos.get(state_316["opcao"], 0.0)
                             save_resposta(
                                 ano=ano_sel,
                                 qid="3.16",
