@@ -857,6 +857,286 @@ def container_formulario_saude(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+                    # =============================================================================
+                    # QUESITO 9.2 (Parecer Conclusivo RAG 2024)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("9.2 • Parecer Conclusivo sobre o Relatório Anual de Gestão (RAG 2024)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) de divulgação do Parecer Conclusivo sobre o Relatório Anual de Gestão 2024:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Se não estiver disponível na internet, inserir no campo Página eletrônica (link na internet) o texto XYZ. (Com XYZ = 00 pts | Diferente de XYZ = 05 pts)."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d92 = res_data.get("9.2") or res_data.get("9_2") or {}
+                        raw_link_92 = str(d92.get("link") or "")
+
+                        state_92 = {
+                            "link": raw_link_92,
+                        }
+
+                        # --- Campo Link / Página Eletrônica ---
+                        ui.textarea(
+                            label="Página eletrônica (link na internet) do Parecer Conclusivo RAG 2024:",
+                            value=raw_link_92,
+                            placeholder="Insira o link completo ou o texto XYZ...",
+                        ).classes("w-full mb-2").props("outlined rows=2").bind_value(
+                            state_92, "link"
+                        )
+
+                        lbl_pts_92 = ui.label("Nota Quesito 9.2: 0.0 / 5.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        # --- Lógica de Cálculo de Pontuação (9.2) ---
+                        def recalc_pontos_92():
+                            link_val = state_92["link"].strip()
+                            if link_val.upper() == "XYZ" or not link_val:
+                                pts = 0.0
+                            else:
+                                pts = 5.0
+
+                            lbl_pts_92.set_text(f"📊 Nota Quesito 9.2: {pts:.2f} / 5.0 pontos")
+                            return pts
+
+                        # Reação à digitação no campo
+                        ui.timer(0.1, recalc_pontos_92, once=True)
+
+                        def salvar_92():
+                            pts_totais = recalc_pontos_92()
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="9.2",
+                                valor={"link_informado": state_92["link"]},
+                                pontos=pts_totais,
+                                link=state_92["link"],
+                                comentarios=d92.get("comentarios", []),
+                                status=d92.get("status", "Pendente"),
+                            )
+
+                            ui.notify(f"Quesito 9.2 salvo com sucesso! (Pontuação: {pts_totais:.2f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 9.2", on_click=salvar_92).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("9.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 10.0 (Estabelecimentos de Saúde sob Gestão Municipal)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("10.0 • Estabelecimentos de Saúde sob Gestão Municipal").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Sobre os estabelecimentos de saúde sob gestão municipal, em dezembro de 2025, informe:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Considerar estabelecimentos com atendimento direto à população."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d100 = res_data.get("10.0") or res_data.get("10") or {}
+                        raw_val_100 = d100.get("valor") or {}
+
+                        if not isinstance(raw_val_100, dict):
+                            raw_val_100 = {}
+
+                        raw_link_100 = str(d100.get("link") or "")
+
+                        state_100 = {
+                            "total_estabelecimentos": str(raw_val_100.get("total_estabelecimentos", 0)),
+                            "qtd_avcb": str(raw_val_100.get("qtd_avcb", 0)),
+                            "qtd_visa": str(raw_val_100.get("qtd_visa", 0)),
+                            "qtd_reparos": str(raw_val_100.get("qtd_reparos", 0)),
+                            "qtd_interrompidos": str(raw_val_100.get("qtd_interrompidos", 0)),
+                            "link": raw_link_100,
+                        }
+
+                        # --- Campo Base: Total de Estabelecimentos ---
+                        with ui.row().classes("w-full items-center mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200"):
+                            ui.label("Quantidade de estabelecimentos de saúde sob gestão municipal (Dez/2025):").classes(
+                                "text-sm font-bold text-blue-900 w-2/3"
+                            )
+                            inp_total_10 = ui.input(
+                                value=state_100["total_estabelecimentos"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/3 bg-white")
+                            inp_total_10.bind_value(state_100, "total_estabelecimentos")
+
+                        ui.separator().classes("mb-6")
+
+                        # --- Item 145: AVCB (Pmáx = 50 pts) ---
+                        ui.label("1. Quantidade de estabelecimentos de saúde sob gestão municipal com AVCB:").classes(
+                            "text-sm font-bold text-gray-800 mb-2"
+                        )
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Quantidade com AVCB:").classes("text-sm text-gray-700 w-1/2")
+                            inp_avcb_10 = ui.input(
+                                value=state_100["qtd_avcb"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_avcb_10.bind_value(state_100, "qtd_avcb")
+
+                        lbl_pts_avcb_10 = ui.label("Nota AVCB: 0.0 / 50.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        # --- Item 146: Licença da Vigilância Sanitária (Pmáx = 25 pts) ---
+                        ui.label("2. Quantidade de estabelecimentos de saúde sob gestão municipal com licença da Vigilância Sanitária:").classes(
+                            "text-sm font-bold text-gray-800 mb-2"
+                        )
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Quantidade com Licença VISA:").classes("text-sm text-gray-700 w-1/2")
+                            inp_visa_10 = ui.input(
+                                value=state_100["qtd_visa"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_visa_10.bind_value(state_100, "qtd_visa")
+
+                        lbl_pts_visa_10 = ui.label("Nota Licença VISA: 0.0 / 25.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        # --- Item 3: Reparos (Pmáx = 25 pts) ---
+                        ui.label("3. Quantidade de estabelecimentos de saúde sob gestão municipal que necessitavam de reparos:").classes(
+                            "text-sm font-bold text-gray-800 mb-2"
+                        )
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Quantidade com necessidade de reparos:").classes("text-sm text-gray-700 w-1/2")
+                            inp_reparos_10 = ui.input(
+                                value=state_100["qtd_reparos"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_reparos_10.bind_value(state_100, "qtd_reparos")
+
+                        lbl_pts_reparos_10 = ui.label("Nota Conservação/Reparos: 0.0 / 25.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        # --- Item 4: Interrupção de Funcionamento (Penalidade Pmáx = -50 pts) ---
+                        ui.label("4. Quantidade de estabelecimentos de saúde sob gestão municipal que tiveram seu funcionamento interrompido no ano:").classes(
+                            "text-sm font-bold text-gray-800 mb-2"
+                        )
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Quantidade de unidades interrompidas:").classes("text-sm text-gray-700 w-1/2")
+                            inp_interrompidos_10 = ui.input(
+                                value=state_100["qtd_interrompidos"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_interrompidos_10.bind_value(state_100, "qtd_interrompidos")
+
+                        lbl_pts_interrompidos_10 = ui.label("Penalização Interrupções: 0.0 / -50.0 pontos").classes(
+                            "text-sm font-bold text-red-600 mb-6"
+                        )
+
+                        # --- Lógica de Cálculo de Pontuações Finais (10.0) ---
+                        def recalc_pontos_100():
+                            try:
+                                total = float(state_100["total_estabelecimentos"])
+                            except ValueError:
+                                total = 0.0
+
+                            try:
+                                qtd_avcb = float(state_100["qtd_avcb"])
+                            except ValueError:
+                                qtd_avcb = 0.0
+
+                            try:
+                                qtd_visa = float(state_100["qtd_visa"])
+                            except ValueError:
+                                qtd_visa = 0.0
+
+                            try:
+                                qtd_reparos = float(state_100["qtd_reparos"])
+                            except ValueError:
+                                qtd_reparos = 0.0
+
+                            try:
+                                qtd_interrompidos = float(state_100["qtd_interrompidos"])
+                            except ValueError:
+                                qtd_interrompidos = 0.0
+
+                            if total > 0:
+                                # Cálculo AVCB: NF = P * 50
+                                p_avcb = min(max(qtd_avcb / total, 0.0), 1.0)
+                                nf_avcb = p_avcb * 50.0
+
+                                # Cálculo VISA: NF = P * 25
+                                p_visa = min(max(qtd_visa / total, 0.0), 1.0)
+                                nf_visa = p_visa * 25.0
+
+                                # Cálculo Reparos: NF = (1 - P) * 25
+                                p_reparos = min(max(qtd_reparos / total, 0.0), 1.0)
+                                nf_reparos = (1.0 - p_reparos) * 25.0
+
+                                # Cálculo Interrupção: N = P * (-50)
+                                p_interrompido = min(max(qtd_interrompidos / total, 0.0), 1.0)
+                                nf_interrompido = p_interrompido * -50.0
+                            else:
+                                p_avcb = p_visa = p_reparos = p_interrompido = 0.0
+                                nf_avcb = nf_visa = nf_reparos = nf_interrompido = 0.0
+
+                            lbl_pts_avcb_10.set_text(f"📊 Nota AVCB: {nf_avcb:.2f} / 50.0 pontos (Proporção: {(p_avcb*100):.1f}%)")
+                            lbl_pts_visa_10.set_text(f"📊 Nota Licença VISA: {nf_visa:.2f} / 25.0 pontos (Proporção: {(p_visa*100):.1f}%)")
+                            lbl_pts_reparos_10.set_text(f"📊 Nota Conservação/Reparos: {nf_reparos:.2f} / 25.0 pontos (Proporção com reparos: {(p_reparos*100):.1f}%)")
+                            lbl_pts_interrompidos_10.set_text(f"⚠️ Penalidade Interrupções: {nf_interrompido:.2f} / -50.0 pontos (Proporção interrompida: {(p_interrompido*100):.1f}%)")
+
+                            return round(nf_avcb + nf_visa + nf_reparos + nf_interrompido, 2)
+
+                        inp_total_10.on("update:model-value", recalc_pontos_100)
+                        inp_avcb_10.on("update:model-value", recalc_pontos_100)
+                        inp_visa_10.on("update:model-value", recalc_pontos_100)
+                        inp_reparos_10.on("update:model-value", recalc_pontos_100)
+                        inp_interrompidos_10.on("update:model-value", recalc_pontos_100)
+
+                        # Inicializar os textos informativos de notas
+                        recalc_pontos_100()
+
+                        ui.textarea(
+                            label="Link de Evidência / Laudos Sanitários / Laudos do Corpo de Bombeiros / Relatórios de Manutenção:",
+                            value=raw_link_100,
+                            placeholder="Link das pastas com AVCBs, licenças da Vigilância Sanitária e relatórios de funcionamento...",
+                        ).classes("w-full mb-4").props("outlined rows=3").bind_value(
+                            state_100, "link"
+                        )
+
+                        def salvar_100():
+                            pts_totais = recalc_pontos_100()
+
+                            dados_salvar = {
+                                "total_estabelecimentos": int(state_100["total_estabelecimentos"]) if state_100["total_estabelecimentos"].isdigit() else 0,
+                                "qtd_avcb": int(state_100["qtd_avcb"]) if state_100["qtd_avcb"].isdigit() else 0,
+                                "qtd_visa": int(state_100["qtd_visa"]) if state_100["qtd_visa"].isdigit() else 0,
+                                "qtd_reparos": int(state_100["qtd_reparos"]) if state_100["qtd_reparos"].isdigit() else 0,
+                                "qtd_interrompidos": int(state_100["qtd_interrompidos"]) if state_100["qtd_interrompidos"].isdigit() else 0,
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="10.0",
+                                valor=dados_salvar,
+                                pontos=pts_totais,
+                                link=state_100["link"],
+                                comentarios=d100.get("comentarios", []),
+                                status=d100.get("status", "Pendente"),
+                            )
+
+                            ui.notify(f"Quesito 10.0 salvo com sucesso! (Pontuação acumulada: {pts_totais:.2f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 10.0", on_click=salvar_100).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("10.0", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
