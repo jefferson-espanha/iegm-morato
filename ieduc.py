@@ -11971,6 +11971,456 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("12.0", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # QUESITO 12.1 (Tipos de Controles de Acondicionamento)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("12.1 • Tipos de Controles de Acondicionamento").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale os tipos de controles de acondicionamento adotados:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d121 = res_data.get("12.1") or res_data.get("121") or {}
+
+                        opcoes_121 = [
+                            ("Controle de Estoque com sistema PVPS - o primeiro que vence é o primeiro que sai", 0.375),
+                            ("Telas nas janelas e frestas", 0.35),
+                            ("Possui sistema de ventilação", 0.35),
+                            ("As luminárias são protegidas", 0.35),
+                            ("Possui ralos sifonados, dotados de dispositivos que permitam o seu fechamento", 0.35),
+                            ("O estoque não possui sinais de goteiras, vazamentos, umidade, trincas, rachaduras, bolores, infiltrações ou descascamento", 0.35),
+                            ("Há adequada distância no armazenamento de produtos alimentícios do piso, parede, forro", 0.35),
+                            ("As geladeiras/câmaras frias são higienizadas periodicamente", 0.35),
+                            ("Ventilação do estoque", 0.35),
+                            ("Temperatura", 0.35),
+                            ("Umidade do ar", 0.35),
+                            ("Prazo de validade", 0.35),
+                            ("Tipo de alimento", 0.35),
+                            ("Os alimentos abertos são etiquetados com data de abertura e validade", 0.35),
+                            ("Desinsetização a cada 6 meses", 0.35),
+                            ("Desratização a cada 6 meses", 0.35),
+                            ("Limpeza da caixa d'água a cada 6 meses", 0.375),
+                            ("Outro", 0.0),
+                        ]
+
+                        raw_val_121 = str(d121.get("valor") or "")
+                        marcados_121 = [i.strip() for i in raw_val_121.split(";") if i.strip()]
+                        raw_link_121 = str(d121.get("link") or "")
+
+                        state_121 = {
+                            "selecionados": marcados_121,
+                            "link": raw_link_121,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-1"):
+                                for op_txt, op_pts in opcoes_121:
+                                    lbl_chk = f"{op_txt} (+{op_pts:.3f} pt)" if op_pts > 0 else f"{op_txt} (0,00 pt)"
+                                    chk_121 = ui.checkbox(
+                                        lbl_chk,
+                                        value=(op_txt in state_121["selecionados"])
+                                    ).props("color=blue")
+
+                                    def on_121_change(e, option=op_txt):
+                                        if e.value:
+                                            if option not in state_121["selecionados"]:
+                                                state_121["selecionados"].append(option)
+                                        else:
+                                            if option in state_121["selecionados"]:
+                                                state_121["selecionados"].remove(option)
+                                        recalc_121()
+
+                                    chk_121.on("update:model-value", on_121_change)
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 12.1):",
+                                value=raw_link_121,
+                                placeholder="Link das comprovações, fotos e fichas dos controles selecionados...",
+                            ).classes("w-full").props("outlined rows=6 color=blue").bind_value(
+                                state_121, "link"
+                            )
+
+                        lbl_pts_121 = ui.label("Nota do Quesito 12.1: 0.00 pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def recalc_121():
+                            dict_pts = dict(opcoes_121)
+                            total_pts = sum(dict_pts.get(item, 0.0) for item in state_121["selecionados"])
+                            lbl_pts_121.set_text(f"📊 Nota do Quesito 12.1: {total_pts:.3f} pontos ({len(state_121['selecionados'])} controles selecionados)")
+                            return total_pts
+
+                        recalc_121()
+
+                        def salvar_121():
+                            pts_121 = recalc_121()
+                            str_121 = " ; ".join(state_121["selecionados"])
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="12.1",
+                                valor=str_121,
+                                pontos=pts_121,
+                                link=state_121["link"],
+                                comentarios=d121.get("comentarios", []),
+                                status=d121.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 12.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 12.1", on_click=salvar_121).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("12.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 13.0 (Oferta de Transporte Escolar)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("13.0 • Oferta de Transporte Escolar").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município oferece transporte escolar?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d130 = res_data.get("13.0") or res_data.get("13") or {}
+
+                        val_130_bruto = str(d130.get("valor") or "Selecione...")
+                        raw_link_130 = str(d130.get("link") or "")
+
+                        state_130 = {
+                            "opcao": val_130_bruto if val_130_bruto in ["Sim", "Não"] else "Selecione...",
+                            "link": raw_link_130,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.radio(
+                                options=["Selecione...", "Sim", "Não"],
+                                value=state_130["opcao"],
+                            ).props("color=blue").bind_value(state_130, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 13.0):",
+                                value=raw_link_130,
+                                placeholder="Link da legislação, contratos ou relatório de transporte...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                state_130, "link"
+                            )
+
+                        def salvar_130():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="13.0",
+                                valor=state_130["opcao"],
+                                pontos=0.0,
+                                link=state_130["link"],
+                                comentarios=d130.get("comentarios", []),
+                                status=d130.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 13.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 13.0", on_click=salvar_130).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("13.0", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 13.1 (Modalidade da Frota de Transporte Escolar)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("13.1 • Modalidade da Frota de Transporte Escolar").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O transporte escolar é realizado por meio de frota própria ou frota alugada / terceirizada?"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "(Responder NÃO caso forneça APENAS vale transporte)"
+                        ).classes("text-sm italic text-gray-600 mb-6")
+
+                        d131 = res_data.get("13.1") or res_data.get("131") or {}
+
+                        val_131_bruto = str(d131.get("valor") or "Selecione...")
+                        raw_link_131 = str(d131.get("link") or "")
+
+                        state_131 = {
+                            "opcao": val_131_bruto if val_131_bruto in ["Sim", "Não"] else "Selecione...",
+                            "link": raw_link_131,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.radio(
+                                options=["Selecione...", "Sim", "Não"],
+                                value=state_131["opcao"],
+                            ).props("color=blue").bind_value(state_131, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 13.1):",
+                                value=raw_link_131,
+                                placeholder="Link da documentação da frota ou contratos de locação...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                state_131, "link"
+                            )
+
+                        def salvar_131():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="13.1",
+                                valor=state_131["opcao"],
+                                pontos=0.0,
+                                link=state_131["link"],
+                                comentarios=d131.get("comentarios", []),
+                                status=d131.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 13.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 13.1", on_click=salvar_131).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("13.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 13.1.1 (Estudo Anual do Traçado e Tempo de Viagem)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("13.1.1 • Estudo Anual do Traçado e Tempo de Viagem").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Existe um estudo anual do traçado e tempo de viagem das rotas do transporte escolar?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d1311 = res_data.get("13.1.1") or res_data.get("1311") or {}
+
+                        opcoes_1311_pts = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": -5.0,
+                        }
+
+                        opcoes_1311_labels = {
+                            "Selecione...": "Selecione...",
+                            "Sim": "Sim (0,0 pts)",
+                            "Não": "Não (-5,0 pts / Perde 5 pontos)",
+                        }
+
+                        val_1311_bruto = str(d1311.get("valor") or "Selecione...")
+                        raw_link_1311 = str(d1311.get("link") or "")
+
+                        state_1311 = {
+                            "opcao": val_1311_bruto if val_1311_bruto in opcoes_1311_pts else "Selecione...",
+                            "link": raw_link_1311,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_1311 = ui.radio(
+                                options=opcoes_1311_labels,
+                                value=state_1311["opcao"],
+                            ).props("color=blue").bind_value(state_1311, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 13.1.1):",
+                                value=raw_link_1311,
+                                placeholder="Link do estudo do traçado das rotas e tempos de itinerário...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                state_1311, "link"
+                            )
+
+                        lbl_pts_1311 = ui.label(f"📊 Pontuação Quesito 13.1.1: {opcoes_1311_pts.get(state_1311['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                        def att_pts_1311():
+                            pts = opcoes_1311_pts.get(state_1311["opcao"], 0.0)
+                            cor = "text-green-600" if pts >= 0 else "text-red-600"
+                            lbl_pts_1311.classes(replace=cor)
+                            lbl_pts_1311.set_text(f"📊 Pontuação Quesito 13.1.1: {pts:.1f} pontos")
+
+                        rad_1311.on("update:model-value", att_pts_1311)
+
+                        def salvar_1311():
+                            pts = opcoes_1311_pts.get(state_1311["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="13.1.1",
+                                valor=state_1311["opcao"],
+                                pontos=pts,
+                                link=state_1311["link"],
+                                comentarios=d1311.get("comentarios", []),
+                                status=d1311.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 13.1.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 13.1.1", on_click=salvar_1311).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("13.1.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 13.1.1.1 (Média de Tempo de Viagem)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("13.1.1.1 • Média de Tempo de Viagem").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a média de tempo de viagem do transporte escolar:"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d13111 = res_data.get("13.1.1.1") or res_data.get("13111") or {}
+                        raw_val_13111 = d13111.get("valor") or {}
+                        if not isinstance(raw_val_13111, dict):
+                            raw_val_13111 = {"media_tempo_min": str(raw_val_13111 or 0)}
+
+                        raw_link_13111 = str(d13111.get("link") or "")
+
+                        state_13111 = {
+                            "media_tempo_min": str(raw_val_13111.get("media_tempo_min", 0)),
+                            "link": raw_link_13111,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.input(
+                                "Média de tempo (em minutos):",
+                                value=state_13111["media_tempo_min"],
+                            ).props("type=number outlined dense color=blue").classes("w-full").bind_value(
+                                state_13111, "media_tempo_min"
+                            )
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 13.1.1.1):",
+                                value=raw_link_13111,
+                                placeholder="Link do documento que comprove a média calculada...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                state_13111, "link"
+                            )
+
+                        def salvar_13111():
+                            val_tempo = int(state_13111["media_tempo_min"]) if state_13111["media_tempo_min"].isdigit() else 0
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="13.1.1.1",
+                                valor={"media_tempo_min": val_tempo},
+                                pontos=0.0,
+                                link=state_13111["link"],
+                                comentarios=d13111.get("comentarios", []),
+                                status=d13111.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 13.1.1.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 13.1.1.1", on_click=salvar_13111).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("13.1.1.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 13.1.2 (Veículos com Mais de 10 Anos de Fabricação)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("13.1.2 • Idade da Frota do Transporte Escolar").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Possui veículos para transporte escolar de alunos com mais de 10 anos de fabricação?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d1312 = res_data.get("13.1.2") or res_data.get("1312") or {}
+
+                        opcoes_1312_pts = {
+                            "Selecione...": 0.0,
+                            "Sim": -5.0,
+                            "Não": 0.0,
+                        }
+
+                        opcoes_1312_labels = {
+                            "Selecione...": "Selecione...",
+                            "Sim": "Sim (-5,0 pts / Perde 5 pontos)",
+                            "Não": "Não (0,0 pts)",
+                        }
+
+                        val_1312_bruto = str(d1312.get("valor") or "Selecione...")
+                        raw_link_1312 = str(d1312.get("link") or "")
+
+                        state_1312 = {
+                            "opcao": val_1312_bruto if val_1312_bruto in opcoes_1312_pts else "Selecione...",
+                            "link": raw_link_1312,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_1312 = ui.radio(
+                                options=opcoes_1312_labels,
+                                value=state_1312["opcao"],
+                            ).props("color=blue").bind_value(state_1312, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 13.1.2):",
+                                value=raw_link_1312,
+                                placeholder="Link do inventário de veículos/CRLV da frota...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                state_1312, "link"
+                            )
+
+                        lbl_pts_1312 = ui.label(f"📊 Pontuação Quesito 13.1.2: {opcoes_1312_pts.get(state_1312['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                        def att_pts_1312():
+                            pts = opcoes_1312_pts.get(state_1312["opcao"], 0.0)
+                            cor = "text-green-600" if pts >= 0 else "text-red-600"
+                            lbl_pts_1312.classes(replace=cor)
+                            lbl_pts_1312.set_text(f"📊 Pontuação Quesito 13.1.2: {pts:.1f} pontos")
+
+                        rad_1312.on("update:model-value", att_pts_1312)
+
+                        def salvar_1312():
+                            pts = opcoes_1312_pts.get(state_1312["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="13.1.2",
+                                valor=state_1312["opcao"],
+                                pontos=pts,
+                                link=state_1312["link"],
+                                comentarios=d1312.get("comentarios", []),
+                                status=d1312.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 13.1.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 13.1.2", on_click=salvar_1312).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("13.1.2", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
