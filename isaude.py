@@ -1389,6 +1389,207 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("12.0", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 12.0 (Equipes de Saúde da Família e Atenção Primária)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("12.0 • Equipes de Saúde da Família e Atenção Primária").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Atenção Básica: Informe os dados sobre as equipes e a população cadastrada."
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Equipe completa eSF = Médico, Enfermeiro, Aux./Téc. de Enfermagem e ACS | Equipe completa eAP = Médico e Enfermeiro."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d120 = res_data.get("12.0") or res_data.get("12") or {}
+                        raw_val_120 = d120.get("valor") or {}
+
+                        if not isinstance(raw_val_120, dict):
+                            raw_val_120 = {}
+
+                        raw_link_120 = str(d120.get("link") or "")
+
+                        state_120 = {
+                            "esf_completas": str(raw_val_120.get("esf_completas", 0)),
+                            "eap_completas": str(raw_val_120.get("eap_completas", 0)),
+                            "esf_incompletas": str(raw_val_120.get("esf_incompletas", 0)),
+                            "eap_incompletas": str(raw_val_120.get("eap_incompletas", 0)),
+                            "pop_esf": str(raw_val_120.get("pop_esf", 0)),
+                            "pop_eap": str(raw_val_120.get("pop_eap", 0)),
+                            "link": raw_link_120,
+                        }
+
+                        # --- QUESITO 12.1: Informações de Equipes ---
+                        ui.label("12.1 • Informe o total de equipes (eSF + eAP):").classes(
+                            "text-sm font-bold text-blue-900 mb-3"
+                        )
+
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Nº de eSF completas:").classes("text-sm text-gray-700 w-1/2")
+                            inp_esf_c = ui.input(
+                                value=state_120["esf_completas"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_esf_c.bind_value(state_120, "esf_completas")
+
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Nº de eAP completas:").classes("text-sm text-gray-700 w-1/2")
+                            inp_eap_c = ui.input(
+                                value=state_120["eap_completas"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_eap_c.bind_value(state_120, "eap_completas")
+
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Nº de eSF incompletas:").classes("text-sm text-gray-700 w-1/2")
+                            inp_esf_i = ui.input(
+                                value=state_120["esf_incompletas"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_esf_i.bind_value(state_120, "esf_incompletas")
+
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Nº de eAP incompletas:").classes("text-sm text-gray-700 w-1/2")
+                            inp_eap_i = ui.input(
+                                value=state_120["eap_incompletas"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_eap_i.bind_value(state_120, "eap_incompletas")
+
+                        lbl_pts_121 = ui.label("Nota 12.1 (Composição): 0.0 / 50.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        ui.separator().classes("mb-6")
+
+                        # --- QUESITO 12.2: População Cadastrada ---
+                        ui.label("12.2 • Informe a população cadastrada nas equipes:").classes(
+                            "text-sm font-bold text-blue-900 mb-3"
+                        )
+
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Nº de pessoas cadastradas na eSF:").classes("text-sm text-gray-700 w-1/2")
+                            inp_pop_esf = ui.input(
+                                value=state_120["pop_esf"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_pop_esf.bind_value(state_120, "pop_esf")
+
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Nº de pessoas cadastradas na eAP:").classes("text-sm text-gray-700 w-1/2")
+                            inp_pop_eap = ui.input(
+                                value=state_120["pop_eap"]
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_pop_eap.bind_value(state_120, "pop_eap")
+
+                        lbl_pts_122 = ui.label("Nota 12.2 (População/Equipe): 0.0 / 40.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-6"
+                        )
+
+                        # --- Lógica de Cálculo das Pontuações Finais (12.1 e 12.2) ---
+                        def recalc_pontos_120():
+                            def to_float(val):
+                                try:
+                                    return float(val)
+                                except ValueError:
+                                    return 0.0
+
+                            esf_c = to_float(state_120["esf_completas"])
+                            eap_c = to_float(state_120["eap_completas"])
+                            esf_i = to_float(state_120["esf_incompletas"])
+                            eap_i = to_float(state_120["eap_incompletas"])
+
+                            pop_esf = to_float(state_120["pop_esf"])
+                            pop_eap = to_float(state_120["pop_eap"])
+
+                            # Cálculo Quesito 12.1
+                            ec = esf_c + eap_c
+                            ei = esf_i + eap_i
+                            total_equipes = ec + ei
+
+                            if total_equipes > 0:
+                                p_121 = ec / total_equipes
+                                nf_121 = p_121 * 50.0
+                            else:
+                                p_121 = 0.0
+                                nf_121 = 0.0
+
+                            lbl_pts_121.set_text(
+                                f"📊 Nota 12.1: {nf_121:.2f} / 50.0 pontos "
+                                f"(EC: {int(ec)} | EI: {int(ei)} | Proporção de Completas: {(p_121*100):.1f}%)"
+                            )
+
+                            # Cálculo Quesito 12.2
+                            pop_total = pop_esf + pop_eap
+                            if total_equipes > 0:
+                                media_pop_equipe = pop_total / total_equipes
+                                if 2000 <= media_pop_equipe <= 4000:
+                                    nf_122 = 40.0
+                                else:
+                                    nf_122 = 0.0
+                            else:
+                                media_pop_equipe = 0.0
+                                nf_122 = 0.0
+
+                            lbl_pts_122.set_text(
+                                f"📊 Nota 12.2: {nf_122:.2f} / 40.0 pontos "
+                                f"(Média de cadastrados/equipe: {media_pop_equipe:.1f} hab/equipe)"
+                            )
+
+                            return round(nf_121 + nf_122, 2)
+
+                        # Registro dos eventos de atualização de entrada
+                        for input_field in [inp_esf_c, inp_eap_c, inp_esf_i, inp_eap_i, inp_pop_esf, inp_pop_eap]:
+                            input_field.on("update:model-value", recalc_pontos_120)
+
+                        # Inicializar os rótulos de notas ao carregar a página
+                        recalc_pontos_120()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatórios do e-Gestor AB / Sistema de Informação da Atenção Básica (SISAB):",
+                            value=raw_link_120,
+                            placeholder="Link dos relatórios comprobatórios de equipes e relatórios de população cadastrada...",
+                        ).classes("w-full mb-4").props("outlined rows=3").bind_value(
+                            state_120, "link"
+                        )
+
+                        def salvar_120():
+                            pts_totais = recalc_pontos_120()
+
+                            def to_int(val):
+                                return int(val) if str(val).isdigit() else 0
+
+                            dados_salvar = {
+                                "esf_completas": to_int(state_120["esf_completas"]),
+                                "eap_completas": to_int(state_120["eap_completas"]),
+                                "esf_incompletas": to_int(state_120["esf_incompletas"]),
+                                "eap_incompletas": to_int(state_120["eap_incompletas"]),
+                                "pop_esf": to_int(state_120["pop_esf"]),
+                                "pop_eap": to_int(state_120["pop_eap"]),
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="12.0",
+                                valor=dados_salvar,
+                                pontos=pts_totais,
+                                link=state_120["link"],
+                                comentarios=d120.get("comentarios", []),
+                                status=d120.get("status", "Pendente"),
+                            )
+
+                            ui.notify(
+                                f"Quesito 12.0 salvo com sucesso! (Pontuação acumulada: {pts_totais:.2f} pts)",
+                                type="positive",
+                            )
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 12.0", on_click=salvar_120).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("12.0", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
