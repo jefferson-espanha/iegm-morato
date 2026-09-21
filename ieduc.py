@@ -9711,6 +9711,514 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("3.21", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # QUESITO 3.22 (Participação em Recuperação ou Reforço Escolar)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.22 • Participação em Projetos de Recuperação / Reforço").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Há alunos dos Anos Iniciais, matriculados em escolas municipais, que participaram, durante o ano de 2025, de projetos de recuperação ou reforço escolar?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d322 = res_data.get("3.22") or {}
+
+                        opcoes_322 = [
+                            "Selecione...",
+                            "Sim",
+                            "Não",
+                        ]
+
+                        val_322_bruto = str(d322.get("valor") or "")
+                        val_322_valido = "Selecione..."
+                        if val_322_bruto in opcoes_322:
+                            val_322_valido = val_322_bruto
+
+                        raw_link_322 = str(d322.get("link") or "")
+
+                        state_322 = {
+                            "opcao": val_322_valido,
+                            "link": raw_link_322,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_322 = ui.radio(
+                                options=opcoes_322,
+                                value=state_322["opcao"],
+                            ).props("color=blue").bind_value(state_322, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Projeto Pedagógico de Reforço:",
+                                value=raw_link_322,
+                                placeholder="Link para a diretriz, portaria ou projeto de reforço escolar...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_322, "link"
+                            )
+
+                        def salvar_322():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.22",
+                                valor=state_322["opcao"],
+                                pontos=0.0,
+                                link=state_322["link"],
+                                comentarios=d322.get("comentarios", []),
+                                status=d322.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.22 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.22", on_click=salvar_322).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.22", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.22.1 (Número de Alunos Atendidos no Reforço)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.22.1 • Quantidade de Alunos no Reforço Escolar").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o número de alunos dos Anos Iniciais que participaram de projetos de recuperação ou reforço escolar:"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d3221 = res_data.get("3.221") or res_data.get("3.22.1") or {}
+                        val_3221_i = str(d3221.get("valor") or "0")
+                        raw_link_3221 = str(d3221.get("link") or "")
+
+                        state_3221 = {
+                            "qtd": val_3221_i,
+                            "link": raw_link_3221,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.input(
+                                "Quantidade de alunos que participaram:",
+                                value=state_3221["qtd"]
+                            ).props("type=number outlined color=blue").bind_value(state_3221, "qtd")
+
+                            ui.textarea(
+                                label="Link de Evidência / Listagem de Frequência do Reforço:",
+                                value=raw_link_3221,
+                                placeholder="Link do documento comprovante de frequência dos alunos no reforço...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_3221, "link"
+                            )
+
+                        def salvar_3221():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.22.1",
+                                valor=state_3221["qtd"],
+                                pontos=0.0,
+                                link=state_3221["link"],
+                                comentarios=d3221.get("comentarios", []),
+                                status=d3221.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.22.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.22.1", on_click=salvar_3221).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.22.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.22.2 (Metas Traçadas para o Reforço Escolar)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.22.2 • Metas para os Projetos de Reforço Escolar").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Existem metas traçadas que visem à melhoria dos resultados dos projetos de recuperação ou reforço escolar?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d3222 = res_data.get("3.222") or res_data.get("3.22.2") or {}
+
+                        opcoes_3222_pontos = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": -10.0,
+                        }
+
+                        opcoes_3222_labels = {
+                            "Selecione...": "Selecione...",
+                            "Sim": "Sim (0.0 pts)",
+                            "Não": "Não (-10.0 pts - Perde 10 pontos)",
+                        }
+
+                        val_3222_bruto = str(d3222.get("valor") or "")
+                        val_3222_valido = "Selecione..."
+                        if val_3222_bruto in opcoes_3222_pontos:
+                            val_3222_valido = val_3222_bruto
+
+                        raw_link_3222 = str(d3222.get("link") or "")
+
+                        state_3222 = {
+                            "opcao": val_3222_valido,
+                            "link": raw_link_3222,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_3222 = ui.radio(
+                                options=opcoes_3222_labels,
+                                value=state_3222["opcao"],
+                            ).props("color=blue").bind_value(state_3222, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Plano de Metas de Reforço:",
+                                value=raw_link_3222,
+                                placeholder="Link do plano pedagógico contendo as metas de aprendizagem fixadas...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_3222, "link"
+                            )
+
+                        lbl_pts_3222 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.22.2: {opcoes_3222_pontos.get(state_3222['opcao'], 0.0):.1f} pontos"
+                        ).classes("text-sm font-bold text-red-600 my-4" if opcoes_3222_pontos.get(state_3222['opcao'], 0.0) < 0 else "text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_3222():
+                            pts = opcoes_3222_pontos.get(state_3222["opcao"], 0.0)
+                            lbl_pts_3222.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.22.2: {pts:.1f} pontos"
+                            )
+                            if pts < 0:
+                                lbl_pts_3222.classes(remove="text-green-600", add="text-red-600")
+                            else:
+                                lbl_pts_3222.classes(remove="text-red-600", add="text-green-600")
+
+                        rad_3222.on("update:model-value", att_pts_3222)
+
+                        def salvar_3222():
+                            pts = opcoes_3222_pontos.get(state_3222["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.22.2",
+                                valor=state_3222["opcao"],
+                                pontos=pts,
+                                link=state_3222["link"],
+                                comentarios=d3222.get("comentarios", []),
+                                status=d3222.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.22.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.22.2", on_click=salvar_3222).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.22.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.22.2.1 (Atingimento das Metas do Reforço)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.22.2.1 • Atingimento das Metas de Reforço Escolar").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "As metas estão sendo atingidas?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d32221 = res_data.get("3.2221") or res_data.get("3.22.2.1") or {}
+
+                        opcoes_32221_pontos = {
+                            "Selecione...": 0.0,
+                            "Todas as metas foram atingidas": 0.0,
+                            "A maior parte das metas foram atingidas": -5.0,
+                            "A menor parte das metas foram atingidas": -7.0,
+                            "Nenhuma meta foi atingida": -10.0,
+                        }
+
+                        opcoes_32221_labels = {
+                            "Selecione...": "Selecione...",
+                            "Todas as metas foram atingidas": "Todas as metas foram atingidas (0.0 pts)",
+                            "A maior parte das metas foram atingidas": "A maior parte das metas foram atingidas (-05.0 pts - Perde 5 pontos)",
+                            "A menor parte das metas foram atingidas": "A menor parte das metas foram atingidas (-07.0 pts - Perde 7 pontos)",
+                            "Nenhuma meta foi atingida": "Nenhuma meta foi atingida (-10.0 pts - Perde 10 pontos)",
+                        }
+
+                        val_32221_bruto = str(d32221.get("valor") or "")
+                        val_32221_valido = "Selecione..."
+                        if val_32221_bruto in opcoes_32221_pontos:
+                            val_32221_valido = val_32221_bruto
+
+                        raw_link_32221 = str(d32221.get("link") or "")
+
+                        state_32221 = {
+                            "opcao": val_32221_valido,
+                            "link": raw_link_32221,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_32221 = ui.radio(
+                                options=opcoes_32221_labels,
+                                value=state_32221["opcao"],
+                            ).props("color=blue").bind_value(state_32221, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Relatório de Avaliação de Metas:",
+                                value=raw_link_3221,
+                                placeholder="Link do relatório consolidado apontando os percentuais de metas atingidas...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_32221, "link"
+                            )
+
+                        lbl_pts_32221 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.22.2.1: {opcoes_32221_pontos.get(state_32221['opcao'], 0.0):.1f} pontos"
+                        ).classes("text-sm font-bold text-red-600 my-4" if opcoes_32221_pontos.get(state_32221['opcao'], 0.0) < 0 else "text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_32221():
+                            pts = opcoes_32221_pontos.get(state_32221["opcao"], 0.0)
+                            lbl_pts_32221.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.22.2.1: {pts:.1f} pontos"
+                            )
+                            if pts < 0:
+                                lbl_pts_32221.classes(remove="text-green-600", add="text-red-600")
+                            else:
+                                lbl_pts_32221.classes(remove="text-red-600", add="text-green-600")
+
+                        rad_32221.on("update:model-value", att_pts_32221)
+
+                        def salvar_32221():
+                            pts = opcoes_32221_pontos.get(state_32221["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.22.2.1",
+                                valor=state_32221["opcao"],
+                                pontos=pts,
+                                link=state_32221["link"],
+                                comentarios=d32221.get("comentarios", []),
+                                status=d32221.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.22.2.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.22.2.1", on_click=salvar_32221).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.22.2.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.23 (Ações de Monitoramento e Combate ao Abandono Escolar)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.23 • Monitoramento e Combate ao Abandono Escolar").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A Prefeitura municipal realizou ações e medidas para monitoramento da taxa de abandono das crianças na idade escolar (Anos Iniciais)?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Obs: Apenas ligação para telefone cadastrado do aluno NÃO caracteriza medida para reduzir a taxa de abandono."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d323 = res_data.get("3.23") or {}
+
+                        opcoes_323_pontos = {
+                            "Selecione...": 0.0,
+                            "Sim": 25.0,
+                            "Não": 0.0,
+                        }
+
+                        opcoes_323_labels = {
+                            "Selecione...": "Selecione...",
+                            "Sim": "Sim (+25.0 pts)",
+                            "Não": "Não (0.0 pts)",
+                        }
+
+                        val_323_bruto = str(d323.get("valor") or "")
+                        val_323_valido = "Selecione..."
+                        if val_323_bruto in opcoes_323_pontos:
+                            val_323_valido = val_323_bruto
+
+                        raw_link_323 = str(d323.get("link") or "")
+
+                        state_323 = {
+                            "opcao": val_323_valido,
+                            "link": raw_link_323,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_323 = ui.radio(
+                                options=opcoes_323_labels,
+                                value=state_323["opcao"],
+                            ).props("color=blue").bind_value(state_323, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Programa de Busca Ativa:",
+                                value=raw_link_323,
+                                placeholder="Link do plano municipal de busca ativa ou protocolo de acompanhamento da frequência...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_323, "link"
+                            )
+
+                        lbl_pts_323 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.23: {opcoes_323_pontos.get(state_323['opcao'], 0.0):.1f} / 25.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_323():
+                            pts = opcoes_323_pontos.get(state_323["opcao"], 0.0)
+                            lbl_pts_323.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.23: {pts:.1f} / 25.0 pontos"
+                            )
+
+                        rad_323.on("update:model-value", att_pts_323)
+
+                        def salvar_323():
+                            pts = opcoes_323_pontos.get(state_323["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.23",
+                                valor=state_323["opcao"],
+                                pontos=pts,
+                                link=state_323["link"],
+                                comentarios=d323.get("comentarios", []),
+                                status=d323.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.23 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.23", on_click=salvar_323).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.23", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.23.1 (Ações Específicas Realizadas para Redução do Abandono)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.23.1 • Detalhamento das Ações e Medidas de Busca Ativa").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale as ações e medidas realizadas:"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d3231 = res_data.get("3.231") or res_data.get("3.23.1") or {}
+                        raw_val_3231 = str(d3231.get("valor") or "")
+                        raw_link_3231 = str(d3231.get("link") or "")
+
+                        # Parse das opções previamente marcadas (separadas por vírgula ou ponto-e-vírgula)
+                        itens_marcados_i = [
+                            item.strip() for item in raw_val_3231.split(";") if item.strip()
+                        ]
+
+                        opcoes_3231 = [
+                            "Ligação/mensagem para os responsáveis",
+                            "Visita domiciliar",
+                            "Plataforma de Busca Ativa (UNICEF)",
+                            "Contato com familiares/amigos/vizinhos",
+                            "Apoio do psicólogo escolar",
+                            "Apoio do orientador comunitário/assistente social escolar",
+                            "Encaminhamento do caso ao Conselho Tutelar",
+                            "Encaminhamento do caso ao CRAS - Centro de Referência de Assistência Social",
+                            "Outro",
+                        ]
+
+                        state_3231 = {
+                            "selecionados": itens_marcados_i,
+                            "outro_desc": "",
+                            "link": raw_link_3231,
+                        }
+
+                        # Identificar se "Outro" possui texto complementar salvo
+                        for item in itens_marcados_i:
+                            if item.startswith("Outro:"):
+                                state_3231["outro_desc"] = item.replace("Outro:", "").strip()
+                                if "Outro" not in state_3231["selecionados"]:
+                                    state_3231["selecionados"].append("Outro")
+
+                        with ui.grid(columns=1).classes("w-full gap-2 mb-4"):
+                            for op in opcoes_3231:
+                                chk = ui.checkbox(
+                                    op,
+                                    value=(op in state_3231["selecionados"])
+                                ).props("color=blue")
+
+                                def on_chk_change(e, option=op):
+                                    if e.value:
+                                        if option not in state_3231["selecionados"]:
+                                            state_3231["selecionados"].append(option)
+                                    else:
+                                        if option in state_3231["selecionados"]:
+                                            state_3231["selecionados"].remove(option)
+
+                                chk.on("update:model-value", on_chk_change)
+
+                        inp_outro_3231 = ui.input(
+                            "Caso tenha marcado 'Outro', especifique:",
+                            value=state_3231["outro_desc"]
+                        ).classes("w-full mb-4").props("outlined color=blue").bind_value(state_3231, "outro_desc")
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatórios de Atendimentos:",
+                            value=raw_link_3231,
+                            placeholder="Link das fichas de busca ativa, encaminhamentos do CRAS ou relatórios do Conselho Tutelar...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_3231, "link"
+                        )
+
+                        def salvar_3231():
+                            # Montar string formatada final
+                            final_list = []
+                            for op in state_3231["selecionados"]:
+                                if op == "Outro" and state_3231["outro_desc"]:
+                                    final_list.append(f"Outro: {state_3231['outro_desc']}")
+                                else:
+                                    final_list.append(op)
+
+                            valor_str = " ; ".join(final_list)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.23.1",
+                                valor=valor_str,
+                                pontos=0.0,
+                                link=state_3231["link"],
+                                comentarios=d3231.get("comentarios", []),
+                                status=d3231.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.23.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.23.1", on_click=salvar_3231).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.23.1", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
