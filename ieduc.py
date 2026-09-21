@@ -16975,6 +16975,348 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("E3.2", res_data, render_conteudo.refresh)
 
+# -----------------------------------------------------------------------------
+                    # QUESITO E3.3 - PPP Atualizado nos Anos Iniciais
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.3 • PPP Atualizado nos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a quantidade de estabelecimentos que oferecem Anos Iniciais na rede municipal de ensino (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e33 = res_data.get("E3.3") or res_data.get("E33") or {}
+                        val_e33_ppp = d_e33.get("com_ppp") or 0
+                        val_e33_tot = d_e33.get("total") or 0
+                        link_e33 = str(d_e33.get("link") or "")
+
+                        state_e33 = {
+                            "com_ppp": int(val_e33_ppp) if str(val_e33_ppp).isdigit() else 0,
+                            "total": int(val_e33_tot) if str(val_e33_tot).isdigit() else 0,
+                            "link": link_e33,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e33():
+                            tot = state_e33["total"]
+                            com = state_e33["com_ppp"]
+                            if tot > 0:
+                                p = min(com / tot, 1.0)
+                                state_e33["pontos"] = round(p * 6.0, 2)
+                            else:
+                                state_e33["pontos"] = 0.0
+                            lbl_pontos_e33.set_text(f"📊 Pontuação Quesito E3.3: {state_e33['pontos']:.2f} ponto(s)".replace(".", ","))
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Anos Iniciais com PPP Atualizado:",
+                                value=state_e33["com_ppp"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e33.update({"com_ppp": int(e.value or 0)}), calc_e33()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Total de Estabelecimentos com Anos Iniciais:",
+                                value=state_e33["total"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e33.update({"total": int(e.value or 0)}), calc_e33()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e33["link"],
+                            placeholder="Link do relatório ou extrato do Censo Escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e33, "link")
+
+                        lbl_pontos_e33 = ui.label("📊 Pontuação Quesito E3.3: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e33()
+
+                        def salvar_e33():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.3",
+                                valor=f"{state_e33['com_ppp']}/{state_e33['total']}",
+                                pontos=state_e33["pontos"],
+                                link=state_e33["link"],
+                                comentarios=d_e33.get("comentarios", []),
+                                status=d_e33.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.3", on_click=salvar_e33).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.3", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.4 - Infraestrutura de Tecnologia nos Anos Iniciais
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.4 • Infraestrutura de Tecnologia dos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Sobre a infraestrutura de ensino com apoio da Tecnologia dos Anos Iniciais, informe (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e34 = res_data.get("E3.4") or res_data.get("E34") or {}
+                        val_e34_lab = d_e34.get("lab_info") or 0
+                        val_e34_net = d_e34.get("com_internet") or 0
+                        val_e34_bl = d_e34.get("banda_larga") or 0
+                        val_e34_tot = d_e34.get("total_escolas") or 0
+                        val_e34_comp = d_e34.get("computadores") or 0
+                        val_e34_razao = d_e34.get("max_alunos_por_comp") or 0.0
+                        link_e34 = str(d_e34.get("link") or "")
+
+                        state_e34 = {
+                            "lab_info": int(val_e34_lab) if str(val_e34_lab).isdigit() else 0,
+                            "com_internet": int(val_e34_net) if str(val_e34_net).isdigit() else 0,
+                            "banda_larga": int(val_e34_bl) if str(val_e34_bl).isdigit() else 0,
+                            "total_escolas": int(val_e34_tot) if str(val_e34_tot).isdigit() else 0,
+                            "computadores": int(val_e34_comp) if str(val_e34_comp).isdigit() else 0,
+                            "max_alunos_por_comp": float(val_e34_razao) if str(val_e34_razao).replace(".", "", 1).isdigit() else 0.0,
+                            "link": link_e34,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e34():
+                            tot = state_e34["total_escolas"]
+                            lab = state_e34["lab_info"]
+                            bl = state_e34["banda_larga"]
+                            razao = state_e34["max_alunos_por_comp"]
+
+                            if tot > 0:
+                                p1 = (lab / tot) * 12.0
+                                p2 = (bl / tot) * 12.0
+                                base_pts = min(p1 + p2, 12.0)
+                            else:
+                                base_pts = 0.0
+
+                            penalidade = -10.0 if razao > 10.0 else 0.0
+                            state_e34["pontos"] = round(base_pts + penalidade, 2)
+
+                            str_pts = f"{state_e34['pontos']:.2f}".replace(".", ",")
+                            str_pen = " (Com penalidade de -10 por >10 alunos/computador)" if penalidade < 0 else ""
+                            lbl_pontos_e34.set_text(f"📊 Pontuação Quesito E3.4: {str_pts} ponto(s){str_pen}")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Total de Estabelecimentos (Anos Iniciais):",
+                                value=state_e34["total_escolas"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e34.update({"total_escolas": int(e.value or 0)}), calc_e34()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Com Laboratórios de Informática:",
+                                value=state_e34["lab_info"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e34.update({"lab_info": int(e.value or 0)}), calc_e34()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Com Internet:",
+                                value=state_e34["com_internet"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: state_e34.update({"com_internet": int(e.value or 0)}),
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Com Banda Larga para uso dos Alunos:",
+                                value=state_e34["banda_larga"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_e34.update({"banda_larga": int(e.value or 0)}), calc_e34()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Total de Computadores/Tablets em Uso:",
+                                value=state_e34["computadores"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: state_e34.update({"computadores": int(e.value or 0)}),
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Maior nº de Alunos por Computador no Turno:",
+                                value=state_e34["max_alunos_por_comp"],
+                                min=0.0,
+                                step=0.1,
+                                on_change=lambda e: [state_e34.update({"max_alunos_por_comp": float(e.value or 0.0)}), calc_e34()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e34["link"],
+                            placeholder="Link do relatório de infraestrutura do Censo Escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e34, "link")
+
+                        lbl_pontos_e34 = ui.label("📊 Pontuação Quesito E3.4: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e34()
+
+                        def salvar_e34():
+                            res_str = f"Lab: {state_e34['lab_info']}, BL: {state_e34['banda_larga']}, Tot: {state_e34['total_escolas']}, Comp: {state_e34['computadores']}, Alunos/Comp: {state_e34['max_alunos_por_comp']}"
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.4",
+                                valor=res_str,
+                                pontos=state_e34["pontos"],
+                                link=state_e34["link"],
+                                comentarios=d_e34.get("comentarios", []),
+                                status=d_e34.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.4 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.4", on_click=salvar_e34).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.4", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.5 - Professores dos Anos Iniciais (Efetivos vs Temporários)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.5 • Proporção de Professores Temporários nos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a quantidade de professores dos Anos Iniciais (Efetivos e Temporários - Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                        d_e35 = res_data.get("E3.5") or res_data.get("E35") or {}
+                        val_e35_e = d_e35.get("efetivos") or 0
+                        val_e35_t = d_e35.get("temporarios") or 0
+                        link_e35 = str(d_e35.get("link") or "")
+
+                        state_e35 = {
+                            "efetivos": int(val_e35_e) if str(val_e35_e).isdigit() else 0,
+                            "temporarios": int(val_e35_t) if str(val_e35_t).isdigit() else 0,
+                            "link": link_e35,
+                            "porcentagem": 0.0,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_e35():
+                            e = state_e35["efetivos"]
+                            t = state_e35["temporarios"]
+                            total = e + t
+                            if total > 0:
+                                p = (t / total) * 100.0
+                                state_e35["porcentagem"] = p
+                                if p <= 10.0:
+                                    state_e35["pontos"] = 2.0
+                                else:
+                                    state_e35["pontos"] = 0.0
+                            else:
+                                state_e35["porcentagem"] = 0.0
+                                state_e35["pontos"] = 0.0
+
+                            str_p = f"{state_e35['porcentagem']:.1f}".replace(".", ",")
+                            str_pts = f"{state_e35['pontos']:.1f}".replace(".", ",")
+                            lbl_pontos_e35.set_text(f"📊 Porcentagem de Temporários: {str_p}% | Pontuação Quesito E3.5: {str_pts} ponto(s)")
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Professores Efetivos (E):",
+                                value=state_e35["efetivos"],
+                                min=0,
+                                step=1,
+                                on_change=lambda ev: [state_e35.update({"efetivos": int(ev.value or 0)}), calc_e35()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                            ui.number(
+                                label="Professores Temporários (T):",
+                                value=state_e35["temporarios"],
+                                min=0,
+                                step=1,
+                                on_change=lambda ev: [state_e35.update({"temporarios": int(ev.value or 0)}), calc_e35()],
+                            ).classes("w-full").props("outlined color=blue")
+
+                        ui.textarea(
+                            label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                            value=state_e35["link"],
+                            placeholder="Link do extrato de docentes do Censo Escolar...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e35, "link")
+
+                        lbl_pontos_e35 = ui.label("📊 Porcentagem de Temporários: 0,0% | Pontuação Quesito E3.5: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_e35()
+
+                        def salvar_e35():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.5",
+                                valor=f"Efetivos: {state_e35['efetivos']}, Temporários: {state_e35['temporarios']}",
+                                pontos=state_e35["pontos"],
+                                link=state_e35["link"],
+                                comentarios=d_e35.get("comentarios", []),
+                                status=d_e35.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.5 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.5", on_click=salvar_e35).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.5", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO E3.6 - Profissionais dos Anos Iniciais (Regentes e Apoio)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("E3.6 • Quantidade de Profissionais dos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a quantidade de profissionais dos Anos Iniciais do Ensino Fundamental (1º ao 5º ano) relativos ao exercício de 2025:").classes("text-base font-bold text-black mb-4")
+
+                        d_e36 = res_data.get("E3.6") or res_data.get("E36") or {}
+                        val_e36_reg = d_e36.get("regentes") or 0
+                        val_e36_apo = d_e36.get("apoio") or 0
+                        link_e36 = str(d_e36.get("link") or "")
+
+                        state_e36 = {
+                            "regentes": int(val_e36_reg) if str(val_e36_reg).isdigit() else 0,
+                            "apoio": int(val_e36_apo) if str(val_e36_apo).isdigit() else 0,
+                            "link": link_e36,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Total de professores regentes dos Anos Iniciais:",
+                                value=state_e36["regentes"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_e36, "regentes")
+
+                            ui.number(
+                                label="Total de profissionais de apoio e supervisão pedagógica:",
+                                value=state_e36["apoio"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_e36, "apoio")
+
+                        ui.textarea(
+                            label="Link de Evidência / Quadro de Pessoal (Exercício 2025):",
+                            value=state_e36["link"],
+                            placeholder="Link da folha/quadro demonstrativo de profissionais...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e36, "link")
+
+                        ui.label("📊 Pontuação Quesito E3.6: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_e36():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="E3.6",
+                                valor=f"Regentes: {state_e36['regentes']}, Apoio/Supervisão: {state_e36['apoio']}",
+                                pontos=0.0,
+                                link=state_e36["link"],
+                                comentarios=d_e36.get("comentarios", []),
+                                status=d_e36.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito E3.6 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO E3.6", on_click=salvar_e36).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("E3.6", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
