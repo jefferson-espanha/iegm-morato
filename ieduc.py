@@ -10864,6 +10864,334 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("6.2", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # QUESITO 7.0 (Programa de Inibição ao Absenteísmo de Professores)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("7.0 • Inibição ao Absenteísmo de Professores").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Existe um programa de inibição ao absenteísmo de professores em sala de aula (incluindo os afastamentos legais)?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d70 = res_data.get("7.0") or res_data.get("7") or {}
+                        raw_val_70 = d70.get("valor") or {}
+
+                        if not isinstance(raw_val_70, dict):
+                            raw_val_70 = {}
+
+                        raw_link_70 = str(d70.get("link") or "")
+
+                        # Leitura de ofertas do i-Educ (Q1: Creche, Q2: Pré-escola, Q3: Anos Iniciais)
+                        # Busca nos quesitos das etapas ou assume "SIM" por padrão caso não localizado
+                        d_q1 = res_data.get("1.0") or res_data.get("1") or {}
+                        d_q2 = res_data.get("2.0") or res_data.get("2") or {}
+                        d_q3 = res_data.get("3.0") or res_data.get("3") or {}
+
+                        q1_sim = str(d_q1.get("valor") or "SIM").strip().upper() == "SIM"
+                        q2_sim = str(d_q2.get("valor") or "SIM").strip().upper() == "SIM"
+                        q3_sim = str(d_q3.get("valor") or "SIM").strip().upper() == "SIM"
+
+                        state_70 = {
+                            "tem_programa": str(raw_val_70.get("tem_programa") or "Selecione..."),
+                            # Ausências por Faltas/Afastamentos (QTA)
+                            "qta_creche": str(raw_val_70.get("qta_creche", 0)),
+                            "qta_pre": str(raw_val_70.get("qta_pre", 0)),
+                            "qta_iniciais": str(raw_val_70.get("qta_iniciais", 0)),
+                            # Totais de Professores por Etapa
+                            "prof_creche": str(raw_val_70.get("prof_creche", 1)),
+                            "prof_pre": str(raw_val_70.get("prof_pre", 1)),
+                            "prof_iniciais": str(raw_val_70.get("prof_iniciais", 1)),
+                            "link": raw_link_70,
+                        }
+
+                        opcoes_70_base = ["Selecione...", "Sim", "Não"]
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_70 = ui.radio(
+                                options=opcoes_70_base,
+                                value=state_70["tem_programa"],
+                            ).props("color=blue").bind_value(state_70, "tem_programa")
+
+                            ui.textarea(
+                                label="Link de Evidência / Plano de Redução do Absenteísmo:",
+                                value=raw_link_70,
+                                placeholder="Link do programa, bonificação de assiduidade ou diretriz municipal...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_70, "link"
+                            )
+
+                        ui.separator().classes("my-4")
+                        ui.label("📊 Dados para Cálculo de Taxa de Absenteísmo por Etapa (A, B e C):").classes(
+                            "text-sm font-bold text-gray-800 mb-2"
+                        )
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            # Creche (A)
+                            with ui.column().classes("p-3 bg-gray-50 rounded border border-gray-200"):
+                                ui.label("Creche (A)").classes("font-bold text-blue-800 text-xs")
+                                ui.input("QTA (Faltas/Afastamentos):", value=state_70["qta_creche"]).props("type=number outlined dense color=blue").bind_value(state_70, "qta_creche")
+                                ui.input("Total Professores Creche:", value=state_70["prof_creche"]).props("type=number outlined dense color=blue").bind_value(state_70, "prof_creche")
+
+                            # Pré-escola (B)
+                            with ui.column().classes("p-3 bg-gray-50 rounded border border-gray-200"):
+                                ui.label("Pré-escola (B)").classes("font-bold text-blue-800 text-xs")
+                                ui.input("QTA (Faltas/Afastamentos):", value=state_70["qta_pre"]).props("type=number outlined dense color=blue").bind_value(state_70, "qta_pre")
+                                ui.input("Total Professores Pré:", value=state_70["prof_pre"]).props("type=number outlined dense color=blue").bind_value(state_70, "prof_pre")
+
+                            # Anos Iniciais (C)
+                            with ui.column().classes("p-3 bg-gray-50 rounded border border-gray-200"):
+                                ui.label("Anos Iniciais (C)").classes("font-bold text-blue-800 text-xs")
+                                ui.input("QTA (Faltas/Afastamentos):", value=state_70["qta_iniciais"]).props("type=number outlined dense color=blue").bind_value(state_70, "qta_iniciais")
+                                ui.input("Total Professores Iniciais:", value=state_70["prof_iniciais"]).props("type=number outlined dense color=blue").bind_value(state_70, "prof_iniciais")
+
+                        lbl_resultado_70 = ui.label("Calculando pontuação do absenteísmo...").classes("text-sm font-bold my-2")
+
+                        def calcular_pontos_70():
+                            if state_70["tem_programa"] != "Sim":
+                                lbl_resultado_70.set_text("📊 Impacto no Quesito 7.0: 0.0 pontos (Sem programa registrado)")
+                                lbl_resultado_70.classes(remove="text-red-600", add="text-gray-700")
+                                return 0.0
+
+                            try:
+                                qta_a = float(state_70["qta_creche"])
+                                prof_a = float(state_70["prof_creche"])
+                                taxa_a = (qta_a / prof_a) if prof_a > 0 else 0.0
+                            except (ValueError, ZeroDivisionError):
+                                taxa_a = 0.0
+
+                            try:
+                                qta_b = float(state_70["qta_pre"])
+                                prof_b = float(state_70["prof_pre"])
+                                taxa_b = (qta_b / prof_b) if prof_b > 0 else 0.0
+                            except (ValueError, ZeroDivisionError):
+                                taxa_b = 0.0
+
+                            try:
+                                qta_c = float(state_70["qta_iniciais"])
+                                prof_c = float(state_70["prof_iniciais"])
+                                taxa_c = (qta_c / prof_c) if prof_c > 0 else 0.0
+                            except (ValueError, ZeroDivisionError):
+                                taxa_c = 0.0
+
+                            na, nb, nc = 0.0, 0.0, 0.0
+
+                            # Matriz da Regra de Negócio i-Educ
+                            if q1_sim and q2_sim and q3_sim:
+                                na = 0.0 if taxa_a <= 10 else -1.5
+                                nb = 0.0 if taxa_b <= 10 else -1.5
+                                nc = 0.0 if taxa_c <= 10 else -2.0
+                            elif not q1_sim and q2_sim and q3_sim:
+                                na = 0.0
+                                nb = 0.0 if taxa_b <= 10 else -2.5
+                                nc = 0.0 if taxa_c <= 10 else -2.5
+                            elif q1_sim and not q2_sim and q3_sim:
+                                na = 0.0 if taxa_a <= 10 else -2.5
+                                nb = 0.0
+                                nc = 0.0 if taxa_c <= 10 else -2.5
+                            elif q1_sim and q2_sim and not q3_sim:
+                                na = 0.0 if taxa_a <= 10 else -2.5
+                                nb = 0.0 if taxa_b <= 10 else -2.5
+                                nc = 0.0
+                            elif not q1_sim and not q2_sim and q3_sim:
+                                na = 0.0
+                                nb = 0.0
+                                nc = 0.0 if taxa_c <= 10 else -5.0
+                            elif not q1_sim and q2_sim and not q3_sim:
+                                na = 0.0
+                                nb = 0.0 if taxa_b <= 10 else -5.0
+                                nc = 0.0
+                            elif q1_sim and not q2_sim and not q3_sim:
+                                na = 0.0 if taxa_a <= 10 else -5.0
+                                nb = 0.0
+                                nc = 0.0
+                            else:
+                                na, nb, nc = 0.0, 0.0, 0.0
+
+                            nf = na + nb + nc
+
+                            if nf < 0:
+                                lbl_resultado_70.set_text(
+                                    f"📊 Impacto da Penalidade por Absenteísmo (NF): {nf:.1f} pontos "
+                                    f"(Taxas: A={taxa_a:.1f}, B={taxa_b:.1f}, C={taxa_c:.1f})"
+                                )
+                                lbl_resultado_70.classes(remove="text-green-600 text-gray-700", add="text-red-600")
+                            else:
+                                lbl_resultado_70.set_text(
+                                    f"📊 Impacto do Quesito 7.0: +5.0 pts (Programa Ativo) / Penalidades da Taxa: 0.0 pts"
+                                )
+                                lbl_resultado_70.classes(remove="text-red-600 text-gray-700", add="text-green-600")
+
+                            return nf
+
+                        def salvar_70():
+                            nf_penalidade = calcular_pontos_70()
+                            pts_finais = 5.0 + nf_penalidade if state_70["tem_programa"] == "Sim" else 0.0
+
+                            dados_salvar = {
+                                "tem_programa": state_70["tem_programa"],
+                                "qta_creche": state_70["qta_creche"],
+                                "qta_pre": state_70["qta_pre"],
+                                "qta_iniciais": state_70["qta_iniciais"],
+                                "prof_creche": state_70["prof_creche"],
+                                "prof_pre": state_70["prof_pre"],
+                                "prof_iniciais": state_70["prof_iniciais"],
+                                "nf_penalidade": nf_penalidade,
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="7.0",
+                                valor=dados_salvar,
+                                pontos=pts_finais,
+                                link=state_70["link"],
+                                comentarios=d70.get("comentarios", []),
+                                status=d70.get("status", "Pendente"),
+                            )
+
+                            ui.notify(f"Quesito 7.0 salvo com sucesso! (Pontuação final: {pts_finais:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        rad_70.on("update:model-value", calcular_pontos_70)
+
+                        ui.button("💾 SALVAR QUESITO 7.0", on_click=salvar_70).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("7.0", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 7.1 (Especificação do Programa de Inibição ao Absenteísmo)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("7.1 • Detalhamento do Programa de Inibição ao Absenteísmo").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Especifique qual o programa de inibição ao absenteísmo de professores:"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d71 = res_data.get("7.1") or res_data.get("71") or {}
+                        raw_val_71 = str(d71.get("valor") or "")
+                        raw_link_71 = str(d71.get("link") or "")
+
+                        state_71 = {
+                            "programa_desc": raw_val_71,
+                            "link": raw_link_71,
+                        }
+
+                        with ui.grid(columns=1).classes("w-full gap-4 mb-4"):
+                            ui.textarea(
+                                label="Programa de inibição ao absenteísmo de professores:",
+                                value=raw_val_71,
+                                placeholder="Descreva os mecanismos do programa (ex: prêmio de assiduidade, acompanhamento de saúde do trabalhador, reposição obrigatória)...",
+                            ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
+                                state_71, "programa_desc"
+                            )
+
+                            ui.textarea(
+                                label="Link de Evidência / Regulamentação do Programa:",
+                                value=raw_link_71,
+                                placeholder="Link do decreto ou portaria que institui o programa...",
+                            ).classes("w-full").props("outlined rows=2 color=blue").bind_value(
+                                state_71, "link"
+                            )
+
+                        def salvar_71():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="7.1",
+                                valor=state_71["programa_desc"],
+                                pontos=0.0,
+                                link=state_71["link"],
+                                comentarios=d71.get("comentarios", []),
+                                status=d71.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 7.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 7.1", on_click=salvar_71).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("7.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 8.0 (Atuação de Nutricionista na Rede Municipal)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("8.0 • Nutricionista na Rede Municipal de Ensino").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Houve nutricionista atuando na rede municipal de ensino no ano de 2025?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d80 = res_data.get("8.0") or res_data.get("8") or {}
+
+                        opcoes_80 = [
+                            "Selecione...",
+                            "Sim",
+                            "Não",
+                        ]
+
+                        val_80_bruto = str(d80.get("valor") or "")
+                        val_80_valido = "Selecione..."
+                        if val_80_bruto in opcoes_80:
+                            val_80_valido = val_80_bruto
+
+                        raw_link_80 = str(d80.get("link") or "")
+
+                        state_80 = {
+                            "opcao": val_80_valido,
+                            "link": raw_link_80,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_80 = ui.radio(
+                                options=opcoes_80,
+                                value=state_80["opcao"],
+                            ).props("color=blue").bind_value(state_80, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Portaria de Nomeação / Registro CRN / Cardápios:",
+                                value=raw_link_80,
+                                placeholder="Link da portaria de nomeação do nutricionista, RT do CRN ou cardápios assinados...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_80, "link"
+                            )
+
+                        def salvar_80():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="8.0",
+                                valor=state_80["opcao"],
+                                pontos=0.0,
+                                link=state_80["link"],
+                                comentarios=d80.get("comentarios", []),
+                                status=d80.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 8.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 8.0", on_click=salvar_80).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("8.0", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
