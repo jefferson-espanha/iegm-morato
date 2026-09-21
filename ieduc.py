@@ -18092,6 +18092,130 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E3.13.2", res_data, render_conteudo.refresh)
 
+# -----------------------------------------------------------------------------
+                    # QUESITO E3.13.3 - Níveis de Desempenho no SAEB (5º Ano)
+                    # -----------------------------------------------------------------------------
+                    if state_e313["participou"] == "Sim":
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("E3.13.3 • Níveis de Desempenho no SAEB (5º Ano)").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe o percentual de alunos do 5º ano do Ensino Fundamental por nível de desempenho (Língua Portuguesa e Matemática):").classes("text-base font-bold text-black mb-4")
+
+                            d_e3133 = res_data.get("E3.13.3") or res_data.get("E3133") or {}
+                            
+                            # Carregar valores armazenados para Língua Portuguesa (P0 a P9)
+                            lp_vals = d_e3133.get("lp", {})
+                            math_vals = d_e3133.get("math", {})
+                            link_e3133 = str(d_e3133.get("link") or "")
+
+                            state_e3133 = {
+                                "lp": {f"p{i}": float(lp_vals.get(f"p{i}", 0.0)) for i in range(10)},
+                                "math": {f"p{i}": float(math_vals.get(f"p{i}", 0.0)) for i in range(11)},
+                                "link": link_e3133,
+                                "n1": 0.0,
+                                "n2": 0.0,
+                                "nf": 0.0
+                            }
+
+                            lbl_pontos_e3133 = ui.label("📊 Pontuação Quesito E3.13.3: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
+
+                            def calc_e3133():
+                                lp = state_e3133["lp"]
+                                math = state_e3133["math"]
+
+                                # Pesos Língua Portuguesa (N1 - Máx 19)
+                                # P0=0, P1=0, P2=2.15, P3=4.3, P4=6.45, P5=8.6, P6=10.75, P7=12.9, P8=15, P9=19
+                                pes_lp = [0.0, 0.0, 2.15, 4.3, 6.45, 8.6, 10.75, 12.9, 15.0, 19.0]
+                                
+                                # Pesos Matemática (N2 - Máx 19)
+                                # P0=0, P1=0, P2=1.88, P3=3.76, P4=5.64, P5=7.52, P6=9.4, P7=11.28, P8=13.16, P9=15, P10=19
+                                pes_math = [0.0, 0.0, 1.88, 3.76, 5.64, 7.52, 9.4, 11.28, 13.16, 15.0, 19.0]
+
+                                # Os percentuais digitados devem ser tratados (se informados em %, divide por 100)
+                                n1 = sum((lp[f"p{i}"] / 100.0) * pes_lp[i] for i in range(10))
+                                n2 = sum((math[f"p{i}"] / 100.0) * pes_math[i] for i in range(11))
+                                
+                                nf = min(n1 + n2, 38.0)
+
+                                state_e3133["n1"] = n1
+                                state_e3133["n2"] = n2
+                                state_e3133["nf"] = nf
+
+                                str_n1 = f"{n1:.2f}".replace(".", ",")
+                                str_n2 = f"{n2:.2f}".replace(".", ",")
+                                str_nf = f"{nf:.2f}".replace(".", ",")
+
+                                lbl_pontos_e3133.set_text(
+                                    f"📊 Língua Portuguesa (N1): {str_n1} pts | Matemática (N2): {str_n2} pts\n"
+                                    f"Pontuação Total Quesito E3.13.3 (NF): {str_nf} / 38,00 ponto(s)"
+                                )
+
+                            # --- Formulário Língua Portuguesa ---
+                            ui.label("📖 Língua Portuguesa - Percentual de Alunos por Nível (%)").classes("text-md font-bold text-blue-700 mt-2 mb-2")
+                            
+                            with ui.grid(columns=5).classes("w-full gap-3 items-start mb-4"):
+                                for i in range(10):
+                                    def make_on_change_lp(idx):
+                                        return lambda e: [state_e3133["lp"].update({f"p{idx}": float(e.value or 0.0)}), calc_e3133()]
+
+                                    ui.number(
+                                        label=f"Nível {i} (%)",
+                                        value=state_e3133["lp"][f"p{i}"],
+                                        min=0.0,
+                                        max=100.0,
+                                        step=0.1,
+                                        format="%.2f",
+                                        on_change=make_on_change_lp(i),
+                                    ).classes("w-full").props("outlined dense color=blue")
+
+                            # --- Formulário Matemática ---
+                            ui.label("📐 Matemática - Percentual de Alunos por Nível (%)").classes("text-md font-bold text-blue-700 mt-4 mb-2")
+                            
+                            with ui.grid(columns=6).classes("w-full gap-3 items-start mb-4"):
+                                for i in range(11):
+                                    def make_on_change_math(idx):
+                                        return lambda e: [state_e3133["math"].update({f"p{idx}": float(e.value or 0.0)}), calc_e3133()]
+
+                                    ui.number(
+                                        label=f"Nível {i} (%)",
+                                        value=state_e3133["math"][f"p{i}"],
+                                        min=0.0,
+                                        max=100.0,
+                                        step=0.1,
+                                        format="%.2f",
+                                        on_change=make_on_change_math(i),
+                                    ).classes("w-full").props("outlined dense color=blue")
+
+                            ui.textarea(
+                                label="Link de Evidência / Fonte dos Dados (INEP):",
+                                value=state_e3133["link"],
+                                placeholder="Link do relatório com a distribuição dos alunos por nível...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e3133, "link")
+
+                            calc_e3133()
+
+                            def salvar_e3133():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="E3.13.3",
+                                    valor={
+                                        "lp": state_e3133["lp"],
+                                        "math": state_e3133["math"],
+                                        "n1": state_e3133["n1"],
+                                        "n2": state_e3133["n2"],
+                                    },
+                                    pontos=state_e3133["nf"],
+                                    link=state_e3133["link"],
+                                    comentarios=d_e3133.get("comentarios", []),
+                                    status=d_e3133.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito E3.13.3 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO E3.13.3", on_click=salvar_e3133).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("E3.13.3", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
