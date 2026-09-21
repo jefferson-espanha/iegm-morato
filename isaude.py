@@ -672,7 +672,8 @@ def container_formulario_saude(ano=None):
                         )
 
 
-# Aliases para compatibilidade com o roteamento no main.py
+    render_conteudo()
+
 container_formulario_isaude = container_formulario_saude
 mostrar_formulario_saude = container_formulario_saude
 main = container_formulario_saude
