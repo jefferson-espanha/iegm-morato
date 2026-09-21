@@ -7618,7 +7618,278 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("3.10.1", res_data, render_conteudo.refresh)
 
-    # =============================================================================
+                    # =============================================================================
+                    # QUESITO 3.12 (Entrega do Kit Escolar - Anos Iniciais)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.12 • Entrega do Kit Escolar (Anos Iniciais)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Houve entrega do Kit Escolar nas escolas dos Anos Iniciais em 2025?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Kit escolar = material escolar e pedagógico."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d312 = res_data.get("3.12") or {}
+                        d3121 = res_data.get("3.121") or res_data.get("3.12.1") or {}
+
+                        opcoes_312 = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "O kit escolar permanece no almoxarifado da escola e é retirado no momento do uso pelos alunos": 20.0,
+                            "Não": 0.0,
+                        }
+
+                        val_312_bruto = str(d312.get("valor") or "")
+                        val_312_valido = "Selecione..."
+                        if val_312_bruto in opcoes_312:
+                            val_312_valido = val_312_bruto
+                        else:
+                            for chave in opcoes_312.keys():
+                                if chave != "Selecione..." and chave.startswith(val_312_bruto):
+                                    val_312_valido = chave
+                                    break
+
+                        raw_link_312 = str(d312.get("link") or "")
+
+                        state_312 = {
+                            "opcao": val_312_valido,
+                            "link": raw_link_312,
+                        }
+
+                        def calc_pts_312():
+                            op = state_312["opcao"]
+                            if op == "O kit escolar permanece no almoxarifado da escola e é retirado no momento do uso pelos alunos":
+                                return 20.0
+                            elif op == "Sim":
+                                dt_entrega_str = str(d3121.get("valor") or "")
+                                dt_link_str = str(d3121.get("link") or "")
+
+                                dt_aulas_str = "2025-02-03"
+                                if "AULAS:" in dt_link_str:
+                                    dt_aulas_str = dt_link_str.replace("AULAS:", "").strip()
+
+                                try:
+                                    d_aulas = datetime.strptime(dt_aulas_str, "%Y-%m-%d")
+                                    d_ent = datetime.strptime(dt_entrega_str, "%Y-%m-%d")
+                                    d_limite = d_aulas + timedelta(days=15)
+
+                                    if d_ent <= d_aulas:
+                                        return 20.0
+                                    elif d_ent < d_limite:
+                                        return 10.0
+                                    else:
+                                        return 4.0
+                                except Exception:
+                                    return 20.0
+                            return 0.0
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                rad_312 = ui.radio(
+                                    options=list(opcoes_312.keys()),
+                                    value=state_312["opcao"],
+                                ).props("color=blue").bind_value(state_312, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_312,
+                                placeholder="Insira termos de recebimento, notas fiscais de entrega ou relatórios de distribuição...",
+                            ).classes("w-full").props("outlined rows=4").bind_value(
+                                state_312, "link"
+                            )
+
+                        lbl_pts_312 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 3.12: {calc_pts_312():.1f} / 20.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_312():
+                            lbl_pts_312.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.12: {calc_pts_312():.1f} / 20.0 pontos"
+                            )
+
+                        rad_312.on("update:model-value", att_pts_312)
+
+                        def salvar_312():
+                            pts = calc_pts_312()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.12",
+                                valor=state_312["opcao"],
+                                pontos=pts,
+                                link=state_312["link"],
+                                comentarios=d312.get("comentarios", []),
+                                status=d312.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.12 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.12", on_click=salvar_312).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.12", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.12.1 (Data da Última Entrega do Kit Escolar)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.12.1 • Data da Última Entrega do Kit Escolar").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a data da última entrega na escola:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Fórmula: ≤ Início das Aulas (20,0 pts) | < Início + 15 dias (10,0 pts) | ≥ Início + 15 dias (4,0 pts)."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d3121 = res_data.get("3.121") or res_data.get("3.12.1") or {}
+                        raw_link_3121 = str(d3121.get("link") or "")
+
+                        dt_aulas_3121 = "2025-02-03"
+                        if "AULAS:" in raw_link_3121:
+                            dt_aulas_3121 = raw_link_3121.replace("AULAS:", "").strip()
+
+                        dt_entrega_3121 = str(d3121.get("valor") or "2025-02-03")
+
+                        state_3121 = {
+                            "dt_aulas": dt_aulas_3121,
+                            "dt_entrega": dt_entrega_3121,
+                        }
+
+                        def calc_pts_3121():
+                            try:
+                                d_aulas = datetime.strptime(state_3121["dt_aulas"], "%Y-%m-%d")
+                                d_ent = datetime.strptime(state_3121["dt_entrega"], "%Y-%m-%d")
+                                d_limite = d_aulas + timedelta(days=15)
+
+                                if d_ent <= d_aulas:
+                                    return 20.0
+                                elif d_ent < d_limite:
+                                    return 10.0
+                                else:
+                                    return 4.0
+                            except Exception:
+                                return 0.0
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            inp_dt_aulas_3121 = ui.input(
+                                "Data de início das aulas:",
+                                value=state_3121["dt_aulas"]
+                            ).props("type=date outlined color=blue").bind_value(state_3121, "dt_aulas")
+
+                            inp_dt_entrega_3121 = ui.input(
+                                "Data da última entrega do kit escolar:",
+                                value=state_3121["dt_entrega"]
+                            ).props("type=date outlined color=blue").bind_value(state_3121, "dt_entrega")
+
+                        lbl_pts_3121 = ui.label(
+                            f"📊 Impacto Estimado na Pontuação: {calc_pts_3121():.1f} / 20.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_3121():
+                            lbl_pts_3121.set_text(
+                                f"📊 Impacto Estimado na Pontuação: {calc_pts_3121():.1f} / 20.0 pontos"
+                            )
+
+                        inp_dt_aulas_3121.on("update:model-value", att_pts_3121)
+                        inp_dt_entrega_3121.on("update:model-value", att_pts_3121)
+
+                        def salvar_3121():
+                            pts = calc_pts_3121()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.12.1",
+                                valor=state_3121["dt_entrega"],
+                                pontos=pts,
+                                link=f"AULAS:{state_3121['dt_aulas']}",
+                                comentarios=d3121.get("comentarios", []),
+                                status=d3121.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.12.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.12.1", on_click=salvar_3121).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.12.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.12.2 (Motivo da Não Entrega do Kit Escolar)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.12.2 • Motivo da Não Entrega do Kit Escolar").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o motivo de não ter sido entregue o kit escolar:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Quesito descritivo preenchido quando o quesito 3.12 é respondido como 'Não'."
+                        ).classes("text-xs text-gray-400 mb-6")
+
+                        d3122 = res_data.get("3.122") or res_data.get("3.12.2") or {}
+                        motivo_3122_i = str(d3122.get("valor") or "")
+                        raw_link_3122 = str(d3122.get("link") or "")
+
+                        state_3122 = {
+                            "motivo": motivo_3122_i,
+                            "link": raw_link_3122,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.textarea(
+                                label="Motivo da não entrega:",
+                                value=motivo_3122_i,
+                                placeholder="Ex: Atraso no processo licitatório, atraso na logística do fornecedor ou problemas na entrega dos insumos...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_3122, "motivo"
+                            )
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=raw_link_3122,
+                                placeholder="Insira notificações de atraso, pareceres de licitação ou justificativas oficiais...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_3122, "link"
+                            )
+
+                        def salvar_3122():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="3.12.2",
+                                valor=state_3122["motivo"],
+                                pontos=0.0,
+                                link=state_3122["link"],
+                                comentarios=d3122.get("comentarios", []),
+                                status=d3122.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 3.12.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 3.12.2", on_click=salvar_3122).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.12.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
                     # QUESITO 3.13 (Entrega do Material Didático - Anos Iniciais)
                     # =============================================================================
                     with ui.card().classes(
