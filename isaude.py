@@ -7,9 +7,6 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from nicegui import app, ui
 
-# =============================================================================
-# BANCO DE DADOS (NEON - ESTRUTURA REAL RESPOSTAS_ISAUDE)
-# =============================================================================
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -37,8 +34,9 @@ def _obter_lista_comentarios(dados_ou_ano, qid=None):
 
 
 def load_respostas(ano):
+    """Carrega as respostas do banco Neon utilizando a estrutura real com a coluna 'detalhes' (JSONB)."""
     query = """
-        SELECT id, ano, quesito, resposta, pontos, link, comentario
+        SELECT id, ano, quesito, resposta, pontos, detalhes
         FROM respostas_isaude
         WHERE ano = %s;
     """
@@ -65,17 +63,29 @@ def load_respostas(ano):
                         except Exception:
                             val_final = val_bruto
 
-                    link_val = row.get("link") or ""
-                    if link_val == "EMPTY_STRING":
-                        link_val = ""
-
-                    coment_raw = row.get("comentario") or ""
-                    comentarios_val = []
-                    if coment_raw and coment_raw != "EMPTY_STRING":
+                    # Extração dos dados contidos na coluna JSONB 'detalhes'
+                    detalhes_raw = row.get("detalhes") or {}
+                    if isinstance(detalhes_raw, str):
                         try:
-                            comentarios_val = json.loads(coment_raw)
+                            detalhes_raw = json.loads(detalhes_raw)
+                        except Exception:
+                            detalhes_raw = {}
+                    elif not isinstance(detalhes_raw, dict):
+                        detalhes_raw = {}
+
+                    link_val = detalhes_raw.get("link", "")
+                    
+                    # Trata variações de nomenclatura nos comentários dentro do JSON
+                    comentarios_val = detalhes_raw.get("comentarios", detalhes_raw.get("comentario", []))
+                    if isinstance(comentarios_val, str):
+                        try:
+                            comentarios_val = json.loads(comentarios_val)
                         except Exception:
                             comentarios_val = []
+                    if not isinstance(comentarios_val, list):
+                        comentarios_val = []
+
+                    status_val = detalhes_raw.get("status", "Pendente")
 
                     respostas[q_id] = {
                         "valor": val_final,
@@ -86,7 +96,7 @@ def load_respostas(ano):
                         ),
                         "link": link_val,
                         "comentarios": comentarios_val,
-                        "status": "Pendente",
+                        "status": status_val,
                     }
     except Exception as e:
         print(f"❌ Erro ao carregar respostas de respostas_isaude: {e}")
@@ -96,53 +106,56 @@ def load_respostas(ano):
 def save_resposta(
     ano, qid, valor, pontos, link="", comentarios=None, status="Pendente"
 ):
+    """Salva/Atualiza a resposta no banco Neon na coluna 'detalhes' (JSONB)."""
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(str(qid), {})
         comentarios = _obter_lista_comentarios(dados_atuais)
 
-    link_final = link.strip() if link else "EMPTY_STRING"
+    link_final = link.strip() if link else ""
 
     if isinstance(valor, (list, dict)):
         resposta_str = json.dumps(valor, ensure_ascii=False)
     else:
         resposta_str = str(valor) if valor is not None else ""
 
-    comentario_str = (
-        json.dumps(comentarios, ensure_ascii=False)
-        if comentarios
-        else "EMPTY_STRING"
-    )
+    detalhes_obj = {
+        "link": link_final,
+        "comentarios": comentarios if isinstance(comentarios, list) else [],
+        "status": status
+    }
+    detalhes_json = json.dumps(detalhes_obj, ensure_ascii=False)
 
-    query = """
-        INSERT INTO respostas_isaude (ano, quesito, resposta, pontos, link, comentario)
-        VALUES (%s, %s, %s, %s, %s, %s)
-        ON CONFLICT (ano, quesito) 
-        DO UPDATE SET
-            resposta = EXCLUDED.resposta,
-            pontos = EXCLUDED.pontos,
-            link = EXCLUDED.link,
-            comentario = EXCLUDED.comentario;
-    """
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
+                # 1. Tenta atualizar se o registro já existir
                 cur.execute(
-                    query,
-                    (
-                        int(ano),
-                        str(qid),
-                        resposta_str,
-                        float(pontos),
-                        link_final,
-                        comentario_str,
-                    ),
+                    """
+                    UPDATE respostas_isaude
+                    SET resposta = %s, pontos = %s, detalhes = %s
+                    WHERE ano = %s AND quesito = %s;
+                    """,
+                    (resposta_str, float(pontos), detalhes_json, int(ano), str(qid)),
                 )
+                
+                # 2. Se não atualizou nenhuma linha, faz o INSERT
+                if cur.rowcount == 0:
+                    cur.execute(
+                        """
+                        INSERT INTO respostas_isaude (ano, quesito, resposta, pontos, detalhes)
+                        VALUES (%s, %s, %s, %s, %s);
+                        """,
+                        (int(ano), str(qid), resposta_str, float(pontos), detalhes_json),
+                    )
                 conn.commit()
                 print(
                     f"✅ Quesito {qid} ({ano}) salvo com sucesso na tabela respostas_isaude!"
                 )
+                return True
     except Exception as e:
         print(f"❌ Erro ao salvar resposta na tabela respostas_isaude: {e}")
+        ui.notify(f"❌ Erro no Banco de Dados: {e}", type="negative")
+        return False
 
 
 def zerar_questionario_db(ano):
@@ -156,9 +169,6 @@ def zerar_questionario_db(ano):
         print(f"❌ Erro ao zerar questionário no DB: {e}")
 
 
-# =============================================================================
-# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
-# =============================================================================
 def render_quesito(
     ano,
     res_data,
@@ -193,14 +203,6 @@ def render_quesito(
             valor_atual = 0.0
     elif tipo_input == "text":
         valor_atual = str(dados_q.get("valor", ""))
-    elif tipo_input == "calculo_1_1_1":
-        valor_atual = dados_q.get("valor", {"bpi": 0, "total": 0})
-        if not isinstance(valor_atual, dict):
-            valor_atual = {"bpi": 0, "total": 0}
-    elif tipo_input == "calculo_1_1_2":
-        valor_atual = dados_q.get("valor", {"cron": 0, "ncron": 0, "solic": 0, "nmanu": 0})
-        if not isinstance(valor_atual, dict):
-            valor_atual = {"cron": 0, "ncron": 0, "solic": 0, "nmanu": 0}
     else:  # radio
         padrao = "Selecione..." if "Selecione..." in opcoes else (list(opcoes.keys())[0] if opcoes else "")
         valor_atual = dados_q.get("valor", padrao)
@@ -226,8 +228,6 @@ def render_quesito(
         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
             if tipo_input == "checkbox":
                 with ui.column().classes("gap-2 w-full"):
-                    chk_states = {}
-
                     def make_on_change(opt):
                         def on_change(e):
                             if e.value and opt not in state["opcao"]:
@@ -239,12 +239,11 @@ def render_quesito(
 
                     for opt_key in opcoes.keys():
                         is_checked = opt_key in state["opcao"]
-                        chk = ui.checkbox(
+                        ui.checkbox(
                             text=opt_key,
                             value=is_checked,
                             on_change=make_on_change(opt_key)
                         ).props("color=blue")
-                        chk_states[opt_key] = chk
 
             elif tipo_input in ["number", "float"]:
                 input_num = (
@@ -268,70 +267,6 @@ def render_quesito(
                 ).classes("w-full").props("outlined rows=4").bind_value(
                     state, "opcao"
                 )
-
-            elif tipo_input == "calculo_1_1_1":
-                with ui.column().classes("gap-3 w-full"):
-                    in_bpi = ui.number(
-                        label="Nº de unidades com BPI:",
-                        value=state["opcao"].get("bpi", 0),
-                        min=0,
-                    ).classes("w-full").props("outlined color=blue")
-
-                    in_total = ui.number(
-                        label="Nº total de unidades no município:",
-                        value=state["opcao"].get("total", 0),
-                        min=0,
-                    ).classes("w-full").props("outlined color=blue")
-
-                    def sync_1_1_1(e=None):
-                        state["opcao"] = {
-                            "bpi": float(in_bpi.value or 0),
-                            "total": float(in_total.value or 0),
-                        }
-                        atualizar_impacto()
-
-                    in_bpi.on("update:model-value", sync_1_1_1)
-                    in_total.on("update:model-value", sync_1_1_1)
-
-            elif tipo_input == "calculo_1_1_2":
-                with ui.column().classes("gap-3 w-full"):
-                    in_cron = ui.number(
-                        label="Cumpriram o cronograma (CRON - Pmáx: +3):",
-                        value=state["opcao"].get("cron", 0),
-                        min=0,
-                    ).classes("w-full").props("outlined color=blue")
-
-                    in_ncron = ui.number(
-                        label="NÃO cumpriram o cronograma (NCRON - Pmáx: +1):",
-                        value=state["opcao"].get("ncron", 0),
-                        min=0,
-                    ).classes("w-full").props("outlined color=blue")
-
-                    in_solic = ui.number(
-                        label="Apenas por solicitação (SOLIC - Pmáx: 0):",
-                        value=state["opcao"].get("solic", 0),
-                        min=0,
-                    ).classes("w-full").props("outlined color=blue")
-
-                    in_nmanu = ui.number(
-                        label="NÃO realizam manutenção (NMANU - Perde 2 pts):",
-                        value=state["opcao"].get("nmanu", 0),
-                        min=0,
-                    ).classes("w-full").props("outlined color=blue")
-
-                    def sync_1_1_2(e=None):
-                        state["opcao"] = {
-                            "cron": float(in_cron.value or 0),
-                            "ncron": float(in_ncron.value or 0),
-                            "solic": float(in_solic.value or 0),
-                            "nmanu": float(in_nmanu.value or 0),
-                        }
-                        atualizar_impacto()
-
-                    in_cron.on("update:model-value", sync_1_1_2)
-                    in_ncron.on("update:model-value", sync_1_1_2)
-                    in_solic.on("update:model-value", sync_1_1_2)
-                    in_nmanu.on("update:model-value", sync_1_1_2)
 
             else:  # radio
                 input_radio = (
@@ -358,26 +293,6 @@ def render_quesito(
                 except (ValueError, TypeError):
                     return 0.0
             elif tipo_input == "text":
-                return 0.0
-            elif tipo_input == "calculo_1_1_1":
-                if isinstance(opcao_sel, dict):
-                    bpi = float(opcao_sel.get("bpi", 0) or 0)
-                    total = float(opcao_sel.get("total", 0) or 0)
-                    if total > 0 and bpi <= total:
-                        return (bpi / total) * 2.0
-                return 0.0
-            elif tipo_input == "calculo_1_1_2":
-                if isinstance(opcao_sel, dict):
-                    cron = float(opcao_sel.get("cron", 0) or 0)
-                    ncron = float(opcao_sel.get("ncron", 0) or 0)
-                    solic = float(opcao_sel.get("solic", 0) or 0)
-                    nmanu = float(opcao_sel.get("nmanu", 0) or 0)
-                    total = cron + ncron + solic + nmanu
-                    if total > 0:
-                        p1 = (nmanu / total) * (-2.0)
-                        p2 = (ncron / total) * 1.0
-                        p3 = (cron / total) * 3.0
-                        return p1 + p2 + p3
                 return 0.0
             elif isinstance(opcao_sel, list):
                 return sum(float(opcoes.get(opt, 0.0)) for opt in opcao_sel)
@@ -409,7 +324,7 @@ def render_quesito(
             pts = calcular_pontos(opcao_sel)
             lnk = state["link"]
 
-            save_resposta(
+            sucesso = save_resposta(
                 ano=ano,
                 qid=qid,
                 valor=opcao_sel,
@@ -418,9 +333,10 @@ def render_quesito(
                 comentarios=dados_q.get("comentarios", []),
                 status=dados_q.get("status", "Pendente"),
             )
-            ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
-            if on_save_callback:
-                on_save_callback()
+            if sucesso:
+                ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
+                if on_save_callback:
+                    on_save_callback()
 
         ui.button(
             "SALVAR RESPOSTA", on_click=salvar_acao
@@ -432,9 +348,6 @@ def render_quesito(
         bloco_comentarios(qid, res_data, on_save_callback)
 
 
-# =============================================================================
-# PAINEL DE CONTROLE LATERAL
-# =============================================================================
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
@@ -501,9 +414,6 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         """).classes("w-full")
 
 
-# =============================================================================
-# BLOCO DE COMENTÁRIOS INTERNOS
-# =============================================================================
 def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
@@ -634,9 +544,6 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         )
 
 
-# =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS (ISAUDE)
-# =============================================================================
 def container_formulario_saude(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
@@ -668,126 +575,128 @@ def container_formulario_saude(ano=None):
                 with ui.element("div").classes("md:col-span-8 lg:col-span-9 flex flex-col gap-4"):
                     with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
                         ui.label(f"📋 Módulo i-Saúde — Ano {ano_sel}").classes(
-                            "text-xl font-bold text-slate-800 border-b pb-2"
+                            "text-xl font-bold text-slate-800 border-b pb-2 mb-4"
                         )
 
-    # ==========================================
-                    # QUESITO 1.0
-                    # ==========================================
-                    opcoes_1_0 = {
-                        "Selecione...": 0.0,
-                        "Sim, com propostas para construção das diretrizes e metas da saúde municipal – 05": 5.0,
-                        "Sim, apenas aprovando as propostas da gestão (Secretaria Municipal) – 02": 2.0,
-                        "Não – 00": 0.0,
-                    }
+                        # ==========================================
+                        # QUESITO 1.0
+                        # ==========================================
+                        opcoes_1_0 = {
+                            "Selecione...": 0.0,
+                            "Sim, com propostas para construção das diretrizes e metas da saúde municipal – 05": 5.0,
+                            "Sim, apenas aprovando as propostas da gestão (Secretaria Municipal) – 02": 2.0,
+                            "Não – 00": 0.0,
+                        }
 
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="1.0",
-                        titulo="Elaboração do Plano Municipal de Saúde",
-                        pergunta="O Conselho Municipal de Saúde participou da elaboração do Plano Municipal de Saúde 2026-2029?",
-                        tipo_input="radio",
-                        opcoes=opcoes_1_0,
-                        placeholder_link="Insira o link da ata da reunião do CMS ou documento comprovatório...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                        render_quesito(
+                            ano=ano_sel,
+                            res_data=res_data,
+                            qid="1.0",
+                            titulo="Elaboração do Plano Municipal de Saúde",
+                            pergunta="O Conselho Municipal de Saúde participou da elaboração do Plano Municipal de Saúde 2026-2029?",
+                            tipo_input="radio",
+                            opcoes=opcoes_1_0,
+                            placeholder_link="Insira o link da ata da reunião do CMS ou documento comprovatório...",
+                            on_save_callback=render_conteudo.refresh,
+                        )
 
-                    # ==========================================
-                    # QUESITO 2.0
-                    # ==========================================
-                    opcoes_2_0 = {
-                        "Selecione...": 0.0,
-                        "Até prazo de envio à Câmara Municipal do projeto de lei sobre PPA 2026-2029 – 10": 10.0,
-                        "Aprovado após prazo de envio à Câmara Municipal do projeto de lei sobre o PPA 2026-2029, mas antes da aprovação do PPA 2026-2029 pela Câmara Municipal – 07": 7.0,
-                        "Aprovado após a aprovação do PPA 2026-2029 pela Câmara Municipal – 03": 3.0,
-                        "Não aprovado – 00": 0.0,
-                    }
+                        # ==========================================
+                        # QUESITO 2.0
+                        # ==========================================
+                        opcoes_2_0 = {
+                            "Selecione...": 0.0,
+                            "Até prazo de envio à Câmara Municipal do projeto de lei sobre PPA 2026-2029 – 10": 10.0,
+                            "Aprovado após prazo de envio à Câmara Municipal do projeto de lei sobre o PPA 2026-2029, mas antes da aprovação do PPA 2026-2029 pela Câmara Municipal – 07": 7.0,
+                            "Aprovado após a aprovação do PPA 2026-2029 pela Câmara Municipal – 03": 3.0,
+                            "Não aprovado – 00": 0.0,
+                        }
 
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="2.0",
-                        titulo="Aprovação do Plano Municipal de Saúde",
-                        pergunta="Quando ocorreu a aprovação do Plano Municipal de Saúde 2026-2029 pelo Conselho Municipal da Saúde?",
-                        tipo_input="radio",
-                        opcoes=opcoes_2_0,
-                        placeholder_link="Insira o link da resolução de aprovação do CMS ou ata...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                        render_quesito(
+                            ano=ano_sel,
+                            res_data=res_data,
+                            qid="2.0",
+                            titulo="Aprovação do Plano Municipal de Saúde",
+                            pergunta="Quando ocorreu a aprovação do Plano Municipal de Saúde 2026-2029 pelo Conselho Municipal da Saúde?",
+                            tipo_input="radio",
+                            opcoes=opcoes_2_0,
+                            placeholder_link="Insira o link da resolução de aprovação do CMS ou ata...",
+                            on_save_callback=render_conteudo.refresh,
+                        )
 
-                    # ==========================================
-                    # QUESITO 3.0
-                    # ==========================================
-                    opcoes_3_0 = {
-                        "Selecione...": 0.0,
-                        "Até prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2025 – 10": 10.0,
-                        "Aprovado após prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2025, mas antes da aprovação da LDO 2025 pela Câmara Municipal – 07": 7.0,
-                        "Aprovado após a aprovação da LDO 2025 pela Câmara Municipal – 03": 3.0,
-                        "Não aprovado – 00": 0.0,
-                    }
+                        # ==========================================
+                        # QUESITO 3.0
+                        # ==========================================
+                        opcoes_3_0 = {
+                            "Selecione...": 0.0,
+                            "Até prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2025 – 10": 10.0,
+                            "Aprovado após prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2025, mas antes da aprovação da LDO 2025 pela Câmara Municipal – 07": 7.0,
+                            "Aprovado após a aprovação da LDO 2025 pela Câmara Municipal – 03": 3.0,
+                            "Não aprovado – 00": 0.0,
+                        }
 
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="3.0",
-                        titulo="Aprovação da Programação Anual de Saúde",
-                        pergunta="Quando ocorreu a aprovação da Programação Anual de Saúde de 2025 pelo Conselho Municipal de Saúde?",
-                        tipo_input="radio",
-                        opcoes=opcoes_3_0,
-                        placeholder_link="Insira o link do ato de aprovação/resolução do CMS...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                        render_quesito(
+                            ano=ano_sel,
+                            res_data=res_data,
+                            qid="3.0",
+                            titulo="Aprovação da Programação Anual de Saúde",
+                            pergunta="Quando ocorreu a aprovação da Programação Anual de Saúde de 2025 pelo Conselho Municipal de Saúde?",
+                            tipo_input="radio",
+                            opcoes=opcoes_3_0,
+                            placeholder_link="Insira o link do ato de aprovação/resolução do CMS...",
+                            on_save_callback=render_conteudo.refresh,
+                        )
 
-                    # ==========================================
-                    # QUESITO 3.1
-                    # ==========================================
-                    opcoes_3_1 = {
-                        "Selecione...": 0.0,
-                        "Sim, todas as ações foram executadas – 04": 4.0,
-                        "Sim, a maior parte das ações foram executadas – 02": 2.0,
-                        "Sim, a menor parte das ações foram executadas – 01": 1.0,
-                        "Nenhuma ação foi executada – 00": 0.0,
-                    }
+                        # ==========================================
+                        # QUESITO 3.1
+                        # ==========================================
+                        opcoes_3_1 = {
+                            "Selecione...": 0.0,
+                            "Sim, todas as ações foram executadas – 04": 4.0,
+                            "Sim, a maior parte das ações foram executadas – 02": 2.0,
+                            "Sim, a menor parte das ações foram executadas – 01": 1.0,
+                            "Nenhuma ação foi executada – 00": 0.0,
+                        }
 
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="3.1",
-                        titulo="Execução da Programação Anual de Saúde",
-                        pergunta="As ações previstas na Programação Anual de Saúde de 2025 foram executadas?",
-                        tipo_input="radio",
-                        opcoes=opcoes_3_1,
-                        placeholder_link="Insira o link do Relatório Anual de Gestão (RAG) ou monitoramento...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                        render_quesito(
+                            ano=ano_sel,
+                            res_data=res_data,
+                            qid="3.1",
+                            titulo="Execução da Programação Anual de Saúde",
+                            pergunta="As ações previstas na Programação Anual de Saúde de 2025 foram executadas?",
+                            tipo_input="radio",
+                            opcoes=opcoes_3_1,
+                            placeholder_link="Insira o link do Relatório Anual de Gestão (RAG) ou monitoramento...",
+                            on_save_callback=render_conteudo.refresh,
+                        )
 
-                    # ==========================================
-                    # QUESITO 3.2
-                    # ==========================================
-                    opcoes_3_2 = {
-                        "Selecione...": 0.0,
-                        "Sim, todas as metas foram atingidas – 04": 4.0,
-                        "Sim, a maior parte das metas foram atingidas – 02": 2.0,
-                        "Sim, a menor parte das metas foram atingidas – 01": 1.0,
-                        "Não – 00": 0.0,
-                    }
+                        # ==========================================
+                        # QUESITO 3.2
+                        # ==========================================
+                        opcoes_3_2 = {
+                            "Selecione...": 0.0,
+                            "Sim, todas as metas foram atingidas – 04": 4.0,
+                            "Sim, a maior parte das metas foram atingidas – 02": 2.0,
+                            "Sim, a menor parte das metas foram atingidas – 01": 1.0,
+                            "Não – 00": 0.0,
+                        }
 
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="3.2",
-                        titulo="Metas dos Indicadores da PAS",
-                        pergunta="As metas previstas para os indicadores foram atingidas na Programação Anual de Saúde de 2025?",
-                        tipo_input="radio",
-                        opcoes=opcoes_3_2,
-                        placeholder_link="Insira o link da avaliação de indicadores / RAG 2025...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                        render_quesito(
+                            ano=ano_sel,
+                            res_data=res_data,
+                            qid="3.2",
+                            titulo="Metas dos Indicadores da PAS",
+                            pergunta="As metas previstas para os indicadores foram atingidas na Programação Anual de Saúde de 2025?",
+                            tipo_input="radio",
+                            opcoes=opcoes_3_2,
+                            placeholder_link="Insira o link da avaliação de indicadores / RAG 2025...",
+                            on_save_callback=render_conteudo.refresh,
+                        )
 
-
+    # Executa a renderização inicial
     render_conteudo()
 
+
+# Aliases para compatibilidade com o roteamento do main.py
 container_formulario_isaude = container_formulario_saude
 mostrar_formulario_saude = container_formulario_saude
 main = container_formulario_saude
