@@ -10558,6 +10558,312 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("5.0", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # QUESITO 5.1 (Detalhamento das Escolas com AVCB e Necessidade de Reparos)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("5.1 • Detalhamento dos Estabelecimentos (AVCB e Reparos)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Detalhe os dados dos estabelecimentos informados sobre os estabelecimentos com AVCB e as com necessidade de reparos:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Considerar somente os estabelecimentos sob gestão municipal."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d51 = res_data.get("5.1") or res_data.get("51") or {}
+                        raw_val_51 = str(d51.get("valor") or "")
+                        raw_link_51 = str(d51.get("link") or "")
+
+                        state_51 = {
+                            "detalhamento": raw_val_51,
+                            "link": raw_link_51,
+                        }
+
+                        with ui.grid(columns=1).classes("w-full gap-4 mb-4"):
+                            ui.textarea(
+                                label="Detalhamento Nominal dos Estabelecimentos (AVCB e Reparos):",
+                                value=raw_val_51,
+                                placeholder="Informe a relação das escolas que possuem AVCB vigente e das escolas que necessitavam de reparos em dez/2025...",
+                            ).classes("w-full").props("outlined rows=5 color=blue").bind_value(
+                                state_51, "detalhamento"
+                            )
+
+                            ui.textarea(
+                                label="Link de Evidência / Tabela Detalhada das Escolas:",
+                                value=raw_link_51,
+                                placeholder="Link da planilha, laudos ou relatório nominal por unidade escolar...",
+                            ).classes("w-full").props("outlined rows=2 color=blue").bind_value(
+                                state_51, "link"
+                            )
+
+                        def salvar_51():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="5.1",
+                                valor=state_51["detalhamento"],
+                                pontos=0.0,
+                                link=state_51["link"],
+                                comentarios=d51.get("comentarios", []),
+                                status=d51.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 5.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 5.1", on_click=salvar_51).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("5.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 6.0 (Plano de Cargos e Salários Específico dos Professores)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("6.0 • Plano de Cargos e Salários dos Professores (PCCS)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A Prefeitura/Secretaria da Educação Municipal possui Plano de Cargos e Salários para seus professores?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Obs: PCCS geral dos servidores públicos do município NÃO caracteriza PCCS específico para os professores."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d60 = res_data.get("6.0") or res_data.get("6") or {}
+
+                        opcoes_60_pontos = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": -10.0,
+                        }
+
+                        opcoes_60_labels = {
+                            "Selecione...": "Selecione...",
+                            "Sim": "Sim (0.0 pts)",
+                            "Não": "Não (-10.0 pts - Perde 10 pontos)",
+                        }
+
+                        val_60_bruto = str(d60.get("valor") or "")
+                        val_60_valido = "Selecione..."
+                        if val_60_bruto in opcoes_60_pontos:
+                            val_60_valido = val_60_bruto
+
+                        raw_link_60 = str(d60.get("link") or "")
+
+                        state_60 = {
+                            "opcao": val_60_valido,
+                            "link": raw_link_60,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_60 = ui.radio(
+                                options=opcoes_60_labels,
+                                value=state_60["opcao"],
+                            ).props("color=blue").bind_value(state_60, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Lei do PCCS dos Professores:",
+                                value=raw_link_60,
+                                placeholder="Link da legislação municipal específica do magistério...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_60, "link"
+                            )
+
+                        lbl_pts_60 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 6.0: {opcoes_60_pontos.get(state_60['opcao'], 0.0):.1f} pontos"
+                        ).classes("text-sm font-bold text-red-600 my-4" if opcoes_60_pontos.get(state_60['opcao'], 0.0) < 0 else "text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_60():
+                            pts = opcoes_60_pontos.get(state_60["opcao"], 0.0)
+                            lbl_pts_60.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 6.0: {pts:.1f} pontos"
+                            )
+                            if pts < 0:
+                                lbl_pts_60.classes(remove="text-green-600", add="text-red-600")
+                            else:
+                                lbl_pts_60.classes(remove="text-red-600", add="text-green-600")
+
+                        rad_60.on("update:model-value", att_pts_60)
+
+                        def salvar_60():
+                            pts = opcoes_60_pontos.get(state_60["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="6.0",
+                                valor=state_60["opcao"],
+                                pontos=pts,
+                                link=state_60["link"],
+                                comentarios=d60.get("comentarios", []),
+                                status=d60.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 6.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 6.0", on_click=salvar_60).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("6.0", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 6.1 (Instrumento Normativo, Número e Data do PCCS)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("6.1 • Instrumento Normativo do PCCS dos Professores").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o Instrumento Normativo, Número e Data da publicação:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Anexar o documento em PDF por meio do botão ANEXO."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d61 = res_data.get("6.1") or res_data.get("61") or {}
+                        raw_val_61 = str(d61.get("valor") or "")
+                        raw_link_61 = str(d61.get("link") or "")
+
+                        state_61 = {
+                            "norma": raw_val_61,
+                            "link": raw_link_61,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.input(
+                                label="Instrumento Normativo, Número e Data (ex: Lei Complementar nº 123/2015 de 10/05/2015):",
+                                value=state_61["norma"],
+                            ).props("outlined color=blue").classes("w-full").bind_value(
+                                state_61, "norma"
+                            )
+
+                            ui.textarea(
+                                label="Link de Evidência / PDF do Diário Oficial:",
+                                value=raw_link_61,
+                                placeholder="Link do arquivo PDF da lei de criação do PCCS dos professores...",
+                            ).classes("w-full").props("outlined rows=3").bind_value(
+                                state_61, "link"
+                            )
+
+                        def salvar_61():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="6.1",
+                                valor=state_61["norma"],
+                                pontos=0.0,
+                                link=state_61["link"],
+                                comentarios=d61.get("comentarios", []),
+                                status=d61.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 6.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 6.1", on_click=salvar_61).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("6.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 6.2 (Requisitos Contidos no PCCS dos Professores)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("6.2 • Requisitos do Plano de Cargos e Salários dos Professores").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale os requisitos contidos no Plano de Cargos e Salários dos professores:"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d62 = res_data.get("6.2") or res_data.get("62") or {}
+                        raw_val_62 = str(d62.get("valor") or "")
+                        raw_link_62 = str(d62.get("link") or "")
+
+                        itens_marcados_62 = [
+                            item.strip() for item in raw_val_62.split(";") if item.strip()
+                        ]
+
+                        opcoes_62 = [
+                            "Remuneração condigna dos profissionais na educação básica da rede pública",
+                            "Integração entre o trabalho individual e a proposta pedagógica da escola",
+                            "Melhoria da qualidade do ensino e da aprendizagem",
+                            "Medidas de incentivo para que profissionais mais bem avaliados exerçam suas funções em escolas de locais com piores indicadores socioeconômicos ou que atendam estudantes com deficiência, transtornos globais do desenvolvimento e altas habilidades ou superdotação",
+                            "Contempla capacitação profissional especialmente direcionada à formação continuada com vistas à melhoria da qualidade do ensino",
+                            "Nenhum dos anteriores",
+                        ]
+
+                        state_62 = {
+                            "selecionados": itens_marcados_62,
+                            "link": raw_link_62,
+                        }
+
+                        with ui.grid(columns=1).classes("w-full gap-2 mb-4"):
+                            for op in opcoes_62:
+                                chk = ui.checkbox(
+                                    op,
+                                    value=(op in state_62["selecionados"])
+                                ).props("color=blue")
+
+                                def on_chk_62_change(e, option=op):
+                                    if e.value:
+                                        if option == "Nenhum dos anteriores":
+                                            state_62["selecionados"] = ["Nenhum dos anteriores"]
+                                        else:
+                                            if "Nenhum dos anteriores" in state_62["selecionados"]:
+                                                state_62["selecionados"].remove("Nenhum dos anteriores")
+                                            if option not in state_62["selecionados"]:
+                                                state_62["selecionados"].append(option)
+                                    else:
+                                        if option in state_62["selecionados"]:
+                                            state_62["selecionados"].remove(option)
+
+                                chk.on("update:model-value", on_chk_62_change)
+
+                        ui.textarea(
+                            label="Link de Evidência / Artigos da Lei do PCCS:",
+                            value=raw_link_62,
+                            placeholder="Link destacando os artigos/dispositivos do PCCS que atendem aos requisitos assinalados...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_62, "link"
+                        )
+
+                        def salvar_62():
+                            valor_str = " ; ".join(state_62["selecionados"])
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="6.2",
+                                valor=valor_str,
+                                pontos=0.0,
+                                link=state_62["link"],
+                                comentarios=d62.get("comentarios", []),
+                                status=d62.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 6.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 6.2", on_click=salvar_62).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("6.2", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
