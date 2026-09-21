@@ -14963,6 +14963,418 @@ def container_formulario_ieduc(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("18.3", res_data, render_conteudo.refresh)
 
+# -----------------------------------------------------------------------------
+                    # QUESITO 18.3.1 - Atividades Realizadas pelo CAE no Ano
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("18.3.1 • Atividades Realizadas pelo CAE no Ano").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale as atividades realizadas pelo CAE no ano:").classes("text-base font-bold text-black mb-4")
+
+                        d1831 = res_data.get("18.3.1") or res_data.get("1831") or {}
+                        sel_1831 = d1831.get("valor") or []
+                        if isinstance(sel_1831, str):
+                            sel_1831 = [x.strip() for x in sel_1831.split(";") if x.strip()]
+                        link_1831 = str(d1831.get("link") or "")
+
+                        state_1831 = {
+                            "selecionados": sel_1831,
+                            "link": link_1831,
+                            "pontos": 0.0,
+                        }
+
+                        items_1831 = [
+                            ("diretrizes", "Acompanhamento e fiscalização do cumprimento das diretrizes estabelecidas sobre alimentação escolar", 0.5),
+                            ("recursos", "Acompanhamento e fiscalização da aplicação dos recursos destinados à alimentação escolar", 1.0),
+                            ("qualidade", "Aferição da qualidade dos alimentos, em especial quanto às condições higiênicas, bem como a aceitabilidade dos cardápios oferecidos", 1.0),
+                            ("estrutura", "Aferição das condições físicas e estruturais da cozinha", 1.0),
+                            ("parecer_pnae", "Sobre o relatório anual de gestão do PNAE, emitiu parecer conclusivo a respeito, aprovando ou reprovando a execução do Programa", 1.0),
+                            ("comunicou_irregularidades", "Comunicou aos órgãos de controle as irregularidades observadas", 0.0),
+                            ("relatorios_pnae", "Forneceu informações e apresentou relatórios de acompanhamento da execução do PNAE sempre que solicitado", 0.0),
+                            ("visitas", "Realizou visitas periódicas às escolas", 1.0),
+                            ("reunioes", "Realizou reuniões periódicas", 0.5),
+                        ]
+
+                        def calc_1831():
+                            pts = sum(peso for key, _, peso in items_1831 if key in state_1831["selecionados"])
+                            state_1831["pontos"] = round(pts, 2)
+                            lbl_pontos_1831.set_text(f"📊 Pontuação Quesito 18.3.1: {state_1831['pontos']:.1f} ponto(s)".replace(".", ","))
+
+                        def toggle_1831(key, val):
+                            if val and key not in state_1831["selecionados"]:
+                                state_1831["selecionados"].append(key)
+                            elif not val and key in state_1831["selecionados"]:
+                                state_1831["selecionados"].remove(key)
+                            calc_1831()
+
+                        with ui.column().classes("w-full gap-2 mb-4"):
+                            for key, rotulo, peso in items_1831:
+                                txt_peso = f" (+{str(peso).replace('.', ',')} pt)" if peso > 0 else " (0,0 pt)"
+                                ui.checkbox(
+                                    text=f"{rotulo}{txt_peso}",
+                                    value=(key in state_1831["selecionados"]),
+                                    on_change=lambda e, k=key: toggle_1831(k, e.value),
+                                )
+
+                        ui.textarea(
+                            label="Link de Evidência (Quesito 18.3.1):",
+                            value=state_1831["link"],
+                            placeholder="Link das atas/relatórios das atividades...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_1831, "link")
+
+                        lbl_pontos_1831 = ui.label("📊 Pontuação Quesito 18.3.1: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_1831()
+
+                        def salvar_1831():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.3.1",
+                                valor="; ".join(state_1831["selecionados"]),
+                                pontos=state_1831["pontos"],
+                                link=state_1831["link"],
+                                comentarios=d1831.get("comentarios", []),
+                                status=d1831.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.3.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.3.1", on_click=salvar_1831).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.3.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 18.3.1.1 - Quantidade de Visitas Realizadas pelo CAE
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("18.3.1.1 • Visitas do CAE nas Escolas dos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a quantidade de visitas realizadas pelo CAE nas escolas dos Anos Iniciais no ano:").classes("text-base font-bold text-black mb-4")
+
+                        d18311 = res_data.get("18.3.1.1") or res_data.get("18311") or {}
+                        val_18311 = str(d18311.get("valor") or "0")
+                        link_18311 = str(d18311.get("link") or "")
+
+                        state_18311 = {
+                            "visitas": int(val_18311) if val_18311.isdigit() else 0,
+                            "link": link_18311,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Quantidade de visitas realizadas pelo CAE:",
+                                value=state_18311["visitas"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_18311, "visitas")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 18.3.1.1):",
+                                value=state_18311["link"],
+                                placeholder="Link do relatório/relatórios de visitas...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_18311, "link")
+
+                        ui.label("📊 Pontuação Quesito 18.3.1.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_18311():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.3.1.1",
+                                valor=str(state_18311["visitas"]),
+                                pontos=0.0,
+                                link=state_18311["link"],
+                                comentarios=d18311.get("comentarios", []),
+                                status=d18311.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.3.1.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.3.1.1", on_click=salvar_18311).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.3.1.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 19.0 - (Re)Elaboração do Currículo da Rede Municipal conforme a BNCC
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("19.0 • Adaptação do Currículo à BNCC").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("A Prefeitura Municipal (re)elaborou o currículo da rede municipal de ensino adequando-se às proposições da Base Nacional Comum Curricular (BNCC)?").classes("text-base font-bold text-black mb-4")
+
+                        d190 = res_data.get("19.0") or res_data.get("190") or {}
+                        val_190 = str(d190.get("valor") or "Sim")
+                        link_190 = str(d190.get("link") or "")
+
+                        state_190 = {
+                            "opcao": val_190,
+                            "link": link_190,
+                        }
+
+                        opts_190 = [
+                            "Sim",
+                            "Não",
+                            "Houve adesão ao Currículo Paulista elaborado pela Secretaria da Educação do Estado de São Paulo",
+                        ]
+
+                        ui.radio(
+                            options=opts_190,
+                            value=state_190["opcao"],
+                        ).classes("mb-4").bind_value(state_190, "opcao")
+
+                        ui.textarea(
+                            label="Link de Evidência (Quesito 19.0):",
+                            value=state_190["link"],
+                            placeholder="Link do documento curricular / decreto...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_190, "link")
+
+                        ui.label("📊 Pontuação Quesito 19.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_190():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.0",
+                                valor=state_190["opcao"],
+                                pontos=0.0,
+                                link=state_190["link"],
+                                comentarios=d190.get("comentarios", []),
+                                status=d190.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 19.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.0", on_click=salvar_190).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.0", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 19.1 - Etapas de Ensino com Currículo Atualizado
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("19.1 • Etapas de Ensino com Currículo Atualizado conforme BNCC").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale as etapas de ensino que estão com o currículo atualizado conforme a BNCC:").classes("text-base font-bold text-black mb-4")
+
+                        d191 = res_data.get("19.1") or res_data.get("191") or {}
+                        sel_191 = d191.get("valor") or []
+                        if isinstance(sel_191, str):
+                            sel_191 = [x.strip() for x in sel_191.split(";") if x.strip()]
+                        link_191 = str(d191.get("link") or "")
+
+                        state_191 = {
+                            "selecionados": sel_191,
+                            "link": link_191,
+                        }
+
+                        items_191 = [
+                            ("creche", "Creche"),
+                            ("pre_escola", "Pré-escola"),
+                            ("anos_iniciais", "Anos Iniciais do Ensino Fundamental"),
+                            ("anos_finais", "Anos Finais do Ensino Fundamental"),
+                        ]
+
+                        def toggle_191(key, val):
+                            if val and key not in state_191["selecionados"]:
+                                state_191["selecionados"].append(key)
+                            elif not val and key in state_191["selecionados"]:
+                                state_191["selecionados"].remove(key)
+
+                        with ui.column().classes("w-full gap-2 mb-4"):
+                            for key, rotulo in items_191:
+                                ui.checkbox(
+                                    text=rotulo,
+                                    value=(key in state_191["selecionados"]),
+                                    on_change=lambda e, k=key: toggle_191(k, e.value),
+                                )
+
+                        ui.textarea(
+                            label="Link de Evidência (Quesito 19.1):",
+                            value=state_191["link"],
+                            placeholder="Link do currículo por etapa...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_191, "link")
+
+                        ui.label("📊 Pontuação Quesito 19.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_191():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.1",
+                                valor="; ".join(state_191["selecionados"]),
+                                pontos=0.0,
+                                link=state_191["link"],
+                                comentarios=d191.get("comentarios", []),
+                                status=d191.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 19.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.1", on_click=salvar_191).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 19.2 - Página Eletrônica do Currículo da Rede Municipal
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("19.2 • Link do Currículo da Rede Municipal").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) do currículo da rede municipal de ensino:").classes("text-base font-bold text-black mb-1")
+                        ui.label("(Se não estiver disponível na internet, inserir no campo 'Página eletrônica' o texto XYZ)").classes("text-sm text-gray-600 italic mb-4")
+
+                        d192 = res_data.get("19.2") or res_data.get("192") or {}
+                        val_192 = str(d192.get("valor") or d192.get("link") or "")
+
+                        state_192 = {
+                            "link": val_192,
+                        }
+
+                        ui.textarea(
+                            label="Página eletrônica (link na internet):",
+                            value=state_192["link"],
+                            placeholder="Cole o link aqui ou digite XYZ...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_192, "link")
+
+                        ui.label("📊 Pontuação Quesito 19.2: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_192():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.2",
+                                valor=state_192["link"],
+                                pontos=0.0,
+                                link=state_192["link"],
+                                comentarios=d192.get("comentarios", []),
+                                status=d192.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 19.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.2", on_click=salvar_192).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.2", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 19.3 - Incorporação do Currículo nos Projetos Político-Pedagógicos (PPP)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("19.3 • Incorporação do Currículo nos PPPs").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("As escolas incorporaram em seus Projetos Político-Pedagógicos o atual currículo da rede municipal de ensino?").classes("text-base font-bold text-black mb-4")
+
+                        d193 = res_data.get("19.3") or res_data.get("193") or {}
+                        val_193 = str(d193.get("valor") or "Sim, em todas as escolas")
+                        link_193 = str(d193.get("link") or "")
+
+                        state_193 = {
+                            "opcao": val_193,
+                            "link": link_193,
+                            "pontos": 0.0,
+                        }
+
+                        def calc_193():
+                            op = state_193["opcao"]
+                            if op == "Sim, em todas as escolas":
+                                state_193["pontos"] = 2.0
+                            elif op == "Sim, na maior parte das escolas":
+                                state_193["pontos"] = 1.0
+                            elif op == "Sim, na menor parte das escolas":
+                                state_193["pontos"] = 0.5
+                            else:
+                                state_193["pontos"] = 0.0
+                            lbl_pontos_193.set_text(f"📊 Pontuação Quesito 19.3: {state_193['pontos']:.1f} ponto(s)".replace(".", ","))
+
+                        opts_193 = [
+                            "Sim, em todas as escolas",
+                            "Sim, na maior parte das escolas",
+                            "Sim, na menor parte das escolas",
+                            "Não",
+                        ]
+
+                        ui.radio(
+                            options=opts_193,
+                            value=state_193["opcao"],
+                            on_change=lambda e: [state_193.update({"opcao": e.value}), calc_193()],
+                        ).classes("mb-4")
+
+                        ui.textarea(
+                            label="Link de Evidência (Quesito 19.3):",
+                            value=state_193["link"],
+                            placeholder="Link dos PPPs das escolas...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_193, "link")
+
+                        lbl_pontos_193 = ui.label("📊 Pontuação Quesito 19.3: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                        calc_193()
+
+                        def salvar_193():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.3",
+                                valor=state_193["opcao"],
+                                pontos=state_193["pontos"],
+                                link=state_193["link"],
+                                comentarios=d193.get("comentarios", []),
+                                status=d193.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 19.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.3", on_click=salvar_193).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.3", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 20.0 - Impressões, Comentários e Sugestões sobre o Questionário
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("20.0 • Impressões, Comentários e Sugestões").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?").classes("text-base font-bold text-black mb-1")
+                        ui.label("Utilize o espaço abaixo para registrar suas impressões, comentários e sugestões a respeito do presente questionário.").classes("text-sm text-gray-600 mb-4")
+
+                        d200 = res_data.get("20.0") or res_data.get("200") or {}
+                        val_200 = str(d200.get("valor") or "")
+                        link_200 = str(d200.get("link") or "")
+
+                        state_200 = {
+                            "texto": val_200,
+                            "link": link_200,
+                        }
+
+                        ui.textarea(
+                            label="Comentários e Sugestões:",
+                            value=state_200["texto"],
+                            placeholder="Registre suas impressões ou sugestões sobre o questionário...",
+                        ).classes("w-full mb-4").props("outlined rows=5 color=blue").bind_value(state_200, "texto")
+
+                        ui.textarea(
+                            label="Link de Evidência Complementar (Opcional):",
+                            value=state_200["link"],
+                            placeholder="Link caso queira anexar algum documento de sugestões...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_200, "link")
+
+                        ui.label("📊 Pontuação Quesito 20.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_200():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="20.0",
+                                valor=state_200["texto"],
+                                pontos=0.0,
+                                link=state_200["link"],
+                                comentarios=d200.get("comentarios", []),
+                                status=d200.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 20.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 20.0", on_click=salvar_200).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("20.0", res_data, render_conteudo.refresh)
+
     render_conteudo()
     return main_container
 
