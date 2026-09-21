@@ -692,6 +692,171 @@ def container_formulario_saude(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
+    # ==========================================
+                    # QUESITO 4.0
+                    # ==========================================
+                    opcoes_4_0 = {
+                        "Para escolas – 2,5": 2.5,
+                        "Para outras secretarias / entidades municipais – 01": 1.0,
+                        "Para membros do Conselho Municipal de Saúde – 01": 1.0,
+                        "Para munícipes ou empresas – 1,5": 1.5,
+                        "Não ofereceu nenhum curso/treinamento no ano – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.0",
+                        titulo="Cursos e Treinamentos em Saúde",
+                        pergunta="A Secretaria Municipal de Saúde ou similar ofereceu cursos/treinamento sobre saúde para qual público?",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_4_0,
+                        placeholder_link="Insira o link da comprovação dos cursos/treinamentos oferecidos...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.0
+                    # ==========================================
+                    opcoes_5_0 = {
+                        "Selecione...": 0.0,
+                        "Sim – 04": 4.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.0",
+                        titulo="Movimentação em Contas Bancárias Próprias",
+                        pergunta="Os recursos financeiros municipais (fonte 1) destinados ao Sistema Único de Saúde (SUS) são movimentados em contas bancárias próprias?",
+                        tipo_input="radio",
+                        opcoes=opcoes_5_0,
+                        placeholder_link="Insira o link do extrato ou documento comprobatório...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 5.1
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.1",
+                        titulo="Dados das Contas Bancárias do SUS",
+                        pergunta="Informe o Banco, Agência e nº da conta:",
+                        tipo_input="text",
+                        opcoes={},
+                        placeholder_link="Insira o link de comprovantes bancários ou extratos...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 6.0
+                    # ==========================================
+                    opcoes_6_0 = {
+                        "Selecione...": 0.0,
+                        "Sim, com responsabilidade específica do setor de saúde e com recursos movimentados exclusivamente pelo Fundo – 05": 5.0,
+                        "Sim, com responsabilidade específica do setor de saúde, mas não houve movimentação de recursos exclusivamente pelo Fundo – 03": 3.0,
+                        "Sim, com recursos movimentados exclusivamente pelo Fundo, mas sem responsabilidade específica do setor de saúde – 01": 1.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="6.0",
+                        titulo="Aplicação de Recursos Próprios em Saúde",
+                        pergunta="As despesas consideradas, para fins de apuração do mínimo constitucional de aplicação de recursos próprios em saúde, foram de responsabilidade específica do setor de saúde e com recursos municipais movimentados somente pelo Fundo Municipal de Saúde?",
+                        tipo_input="radio",
+                        opcoes=opcoes_6_0,
+                        placeholder_link="Insira o link de relatórios contábeis ou demonstrativo de saúde...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 7.0
+                    # ==========================================
+                    opcoes_7_0 = {
+                        "Relatório do 1º Quadrimestre - até o final do mês de maio de 2025 – 01": 1.0,
+                        "Relatório do 2º Quadrimestre - até o final do mês de setembro de 2025 – 01": 1.0,
+                        "Relatório do 3º Quadrimestre - até o final do mês de fevereiro de 2026 – 01": 1.0,
+                        "Não apresentou nenhum relatório quadrimestral dentro de prazo – 00": 0.0,
+                        "Não apresentou nenhum relatório quadrimestral em audiência pública na Câmara Municipal – -01": -1.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.0",
+                        titulo="Apresentação de Relatórios Quadrimestrais",
+                        pergunta="O gestor municipal de saúde apresentou quais Relatórios Quadrimestrais de 2025 previstos no art. 36 da Lei Complementar 141/2012 em audiência pública na Câmara Municipal?",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_7_0,
+                        placeholder_link="Insira o link da ata da audiência pública ou edital...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 8.0
+                    # ==========================================
+                    opcoes_8_0 = {
+                        "Selecione...": 0.0,
+                        "Sim, meio eletrônico – 02": 2.0,
+                        "Sim, meio físico – 02": 2.0,
+                        "Não – 00": 0.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.0",
+                        titulo="Encaminhamento do RAG 2025 ao CMS",
+                        pergunta="O Relatório Anual de Gestão de 2025 foi encaminhado ao Conselho Municipal de Saúde até 30/03/2026 (ano seguinte ao da execução financeira)?",
+                        tipo_input="radio",
+                        opcoes=opcoes_8_0,
+                        placeholder_link="Insira o link do protocolo ou comprovante de envio ao CMS...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 9.0
+                    # ==========================================
+                    opcoes_9_0 = {
+                        "Selecione...": 0.0,
+                        "Aprovado sem ressalvas – 18": 18.0,
+                        "Aprovado com ressalvas – 10": 10.0,
+                        "Irregular/Não aprovado – 00": 0.0,
+                        "Não apreciado – -10": -10.0,
+                    }
+
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.0",
+                        titulo="Parecer Conclusivo sobre o RAG 2024",
+                        pergunta="O Parecer Conclusivo sobre o Relatório Anual de Gestão 2024 foi 'aprovado sem ressalvas', 'aprovado com ressalvas' ou 'irregular/não aprovado'?",
+                        tipo_input="radio",
+                        opcoes=opcoes_9_0,
+                        placeholder_link="Insira o link da resolução ou parecer do CMS...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 9.1
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.1",
+                        titulo="Publicação do Parecer Conclusivo do RAG 2024",
+                        pergunta="Informe a forma e Data da publicação do Parecer Conclusivo sobre o Relatório Anual de Gestão 2024:",
+                        tipo_input="text",
+                        opcoes={},
+                        placeholder_link="Insira o link da publicação do Diário Oficial ou portal...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
     # Executa a renderização inicial
     render_conteudo()
 
