@@ -10378,6 +10378,226 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("35.2", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE AUDITORIA E SISTEMA DE MEDICAMENTOS - QUESITOS 35.2.1 A 36.1
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 35.2.1 (Página Eletrônica das Auditorias Concluídas em 2025)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
+                        ui.label("35.2.1 • Divulgação das Auditorias de 2025").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Informe a página eletrônica (site) de divulgação dos resultados das auditorias concluídas (encerradas) em 2025:").classes("text-sm text-gray-700 mb-4")
+
+                        d3521 = res_data.get("35.2.1") or {}
+                        state_3521 = {
+                            "link": str(d3521.get("link") or d3521.get("valor") or "")
+                        }
+
+                        ui.textarea(
+                            label="URL / Página eletrônica dos resultados das auditorias (2025):", 
+                            value=state_3521["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_3521, "link")
+
+                        def salvar_3521():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="35.2.1",
+                                valor=state_3521["link"],
+                                pontos=0.0,
+                                link=state_3521["link"],
+                                comentarios=d3521.get("comentarios", []),
+                                status=d3521.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 35.2.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 35.2.1", on_click=salvar_3521).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("35.2.1", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 36.0 (Sistema Informatizado de Estoque de Medicamentos)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("36.0 • Gestão do Estoque de Medicamentos").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município utiliza sistema informatizado para gerenciar o estoque de itens de medicamentos?").classes("text-sm text-gray-700 mb-4")
+
+                        d360 = res_data.get("36.0") or {}
+                        OPCOES_360 = [
+                            "Sim, utiliza o Sistema Hórus",
+                            "Sim, utiliza Sistema Próprio",
+                            "Não"
+                        ]
+                        
+                        val_inicial_360 = d360.get("valor") if d360.get("valor") in OPCOES_360 else "Não"
+
+                        state_360 = {
+                            "opcao": val_inicial_360,
+                            "link": str(d360.get("link") or "")
+                        }
+
+                        lbl_pontos_360 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                        def calc_pontos_360(v):
+                            if v == "Sim, utiliza o Sistema Hórus":
+                                return 40.0
+                            return 0.0
+
+                        def atualizar_pontos_360():
+                            pts = calc_pontos_360(state_360["opcao"])
+                            lbl_pontos_360.set_text(f"Pontuação Calculada: {pts:.1f} / 40.0 pontos")
+
+                        radio_360 = ui.radio(OPCOES_360, value=state_360["opcao"]).classes("mb-3").bind_value(state_360, "opcao")
+                        radio_360.on("update:model-value", lambda: atualizar_pontos_360())
+
+                        ui.textarea(
+                            label="Link / Comprovação da utilização do sistema:", 
+                            value=state_360["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_360, "link")
+
+                        atualizar_pontos_360()
+
+                        def salvar_360():
+                            pts = calc_pontos_360(state_360["opcao"])
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="36.0",
+                                valor=state_360["opcao"],
+                                pontos=pts,
+                                link=state_360["link"],
+                                comentarios=d360.get("comentarios", []),
+                                status=d360.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 36.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 36.0", on_click=salvar_360).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("36.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 36.1 (Funções do Sistema Próprio de Gestão de Estoque de Medicamentos)
+                    # Exibido/Pontuado principalmente quando utilizado Sistema Próprio em 36.0
+                    # -----------------------------------------------------------------------------
+                    if state_360["opcao"] == "Sim, utiliza Sistema Próprio":
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
+                            ui.label("36.1 • Funcionalidades do Sistema Próprio de Medicamentos").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("Assinale as funções existentes no sistema próprio de gestão de estoque de medicamentos:").classes("text-sm text-gray-700 mb-4")
+
+                            d361 = res_data.get("36.1") or {}
+                            raw_val_361 = d361.get("valor") or []
+                            if not isinstance(raw_val_361, list):
+                                raw_val_361 = []
+
+                            state_361 = {
+                                "posicao_estoque": "Fornecer a posição de estoque, movimentação de entrada e saída, lote e validade" in raw_val_361,
+                                "rastreabilidade": "Permitir a rastreabilidade dos medicamentos dispensados aos pacientes" in raw_val_361,
+                                "compras": "Gerenciar o processo de compras de itens de medicamentos, desde o planejamento até a entrega e o recebimento da nota fiscal" in raw_val_361,
+                                "reposicao": "Gerenciar a reposição de itens de medicamentos por estabelecimento de saúde" in raw_val_361,
+                                "bnafar": "Integrado à Base Nacional de Dados de Ações e Serviços da Assistência Farmacêutica (BNAFAR)" in raw_val_361,
+                                "outros": "Outros" in raw_val_361,
+                                "link": str(d361.get("link") or "")
+                            }
+
+                            lbl_pontos_361 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                            def calc_pontos_361():
+                                p = 0.0
+                                if state_361["posicao_estoque"]:
+                                    p += 10.0
+                                if state_361["rastreabilidade"]:
+                                    p += 10.0
+                                if state_361["compras"]:
+                                    p += 10.0
+                                if state_361["reposicao"]:
+                                    p += 10.0
+                                # bnafar e outros valem 0.0 pontos
+                                return p
+
+                            def atualizar_pontos_361():
+                                pts = calc_pontos_361()
+                                lbl_pontos_361.set_text(f"Pontuação Calculada: {pts:.1f} / 40.0 pontos")
+
+                            cb1 = ui.checkbox(
+                                "Fornecer a posição de estoque, movimentação de entrada e saída, lote e validade (10,0 pts)", 
+                                value=state_361["posicao_estoque"]
+                            ).bind_value(state_361, "posicao_estoque")
+                            
+                            cb2 = ui.checkbox(
+                                "Permitir a rastreabilidade dos medicamentos dispensados aos pacientes (10,0 pts)", 
+                                value=state_361["rastreabilidade"]
+                            ).bind_value(state_361, "rastreabilidade")
+                            
+                            cb3 = ui.checkbox(
+                                "Gerenciar o processo de compras de itens de medicamentos, desde o planejamento até a entrega e o recebimento da nota fiscal (10,0 pts)", 
+                                value=state_361["compras"]
+                            ).bind_value(state_361, "compras")
+                            
+                            cb4 = ui.checkbox(
+                                "Gerenciar a reposição de itens de medicamentos por estabelecimento de saúde (10,0 pts)", 
+                                value=state_361["reposicao"]
+                            ).bind_value(state_361, "reposicao")
+                            
+                            cb5 = ui.checkbox(
+                                "Integrado à Base Nacional de Dados de Ações e Serviços da Assistência Farmacêutica (BNAFAR) (0,0 pts)", 
+                                value=state_361["bnafar"]
+                            ).bind_value(state_361, "bnafar")
+                            
+                            cb6 = ui.checkbox(
+                                "Outros (0,0 pts)", 
+                                value=state_361["outros"]
+                            ).bind_value(state_361, "outros")
+
+                            cb1.on("change", lambda: atualizar_pontos_361())
+                            cb2.on("change", lambda: atualizar_pontos_361())
+                            cb3.on("change", lambda: atualizar_pontos_361())
+                            cb4.on("change", lambda: atualizar_pontos_361())
+                            cb5.on("change", lambda: atualizar_pontos_361())
+                            cb6.on("change", lambda: atualizar_pontos_361())
+
+                            ui.textarea(
+                                label="Link / Documentação técnica do sistema próprio:", 
+                                value=state_361["link"]
+                            ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_361, "link")
+
+                            atualizar_pontos_361()
+
+                            def salvar_361():
+                                sel_list = []
+                                if state_361["posicao_estoque"]:
+                                    sel_list.append("Fornecer a posição de estoque, movimentação de entrada e saída, lote e validade")
+                                if state_361["rastreabilidade"]:
+                                    sel_list.append("Permitir a rastreabilidade dos medicamentos dispensados aos pacientes")
+                                if state_361["compras"]:
+                                    sel_list.append("Gerenciar o processo de compras de itens de medicamentos, desde o planejamento até a entrega e o recebimento da nota fiscal")
+                                if state_361["reposicao"]:
+                                    sel_list.append("Gerenciar a reposição de itens de medicamentos por estabelecimento de saúde")
+                                if state_361["bnafar"]:
+                                    sel_list.append("Integrado à Base Nacional de Dados de Ações e Serviços da Assistência Farmacêutica (BNAFAR)")
+                                if state_361["outros"]:
+                                    sel_list.append("Outros")
+
+                                pts = calc_pontos_361()
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="36.1",
+                                    valor=sel_list,
+                                    pontos=pts,
+                                    link=state_361["link"],
+                                    comentarios=d361.get("comentarios", []),
+                                    status=d361.get("status", "Pendente")
+                                )
+                                ui.notify("Quesito 36.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 36.1", on_click=salvar_361).classes("bg-blue-600 text-white font-bold my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("36.1", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
