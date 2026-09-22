@@ -12827,6 +12827,140 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S16", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S17 (SISAB / APS)
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S17 (Exame Citopatológico na APS - SISAB)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S17 • Coleta de Exame Citopatológico em Mulheres de 25 a 64 anos (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o número de mulheres (25 a 64 anos) com exame citopatológico realizado nos últimos 36 meses na APS "
+                            "e o total de mulheres dessa faixa etária cadastradas no município para os 3 quadrimestres de 2025 (SISAB):"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds17 = res_data.get("S17") or {}
+                        val_s17 = ds17.get("valor") if isinstance(ds17.get("valor"), dict) else {}
+
+                        state_s17 = {
+                            "cit1q": float(val_s17.get("cit1q", 0.0)),
+                            "cit2q": float(val_s17.get("cit2q", 0.0)),
+                            "cit3q": float(val_s17.get("cit3q", 0.0)),
+                            "tm1q": float(val_s17.get("tm1q", 0.0)),
+                            "tm2q": float(val_s17.get("tm2q", 0.0)),
+                            "tm3q": float(val_s17.get("tm3q", 0.0)),
+                            "link": str(ds17.get("link") or "")
+                        }
+
+                        lbl_pct_s17 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s17 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s17(c1, c2, c3, t1, t2, t3):
+                            soma_cit = c1 + c2 + c3
+                            soma_tm = t1 + t2 + t3
+
+                            if soma_tm <= 0:
+                                return 0.0, 0.0
+
+                            prop = soma_cit / soma_tm
+                            pct = prop * 100.0
+
+                            if pct >= 100.0:
+                                pts = 25.0
+                            elif pct >= 80.0:
+                                pts = 20.0
+                            elif pct >= 40.0:
+                                pts = 15.0
+                            elif pct >= 28.0:
+                                pts = 10.0
+                            elif pct >= 16.0:
+                                pts = 5.0
+                            else:
+                                pts = 0.0
+
+                            return prop, pts
+
+                        def atualizar_calculo_s17():
+                            c1 = float(inp_c1.value or 0)
+                            c2 = float(inp_c2.value or 0)
+                            c3 = float(inp_c3.value or 0)
+                            t1 = float(inp_t1.value or 0)
+                            t2 = float(inp_t2.value or 0)
+                            t3 = float(inp_t3.value or 0)
+
+                            prop, pts = calc_s17(c1, c2, c3, t1, t2, t3)
+                            pct = prop * 100.0
+                            soma_tm = t1 + t2 + t3
+
+                            if soma_tm > 0:
+                                lbl_pct_s17.set_text(f"• Percentual Acumulado (P): {pct:.2f}%")
+                                lbl_pontos_s17.set_text(f"Pontuação Calculada: {pts:.1f} / 25.0 pontos")
+                                
+                                if pts >= 20.0:
+                                    lbl_pontos_s17.classes(remove="text-red-600 text-yellow-600", add="text-green-600")
+                                elif pts >= 10.0:
+                                    lbl_pontos_s17.classes(remove="text-red-600 text-green-600", add="text-yellow-600")
+                                else:
+                                    lbl_pontos_s17.classes(remove="text-green-600 text-yellow-600", add="text-red-600")
+                            else:
+                                lbl_pct_s17.set_text("• Percentual Acumulado (P): Informe o Total de Mulheres (TM)")
+                                lbl_pontos_s17.set_text("")
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_c1 = ui.number(label="Exames 1º Quadrimestre (CIT1Q):", value=state_s17["cit1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_c2 = ui.number(label="Exames 2º Quadrimestre (CIT2Q):", value=state_s17["cit2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_c3 = ui.number(label="Exames 3º Quadrimestre (CIT3Q):", value=state_s17["cit3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                            inp_t1 = ui.number(label="Total Mulheres 1º Q. (TM1Q):", value=state_s17["tm1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_t2 = ui.number(label="Total Mulheres 2º Q. (TM2Q):", value=state_s17["tm2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_t3 = ui.number(label="Total Mulheres 3º Q. (TM3Q):", value=state_s17["tm3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                        for inp in [inp_c1, inp_c2, inp_c3, inp_t1, inp_t2, inp_t3]:
+                            inp.on("update:model-value", lambda: atualizar_calculo_s17())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SISAB:",
+                            value=state_s17["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s17, "link")
+
+                        atualizar_calculo_s17()
+
+                        def salvar_s17():
+                            c1 = float(inp_c1.value or 0)
+                            c2 = float(inp_c2.value or 0)
+                            c3 = float(inp_c3.value or 0)
+                            t1 = float(inp_t1.value or 0)
+                            t2 = float(inp_t2.value or 0)
+                            t3 = float(inp_t3.value or 0)
+
+                            prop, pts = calc_s17(c1, c2, c3, t1, t2, t3)
+
+                            dados_finais = {
+                                "cit1q": c1, "cit2q": c2, "cit3q": c3,
+                                "tm1q": t1, "tm2q": t2, "tm3q": t3,
+                                "proporcao": round(prop, 4),
+                                "percentual": round(prop * 100.0, 2)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S17",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s17["link"],
+                                comentarios=ds17.get("comentarios", []),
+                                status=ds17.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S17 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S17", on_click=salvar_s17).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S17", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
