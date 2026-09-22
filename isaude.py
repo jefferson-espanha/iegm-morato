@@ -2368,6 +2368,495 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("15.0", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 15.1 (Taxa de Absenteísmo de Exames Médicos da Atenção Básica)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("15.1 • Taxa de Absenteísmo em Exames Médicos da Atenção Básica").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a taxa de absenteísmo de exame médico da Atenção Básica (%):"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Regra: Se a Taxa de 2025 (TA) for menor ou igual à média dos 2 anos anteriores (2023 e 2024) = 07 pts. Se for maior = 00 pt."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d151 = res_data.get("15.1") or {}
+                        raw_val_151 = d151.get("valor") or {}
+
+                        if not isinstance(raw_val_151, dict):
+                            raw_val_151 = {}
+
+                        raw_link_151 = str(d151.get("link") or "")
+
+                        state_151 = {
+                            "ta_2023": str(raw_val_151.get("ta_2023", "")),
+                            "ta_2024": str(raw_val_151.get("ta_2024", "")),
+                            "ta_2025": str(raw_val_151.get("ta_2025", "")),
+                            "link": raw_link_151,
+                        }
+
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Taxa em 2023 (TA-2) (%):").classes("text-sm text-gray-700 w-1/2")
+                            inp_ta_2023_151 = ui.input(
+                                value=state_151["ta_2023"],
+                                placeholder="Ex: 18.5"
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_ta_2023_151.bind_value(state_151, "ta_2023")
+
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Taxa em 2024 (TA-1) (%):").classes("text-sm text-gray-700 w-1/2")
+                            inp_ta_2024_151 = ui.input(
+                                value=state_151["ta_2024"],
+                                placeholder="Ex: 16.2"
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_ta_2024_151.bind_value(state_151, "ta_2024")
+
+                        with ui.row().classes("w-full items-center mb-2 gap-4"):
+                            ui.label("Taxa em 2025 (TA) (%):").classes("text-sm text-gray-700 w-1/2")
+                            inp_ta_2025_151 = ui.input(
+                                value=state_151["ta_2025"],
+                                placeholder="Ex: 15.0"
+                            ).props("type=number outlined dense color=blue").classes("w-1/2")
+                            inp_ta_2025_151.bind_value(state_151, "ta_2025")
+
+                        lbl_pts_151 = ui.label("Nota 15.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_151():
+                            def parse_val(v):
+                                try:
+                                    return float(v.replace(",", "."))
+                                except (ValueError, AttributeError):
+                                    return None
+
+                            v23 = parse_val(state_151["ta_2023"])
+                            v24 = parse_val(state_151["ta_2024"])
+                            v25 = parse_val(state_151["ta_2025"])
+
+                            if v23 is not None and v24 is not None and v25 is not None:
+                                media_anteriores = (v23 + v24) / 2.0
+                                if v25 <= media_anteriores:
+                                    pts = 7.0
+                                else:
+                                    pts = 0.0
+                                lbl_pts_151.set_text(
+                                    f"📊 Nota 15.1: {pts:.1f} / 7.0 pontos "
+                                    f"(Média 2023-2024: {media_anteriores:.2f}% | 2025: {v25:.2f}%)"
+                                )
+                            else:
+                                pts = 0.0
+                                lbl_pts_151.set_text("📊 Nota 15.1: 0.0 pontos (Preencha as taxas de 2023, 2024 e 2025)")
+
+                            return pts
+
+                        for inp in [inp_ta_2023_151, inp_ta_2024_151, inp_ta_2025_151]:
+                            inp.on("update:model-value", recalc_151)
+
+                        recalc_151()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório com a Série Histórica de Absenteísmo em Exames:",
+                            value=raw_link_151,
+                            placeholder="Link do sistema ou relatórios gerenciais...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_151, "link"
+                        )
+
+                        def salvar_151():
+                            pts = recalc_151()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.1",
+                                valor={
+                                    "ta_2023": state_151["ta_2023"],
+                                    "ta_2024": state_151["ta_2024"],
+                                    "ta_2025": state_151["ta_2025"],
+                                },
+                                pontos=pts,
+                                link=state_151["link"],
+                                comentarios=d151.get("comentarios", []),
+                                status=d151.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 15.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 15.1", on_click=salvar_151).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 15.2 (Medidas para Redução do Absenteísmo em Exames)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("15.2 • Medidas para Redução do Absenteísmo em Exames").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município realiza medidas para a redução desta taxa de absenteísmo?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d152 = res_data.get("15.2") or {}
+                        raw_val_152 = str(d152.get("valor", "none"))
+                        raw_link_152 = str(d152.get("link") or "")
+
+                        state_152 = {
+                            "opcao": raw_val_152 if raw_val_152 in ["00", "-02"] else "none",
+                            "link": raw_link_152,
+                        }
+
+                        opts_152 = {
+                            "none": "Selecione uma opção...",
+                            "00": "Sim – 00 pt (não perde pontos)",
+                            "-02": "Não – -02 pts (perde 02 pontos)",
+                        }
+
+                        rad_152 = ui.radio(
+                            options=opts_152,
+                            value=state_152["opcao"]
+                        ).classes("mb-4")
+                        rad_152.bind_value(state_152, "opcao")
+
+                        lbl_pts_152 = ui.label("Nota 15.2: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_152():
+                            val = state_152["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_152.set_text(f"📊 Nota 15.2: {pts:.1f} pontos")
+                            return pts
+
+                        rad_152.on("update:model-value", recalc_152)
+                        recalc_152()
+
+                        ui.textarea(
+                            label="Link de Evidência / Comprovantes das Medidas:",
+                            value=raw_link_152,
+                            placeholder="Link dos comprovantes e ações adotadas...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_152, "link"
+                        )
+
+                        def salvar_152():
+                            pts = recalc_152()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.2",
+                                valor=state_152["opcao"],
+                                pontos=pts,
+                                link=state_152["link"],
+                                comentarios=d152.get("comentarios", []),
+                                status=d152.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 15.2 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 15.2", on_click=salvar_152).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 15.2.1 (Tipos de Medidas para Exames Médicos)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("15.2.1 • Tipos de Medidas Utilizadas (Exames Médicos)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale as medidas utilizadas para a redução da taxa de absenteísmo de exames médicos na Atenção Básica:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d1521 = res_data.get("15.2.1") or {}
+                        raw_val_1521 = d1521.get("valor") or {}
+
+                        if not isinstance(raw_val_1521, dict):
+                            raw_val_1521 = {}
+
+                        raw_link_1521 = str(d1521.get("link") or "")
+
+                        state_1521 = {
+                            "sensibilizacao": bool(raw_val_1521.get("sensibilizacao", False)),
+                            "central": bool(raw_val_1521.get("central", False)),
+                            "ligacao": bool(raw_val_1521.get("ligacao", False)),
+                            "busca_ativa": bool(raw_val_1521.get("busca_ativa", False)),
+                            "campanhas": bool(raw_val_1521.get("campanhas", False)),
+                            "outros": bool(raw_val_1521.get("outros", False)),
+                            "outros_desc": str(raw_val_1521.get("outros_desc", "")),
+                            "link": raw_link_1521,
+                        }
+
+                        chk_1 = ui.checkbox("Informar e sensibilizar as equipes/profissionais a respeito do absenteísmo e promover capacitações", value=state_1521["sensibilizacao"])
+                        chk_1.bind_value(state_1521, "sensibilizacao")
+
+                        chk_2 = ui.checkbox("Criação de Central de relacionamento para usuário SUS, com disponibilização de canal direto de comunicação", value=state_1521["central"])
+                        chk_2.bind_value(state_1521, "central")
+
+                        chk_3 = ui.checkbox("Ligação telefônica ou outro meio de comunicação para confirmação do exame e presença do paciente", value=state_1521["ligacao"])
+                        chk_3.bind_value(state_1521, "ligacao")
+
+                        chk_4 = ui.checkbox("Orientação das famílias e busca ativa dos faltosos pelos Agentes Comunitários de Saúde", value=state_1521["busca_ativa"])
+                        chk_4.bind_value(state_1521, "busca_ativa")
+
+                        chk_5 = ui.checkbox("Promoção de campanhas de conscientização", value=state_1521["campanhas"])
+                        chk_5.bind_value(state_1521, "campanhas")
+
+                        chk_6 = ui.checkbox("Outros", value=state_1521["outros"])
+                        chk_6.bind_value(state_1521, "outros")
+
+                        inp_outros_1521 = ui.input(
+                            label="Especifique 'Outros':",
+                            value=state_1521["outros_desc"]
+                        ).props("outlined dense color=blue").classes("w-full mb-4 ml-6")
+                        inp_outros_1521.bind_value(state_1521, "outros_desc")
+                        inp_outros_1521.bind_visibility_from(chk_6, "value")
+
+                        ui.textarea(
+                            label="Link de Evidência / Material Informativo ou Campanhas:",
+                            value=raw_link_1521,
+                            placeholder="Link das fotos, relatórios ou registros de buscas ativas...",
+                        ).classes("w-full mb-4 mt-2").props("outlined rows=2").bind_value(
+                            state_1521, "link"
+                        )
+
+                        def salvar_1521():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.2.1",
+                                valor={
+                                    "sensibilizacao": state_1521["sensibilizacao"],
+                                    "central": state_1521["central"],
+                                    "ligacao": state_1521["ligacao"],
+                                    "busca_ativa": state_1521["busca_ativa"],
+                                    "campanhas": state_1521["campanhas"],
+                                    "outros": state_1521["outros"],
+                                    "outros_desc": state_1521["outros_desc"],
+                                },
+                                pontos=0.0,
+                                link=state_1521["link"],
+                                comentarios=d1521.get("comentarios", []),
+                                status=d1521.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 15.2.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 15.2.1", on_click=salvar_1521).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.2.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 16.0 (Implantação do PEP na Atenção Básica)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("16.0 • Prontuário Eletrônico do Paciente (PEP) na Atenção Básica").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município implantou o Prontuário Eletrônico do Paciente na Atenção Básica?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d160 = res_data.get("16.0") or res_data.get("16") or {}
+                        raw_val_160 = str(d160.get("valor", "none"))
+                        raw_link_160 = str(d160.get("link") or "")
+
+                        state_160 = {
+                            "opcao": raw_val_160 if raw_val_160 in ["10", "07", "03", "00"] else "none",
+                            "link": raw_link_160,
+                        }
+
+                        opts_160 = {
+                            "none": "Selecione uma opção...",
+                            "10": "Sim, para todos os procedimentos da saúde – 10 pts",
+                            "07": "Sim, para a maior parte dos procedimentos da saúde – 07 pts",
+                            "03": "Sim, para a menor parte dos procedimentos da saúde – 03 pts",
+                            "00": "Não – 00 pt",
+                        }
+
+                        rad_160 = ui.radio(
+                            options=opts_160,
+                            value=state_160["opcao"]
+                        ).classes("mb-4")
+                        rad_160.bind_value(state_160, "opcao")
+
+                        lbl_pts_160 = ui.label("Nota 16.0: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_160():
+                            val = state_160["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_160.set_text(f"📊 Nota 16.0: {pts:.1f} / 10.0 pontos")
+                            return pts
+
+                        rad_160.on("update:model-value", recalc_160)
+                        recalc_160()
+
+                        ui.textarea(
+                            label="Link de Evidência / Declaração de Implantação do PEP:",
+                            value=raw_link_160,
+                            placeholder="Link do contrato, relatório do sistema PEC/e-SUS ou equivalente...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_160, "link"
+                        )
+
+                        def salvar_160():
+                            pts = recalc_160()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.0",
+                                valor=state_160["opcao"],
+                                pontos=pts,
+                                link=state_160["link"],
+                                comentarios=d160.get("comentarios", []),
+                                status=d160.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 16.0 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 16.0", on_click=salvar_160).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.0", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 16.1 (Serviços Inseridos no PEP)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("16.1 • Serviços da Atenção Básica Inseridos no PEP").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale os serviços da Atenção Básica inseridos no Prontuário Eletrônico do Paciente:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d161 = res_data.get("16.1") or {}
+                        raw_val_161 = d161.get("valor") or {}
+
+                        if not isinstance(raw_val_161, dict):
+                            raw_val_161 = {}
+
+                        raw_link_161 = str(d161.get("link") or "")
+
+                        state_161 = {
+                            "esf": bool(raw_val_161.get("esf", False)),
+                            "consultas": bool(raw_val_161.get("consultas", False)),
+                            "exames": bool(raw_val_161.get("exames", False)),
+                            "terapias": bool(raw_val_161.get("terapias", False)),
+                            "medicamentos": bool(raw_val_161.get("medicamentos", False)),
+                            "outros": bool(raw_val_161.get("outros", False)),
+                            "outros_desc": str(raw_val_161.get("outros_desc", "")),
+                            "link": raw_link_161,
+                        }
+
+                        chk_esf = ui.checkbox("Atendimento pela ESF – 01 pt", value=state_161["esf"])
+                        chk_esf.bind_value(state_161, "esf")
+
+                        chk_consultas = ui.checkbox("Consultas médicas em Atenção Primária – 01 pt", value=state_161["consultas"])
+                        chk_consultas.bind_value(state_161, "consultas")
+
+                        chk_exames = ui.checkbox("Exames laboratoriais – 01 pt", value=state_161["exames"])
+                        chk_exames.bind_value(state_161, "exames")
+
+                        chk_terapias = ui.checkbox("Terapias / tratamentos – 01 pt", value=state_161["terapias"])
+                        chk_terapias.bind_value(state_161, "terapias")
+
+                        chk_medicamentos = ui.checkbox("Medicamentos – 01 pt", value=state_161["medicamentos"])
+                        chk_medicamentos.bind_value(state_161, "medicamentos")
+
+                        chk_outros_161 = ui.checkbox("Outros – 00 pt", value=state_161["outros"])
+                        chk_outros_161.bind_value(state_161, "outros")
+
+                        inp_outros_161 = ui.input(
+                            label="Especifique 'Outros':",
+                            value=state_161["outros_desc"]
+                        ).props("outlined dense color=blue").classes("w-full mb-4 ml-6")
+                        inp_outros_161.bind_value(state_161, "outros_desc")
+                        inp_outros_161.bind_visibility_from(chk_outros_161, "value")
+
+                        lbl_pts_161 = ui.label("Nota 16.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_161():
+                            pts = 0.0
+                            if state_161["esf"]:
+                                pts += 1.0
+                            if state_161["consultas"]:
+                                pts += 1.0
+                            if state_161["exames"]:
+                                pts += 1.0
+                            if state_161["terapias"]:
+                                pts += 1.0
+                            if state_161["medicamentos"]:
+                                pts += 1.0
+                            lbl_pts_161.set_text(f"📊 Nota 16.1: {pts:.1f} / 5.0 pontos")
+                            return pts
+
+                        for chk in [chk_esf, chk_consultas, chk_exames, chk_terapias, chk_medicamentos, chk_outros_161]:
+                            chk.on("update:model-value", recalc_161)
+
+                        recalc_161()
+
+                        ui.textarea(
+                            label="Link de Evidência / Capturas de Tela dos Módulos Inseridos no PEP:",
+                            value=raw_link_161,
+                            placeholder="Link dos manuais, relatórios do sistema ou telas dos módulos...",
+                        ).classes("w-full mb-4 mt-2").props("outlined rows=2").bind_value(
+                            state_161, "link"
+                        )
+
+                        def salvar_161():
+                            pts = recalc_161()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.1",
+                                valor={
+                                    "esf": state_161["esf"],
+                                    "consultas": state_161["consultas"],
+                                    "exames": state_161["exames"],
+                                    "terapias": state_161["terapias"],
+                                    "medicamentos": state_161["medicamentos"],
+                                    "outros": state_161["outros"],
+                                    "outros_desc": state_161["outros_desc"],
+                                },
+                                pontos=pts,
+                                link=state_161["link"],
+                                comentarios=d161.get("comentarios", []),
+                                status=d161.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 16.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 16.1", on_click=salvar_161).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.1", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
