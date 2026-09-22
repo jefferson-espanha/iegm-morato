@@ -11009,6 +11009,263 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("39.0", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES E SISTÊMICOS - QUESITOS S1 E S2
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S1 (Mínimo Constitucional em Saúde - Art. 198 CF / LC 141)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S1 • Aplicação do Mínimo Constitucional em Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe as despesas aplicadas em saúde com recursos próprios e a receita total de impostos. "
+                            "A proporção mínima exigida por lei é de 15%."
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds1 = res_data.get("S1") or {}
+                        val_s1 = ds1.get("valor") if isinstance(ds1.get("valor"), dict) else {}
+
+                        state_s1 = {
+                            "despesa": float(val_s1.get("despesa", 0.0)),
+                            "receita": float(val_s1.get("receita", 0.0)),
+                            "link": str(ds1.get("link") or "")
+                        }
+
+                        lbl_ps = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_resultado_s1 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s1(despesa, receita):
+                            if receita <= 0:
+                                return 0.0, False
+                            
+                            ps = (despesa / receita) * 100.0
+                            atingiu_minimo = ps >= 15.0
+                            return ps, atingiu_minimo
+
+                        def atualizar_calculo_s1():
+                            desp_val = float(inp_despesa.value or 0)
+                            rec_val = float(inp_receita.value or 0)
+                            
+                            ps, atingiu = calc_s1(desp_val, rec_val)
+
+                            if rec_val > 0:
+                                lbl_ps.set_text(f"Proporção Aplicada em Saúde (PS): {ps:.2f}%")
+                                if atingiu:
+                                    lbl_resultado_s1.set_text("Status: Atingiu o mínimo constitucional (≥ 15%) — Sem rebaixamento de faixa (0,0 pt)")
+                                    lbl_resultado_s1.classes(remove="text-red-600", add="text-green-600")
+                                else:
+                                    lbl_resultado_s1.set_text("Status: NÃO atingiu o mínimo constitucional (< 15%) — REBAIXAR 1 FAIXA DO i-Saúde!")
+                                    lbl_resultado_s1.classes(remove="text-green-600", add="text-red-600")
+                            else:
+                                lbl_ps.set_text("Proporção Aplicada em Saúde (PS): Informe a Receita de Impostos")
+                                lbl_resultado_s1.set_text("")
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            inp_despesa = ui.number(
+                                label="Despesa aplicada em Saúde com recursos próprios (R$):",
+                                value=state_s1["despesa"],
+                                min=0,
+                                format="%.2f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_receita = ui.number(
+                                label="Receita de Impostos (Saúde) (R$):",
+                                value=state_s1["receita"],
+                                min=0,
+                                format="%.2f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_despesa.on("update:model-value", lambda: atualizar_calculo_s1())
+                        inp_receita.on("update:model-value", lambda: atualizar_calculo_s1())
+
+                        ui.textarea(
+                            label="Link / Comprovação SIOPS ou Prestação de Contas:",
+                            value=state_s1["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s1, "link")
+
+                        atualizar_calculo_s1()
+
+                        def salvar_s1():
+                            desp_val = float(inp_despesa.value or 0)
+                            rec_val = float(inp_receita.value or 0)
+                            ps, atingiu = calc_s1(desp_val, rec_val)
+
+                            dados_finais = {
+                                "despesa": desp_val,
+                                "receita": rec_val,
+                                "ps": round(ps, 4),
+                                "rebaixar_faixa": not atingiu
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S1",
+                                valor=dados_finais,
+                                pontos=0.0,
+                                link=state_s1["link"],
+                                comentarios=ds1.get("comentarios", []),
+                                status=ds1.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S1", on_click=salvar_s1).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S1", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S2 (Consultas Médicas por Habitante - SIA/SUS e IBGE)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S2 • Evolução das Consultas Médicas per Capita (SIA/SUS e IBGE)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o total de consultas médicas e a população estimada dos exercícios de 2023, 2024 e 2025 "
+                            "para comparar o indicador do ano atual (PAA) com a média do biênio anterior (MAA):"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds2 = res_data.get("S2") or {}
+                        val_s2 = ds2.get("valor") if isinstance(ds2.get("valor"), dict) else {}
+
+                        state_s2 = {
+                            "cmaa_2": float(val_s2.get("cmaa_2", 0.0)),
+                            "cmaa_1": float(val_s2.get("cmaa_1", 0.0)),
+                            "cmaa": float(val_s2.get("cmaa", 0.0)),
+                            "pop_2": float(val_s2.get("pop_2", 0.0)),
+                            "pop_1": float(val_s2.get("pop_1", 0.0)),
+                            "pop": float(val_s2.get("pop", 0.0)),
+                            "link": str(ds2.get("link") or "")
+                        }
+
+                        lbl_paa_maa = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s2 = ui.label("").classes("text-base font-bold text-green-600 mb-4")
+
+                        def calc_s2(c2, c1, c, p2, p1, p):
+                            paa = (c / p) if p > 0 else 0.0
+                            soma_c_ant = c2 + c1
+                            soma_p_ant = p2 + p1
+                            maa = (soma_c_ant / soma_p_ant) if soma_p_ant > 0 else 0.0
+
+                            # Se o valor per capita atual for igual ou maior que a média histórica
+                            pts = 20.0 if (p > 0 and soma_p_ant > 0 and paa >= maa) else 0.0
+                            return paa, maa, pts
+
+                        def atualizar_calculo_s2():
+                            c2 = float(inp_cmaa_2.value or 0)
+                            c1 = float(inp_cmaa_1.value or 0)
+                            c = float(inp_cmaa.value or 0)
+                            p2 = float(inp_pop_2.value or 0)
+                            p1 = float(inp_pop_1.value or 0)
+                            p = float(inp_pop.value or 0)
+
+                            paa, maa, pts = calc_s2(c2, c1, c, p2, p1, p)
+
+                            if p > 0 and (p2 + p1) > 0:
+                                lbl_paa_maa.set_text(f"PAA (2025): {paa:.4f} consultas/hab | MAA (Média 23-24): {maa:.4f} consultas/hab")
+                            else:
+                                lbl_paa_maa.set_text("Preencha as populações e consultas para calcular PAA e MAA")
+
+                            lbl_pontos_s2.set_text(f"Pontuação Calculada: {pts:.1f} / 20.0 pontos")
+
+                        ui.label("Consultas Médicas (SIA/SUS):").classes("font-semibold text-gray-800 mt-2")
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_cmaa_2 = ui.number(
+                                label="Consultas em 2023 (CMAA-2):",
+                                value=state_s2["cmaa_2"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_cmaa_1 = ui.number(
+                                label="Consultas em 2024 (CMAA-1):",
+                                value=state_s2["cmaa_1"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_cmaa = ui.number(
+                                label="Consultas em 2025 (CMAA):",
+                                value=state_s2["cmaa"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        ui.label("População Estimada (IBGE):").classes("font-semibold text-gray-800 mt-2")
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_pop_2 = ui.number(
+                                label="População 2023 (PopAA-2):",
+                                value=state_s2["pop_2"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_pop_1 = ui.number(
+                                label="População 2024 (PopAA-1):",
+                                value=state_s2["pop_1"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_pop = ui.number(
+                                label="População 2025 (PopAA):",
+                                value=state_s2["pop"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_cmaa_2.on("update:model-value", lambda: atualizar_calculo_s2())
+                        inp_cmaa_1.on("update:model-value", lambda: atualizar_calculo_s2())
+                        inp_cmaa.on("update:model-value", lambda: atualizar_calculo_s2())
+                        inp_pop_2.on("update:model-value", lambda: atualizar_calculo_s2())
+                        inp_pop_1.on("update:model-value", lambda: atualizar_calculo_s2())
+                        inp_pop.on("update:model-value", lambda: atualizar_calculo_s2())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SIA/SUS e IBGE:",
+                            value=state_s2["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s2, "link")
+
+                        atualizar_calculo_s2()
+
+                        def salvar_s2():
+                            c2 = float(inp_cmaa_2.value or 0)
+                            c1 = float(inp_cmaa_1.value or 0)
+                            c = float(inp_cmaa.value or 0)
+                            p2 = float(inp_pop_2.value or 0)
+                            p1 = float(inp_pop_1.value or 0)
+                            p = float(inp_pop.value or 0)
+
+                            paa, maa, pts = calc_s2(c2, c1, c, p2, p1, p)
+
+                            dados_finais = {
+                                "cmaa_2": c2,
+                                "cmaa_1": c1,
+                                "cmaa": c,
+                                "pop_2": p2,
+                                "pop_1": p1,
+                                "pop": p,
+                                "paa": round(paa, 6),
+                                "maa": round(maa, 6)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S2",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s2["link"],
+                                comentarios=ds2.get("comentarios", []),
+                                status=ds2.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S2", on_click=salvar_s2).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S2", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
