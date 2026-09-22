@@ -11433,6 +11433,134 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S3", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S4 (TABWIN - EXAMES PRÉ-NATAL)
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S4 (Exames de Sífilis e HIV no Pré-Natal - Dados TABWIN)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S4 • Exames de Pré-Natal Realizados (TABWIN)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o número de exames (teste não treponêmico para sífilis e teste rápido para HIV) "
+                            "e a quantidade de gestantes com o primeiro atendimento de pré-natal (TG):"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds4 = res_data.get("S4") or {}
+                        val_s4 = ds4.get("valor") if isinstance(ds4.get("valor"), dict) else {}
+
+                        state_s4 = {
+                            "ts": float(val_s4.get("ts", 0.0)),
+                            "tr": float(val_s4.get("tr", 0.0)),
+                            "tg": float(val_s4.get("tg", 0.0)),
+                            "link": str(ds4.get("link") or "")
+                        }
+
+                        lbl_razao_ts = ui.label("").classes("text-sm font-semibold text-gray-800 mb-1")
+                        lbl_razao_tr = ui.label("").classes("text-sm font-semibold text-gray-800 mb-1")
+                        lbl_pontos_s4 = ui.label("").classes("text-base font-bold text-green-600 mb-4")
+
+                        def calc_s4(ts, tr, tg):
+                            if tg <= 0:
+                                return 0.0, 0.0, 0.0
+
+                            razao_ts = ts / tg
+                            razao_tr = tr / tg
+
+                            pts_ts = 10.0 if razao_ts >= 2.0 else 0.0
+                            pts_tr = 10.0 if razao_tr >= 2.0 else 0.0
+
+                            pts_total = pts_ts + pts_tr
+                            return razao_ts, razao_tr, pts_total
+
+                        def atualizar_calculo_s4():
+                            ts_val = float(inp_ts.value or 0)
+                            tr_val = float(inp_tr.value or 0)
+                            tg_val = float(inp_tg.value or 0)
+
+                            r_ts, r_tr, pts = calc_s4(ts_val, tr_val, tg_val)
+
+                            if tg_val > 0:
+                                lbl_razao_ts.set_text(
+                                    f"• Razão Sífilis (TS / TG): {r_ts:.2f} "
+                                    f"({'≥ 2.0 ➔ +10,0 pts' if r_ts >= 2.0 else '< 2.0 ➔ 0,0 pt'})"
+                                )
+                                lbl_razao_tr.set_text(
+                                    f"• Razão HIV (TR / TG): {r_tr:.2f} "
+                                    f"({'≥ 2.0 ➔ +10,0 pts' if r_tr >= 2.0 else '< 2.0 ➔ 0,0 pt'})"
+                                )
+                            else:
+                                lbl_razao_ts.set_text("• Razão Sífilis (TS / TG): Informe o total de gestantes (TG)")
+                                lbl_razao_tr.set_text("• Razão HIV (TR / TG): Informe o total de gestantes (TG)")
+
+                            lbl_pontos_s4.set_text(f"Pontuação Calculada: {pts:.1f} / 20.0 pontos")
+
+                        with ui.grid(columns=1).classes("w-full gap-4 mb-4"):
+                            inp_ts = ui.number(
+                                label="Nº de exames realizados - Teste não treponêmico p/ detecção de sífilis em gestantes (TS):",
+                                value=state_s4["ts"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_tr = ui.number(
+                                label="Nº de exames realizados - Teste rápido para detecção de HIV na gestante (TR):",
+                                value=state_s4["tr"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_tg = ui.number(
+                                label="Nº de Gestantes com o primeiro atendimento de pré-natal (TG):",
+                                value=state_s4["tg"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_ts.on("update:model-value", lambda: atualizar_calculo_s4())
+                        inp_tr.on("update:model-value", lambda: atualizar_calculo_s4())
+                        inp_tg.on("update:model-value", lambda: atualizar_calculo_s4())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados extraídos do TABWIN:",
+                            value=state_s4["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s4, "link")
+
+                        atualizar_calculo_s4()
+
+                        def salvar_s4():
+                            ts_val = float(inp_ts.value or 0)
+                            tr_val = float(inp_tr.value or 0)
+                            tg_val = float(inp_tg.value or 0)
+
+                            r_ts, r_tr, pts = calc_s4(ts_val, tr_val, tg_val)
+
+                            dados_finais = {
+                                "ts": ts_val,
+                                "tr": tr_val,
+                                "tg": tg_val,
+                                "razao_ts": round(r_ts, 4),
+                                "razao_tr": round(r_tr, 4)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S4",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s4["link"],
+                                comentarios=ds4.get("comentarios", []),
+                                status=ds4.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S4 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S4", on_click=salvar_s4).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S4", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
