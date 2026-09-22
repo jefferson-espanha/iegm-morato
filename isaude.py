@@ -6857,6 +6857,262 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("18.5.1", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 18.5.2 (Quantidade de Estabelecimentos da RAPS)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.5.2 • Quantidade de Estabelecimentos da Rede").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de estabelecimentos do município por modalidade:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d1852 = res_data.get("18.5.2") or {}
+                        raw_val_1852 = d1852.get("valor") or {}
+                        if not isinstance(raw_val_1852, dict):
+                            raw_val_1852 = {}
+
+                        raw_link_1852 = str(d1852.get("link") or "")
+
+                        tipos_estab_1852 = [
+                            ("caps_i", "I - CAPS I"),
+                            ("caps_ii", "II - CAPS II"),
+                            ("caps_iii", "III - CAPS III"),
+                            ("caps_ad", "IV - CAPS AD"),
+                            ("caps_ad_ii", "V - CAPS AD II"),
+                            ("caps_ad_iii", "VI - CAPS AD III"),
+                            ("caps_ij", "VII - CAPS i"),
+                            ("caps_ij_ii", "VIII - CAPS i II"),
+                            ("caps_ad_iv", "IX - CAPS AD IV"),
+                            ("uaa", "X - Unidade de Acolhimento Adulto"),
+                            ("uai", "XI - Unidade de Acolhimento Infantil"),
+                        ]
+
+                        state_1852 = {
+                            "qtdes": {
+                                k: int(raw_val_1852.get(k, 0)) for k, _ in tipos_estab_1852
+                            },
+                            "link": raw_link_1852,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            for key, label_text in tipos_estab_1852:
+                                num_input = ui.number(
+                                    label=label_text,
+                                    value=state_1852["qtdes"][key],
+                                    min=0,
+                                    precision=0,
+                                ).classes("w-full").props("outlined dense")
+                                num_input.bind_value(state_1852["qtdes"], key)
+
+                        ui.label("Nota 18.5.2: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 my-4"
+                        )
+
+                        ui.textarea(
+                            label="Link de Evidência / Consulta CNES ou Cadastro Oficial:",
+                            value=raw_link_1852,
+                            placeholder="Link das fichas CNES dos estabelecimentos de saúde mental...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1852, "link"
+                        )
+
+                        def salvar_1852():
+                            pts = 0.0
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.5.2",
+                                valor=state_1852["qtdes"],
+                                pontos=pts,
+                                link=state_1852["link"],
+                                comentarios=d1852.get("comentarios", []),
+                                status=d1852.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.5.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.5.2", on_click=salvar_1852).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.5.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 18.5.3 (Integração dos Serviços com Sistema de Regulação)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.5.3 • Regulação dos Serviços e Vagas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Todos os serviços assistenciais ofertados pelo CAPS e Unidades de Acolhimento (vagas) estão disponibilizados no sistema de regulação?"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "*(Pode estar cadastrado no sistema de regulação municipal e/ou estadual)*"
+                        ).classes("text-sm italic text-gray-600 mb-6")
+
+                        d1853 = res_data.get("18.5.3") or {}
+                        raw_val_1853 = str(d1853.get("valor", "none"))
+                        raw_link_1853 = str(d1853.get("link") or "")
+
+                        state_1853 = {
+                            "opcao": raw_val_1853 if raw_val_1853 in ["sim", "nao"] else "none",
+                            "link": raw_link_1853,
+                        }
+
+                        opts_1853 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim (0,0 ponto)",
+                            "nao": "Não (-10,0 pontos)",
+                        }
+
+                        rad_1853 = ui.radio(
+                            options=opts_1853,
+                            value=state_1853["opcao"]
+                        ).classes("mb-4")
+                        rad_1853.bind_value(state_1853, "opcao")
+
+                        lbl_pts_1853 = ui.label("Nota 18.5.3: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1853():
+                            val = state_1853["opcao"]
+                            if val == "sim":
+                                pts = 0.0
+                                lbl_pts_1853.classes(replace="text-sm font-bold text-green-600 mb-4")
+                            elif val == "nao":
+                                pts = -10.0
+                                lbl_pts_1853.classes(replace="text-sm font-bold text-red-600 mb-4")
+                            else:
+                                pts = 0.0
+                                lbl_pts_1853.classes(replace="text-sm font-bold text-gray-600 mb-4")
+
+                            lbl_pts_1853.set_text(f"📊 Nota 18.5.3: {pts:.1f} pontos")
+                            return pts
+
+                        rad_1853.on("update:model-value", recalc_1853)
+                        recalc_1853()
+
+                        ui.textarea(
+                            label="Link de Evidência / Extrato do Sistema de Regulação (SISREG/CROSS):",
+                            value=raw_link_1853,
+                            placeholder="Link do relatório do sistema de regulação onde os serviços e vagas estão ofertados...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1853, "link"
+                        )
+
+                        def salvar_1853():
+                            pts = recalc_1853()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.5.3",
+                                valor=state_1853["opcao"],
+                                pontos=pts,
+                                link=state_1853["link"],
+                                comentarios=d1853.get("comentarios", []),
+                                status=d1853.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 18.5.3 salvo com sucesso! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.5.3", on_click=salvar_1853).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.5.3", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 18.5.3.1 (Quantidade de Vagas Cadastradas no Sistema de Regulação)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.5.3.1 • Quantidade de Vagas Reguladas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de vagas cadastradas no sistema de regulação (municipal e/ou estadual):"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d18531 = res_data.get("18.5.3.1") or {}
+                        raw_val_18531 = d18531.get("valor") or {}
+                        if not isinstance(raw_val_18531, dict):
+                            raw_val_18531 = {}
+
+                        raw_link_18531 = str(d18531.get("link") or "")
+
+                        tipos_vagas_18531 = [
+                            ("caps_i", "I - CAPS I"),
+                            ("caps_ii", "II - CAPS II"),
+                            ("caps_iii", "III - CAPS III"),
+                            ("caps_ad", "IV - CAPS AD"),
+                            ("caps_ad_ii", "V - CAPS AD II"),
+                            ("caps_ad_iii", "VI - CAPS AD III"),
+                            ("caps_ij", "VII - CAPS i"),
+                            ("caps_ij_ii", "VIII - CAPS i II"),
+                            ("caps_ad_iv", "IX - CAPS AD IV"),
+                            ("uaa", "X - Unidade de Acolhimento Adulto"),
+                            ("uai", "XI - Unidade de Acolhimento Infantil"),
+                        ]
+
+                        state_18531 = {
+                            "vagas": {
+                                k: int(raw_val_18531.get(k, 0)) for k, _ in tipos_vagas_18531
+                            },
+                            "link": raw_link_18531,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            for key, label_text in tipos_vagas_18531:
+                                num_input = ui.number(
+                                    label=label_text,
+                                    value=state_18531["vagas"][key],
+                                    min=0,
+                                    precision=0,
+                                ).classes("w-full").props("outlined dense")
+                                num_input.bind_value(state_18531["vagas"], key)
+
+                        ui.label("Nota 18.5.3.1: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 my-4"
+                        )
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório da Grade de Vagas no Sistema de Regulação:",
+                            value=raw_link_18531,
+                            placeholder="Link da tela ou relatório do sistema de regulação demonstrando a oferta de vagas...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_18531, "link"
+                        )
+
+                        def salvar_18531():
+                            pts = 0.0
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.5.3.1",
+                                valor=state_18531["vagas"],
+                                pontos=pts,
+                                link=state_18531["link"],
+                                comentarios=d18531.get("comentarios", []),
+                                status=d18531.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.5.3.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.5.3.1", on_click=salvar_18531).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.5.3.1", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
