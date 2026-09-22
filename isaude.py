@@ -2857,6 +2857,244 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("16.1", res_data, render_conteudo.refresh)
 
+                    # =============================================================================
+                    # QUESITO 17.0 (Atendimento de Atenção Especializada)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.0 • Atendimento de Atenção Especializada").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município possui atendimento de Atenção Especializada (média e/ou alta complexidade)?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d170 = res_data.get("17.0") or res_data.get("17") or {}
+                        raw_val_170 = str(d170.get("valor", "none"))
+                        raw_link_170 = str(d170.get("link") or "")
+
+                        state_170 = {
+                            "opcao": raw_val_170 if raw_val_170 in ["mun", "est", "mun_est", "enc"] else "none",
+                            "link": raw_link_170,
+                        }
+
+                        opts_170 = {
+                            "none": "Selecione uma opção...",
+                            "mun": "Sim, sob gestão municipal",
+                            "est": "Sim, sob gestão estadual",
+                            "mun_est": "Sim, sob gestão municipal e sob gestão estadual",
+                            "enc": "Não, somente encaminhamento para outro município",
+                        }
+
+                        rad_170 = ui.radio(
+                            options=opts_170,
+                            value=state_170["opcao"]
+                        ).classes("mb-4")
+                        rad_170.bind_value(state_170, "opcao")
+
+                        lbl_pts_170 = ui.label("Nota 17.0: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_170():
+                            # Quesito declaratório / informativo (sem pontuação atribuída no formulário)
+                            pts = 0.0
+                            lbl_pts_170.set_text("📊 Nota 17.0: Informativo (0.0 pontos)")
+                            return pts
+
+                        rad_170.on("update:model-value", recalc_170)
+                        recalc_170()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório da Rede de Atenção Especializada:",
+                            value=raw_link_170,
+                            placeholder="Link de documentos ou relatórios CNES da rede especializada...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_170, "link"
+                        )
+
+                        def salvar_170():
+                            pts = recalc_170()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.0",
+                                valor=state_170["opcao"],
+                                pontos=pts,
+                                link=state_170["link"],
+                                comentarios=d170.get("comentarios", []),
+                                status=d170.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.0", on_click=salvar_170).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.0", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.1 (Registro Eletrônico de Frequência na Atenção Especializada)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.1 • Registro Eletrônico de Frequência do Pessoal da Atenção Especializada").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Os profissionais de saúde da Atenção Especializada sob gestão municipal registram sua frequência de forma eletrônica?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "Obs.: O encaminhamento de planilhas de ponto NÃO será considerado como modalidade de registro eletrônico."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d171 = res_data.get("17.1") or {}
+                        raw_val_171 = str(d171.get("valor", "none"))
+                        raw_link_171 = str(d171.get("link") or "")
+
+                        state_171 = {
+                            "opcao": raw_val_171 if raw_val_171 in ["00", "-01", "-02", "-03"] else "none",
+                            "link": raw_link_171,
+                        }
+
+                        opts_171 = {
+                            "none": "Selecione uma opção...",
+                            "00": "Sim, para todos os profissionais da saúde – 00 pt (não perde pontos)",
+                            "-01": "Sim, para a maior parte dos profissionais da saúde – -01 pt (perde 01 ponto)",
+                            "-02": "Sim, para a menor parte dos profissionais da saúde – -02 pts (perde 02 pontos)",
+                            "-03": "Não houve registro eletrônico de nenhum profissional de saúde – -03 pts (perde 03 pontos)",
+                        }
+
+                        rad_171 = ui.radio(
+                            options=opts_171,
+                            value=state_171["opcao"]
+                        ).classes("mb-4")
+                        rad_171.bind_value(state_171, "opcao")
+
+                        lbl_pts_171 = ui.label("Nota 17.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_171():
+                            val = state_171["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_171.set_text(f"📊 Nota 17.1: {pts:.1f} pontos")
+                            return pts
+
+                        rad_171.on("update:model-value", recalc_171)
+                        recalc_171()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatórios do Ponto Eletrônico:",
+                            value=raw_link_171,
+                            placeholder="Link do sistema de ponto eletrônico ou relatórios biométricos...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_171, "link"
+                        )
+
+                        def salvar_171():
+                            pts = recalc_171()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.1",
+                                valor=state_171["opcao"],
+                                pontos=pts,
+                                link=state_171["link"],
+                                comentarios=d171.get("comentarios", []),
+                                status=d171.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.1", on_click=salvar_171).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.1.1 (Cumprirem Jornada Médicos Ambulatoriais da Atenção Especializada)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.1.1 • Cumprirem Jornada Médicos Ambulatoriais da Atenção Especializada").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Os médicos ambulatoriais da Atenção Especializada sob gestão municipal cumprem integralmente sua jornada de trabalho?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d1711 = res_data.get("17.1.1") or {}
+                        raw_val_1711 = str(d1711.get("valor", "none"))
+                        raw_link_1711 = str(d1711.get("link") or "")
+
+                        state_1711 = {
+                            "opcao": raw_val_1711 if raw_val_1711 in ["00", "-01", "-04", "-03", "-05"] else "none",
+                            "link": raw_link_1711,
+                        }
+
+                        opts_1711 = {
+                            "none": "Selecione uma opção...",
+                            "00": "Sim, todos cumprem integralmente a jornada de trabalho – 00 pt (não perde pontos)",
+                            "-01": "Sim, a maior parte cumpre integralmente a jornada de trabalho – -01 pt (perde 01 ponto)",
+                            "-04": "Sim, todos permanecem apenas nas consultas agendadas – -04 pts (perde 04 pontos)",
+                            "-03": "Sim, a maior parte permanece apenas nas consultas agendadas – -03 pts (perde 03 pontos)",
+                            "-05": "Não – -05 pts (perde 05 pontos)",
+                        }
+
+                        rad_1711 = ui.radio(
+                            options=opts_1711,
+                            value=state_1711["opcao"]
+                        ).classes("mb-4")
+                        rad_1711.bind_value(state_1711, "opcao")
+
+                        lbl_pts_1711 = ui.label("Nota 17.1.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1711():
+                            val = state_1711["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_1711.set_text(f"📊 Nota 17.1.1: {pts:.1f} pontos")
+                            return pts
+
+                        rad_1711.on("update:model-value", recalc_1711)
+                        recalc_1711()
+
+                        ui.textarea(
+                            label="Link de Evidência / Escala Médica e Folhas/Registros de Ponto:",
+                            value=raw_link_1711,
+                            placeholder="Link das folhas de ponto, relatórios de produtividade ou auditoria...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1711, "link"
+                        )
+
+                        def salvar_1711():
+                            pts = recalc_1711()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.1.1",
+                                valor=state_1711["opcao"],
+                                pontos=pts,
+                                link=state_1711["link"],
+                                comentarios=d1711.get("comentarios", []),
+                                status=d1711.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.1.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.1.1", on_click=salvar_1711).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.1.1", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
