@@ -9665,6 +9665,302 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("31.0", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE SAMU, COMPOSIÇÃO DE EQUIPES E ESTOQUE DE INSUMOS - QUESITOS 31.1 A 32.0
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 31.1 (Tempo de Resposta em Minutos dos Atendimentos do SAMU)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("31.1 • Tempo de Resposta dos Atendimentos do SAMU (ou equivalente)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Informe os tempos de resposta (em minutos) para os anos de 2023, 2024 e 2025:").classes("text-sm text-gray-700 mb-4")
+
+                        d311 = res_data.get("31.1") or {}
+                        raw_val_311 = d311.get("valor") or {}
+                        if not isinstance(raw_val_311, dict):
+                            raw_val_311 = {}
+
+                        state_311 = {
+                            # Tempos Médios Principais
+                            "tmr_2023": parse_num(raw_val_311.get("tmr_2023")),
+                            "tmr_2024": parse_num(raw_val_311.get("tmr_2024")),
+                            "tmr_2025": parse_num(raw_val_311.get("tmr_2025")),
+                            # Detalhamento Mín/Med/Máx 2023
+                            "min_2023": parse_num(raw_val_311.get("min_2023")),
+                            "med_2023": parse_num(raw_val_311.get("med_2023")),
+                            "max_2023": parse_num(raw_val_311.get("max_2023")),
+                            # Detalhamento Mín/Med/Máx 2024
+                            "min_2024": parse_num(raw_val_311.get("min_2024")),
+                            "med_2024": parse_num(raw_val_311.get("med_2024")),
+                            "max_2024": parse_num(raw_val_311.get("max_2024")),
+                            # Detalhamento Mín/Med/Máx 2025
+                            "min_2025": parse_num(raw_val_311.get("min_2025")),
+                            "med_2025": parse_num(raw_val_311.get("med_2025")),
+                            "max_2025": parse_num(raw_val_311.get("max_2025")),
+                            "link": str(d311.get("link") or ""),
+                        }
+
+                        lbl_pontos_311 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                        def calc_pontos_311():
+                            t23 = parse_num(state_311["tmr_2023"])
+                            t24 = parse_num(state_311["tmr_2024"])
+                            t25 = parse_num(state_311["tmr_2025"])
+
+                            # Se os três anos estiverem preenchidos com valores válidos (>0)
+                            if t23 > 0 and t24 > 0 and t25 > 0:
+                                media_historica = (t23 + t24) / 2.0
+                                if t25 > media_historica:
+                                    return -5.0  # Perde 5 pontos se o tempo aumentou
+                            return 0.0
+
+                        def atualizar_pontos_311():
+                            pts = calc_pontos_311()
+                            if pts < 0:
+                                lbl_pontos_311.set_text(f"Pontuação Calculada: {pts:.1f} pontos (Penalidade por aumento no tempo de resposta)")
+                                lbl_pontos_311.classes(remove="text-green-600", add="text-red-600")
+                            else:
+                                lbl_pontos_311.set_text("Pontuação Calculada: 0.0 pontos (Sem penalidade)")
+                                lbl_pontos_311.classes(remove="text-red-600", add="text-green-600")
+
+                        ui.label("Tempos Médios de Resposta (Gerais):").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            inp_t23 = ui.number("2023 - Tempo Médio (min)", value=state_311["tmr_2023"]).classes("w-1/3").bind_value(state_311, "tmr_2023")
+                            inp_t24 = ui.number("2024 - Tempo Médio (min)", value=state_311["tmr_2024"]).classes("w-1/3").bind_value(state_311, "tmr_2024")
+                            inp_t25 = ui.number("2025 - Tempo Médio (min)", value=state_311["tmr_2025"]).classes("w-1/3").bind_value(state_311, "tmr_2025")
+
+                        inp_t23.on("update:model-value", lambda: atualizar_pontos_311())
+                        inp_t24.on("update:model-value", lambda: atualizar_pontos_311())
+                        inp_t25.on("update:model-value", lambda: atualizar_pontos_311())
+
+                        ui.separator().classes("my-3")
+                        ui.label("Detalhamento de Tempos por Ano (Mínimo, Médio e Máximo em Minutos):").classes("text-sm font-bold text-gray-800")
+
+                        ui.label("Ano 2023:").classes("text-xs font-semibold text-gray-600 mt-1")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.number("2023 - Mínimo", value=state_311["min_2023"]).classes("w-1/3").bind_value(state_311, "min_2023")
+                            ui.number("2023 - Médio", value=state_311["med_2023"]).classes("w-1/3").bind_value(state_311, "med_2023")
+                            ui.number("2023 - Máximo", value=state_311["max_2023"]).classes("w-1/3").bind_value(state_311, "max_2023")
+
+                        ui.label("Ano 2024:").classes("text-xs font-semibold text-gray-600 mt-1")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.number("2024 - Mínimo", value=state_311["min_2024"]).classes("w-1/3").bind_value(state_311, "min_2024")
+                            ui.number("2024 - Médio", value=state_311["med_2024"]).classes("w-1/3").bind_value(state_311, "med_2024")
+                            ui.number("2024 - Máximo", value=state_311["max_2024"]).classes("w-1/3").bind_value(state_311, "max_2024")
+
+                        ui.label("Ano 2025:").classes("text-xs font-semibold text-gray-600 mt-1")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.number("2025 - Mínimo", value=state_311["min_2025"]).classes("w-1/3").bind_value(state_311, "min_2025")
+                            ui.number("2025 - Médio", value=state_311["med_2025"]).classes("w-1/3").bind_value(state_311, "med_2025")
+                            ui.number("2025 - Máximo", value=state_311["max_2025"]).classes("w-1/3").bind_value(state_311, "max_2025")
+
+                        atualizar_pontos_311()
+
+                        ui.textarea(label="Link / Relatório do Sistema de Gestão de Urgências:", value=state_311["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_311, "link")
+
+                        def salvar_311():
+                            payload_311 = {
+                                "tmr_2023": parse_num(state_311["tmr_2023"]),
+                                "tmr_2024": parse_num(state_311["tmr_2024"]),
+                                "tmr_2025": parse_num(state_311["tmr_2025"]),
+                                "min_2023": parse_num(state_311["min_2023"]),
+                                "med_2023": parse_num(state_311["med_2023"]),
+                                "max_2023": parse_num(state_311["max_2023"]),
+                                "min_2024": parse_num(state_311["min_2024"]),
+                                "med_2024": parse_num(state_311["med_2024"]),
+                                "max_2024": parse_num(state_311["max_2024"]),
+                                "min_2025": parse_num(state_311["min_2025"]),
+                                "med_2025": parse_num(state_311["med_2025"]),
+                                "max_2025": parse_num(state_311["max_2025"]),
+                            }
+                            pts = calc_pontos_311()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="31.1",
+                                valor=payload_311,
+                                pontos=pts,
+                                link=state_311["link"],
+                                comentarios=d311.get("comentarios", []),
+                                status=d311.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 31.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 31.1", on_click=salvar_311).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("31.1", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 31.2 (Composição Mínima das Equipes da Central de Regulação)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("31.2 • Composição das Equipes da Central de Regulação das Urgências").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("As equipes da Central de Regulação das Urgências tiveram ao menos a composição mínima estipulada na legislação no decorrer do exercício?").classes("text-sm text-gray-700 mb-4")
+
+                        d312 = res_data.get("31.2") or {}
+                        state_312 = {
+                            "opcao": d312.get("valor") if isinstance(d312.get("valor"), str) else "Todas as equipes tinham composição mínima",
+                            "link": str(d312.get("link") or "")
+                        }
+
+                        opts_312 = [
+                            "Todas as equipes tinham composição mínima",
+                            "A maior parte das equipes tinham composição mínima",
+                            "A menor parte das equipes tinham composição mínima",
+                            "Nenhuma equipe tinha composição mínima"
+                        ]
+
+                        lbl_pontos_312 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                        def calc_pontos_312(v):
+                            if v == "A maior parte das equipes tinham composição mínima":
+                                return -3.0
+                            elif v == "A menor parte das equipes tinham composição mínima":
+                                return -7.0
+                            elif v == "Nenhuma equipe tinha composição mínima":
+                                return -10.0
+                            return 0.0
+
+                        def atualizar_pontos_312():
+                            pts = calc_pontos_312(state_312["opcao"])
+                            if pts < 0:
+                                lbl_pontos_312.set_text(f"Pontuação Calculada: {pts:.1f} pontos (Penalidade aplicável)")
+                                lbl_pontos_312.classes(remove="text-green-600", add="text-red-600")
+                            else:
+                                lbl_pontos_312.set_text("Pontuação Calculada: 0.0 pontos")
+                                lbl_pontos_312.classes(remove="text-red-600", add="text-green-600")
+
+                        radio_312 = ui.radio(opts_312, value=state_312["opcao"]).classes("mb-3").bind_value(state_312, "opcao")
+                        radio_312.on("update:model-value", lambda: atualizar_pontos_312())
+
+                        ui.textarea(label="Link / Relatório de Escala de Plantão (Central de Regulação):", value=state_312["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_312, "link")
+
+                        atualizar_pontos_312()
+
+                        def salvar_312():
+                            pts = calc_pontos_312(state_312["opcao"])
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="31.2",
+                                valor=state_312["opcao"],
+                                pontos=pts,
+                                link=state_312["link"],
+                                comentarios=d312.get("comentarios", []),
+                                status=d312.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 31.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 31.2", on_click=salvar_312).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("31.2", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 31.3 (Composição Mínima das Equipes das Unidades Móveis)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("31.3 • Composição das Equipes das Unidades Móveis (Ambulâncias/USA/USB)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("As equipes das Unidades Móveis tiveram ao menos a composição mínima estipulada na legislação no decorrer do exercício?").classes("text-sm text-gray-700 mb-4")
+
+                        d313 = res_data.get("31.3") or {}
+                        state_313 = {
+                            "opcao": d313.get("valor") if isinstance(d313.get("valor"), str) else "Todas as equipes tinham composição mínima",
+                            "link": str(d313.get("link") or "")
+                        }
+
+                        opts_313 = [
+                            "Todas as equipes tinham composição mínima",
+                            "A maior parte das equipes tinham composição mínima",
+                            "A menor parte das equipes tinham composição mínima",
+                            "Nenhuma equipe tinha composição mínima"
+                        ]
+
+                        lbl_pontos_313 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                        def calc_pontos_313(v):
+                            if v == "A maior parte das equipes tinham composição mínima":
+                                return -10.0
+                            elif v == "A menor parte das equipes tinham composição mínima":
+                                return -15.0
+                            elif v == "Nenhuma equipe tinha composição mínima":
+                                return -20.0
+                            return 0.0
+
+                        def atualizar_pontos_313():
+                            pts = calc_pontos_313(state_313["opcao"])
+                            if pts < 0:
+                                lbl_pontos_313.set_text(f"Pontuação Calculada: {pts:.1f} pontos (Penalidade aplicável)")
+                                lbl_pontos_313.classes(remove="text-green-600", add="text-red-600")
+                            else:
+                                lbl_pontos_313.set_text("Pontuação Calculada: 0.0 pontos")
+                                lbl_pontos_313.classes(remove="text-red-600", add="text-green-600")
+
+                        radio_313 = ui.radio(opts_313, value=state_313["opcao"]).classes("mb-3").bind_value(state_313, "opcao")
+                        radio_313.on("update:model-value", lambda: atualizar_pontos_313())
+
+                        ui.textarea(label="Link / Relatório de Escala de Plantão (Unidades Móveis):", value=state_313["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_313, "link")
+
+                        atualizar_pontos_313()
+
+                        def salvar_313():
+                            pts = calc_pontos_313(state_313["opcao"])
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="31.3",
+                                valor=state_313["opcao"],
+                                pontos=pts,
+                                link=state_313["link"],
+                                comentarios=d313.get("comentarios", []),
+                                status=d313.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 31.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 31.3", on_click=salvar_313).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("31.3", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 32.0 (Sistema Informatizado para Estoque de Materiais e Insumos Médicos)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("32.0 • Sistema Informatizado de Gerenciamento de Estoque de Insumos").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município utiliza sistema informatizado para gerenciar o estoque de materiais e insumos médicos?").classes("text-sm text-gray-700 mb-4")
+
+                        d320 = res_data.get("32.0") or {}
+                        state_320 = {
+                            "opcao": d320.get("valor") if isinstance(d320.get("valor"), str) else "Não",
+                            "link": str(d320.get("link") or "")
+                        }
+
+                        ui.label("Nota 32.0: Informativo (0.0 pontos)").classes("text-sm font-bold text-gray-600 my-2")
+
+                        radio_320 = ui.radio(["Sim", "Não"], value=state_320["opcao"]).classes("mb-3").bind_value(state_320, "opcao")
+
+                        ui.textarea(label="Link / Comprovação do Sistema de Insumos Médicos:", value=state_320["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_320, "link")
+
+                        def salvar_320():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="32.0",
+                                valor=state_320["opcao"],
+                                pontos=0.0,
+                                link=state_320["link"],
+                                comentarios=d320.get("comentarios", []),
+                                status=d320.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 32.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 32.0", on_click=salvar_320).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("32.0", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
