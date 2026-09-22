@@ -11560,6 +11560,120 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S4", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S5 (SIA/SUS - INSPEÇÕES SANITÁRIAS)
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S5 (Inspeções Sanitárias - Vigilância Sanitária no SIA/SUS)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S5 • Número de Inspeções Sanitárias (SIA/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o número de inspeções sanitárias realizadas em 2023, 2024 e 2025. "
+                            "O indicador avalia o desempenho de 2025 em relação à média do biênio anterior:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds5 = res_data.get("S5") or {}
+                        val_s5 = ds5.get("valor") if isinstance(ds5.get("valor"), dict) else {}
+
+                        state_s5 = {
+                            "ni_2": float(val_s5.get("ni_2", 0.0)),
+                            "ni_1": float(val_s5.get("ni_1", 0.0)),
+                            "ni": float(val_s5.get("ni", 0.0)),
+                            "link": str(ds5.get("link") or "")
+                        }
+
+                        lbl_comparativo_s5 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s5 = ui.label("").classes("text-base font-bold text-green-600 mb-4")
+
+                        def calc_s5(ni2, ni1, ni):
+                            media_historica = (ni2 + ni1) / 2.0
+                            pts = 10.0 if ni >= media_historica else 0.0
+                            return media_historica, pts
+
+                        def atualizar_calculo_s5():
+                            ni2_val = float(inp_ni2.value or 0)
+                            ni1_val = float(inp_ni1.value or 0)
+                            ni_val = float(inp_ni.value or 0)
+
+                            mni, pts = calc_s5(ni2_val, ni1_val, ni_val)
+
+                            lbl_comparativo_s5.set_text(
+                                f"• Média Biênio 2023-2024: {mni:.1f} inspeções | Realizado em 2025: {ni_val:.0f} inspeções"
+                            )
+
+                            if ni_val >= mni:
+                                lbl_pontos_s5.classes(remove="text-red-600", add="text-green-600")
+                                lbl_pontos_s5.set_text(f"Pontuação Calculada: {pts:.1f} / 10.0 pontos (Meta atingida ou superada)")
+                            else:
+                                lbl_pontos_s5.classes(remove="text-green-600", add="text-red-600")
+                                lbl_pontos_s5.set_text(f"Pontuação Calculada: {pts:.1f} / 10.0 pontos (Abaixo da média dos anos anteriores)")
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_ni2 = ui.number(
+                                label="Nº Inspeções em 2023 (NI-2):",
+                                value=state_s5["ni_2"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_ni1 = ui.number(
+                                label="Nº Inspeções em 2024 (NI-1):",
+                                value=state_s5["ni_1"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_ni = ui.number(
+                                label="Nº Inspeções em 2025 (NI):",
+                                value=state_s5["ni"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_ni2.on("update:model-value", lambda: atualizar_calculo_s5())
+                        inp_ni1.on("update:model-value", lambda: atualizar_calculo_s5())
+                        inp_ni.on("update:model-value", lambda: atualizar_calculo_s5())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos relatórios do SIA/SUS:",
+                            value=state_s5["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s5, "link")
+
+                        atualizar_calculo_s5()
+
+                        def salvar_s5():
+                            ni2_val = float(inp_ni2.value or 0)
+                            ni1_val = float(inp_ni1.value or 0)
+                            ni_val = float(inp_ni.value or 0)
+
+                            mni, pts = calc_s5(ni2_val, ni1_val, ni_val)
+
+                            dados_finais = {
+                                "ni_2": ni2_val,
+                                "ni_1": ni1_val,
+                                "ni": ni_val,
+                                "media_historica": round(mni, 2)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S5",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s5["link"],
+                                comentarios=ds5.get("comentarios", []),
+                                status=ds5.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S5 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S5", on_click=salvar_s5).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S5", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
