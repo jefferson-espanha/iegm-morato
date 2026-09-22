@@ -9962,6 +9962,422 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("32.0", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INSUMOS, OUVIDORIA E AUDITORIA (SNA) - QUESITOS 32.1 A 35.2
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 32.1 (Funções do Sistema de Gestão de Estoque de Insumos)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("32.1 • Funções do Sistema de Gestão de Estoque").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Assinale as funções do sistema de gestão de estoque de materiais e insumos médicos:").classes("text-sm text-gray-700 mb-4")
+
+                        d321 = res_data.get("32.1") or {}
+                        raw_val_321 = d321.get("valor") or []
+                        if not isinstance(raw_val_321, list):
+                            raw_val_321 = []
+
+                        state_321 = {
+                            "posicao": "Fornece a posição de estoque, movimentação de entrada e saída, lote e validade" in raw_val_321,
+                            "compras": "Gerenciar o processo de compras dos insumos/materiais de saúde, desde o planejamento até a entrega e o recebimento da nota fiscal" in raw_val_321,
+                            "reposicao": "Gerenciar a reposição dos insumos/materiais de saúde por estabelecimento de saúde" in raw_val_321,
+                            "outros": "Outros" in raw_val_321,
+                            "link": str(d321.get("link") or "")
+                        }
+
+                        lbl_pontos_321 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                        def calc_pontos_321():
+                            p = 0.0
+                            if state_321["posicao"]:
+                                p += 15.0
+                            if state_321["compras"]:
+                                p += 15.0
+                            if state_321["reposicao"]:
+                                p += 15.0
+                            return p
+
+                        def atualizar_pontos_321():
+                            pts = calc_pontos_321()
+                            lbl_pontos_321.set_text(f"Pontuação Calculada: {pts:.1f} / 45.0 pontos")
+
+                        cb_pos = ui.checkbox("Fornece a posição de estoque, movimentação de entrada e saída, lote e validade (15,0 pontos)", value=state_321["posicao"]).bind_value(state_321, "posicao")
+                        cb_com = ui.checkbox("Gerenciar o processo de compras dos insumos/materiais de saúde, desde o planejamento até a entrega e nota fiscal (15,0 pontos)", value=state_321["compras"]).bind_value(state_321, "compras")
+                        cb_rep = ui.checkbox("Gerenciar a reposição dos insumos/materiais de saúde por estabelecimento de saúde (15,0 pontos)", value=state_321["reposicao"]).bind_value(state_321, "reposicao")
+                        cb_out = ui.checkbox("Outros (0,0 ponto)", value=state_321["outros"]).bind_value(state_321, "outros")
+
+                        cb_pos.on("change", lambda: atualizar_pontos_321())
+                        cb_com.on("change", lambda: atualizar_pontos_321())
+                        cb_rep.on("change", lambda: atualizar_pontos_321())
+                        cb_out.on("change", lambda: atualizar_pontos_321())
+
+                        ui.textarea(label="Link / Comprovação das Funcionalidades do Sistema:", value=state_321["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_321, "link")
+
+                        atualizar_pontos_321()
+
+                        def salvar_321():
+                            sel_list = []
+                            if state_321["posicao"]:
+                                sel_list.append("Fornece a posição de estoque, movimentação de entrada e saída, lote e validade")
+                            if state_321["compras"]:
+                                sel_list.append("Gerenciar o processo de compras dos insumos/materiais de saúde, desde o planejamento até a entrega e o recebimento da nota fiscal")
+                            if state_321["reposicao"]:
+                                sel_list.append("Gerenciar a reposição dos insumos/materiais de saúde por estabelecimento de saúde")
+                            if state_321["outros"]:
+                                sel_list.append("Outros")
+
+                            pts = calc_pontos_321()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="32.1",
+                                valor=sel_list,
+                                pontos=pts,
+                                link=state_321["link"],
+                                comentarios=d321.get("comentarios", []),
+                                status=d321.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 32.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 32.1", on_click=salvar_321).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("32.1", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 33.0 (Ouvidoria da Saúde Implantada)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("33.0 • Ouvidoria da Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município possui Ouvidoria da Saúde implantada?").classes("text-sm text-gray-700 mb-4")
+
+                        d330 = res_data.get("33.0") or {}
+                        state_330 = {
+                            "opcao": d330.get("valor") if isinstance(d330.get("valor"), str) else "Não",
+                            "link": str(d330.get("link") or "")
+                        }
+
+                        ui.label("Nota 33.0: Informativo (0.0 pontos)").classes("text-sm font-bold text-gray-600 my-2")
+
+                        radio_330 = ui.radio(["Sim", "Não"], value=state_330["opcao"]).classes("mb-3").bind_value(state_330, "opcao")
+
+                        ui.textarea(label="Link / Ato de Criação da Ouvidoria da Saúde:", value=state_330["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_330, "link")
+
+                        def salvar_330():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="33.0",
+                                valor=state_330["opcao"],
+                                pontos=0.0,
+                                link=state_330["link"],
+                                comentarios=d330.get("comentarios", []),
+                                status=d330.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 33.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 33.0", on_click=salvar_330).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("33.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 33.1 (Características da Ouvidoria) - Condicionado a 33.0 = Sim
+                    # -----------------------------------------------------------------------------
+                    if state_330["opcao"] == "Sim":
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
+                            ui.label("33.1 • Características da Ouvidoria da Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("Assinale as características da Ouvidoria da Saúde:").classes("text-sm text-gray-700 mb-4")
+
+                            d331 = res_data.get("33.1") or {}
+                            raw_val_331 = d331.get("valor") or []
+                            if not isinstance(raw_val_331, list):
+                                raw_val_331 = []
+
+                            state_331 = {
+                                "ato_formal": "Instituída por ato formal no organograma da secretaria de saúde ou equivalente" in raw_val_331,
+                                "estrutura_fisica": "Possui estrutura física" in raw_val_331,
+                                "equipe": "Possui equipe ou profissional designado" in raw_val_331,
+                                "outros": "Outros" in raw_val_331,
+                                "link": str(d331.get("link") or "")
+                            }
+
+                            lbl_pontos_331 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                            def calc_pontos_331():
+                                p = 0.0
+                                if state_331["ato_formal"]:
+                                    p += 3.0
+                                if state_331["estrutura_fisica"]:
+                                    p += 2.0
+                                if state_331["equipe"]:
+                                    p += 5.0
+                                return p
+
+                            def atualizar_pontos_331():
+                                pts = calc_pontos_331()
+                                lbl_pontos_331.set_text(f"Pontuação Calculada: {pts:.1f} / 10.0 pontos")
+
+                            cb_ato = ui.checkbox("Instituída por ato formal no organograma da secretaria ou equivalente (3,0 pontos)", value=state_331["ato_formal"]).bind_value(state_331, "ato_formal")
+                            cb_est = ui.checkbox("Possui estrutura física (2,0 pontos)", value=state_331["estrutura_fisica"]).bind_value(state_331, "estrutura_fisica")
+                            cb_eqp = ui.checkbox("Possui equipe ou profissional designado (5,0 pontos)", value=state_331["equipe"]).bind_value(state_331, "equipe")
+                            cb_out33 = ui.checkbox("Outros (0,0 ponto)", value=state_331["outros"]).bind_value(state_331, "outros")
+
+                            cb_ato.on("change", lambda: atualizar_pontos_331())
+                            cb_est.on("change", lambda: atualizar_pontos_331())
+                            cb_eqp.on("change", lambda: atualizar_pontos_331())
+                            cb_out33.on("change", lambda: atualizar_pontos_331())
+
+                            ui.textarea(label="Link / Portaria de Designação / Fotos da Estrutura:", value=state_331["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_331, "link")
+
+                            atualizar_pontos_331()
+
+                            def salvar_331():
+                                sel_list = []
+                                if state_331["ato_formal"]:
+                                    sel_list.append("Instituída por ato formal no organograma da secretaria de saúde ou equivalente")
+                                if state_331["estrutura_fisica"]:
+                                    sel_list.append("Possui estrutura física")
+                                if state_331["equipe"]:
+                                    sel_list.append("Possui equipe ou profissional designado")
+                                if state_331["outros"]:
+                                    sel_list.append("Outros")
+
+                                pts = calc_pontos_331()
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="33.1",
+                                    valor=sel_list,
+                                    pontos=pts,
+                                    link=state_331["link"],
+                                    comentarios=d331.get("comentarios", []),
+                                    status=d331.get("status", "Pendente")
+                                )
+                                ui.notify("Quesito 33.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 33.1", on_click=salvar_331).classes("bg-blue-600 text-white font-bold my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("33.1", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 34.0 (Sistema OuvidorSUS ou Equivalente)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("34.0 • Sistema OuvidorSUS ou Equivalente").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município utiliza o Sistema OuvidorSUS ou sistema equivalente que, além de permitir a disseminação de informações, o registro e o encaminhamento das manifestações dos cidadãos, possibilita troca de informações entre os órgãos responsáveis pela gestão do SUS?").classes("text-sm text-gray-700 mb-4")
+
+                        d340 = res_data.get("34.0") or {}
+                        state_340 = {
+                            "opcao": d340.get("valor") if isinstance(d340.get("valor"), str) else "Não",
+                            "link": str(d340.get("link") or "")
+                        }
+
+                        lbl_pontos_340 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                        def calc_pontos_340(v):
+                            return 5.0 if v == "Sim" else 0.0
+
+                        def atualizar_pontos_340():
+                            pts = calc_pontos_340(state_340["opcao"])
+                            lbl_pontos_340.set_text(f"Pontuação Calculada: {pts:.1f} / 5.0 pontos")
+
+                        radio_340 = ui.radio(["Sim", "Não"], value=state_340["opcao"]).classes("mb-3").bind_value(state_340, "opcao")
+                        radio_340.on("update:model-value", lambda: atualizar_pontos_340())
+
+                        ui.textarea(label="Link / Comprovação de Uso do OuvidorSUS:", value=state_340["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_340, "link")
+
+                        atualizar_pontos_340()
+
+                        def salvar_340():
+                            pts = calc_pontos_340(state_340["opcao"])
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="34.0",
+                                valor=state_340["opcao"],
+                                pontos=pts,
+                                link=state_340["link"],
+                                comentarios=d340.get("comentarios", []),
+                                status=d340.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 34.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 34.0", on_click=salvar_340).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("34.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 35.0 (Componente Municipal do Sistema Nacional de Auditoria - SNA)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("35.0 • Componente Municipal do SNA").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município possui o componente municipal do Sistema Nacional de Auditoria?").classes("text-sm text-gray-700 mb-4")
+
+                        d350 = res_data.get("35.0") or {}
+                        state_350 = {
+                            "opcao": d350.get("valor") if isinstance(d350.get("valor"), str) else "Não",
+                            "link": str(d350.get("link") or "")
+                        }
+
+                        ui.label("Nota 35.0: Informativo (0.0 pontos)").classes("text-sm font-bold text-gray-600 my-2")
+
+                        radio_350 = ui.radio(["Sim", "Não"], value=state_350["opcao"]).classes("mb-3").bind_value(state_350, "opcao")
+
+                        ui.textarea(label="Link / Lei ou Ato Instituidor do SNA Municipal:", value=state_350["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_350, "link")
+
+                        def salvar_350():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="35.0",
+                                valor=state_350["opcao"],
+                                pontos=0.0,
+                                link=state_350["link"],
+                                comentarios=d350.get("comentarios", []),
+                                status=d350.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 35.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 35.0", on_click=salvar_350).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("35.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 35.1 E 35.2 - Condicionados a 35.0 = Sim
+                    # -----------------------------------------------------------------------------
+                    if state_350["opcao"] == "Sim":
+                        # -------------------------------------------------------------------------
+                        # QUESITO 35.1 (Características do SNA Municipal)
+                        # -------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
+                            ui.label("35.1 • Características do Componente Municipal do SNA").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("Assinale as características do componente municipal do Sistema Nacional de Auditoria - SNA:").classes("text-sm text-gray-700 mb-4")
+
+                            d351 = res_data.get("35.1") or {}
+                            raw_val_351 = d351.get("valor") or []
+                            if not isinstance(raw_val_351, list):
+                                raw_val_351 = []
+
+                            state_351 = {
+                                "ato_formal": "Instituído por ato formal no organograma da secretaria de saúde ou equivalente" in raw_val_351,
+                                "estrutura_fisica": "Possui estrutura física" in raw_val_351,
+                                "equipe_med_enf": "Possui equipe com ao menos um médico e um enfermeiro" in raw_val_351,
+                                "outros": "Outros" in raw_val_351,
+                                "link": str(d351.get("link") or "")
+                            }
+
+                            lbl_pontos_351 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                            def calc_pontos_351():
+                                p = 0.0
+                                if state_351["ato_formal"]:
+                                    p += 3.0
+                                if state_351["estrutura_fisica"]:
+                                    p += 2.0
+                                if state_351["equipe_med_enf"]:
+                                    p += 10.0
+                                return p
+
+                            def atualizar_pontos_351():
+                                pts = calc_pontos_351()
+                                lbl_pontos_351.set_text(f"Pontuação Calculada: {pts:.1f} / 15.0 pontos")
+
+                            cb_ato35 = ui.checkbox("Instituído por ato formal no organograma da secretaria ou equivalente (3,0 pontos)", value=state_351["ato_formal"]).bind_value(state_351, "ato_formal")
+                            cb_est35 = ui.checkbox("Possui estrutura física (2,0 pontos)", value=state_351["estrutura_fisica"]).bind_value(state_351, "estrutura_fisica")
+                            cb_eqp35 = ui.checkbox("Possui equipe com ao menos um médico e um enfermeiro (10,0 pontos)", value=state_351["equipe_med_enf"]).bind_value(state_351, "equipe_med_enf")
+                            cb_out35 = ui.checkbox("Outros (0,0 ponto)", value=state_351["outros"]).bind_value(state_351, "outros")
+
+                            cb_ato35.on("change", lambda: atualizar_pontos_351())
+                            cb_est35.on("change", lambda: atualizar_pontos_351())
+                            cb_eqp35.on("change", lambda: atualizar_pontos_351())
+                            cb_out35.on("change", lambda: atualizar_pontos_351())
+
+                            ui.textarea(label="Link / Decreto de Organograma / Portaria de Nomeação dos Auditores:", value=state_351["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_351, "link")
+
+                            atualizar_pontos_351()
+
+                            def salvar_351():
+                                sel_list = []
+                                if state_351["ato_formal"]:
+                                    sel_list.append("Instituído por ato formal no organograma da secretaria de saúde ou equivalente")
+                                if state_351["estrutura_fisica"]:
+                                    sel_list.append("Possui estrutura física")
+                                if state_351["equipe_med_enf"]:
+                                    sel_list.append("Possui equipe com ao menos um médico e um enfermeiro")
+                                if state_351["outros"]:
+                                    sel_list.append("Outros")
+
+                                pts = calc_pontos_351()
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="35.1",
+                                    valor=sel_list,
+                                    pontos=pts,
+                                    link=state_351["link"],
+                                    comentarios=d351.get("comentarios", []),
+                                    status=d351.get("status", "Pendente")
+                                )
+                                ui.notify("Quesito 35.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 35.1", on_click=salvar_351).classes("bg-blue-600 text-white font-bold my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("35.1", res_data, render_conteudo.refresh)
+
+                        # -------------------------------------------------------------------------
+                        # QUESITO 35.2 (Publicação das Auditorias Concluídas de 2025)
+                        # -------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
+                            ui.label("35.2 • Divulgação dos Relatórios de Auditoria de 2025").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("As auditorias concluídas (encerradas) do exercício de 2025 pelo componente municipal do Sistema Nacional de Auditoria do SUS - SNA estão disponibilizadas em site para consulta?").classes("text-sm text-gray-700 mb-4")
+
+                            d352 = res_data.get("35.2") or {}
+                            state_352 = {
+                                "opcao": d352.get("valor") if isinstance(d352.get("valor"), str) else "Não",
+                                "link": str(d352.get("link") or "")
+                            }
+
+                            lbl_pontos_352 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                            def calc_pontos_352(v):
+                                return 10.0 if v == "Sim" else 0.0
+
+                            def atualizar_pontos_352():
+                                pts = calc_pontos_352(state_352["opcao"])
+                                lbl_pontos_352.set_text(f"Pontuação Calculada: {pts:.1f} / 10.0 pontos")
+
+                            radio_352 = ui.radio(["Sim", "Não"], value=state_352["opcao"]).classes("mb-3").bind_value(state_352, "opcao")
+                            radio_352.on("update:model-value", lambda: atualizar_pontos_352())
+
+                            ui.textarea(label="Link / Portal do SNA com Relatórios de Auditoria publicados:", value=state_352["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_352, "link")
+
+                            atualizar_pontos_352()
+
+                            def salvar_352():
+                                pts = calc_pontos_352(state_352["opcao"])
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="35.2",
+                                    valor=state_352["opcao"],
+                                    pontos=pts,
+                                    link=state_352["link"],
+                                    comentarios=d352.get("comentarios", []),
+                                    status=d352.get("status", "Pendente")
+                                )
+                                ui.notify("Quesito 35.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 35.2", on_click=salvar_352).classes("bg-blue-600 text-white font-bold my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("35.2", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
