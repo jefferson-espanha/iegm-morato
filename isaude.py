@@ -7968,6 +7968,248 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("19.5", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # MÓDULO DE VIGILÂNCIA EM SAÚDE - QUESITOS 20.0 A 20.3
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 20.0 (Tipos de Insumos Geridos)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("20.0 • Insumos sob Gestão da Vigilância em Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Sobre Vigilância em Saúde, a Prefeitura realiza gestão de quais tipos de insumos?").classes("text-sm text-gray-700 mb-4")
+
+                        d200 = res_data.get("20.0") or {}
+                        raw_val_200 = d200.get("valor") or {}
+                        if not isinstance(raw_val_200, dict):
+                            raw_val_200 = {}
+
+                        state_200 = {
+                            "imunobiologicos": bool(raw_val_200.get("imunobiologicos", False)),
+                            "diagnostico": bool(raw_val_200.get("diagnostico", False)),
+                            "vetores": bool(raw_val_200.get("vetores", False)),
+                            "link": str(d200.get("link") or ""),
+                        }
+
+                        chk_imuno = ui.checkbox("Imunobiológicos (soros, vacinas e imunoglobulinas)", value=state_200["imunobiologicos"])
+                        chk_imuno.bind_value(state_200, "imunobiologicos")
+
+                        chk_diag = ui.checkbox("Meios de diagnóstico laboratorial para as doenças sob monitoramento epidemiológico (sangue, fluidos orgânicos, etc.)", value=state_200["diagnostico"])
+                        chk_diag.bind_value(state_200, "diagnostico")
+
+                        chk_vetores = ui.checkbox("Controle de vetores (inseticidas, larvicidas)", value=state_200["vetores"])
+                        chk_vetores.bind_value(state_200, "vetores")
+
+                        ui.textarea(label="Link / Evidências:", value=state_200["link"]).classes("w-full my-3").props("outlined dense rows=2").bind_value(state_200, "link")
+
+                        def salvar_200():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="20.0",
+                                valor=state_200,
+                                pontos=0.0,  # Informativo
+                                link=state_200["link"],
+                                comentarios=d200.get("comentarios", []),
+                                status=d200.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 20.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 20.0", on_click=salvar_200).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("20.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 20.1 (Uso de Frigobar para Imunobiológicos)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("20.1 • Armazenamento e Refrigeração de Imunobiológicos").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("A Prefeitura utiliza frigobar para refrigeração, manutenção, monitoramento e controle da temperatura dos imunobiológicos (soros, vacinas e imunoglobulinas)?").classes("text-sm text-gray-700 mb-2")
+                        ui.label("Obs: Frigobar é um refrigerador com dimensões reduzidas, projetado para conservação doméstica/alimentos.").classes("text-xs text-gray-500 italic mb-4")
+
+                        d201 = res_data.get("20.1") or {}
+                        opts_201 = {
+                            "nao": "Não",
+                            "menor_parte": "Sim, na menor parte dos estabelecimentos de saúde sob gestão municipal",
+                            "maior_parte": "Sim, na maior parte dos estabelecimentos de saúde sob gestão municipal",
+                            "todos": "Sim, em todos os estabelecimentos de saúde sob gestão municipal",
+                        }
+                        
+                        val_201_init = d201.get("valor") if d201.get("valor") in opts_201 else "nao"
+                        link_201_init = str(d201.get("link") or "")
+
+                        state_201 = {"opcao": val_201_init, "link": link_201_init}
+
+                        rad_201 = ui.radio(opts_201, value=state_201["opcao"]).classes("mb-3")
+                        rad_201.bind_value(state_201, "opcao")
+
+                        lbl_pts_201 = ui.label("Pontuação: 0.0").classes("text-sm font-bold text-green-600 mb-2")
+
+                        def recalc_201():
+                            op = state_201["opcao"]
+                            mapa_pts = {
+                                "nao": 0.0,
+                                "menor_parte": -1.0,
+                                "maior_parte": -3.0,
+                                "todos": -5.0
+                            }
+                            pts = mapa_pts.get(op, 0.0)
+                            cor = "text-green-600" if pts == 0.0 else "text-red-600"
+                            lbl_pts_201.classes(replace=f"text-sm font-bold {cor} mb-2")
+                            lbl_pts_201.set_text(f"📊 Pontuação Quesito 20.1: {pts:.1f} pontos")
+                            return pts
+
+                        rad_201.on("update:model-value", recalc_201)
+                        recalc_201()
+
+                        ui.textarea(label="Link / Comprovação da Rede de Frio:", value=state_201["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_201, "link")
+
+                        def salvar_201():
+                            pts = recalc_201()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="20.1",
+                                valor=state_201["opcao"],
+                                pontos=pts,
+                                link=state_201["link"],
+                                comentarios=d201.get("comentarios", []),
+                                status=d201.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 20.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 20.1", on_click=salvar_201).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("20.1", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 20.2 (Materiais para Coleta de Diagnóstico Laboratorial)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("20.2 • Materiais de Coleta para Diagnóstico Epidemiológico").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("A Prefeitura disponibilizou os materiais necessários para a coleta dos meios de diagnóstico laboratorial para as doenças sob monitoramento epidemiológico (sangue, saliva, secreção, suor, urina, fezes)?").classes("text-sm text-gray-700 mb-4")
+
+                        d202 = res_data.get("20.2") or {}
+                        opts_202 = {
+                            "todas": "Sim, para todas as amostras",
+                            "maior_parte": "Sim, para a maior parte das amostras",
+                            "menor_parte": "Sim, para a menor parte das amostras",
+                            "nao": "Não",
+                        }
+
+                        val_202_init = d202.get("valor") if d202.get("valor") in opts_202 else "todas"
+                        link_202_init = str(d202.get("link") or "")
+
+                        state_202 = {"opcao": val_202_init, "link": link_202_init}
+
+                        rad_202 = ui.radio(opts_202, value=state_202["opcao"]).classes("mb-3")
+                        rad_202.bind_value(state_202, "opcao")
+
+                        lbl_pts_202 = ui.label("Pontuação: 0.0").classes("text-sm font-bold text-green-600 mb-2")
+
+                        def recalc_202():
+                            op = state_202["opcao"]
+                            mapa_pts = {
+                                "todas": 0.0,
+                                "maior_parte": -1.0,
+                                "menor_parte": -3.0,
+                                "nao": -5.0
+                            }
+                            pts = mapa_pts.get(op, 0.0)
+                            cor = "text-green-600" if pts == 0.0 else "text-red-600"
+                            lbl_pts_202.classes(replace=f"text-sm font-bold {cor} mb-2")
+                            lbl_pts_202.set_text(f"📊 Pontuação Quesito 20.2: {pts:.1f} pontos")
+                            return pts
+
+                        rad_202.on("update:model-value", recalc_202)
+                        recalc_202()
+
+                        ui.textarea(label="Link / Documento comprobatório de suprimentos/insumos:", value=state_202["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_202, "link")
+
+                        def salvar_202():
+                            pts = recalc_202()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="20.2",
+                                valor=state_202["opcao"],
+                                pontos=pts,
+                                link=state_202["link"],
+                                comentarios=d202.get("comentarios", []),
+                                status=d202.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 20.2 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 20.2", on_click=salvar_202).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("20.2", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 20.3 (EPIs para Controle de Vetores)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("20.3 • Equipamentos de Proteção Individual (EPIs) - Controle de Vetores").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("A Prefeitura disponibilizou todos os equipamentos de proteção individual (EPIs) para o manuseio dos insumos para controle de vetores (inseticidas e pesticidas)?").classes("text-sm text-gray-700 mb-4")
+
+                        d203 = res_data.get("20.3") or {}
+                        opts_203 = {
+                            "todos": "Sim, para todos os profissionais",
+                            "maior_parte": "Sim, para a maior parte dos profissionais",
+                            "menor_parte": "Sim, para a menor parte dos profissionais",
+                            "nao": "Não",
+                        }
+
+                        val_203_init = d203.get("valor") if d203.get("valor") in opts_203 else "todos"
+                        link_203_init = str(d203.get("link") or "")
+
+                        state_203 = {"opcao": val_203_init, "link": link_203_init}
+
+                        rad_203 = ui.radio(opts_203, value=state_203["opcao"]).classes("mb-3")
+                        rad_203.bind_value(state_203, "opcao")
+
+                        lbl_pts_203 = ui.label("Pontuação: 0.0").classes("text-sm font-bold text-green-600 mb-2")
+
+                        def recalc_203():
+                            op = state_203["opcao"]
+                            mapa_pts = {
+                                "todos": 0.0,
+                                "maior_parte": -1.0,
+                                "menor_parte": -3.0,
+                                "nao": -5.0
+                            }
+                            pts = mapa_pts.get(op, 0.0)
+                            cor = "text-green-600" if pts == 0.0 else "text-red-600"
+                            lbl_pts_203.classes(replace=f"text-sm font-bold {cor} mb-2")
+                            lbl_pts_203.set_text(f"📊 Pontuação Quesito 20.3: {pts:.1f} pontos")
+                            return pts
+
+                        rad_203.on("update:model-value", recalc_203)
+                        recalc_203()
+
+                        ui.textarea(label="Link / Relatório de entrega de EPIs (Ficha de EPI/Ordem de Fornecimento):", value=state_203["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_203, "link")
+
+                        def salvar_203():
+                            pts = recalc_203()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="20.3",
+                                valor=state_203["opcao"],
+                                pontos=pts,
+                                link=state_203["link"],
+                                comentarios=d203.get("comentarios", []),
+                                status=d203.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 20.3 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 20.3", on_click=salvar_203).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("20.3", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
