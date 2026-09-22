@@ -12393,6 +12393,224 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S12", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITOS S13 E S14 (SIH/SUS)
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S13 (Especialidade Cirúrgica - Permanência / Frequência - SIH/SUS)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S13 • Permanência em Especialidade Cirúrgica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Cirúrgica em 2025. "
+                            "O indicador aplica penalidade se a média de permanência (P / F) for superior a 6,5 dias:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds13 = res_data.get("S13") or {}
+                        val_s13 = ds13.get("valor") if isinstance(ds13.get("valor"), dict) else {}
+
+                        state_s13 = {
+                            "permanencia": float(val_s13.get("permanencia", 0.0)),
+                            "frequencia": float(val_s13.get("frequencia", 0.0)),
+                            "link": str(ds13.get("link") or "")
+                        }
+
+                        lbl_razao_s13 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s13 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s13(p, f):
+                            if f <= 0:
+                                return 0.0, 0.0
+                            razao = p / f
+                            pts = -2.0 if razao > 6.5 else 0.0
+                            return razao, pts
+
+                        def atualizar_calculo_s13():
+                            p_val = float(inp_p_s13.value or 0)
+                            f_val = float(inp_f_s13.value or 0)
+
+                            razao, pts = calc_s13(p_val, f_val)
+
+                            if f_val > 0:
+                                lbl_razao_s13.set_text(f"• Média de Permanência (P / F): {razao:.2f} dias")
+                                if razao <= 6.5:
+                                    lbl_pontos_s13.classes(remove="text-red-600", add="text-green-600")
+                                    lbl_pontos_s13.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Permanência ≤ 6.5 dias)")
+                                else:
+                                    lbl_pontos_s13.classes(remove="text-green-600", add="text-red-600")
+                                    lbl_pontos_s13.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Permanência > 6.5 dias)")
+                            else:
+                                lbl_razao_s13.set_text("• Média de Permanência (P / F): Informe a Frequência")
+                                lbl_pontos_s13.set_text("")
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            inp_p_s13 = ui.number(
+                                label="Permanência - total de dias (P):",
+                                value=state_s13["permanencia"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_f_s13 = ui.number(
+                                label="Frequência - número de AIHs/internações (F):",
+                                value=state_s13["frequencia"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_p_s13.on("update:model-value", lambda: atualizar_calculo_s13())
+                        inp_f_s13.on("update:model-value", lambda: atualizar_calculo_s13())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SIH/SUS:",
+                            value=state_s13["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s13, "link")
+
+                        atualizar_calculo_s13()
+
+                        def salvar_s13():
+                            p_val = float(inp_p_s13.value or 0)
+                            f_val = float(inp_f_s13.value or 0)
+
+                            razao, pts = calc_s13(p_val, f_val)
+
+                            dados_finais = {
+                                "permanencia": p_val,
+                                "frequencia": f_val,
+                                "razao": round(razao, 4)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S13",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s13["link"],
+                                comentarios=ds13.get("comentarios", []),
+                                status=ds13.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S13 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S13", on_click=salvar_s13).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S13", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S14 (Taxa de Mortalidade Hospitalar - SIH/SUS)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S14 • Taxa de Mortalidade Hospitalar (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o número de óbitos e total de saídas hospitalares (2023 a 2025). "
+                            "O indicador avalia se a taxa de mortalidade em 2025 (TOAA / SHAA) ultrapassa a média agregada do biênio 2023-2024:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds14 = res_data.get("S14") or {}
+                        val_s14 = ds14.get("valor") if isinstance(ds14.get("valor"), dict) else {}
+
+                        state_s14 = {
+                            "toaa_2": float(val_s14.get("toaa_2", 0.0)),
+                            "toaa_1": float(val_s14.get("toaa_1", 0.0)),
+                            "toaa": float(val_s14.get("toaa", 0.0)),
+                            "shaa_2": float(val_s14.get("shaa_2", 0.0)),
+                            "shaa_1": float(val_s14.get("shaa_1", 0.0)),
+                            "shaa": float(val_s14.get("shaa", 0.0)),
+                            "link": str(ds14.get("link") or "")
+                        }
+
+                        lbl_taxas_s14 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s14 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s14(t2, t1, t, s2, s1, s):
+                            soma_sh_hist = s2 + s1
+                            soma_to_hist = t2 + t1
+
+                            taxa_hist = (soma_to_hist / soma_sh_hist) if soma_sh_hist > 0 else 0.0
+                            taxa_2025 = (t / s) if s > 0 else 0.0
+
+                            pts = -2.0 if taxa_2025 > taxa_hist else 0.0
+                            return taxa_2025, taxa_hist, pts
+
+                        def atualizar_calculo_s14():
+                            t2 = float(inp_t2.value or 0)
+                            t1 = float(inp_t1.value or 0)
+                            t = float(inp_t.value or 0)
+                            s2 = float(inp_s2.value or 0)
+                            s1 = float(inp_s1.value or 0)
+                            s = float(inp_s.value or 0)
+
+                            taxa_2025, taxa_hist, pts = calc_s14(t2, t1, t, s2, s1, s)
+
+                            pct_2025 = taxa_2025 * 100
+                            pct_hist = taxa_hist * 100
+
+                            lbl_taxas_s14.set_text(
+                                f"• Taxa 2025: {pct_2025:.2f}% | Taxa Biênio (2023-2024): {pct_hist:.2f}%"
+                            )
+
+                            if taxa_2025 <= taxa_hist:
+                                lbl_pontos_s14.classes(remove="text-red-600", add="text-green-600")
+                                lbl_pontos_s14.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Taxa 2025 ≤ Taxa Histórica)")
+                            else:
+                                lbl_pontos_s14.classes(remove="text-green-600", add="text-red-600")
+                                lbl_pontos_s14.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Mortalidade aumentou em 2025)")
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_t2 = ui.number(label="Óbitos 2023 (TOAA-2):", value=state_s14["toaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_t1 = ui.number(label="Óbitos 2024 (TOAA-1):", value=state_s14["toaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_t = ui.number(label="Óbitos 2025 (TOAA):", value=state_s14["toaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                            inp_s2 = ui.number(label="Saídas 2023 (SHAA-2):", value=state_s14["shaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_s1 = ui.number(label="Saídas 2024 (SHAA-1):", value=state_s14["shaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_s = ui.number(label="Saídas 2025 (SHAA):", value=state_s14["shaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                        for inp in [inp_t2, inp_t1, inp_t, inp_s2, inp_s1, inp_s]:
+                            inp.on("update:model-value", lambda: atualizar_calculo_s14())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SIH/SUS:",
+                            value=state_s14["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s14, "link")
+
+                        atualizar_calculo_s14()
+
+                        def salvar_s14():
+                            t2 = float(inp_t2.value or 0)
+                            t1 = float(inp_t1.value or 0)
+                            t = float(inp_t.value or 0)
+                            s2 = float(inp_s2.value or 0)
+                            s1 = float(inp_s1.value or 0)
+                            s = float(inp_s.value or 0)
+
+                            taxa_2025, taxa_hist, pts = calc_s14(t2, t1, t, s2, s1, s)
+
+                            dados_finais = {
+                                "toaa_2": t2, "toaa_1": t1, "toaa": t,
+                                "shaa_2": s2, "shaa_1": s1, "shaa": s,
+                                "taxa_2025": round(taxa_2025, 6),
+                                "taxa_historica": round(taxa_hist, 6)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S14",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s14["link"],
+                                comentarios=ds14.get("comentarios", []),
+                                status=ds14.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S14 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S14", on_click=salvar_s14).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S14", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
