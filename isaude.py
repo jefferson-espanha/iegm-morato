@@ -5430,6 +5430,117 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("17.7", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 17.7.1 (Produtividade dos Mamógrafos na Rede Própria)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.7.1 • Produtividade dos Mamógrafos da Rede Própria").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de exames realizados e a quantidade de mamógrafos em 2025:"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "Fórmula: P = EX / MM. Se P >= 6.758 exames/ano -> 0,0 ponto | Se P < 6.758 exames/ano -> -5,0 pontos"
+                        ).classes("text-xs font-semibold text-gray-600 mb-6")
+
+                        d1771 = res_data.get("17.7.1") or {}
+                        raw_val_1771 = d1771.get("valor") or {}
+                        if not isinstance(raw_val_1771, dict):
+                            raw_val_1771 = {}
+
+                        raw_link_1771 = str(d1771.get("link") or "")
+
+                        state_1771 = {
+                            "exames": int(raw_val_1771.get("exames", 0)),
+                            "mamografos": int(raw_val_1771.get("mamografos", 0)),
+                            "link": raw_link_1771,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            num_exames = ui.number(
+                                label="Quantidade de exames de mamógrafo realizados em 2025 (EX):",
+                                value=state_1771["exames"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined density=compact")
+                            num_exames.bind_value(state_1771, "exames")
+
+                            num_mamografos = ui.number(
+                                label="Quantidade de mamógrafos da rede própria em 2025 (MM):",
+                                value=state_1771["mamografos"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined density=compact")
+                            num_mamografos.bind_value(state_1771, "mamografos")
+
+                        lbl_prod_1771 = ui.label("Média: 0.00 exames/mamógrafo/ano").classes(
+                            "text-sm font-semibold text-gray-700 mb-1"
+                        )
+                        lbl_pts_1771 = ui.label("Nota 17.7.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1771():
+                            ex = int(state_1771["exames"] or 0)
+                            mm = int(state_1771["mamografos"] or 0)
+
+                            if mm > 0:
+                                prod = ex / mm
+                            else:
+                                prod = 0.0
+
+                            if prod >= 6758.0 and mm > 0:
+                                pts = 0.0
+                                lbl_pts_1771.classes(replace="text-sm font-bold text-green-600 mb-4")
+                            else:
+                                pts = -5.0
+                                lbl_pts_1771.classes(replace="text-sm font-bold text-red-600 mb-4")
+
+                            lbl_prod_1771.set_text(
+                                f"📈 Produtividade (P): {prod:,.2f} exames/mamógrafo/ano (Meta: ≥ 6.758)"
+                            )
+                            lbl_pts_1771.set_text(f"📊 Nota 17.7.1: {pts:.1f} pontos")
+                            return pts
+
+                        num_exames.on("update:model-value", recalc_1771)
+                        num_mamografos.on("update:model-value", recalc_1771)
+                        recalc_1771()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório SIA-SUS ou CNES:",
+                            value=raw_link_1771,
+                            placeholder="Link dos relatórios do SIA-SUS, SISMAMM ou fichas de equipamentos do CNES...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1771, "link"
+                        )
+
+                        def salvar_1771():
+                            pts = recalc_1771()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.7.1",
+                                valor={
+                                    "exames": state_1771["exames"],
+                                    "mamografos": state_1771["mamografos"],
+                                },
+                                pontos=pts,
+                                link=state_1771["link"],
+                                comentarios=d1771.get("comentarios", []),
+                                status=d1771.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.7.1 salvo com sucesso! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.7.1", on_click=salvar_1771).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.7.1", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
