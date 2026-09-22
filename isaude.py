@@ -5846,6 +5846,235 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("17.9", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 17.9.1 (Taxa de Ocupação Hospitalar Geral)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.9.1 • Taxa de Ocupação Hospitalar (TO)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o total de pacientes-dia e o número total de leitos-dia em 2025:"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "Fórmula: TO = PA / LE. Faixa ideal: 75% a 90% (0,0 ponto). Se TO < 75% ou TO > 90% -> -5,0 pontos."
+                        ).classes("text-xs font-semibold text-gray-600 mb-6")
+
+                        d1791 = res_data.get("17.9.1") or {}
+                        raw_val_1791 = d1791.get("valor") or {}
+                        if not isinstance(raw_val_1791, dict):
+                            raw_val_1791 = {}
+
+                        raw_link_1791 = str(d1791.get("link") or "")
+
+                        state_1791 = {
+                            "pa": int(raw_val_1791.get("pa", 0)),
+                            "le": int(raw_val_1791.get("le", 0)),
+                            "link": raw_link_1791,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            num_pa = ui.number(
+                                label="Total de pacientes-dia em 2025 (PA):",
+                                value=state_1791["pa"],
+                                min=0,
+                                precision=0
+                            ).classes("w-full").props("outlined density=compact")
+                            num_pa.bind_value(state_1791, "pa")
+
+                            num_le = ui.number(
+                                label="Total de leitos-dia em 2025 (LE):",
+                                value=state_1791["le"],
+                                min=0,
+                                precision=0
+                            ).classes("w-full").props("outlined density=compact")
+                            num_le.bind_value(state_1791, "le")
+
+                        lbl_to_1791 = ui.label("Taxa de Ocupação (TO): 0.00%").classes(
+                            "text-sm font-semibold text-gray-700 mb-1"
+                        )
+                        lbl_pts_1791 = ui.label("Nota 17.9.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1791():
+                            pa = int(state_1791["pa"] or 0)
+                            le = int(state_1791["le"] or 0)
+
+                            to_pct = (pa / le * 100.0) if le > 0 else 0.0
+
+                            # Faixa ideal entre 75% e 90%
+                            if 75.0 <= to_pct <= 90.0 and le > 0:
+                                pts = 0.0
+                                lbl_pts_1791.classes(replace="text-sm font-bold text-green-600 mb-4")
+                            else:
+                                pts = -5.0
+                                lbl_pts_1791.classes(replace="text-sm font-bold text-red-600 mb-4")
+
+                            lbl_to_1791.set_text(
+                                f"📈 Taxa de Ocupação (TO): {to_pct:.2f}% (Meta Ideal: 75,00% a 90,00%)"
+                            )
+                            lbl_pts_1791.set_text(f"📊 Nota 17.9.1: {pts:.1f} pontos")
+                            return pts
+
+                        num_pa.on("update:model-value", recalc_1791)
+                        num_le.on("update:model-value", recalc_1791)
+                        recalc_1791()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório SIHD-SUS ou Censo Hospitalar:",
+                            value=raw_link_1791,
+                            placeholder="Link do relatório com dados do Censo Hospitalar e movimentação de leitos...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1791, "link"
+                        )
+
+                        def salvar_1791():
+                            pts = recalc_1791()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.9.1",
+                                valor={
+                                    "pa": state_1791["pa"],
+                                    "le": state_1791["le"],
+                                },
+                                pontos=pts,
+                                link=state_1791["link"],
+                                comentarios=d1791.get("comentarios", []),
+                                status=d1791.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.9.1 salvo com sucesso! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.9.1", on_click=salvar_1791).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.9.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.9.2 (Hospitais com Taxa de Ocupação Superior a 100%)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.9.2 • Hospitais Sob Gestão Municipal com Superlotação (> 100%)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o número de hospitais da rede própria que tiveram taxa de ocupação superior a 100%:"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "Fórmula: Se TOAA <= (TOAA-2 + TOAA-1) / 2 -> 0,0 ponto | Se TOAA > (TOAA-2 + TOAA-1) / 2 -> -5,0 pontos"
+                        ).classes("text-xs font-semibold text-gray-600 mb-6")
+
+                        d1792 = res_data.get("17.9.2") or {}
+                        raw_val_1792 = d1792.get("valor") or {}
+                        if not isinstance(raw_val_1792, dict):
+                            raw_val_1792 = {}
+
+                        raw_link_1792 = str(d1792.get("link") or "")
+
+                        state_1792 = {
+                            "to_2023": int(raw_val_1792.get("to_2023", 0)),
+                            "to_2024": int(raw_val_1792.get("to_2024", 0)),
+                            "to_2025": int(raw_val_1792.get("to_2025", 0)),
+                            "link": raw_link_1792,
+                        }
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            num_to_2023 = ui.number(
+                                label="Nº Hospitais > 100% em 2023 (TOAA-2):",
+                                value=state_1792["to_2023"],
+                                min=0,
+                                precision=0
+                            ).classes("w-full").props("outlined density=compact")
+                            num_to_2023.bind_value(state_1792, "to_2023")
+
+                            num_to_2024 = ui.number(
+                                label="Nº Hospitais > 100% em 2024 (TOAA-1):",
+                                value=state_1792["to_2024"],
+                                min=0,
+                                precision=0
+                            ).classes("w-full").props("outlined density=compact")
+                            num_to_2024.bind_value(state_1792, "to_2024")
+
+                            num_to_2025 = ui.number(
+                                label="Nº Hospitais > 100% em 2025 (TOAA):",
+                                value=state_1792["to_2025"],
+                                min=0,
+                                precision=0
+                            ).classes("w-full").props("outlined density=compact")
+                            num_to_2025.bind_value(state_1792, "to_2025")
+
+                        lbl_comp_1792 = ui.label("Nº em 2025: 0 | Média (2023-2024): 0.00").classes(
+                            "text-sm font-semibold text-gray-700 mb-1"
+                        )
+                        lbl_pts_1792 = ui.label("Nota 17.9.2: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1792():
+                            t23 = int(state_1792["to_2023"] or 0)
+                            t24 = int(state_1792["to_2024"] or 0)
+                            t25 = int(state_1792["to_2025"] or 0)
+
+                            media_hist = (t23 + t24) / 2.0
+
+                            if t25 <= media_hist:
+                                pts = 0.0
+                                lbl_pts_1792.classes(replace="text-sm font-bold text-green-600 mb-4")
+                            else:
+                                pts = -5.0
+                                lbl_pts_1792.classes(replace="text-sm font-bold text-red-600 mb-4")
+
+                            lbl_comp_1792.set_text(
+                                f"📈 Nº Hospitais com >100% em 2025: {t25} | Média dos Anos Anteriores: {media_hist:.2f}"
+                            )
+                            lbl_pts_1792.set_text(f"📊 Nota 17.9.2: {pts:.1f} pontos")
+                            return pts
+
+                        for element in [num_to_2023, num_to_2024, num_to_2025]:
+                            element.on("update:model-value", recalc_1792)
+
+                        recalc_1792()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório Censo Hospitalar:",
+                            value=raw_link_1792,
+                            placeholder="Link do relatório comprobatório das taxas de ocupação por hospital...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1792, "link"
+                        )
+
+                        def salvar_1792():
+                            pts = recalc_1792()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.9.2",
+                                valor={
+                                    "to_2023": state_1792["to_2023"],
+                                    "to_2024": state_1792["to_2024"],
+                                    "to_2025": state_1792["to_2025"],
+                                },
+                                pontos=pts,
+                                link=state_1792["link"],
+                                comentarios=d1792.get("comentarios", []),
+                                status=d1792.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.9.2 salvo com sucesso! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.9.2", on_click=salvar_1792).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.9.2", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
