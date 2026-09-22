@@ -13093,6 +13093,138 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S18", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S19 (SISAB / APS)
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S19 (Acompanhamento de Diabéticos na APS - SISAB)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S19 • Acompanhamento de Pessoas com Diabetes na APS (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o número de diabéticos com consulta em DM e solicitação de Hemoglobina Glicada nos últimos 6 meses (DHG) "
+                            "e o total de diabéticos cadastrados (TD) para os 3 quadrimestres de 2025 (SISAB):"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds19 = res_data.get("S19") or {}
+                        val_s19 = ds19.get("valor") if isinstance(ds19.get("valor"), dict) else {}
+
+                        state_s19 = {
+                            "dhg1q": float(val_s19.get("dhg1q", 0.0)),
+                            "dhg2q": float(val_s19.get("dhg2q", 0.0)),
+                            "dhg3q": float(val_s19.get("dhg3q", 0.0)),
+                            "td1q": float(val_s19.get("td1q", 0.0)),
+                            "td2q": float(val_s19.get("td2q", 0.0)),
+                            "td3q": float(val_s19.get("td3q", 0.0)),
+                            "link": str(ds19.get("link") or "")
+                        }
+
+                        lbl_pct_s19 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s19 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s19(d1, d2, d3, t1, t2, t3):
+                            soma_dhg = d1 + d2 + d3
+                            soma_td = t1 + t2 + t3
+
+                            if soma_td <= 0:
+                                return 0.0, 0.0
+
+                            prop = soma_dhg / soma_td
+                            pct = prop * 100.0
+
+                            if pct >= 100.0:
+                                pts = 25.0
+                            elif pct >= 50.0:
+                                pts = 15.0
+                            elif pct >= 35.0:
+                                pts = 10.0
+                            elif pct >= 20.0:
+                                pts = 5.0
+                            else:
+                                pts = 0.0
+
+                            return prop, pts
+
+                        def atualizar_calculo_s19():
+                            d1 = float(inp_d1.value or 0)
+                            d2 = float(inp_d2.value or 0)
+                            d3 = float(inp_d3.value or 0)
+                            t1 = float(inp_t1.value or 0)
+                            t2 = float(inp_t2.value or 0)
+                            t3 = float(inp_t3.value or 0)
+
+                            prop, pts = calc_s19(d1, d2, d3, t1, t2, t3)
+                            pct = prop * 100.0
+                            soma_td = t1 + t2 + t3
+
+                            if soma_td > 0:
+                                lbl_pct_s19.set_text(f"• Percentual Acumulado (P): {pct:.2f}%")
+                                lbl_pontos_s19.set_text(f"Pontuação Calculada: {pts:.1f} / 25.0 pontos")
+                                
+                                if pts >= 15.0:
+                                    lbl_pontos_s19.classes(remove="text-red-600 text-yellow-600", add="text-green-600")
+                                elif pts >= 5.0:
+                                    lbl_pontos_s19.classes(remove="text-red-600 text-green-600", add="text-yellow-600")
+                                else:
+                                    lbl_pontos_s19.classes(remove="text-green-600 text-yellow-600", add="text-red-600")
+                            else:
+                                lbl_pct_s19.set_text("• Percentual Acumulado (P): Informe o Total de Diabéticos (TD)")
+                                lbl_pontos_s19.set_text("")
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_d1 = ui.number(label="Diabéticos Acompanhados 1º Q. (DHG1Q):", value=state_s19["dhg1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_d2 = ui.number(label="Diabéticos Acompanhados 2º Q. (DHG2Q):", value=state_s19["dhg2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_d3 = ui.number(label="Diabéticos Acompanhados 3º Q. (DHG3Q):", value=state_s19["dhg3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                            inp_t1 = ui.number(label="Total Diabéticos 1º Q. (TD1Q):", value=state_s19["td1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_t2 = ui.number(label="Total Diabéticos 2º Q. (TD2Q):", value=state_s19["td2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_t3 = ui.number(label="Total Diabéticos 3º Q. (TD3Q):", value=state_s19["td3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                        for inp in [inp_d1, inp_d2, inp_d3, inp_t1, inp_t2, inp_t3]:
+                            inp.on("update:model-value", lambda: atualizar_calculo_s19())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SISAB:",
+                            value=state_s19["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s19, "link")
+
+                        atualizar_calculo_s19()
+
+                        def salvar_s19():
+                            d1 = float(inp_d1.value or 0)
+                            d2 = float(inp_d2.value or 0)
+                            d3 = float(inp_d3.value or 0)
+                            t1 = float(inp_t1.value or 0)
+                            t2 = float(inp_t2.value or 0)
+                            t3 = float(inp_t3.value or 0)
+
+                            prop, pts = calc_s19(d1, d2, d3, t1, t2, t3)
+
+                            dados_finais = {
+                                "dhg1q": d1, "dhg2q": d2, "dhg3q": d3,
+                                "td1q": t1, "td2q": t2, "td3q": t3,
+                                "proporcao": round(prop, 4),
+                                "percentual": round(prop * 100.0, 2)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S19",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s19["link"],
+                                comentarios=ds19.get("comentarios", []),
+                                status=ds19.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S19 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S19", on_click=salvar_s19).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S19", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
