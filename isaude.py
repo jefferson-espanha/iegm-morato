@@ -7826,6 +7826,148 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("19.4", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 19.5 (Acompanhamento do Processo de Desinstitucionalização)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("19.5 • Evolução dos Leitos e Vagas de SRT").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe os dados de leitos de internação psiquiátrica prolongada e vagas de SRTs (Ano anterior x Ano atual):"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d195 = res_data.get("19.5") or {}
+                        raw_val_195 = d195.get("valor") or {}
+                        if not isinstance(raw_val_195, dict):
+                            raw_val_195 = {}
+
+                        raw_link_195 = str(d195.get("link") or "")
+
+                        state_195 = {
+                            "la_minus_1": int(raw_val_195.get("la_minus_1", 0)), # Leitos 2024
+                            "la": int(raw_val_195.get("la", 0)),                 # Leitos 2025
+                            "va_minus_1": int(raw_val_195.get("va_minus_1", 0)), # Vagas SRT 2024
+                            "va": int(raw_val_195.get("va", 0)),                 # Vagas SRT 2025
+                            "link": raw_link_195,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            inp_la_m1 = ui.number(
+                                label="Nº de Leitos de Internação Psiquiátrica Prolongada (2024 - LA-1)",
+                                value=state_195["la_minus_1"],
+                                min=0,
+                                precision=0,
+                            ).classes("w-full").props("outlined dense")
+                            inp_la_m1.bind_value(state_195, "la_minus_1")
+
+                            inp_la = ui.number(
+                                label="Nº de Leitos de Internação Psiquiátrica Prolongada (2025 - LA)",
+                                value=state_195["la"],
+                                min=0,
+                                precision=0,
+                            ).classes("w-full").props("outlined dense")
+                            inp_la.bind_value(state_195, "la")
+
+                            inp_va_m1 = ui.number(
+                                label="Nº de Vagas Disponibilizadas em SRT (2024 - VA-1)",
+                                value=state_195["va_minus_1"],
+                                min=0,
+                                precision=0,
+                            ).classes("w-full").props("outlined dense")
+                            inp_va_m1.bind_value(state_195, "va_minus_1")
+
+                            inp_va = ui.number(
+                                label="Nº de Vagas Disponibilizadas em SRT (2025 - VA)",
+                                value=state_195["va"],
+                                min=0,
+                                precision=0,
+                            ).classes("w-full").props("outlined dense")
+                            inp_va.bind_value(state_195, "va")
+
+                        lbl_pts_195 = ui.label("Nota 19.5: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-2"
+                        )
+                        lbl_motivo_195 = ui.label("").classes("text-xs text-gray-600 mb-4")
+
+                        def recalc_195():
+                            # Busca a quantidade total de SRTs preenchidas no quesito 19.2
+                            d192 = res_data.get("19.2") or {}
+                            val_192 = d192.get("valor") or {}
+                            soma_srt_192 = 0
+                            if isinstance(val_192, dict):
+                                soma_srt_192 = sum(int(v) for v in val_192.values() if str(v).isdigit())
+
+                            la_m1 = int(state_195["la_minus_1"])
+                            la = int(state_195["la"])
+                            va_m1 = int(state_195["va_minus_1"])
+                            va = int(state_195["va"])
+
+                            # Regras de Penalidade (-15,0 pontos):
+                            # 1. Sem SRTs (soma_srt_192 == 0 ou va == 0)
+                            # 2. Aumento de leitos (la > la_m1)
+                            # 3. Diminuição de vagas (va < va_m1)
+                            # 4. Redução de leitos maior do que a criação de novas vagas SRT: (la_m1 - la) > (va - va_m1)
+                            
+                            motivos = []
+                            if soma_srt_192 == 0 or va == 0:
+                                motivos.append("Sem SRTs cadastradas ou sem vagas ativas no ano corrente")
+                            if la > la_m1:
+                                motivos.append("Houve aumento no número de leitos de internação psiquiátrica prolongada")
+                            if va < va_m1:
+                                motivos.append("Houve redução no número de vagas em SRT")
+                            if (la_m1 - la) > (va - va_m1):
+                                motivos.append("A redução de leitos psiquiátricos foi superior ao aumento de vagas SRT")
+
+                            if motivos:
+                                pts = -15.0
+                                lbl_pts_195.classes(replace="text-sm font-bold text-red-600 mb-2")
+                                lbl_motivo_195.set_text("⚠️ Justificativa da Penalidade: " + " | ".join(motivos))
+                            else:
+                                pts = 0.0
+                                lbl_pts_195.classes(replace="text-sm font-bold text-green-600 mb-2")
+                                lbl_motivo_195.set_text("✅ Processo de substituição de leitos por SRTs adequado.")
+
+                            lbl_pts_195.set_text(f"📊 Nota 19.5: {pts:.1f} pontos")
+                            return pts
+
+                        inp_la_m1.on("update:model-value", recalc_195)
+                        inp_la.on("update:model-value", recalc_195)
+                        inp_va_m1.on("update:model-value", recalc_195)
+                        inp_va.on("update:model-value", recalc_195)
+                        recalc_195()
+
+                        ui.textarea(
+                            label="Link de Evidência / Cadastro CNES ou Relatórios de Leitos/SRTs:",
+                            value=raw_link_195,
+                            placeholder="Link do CNES comprovando o quantitativo de leitos psiquiátricos e vagas de SRTs...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_195, "link"
+                        )
+
+                        def salvar_195():
+                            pts = recalc_195()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.5",
+                                valor=state_195,
+                                pontos=pts,
+                                link=state_195["link"],
+                                comentarios=d195.get("comentarios", []),
+                                status=d195.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 19.5 salvo com sucesso! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.5", on_click=salvar_195).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.5", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
