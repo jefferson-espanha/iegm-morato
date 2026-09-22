@@ -8450,6 +8450,131 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("23.1", res_data, render_conteudo.refresh)
 
+# -----------------------------------------------------------------------------
+                    # QUESITO 24.0 (Execução de Atividades de Educação em Saúde)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("24.0 • Educação em Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município executou atividades de Educação em Saúde?").classes("text-sm text-gray-700 mb-4")
+
+                        d240 = res_data.get("24.0") or {}
+                        opts_240 = {
+                            "sim": "Sim",
+                            "nao": "Não",
+                        }
+
+                        val_240_init = d240.get("valor") if d240.get("valor") in opts_240 else "sim"
+                        link_240_init = str(d240.get("link") or "")
+
+                        state_240 = {"opcao": val_240_init, "link": link_240_init}
+
+                        rad_240 = ui.radio(opts_240, value=state_240["opcao"]).classes("mb-3")
+                        rad_240.bind_value(state_240, "opcao")
+
+                        ui.label("Nota 24.0: Informativo (0.0 pontos)").classes("text-sm font-bold text-green-600 mb-2")
+
+                        ui.textarea(label="Link / Relatório Geral de Ações Educativas:", value=state_240["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_240, "link")
+
+                        def salvar_240():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="24.0",
+                                valor=state_240["opcao"],
+                                pontos=0.0,
+                                link=state_240["link"],
+                                comentarios=d240.get("comentarios", []),
+                                status=d240.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 24.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 24.0", on_click=salvar_240).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("24.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 24.1 (Campanhas de Educação em Saúde Realizadas em 2025)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("24.1 • Campanhas Realizadas em 2025").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Assinale as campanhas de educação em saúde realizadas no município em 2025:").classes("text-sm text-gray-700 mb-4")
+
+                        d241 = res_data.get("24.1") or {}
+                        raw_val_241 = d241.get("valor") or {}
+                        if not isinstance(raw_val_241, dict):
+                            raw_val_241 = {}
+
+                        campanhas_241 = [
+                            ("planejamento_familiar", "Planejamento familiar - concepção e contracepção (Prevenção à Gravidez) (0,5 pt)", 0.5),
+                            ("pre_natal", "Pré-Natal (0,5 pt)", 0.5),
+                            ("assistencia_parto", "Assistência ao parto, ao puerpério e ao neonato, incluindo aleitamento materno e doação de leite materno (0,5 pt)", 0.5),
+                            ("ist", "Prevenção às IST - Infecção Sexualmente Transmissível (0,5 pt)", 0.5),
+                            ("canceres", "Prevenção dos cânceres do colo do útero, de mama e da saúde do homem (0,5 pt)", 0.5),
+                            ("vacinacao", "Vacinação (0,5 pt)", 0.5),
+                            ("hipertensao", "Hipertensão (0,5 pt)", 0.5),
+                            ("diabetes", "Diabetes (0,5 pt)", 0.5),
+                            ("hanseniase", "Hanseníase (0,5 pt)", 0.5),
+                            ("hepatite", "Hepatite (0,5 pt)", 0.5),
+                            ("covid", "Coronavírus - COVID19 (0,5 pt)", 0.5),
+                            ("tuberculose", "Tuberculose (0,5 pt)", 0.5),
+                            ("chagas", "Doença de Chagas (0,5 pt)", 0.5),
+                            ("arboviroses", "Dengue/Zika/Chikungunya/Febre Amarela/Malária (Arboviroses) (0,5 pt)", 0.5),
+                            ("tabaco", "Tabaco (0,5 pt)", 0.5),
+                            ("drogas", "Drogas e entorpecentes (0,5 pt)", 0.5),
+                            ("saude_bucal", "Saúde Bucal (0,5 pt)", 0.5),
+                            ("doacao_sangue", "Doação de Sangue (0,5 pt)", 0.5),
+                            ("doacao_orgaos", "Doação de Órgãos (0,5 pt)", 0.5),
+                            ("depressao_suicidio", "Prevenção à Depressão e ao Suicídio (0,5 pt)", 0.5),
+                            ("hiv_aids", "HIV/Aids (0,0 pt)", 0.0),
+                            ("falciforme", "Doença Falciforme (0,0 pt)", 0.0),
+                            ("outros", "Outros (0,0 pt)", 0.0),
+                        ]
+
+                        state_241 = {
+                            "itens": {k: bool(raw_val_241.get(k, False)) for k, _, _ in campanhas_241},
+                            "link": str(d241.get("link") or ""),
+                        }
+
+                        chks_241 = {}
+                        for k, label_text, _ in campanhas_241:
+                            chk = ui.checkbox(label_text, value=state_241["itens"][k]).classes("mb-1")
+                            chk.bind_value(state_241["itens"], k)
+                            chks_241[k] = chk
+
+                        lbl_pts_241 = ui.label("Pontuação: 0.0").classes("text-sm font-bold text-green-600 my-3")
+
+                        def recalc_241():
+                            pts = sum(peso for k, _, peso in campanhas_241 if state_241["itens"][k])
+                            lbl_pts_241.set_text(f"📊 Pontuação Quesito 24.1: {pts:.1f} pontos")
+                            return pts
+
+                        for chk in chks_241.values():
+                            chk.on("update:model-value", recalc_241)
+
+                        recalc_241()
+
+                        ui.textarea(label="Link / Fotos, Folderes, Registros de Campanhas e Mídias Sociais:", value=state_241["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_241, "link")
+
+                        def salvar_241():
+                            pts = recalc_241()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="24.1",
+                                valor=state_241["itens"],
+                                pontos=pts,
+                                link=state_241["link"],
+                                comentarios=d241.get("comentarios", []),
+                                status=d241.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 24.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 24.1", on_click=salvar_241).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("24.1", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
