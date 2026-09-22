@@ -11972,6 +11972,221 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S8", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITOS S9 E S10
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S9 (Evolução da Quantidade de Internações - SIH/SUS)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S9 • Quantidade de Internações (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe a quantidade de internações em estabelecimentos de saúde sob gestão municipal "
+                            "nos exercícios de 2023, 2024 e 2025 para avaliar o crescimento em relação à média do biênio anterior:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds9 = res_data.get("S9") or {}
+                        val_s9 = ds9.get("valor") if isinstance(ds9.get("valor"), dict) else {}
+
+                        state_s9 = {
+                            "pihaa_2": float(val_s9.get("pihaa_2", 0.0)),
+                            "pihaa_1": float(val_s9.get("pihaa_1", 0.0)),
+                            "pihaa": float(val_s9.get("pihaa", 0.0)),
+                            "link": str(ds9.get("link") or "")
+                        }
+
+                        lbl_comparativo_s9 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s9 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s9(p2, p1, p):
+                            m_hist = (p2 + p1) / 2.0
+                            pts = -5.0 if p > m_hist else 0.0
+                            return m_hist, pts
+
+                        def atualizar_calculo_s9():
+                            p2_val = float(inp_p2.value or 0)
+                            p1_val = float(inp_p1.value or 0)
+                            p_val = float(inp_p.value or 0)
+
+                            m_hist, pts = calc_s9(p2_val, p1_val, p_val)
+
+                            lbl_comparativo_s9.set_text(
+                                f"• Média Biênio 2023-2024: {m_hist:.1f} internações | Realizado em 2025: {p_val:.0f} internações"
+                            )
+
+                            if p_val <= m_hist:
+                                lbl_pontos_s9.classes(remove="text-red-600", add="text-green-600")
+                                lbl_pontos_s9.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Internações dentro ou abaixo da média)")
+                            else:
+                                lbl_pontos_s9.classes(remove="text-green-600", add="text-red-600")
+                                lbl_pontos_s9.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Internações acima da média do biênio)")
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_p2 = ui.number(
+                                label="Internações em 2023 (PIHAA-2):",
+                                value=state_s9["pihaa_2"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_p1 = ui.number(
+                                label="Internações em 2024 (PIHAA-1):",
+                                value=state_s9["pihaa_1"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_p = ui.number(
+                                label="Internações em 2025 (PIHAA):",
+                                value=state_s9["pihaa"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_p2.on("update:model-value", lambda: atualizar_calculo_s9())
+                        inp_p1.on("update:model-value", lambda: atualizar_calculo_s9())
+                        inp_p.on("update:model-value", lambda: atualizar_calculo_s9())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SIH/SUS:",
+                            value=state_s9["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s9, "link")
+
+                        atualizar_calculo_s9()
+
+                        def salvar_s9():
+                            p2_val = float(inp_p2.value or 0)
+                            p1_val = float(inp_p1.value or 0)
+                            p_val = float(inp_p.value or 0)
+
+                            m_hist, pts = calc_s9(p2_val, p1_val, p_val)
+
+                            dados_finais = {
+                                "pihaa_2": p2_val,
+                                "pihaa_1": p1_val,
+                                "pihaa": p_val,
+                                "media_historica": round(m_hist, 2)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S9",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s9["link"],
+                                comentarios=ds9.get("comentarios", []),
+                                status=ds9.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S9 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S9", on_click=salvar_s9).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S9", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S10 (Especialidade Obstétrica - Permanência / Frequência - SIH/SUS)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S10 • Permanência em Especialidade Obstétrica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade obstétrica em 2025. "
+                            "O indicador avalia se a média de permanência (P / F) ultrapassa o limite de 3,1 dias:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds10 = res_data.get("S10") or {}
+                        val_s10 = ds10.get("valor") if isinstance(ds10.get("valor"), dict) else {}
+
+                        state_s10 = {
+                            "permanencia": float(val_s10.get("permanencia", 0.0)),
+                            "frequencia": float(val_s10.get("frequencia", 0.0)),
+                            "link": str(ds10.get("link") or "")
+                        }
+
+                        lbl_razao_s10 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s10 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s10(p, f):
+                            if f <= 0:
+                                return 0.0, 0.0
+                            razao = p / f
+                            pts = -2.0 if razao > 3.1 else 0.0
+                            return razao, pts
+
+                        def atualizar_calculo_s10():
+                            p_val = float(inp_permanencia.value or 0)
+                            f_val = float(inp_frequencia.value or 0)
+
+                            razao, pts = calc_s10(p_val, f_val)
+
+                            if f_val > 0:
+                                lbl_razao_s10.set_text(f"• Média de Permanência (P / F): {razao:.2f} dias")
+                                if razao <= 3.1:
+                                    lbl_pontos_s10.classes(remove="text-red-600", add="text-green-600")
+                                    lbl_pontos_s10.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Permanência ≤ 3.1 dias)")
+                                else:
+                                    lbl_pontos_s10.classes(remove="text-green-600", add="text-red-600")
+                                    lbl_pontos_s10.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Permanência > 3.1 dias)")
+                            else:
+                                lbl_razao_s10.set_text("• Média de Permanência (P / F): Informe a Frequência")
+                                lbl_pontos_s10.set_text("")
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            inp_permanencia = ui.number(
+                                label="Permanência - total de dias (P):",
+                                value=state_s10["permanencia"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_frequencia = ui.number(
+                                label="Frequência - número de AIHs/internações (F):",
+                                value=state_s10["frequencia"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_permanencia.on("update:model-value", lambda: atualizar_calculo_s10())
+                        inp_frequencia.on("update:model-value", lambda: atualizar_calculo_s10())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SIH/SUS:",
+                            value=state_s10["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s10, "link")
+
+                        atualizar_calculo_s10()
+
+                        def salvar_s10():
+                            p_val = float(inp_permanencia.value or 0)
+                            f_val = float(inp_frequencia.value or 0)
+
+                            razao, pts = calc_s10(p_val, f_val)
+
+                            dados_finais = {
+                                "permanencia": p_val,
+                                "frequencia": f_val,
+                                "razao": round(razao, 4)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S10",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s10["link"],
+                                comentarios=ds10.get("comentarios", []),
+                                status=ds10.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S10 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S10", on_click=salvar_s10).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S10", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
