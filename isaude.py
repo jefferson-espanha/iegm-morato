@@ -9076,6 +9076,345 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("28.2.2", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE DETALHAMENTO DE TEMPOS DE ESPERA - QUESITOS 28.2.3 A 28.2.7
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 28.2.3 (Terapias/Tratamentos Médicos com Maior Tempo de Espera)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("28.2.3 • Terapias/Tratamentos Médicos com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Informe as 3 terapias/tratamentos médicos com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+
+                        d2823 = res_data.get("28.2.3") or {}
+                        raw_val_2823 = d2823.get("valor") or {}
+                        if not isinstance(raw_val_2823, dict):
+                            raw_val_2823 = {}
+
+                        state_2823 = {
+                            "terapia_1": str(raw_val_2823.get("terapia_1") or ""),
+                            "dias_1": parse_num(raw_val_2823.get("dias_1")),
+                            "terapia_2": str(raw_val_2823.get("terapia_2") or ""),
+                            "dias_2": parse_num(raw_val_2823.get("dias_2")),
+                            "terapia_3": str(raw_val_2823.get("terapia_3") or ""),
+                            "dias_3": parse_num(raw_val_2823.get("dias_3")),
+                            "link": str(d2823.get("link") or ""),
+                        }
+
+                        ui.label("1ª Terapia / Tratamento:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da terapia/tratamento médico", value=state_2823["terapia_1"]).classes("w-2/3").bind_value(state_2823, "terapia_1")
+                            ui.number("Tempo médio (dias)", value=state_2823["dias_1"]).classes("w-1/3").bind_value(state_2823, "dias_1")
+
+                        ui.label("2ª Terapia / Tratamento:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da terapia/tratamento médico", value=state_2823["terapia_2"]).classes("w-2/3").bind_value(state_2823, "terapia_2")
+                            ui.number("Tempo médio (dias)", value=state_2823["dias_2"]).classes("w-1/3").bind_value(state_2823, "dias_2")
+
+                        ui.label("3ª Terapia / Tratamento:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da terapia/tratamento médico", value=state_2823["terapia_3"]).classes("w-2/3").bind_value(state_2823, "terapia_3")
+                            ui.number("Tempo médio (dias)", value=state_2823["dias_3"]).classes("w-1/3").bind_value(state_2823, "dias_3")
+
+                        ui.label("Nota 28.2.3: Informativo (0.0 pontos)").classes("text-sm font-bold text-green-600 my-2")
+
+                        ui.textarea(label="Link / Relatório Gerencial (Terapias/Tratamentos):", value=state_2823["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_2823, "link")
+
+                        def salvar_2823():
+                            payload_2823 = {
+                                "terapia_1": state_2823["terapia_1"],
+                                "dias_1": parse_num(state_2823["dias_1"]),
+                                "terapia_2": state_2823["terapia_2"],
+                                "dias_2": parse_num(state_2823["dias_2"]),
+                                "terapia_3": state_2823["terapia_3"],
+                                "dias_3": parse_num(state_2823["dias_3"]),
+                            }
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="28.2.3",
+                                valor=payload_2823,
+                                pontos=0.0,
+                                link=state_2823["link"],
+                                comentarios=d2823.get("comentarios", []),
+                                status=d2823.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 28.2.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 28.2.3", on_click=salvar_2823).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("28.2.3", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 28.2.4 (Medicamentos com Maior Tempo de Espera)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("28.2.4 • Medicamentos com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Informe os 3 medicamentos com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+
+                        d2824 = res_data.get("28.2.4") or {}
+                        raw_val_2824 = d2824.get("valor") or {}
+                        if not isinstance(raw_val_2824, dict):
+                            raw_val_2824 = {}
+
+                        state_2824 = {
+                            "med_1": str(raw_val_2824.get("med_1") or ""),
+                            "dias_1": parse_num(raw_val_2824.get("dias_1")),
+                            "med_2": str(raw_val_2824.get("med_2") or ""),
+                            "dias_2": parse_num(raw_val_2824.get("dias_2")),
+                            "med_3": str(raw_val_2824.get("med_3") or ""),
+                            "dias_3": parse_num(raw_val_2824.get("dias_3")),
+                            "link": str(d2824.get("link") or ""),
+                        }
+
+                        ui.label("1º Medicamento:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição do medicamento", value=state_2824["med_1"]).classes("w-2/3").bind_value(state_2824, "med_1")
+                            ui.number("Tempo médio (dias)", value=state_2824["dias_1"]).classes("w-1/3").bind_value(state_2824, "dias_1")
+
+                        ui.label("2º Medicamento:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição do medicamento", value=state_2824["med_2"]).classes("w-2/3").bind_value(state_2824, "med_2")
+                            ui.number("Tempo médio (dias)", value=state_2824["dias_2"]).classes("w-1/3").bind_value(state_2824, "dias_2")
+
+                        ui.label("3º Medicamento:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição do medicamento", value=state_2824["med_3"]).classes("w-2/3").bind_value(state_2824, "med_3")
+                            ui.number("Tempo médio (dias)", value=state_2824["dias_3"]).classes("w-1/3").bind_value(state_2824, "dias_3")
+
+                        ui.label("Nota 28.2.4: Informativo (0.0 pontos)").classes("text-sm font-bold text-green-600 my-2")
+
+                        ui.textarea(label="Link / Relatório Gerencial (Medicamentos):", value=state_2824["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_2824, "link")
+
+                        def salvar_2824():
+                            payload_2824 = {
+                                "med_1": state_2824["med_1"],
+                                "dias_1": parse_num(state_2824["dias_1"]),
+                                "med_2": state_2824["med_2"],
+                                "dias_2": parse_num(state_2824["dias_2"]),
+                                "med_3": state_2824["med_3"],
+                                "dias_3": parse_num(state_2824["dias_3"]),
+                            }
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="28.2.4",
+                                valor=payload_2824,
+                                pontos=0.0,
+                                link=state_2824["link"],
+                                comentarios=d2824.get("comentarios", []),
+                                status=d2824.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 28.2.4 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 28.2.4", on_click=salvar_2824).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("28.2.4", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 28.2.5 (OPM com Maior Tempo de Espera)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("28.2.5 • OPM (Órteses, Próteses e Materiais) com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Informe as 3 OPM com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+
+                        d2825 = res_data.get("28.2.5") or {}
+                        raw_val_2825 = d2825.get("valor") or {}
+                        if not isinstance(raw_val_2825, dict):
+                            raw_val_2825 = {}
+
+                        state_2825 = {
+                            "opm_1": str(raw_val_2825.get("opm_1") or ""),
+                            "dias_1": parse_num(raw_val_2825.get("dias_1")),
+                            "opm_2": str(raw_val_2825.get("opm_2") or ""),
+                            "dias_2": parse_num(raw_val_2825.get("dias_2")),
+                            "opm_3": str(raw_val_2825.get("opm_3") or ""),
+                            "dias_3": parse_num(raw_val_2825.get("dias_3")),
+                            "link": str(d2825.get("link") or ""),
+                        }
+
+                        ui.label("1ª OPM:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da OPM", value=state_2825["opm_1"]).classes("w-2/3").bind_value(state_2825, "opm_1")
+                            ui.number("Tempo médio (dias)", value=state_2825["dias_1"]).classes("w-1/3").bind_value(state_2825, "dias_1")
+
+                        ui.label("2ª OPM:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da OPM", value=state_2825["opm_2"]).classes("w-2/3").bind_value(state_2825, "opm_2")
+                            ui.number("Tempo médio (dias)", value=state_2825["dias_2"]).classes("w-1/3").bind_value(state_2825, "dias_2")
+
+                        ui.label("3ª OPM:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da OPM", value=state_2825["opm_3"]).classes("w-2/3").bind_value(state_2825, "opm_3")
+                            ui.number("Tempo médio (dias)", value=state_2825["dias_3"]).classes("w-1/3").bind_value(state_2825, "dias_3")
+
+                        ui.label("Nota 28.2.5: Informativo (0.0 pontos)").classes("text-sm font-bold text-green-600 my-2")
+
+                        ui.textarea(label="Link / Relatório Gerencial (OPM):", value=state_2825["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_2825, "link")
+
+                        def salvar_2825():
+                            payload_2825 = {
+                                "opm_1": state_2825["opm_1"],
+                                "dias_1": parse_num(state_2825["dias_1"]),
+                                "opm_2": state_2825["opm_2"],
+                                "dias_2": parse_num(state_2825["dias_2"]),
+                                "opm_3": state_2825["opm_3"],
+                                "dias_3": parse_num(state_2825["dias_3"]),
+                            }
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="28.2.5",
+                                valor=payload_2825,
+                                pontos=0.0,
+                                link=state_2825["link"],
+                                comentarios=d2825.get("comentarios", []),
+                                status=d2825.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 28.2.5 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 28.2.5", on_click=salvar_2825).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("28.2.5", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 28.2.6 (Cirurgias Eletivas com Maior Tempo de Espera)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("28.2.6 • Cirurgias Eletivas com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Informe as 3 cirurgias eletivas da Atenção Especializada com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+
+                        d2826 = res_data.get("28.2.6") or {}
+                        raw_val_2826 = d2826.get("valor") or {}
+                        if not isinstance(raw_val_2826, dict):
+                            raw_val_2826 = {}
+
+                        state_2826 = {
+                            "cirurgia_1": str(raw_val_2826.get("cirurgia_1") or ""),
+                            "dias_1": parse_num(raw_val_2826.get("dias_1")),
+                            "cirurgia_2": str(raw_val_2826.get("cirurgia_2") or ""),
+                            "dias_2": parse_num(raw_val_2826.get("dias_2")),
+                            "cirurgia_3": str(raw_val_2826.get("cirurgia_3") or ""),
+                            "dias_3": parse_num(raw_val_2826.get("dias_3")),
+                            "link": str(d2826.get("link") or ""),
+                        }
+
+                        ui.label("1ª Cirurgia Eletiva:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da cirurgia eletiva", value=state_2826["cirurgia_1"]).classes("w-2/3").bind_value(state_2826, "cirurgia_1")
+                            ui.number("Tempo médio (dias)", value=state_2826["dias_1"]).classes("w-1/3").bind_value(state_2826, "dias_1")
+
+                        ui.label("2ª Cirurgia Eletiva:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da cirurgia eletiva", value=state_2826["cirurgia_2"]).classes("w-2/3").bind_value(state_2826, "cirurgia_2")
+                            ui.number("Tempo médio (dias)", value=state_2826["dias_2"]).classes("w-1/3").bind_value(state_2826, "dias_2")
+
+                        ui.label("3ª Cirurgia Eletiva:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da cirurgia eletiva", value=state_2826["cirurgia_3"]).classes("w-2/3").bind_value(state_2826, "cirurgia_3")
+                            ui.number("Tempo médio (dias)", value=state_2826["dias_3"]).classes("w-1/3").bind_value(state_2826, "dias_3")
+
+                        ui.label("Nota 28.2.6: Informativo (0.0 pontos)").classes("text-sm font-bold text-green-600 my-2")
+
+                        ui.textarea(label="Link / Relatório Gerencial (Cirurgias Eletivas):", value=state_2826["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_2826, "link")
+
+                        def salvar_2826():
+                            payload_2826 = {
+                                "cirurgia_1": state_2826["cirurgia_1"],
+                                "dias_1": parse_num(state_2826["dias_1"]),
+                                "cirurgia_2": state_2826["cirurgia_2"],
+                                "dias_2": parse_num(state_2826["dias_2"]),
+                                "cirurgia_3": state_2826["cirurgia_3"],
+                                "dias_3": parse_num(state_2826["dias_3"]),
+                            }
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="28.2.6",
+                                valor=payload_2826,
+                                pontos=0.0,
+                                link=state_2826["link"],
+                                comentarios=d2826.get("comentarios", []),
+                                status=d2826.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 28.2.6 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 28.2.6", on_click=salvar_2826).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("28.2.6", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 28.2.7 (Outros Serviços da Atenção Especializada com Maior Tempo de Espera)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("28.2.7 • Outros Serviços da Atenção Especializada com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Informe os 3 outros serviços da Atenção Especializada com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+
+                        d2827 = res_data.get("28.2.7") or {}
+                        raw_val_2827 = d2827.get("valor") or {}
+                        if not isinstance(raw_val_2827, dict):
+                            raw_val_2827 = {}
+
+                        state_2827 = {
+                            "servico_1": str(raw_val_2827.get("servico_1") or ""),
+                            "dias_1": parse_num(raw_val_2827.get("dias_1")),
+                            "servico_2": str(raw_val_2827.get("servico_2") or ""),
+                            "dias_2": parse_num(raw_val_2827.get("dias_2")),
+                            "servico_3": str(raw_val_2827.get("servico_3") or ""),
+                            "dias_3": parse_num(raw_val_2827.get("dias_3")),
+                            "link": str(d2827.get("link") or ""),
+                        }
+
+                        ui.label("1º Outro Serviço:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição do Serviço", value=state_2827["servico_1"]).classes("w-2/3").bind_value(state_2827, "servico_1")
+                            ui.number("Tempo médio (dias)", value=state_2827["dias_1"]).classes("w-1/3").bind_value(state_2827, "dias_1")
+
+                        ui.label("2º Outro Serviço:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição do Serviço", value=state_2827["servico_2"]).classes("w-2/3").bind_value(state_2827, "servico_2")
+                            ui.number("Tempo médio (dias)", value=state_2827["dias_2"]).classes("w-1/3").bind_value(state_2827, "dias_2")
+
+                        ui.label("3º Outro Serviço:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição do Serviço", value=state_2827["servico_3"]).classes("w-2/3").bind_value(state_2827, "servico_3")
+                            ui.number("Tempo médio (dias)", value=state_2827["dias_3"]).classes("w-1/3").bind_value(state_2827, "dias_3")
+
+                        ui.label("Nota 28.2.7: Informativo (0.0 pontos)").classes("text-sm font-bold text-green-600 my-2")
+
+                        ui.textarea(label="Link / Relatório Gerencial (Outros Serviços):", value=state_2827["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_2827, "link")
+
+                        def salvar_2827():
+                            payload_2827 = {
+                                "servico_1": state_2827["servico_1"],
+                                "dias_1": parse_num(state_2827["dias_1"]),
+                                "servico_2": state_2827["servico_2"],
+                                "dias_2": parse_num(state_2827["dias_2"]),
+                                "servico_3": state_2827["servico_3"],
+                                "dias_3": parse_num(state_2827["dias_3"]),
+                            }
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="28.2.7",
+                                valor=payload_2827,
+                                pontos=0.0,
+                                link=state_2827["link"],
+                                comentarios=d2827.get("comentarios", []),
+                                status=d2827.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 28.2.7 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 28.2.7", on_click=salvar_2827).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("28.2.7", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
