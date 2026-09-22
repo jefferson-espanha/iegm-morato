@@ -9670,7 +9670,7 @@ def container_formulario_saude(ano=None):
                     # =============================================================================
 
                     # -----------------------------------------------------------------------------
-                    # QUESITO 31.1 (Tempo de Resposta em Minutos dos Atendimentos do SAMU)
+                    # QUESITO 31.1 (Tempo de Resposta em Minutos dos Atendimentos do SAMU) - CORRIGIDO
                     # -----------------------------------------------------------------------------
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("31.1 • Tempo de Resposta dos Atendimentos do SAMU (ou equivalente)").classes("text-xl font-semibold text-blue-600 mb-2")
@@ -9704,9 +9704,10 @@ def container_formulario_saude(ano=None):
                         lbl_pontos_311 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
 
                         def calc_pontos_311():
-                            t23 = parse_num(state_311["tmr_2023"])
-                            t24 = parse_num(state_311["tmr_2024"])
-                            t25 = parse_num(state_311["tmr_2025"])
+                            # Trata None convertendo para float 0.0 com segurança
+                            t23 = float(parse_num(state_311["tmr_2023"]) or 0)
+                            t24 = float(parse_num(state_311["tmr_2024"]) or 0)
+                            t25 = float(parse_num(state_311["tmr_2025"]) or 0)
 
                             # Se os três anos estiverem preenchidos com valores válidos (>0)
                             if t23 > 0 and t24 > 0 and t25 > 0:
