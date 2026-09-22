@@ -9415,6 +9415,256 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("28.2.7", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # MÓDULO DE CADASTRO, REGULAÇÃO E ATENÇÃO PRÉ-HOSPITALAR - QUESITOS 29 A 31
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 29.0 (Cadastro CNES)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("29.0 • Atualização do CNES").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município mantém atualizado o Cadastro de Estabelecimentos e Profissionais de Saúde (CNES)?").classes("text-sm text-gray-700 mb-4")
+
+                        d290 = res_data.get("29.0") or {}
+                        state_290 = {
+                            "opcao": d290.get("valor") if isinstance(d290.get("valor"), str) else "Não",
+                            "link": str(d290.get("link") or "")
+                        }
+
+                        opts_290 = [
+                            "SIM, os cadastros de estabelecimentos e de profissionais estão atualizados",
+                            "Sim, somente o cadastro de estabelecimentos está atualizado",
+                            "Sim, somente o cadastro de profissionais está atualizado",
+                            "Não"
+                        ]
+
+                        lbl_pontos_290 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                        def calc_pontos_290(v):
+                            if v == "SIM, os cadastros de estabelecimentos e de profissionais estão atualizados":
+                                return 15.0
+                            elif v in ["Sim, somente o cadastro de estabelecimentos está atualizado", "Sim, somente o cadastro de profissionais está atualizado"]:
+                                return 5.0
+                            return 0.0
+
+                        def atualizar_pontos_290():
+                            pts = calc_pontos_290(state_290["opcao"])
+                            lbl_pontos_290.set_text(f"Pontuação Calculada: {pts:.1f} / 15.0 pontos")
+
+                        radio_290 = ui.radio(opts_290, value=state_290["opcao"]).classes("mb-3").bind_value(state_290, "opcao")
+                        radio_290.on("update:model-value", lambda: atualizar_pontos_290())
+
+                        ui.textarea(label="Link / Comprovação de Atualização CNES:", value=state_290["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_290, "link")
+
+                        atualizar_pontos_290()
+
+                        def salvar_290():
+                            pts = calc_pontos_290(state_290["opcao"])
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="29.0",
+                                valor=state_290["opcao"],
+                                pontos=pts,
+                                link=state_290["link"],
+                                comentarios=d290.get("comentarios", []),
+                                status=d290.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 29.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 29.0", on_click=salvar_290).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("29.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 30.0 (Complexo Regulador Municipal)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("30.0 • Complexo Regulador Municipal").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município possui Complexo Regulador Municipal?").classes("text-sm text-gray-700 mb-4")
+
+                        d300 = res_data.get("30.0") or {}
+                        state_300 = {
+                            "opcao": d300.get("valor") if isinstance(d300.get("valor"), str) else "Não",
+                            "link": str(d300.get("link") or "")
+                        }
+
+                        lbl_pontos_300 = ui.label("Nota 30.0: Informativo (0.0 pontos)").classes("text-sm font-bold text-gray-600 my-2")
+
+                        radio_300 = ui.radio(["Sim", "Não"], value=state_300["opcao"]).classes("mb-3").bind_value(state_300, "opcao")
+
+                        ui.textarea(label="Link / Legislação / Ato de Criação do Complexo Regulador:", value=state_300["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_300, "link")
+
+                        def salvar_300():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="30.0",
+                                valor=state_300["opcao"],
+                                pontos=0.0,
+                                link=state_300["link"],
+                                comentarios=d300.get("comentarios", []),
+                                status=d300.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 30.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 30.0", on_click=salvar_300).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("30.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 30.1 (Central de Regulação) - Condicionado a 30.0 = Sim
+                    # -----------------------------------------------------------------------------
+                    if state_300["opcao"] == "Sim":
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
+                            ui.label("30.1 • Central de Regulação").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("O Complexo Regulador Municipal possui Central de Regulação?").classes("text-sm text-gray-700 mb-4")
+
+                            d301 = res_data.get("30.1") or {}
+                            state_301 = {
+                                "opcao": d301.get("valor") if isinstance(d301.get("valor"), str) else "Não",
+                                "link": str(d301.get("link") or "")
+                            }
+
+                            lbl_pontos_301 = ui.label("Nota 30.1: Informativo (0.0 pontos)").classes("text-sm font-bold text-gray-600 my-2")
+
+                            radio_301 = ui.radio(["Sim", "Não"], value=state_301["opcao"]).classes("mb-3").bind_value(state_301, "opcao")
+
+                            ui.textarea(label="Link / Documento da Central de Regulação:", value=state_301["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_301, "link")
+
+                            def salvar_301():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="30.1",
+                                    valor=state_301["opcao"],
+                                    pontos=0.0,
+                                    link=state_301["link"],
+                                    comentarios=d301.get("comentarios", []),
+                                    status=d301.get("status", "Pendente")
+                                )
+                                ui.notify("Quesito 30.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 30.1", on_click=salvar_301).classes("bg-blue-600 text-white font-bold my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("30.1", res_data, render_conteudo.refresh)
+
+                        # -------------------------------------------------------------------------
+                        # QUESITO 30.1.1 (Tipos de Central de Regulação) - Condicionado a 30.1 = Sim
+                        # -------------------------------------------------------------------------
+                        if state_301["opcao"] == "Sim":
+                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-8"):
+                                ui.label("30.1.1 • Tipos de Central de Regulação").classes("text-xl font-semibold text-blue-600 mb-2")
+                                ui.label("Assinale os tipos de central de regulação municipal ou regional utilizados pelo município:").classes("text-sm text-gray-700 mb-4")
+
+                                d3011 = res_data.get("30.1.1") or {}
+                                raw_val_3011 = d3011.get("valor") or []
+                                if not isinstance(raw_val_3011, list):
+                                    raw_val_3011 = []
+
+                                state_3011 = {
+                                    "urgencia": "Central de Urgência" in raw_val_3011,
+                                    "internacoes": "Central de Internações" in raw_val_3011,
+                                    "consultas": "Central de Consultas e Serviços de Apoio Diagnóstico e Terapêutico" in raw_val_3011,
+                                    "link": str(d3011.get("link") or "")
+                                }
+
+                                lbl_pontos_3011 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
+
+                                def calc_pontos_3011():
+                                    p = 0.0
+                                    if state_3011["urgencia"]:
+                                        p += 3.0
+                                    if state_3011["internacoes"]:
+                                        p += 3.0
+                                    if state_3011["consultas"]:
+                                        p += 3.0
+                                    return p
+
+                                def atualizar_pontos_3011():
+                                    pts = calc_pontos_3011()
+                                    lbl_pontos_3011.set_text(f"Pontuação Calculada: {pts:.1f} / 9.0 pontos")
+
+                                cb_urg = ui.checkbox("Central de Urgência (3,0 pontos)", value=state_3011["urgencia"]).bind_value(state_3011, "urgencia")
+                                cb_int = ui.checkbox("Central de Internações (3,0 pontos)", value=state_3011["internacoes"]).bind_value(state_3011, "internacoes")
+                                cb_con = ui.checkbox("Central de Consultas e Serviços de Apoio Diagnóstico e Terapêutico (3,0 pontos)", value=state_3011["consultas"]).bind_value(state_3011, "consultas")
+
+                                cb_urg.on("change", lambda: atualizar_pontos_3011())
+                                cb_int.on("change", lambda: atualizar_pontos_3011())
+                                cb_con.on("change", lambda: atualizar_pontos_3011())
+
+                                ui.textarea(label="Link / Portaria de Habilitação das Centrais:", value=state_3011["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_3011, "link")
+
+                                atualizar_pontos_3011()
+
+                                def salvar_3011():
+                                    sel_list = []
+                                    if state_3011["urgencia"]:
+                                        sel_list.append("Central de Urgência")
+                                    if state_3011["internacoes"]:
+                                        sel_list.append("Central de Internações")
+                                    if state_3011["consultas"]:
+                                        sel_list.append("Central de Consultas e Serviços de Apoio Diagnóstico e Terapêutico")
+
+                                    pts = calc_pontos_3011()
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="30.1.1",
+                                        valor=sel_list,
+                                        pontos=pts,
+                                        link=state_3011["link"],
+                                        comentarios=d3011.get("comentarios", []),
+                                        status=d3011.get("status", "Pendente")
+                                    )
+                                    ui.notify("Quesito 30.1.1 salvo com sucesso!", type="positive")
+                                    if render_conteudo.refresh:
+                                        render_conteudo.refresh()
+
+                                ui.button("💾 SALVAR QUESITO 30.1.1", on_click=salvar_3011).classes("bg-blue-600 text-white font-bold my-2")
+                                ui.separator().classes("my-2")
+                                bloco_comentarios("30.1.1", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 31.0 (Atenção Pré-Hospitalar e Central SAMU 192)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("31.0 • Atenção Pré-Hospitalar e Central SAMU 192").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município possui serviços de atenção pré-hospitalar e Central Samu 192 ou integra Central Samu 192 de abrangência regional?").classes("text-sm text-gray-700 mb-4")
+
+                        d310 = res_data.get("31.0") or {}
+                        state_310 = {
+                            "opcao": d310.get("valor") if isinstance(d310.get("valor"), str) else "Não",
+                            "link": str(d310.get("link") or "")
+                        }
+
+                        lbl_pontos_310 = ui.label("Nota 31.0: Informativo (0.0 pontos)").classes("text-sm font-bold text-gray-600 my-2")
+
+                        radio_310 = ui.radio(["Sim", "Não"], value=state_310["opcao"]).classes("mb-3").bind_value(state_310, "opcao")
+
+                        ui.textarea(label="Link / Termo de Adesão / Portaria SAMU 192:", value=state_310["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_310, "link")
+
+                        def salvar_310():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="31.0",
+                                valor=state_310["opcao"],
+                                pontos=0.0,
+                                link=state_310["link"],
+                                comentarios=d310.get("comentarios", []),
+                                status=d310.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 31.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 31.0", on_click=salvar_310).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("31.0", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
