@@ -3095,6 +3095,261 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("17.1.1", res_data, render_conteudo.refresh)
 
+                    # =============================================================================
+                    # QUESITO 17.1.2 (Jornada dos Médicos Plantonistas da Atenção Especializada)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.1.2 • Cumprimento de Jornada dos Médicos Plantonistas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Os médicos plantonistas da Atenção Especializada sob gestão municipal cumprem integralmente sua jornada de trabalho?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d1712 = res_data.get("17.1.2") or {}
+                        raw_val_1712 = str(d1712.get("valor", "none"))
+                        raw_link_1712 = str(d1712.get("link") or "")
+
+                        state_1712 = {
+                            "opcao": raw_val_1712 if raw_val_1712 in ["00_todos", "-01", "-03", "-05", "00_np"] else "none",
+                            "link": raw_link_1712,
+                        }
+
+                        opts_1712 = {
+                            "none": "Selecione uma opção...",
+                            "00_todos": "Sim, todos cumprem integralmente a jornada de trabalho – 00 pt (não perde pontos)",
+                            "-01": "Sim, a maior parte dos médicos cumpre a jornada de trabalho – -01 pt (perde 01 ponto)",
+                            "-03": "Sim, a menor parte dos médicos cumprem a jornada de trabalho – -03 pts (perde 03 pontos)",
+                            "-05": "Não – -05 pts (perde 05 pontos)",
+                            "00_np": "Não possui médicos plantonistas – 00 pt (não perde pontos)",
+                        }
+
+                        rad_1712 = ui.radio(
+                            options=opts_1712,
+                            value=state_1712["opcao"]
+                        ).classes("mb-4")
+                        rad_1712.bind_value(state_1712, "opcao")
+
+                        lbl_pts_1712 = ui.label("Nota 17.1.2: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1712():
+                            val = state_1712["opcao"]
+                            if val in ["00_todos", "00_np"]:
+                                pts = 0.0
+                            elif val != "none":
+                                pts = float(val)
+                            else:
+                                pts = 0.0
+                            lbl_pts_1712.set_text(f"📊 Nota 17.1.2: {pts:.1f} pontos")
+                            return pts
+
+                        rad_1712.on("update:model-value", recalc_1712)
+                        recalc_1712()
+
+                        ui.textarea(
+                            label="Link de Evidência / Escalas de Plantão e Registros de Ponto:",
+                            value=raw_link_1712,
+                            placeholder="Link com escalas mensais, folhas de ponto ou auditoria...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1712, "link"
+                        )
+
+                        def salvar_1712():
+                            pts = recalc_1712()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.1.2",
+                                valor=state_1712["opcao"],
+                                pontos=pts,
+                                link=state_1712["link"],
+                                comentarios=d1712.get("comentarios", []),
+                                status=d1712.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.1.2 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.1.2", on_click=salvar_1712).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.1.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.2 (Intervalo de Agendamento das Consultas Médicas)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.2 • Intervalo de Agendamento das Consultas Médicas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale o intervalo de agendamento das consultas médicas da Atenção Especializada sob gestão municipal:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d172 = res_data.get("17.2") or {}
+                        raw_val_172 = d172.get("valor") or {}
+
+                        if not isinstance(raw_val_172, dict):
+                            raw_val_172 = {}
+
+                        raw_link_172 = str(d172.get("link") or "")
+
+                        state_172 = {
+                            "pronto_atendimento": bool(raw_val_172.get("pronto_atendimento", False)),
+                            "horario_15min": bool(raw_val_172.get("horario_15min", False)),
+                            "horario_menos_15min": bool(raw_val_172.get("horario_menos_15min", False)),
+                            "mesmo_horario": bool(raw_val_172.get("mesmo_horario", False)),
+                            "link": raw_link_172,
+                        }
+
+                        chk_pa = ui.checkbox("Não há agendamento de consultas da Atenção Especializada, pois todas são de pronto atendimento – 00 pt", value=state_172["pronto_atendimento"])
+                        chk_pa.bind_value(state_172, "pronto_atendimento")
+
+                        chk_15 = ui.checkbox("Agendamento de cada paciente em horário único com, no mínimo, 15 minutos de atendimento – 00 pt", value=state_172["horario_15min"])
+                        chk_15.bind_value(state_172, "horario_15min")
+
+                        chk_menos_15 = ui.checkbox("Agendamento de cada paciente em horário único com menos de 15 minutos de atendimento – -0,5 pt (perde 0,5 ponto)", value=state_172["horario_menos_15min"])
+                        chk_menos_15.bind_value(state_172, "horario_menos_15min")
+
+                        chk_mesmo = ui.checkbox("Agendamento de 2 ou mais pacientes no mesmo horário – -0,5 pt (perde 0,5 ponto)", value=state_172["mesmo_horario"])
+                        chk_mesmo.bind_value(state_172, "mesmo_horario")
+
+                        lbl_pts_172 = ui.label("Nota 17.2: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_172():
+                            pts = 0.0
+                            if state_172["horario_menos_15min"]:
+                                pts -= 0.5
+                            if state_172["mesmo_horario"]:
+                                pts -= 0.5
+                            lbl_pts_172.set_text(f"📊 Nota 17.2: {pts:.1f} pontos")
+                            return pts
+
+                        for chk in [chk_pa, chk_15, chk_menos_15, chk_mesmo]:
+                            chk.on("update:model-value", recalc_172)
+
+                        recalc_172()
+
+                        ui.textarea(
+                            label="Link de Evidência / Grade de Agendamento das Especialidades:",
+                            value=raw_link_172,
+                            placeholder="Link do sistema de agendamento ou parâmetro de consultas...",
+                        ).classes("w-full mb-4 mt-2").props("outlined rows=2").bind_value(
+                            state_172, "link"
+                        )
+
+                        def salvar_172():
+                            pts = recalc_172()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.2",
+                                valor={
+                                    "pronto_atendimento": state_172["pronto_atendimento"],
+                                    "horario_15min": state_172["horario_15min"],
+                                    "horario_menos_15min": state_172["horario_menos_15min"],
+                                    "mesmo_horario": state_172["mesmo_horario"],
+                                },
+                                pontos=pts,
+                                link=state_172["link"],
+                                comentarios=d172.get("comentarios", []),
+                                status=d172.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.2 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.2", on_click=salvar_172).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.3 (Controle de Absenteísmo de Consultas na Atenção Especializada)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.3 • Controle de Absenteísmo na Atenção Especializada").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município possui controle de absenteísmo de consultas médicas da Atenção Especializada sob gestão municipal?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d173 = res_data.get("17.3") or {}
+                        raw_val_173 = str(d173.get("valor", "none"))
+                        raw_link_173 = str(d173.get("link") or "")
+
+                        state_173 = {
+                            "opcao": raw_val_173 if raw_val_173 in ["00", "-01", "-02", "-03"] else "none",
+                            "link": raw_link_173,
+                        }
+
+                        opts_173 = {
+                            "none": "Selecione uma opção...",
+                            "00": "Sim, para todas as consultas médicas – 00 pt (não perde pontos)",
+                            "-01": "Sim, para a maior parte das consultas médicas – -01 pt (perde 01 ponto)",
+                            "-02": "Sim, para a menor parte das consultas médicas – -02 pts (perde 02 pontos)",
+                            "-03": "Não – -03 pts (perde 03 pontos)",
+                        }
+
+                        rad_173 = ui.radio(
+                            options=opts_173,
+                            value=state_173["opcao"]
+                        ).classes("mb-4")
+                        rad_173.bind_value(state_173, "opcao")
+
+                        lbl_pts_173 = ui.label("Nota 17.3: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_173():
+                            val = state_173["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_173.set_text(f"📊 Nota 17.3: {pts:.1f} pontos")
+                            return pts
+
+                        rad_173.on("update:model-value", recalc_173)
+                        recalc_173()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatórios de Absenteísmo Especializado:",
+                            value=raw_link_173,
+                            placeholder="Link das planilhas ou relatórios de absenteísmo em especialidades...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_173, "link"
+                        )
+
+                        def salvar_173():
+                            pts = recalc_173()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.3",
+                                valor=state_173["opcao"],
+                                pontos=pts,
+                                link=state_173["link"],
+                                comentarios=d173.get("comentarios", []),
+                                status=d173.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.3 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.3", on_click=salvar_173).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.3", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
