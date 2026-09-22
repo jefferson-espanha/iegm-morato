@@ -4403,6 +4403,375 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("17.5.2.1", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 17.5.2.1.1 (Consultas Médicas com Maior Tempo de Espera)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.5.2.1.1 • Maior Tempo de Espera - Consultas Médicas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe as 3 consultas médicas com maior tempo de espera:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d175211 = res_data.get("17.5.2.1.1") or {}
+                        raw_val_175211 = d175211.get("valor") or {}
+                        if not isinstance(raw_val_175211, dict):
+                            raw_val_175211 = {}
+
+                        raw_link_175211 = str(d175211.get("link") or "")
+
+                        state_175211 = {
+                            "esp_1": str(raw_val_175211.get("esp_1", "")),
+                            "tempo_1": raw_val_175211.get("tempo_1", None),
+                            "esp_2": str(raw_val_175211.get("esp_2", "")),
+                            "tempo_2": raw_val_175211.get("tempo_2", None),
+                            "esp_3": str(raw_val_175211.get("esp_3", "")),
+                            "tempo_3": raw_val_175211.get("tempo_3", None),
+                            "link": raw_link_175211,
+                        }
+
+                        # Item 1
+                        ui.label("1ª Consulta Médica:").classes("text-sm font-bold text-gray-700 mt-2")
+                        with ui.row().classes("w-full gap-4 items-center"):
+                            ui.input(
+                                label="Descrição da especialidade médica:",
+                                value=state_175211["esp_1"]
+                            ).classes("flex-1").props("outlined density=compact").bind_value(
+                                state_175211, "esp_1"
+                            )
+                            ui.number(
+                                label="Tempo médio de espera (dias):",
+                                value=state_175211["tempo_1"],
+                                min=0,
+                                precision=0
+                            ).classes("w-64").props("outlined density=compact").bind_value(
+                                state_175211, "tempo_1"
+                            )
+
+                        # Item 2
+                        ui.label("2ª Consulta Médica:").classes("text-sm font-bold text-gray-700 mt-2")
+                        with ui.row().classes("w-full gap-4 items-center"):
+                            ui.input(
+                                label="Descrição da especialidade médica:",
+                                value=state_175211["esp_2"]
+                            ).classes("flex-1").props("outlined density=compact").bind_value(
+                                state_175211, "esp_2"
+                            )
+                            ui.number(
+                                label="Tempo médio de espera (dias):",
+                                value=state_175211["tempo_2"],
+                                min=0,
+                                precision=0
+                            ).classes("w-64").props("outlined density=compact").bind_value(
+                                state_175211, "tempo_2"
+                            )
+
+                        # Item 3
+                        ui.label("3ª Consulta Médica:").classes("text-sm font-bold text-gray-700 mt-2")
+                        with ui.row().classes("w-full gap-4 items-center"):
+                            ui.input(
+                                label="Descrição da especialidade médica:",
+                                value=state_175211["esp_3"]
+                            ).classes("flex-1").props("outlined density=compact").bind_value(
+                                state_175211, "esp_3"
+                            )
+                            ui.number(
+                                label="Tempo médio de espera (dias):",
+                                value=state_175211["tempo_3"],
+                                min=0,
+                                precision=0
+                            ).classes("w-64").props("outlined density=compact").bind_value(
+                                state_175211, "tempo_3"
+                            )
+
+                        lbl_pts_175211 = ui.label("Nota 17.5.2.1.1: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4 mt-4"
+                        )
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório do Sistema de Regulação:",
+                            value=raw_link_175211,
+                            placeholder="Link do relatório com o tempo de espera das consultas...",
+                        ).classes("w-full mb-4 mt-2").props("outlined rows=2").bind_value(
+                            state_175211, "link"
+                        )
+
+                        def salvar_175211():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.5.2.1.1",
+                                valor={
+                                    "esp_1": state_175211["esp_1"],
+                                    "tempo_1": state_175211["tempo_1"],
+                                    "esp_2": state_175211["esp_2"],
+                                    "tempo_2": state_175211["tempo_2"],
+                                    "esp_3": state_175211["esp_3"],
+                                    "tempo_3": state_175211["tempo_3"],
+                                },
+                                pontos=0.0,
+                                link=state_175211["link"],
+                                comentarios=d175211.get("comentarios", []),
+                                status=d175211.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.5.2.1.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.5.2.1.1", on_click=salvar_175211).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.5.2.1.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.5.2.1.2 (Exames Médicos com Maior Tempo de Espera)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.5.2.1.2 • Maior Tempo de Espera - Exames Médicos").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe os 3 exames médicos com maior tempo de espera:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d175212 = res_data.get("17.5.2.1.2") or {}
+                        raw_val_175212 = d175212.get("valor") or {}
+                        if not isinstance(raw_val_175212, dict):
+                            raw_val_175212 = {}
+
+                        raw_link_175212 = str(d175212.get("link") or "")
+
+                        state_175212 = {
+                            "exame_1": str(raw_val_175212.get("exame_1", "")),
+                            "tempo_1": raw_val_175212.get("tempo_1", None),
+                            "exame_2": str(raw_val_175212.get("exame_2", "")),
+                            "tempo_2": raw_val_175212.get("tempo_2", None),
+                            "exame_3": str(raw_val_175212.get("exame_3", "")),
+                            "tempo_3": raw_val_175212.get("tempo_3", None),
+                            "link": raw_link_175212,
+                        }
+
+                        # Item 1
+                        ui.label("1º Exame Médico:").classes("text-sm font-bold text-gray-700 mt-2")
+                        with ui.row().classes("w-full gap-4 items-center"):
+                            ui.input(
+                                label="Descrição do exame médico:",
+                                value=state_175212["exame_1"]
+                            ).classes("flex-1").props("outlined density=compact").bind_value(
+                                state_175212, "exame_1"
+                            )
+                            ui.number(
+                                label="Tempo médio de espera (dias):",
+                                value=state_175212["tempo_1"],
+                                min=0,
+                                precision=0
+                            ).classes("w-64").props("outlined density=compact").bind_value(
+                                state_175212, "tempo_1"
+                            )
+
+                        # Item 2
+                        ui.label("2º Exame Médico:").classes("text-sm font-bold text-gray-700 mt-2")
+                        with ui.row().classes("w-full gap-4 items-center"):
+                            ui.input(
+                                label="Descrição do exame médico:",
+                                value=state_175212["exame_2"]
+                            ).classes("flex-1").props("outlined density=compact").bind_value(
+                                state_175212, "exame_2"
+                            )
+                            ui.number(
+                                label="Tempo médio de espera (dias):",
+                                value=state_175212["tempo_2"],
+                                min=0,
+                                precision=0
+                            ).classes("w-64").props("outlined density=compact").bind_value(
+                                state_175212, "tempo_2"
+                            )
+
+                        # Item 3
+                        ui.label("3º Exame Médico:").classes("text-sm font-bold text-gray-700 mt-2")
+                        with ui.row().classes("w-full gap-4 items-center"):
+                            ui.input(
+                                label="Descrição do exame médico:",
+                                value=state_175212["exame_3"]
+                            ).classes("flex-1").props("outlined density=compact").bind_value(
+                                state_175212, "exame_3"
+                            )
+                            ui.number(
+                                label="Tempo médio de espera (dias):",
+                                value=state_175212["tempo_3"],
+                                min=0,
+                                precision=0
+                            ).classes("w-64").props("outlined density=compact").bind_value(
+                                state_175212, "tempo_3"
+                            )
+
+                        lbl_pts_175212 = ui.label("Nota 17.5.2.1.2: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4 mt-4"
+                        )
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório de Exames:",
+                            value=raw_link_175212,
+                            placeholder="Link do relatório com o tempo de espera dos exames...",
+                        ).classes("w-full mb-4 mt-2").props("outlined rows=2").bind_value(
+                            state_175212, "link"
+                        )
+
+                        def salvar_175212():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.5.2.1.2",
+                                valor={
+                                    "exame_1": state_175212["exame_1"],
+                                    "tempo_1": state_175212["tempo_1"],
+                                    "exame_2": state_175212["exame_2"],
+                                    "tempo_2": state_175212["tempo_2"],
+                                    "exame_3": state_175212["exame_3"],
+                                    "tempo_3": state_175212["tempo_3"],
+                                },
+                                pontos=0.0,
+                                link=state_175212["link"],
+                                comentarios=d175212.get("comentarios", []),
+                                status=d175212.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.5.2.1.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.5.2.1.2", on_click=salvar_175212).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.5.2.1.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.5.2.1.3 (Terapias/Tratamentos Médicos com Maior Tempo de Espera)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.5.2.1.3 • Maior Tempo de Espera - Terapias e Tratamentos").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe as 3 terapias/tratamentos médicos com maior tempo de espera:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d175213 = res_data.get("17.5.2.1.3") or {}
+                        raw_val_175213 = d175213.get("valor") or {}
+                        if not isinstance(raw_val_175213, dict):
+                            raw_val_175213 = {}
+
+                        raw_link_175213 = str(d175213.get("link") or "")
+
+                        state_175213 = {
+                            "terapia_1": str(raw_val_175213.get("terapia_1", "")),
+                            "tempo_1": raw_val_175213.get("tempo_1", None),
+                            "terapia_2": str(raw_val_175213.get("terapia_2", "")),
+                            "tempo_2": raw_val_175213.get("tempo_2", None),
+                            "terapia_3": str(raw_val_175213.get("terapia_3", "")),
+                            "tempo_3": raw_val_175213.get("tempo_3", None),
+                            "link": raw_link_175213,
+                        }
+
+                        # Item 1
+                        ui.label("1ª Terapia / Tratamento:").classes("text-sm font-bold text-gray-700 mt-2")
+                        with ui.row().classes("w-full gap-4 items-center"):
+                            ui.input(
+                                label="Descrição da terapia/tratamento médico:",
+                                value=state_175213["terapia_1"]
+                            ).classes("flex-1").props("outlined density=compact").bind_value(
+                                state_175213, "terapia_1"
+                            )
+                            ui.number(
+                                label="Tempo médio de espera (dias):",
+                                value=state_175213["tempo_1"],
+                                min=0,
+                                precision=0
+                            ).classes("w-64").props("outlined density=compact").bind_value(
+                                state_175213, "tempo_1"
+                            )
+
+                        # Item 2
+                        ui.label("2ª Terapia / Tratamento:").classes("text-sm font-bold text-gray-700 mt-2")
+                        with ui.row().classes("w-full gap-4 items-center"):
+                            ui.input(
+                                label="Descrição da terapia/tratamento médico:",
+                                value=state_175213["terapia_2"]
+                            ).classes("flex-1").props("outlined density=compact").bind_value(
+                                state_175213, "terapia_2"
+                            )
+                            ui.number(
+                                label="Tempo médio de espera (dias):",
+                                value=state_175213["tempo_2"],
+                                min=0,
+                                precision=0
+                            ).classes("w-64").props("outlined density=compact").bind_value(
+                                state_175213, "tempo_2"
+                            )
+
+                        # Item 3
+                        ui.label("3ª Terapia / Tratamento:").classes("text-sm font-bold text-gray-700 mt-2")
+                        with ui.row().classes("w-full gap-4 items-center"):
+                            ui.input(
+                                label="Descrição da terapia/tratamento médico:",
+                                value=state_175213["terapia_3"]
+                            ).classes("flex-1").props("outlined density=compact").bind_value(
+                                state_175213, "terapia_3"
+                            )
+                            ui.number(
+                                label="Tempo médio de espera (dias):",
+                                value=state_175213["tempo_3"],
+                                min=0,
+                                precision=0
+                            ).classes("w-64").props("outlined density=compact").bind_value(
+                                state_175213, "tempo_3"
+                            )
+
+                        lbl_pts_175213 = ui.label("Nota 17.5.2.1.3: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4 mt-4"
+                        )
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório de Terapias:",
+                            value=raw_link_175213,
+                            placeholder="Link do relatório com o tempo de espera das terapias/tratamentos...",
+                        ).classes("w-full mb-4 mt-2").props("outlined rows=2").bind_value(
+                            state_175213, "link"
+                        )
+
+                        def salvar_175213():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.5.2.1.3",
+                                valor={
+                                    "terapia_1": state_175213["terapia_1"],
+                                    "tempo_1": state_175213["tempo_1"],
+                                    "terapia_2": state_175213["terapia_2"],
+                                    "tempo_2": state_175213["tempo_2"],
+                                    "terapia_3": state_175213["terapia_3"],
+                                    "tempo_3": state_175213["tempo_3"],
+                                },
+                                pontos=0.0,
+                                link=state_175213["link"],
+                                comentarios=d175213.get("comentarios", []),
+                                status=d175213.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.5.2.1.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.5.2.1.3", on_click=salvar_175213).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.5.2.1.3", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
