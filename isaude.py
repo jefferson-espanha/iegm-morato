@@ -4023,6 +4023,386 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("17.4.2.1", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 17.5 (Sistema Informatizado de Regulação)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.5 • Sistema Informatizado de Regulação na Atenção Especializada").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município utiliza sistema informatizado de regulação com oferta dos serviços da Atenção Especializada sob gestão municipal?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "Obs.: Refere-se ao Município como Unidade Demandada - Central de Regulação."
+                        ).classes("text-xs font-semibold text-gray-600 mb-6")
+
+                        d175 = res_data.get("17.5") or {}
+                        raw_val_175 = str(d175.get("valor", "none"))
+                        raw_link_175 = str(d175.get("link") or "")
+
+                        state_175 = {
+                            "opcao": raw_val_175 if raw_val_175 in ["00", "-01", "-03", "-05"] else "none",
+                            "link": raw_link_175,
+                        }
+
+                        opts_175 = {
+                            "none": "Selecione uma opção...",
+                            "00": "Sim, todos os serviços – 00 pt (não perde pontos)",
+                            "-01": "Sim, a maior parte dos serviços – -01 pt (perde 01 ponto)",
+                            "-03": "Sim, a menor parte dos serviços – -03 pts (perde 03 pontos)",
+                            "-05": "Não – -05 pts (perde 05 pontos)",
+                        }
+
+                        rad_175 = ui.radio(
+                            options=opts_175,
+                            value=state_175["opcao"]
+                        ).classes("mb-4")
+                        rad_175.bind_value(state_175, "opcao")
+
+                        lbl_pts_175 = ui.label("Nota 17.5: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_175():
+                            val = state_175["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_175.set_text(f"📊 Nota 17.5: {pts:.1f} pontos")
+                            return pts
+
+                        rad_175.on("update:model-value", recalc_175)
+                        recalc_175()
+
+                        ui.textarea(
+                            label="Link de Evidência / Sistema de Regulação Utilizado:",
+                            value=raw_link_175,
+                            placeholder="Link das telas do sistema de regulação ou declaração oficial...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_175, "link"
+                        )
+
+                        def salvar_175():
+                            pts = recalc_175()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.5",
+                                valor=state_175["opcao"],
+                                pontos=pts,
+                                link=state_175["link"],
+                                comentarios=d175.get("comentarios", []),
+                                status=d175.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.5 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.5", on_click=salvar_175).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.5", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.5.1 (Sistemas Utilizados pela Regulação)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.5.1 • Sistemas Utilizados pela Regulação").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale os sistemas utilizados pela regulação:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d1751 = res_data.get("17.5.1") or {}
+                        raw_val_1751 = d1751.get("valor") or {}
+                        if not isinstance(raw_val_1751, dict):
+                            raw_val_1751 = {}
+
+                        raw_link_1751 = str(d1751.get("link") or "")
+
+                        state_1751 = {
+                            "cross_siresp": bool(raw_val_1751.get("cross_siresp", False)),
+                            "siga": bool(raw_val_1751.get("siga", False)),
+                            "sisreg": bool(raw_val_1751.get("sisreg", False)),
+                            "outros": bool(raw_val_1751.get("outros", False)),
+                            "outros_texto": str(raw_val_1751.get("outros_texto", "")),
+                            "link": raw_link_1751,
+                        }
+
+                        chk_cross = ui.checkbox("Portal Cross/SIRESP", value=state_1751["cross_siresp"])
+                        chk_cross.bind_value(state_1751, "cross_siresp")
+
+                        chk_siga = ui.checkbox("SIGA", value=state_1751["siga"])
+                        chk_siga.bind_value(state_1751, "siga")
+
+                        chk_sisreg = ui.checkbox("SISREG", value=state_1751["sisreg"])
+                        chk_sisreg.bind_value(state_1751, "sisreg")
+
+                        chk_outr = ui.checkbox("Outros", value=state_1751["outros"])
+                        chk_outr.bind_value(state_1751, "outros")
+
+                        inp_outros_txt = ui.input(
+                            label="Especifique 'Outros':",
+                            value=state_1751["outros_texto"]
+                        ).classes("w-full my-2").props("outlined density=compact")
+                        inp_outros_txt.bind_value(state_1751, "outros_texto")
+
+                        def toggle_outros_txt_1751():
+                            inp_outros_txt.set_visibility(state_1751["outros"])
+
+                        chk_outr.on("update:model-value", toggle_outros_txt_1751)
+                        toggle_outros_txt_1751()
+
+                        lbl_pts_1751 = ui.label("Nota 17.5.1: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4 mt-2"
+                        )
+
+                        def recalc_1751():
+                            pts = 0.0
+                            lbl_pts_1751.set_text("📊 Nota 17.5.1: Informativo (0.0 pontos)")
+                            return pts
+
+                        ui.textarea(
+                            label="Link de Evidência / Prints ou Portarias dos Sistemas de Regulação:",
+                            value=raw_link_1751,
+                            placeholder="Link das telas, contratos de software ou regulamentos...",
+                        ).classes("w-full mb-4 mt-2").props("outlined rows=2").bind_value(
+                            state_1751, "link"
+                        )
+
+                        def salvar_1751():
+                            pts = recalc_1751()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.5.1",
+                                valor={
+                                    "cross_siresp": state_1751["cross_siresp"],
+                                    "siga": state_1751["siga"],
+                                    "sisreg": state_1751["sisreg"],
+                                    "outros": state_1751["outros"],
+                                    "outros_texto": state_1751["outros_texto"],
+                                },
+                                pontos=pts,
+                                link=state_1751["link"],
+                                comentarios=d1751.get("comentarios", []),
+                                status=d1751.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.5.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.5.1", on_click=salvar_1751).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.5.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.5.2 (Conhecer Lista de Espera Nominal e Tempos de Espera)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.5.2 • Transparência e Acesso à Lista de Espera Nominal").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O sistema informatizado de regulação utilizado pelo município permite conhecer a lista de espera (relação nominal de pacientes com tempo de espera) dos serviços da Atenção Especializada sob gestão municipal?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d1752 = res_data.get("17.5.2") or {}
+                        raw_val_1752 = str(d1752.get("valor", "none"))
+                        raw_link_1752 = str(d1752.get("link") or "")
+
+                        state_1752 = {
+                            "opcao": raw_val_1752 if raw_val_1752 in ["00", "-01", "-03", "-05"] else "none",
+                            "link": raw_link_1752,
+                        }
+
+                        opts_1752 = {
+                            "none": "Selecione uma opção...",
+                            "00": "Sim, todos os serviços – 00 pt (não perde pontos)",
+                            "-01": "Sim, a maior parte dos serviços – -01 pt (perde 01 ponto)",
+                            "-03": "Sim, a menor parte dos serviços – -03 pts (perde 03 pontos)",
+                            "-05": "Não – -05 pts (perde 05 pontos)",
+                        }
+
+                        rad_1752 = ui.radio(
+                            options=opts_1752,
+                            value=state_1752["opcao"]
+                        ).classes("mb-4")
+                        rad_1752.bind_value(state_1752, "opcao")
+
+                        lbl_pts_1752 = ui.label("Nota 17.5.2: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1752():
+                            val = state_1752["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_1752.set_text(f"📊 Nota 17.5.2: {pts:.1f} pontos")
+                            return pts
+
+                        rad_1752.on("update:model-value", recalc_1752)
+                        recalc_1752()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatórios ou Portal da Transparência de Filas:",
+                            value=raw_link_1752,
+                            placeholder="Link do relatório com relação nominal de espera e tempos de fila...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1752, "link"
+                        )
+
+                        def salvar_1752():
+                            pts = recalc_1752()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.5.2",
+                                valor=state_1752["opcao"],
+                                pontos=pts,
+                                link=state_1752["link"],
+                                comentarios=d1752.get("comentarios", []),
+                                status=d1752.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.5.2 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.5.2", on_click=salvar_1752).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.5.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.5.2.1 (Serviços Inseridos no Sistema de Regulação)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.5.2.1 • Serviços da Atenção Especializada Inseridos na Regulação").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale os serviços da Atenção Especializada inseridos no sistema de regulação:"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "Fórmula: Perde 1 ponto (-1) para cada item principal NÃO assinalado (entre 0 e -5 pts). 'Outros' não pontua."
+                        ).classes("text-xs font-semibold text-gray-600 mb-4")
+
+                        d17521 = res_data.get("17.5.2.1") or {}
+                        raw_val_17521 = d17521.get("valor") or {}
+                        if not isinstance(raw_val_17521, dict):
+                            raw_val_17521 = {}
+
+                        raw_link_17521 = str(d17521.get("link") or "")
+
+                        state_17521 = {
+                            "consultas": bool(raw_val_17521.get("consultas", False)),
+                            "exames": bool(raw_val_17521.get("exames", False)),
+                            "terapias": bool(raw_val_17521.get("terapias", False)),
+                            "opm": bool(raw_val_17521.get("opm", False)),
+                            "cirurgias_eletivas": bool(raw_val_17521.get("cirurgias_eletivas", False)),
+                            "outros": bool(raw_val_17521.get("outros", False)),
+                            "outros_texto": str(raw_val_17521.get("outros_texto", "")),
+                            "link": raw_link_17521,
+                        }
+
+                        chk_cons = ui.checkbox("Consultas por especialidade", value=state_17521["consultas"])
+                        chk_cons.bind_value(state_17521, "consultas")
+
+                        chk_exam = ui.checkbox("Exames", value=state_17521["exames"])
+                        chk_exam.bind_value(state_17521, "exames")
+
+                        chk_terap = ui.checkbox("Terapias / tratamentos", value=state_17521["terapias"])
+                        chk_terap.bind_value(state_17521, "terapias")
+
+                        chk_opm = ui.checkbox("OPM (Órteses, Próteses e Materiais Especiais)", value=state_17521["opm"])
+                        chk_opm.bind_value(state_17521, "opm")
+
+                        chk_cirurg = ui.checkbox("Cirurgias eletivas", value=state_17521["cirurgias_eletivas"])
+                        chk_cirurg.bind_value(state_17521, "cirurgias_eletivas")
+
+                        chk_outr = ui.checkbox("Outros", value=state_17521["outros"])
+                        chk_outr.bind_value(state_17521, "outros")
+
+                        inp_outros_txt = ui.input(
+                            label="Especifique 'Outros':",
+                            value=state_17521["outros_texto"]
+                        ).classes("w-full my-2").props("outlined density=compact")
+                        inp_outros_txt.bind_value(state_17521, "outros_texto")
+
+                        def toggle_outros_txt_17521():
+                            inp_outros_txt.set_visibility(state_17521["outros"])
+
+                        chk_outr.on("update:model-value", toggle_outros_txt_17521)
+                        toggle_outros_txt_17521()
+
+                        lbl_pts_17521 = ui.label("Nota 17.5.2.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4 mt-2"
+                        )
+
+                        def recalc_17521():
+                            itens_principais = [
+                                state_17521["consultas"],
+                                state_17521["exames"],
+                                state_17521["terapias"],
+                                state_17521["opm"],
+                                state_17521["cirurgias_eletivas"],
+                            ]
+                            nao_marcados = sum(1 for item in itens_principais if not item)
+                            pts = -1.0 * nao_marcados
+                            pts = max(pts, -5.0)
+                            lbl_pts_17521.set_text(f"📊 Nota 17.5.2.1: {pts:.1f} pontos")
+                            return pts
+
+                        for chk in [chk_cons, chk_exam, chk_terap, chk_opm, chk_cirurg]:
+                            chk.on("update:model-value", recalc_17521)
+
+                        recalc_17521()
+
+                        ui.textarea(
+                            label="Link de Evidência dos Serviços Regulados:",
+                            value=raw_link_17521,
+                            placeholder="Link dos relatórios por serviço do sistema de regulação...",
+                        ).classes("w-full mb-4 mt-2").props("outlined rows=2").bind_value(
+                            state_17521, "link"
+                        )
+
+                        def salvar_17521():
+                            pts = recalc_17521()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.5.2.1",
+                                valor={
+                                    "consultas": state_17521["consultas"],
+                                    "exames": state_17521["exames"],
+                                    "terapias": state_17521["terapias"],
+                                    "opm": state_17521["opm"],
+                                    "cirurgias_eletivas": state_17521["cirurgias_eletivas"],
+                                    "outros": state_17521["outros"],
+                                    "outros_texto": state_17521["outros_texto"],
+                                },
+                                pontos=pts,
+                                link=state_17521["link"],
+                                comentarios=d17521.get("comentarios", []),
+                                status=d17521.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.5.2.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.5.2.1", on_click=salvar_17521).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.5.2.1", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
