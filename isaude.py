@@ -11266,6 +11266,173 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S2", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S3 (SISAB - PRÉ-NATAL)
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S3 (Acompanhamento de Gestantes / Pré-Natal - SISAB 2025)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S3 • Cobertura e Qualidade do Pré-Natal (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o número de gestantes com pelo menos 6 consultas de pré-natal "
+                            "(com a 1ª consulta até a 12ª semana) e o total de gestantes cadastradas por quadrimestre em 2025:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds3 = res_data.get("S3") or {}
+                        val_s3 = ds3.get("valor") if isinstance(ds3.get("valor"), dict) else {}
+
+                        state_s3 = {
+                            "g1q": float(val_s3.get("g1q", 0.0)),
+                            "g2q": float(val_s3.get("g2q", 0.0)),
+                            "g3q": float(val_s3.get("g3q", 0.0)),
+                            "tg1q": float(val_s3.get("tg1q", 0.0)),
+                            "tg2q": float(val_s3.get("tg2q", 0.0)),
+                            "tg3q": float(val_s3.get("tg3q", 0.0)),
+                            "link": str(ds3.get("link") or "")
+                        }
+
+                        lbl_p_s3 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s3 = ui.label("").classes("text-base font-bold text-green-600 mb-4")
+
+                        def calc_s3(g1, g2, g3, tg1, tg2, tg3):
+                            soma_g = g1 + g2 + g3
+                            soma_tg = tg1 + tg2 + tg3
+
+                            if soma_tg <= 0:
+                                return 0.0, 0.0
+
+                            p = (soma_g / soma_tg) * 100.0
+
+                            if p >= 100.0:
+                                pts = 25.0
+                            elif p >= 45.0:
+                                pts = 15.0
+                            elif p >= 31.0:
+                                pts = 10.0
+                            elif p >= 18.0:
+                                pts = 5.0
+                            else:
+                                pts = 0.0
+
+                            return p, pts
+
+                        def atualizar_calculo_s3():
+                            g1 = float(inp_g1q.value or 0)
+                            g2 = float(inp_g2q.value or 0)
+                            g3 = float(inp_g3q.value or 0)
+                            tg1 = float(inp_tg1q.value or 0)
+                            tg2 = float(inp_tg2q.value or 0)
+                            tg3 = float(inp_tg3q.value or 0)
+
+                            p, pts = calc_s3(g1, g2, g3, tg1, tg2, tg3)
+
+                            soma_tg = tg1 + tg2 + tg3
+                            if soma_tg > 0:
+                                lbl_p_s3.set_text(f"Proporção Alcançada (P): {p:.2f}%")
+                            else:
+                                lbl_p_s3.set_text("Proporção Alcançada (P): Informe os totais de gestantes")
+
+                            lbl_pontos_s3.set_text(f"Pontuação Calculada: {pts:.1f} / 25.0 pontos")
+
+                        ui.label("1. Gestantes com ≥ 6 Consultas (1ª até 12ª Semana):").classes("font-semibold text-gray-800 mt-2")
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_g1q = ui.number(
+                                label="1º Quadrimestre 2025 (G1Q):",
+                                value=state_s3["g1q"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_g2q = ui.number(
+                                label="2º Quadrimestre 2025 (G2Q):",
+                                value=state_s3["g2q"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_g3q = ui.number(
+                                label="3º Quadrimestre 2025 (G3Q):",
+                                value=state_s3["g3q"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        ui.label("2. Total de Gestantes Registradas:").classes("font-semibold text-gray-800 mt-2")
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_tg1q = ui.number(
+                                label="Total 1º Quadrimestre 2025 (TG1Q):",
+                                value=state_s3["tg1q"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_tg2q = ui.number(
+                                label="Total 2º Quadrimestre 2025 (TG2Q):",
+                                value=state_s3["tg2q"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_tg3q = ui.number(
+                                label="Total 3º Quadrimestre 2025 (TG3Q):",
+                                value=state_s3["tg3q"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_g1q.on("update:model-value", lambda: atualizar_calculo_s3())
+                        inp_g2q.on("update:model-value", lambda: atualizar_calculo_s3())
+                        inp_g3q.on("update:model-value", lambda: atualizar_calculo_s3())
+                        inp_tg1q.on("update:model-value", lambda: atualizar_calculo_s3())
+                        inp_tg2q.on("update:model-value", lambda: atualizar_calculo_s3())
+                        inp_tg3q.on("update:model-value", lambda: atualizar_calculo_s3())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SISAB:",
+                            value=state_s3["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s3, "link")
+
+                        atualizar_calculo_s3()
+
+                        def salvar_s3():
+                            g1 = float(inp_g1q.value or 0)
+                            g2 = float(inp_g2q.value or 0)
+                            g3 = float(inp_g3q.value or 0)
+                            tg1 = float(inp_tg1q.value or 0)
+                            tg2 = float(inp_tg2q.value or 0)
+                            tg3 = float(inp_tg3q.value or 0)
+
+                            p, pts = calc_s3(g1, g2, g3, tg1, tg2, tg3)
+
+                            dados_finais = {
+                                "g1q": g1,
+                                "g2q": g2,
+                                "g3q": g3,
+                                "tg1q": tg1,
+                                "tg2q": tg2,
+                                "tg3q": tg3,
+                                "p": round(p, 4)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S3",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s3["link"],
+                                comentarios=ds3.get("comentarios", []),
+                                status=ds3.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S3", on_click=salvar_s3).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S3", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
