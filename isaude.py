@@ -7429,6 +7429,403 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("19.0", res_data, render_conteudo.refresh)
 
+                    # =============================================================================
+                    # QUESITO 19.1 (Adequação da Oferta e Distribuição Geográfica de SRT)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("19.1 • Adequação da Oferta de SRTs").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A Quantidade de SRTs ofertadas é adequada, inclusive quanto à distribuição geográfica, para a demanda de moradia para portadores de transtornos mentais crônicos com necessidade de cuidados de longa permanência, prioritariamente egressos de internações psiquiátricas e de hospitais de custódia, que não possuam suporte financeiro, social e/ou laços familiares que permitam outra forma de reinserção?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d191 = res_data.get("19.1") or {}
+                        raw_val_191 = str(d191.get("valor", "none"))
+                        raw_link_191 = str(d191.get("link") or "")
+
+                        state_191 = {
+                            "opcao": raw_val_191 if raw_val_191 in ["sim", "nao"] else "none",
+                            "link": raw_link_191,
+                        }
+
+                        opts_191 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim",
+                            "nao": "Não",
+                        }
+
+                        rad_191 = ui.radio(
+                            options=opts_191,
+                            value=state_191["opcao"]
+                        ).classes("mb-4")
+                        rad_191.bind_value(state_191, "opcao")
+
+                        lbl_pts_191 = ui.label("Nota 19.1: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_191():
+                            pts = 0.0
+                            lbl_pts_191.set_text("📊 Nota 19.1: Informativo (0.0 pontos)")
+                            return pts
+
+                        ui.textarea(
+                            label="Link de Evidência / Diagnóstico de Cobertura das SRTs:",
+                            value=raw_link_191,
+                            placeholder="Link do documento de mapeamento territorial, cobertura das residências terapêuticas...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_191, "link"
+                        )
+
+                        def salvar_191():
+                            pts = recalc_191()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.1",
+                                valor=state_191["opcao"],
+                                pontos=pts,
+                                link=state_191["link"],
+                                comentarios=d191.get("comentarios", []),
+                                status=d191.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 19.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.1", on_click=salvar_191).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 19.2 (Quantidade de Unidades de SRT por Tipo)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("19.2 • Quantidade de Unidades de SRT").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de unidades de Serviços Residenciais Terapêuticos:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d192 = res_data.get("19.2") or {}
+                        raw_val_192 = d192.get("valor") or {}
+                        if not isinstance(raw_val_192, dict):
+                            raw_val_192 = {}
+
+                        raw_link_192 = str(d192.get("link") or "")
+
+                        tipos_srt_192 = [
+                            ("srt_tipo_1", "Para SRT tipo I"),
+                            ("srt_tipo_2", "Para SRT tipo II"),
+                            ("equivalente", "Equivalente"),
+                        ]
+
+                        state_192 = {
+                            "qtdes": {
+                                k: int(raw_val_192.get(k, 0)) for k, _ in tipos_srt_192
+                            },
+                            "link": raw_link_192,
+                        }
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            for key, label_text in tipos_srt_192:
+                                num_input = ui.number(
+                                    label=label_text,
+                                    value=state_192["qtdes"][key],
+                                    min=0,
+                                    precision=0,
+                                ).classes("w-full").props("outlined dense")
+                                num_input.bind_value(state_192["qtdes"], key)
+
+                        ui.label("Nota 19.2: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 my-4"
+                        )
+
+                        ui.textarea(
+                            label="Link de Evidência / Cadastro CNES ou Portarias das Unidades:",
+                            value=raw_link_192,
+                            placeholder="Link das fichas CNES ou portarias de habilitação das SRTs...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_192, "link"
+                        )
+
+                        def salvar_192():
+                            pts = 0.0
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.2",
+                                valor=state_192["qtdes"],
+                                pontos=pts,
+                                link=state_192["link"],
+                                comentarios=d192.get("comentarios", []),
+                                status=d192.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 19.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.2", on_click=salvar_192).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 19.3 (Regulação de Vagas das SRTs)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("19.3 • Regulação de Vagas em SRT").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "As vagas dos Serviços Residenciais Terapêuticos ou equivalente para os residentes do município estão cadastradas no sistema de informação de regulação?"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "*(Pode estar cadastrado no sistema de regulação municipal e/ou estadual)*"
+                        ).classes("text-sm italic text-gray-600 mb-6")
+
+                        d193 = res_data.get("19.3") or {}
+                        raw_val_193 = str(d193.get("valor", "none"))
+                        raw_link_193 = str(d193.get("link") or "")
+
+                        state_193 = {
+                            "opcao": raw_val_193 if raw_val_193 in ["sim", "nao"] else "none",
+                            "link": raw_link_193,
+                        }
+
+                        opts_193 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim (0,0 ponto)",
+                            "nao": "Não (-10,0 pontos)",
+                        }
+
+                        rad_193 = ui.radio(
+                            options=opts_193,
+                            value=state_193["opcao"]
+                        ).classes("mb-4")
+                        rad_193.bind_value(state_193, "opcao")
+
+                        lbl_pts_193 = ui.label("Nota 19.3: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_193():
+                            val = state_193["opcao"]
+                            if val == "sim":
+                                pts = 0.0
+                                lbl_pts_193.classes(replace="text-sm font-bold text-green-600 mb-4")
+                            elif val == "nao":
+                                pts = -10.0
+                                lbl_pts_193.classes(replace="text-sm font-bold text-red-600 mb-4")
+                            else:
+                                pts = 0.0
+                                lbl_pts_193.classes(replace="text-sm font-bold text-gray-600 mb-4")
+
+                            lbl_pts_193.set_text(f"📊 Nota 19.3: {pts:.1f} pontos")
+                            return pts
+
+                        rad_193.on("update:model-value", recalc_193)
+                        recalc_193()
+
+                        ui.textarea(
+                            label="Link de Evidência / Comprovante do Sistema de Regulação:",
+                            value=raw_link_193,
+                            placeholder="Link do sistema de regulação comprovando o cadastro das vagas de SRT...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_193, "link"
+                        )
+
+                        def salvar_193():
+                            pts = recalc_193()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.3",
+                                valor=state_193["opcao"],
+                                pontos=pts,
+                                link=state_193["link"],
+                                comentarios=d193.get("comentarios", []),
+                                status=d193.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 19.3 salvo com sucesso! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.3", on_click=salvar_193).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.3", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 19.3.1 (Quantidade de Vagas em SRT no Sistema de Regulação)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("19.3.1 • Quantidade de Vagas Reguladas em SRT").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de vagas cadastradas no sistema de regulação (municipal e/ou estadual):"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d1931 = res_data.get("19.3.1") or {}
+                        raw_val_1931 = d1931.get("valor") or {}
+                        if not isinstance(raw_val_1931, dict):
+                            raw_val_1931 = {}
+
+                        raw_link_1931 = str(d1931.get("link") or "")
+
+                        tipos_vagas_1931 = [
+                            ("srt_tipo_1", "Para SRT tipo I"),
+                            ("srt_tipo_2", "Para SRT tipo II"),
+                            ("equivalente", "Equivalente"),
+                        ]
+
+                        state_1931 = {
+                            "vagas": {
+                                k: int(raw_val_1931.get(k, 0)) for k, _ in tipos_vagas_1931
+                            },
+                            "link": raw_link_1931,
+                        }
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            for key, label_text in tipos_vagas_1931:
+                                num_input = ui.number(
+                                    label=label_text,
+                                    value=state_1931["vagas"][key],
+                                    min=0,
+                                    precision=0,
+                                ).classes("w-full").props("outlined dense")
+                                num_input.bind_value(state_1931["vagas"], key)
+
+                        ui.label("Nota 19.3.1: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 my-4"
+                        )
+
+                        ui.textarea(
+                            label="Link de Evidência / Extrato de Vagas Reguladas:",
+                            value=raw_link_1931,
+                            placeholder="Link do relatório ou extrato da oferta de vagas do sistema de regulação...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1931, "link"
+                        )
+
+                        def salvar_1931():
+                            pts = 0.0
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.3.1",
+                                valor=state_1931["vagas"],
+                                pontos=pts,
+                                link=state_1931["link"],
+                                comentarios=d1931.get("comentarios", []),
+                                status=d1931.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 19.3.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.3.1", on_click=salvar_1931).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.3.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 19.4 (Rotinas de Acompanhamento, Supervisão e Controle das SRTs)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("19.4 • Gestão e Supervisão Qualitativa das SRTs").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A Secretaria Municipal de Saúde (ou equivalente), com apoio técnico do Ministério da Saúde, tem rotinas estabelecidas de acompanhamento, supervisão, controle e avaliação para a garantia do funcionamento com qualidade dos Serviços Residenciais Terapêuticos em Saúde Mental?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d194 = res_data.get("19.4") or {}
+                        raw_val_194 = str(d194.get("valor", "none"))
+                        raw_link_194 = str(d194.get("link") or "")
+
+                        state_194 = {
+                            "opcao": raw_val_194 if raw_val_194 in ["sim", "nao"] else "none",
+                            "link": raw_link_194,
+                        }
+
+                        opts_194 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim (0,0 ponto)",
+                            "nao": "Não (-5,0 pontos)",
+                        }
+
+                        rad_194 = ui.radio(
+                            options=opts_194,
+                            value=state_194["opcao"]
+                        ).classes("mb-4")
+                        rad_194.bind_value(state_194, "opcao")
+
+                        lbl_pts_194 = ui.label("Nota 19.4: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_194():
+                            val = state_194["opcao"]
+                            if val == "sim":
+                                pts = 0.0
+                                lbl_pts_194.classes(replace="text-sm font-bold text-green-600 mb-4")
+                            elif val == "nao":
+                                pts = -5.0
+                                lbl_pts_194.classes(replace="text-sm font-bold text-red-600 mb-4")
+                            else:
+                                pts = 0.0
+                                lbl_pts_194.classes(replace="text-sm font-bold text-gray-600 mb-4")
+
+                            lbl_pts_194.set_text(f"📊 Nota 19.4: {pts:.1f} pontos")
+                            return pts
+
+                        rad_194.on("update:model-value", recalc_194)
+                        recalc_194()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatórios de Monitoramento ou Protocolos de Supervisão:",
+                            value=raw_link_194,
+                            placeholder="Link do protocolo de supervisão técnica, relatórios periódicos de visita técnica ou reuniões de alinhamento...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_194, "link"
+                        )
+
+                        def salvar_194():
+                            pts = recalc_194()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.4",
+                                valor=state_194["opcao"],
+                                pontos=pts,
+                                link=state_194["link"],
+                                comentarios=d194.get("comentarios", []),
+                                status=d194.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 19.4 salvo com sucesso! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.4", on_click=salvar_194).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.4", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
