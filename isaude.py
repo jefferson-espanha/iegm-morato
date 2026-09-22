@@ -13225,6 +13225,150 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S19", res_data, render_conteudo.refresh)
 
+                    # =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S20 (SISAB / APS)
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S20 (Atendimento Odontológico às Gestantes na APS - SISAB)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S20 • Proporção de Gestantes com Atendimento Odontológico na APS (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o número de gestantes com atendimento odontológico realizado na APS (GPAO) "
+                            "para os 3 quadrimestres de 2025. O total de gestantes (TG) é obtido a partir dos dados declarados no Quesito S3:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        # Resgate de dados de S20
+                        ds20 = res_data.get("S20") or {}
+                        val_s20 = ds20.get("valor") if isinstance(ds20.get("valor"), dict) else {}
+
+                        # Resgate de dados do Quesito S3 para reaproveitar TG1Q, TG2Q e TG3Q
+                        ds3 = res_data.get("S3") or {}
+                        val_s3 = ds3.get("valor") if isinstance(ds3.get("valor"), dict) else {}
+
+                        tg1q_s3 = float(val_s3.get("tg1q", 0.0))
+                        tg2q_s3 = float(val_s3.get("tg2q", 0.0))
+                        tg3q_s3 = float(val_s3.get("tg3q", 0.0))
+
+                        state_s20 = {
+                            "gpao1q": float(val_s20.get("gpao1q", 0.0)),
+                            "gpao2q": float(val_s20.get("gpao2q", 0.0)),
+                            "gpao3q": float(val_s20.get("gpao3q", 0.0)),
+                            "tg1q": float(val_s20.get("tg1q", tg1q_s3)),
+                            "tg2q": float(val_s20.get("tg2q", tg2q_s3)),
+                            "tg3q": float(val_s20.get("tg3q", tg3q_s3)),
+                            "link": str(ds20.get("link") or "")
+                        }
+
+                        lbl_pct_s20 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s20 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s20(g1, g2, g3, t1, t2, t3):
+                            soma_gpao = g1 + g2 + g3
+                            soma_tg = t1 + t2 + t3
+
+                            if soma_tg <= 0:
+                                return 0.0, 0.0
+
+                            prop = soma_gpao / soma_tg
+                            pct = prop * 100.0
+
+                            if pct >= 100.0:
+                                pts = 25.0
+                            elif pct >= 60.0:
+                                pts = 15.0
+                            elif pct >= 42.0:
+                                pts = 10.0
+                            elif pct >= 24.0:
+                                pts = 5.0
+                            else:
+                                pts = 0.0
+
+                            return prop, pts
+
+                        def atualizar_calculo_s20():
+                            g1 = float(inp_g1.value or 0)
+                            g2 = float(inp_g2.value or 0)
+                            g3 = float(inp_g3.value or 0)
+                            t1 = float(inp_t1.value or 0)
+                            t2 = float(inp_t2.value or 0)
+                            t3 = float(inp_t3.value or 0)
+
+                            prop, pts = calc_s20(g1, g2, g3, t1, t2, t3)
+                            pct = prop * 100.0
+                            soma_tg = t1 + t2 + t3
+
+                            if soma_tg > 0:
+                                lbl_pct_s20.set_text(f"• Percentual Acumulado (P): {pct:.2f}%")
+                                lbl_pontos_s20.set_text(f"Pontuação Calculada: {pts:.1f} / 25.0 pontos")
+
+                                if pts >= 15.0:
+                                    lbl_pontos_s20.classes(remove="text-red-600 text-yellow-600", add="text-green-600")
+                                elif pts >= 5.0:
+                                    lbl_pontos_s20.classes(remove="text-red-600 text-green-600", add="text-yellow-600")
+                                else:
+                                    lbl_pontos_s20.classes(remove="text-green-600 text-yellow-600", add="text-red-600")
+                            else:
+                                lbl_pct_s20.set_text("• Percentual Acumulado (P): Informe o Total de Gestantes (S3 / TG)")
+                                lbl_pontos_s20.set_text("")
+
+                        ui.label("Gestantes com Atendimento Odontológico na APS (GPAO):").classes("font-semibold text-gray-800 mb-1")
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_g1 = ui.number(label="Gestantes c/ Odonto 1º Q. (GPAO1Q):", value=state_s20["gpao1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_g2 = ui.number(label="Gestantes c/ Odonto 2º Q. (GPAO2Q):", value=state_s20["gpao2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_g3 = ui.number(label="Gestantes c/ Odonto 3º Q. (GPAO3Q):", value=state_s20["gpao3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                        ui.label("Total de Gestantes do Município (dados herdados do Quesito S3):").classes("font-semibold text-gray-800 mb-1")
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_t1 = ui.number(label="Total Gestantes 1º Q. (TG1Q - S3):", value=state_s20["tg1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_t2 = ui.number(label="Total Gestantes 2º Q. (TG2Q - S3):", value=state_s20["tg2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_t3 = ui.number(label="Total Gestantes 3º Q. (TG3Q - S3):", value=state_s20["tg3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                        for inp in [inp_g1, inp_g2, inp_g3, inp_t1, inp_t2, inp_t3]:
+                            inp.on("update:model-value", lambda: atualizar_calculo_s20())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SISAB:",
+                            value=state_s20["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s20, "link")
+
+                        atualizar_calculo_s20()
+
+                        def salvar_s20():
+                            g1 = float(inp_g1.value or 0)
+                            g2 = float(inp_g2.value or 0)
+                            g3 = float(inp_g3.value or 0)
+                            t1 = float(inp_t1.value or 0)
+                            t2 = float(inp_t2.value or 0)
+                            t3 = float(inp_t3.value or 0)
+
+                            prop, pts = calc_s20(g1, g2, g3, t1, t2, t3)
+
+                            dados_finais = {
+                                "gpao1q": g1, "gpao2q": g2, "gpao3q": g3,
+                                "tg1q": t1, "tg2q": t2, "tg3q": t3,
+                                "proporcao": round(prop, 4),
+                                "percentual": round(prop * 100.0, 2)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S20",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s20["link"],
+                                comentarios=ds20.get("comentarios", []),
+                                status=ds20.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S20 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S20", on_click=salvar_s20).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S20", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
