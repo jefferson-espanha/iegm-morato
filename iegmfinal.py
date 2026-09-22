@@ -1,18 +1,19 @@
 import logging
 import pandas as pd
 import plotly.express as px
-from nicegui import ui
+from nicegui import app, ui
 
 # Importa a conexão do icidade_completo.py
 try:
     from icidade_completo import get_connection
-except ImportError as e:
-    logging.error(f"Erro ao importar get_connection do icidade_completo: {e}")
+except ImportError:
+    try:
+        from icidade import get_connection
+    except ImportError as e:
+        logging.error(f"Erro ao importar get_connection: {e}")
 
-    def get_connection():
-        raise ImportError(
-            "Não foi possível importar 'get_connection' de 'icidade_completo.py'."
-        )
+        def get_connection():
+            raise ImportError("Não foi possível importar 'get_connection'.")
 
 
 # =============================================================================
@@ -169,31 +170,34 @@ def obter_faixa_classificacao(nota: float):
 
 
 # =============================================================================
-# PAINEL PRINCIPAL NICEGUI
+# PAINEL PRINCIPAL NICEGUI (COMPATÍVEL COM O MAIN.PY)
 # =============================================================================
 
 
-def mostrar_painel_iegm_final(ano_inicial: int = 2025):
+def mostrar_painel_iegm_final(ano_sel=None):
+    """Função compatível com a chamada dinâmica do main.py."""
+    if ano_sel is None:
+        ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+
+    anos_disponiveis = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    ano_estado = {"ano": int(ano_sel) if int(ano_sel) in anos_disponiveis else 2026}
+
     ui.label("Pontuação do IEG-M - Prévia").classes(
-        "w-full text-center text-2xl font-bold italic mb-6 text-gray-800"
+        "w-full text-center text-2xl font-bold italic mb-6 text-blue-900"
     )
 
-    anos_disponiveis = list(range(2024, 2031))
-    ano_sel = {"ano": ano_inicial if ano_inicial in anos_disponiveis else 2025}
-
-    # Container reativo para renderizar todo o painel com base no ano
     @ui.refreshable
     def render_conteudo():
-        ano_selecionado = ano_sel["ano"]
+        ano_atual = ano_estado["ano"]
 
-        # Busca dados do banco de dados
-        plan = puxar_nota_iplan(ano_selecionado)
-        fiscal = puxar_nota_ifiscal(ano_selecionado)
-        educ = puxar_nota_ieduc(ano_selecionado)
-        saude = puxar_nota_isaude(ano_selecionado)
-        amb = puxar_nota_iamb(ano_selecionado)
-        cidade = puxar_nota_icidade(ano_selecionado)
-        gov = puxar_nota_igov(ano_selecionado)
+        # Busca dados do banco de dados para o ano selecionado
+        plan = puxar_nota_iplan(ano_atual)
+        fiscal = puxar_nota_ifiscal(ano_atual)
+        educ = puxar_nota_ieduc(ano_atual)
+        saude = puxar_nota_isaude(ano_atual)
+        amb = puxar_nota_iamb(ano_atual)
+        cidade = puxar_nota_icidade(ano_atual)
+        gov = puxar_nota_igov(ano_atual)
 
         nota_final = calcular_nota_final(
             plan, fiscal, educ, saude, amb, cidade, gov
@@ -201,15 +205,16 @@ def mostrar_painel_iegm_final(ano_inicial: int = 2025):
 
         with ui.grid(columns=12).classes("w-full gap-6 items-start"):
             # -----------------------------------------------------------------
-            # COLUNA DA ESQUERDA: Seletor + Resumo Textual
+            # COLUNA DA ESQUERDA: Seletor de Ano + Tabela
             # -----------------------------------------------------------------
             with ui.column().classes("col-span-12 md:col-span-4 w-full gap-2"):
                 ui.select(
                     label="Exercício:",
                     options=anos_disponiveis,
-                    value=ano_selecionado,
+                    value=ano_atual,
                     on_change=lambda e: (
-                        ano_sel.update({"ano": e.value}),
+                        ano_estado.update({"ano": e.value}),
+                        app.storage.user.update({"ano_referencia_global": e.value}),
                         render_conteudo.refresh(),
                     ),
                 ).classes("w-full").props("outlined dense")
@@ -244,7 +249,7 @@ def mostrar_painel_iegm_final(ano_inicial: int = 2025):
                         ui.label(f"{round(valor)}").classes("w-1/4 text-center")
                         ui.label(sigla_faixa).classes("w-1/4 text-right")
 
-                # Linha de Nota Final (Destaque)
+                # Linha de Nota Final
                 faixa_final_str, _ = obter_faixa_classificacao(nota_final)
                 sigla_final = faixa_final_str.split(" ")[0]
 
@@ -330,3 +335,5 @@ def mostrar_painel_iegm_final(ano_inicial: int = 2025):
     render_conteudo()
 
 
+# Alias para garantir compatibilidade com qualquer função procurada pelo _executar_modulo
+container_painel_iegm_final = mostrar_painel_iegm_final
