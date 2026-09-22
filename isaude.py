@@ -5141,6 +5141,295 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("17.5.2.1.6", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 17.6 (Prontuário Eletrônico do Paciente - PEP na Atenção Especializada)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.6 • Prontuário Eletrônico do Paciente (PEP) na Atenção Especializada").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município implantou o Prontuário Eletrônico do Paciente na Atenção Especializada sob sua gestão?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d176 = res_data.get("17.6") or {}
+                        raw_val_176 = str(d176.get("valor", "none"))
+                        raw_link_176 = str(d176.get("link") or "")
+
+                        state_176 = {
+                            "opcao": raw_val_176 if raw_val_176 in ["00", "-01", "-03", "-05"] else "none",
+                            "link": raw_link_176,
+                        }
+
+                        opts_176 = {
+                            "none": "Selecione uma opção...",
+                            "00": "Sim, para todos os procedimentos da saúde – 00 pt (não perde pontos)",
+                            "-01": "Sim, para a maior parte dos procedimentos da saúde – -01 pt (perde 01 ponto)",
+                            "-03": "Sim, para a menor parte dos procedimentos da saúde – -03 pts (perde 03 pontos)",
+                            "-05": "Não – -05 pts (perde 05 pontos)",
+                        }
+
+                        rad_176 = ui.radio(
+                            options=opts_176,
+                            value=state_176["opcao"]
+                        ).classes("mb-4")
+                        rad_176.bind_value(state_176, "opcao")
+
+                        lbl_pts_176 = ui.label("Nota 17.6: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_176():
+                            val = state_176["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_176.set_text(f"📊 Nota 17.6: {pts:.1f} pontos")
+                            return pts
+
+                        rad_176.on("update:model-value", recalc_176)
+                        recalc_176()
+
+                        ui.textarea(
+                            label="Link de Evidência / Sistema PEP:",
+                            value=raw_link_176,
+                            placeholder="Link do contrato, sistema PEP ou telas comprobatórias...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_176, "link"
+                        )
+
+                        def salvar_176():
+                            pts = recalc_176()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.6",
+                                valor=state_176["opcao"],
+                                pontos=pts,
+                                link=state_176["link"],
+                                comentarios=d176.get("comentarios", []),
+                                status=d176.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.6 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.6", on_click=salvar_176).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.6", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.6.1 (Serviços Inseridos no PEP)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.6.1 • Serviços da Atenção Especializada Inseridos no PEP").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale os serviços da Atenção Especializada inseridos no Prontuário Eletrônico do Paciente:"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "Fórmula: Perde 0,35 pt para cada item base não assinalado. 'Medicamentos' não assinalado perde 0,40 pt. 'Outros' não pontua. Nota de 0 a -2.5 pts."
+                        ).classes("text-xs font-semibold text-gray-600 mb-4")
+
+                        d1761 = res_data.get("17.6.1") or {}
+                        raw_val_1761 = d1761.get("valor") or {}
+                        if not isinstance(raw_val_1761, dict):
+                            raw_val_1761 = {}
+
+                        raw_link_1761 = str(d1761.get("link") or "")
+
+                        state_1761 = {
+                            "consultas": bool(raw_val_1761.get("consultas", False)),
+                            "exames_lab": bool(raw_val_1761.get("exames_lab", False)),
+                            "exames_rad": bool(raw_val_1761.get("exames_rad", False)),
+                            "terapias": bool(raw_val_1761.get("terapias", False)),
+                            "medicamentos": bool(raw_val_1761.get("medicamentos", False)),
+                            "opm": bool(raw_val_1761.get("opm", False)),
+                            "cirurgias_eletivas": bool(raw_val_1761.get("cirurgias_eletivas", False)),
+                            "outros": bool(raw_val_1761.get("outros", False)),
+                            "outros_texto": str(raw_val_1761.get("outros_texto", "")),
+                            "link": raw_link_1761,
+                        }
+
+                        chk_cons = ui.checkbox("Consultas médicas por especialidade", value=state_1761["consultas"])
+                        chk_cons.bind_value(state_1761, "consultas")
+
+                        chk_lab = ui.checkbox("Exames laboratoriais", value=state_1761["exames_lab"])
+                        chk_lab.bind_value(state_1761, "exames_lab")
+
+                        chk_rad = ui.checkbox("Exames radiológicos e por imagem", value=state_1761["exames_rad"])
+                        chk_rad.bind_value(state_1761, "exames_rad")
+
+                        chk_terap = ui.checkbox("Terapias / tratamentos", value=state_1761["terapias"])
+                        chk_terap.bind_value(state_1761, "terapias")
+
+                        chk_med = ui.checkbox("Medicamentos (perde 0,40 se não marcado)", value=state_1761["medicamentos"])
+                        chk_med.bind_value(state_1761, "medicamentos")
+
+                        chk_opm = ui.checkbox("OPM (Órteses, Próteses e Materiais Especiais)", value=state_1761["opm"])
+                        chk_opm.bind_value(state_1761, "opm")
+
+                        chk_cirurg = ui.checkbox("Cirurgias eletivas", value=state_1761["cirurgias_eletivas"])
+                        chk_cirurg.bind_value(state_1761, "cirurgias_eletivas")
+
+                        chk_outr = ui.checkbox("Outros", value=state_1761["outros"])
+                        chk_outr.bind_value(state_1761, "outros")
+
+                        inp_outros_txt = ui.input(
+                            label="Especifique 'Outros':",
+                            value=state_1761["outros_texto"]
+                        ).classes("w-full my-2").props("outlined density=compact")
+                        inp_outros_txt.bind_value(state_1761, "outros_texto")
+
+                        def toggle_outros_txt_1761():
+                            inp_outros_txt.set_visibility(state_1761["outros"])
+
+                        chk_outr.on("update:model-value", toggle_outros_txt_1761)
+                        toggle_outros_txt_1761()
+
+                        lbl_pts_1761 = ui.label("Nota 17.6.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4 mt-2"
+                        )
+
+                        def recalc_1761():
+                            itens_35 = [
+                                state_1761["consultas"],
+                                state_1761["exames_lab"],
+                                state_1761["exames_rad"],
+                                state_1761["terapias"],
+                                state_1761["opm"],
+                                state_1761["cirurgias_eletivas"],
+                            ]
+                            nao_marcados_35 = sum(1 for item in itens_35 if not item)
+                            perda_35 = nao_marcados_35 * 0.35
+                            
+                            perda_med = 0.40 if not state_1761["medicamentos"] else 0.0
+                            
+                            pts = -1.0 * (perda_35 + perda_med)
+                            pts = max(pts, -2.5)
+                            lbl_pts_1761.set_text(f"📊 Nota 17.6.1: {pts:.2f} pontos")
+                            return pts
+
+                        for chk in [chk_cons, chk_lab, chk_rad, chk_terap, chk_med, chk_opm, chk_cirurg]:
+                            chk.on("update:model-value", recalc_1761)
+
+                        recalc_1761()
+
+                        ui.textarea(
+                            label="Link de Evidência dos Módulos do PEP:",
+                            value=raw_link_1761,
+                            placeholder="Link com relatórios ou telas demonstrando os módulos do PEP...",
+                        ).classes("w-full mb-4 mt-2").props("outlined rows=2").bind_value(
+                            state_1761, "link"
+                        )
+
+                        def salvar_1761():
+                            pts = recalc_1761()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.6.1",
+                                valor={
+                                    "consultas": state_1761["consultas"],
+                                    "exames_lab": state_1761["exames_lab"],
+                                    "exames_rad": state_1761["exames_rad"],
+                                    "terapias": state_1761["terapias"],
+                                    "medicamentos": state_1761["medicamentos"],
+                                    "opm": state_1761["opm"],
+                                    "cirurgias_eletivas": state_1761["cirurgias_eletivas"],
+                                    "outros": state_1761["outros"],
+                                    "outros_texto": state_1761["outros_texto"],
+                                },
+                                pontos=pts,
+                                link=state_1761["link"],
+                                comentarios=d1761.get("comentarios", []),
+                                status=d1761.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.6.1 salvo! ({pts:.2f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.6.1", on_click=salvar_1761).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.6.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.7 (Mamógrafos na Rede Própria)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.7 • Equipamentos de Mamografia na Rede Própria").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município possui estabelecimentos de saúde da rede própria com mamógrafos?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d177 = res_data.get("17.7") or {}
+                        raw_val_177 = str(d177.get("valor", "none"))
+                        raw_link_177 = str(d177.get("link") or "")
+
+                        state_177 = {
+                            "opcao": raw_val_177 if raw_val_177 in ["sim", "nao"] else "none",
+                            "link": raw_link_177,
+                        }
+
+                        opts_177 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim",
+                            "nao": "Não",
+                        }
+
+                        rad_177 = ui.radio(
+                            options=opts_177,
+                            value=state_177["opcao"]
+                        ).classes("mb-4")
+                        rad_177.bind_value(state_177, "opcao")
+
+                        lbl_pts_177 = ui.label("Nota 17.7: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_177():
+                            pts = 0.0
+                            lbl_pts_177.set_text("📊 Nota 17.7: Informativo (0.0 pontos)")
+                            return pts
+
+                        ui.textarea(
+                            label="Link de Evidência / Cadastro CNES dos Equipamentos:",
+                            value=raw_link_177,
+                            placeholder="Link da ficha CNES ou inventário de mamógrafos...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_177, "link"
+                        )
+
+                        def salvar_177():
+                            pts = recalc_177()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.7",
+                                valor=state_177["opcao"],
+                                pontos=pts,
+                                link=state_177["link"],
+                                comentarios=d177.get("comentarios", []),
+                                status=d177.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.7 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.7", on_click=salvar_177).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.7", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
