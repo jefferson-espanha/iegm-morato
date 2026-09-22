@@ -11674,6 +11674,139 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S5", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S6 (VACINAÇÃO - DATASUS/PNI)
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S6 (Cobertura Vacinal do Calendário Nacional de Vacinação)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S6 • Cobertura Vacinal (Calendário Nacional de Vacinação / PNI)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o percentual (%) de cobertura para cada vacina conforme dados do TABNET/DATASUS. "
+                            "O cálculo aplicará a pontuação integral para metas atingidas ou proporcional quando abaixo da meta."
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds6 = res_data.get("S6") or {}
+                        val_s6 = ds6.get("valor") if isinstance(ds6.get("valor"), dict) else {}
+
+                        # Configuração dos Imunizantes (Meta PNI e Pontuação Máxima)
+                        VACINAS_CONFIG = [
+                            {"id": "bcg", "nome": "BCG (Bacilo Calmette-Guérin)", "meta": 90.0, "p_max": 5.0},
+                            {"id": "rotavirus", "nome": "Rotavírus Humano (2ª dose)", "meta": 90.0, "p_max": 5.0},
+                            {"id": "hepatite_b", "nome": "Hepatite B (3ª dose)", "meta": 95.0, "p_max": 10.0},
+                            {"id": "meningo_c", "nome": "Meningocócica C (conjugada - 2ª dose)", "meta": 95.0, "p_max": 10.0},
+                            {"id": "penta", "nome": "Vacina Pentavalente (3ª dose)", "meta": 95.0, "p_max": 10.0},
+                            {"id": "pneumo_10", "nome": "Vacina Pneumocócica 10-valente (2ª dose)", "meta": 95.0, "p_max": 10.0},
+                            {"id": "polio", "nome": "Vacina Poliomielite (3ª dose)", "meta": 95.0, "p_max": 10.0},
+                            {"id": "febre_amarela", "nome": "Febre Amarela", "meta": 95.0, "p_max": 10.0},
+                            {"id": "triplice_viral", "nome": "Vacina Tríplice Viral (1ª dose)", "meta": 95.0, "p_max": 10.0},
+                            {"id": "hepatite_a", "nome": "Hepatite A", "meta": 95.0, "p_max": 10.0},
+                            {"id": "tetra_viral", "nome": "Tetra Viral", "meta": 95.0, "p_max": 10.0},
+                        ]
+
+                        state_s6 = {
+                            v["id"]: float(val_s6.get(v["id"], 0.0)) for v in VACINAS_CONFIG
+                        }
+                        state_s6["link"] = str(ds6.get("link") or "")
+
+                        inputs_vacinas = {}
+                        labels_pts_vacinas = {}
+
+                        lbl_pontos_s6 = ui.label("").classes("text-base font-bold text-green-600 mb-4")
+
+                        def calc_s6(dados_cob):
+                            total_pts = 0.0
+                            detalhes = {}
+
+                            for v in VACINAS_CONFIG:
+                                vid = v["id"]
+                                meta = v["meta"]
+                                p_max = v["p_max"]
+                                cob = float(dados_cob.get(vid, 0.0))
+
+                                if cob >= meta:
+                                    p_obtido = p_max
+                                else:
+                                    p_obtido = (cob / meta) * p_max if meta > 0 else 0.0
+
+                                # Garantir que o valor não seja negativo e não ultrapasse o máximo
+                                p_obtido = max(0.0, min(p_max, p_obtido))
+                                total_pts += p_obtido
+                                detalhes[vid] = {"cob": cob, "pontos": p_obtido}
+
+                            return total_pts, detalhes
+
+                        def atualizar_calculo_s6():
+                            cob_atual = {v["id"]: float(inputs_vacinas[v["id"]].value or 0) for v in VACINAS_CONFIG}
+                            total_pts, detalhes = calc_s6(cob_atual)
+
+                            for v in VACINAS_CONFIG:
+                                vid = v["id"]
+                                pts = detalhes[vid]["pontos"]
+                                meta = v["meta"]
+                                p_max = v["p_max"]
+                                labels_pts_vacinas[vid].set_text(
+                                    f"Meta: {meta:.0f}% ➔ {pts:.2f} / {p_max:.0f} pts"
+                                )
+
+                            lbl_pontos_s6.set_text(f"Pontuação Total Calculada: {total_pts:.2f} / 100.0 pontos")
+
+                        # Interface Dinâmica para Inserção de Cobertura Vacinal
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            for v in VACINAS_CONFIG:
+                                vid = v["id"]
+                                with ui.column().classes("w-full border p-3 rounded bg-gray-50"):
+                                    ui.label(v["nome"]).classes("font-semibold text-gray-800 text-sm")
+                                    
+                                    with ui.row().classes("w-full items-center justify-between"):
+                                        inp = ui.number(
+                                            label="Cobertura (%):",
+                                            value=state_s6[vid],
+                                            min=0,
+                                            max=100,
+                                            format="%.2f"
+                                        ).classes("w-1/2").props("outlined dense")
+                                        
+                                        lbl_p = ui.label("").classes("text-xs font-bold text-blue-700")
+                                        
+                                        inputs_vacinas[vid] = inp
+                                        labels_pts_vacinas[vid] = lbl_p
+
+                                        inp.on("update:model-value", lambda: atualizar_calculo_s6())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados extraídos do TABNET/DATASUS:",
+                            value=state_s6["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s6, "link")
+
+                        atualizar_calculo_s6()
+
+                        def salvar_s6():
+                            cob_atual = {v["id"]: float(inputs_vacinas[v["id"]].value or 0) for v in VACINAS_CONFIG}
+                            total_pts, detalhes = calc_s6(cob_atual)
+
+                            dados_finais = {v["id"]: cob_atual[v["id"]] for v in VACINAS_CONFIG}
+                            dados_finais["detalhes_pontuacao"] = {v["id"]: round(detalhes[v["id"]]["pontos"], 4) for v in VACINAS_CONFIG}
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S6",
+                                valor=dados_finais,
+                                pontos=total_pts,
+                                link=state_s6["link"],
+                                comentarios=ds6.get("comentarios", []),
+                                status=ds6.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S6 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S6", on_click=salvar_s6).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S6", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
