@@ -12611,6 +12611,222 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S14", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITOS S15 E S16
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S15 (Proporção de Partos Cesarianos - SIH/SUS)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S15 • Proporção de Partos Cesarianos (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o total de partos cesarianos e o total geral de partos realizados em estabelecimentos sob gestão municipal em 2025. "
+                            "O indicador aplica penalidade se a proporção de cesarianas (PC / TP) ultrapassar 40,0%:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds15 = res_data.get("S15") or {}
+                        val_s15 = ds15.get("valor") if isinstance(ds15.get("valor"), dict) else {}
+
+                        state_s15 = {
+                            "pc": float(val_s15.get("pc", 0.0)),
+                            "tp": float(val_s15.get("tp", 0.0)),
+                            "link": str(ds15.get("link") or "")
+                        }
+
+                        lbl_pct_s15 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s15 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s15(pc, tp):
+                            if tp <= 0:
+                                return 0.0, 0.0
+                            prop = pc / tp
+                            pts = -2.0 if prop > 0.40 else 0.0
+                            return prop, pts
+
+                        def atualizar_calculo_s15():
+                            pc_val = float(inp_pc_s15.value or 0)
+                            tp_val = float(inp_tp_s15.value or 0)
+
+                            prop, pts = calc_s15(pc_val, tp_val)
+                            pct = prop * 100.0
+
+                            if tp_val > 0:
+                                lbl_pct_s15.set_text(f"• Percentual de Cesarianas (PC / TP): {pct:.2f}%")
+                                if prop <= 0.40:
+                                    lbl_pontos_s15.classes(remove="text-red-600", add="text-green-600")
+                                    lbl_pontos_s15.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Proporção ≤ 40%)")
+                                else:
+                                    lbl_pontos_s15.classes(remove="text-green-600", add="text-red-600")
+                                    lbl_pontos_s15.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Proporção > 40%)")
+                            else:
+                                lbl_pct_s15.set_text("• Percentual de Cesarianas: Informe o Total de Partos")
+                                lbl_pontos_s15.set_text("")
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            inp_pc_s15 = ui.number(
+                                label="Partos Cesarianos (PC):",
+                                value=state_s15["pc"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_tp_s15 = ui.number(
+                                label="Total de Partos (TP):",
+                                value=state_s15["tp"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_pc_s15.on("update:model-value", lambda: atualizar_calculo_s15())
+                        inp_tp_s15.on("update:model-value", lambda: atualizar_calculo_s15())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SIH/SUS:",
+                            value=state_s15["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s15, "link")
+
+                        atualizar_calculo_s15()
+
+                        def salvar_s15():
+                            pc_val = float(inp_pc_s15.value or 0)
+                            tp_val = float(inp_tp_s15.value or 0)
+
+                            prop, pts = calc_s15(pc_val, tp_val)
+
+                            dados_finais = {
+                                "pc": pc_val,
+                                "tp": tp_val,
+                                "proporcao": round(prop, 4)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S15",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s15["link"],
+                                comentarios=ds15.get("comentarios", []),
+                                status=ds15.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S15 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S15", on_click=salvar_s15).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S15", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S16 (Mortalidade Neonatal - SESSP-CCD/FSEADE)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S16 • Taxa de Mortalidade Neonatal (SESSP-CCD/FSEADE)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o número de óbitos de recém-nascidos (ORNAA) e o total de nascidos vivos (NVAA) de 2023 a 2025. "
+                            "O indicador avalia se a taxa de mortalidade neonatal em 2025 ultrapassa a média agregada do biênio 2023-2024:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds16 = res_data.get("S16") or {}
+                        val_s16 = ds16.get("valor") if isinstance(ds16.get("valor"), dict) else {}
+
+                        state_s16 = {
+                            "ornaa_2": float(val_s16.get("ornaa_2", 0.0)),
+                            "ornaa_1": float(val_s16.get("ornaa_1", 0.0)),
+                            "ornaa": float(val_s16.get("ornaa", 0.0)),
+                            "nvaa_2": float(val_s16.get("nvaa_2", 0.0)),
+                            "nvaa_1": float(val_s16.get("nvaa_1", 0.0)),
+                            "nvaa": float(val_s16.get("nvaa", 0.0)),
+                            "link": str(ds16.get("link") or "")
+                        }
+
+                        lbl_taxas_s16 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s16 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s16(o2, o1, o, n2, n1, n):
+                            soma_nv_hist = n2 + n1
+                            soma_or_hist = o2 + o1
+
+                            taxa_hist = (soma_or_hist / soma_nv_hist) if soma_nv_hist > 0 else 0.0
+                            taxa_2025 = (o / n) if n > 0 else 0.0
+
+                            pts = -2.0 if taxa_2025 > taxa_hist else 0.0
+                            return taxa_2025, taxa_hist, pts
+
+                        def atualizar_calculo_s16():
+                            o2 = float(inp_o2.value or 0)
+                            o1 = float(inp_o1.value or 0)
+                            o = float(inp_o.value or 0)
+                            n2 = float(inp_n2.value or 0)
+                            n1 = float(inp_n1.value or 0)
+                            n = float(inp_n.value or 0)
+
+                            taxa_2025, taxa_hist, pts = calc_s16(o2, o1, o, n2, n1, n)
+
+                            lbl_taxas_s16.set_text(
+                                f"• Taxa Neonatal 2025: {(taxa_2025 * 1000):.2f}‰ | Taxa Biênio (2023-2024): {(taxa_hist * 1000):.2f}‰ (por 1.000 Nascidos Vivos)"
+                            )
+
+                            if taxa_2025 <= taxa_hist:
+                                lbl_pontos_s16.classes(remove="text-red-600", add="text-green-600")
+                                lbl_pontos_s16.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Taxa 2025 ≤ Taxa Histórica)")
+                            else:
+                                lbl_pontos_s16.classes(remove="text-green-600", add="text-red-600")
+                                lbl_pontos_s16.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Mortalidade Neonatal aumentou em 2025)")
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            inp_o2 = ui.number(label="Óbitos RN 2023 (ORNAA-2):", value=state_s16["ornaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_o1 = ui.number(label="Óbitos RN 2024 (ORNAA-1):", value=state_s16["ornaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_o = ui.number(label="Óbitos RN 2025 (ORNAA):", value=state_s16["ornaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                            inp_n2 = ui.number(label="Nascidos Vivos 2023 (NVAA-2):", value=state_s16["nvaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_n1 = ui.number(label="Nascidos Vivos 2024 (NVAA-1):", value=state_s16["nvaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                            inp_n = ui.number(label="Nascidos Vivos 2025 (NVAA):", value=state_s16["nvaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                        for inp in [inp_o2, inp_o1, inp_o, inp_n2, inp_n1, inp_n]:
+                            inp.on("update:model-value", lambda: atualizar_calculo_s16())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SESSP-CCD/FSEADE:",
+                            value=state_s16["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s16, "link")
+
+                        atualizar_calculo_s16()
+
+                        def salvar_s16():
+                            o2 = float(inp_o2.value or 0)
+                            o1 = float(inp_o1.value or 0)
+                            o = float(inp_o.value or 0)
+                            n2 = float(inp_n2.value or 0)
+                            n1 = float(inp_n1.value or 0)
+                            n = float(inp_n.value or 0)
+
+                            taxa_2025, taxa_hist, pts = calc_s16(o2, o1, o, n2, n1, n)
+
+                            dados_finais = {
+                                "ornaa_2": o2, "ornaa_1": o1, "ornaa": o,
+                                "nvaa_2": n2, "nvaa_1": n1, "nvaa": n,
+                                "taxa_2025": round(taxa_2025, 6),
+                                "taxa_historica": round(taxa_hist, 6)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S16",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s16["link"],
+                                comentarios=ds16.get("comentarios", []),
+                                status=ds16.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S16 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S16", on_click=salvar_s16).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S16", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
