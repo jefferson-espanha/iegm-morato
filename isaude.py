@@ -6857,7 +6857,7 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("18.5.1", res_data, render_conteudo.refresh)
 
-    # =============================================================================
+                    # =============================================================================
                     # QUESITO 18.5.2 (Quantidade de Estabelecimentos da RAPS)
                     # =============================================================================
                     with ui.card().classes(
@@ -7112,6 +7112,322 @@ def container_formulario_saude(ano=None):
                         )
                         ui.separator().classes("my-2")
                         bloco_comentarios("18.5.3.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 18.5.4 (Suficiência da Oferta de Vagas dos CAPS)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.5.4 • Suficiência das Vagas nos CAPS").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A quantidade de vagas dos CAPS é suficiente para demanda da população que apresenta prioritariamente, intenso sofrimento psíquico decorrente de transtornos mentais graves e persistentes, incluindo aqueles relacionados ao uso de substâncias psicoativas, e outras situações clínicas?"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "*(Informar adequação por CAPS, a depender da existência dos equipamentos em cada município)*"
+                        ).classes("text-sm italic text-gray-600 mb-6")
+
+                        d1854 = res_data.get("18.5.4") or {}
+                        raw_val_1854 = str(d1854.get("valor", "none"))
+                        raw_link_1854 = str(d1854.get("link") or "")
+
+                        state_1854 = {
+                            "opcao": raw_val_1854 if raw_val_1854 in ["sim", "nao"] else "none",
+                            "link": raw_link_1854,
+                        }
+
+                        opts_1854 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim (0,0 ponto)",
+                            "nao": "Não (-10,0 pontos)",
+                        }
+
+                        rad_1854 = ui.radio(
+                            options=opts_1854,
+                            value=state_1854["opcao"]
+                        ).classes("mb-4")
+                        rad_1854.bind_value(state_1854, "opcao")
+
+                        lbl_pts_1854 = ui.label("Nota 18.5.4: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1854():
+                            val = state_1854["opcao"]
+                            if val == "sim":
+                                pts = 0.0
+                                lbl_pts_1854.classes(replace="text-sm font-bold text-green-600 mb-4")
+                            elif val == "nao":
+                                pts = -10.0
+                                lbl_pts_1854.classes(replace="text-sm font-bold text-red-600 mb-4")
+                            else:
+                                pts = 0.0
+                                lbl_pts_1854.classes(replace="text-sm font-bold text-gray-600 mb-4")
+
+                            lbl_pts_1854.set_text(f"📊 Nota 18.5.4: {pts:.1f} pontos")
+                            return pts
+
+                        rad_1854.on("update:model-value", recalc_1854)
+                        recalc_1854()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatório Demanda x Capacidade da RAPS:",
+                            value=raw_link_1854,
+                            placeholder="Link do diagnóstico territorial, fila de espera ou relatório técnico da rede de atenção psicossocial...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1854, "link"
+                        )
+
+                        def salvar_1854():
+                            pts = recalc_1854()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.5.4",
+                                valor=state_1854["opcao"],
+                                pontos=pts,
+                                link=state_1854["link"],
+                                comentarios=d1854.get("comentarios", []),
+                                status=d1854.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 18.5.4 salvo com sucesso! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.5.4", on_click=salvar_1854).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.5.4", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 18.5.5 (Quantidade de Vagas Ofertadas pelo Município)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.5.5 • Vagas Ofertadas na Rede").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a quantidade de vagas ofertadas pelo município por modalidade:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d1855 = res_data.get("18.5.5") or {}
+                        raw_val_1855 = d1855.get("valor") or {}
+                        if not isinstance(raw_val_1855, dict):
+                            raw_val_1855 = {}
+
+                        raw_link_1855 = str(d1855.get("link") or "")
+
+                        tipos_vagas_1855 = [
+                            ("caps_i", "I - CAPS I"),
+                            ("caps_ii", "II - CAPS II"),
+                            ("caps_iii", "III - CAPS III"),
+                            ("caps_ad", "IV - CAPS AD"),
+                            ("caps_ad_ii", "V - CAPS AD II"),
+                            ("caps_ad_iii", "VI - CAPS AD III"),
+                            ("caps_ij", "VII - CAPS i"),
+                            ("caps_ij_ii", "VIII - CAPS i II"),
+                            ("caps_ad_iv", "IX - CAPS AD IV"),
+                            ("uaa", "X - Unidade de Acolhimento Adulto"),
+                            ("uai", "XI - Unidade de Acolhimento Infantil"),
+                        ]
+
+                        state_1855 = {
+                            "vagas": {
+                                k: int(raw_val_1855.get(k, 0)) for k, _ in tipos_vagas_1855
+                            },
+                            "link": raw_link_1855,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            for key, label_text in tipos_vagas_1855:
+                                num_input = ui.number(
+                                    label=label_text,
+                                    value=state_1855["vagas"][key],
+                                    min=0,
+                                    precision=0,
+                                ).classes("w-full").props("outlined dense")
+                                num_input.bind_value(state_1855["vagas"], key)
+
+                        ui.label("Nota 18.5.5: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 my-4"
+                        )
+
+                        ui.textarea(
+                            label="Link de Evidência / Quadro Demostrativo de Oferta de Vagas:",
+                            value=raw_link_1855,
+                            placeholder="Link do plano municipal de saúde, portarias de credenciamento ou relatório de oferta...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1855, "link"
+                        )
+
+                        def salvar_1855():
+                            pts = 0.0
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.5.5",
+                                valor=state_1855["vagas"],
+                                pontos=pts,
+                                link=state_1855["link"],
+                                comentarios=d1855.get("comentarios", []),
+                                status=d1855.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.5.5 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.5.5", on_click=salvar_1855).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.5.5", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 18.6 (Adesão ao Programa De Volta para Casa - PVC)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.6 • Programa De Volta para Casa (PVC)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município aderiu formalmente ao programa “De Volta para Casa” (PVC)?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d186 = res_data.get("18.6") or {}
+                        raw_val_186 = str(d186.get("valor", "none"))
+                        raw_link_186 = str(d186.get("link") or "")
+
+                        state_186 = {
+                            "opcao": raw_val_186 if raw_val_186 in ["sim", "nao"] else "none",
+                            "link": raw_link_186,
+                        }
+
+                        opts_186 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim",
+                            "nao": "Não",
+                        }
+
+                        rad_186 = ui.radio(
+                            options=opts_186,
+                            value=state_186["opcao"]
+                        ).classes("mb-4")
+                        rad_186.bind_value(state_186, "opcao")
+
+                        lbl_pts_186 = ui.label("Nota 18.6: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_186():
+                            pts = 0.0
+                            lbl_pts_186.set_text("📊 Nota 18.6: Informativo (0.0 pontos)")
+                            return pts
+
+                        ui.textarea(
+                            label="Link de Evidência / Termo de Adesão ao PVC ou Publicação Oficial:",
+                            value=raw_link_186,
+                            placeholder="Link do termo de adesão ao Programa De Volta para Casa ou cadastro no Ministério da Saúde...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_186, "link"
+                        )
+
+                        def salvar_186():
+                            pts = recalc_186()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.6",
+                                valor=state_186["opcao"],
+                                pontos=pts,
+                                link=state_186["link"],
+                                comentarios=d186.get("comentarios", []),
+                                status=d186.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.6 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.6", on_click=salvar_186).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.6", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 19.0 (Demanda de Moradia / Serviços Residenciais Terapêuticos - SRT)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("19.0 • Demanda de Moradia e Longa Permanência").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "No município, há demanda de moradia para portadores de transtornos mentais crônicos com necessidade de cuidados de longa permanência, prioritariamente egressos de internações psiquiátricas e de hospitais de custódia, que não possuam suporte financeiro, social e/ou laços familiares que permitam outra forma de reinserção?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d190 = res_data.get("19.0") or {}
+                        raw_val_190 = str(d190.get("valor", "none"))
+                        raw_link_190 = str(d190.get("link") or "")
+
+                        state_190 = {
+                            "opcao": raw_val_190 if raw_val_190 in ["sim", "nao"] else "none",
+                            "link": raw_link_190,
+                        }
+
+                        opts_190 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim",
+                            "nao": "Não",
+                        }
+
+                        rad_190 = ui.radio(
+                            options=opts_190,
+                            value=state_190["opcao"]
+                        ).classes("mb-4")
+                        rad_190.bind_value(state_190, "opcao")
+
+                        lbl_pts_190 = ui.label("Nota 19.0: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_190():
+                            pts = 0.0
+                            lbl_pts_190.set_text("📊 Nota 19.0: Informativo (0.0 pontos)")
+                            return pts
+
+                        ui.textarea(
+                            label="Link de Evidência / Mapeamento de Demanda Desinstitucionalização (SRT):",
+                            value=raw_link_190,
+                            placeholder="Link do relatório da equipe de desinstitucionalização, lista de egressos ou plano de SRT...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_190, "link"
+                        )
+
+                        def salvar_190():
+                            pts = recalc_190()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="19.0",
+                                valor=state_190["opcao"],
+                                pontos=pts,
+                                link=state_186["link"],
+                                comentarios=d190.get("comentarios", []),
+                                status=d190.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 19.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 19.0", on_click=salvar_190).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("19.0", res_data, render_conteudo.refresh)
 
     # Executa a renderização inicial
     render_conteudo()
