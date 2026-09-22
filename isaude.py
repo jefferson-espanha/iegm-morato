@@ -12187,6 +12187,212 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S10", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITOS S11 E S12 (SIH/SUS)
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S11 (Especialidade Pediátrica - Permanência / Frequência - SIH/SUS)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S11 • Permanência em Especialidade Pediátrica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Pediátrica em 2025. "
+                            "O indicador aplica penalidade se a média de permanência (P / F) for superior a 5,7 dias:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds11 = res_data.get("S11") or {}
+                        val_s11 = ds11.get("valor") if isinstance(ds11.get("valor"), dict) else {}
+
+                        state_s11 = {
+                            "permanencia": float(val_s11.get("permanencia", 0.0)),
+                            "frequencia": float(val_s11.get("frequencia", 0.0)),
+                            "link": str(ds11.get("link") or "")
+                        }
+
+                        lbl_razao_s11 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s11 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s11(p, f):
+                            if f <= 0:
+                                return 0.0, 0.0
+                            razao = p / f
+                            pts = -2.0 if razao > 5.7 else 0.0
+                            return razao, pts
+
+                        def atualizar_calculo_s11():
+                            p_val = float(inp_p_s11.value or 0)
+                            f_val = float(inp_f_s11.value or 0)
+
+                            razao, pts = calc_s11(p_val, f_val)
+
+                            if f_val > 0:
+                                lbl_razao_s11.set_text(f"• Média de Permanência (P / F): {razao:.2f} dias")
+                                if razao <= 5.7:
+                                    lbl_pontos_s11.classes(remove="text-red-600", add="text-green-600")
+                                    lbl_pontos_s11.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Permanência ≤ 5.7 dias)")
+                                else:
+                                    lbl_pontos_s11.classes(remove="text-green-600", add="text-red-600")
+                                    lbl_pontos_s11.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Permanência > 5.7 dias)")
+                            else:
+                                lbl_razao_s11.set_text("• Média de Permanência (P / F): Informe a Frequência")
+                                lbl_pontos_s11.set_text("")
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            inp_p_s11 = ui.number(
+                                label="Permanência - total de dias (P):",
+                                value=state_s11["permanencia"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_f_s11 = ui.number(
+                                label="Frequência - número de AIHs/internações (F):",
+                                value=state_s11["frequencia"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_p_s11.on("update:model-value", lambda: atualizar_calculo_s11())
+                        inp_f_s11.on("update:model-value", lambda: atualizar_calculo_s11())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SIH/SUS:",
+                            value=state_s11["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s11, "link")
+
+                        atualizar_calculo_s11()
+
+                        def salvar_s11():
+                            p_val = float(inp_p_s11.value or 0)
+                            f_val = float(inp_f_s11.value or 0)
+
+                            razao, pts = calc_s11(p_val, f_val)
+
+                            dados_finais = {
+                                "permanencia": p_val,
+                                "frequencia": f_val,
+                                "razao": round(razao, 4)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S11",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s11["link"],
+                                comentarios=ds11.get("comentarios", []),
+                                status=ds11.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S11 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S11", on_click=salvar_s11).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S11", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S12 (Especialidade Clínica Médica - Permanência / Frequência - SIH/SUS)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S12 • Permanência em Especialidade Clínica Médica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Clínica Médica em 2025. "
+                            "O indicador aplica penalidade se a média de permanência (P / F) for superior a 9,7 dias:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds12 = res_data.get("S12") or {}
+                        val_s12 = ds12.get("valor") if isinstance(ds12.get("valor"), dict) else {}
+
+                        state_s12 = {
+                            "permanencia": float(val_s12.get("permanencia", 0.0)),
+                            "frequencia": float(val_s12.get("frequencia", 0.0)),
+                            "link": str(ds12.get("link") or "")
+                        }
+
+                        lbl_razao_s12 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_s12 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s12(p, f):
+                            if f <= 0:
+                                return 0.0, 0.0
+                            razao = p / f
+                            pts = -2.0 if razao > 9.7 else 0.0
+                            return razao, pts
+
+                        def atualizar_calculo_s12():
+                            p_val = float(inp_p_s12.value or 0)
+                            f_val = float(inp_f_s12.value or 0)
+
+                            razao, pts = calc_s12(p_val, f_val)
+
+                            if f_val > 0:
+                                lbl_razao_s12.set_text(f"• Média de Permanência (P / F): {razao:.2f} dias")
+                                if razao <= 9.7:
+                                    lbl_pontos_s12.classes(remove="text-red-600", add="text-green-600")
+                                    lbl_pontos_s12.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Permanência ≤ 9.7 dias)")
+                                else:
+                                    lbl_pontos_s12.classes(remove="text-green-600", add="text-red-600")
+                                    lbl_pontos_s12.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Permanência > 9.7 dias)")
+                            else:
+                                lbl_razao_s12.set_text("• Média de Permanência (P / F): Informe a Frequência")
+                                lbl_pontos_s12.set_text("")
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            inp_p_s12 = ui.number(
+                                label="Permanência - total de dias (P):",
+                                value=state_s12["permanencia"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_f_s12 = ui.number(
+                                label="Frequência - número de AIHs/internações (F):",
+                                value=state_s12["frequencia"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_p_s12.on("update:model-value", lambda: atualizar_calculo_s12())
+                        inp_f_s12.on("update:model-value", lambda: atualizar_calculo_s12())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SIH/SUS:",
+                            value=state_s12["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s12, "link")
+
+                        atualizar_calculo_s12()
+
+                        def salvar_s12():
+                            p_val = float(inp_p_s12.value or 0)
+                            f_val = float(inp_f_s12.value or 0)
+
+                            razao, pts = calc_s12(p_val, f_val)
+
+                            dados_finais = {
+                                "permanencia": p_val,
+                                "frequencia": f_val,
+                                "razao": round(razao, 4)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S12",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s12["link"],
+                                comentarios=ds12.get("comentarios", []),
+                                status=ds12.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S12 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S12", on_click=salvar_s12).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S12", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
