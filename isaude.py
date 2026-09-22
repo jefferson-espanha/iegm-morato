@@ -8210,6 +8210,246 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("20.3", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE VIGILÂNCIA DE ARBOVIROSES - QUESITOS 21.0 A 23.1
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 21.0 (Análise Semanal de Tendência de Arboviroses)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("21.0 • Análise Semanal de Arboviroses").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município analisa semanalmente os dados de casos de arboviroses, acompanhando a tendência dos casos e verificando as variações entre as semanas epidemiológicas?").classes("text-sm text-gray-700 mb-4")
+
+                        d210 = res_data.get("21.0") or {}
+                        opts_210 = {
+                            "sim": "Sim (10,0 pontos)",
+                            "nao": "Não (0,0 ponto)",
+                            "sem_casos": "Não houve casos de arboviroses (10,0 pontos)",
+                        }
+
+                        val_210_init = d210.get("valor") if d210.get("valor") in opts_210 else "sim"
+                        link_210_init = str(d210.get("link") or "")
+
+                        state_210 = {"opcao": val_210_init, "link": link_210_init}
+
+                        rad_210 = ui.radio(opts_210, value=state_210["opcao"]).classes("mb-3")
+                        rad_210.bind_value(state_210, "opcao")
+
+                        lbl_pts_210 = ui.label("Pontuação: 10.0").classes("text-sm font-bold text-green-600 mb-2")
+
+                        def recalc_210():
+                            op = state_210["opcao"]
+                            pts = 10.0 if op in ["sim", "sem_casos"] else 0.0
+                            cor = "text-green-600" if pts == 10.0 else "text-red-600"
+                            lbl_pts_210.classes(replace=f"text-sm font-bold {cor} mb-2")
+                            lbl_pts_210.set_text(f"📊 Pontuação Quesito 21.0: {pts:.1f} pontos")
+                            return pts
+
+                        rad_210.on("update:model-value", recalc_210)
+                        recalc_210()
+
+                        ui.textarea(label="Link / Boletim Epidemiológico Semanal:", value=state_210["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_210, "link")
+
+                        def salvar_210():
+                            pts = recalc_210()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="21.0",
+                                valor=state_210["opcao"],
+                                pontos=pts,
+                                link=state_210["link"],
+                                comentarios=d210.get("comentarios", []),
+                                status=d210.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 21.0 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 21.0", on_click=salvar_210).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("21.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 22.0 (Investigação de Casos, Surtos e Óbitos)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("22.0 • Investigação Epidemiológica de Arboviroses").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município investiga casos notificados, surtos e óbitos de arboviroses?").classes("text-sm text-gray-700 mb-4")
+
+                        d220 = res_data.get("22.0") or {}
+                        opts_220 = {
+                            "todos": "Sim, investiga todos os casos (30,0 pontos)",
+                            "parte": "Sim, investiga parte dos casos (15,0 pontos)",
+                            "sem_casos": "Não houve casos em 2025 (30,0 pontos)",
+                            "nao": "Não investiga (0,0 ponto)",
+                        }
+
+                        val_220_init = d220.get("valor") if d220.get("valor") in opts_220 else "todos"
+                        link_220_init = str(d220.get("link") or "")
+
+                        state_220 = {"opcao": val_220_init, "link": link_220_init}
+
+                        rad_220 = ui.radio(opts_220, value=state_220["opcao"]).classes("mb-3")
+                        rad_220.bind_value(state_220, "opcao")
+
+                        lbl_pts_220 = ui.label("Pontuação: 30.0").classes("text-sm font-bold text-green-600 mb-2")
+
+                        def recalc_220():
+                            op = state_220["opcao"]
+                            mapa_pts = {
+                                "todos": 30.0,
+                                "sem_casos": 30.0,
+                                "parte": 15.0,
+                                "nao": 0.0,
+                            }
+                            pts = mapa_pts.get(op, 0.0)
+                            cor = "text-green-600" if pts > 0 else "text-red-600"
+                            lbl_pts_220.classes(replace=f"text-sm font-bold {cor} mb-2")
+                            lbl_pts_220.set_text(f"📊 Pontuação Quesito 22.0: {pts:.1f} pontos")
+                            return pts
+
+                        rad_220.on("update:model-value", recalc_220)
+                        recalc_220()
+
+                        ui.textarea(label="Link / Relatório de Investigação do SINAN:", value=state_220["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_220, "link")
+
+                        def salvar_220():
+                            pts = recalc_220()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="22.0",
+                                valor=state_220["opcao"],
+                                pontos=pts,
+                                link=state_220["link"],
+                                comentarios=d220.get("comentarios", []),
+                                status=d220.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 22.0 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 22.0", on_click=salvar_220).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("22.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 23.0 (Atribuições de Vigilância Entomológica e Controle Vetorial)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("23.0 • Exercício do Controle Vetorial em 2025").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município exerceu as atribuições relacionadas à vigilância entomológica e controle vetorial em 2025?").classes("text-sm text-gray-700 mb-4")
+
+                        d230 = res_data.get("23.0") or {}
+                        opts_230 = {
+                            "sim": "Sim",
+                            "nao": "Não",
+                        }
+
+                        val_230_init = d230.get("valor") if d230.get("valor") in opts_230 else "sim"
+                        link_230_init = str(d230.get("link") or "")
+
+                        state_230 = {"opcao": val_230_init, "link": link_230_init}
+
+                        rad_230 = ui.radio(opts_230, value=state_230["opcao"]).classes("mb-3")
+                        rad_230.bind_value(state_230, "opcao")
+
+                        ui.label("Nota 23.0: Informativo (0.0 pontos)").classes("text-sm font-bold text-green-600 mb-2")
+
+                        ui.textarea(label="Link / Relatório de Ações de Controle Vetorial:", value=state_230["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_230, "link")
+
+                        def salvar_230():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="23.0",
+                                valor=state_230["opcao"],
+                                pontos=0.0,
+                                link=state_230["link"],
+                                comentarios=d230.get("comentarios", []),
+                                status=d230.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 23.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 23.0", on_click=salvar_230).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("23.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 23.1 (Detalhamento das Atribuições Entomológicas)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("23.1 • Atribuições de Vigilância Entomológica Executadas").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Assinale as atribuições da vigilância entomológica e controle vetorial efetivamente realizadas pelo município:").classes("text-sm text-gray-700 mb-4")
+
+                        d231 = res_data.get("23.1") or {}
+                        raw_val_231 = d231.get("valor") or {}
+                        if not isinstance(raw_val_231, dict):
+                            raw_val_231 = {}
+
+                        atribuicoes_231 = [
+                            ("visan", "Incluir a vigilância sanitária municipal como suporte às ações de controle vetorial exigindo cumprimento da legislação sanitária (3,0 pts)"),
+                            ("integracao_esf", "Integrar as equipes de saúde da família nas atividades de controle vetorial, unificando territórios de ACS e ACE (3,0 pts)"),
+                            ("indicadores", "Realizar o levantamento de indicadores entomológicos (LIRAa/LIA, etc.) (3,0 pts)"),
+                            ("controle_triplice", "Executar as ações de controle mecânico, químico e biológico do mosquito (3,0 pts)"),
+                            ("envio_dados", "Enviar os dados entomológicos ao nível estadual, dentro dos prazos estabelecidos (3,0 pts)"),
+                            ("estoque", "Gerenciar os estoques municipais de inseticidas e biolarvicidas (3,0 pts)"),
+                            ("vestimentas", "Adquirir as vestimentas e equipamentos necessários à rotina de controle vetorial (3,0 pts)"),
+                            ("epis", "Adquirir os equipamentos de EPI recomendados para a aplicação de inseticidas e biolarvicidas (3,0 pts)"),
+                            ("colinesterase", "Coletar e enviar ao laboratório de referência amostras de sangue dos trabalhadores para dosagem de colinesterase (3,0 pts)"),
+                            ("comite_intersetorial", "Possuir Comitê Gestor Intersetorial, sob coordenação da SMS, com interface para o problema da dengue (3,0 pts)"),
+                            ("outros", "Outros (0,0 pts)"),
+                        ]
+
+                        state_231 = {
+                            "itens": {k: bool(raw_val_231.get(k, False)) for k, _ in atribuicoes_231},
+                            "link": str(d231.get("link") or ""),
+                        }
+
+                        chks_231 = {}
+                        for k, label_text in atribuicoes_231:
+                            chk = ui.checkbox(label_text, value=state_231["itens"][k]).classes("mb-1")
+                            chk.bind_value(state_231["itens"], k)
+                            chks_231[k] = chk
+
+                        lbl_pts_231 = ui.label("Pontuação: 0.0").classes("text-sm font-bold text-green-600 my-3")
+
+                        def recalc_231():
+                            pts = 0.0
+                            for k, _ in atribuicoes_231:
+                                if k != "outros" and state_231["itens"][k]:
+                                    pts += 3.0
+                            
+                            lbl_pts_231.set_text(f"📊 Pontuação Quesito 23.1: {pts:.1f} pontos")
+                            return pts
+
+                        for chk in chks_231.values():
+                            chk.on("update:model-value", recalc_231)
+
+                        recalc_231()
+
+                        ui.textarea(label="Link / Atas do Comitê, LIRAa, Fichas de Exames ou Ordens de Compra:", value=state_231["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_231, "link")
+
+                        def salvar_231():
+                            pts = recalc_231()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="23.1",
+                                valor=state_231["itens"],
+                                pontos=pts,
+                                link=state_231["link"],
+                                comentarios=d231.get("comentarios", []),
+                                status=d231.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 23.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 23.1", on_click=salvar_231).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("23.1", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
