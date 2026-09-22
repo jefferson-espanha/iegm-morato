@@ -3350,6 +3350,379 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("17.3", res_data, render_conteudo.refresh)
 
+                    # =============================================================================
+                    # QUESITO 17.3.1 (Taxa de Absenteísmo na Atenção Especializada: 2023, 2024, 2025)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.3.1 • Taxa de Absenteísmo de Consultas Médicas Especializadas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a taxa de absenteísmo de consulta médica da Atenção Especializada sob gestão municipal:"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "Regra de pontuação: Se TA (2025) > média(2023, 2024) -> perde 2 pontos (-02). Caso contrário -> 00 ponto."
+                        ).classes("text-xs font-semibold text-gray-600 mb-6")
+
+                        d1731 = res_data.get("17.3.1") or {}
+                        raw_val_1731 = d1731.get("valor") or {}
+                        if not isinstance(raw_val_1731, dict):
+                            raw_val_1731 = {}
+
+                        raw_link_1731 = str(d1731.get("link") or "")
+
+                        state_1731 = {
+                            "ta_2023": str(raw_val_1731.get("ta_2023", "")),
+                            "ta_2024": str(raw_val_1731.get("ta_2024", "")),
+                            "ta_2025": str(raw_val_1731.get("ta_2025", "")),
+                            "link": raw_link_1731,
+                        }
+
+                        with ui.row().classes("w-full gap-4 mb-4"):
+                            inp_2023 = ui.input(
+                                label="Taxa 2023 (TA-2) (%)",
+                                placeholder="Ex: 15.5",
+                                value=state_1731["ta_2023"]
+                            ).classes("w-1/3").props("outlined density=compact")
+                            inp_2023.bind_value(state_1731, "ta_2023")
+
+                            inp_2024 = ui.input(
+                                label="Taxa 2024 (TA-1) (%)",
+                                placeholder="Ex: 14.0",
+                                value=state_1731["ta_2024"]
+                            ).classes("w-1/3").props("outlined density=compact")
+                            inp_2024.bind_value(state_1731, "ta_2024")
+
+                            inp_2025 = ui.input(
+                                label="Taxa 2025 (TA) (%)",
+                                placeholder="Ex: 12.8",
+                                value=state_1731["ta_2025"]
+                            ).classes("w-1/3").props("outlined density=compact")
+                            inp_2025.bind_value(state_1731, "ta_2025")
+
+                        lbl_pts_1731 = ui.label("Nota 17.3.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1731():
+                            try:
+                                t23 = float(state_1731["ta_2023"].replace(",", ".")) if state_1731["ta_2023"] else None
+                                t24 = float(state_1731["ta_2024"].replace(",", ".")) if state_1731["ta_2024"] else None
+                                t25 = float(state_1731["ta_2025"].replace(",", ".")) if state_1731["ta_2025"] else None
+
+                                if t23 is not None and t24 is not None and t25 is not None:
+                                    media_anteriores = (t23 + t24) / 2.0
+                                    if t25 > media_anteriores:
+                                        pts = -2.0
+                                    else:
+                                        pts = 0.0
+                                    lbl_pts_1731.set_text(
+                                        f"📊 Nota 17.3.1: {pts:.1f} pontos (Média 23-24: {media_anteriores:.2f}% | TA 2025: {t25:.2f}%)"
+                                    )
+                                else:
+                                    pts = 0.0
+                                    lbl_pts_1731.set_text("📊 Nota 17.3.1: Informe todas as taxas para calcular")
+                            except ValueError:
+                                pts = 0.0
+                                lbl_pts_1731.set_text("📊 Nota 17.3.1: Valores inválidos informados")
+                            return pts
+
+                        for inp in [inp_2023, inp_2024, inp_2025]:
+                            inp.on("update:model-value", recalc_1731)
+
+                        recalc_1731()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatórios de Absenteísmo Ano a Ano:",
+                            value=raw_link_1731,
+                            placeholder="Link para memórias de cálculo, planilhas do e-SUS/Regulação...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1731, "link"
+                        )
+
+                        def salvar_1731():
+                            pts = recalc_1731()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.3.1",
+                                valor={
+                                    "ta_2023": state_1731["ta_2023"],
+                                    "ta_2024": state_1731["ta_2024"],
+                                    "ta_2025": state_1731["ta_2025"],
+                                },
+                                pontos=pts,
+                                link=state_1731["link"],
+                                comentarios=d1731.get("comentarios", []),
+                                status=d1731.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.3.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.3.1", on_click=salvar_1713 if False else salvar_1731).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.3.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.3.2 (Medidas para Redução do Absenteísmo em Consultas)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.3.2 • Medidas para Redução da Taxa de Absenteísmo").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município realiza medidas para a redução desta taxa de absenteísmo?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d1732 = res_data.get("17.3.2") or {}
+                        raw_val_1732 = str(d1732.get("valor", "none"))
+                        raw_link_1732 = str(d1732.get("link") or "")
+
+                        state_1732 = {
+                            "opcao": raw_val_1732 if raw_val_1732 in ["00", "-02"] else "none",
+                            "link": raw_link_1732,
+                        }
+
+                        opts_1732 = {
+                            "none": "Selecione uma opção...",
+                            "00": "Sim – 00 pt (não perde pontos)",
+                            "-02": "Não – -02 pts (perde 02 pontos)",
+                        }
+
+                        rad_1732 = ui.radio(
+                            options=opts_1732,
+                            value=state_1732["opcao"]
+                        ).classes("mb-4")
+                        rad_1732.bind_value(state_1732, "opcao")
+
+                        lbl_pts_1732 = ui.label("Nota 17.3.2: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1732():
+                            val = state_1732["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_1732.set_text(f"📊 Nota 17.3.2: {pts:.1f} pontos")
+                            return pts
+
+                        rad_1732.on("update:model-value", recalc_1732)
+                        recalc_1732()
+
+                        ui.textarea(
+                            label="Link de Evidência / Planos de Ação e Ações de Redução:",
+                            value=raw_link_1732,
+                            placeholder="Link de documentos comprovando as medidas adotadas...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1732, "link"
+                        )
+
+                        def salvar_1732():
+                            pts = recalc_1732()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.3.2",
+                                valor=state_1732["opcao"],
+                                pontos=pts,
+                                link=state_1732["link"],
+                                comentarios=d1732.get("comentarios", []),
+                                status=d1732.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.3.2 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.3.2", on_click=salvar_1732).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.3.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.3.2.1 (Medidas Utilizadas para Redução de Absenteísmo)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.3.2.1 • Tipos de Medidas Utilizadas para Redução do Absenteísmo").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale as medidas utilizadas para a redução da taxa de absenteísmo:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d17321 = res_data.get("17.3.2.1") or {}
+                        raw_val_17321 = d17321.get("valor") or {}
+                        if not isinstance(raw_val_17321, dict):
+                            raw_val_17321 = {}
+
+                        raw_link_17321 = str(d17321.get("link") or "")
+
+                        state_17321 = {
+                            "sensibilizacao": bool(raw_val_17321.get("sensibilizacao", False)),
+                            "central_relacionamento": bool(raw_val_17321.get("central_relacionamento", False)),
+                            "busca_ativa": bool(raw_val_17321.get("busca_ativa", False)),
+                            "campanhas": bool(raw_val_17321.get("campanhas", False)),
+                            "outros": bool(raw_val_17321.get("outros", False)),
+                            "outros_texto": str(raw_val_17321.get("outros_texto", "")),
+                            "link": raw_link_17321,
+                        }
+
+                        chk_sens = ui.checkbox("Informar e sensibilizar as equipes/profissionais a respeito do absenteísmo e promover capacitações", value=state_17321["sensibilizacao"])
+                        chk_sens.bind_value(state_17321, "sensibilizacao")
+
+                        chk_cent = ui.checkbox("Criação de Central de relacionamento para usuário SUS, com disponibilização de canal direto de comunicação", value=state_17321["central_relacionamento"])
+                        chk_cent.bind_value(state_17321, "central_relacionamento")
+
+                        chk_busc = ui.checkbox("Orientação das famílias e busca ativa dos faltosos", value=state_17321["busca_ativa"])
+                        chk_busc.bind_value(state_17321, "busca_ativa")
+
+                        chk_camp = ui.checkbox("Promoção de campanhas de conscientização", value=state_17321["campanhas"])
+                        chk_camp.bind_value(state_17321, "campanhas")
+
+                        chk_outr = ui.checkbox("Outros", value=state_17321["outros"])
+                        chk_outr.bind_value(state_17321, "outros")
+
+                        inp_outros_txt = ui.input(
+                            label="Especifique 'Outros':",
+                            value=state_17321["outros_texto"]
+                        ).classes("w-full my-2").props("outlined density=compact")
+                        inp_outros_txt.bind_value(state_17321, "outros_texto")
+
+                        def toggle_outros_txt():
+                            inp_outros_txt.set_visibility(state_17321["outros"])
+
+                        chk_outr.on("update:model-value", toggle_outros_txt)
+                        toggle_outros_txt()
+
+                        lbl_pts_17321 = ui.label("Nota 17.3.2.1: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4 mt-2"
+                        )
+
+                        def recalc_17321():
+                            pts = 0.0
+                            lbl_pts_17321.set_text("📊 Nota 17.3.2.1: Informativo (0.0 pontos)")
+                            return pts
+
+                        ui.textarea(
+                            label="Link de Evidência das Medidas Mencionadas:",
+                            value=raw_link_17321,
+                            placeholder="Link de cartilhas, fotos de campanhas, prints da central de comunicação...",
+                        ).classes("w-full mb-4 mt-2").props("outlined rows=2").bind_value(
+                            state_17321, "link"
+                        )
+
+                        def salvar_17321():
+                            pts = recalc_17321()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.3.2.1",
+                                valor={
+                                    "sensibilizacao": state_17321["sensibilizacao"],
+                                    "central_relacionamento": state_17321["central_relacionamento"],
+                                    "busca_ativa": state_17321["busca_ativa"],
+                                    "campanhas": state_17321["campanhas"],
+                                    "outros": state_17321["outros"],
+                                    "outros_texto": state_17321["outros_texto"],
+                                },
+                                pontos=pts,
+                                link=state_17321["link"],
+                                comentarios=d17321.get("comentarios", []),
+                                status=d17321.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.3.2.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.3.2.1", on_click=salvar_17321).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.3.2.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 17.4 (Controle de Absenteísmo para Exames Médicos da Atenção Especializada)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("17.4 • Controle de Absenteísmo para Exames Médicos Especializados").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A Prefeitura Municipal possui controle de absenteísmo para os exames médicos da Atenção Especializada sob sua gestão?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d174 = res_data.get("17.4") or {}
+                        raw_val_174 = str(d174.get("valor", "none"))
+                        raw_link_174 = str(d174.get("link") or "")
+
+                        state_174 = {
+                            "opcao": raw_val_174 if raw_val_174 in ["00", "-01", "-02", "-03"] else "none",
+                            "link": raw_link_174,
+                        }
+
+                        opts_174 = {
+                            "none": "Selecione uma opção...",
+                            "00": "Sim, para todos os exames – 00 pt (não perde pontos)",
+                            "-01": "Sim, para a maior parte dos exames – -01 pt (perde 01 ponto)",
+                            "-02": "Sim, para a menor parte dos exames – -02 pts (perde 02 pontos)",
+                            "-03": "Não – -03 pts (perde 03 pontos)",
+                        }
+
+                        rad_174 = ui.radio(
+                            options=opts_174,
+                            value=state_174["opcao"]
+                        ).classes("mb-4")
+                        rad_174.bind_value(state_174, "opcao")
+
+                        lbl_pts_174 = ui.label("Nota 17.4: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_174():
+                            val = state_174["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_174.set_text(f"📊 Nota 17.4: {pts:.1f} pontos")
+                            return pts
+
+                        rad_174.on("update:model-value", recalc_174)
+                        recalc_174()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatórios de Absenteísmo em Exames:",
+                            value=raw_link_174,
+                            placeholder="Link das planilhas ou relatórios de absenteísmo para exames especializados...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_174, "link"
+                        )
+
+                        def salvar_174():
+                            pts = recalc_174()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.4",
+                                valor=state_174["opcao"],
+                                pontos=pts,
+                                link=state_174["link"],
+                                comentarios=d174.get("comentarios", []),
+                                status=d174.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 17.4 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.4", on_click=salvar_174).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.4", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
