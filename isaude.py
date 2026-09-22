@@ -8930,8 +8930,20 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("28.2", res_data, render_conteudo.refresh)
 
+                    # Helper para conversão segura de número sem quebrar com string vazia
+                    def parse_num(val):
+                        if val is None or val == "":
+                            return None
+                        try:
+                            return int(val)
+                        except (ValueError, TypeError):
+                            try:
+                                return float(val)
+                            except (ValueError, TypeError):
+                                return None
+
                     # -----------------------------------------------------------------------------
-                    # QUESITO 28.2.1 (Consultas Médicas com Maior Tempo de Espera)
+                    # QUESITO 28.2.1 (Consultas Médicas com Maior Tempo de Espera) - CORRIGIDO
                     # -----------------------------------------------------------------------------
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("28.2.1 • Consultas Médicas com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
@@ -8943,12 +8955,12 @@ def container_formulario_saude(ano=None):
                             raw_val_2821 = {}
 
                         state_2821 = {
-                            "esp_1": str(raw_val_2821.get("esp_1", "")),
-                            "dias_1": str(raw_val_2821.get("dias_1", "")),
-                            "esp_2": str(raw_val_2821.get("esp_2", "")),
-                            "dias_2": str(raw_val_2821.get("dias_2", "")),
-                            "esp_3": str(raw_val_2821.get("esp_3", "")),
-                            "dias_3": str(raw_val_2821.get("dias_3", "")),
+                            "esp_1": str(raw_val_2821.get("esp_1") or ""),
+                            "dias_1": parse_num(raw_val_2821.get("dias_1")),
+                            "esp_2": str(raw_val_2821.get("esp_2") or ""),
+                            "dias_2": parse_num(raw_val_2821.get("dias_2")),
+                            "esp_3": str(raw_val_2821.get("esp_3") or ""),
+                            "dias_3": parse_num(raw_val_2821.get("dias_3")),
                             "link": str(d2821.get("link") or ""),
                         }
 
@@ -8972,10 +8984,18 @@ def container_formulario_saude(ano=None):
                         ui.textarea(label="Link / Relatório Gerencial de Tempos de Espera (Consultas):", value=state_2821["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_2821, "link")
 
                         def salvar_2821():
+                            payload_2821 = {
+                                "esp_1": state_2821["esp_1"],
+                                "dias_1": parse_num(state_2821["dias_1"]),
+                                "esp_2": state_2821["esp_2"],
+                                "dias_2": parse_num(state_2821["dias_2"]),
+                                "esp_3": state_2821["esp_3"],
+                                "dias_3": parse_num(state_2821["dias_3"]),
+                            }
                             save_resposta(
                                 ano=ano_sel,
                                 qid="28.2.1",
-                                valor=state_2821,
+                                valor=payload_2821,
                                 pontos=0.0,
                                 link=state_2821["link"],
                                 comentarios=d2821.get("comentarios", []),
@@ -8990,7 +9010,7 @@ def container_formulario_saude(ano=None):
                         bloco_comentarios("28.2.1", res_data, render_conteudo.refresh)
 
                     # -----------------------------------------------------------------------------
-                    # QUESITO 28.2.2 (Exames Médicos com Maior Tempo de Espera)
+                    # QUESITO 28.2.2 (Exames Médicos com Maior Tempo de Espera) - CORRIGIDO
                     # -----------------------------------------------------------------------------
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("28.2.2 • Exames Médicos com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
@@ -9002,12 +9022,12 @@ def container_formulario_saude(ano=None):
                             raw_val_2822 = {}
 
                         state_2822 = {
-                            "exame_1": str(raw_val_2822.get("exame_1", "")),
-                            "dias_1": str(raw_val_2822.get("dias_1", "")),
-                            "exame_2": str(raw_val_2822.get("exame_2", "")),
-                            "dias_2": str(raw_val_2822.get("dias_2", "")),
-                            "exame_3": str(raw_val_2822.get("exame_3", "")),
-                            "dias_3": str(raw_val_2822.get("dias_3", "")),
+                            "exame_1": str(raw_val_2822.get("exame_1") or ""),
+                            "dias_1": parse_num(raw_val_2822.get("dias_1")),
+                            "exame_2": str(raw_val_2822.get("exame_2") or ""),
+                            "dias_2": parse_num(raw_val_2822.get("dias_2")),
+                            "exame_3": str(raw_val_2822.get("exame_3") or ""),
+                            "dias_3": parse_num(raw_val_2822.get("dias_3")),
                             "link": str(d2822.get("link") or ""),
                         }
 
@@ -9031,10 +9051,18 @@ def container_formulario_saude(ano=None):
                         ui.textarea(label="Link / Relatório Gerencial de Tempos de Espera (Exames):", value=state_2822["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_2822, "link")
 
                         def salvar_2822():
+                            payload_2822 = {
+                                "exame_1": state_2822["exame_1"],
+                                "dias_1": parse_num(state_2822["dias_1"]),
+                                "exame_2": state_2822["exame_2"],
+                                "dias_2": parse_num(state_2822["dias_2"]),
+                                "exame_3": state_2822["exame_3"],
+                                "dias_3": parse_num(state_2822["dias_3"]),
+                            }
                             save_resposta(
                                 ano=ano_sel,
                                 qid="28.2.2",
-                                valor=state_2822,
+                                valor=payload_2822,
                                 pontos=0.0,
                                 link=state_2822["link"],
                                 comentarios=d2822.get("comentarios", []),
