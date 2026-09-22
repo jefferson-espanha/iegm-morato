@@ -6474,6 +6474,389 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("18.2.1.1", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 18.3 (Adesão ao Programa Recomeço)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.3 • Programa Recomeço").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O Município formalizou termo de adesão com o Programa Recomeço (Art. 7º, Decreto nº 61.674/2015) ou outro programa que venha a substituí-lo?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d183 = res_data.get("18.3") or {}
+                        raw_val_183 = str(d183.get("valor", "none"))
+                        raw_link_183 = str(d183.get("link") or "")
+
+                        state_183 = {
+                            "opcao": raw_val_183 if raw_val_183 in ["sim", "nao"] else "none",
+                            "link": raw_link_183,
+                        }
+
+                        opts_183 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim",
+                            "nao": "Não",
+                        }
+
+                        rad_183 = ui.radio(
+                            options=opts_183,
+                            value=state_183["opcao"]
+                        ).classes("mb-4")
+                        rad_183.bind_value(state_183, "opcao")
+
+                        lbl_pts_183 = ui.label("Nota 18.3: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_183():
+                            pts = 0.0
+                            lbl_pts_183.set_text("📊 Nota 18.3: Informativo (0.0 pontos)")
+                            return pts
+
+                        ui.textarea(
+                            label="Link de Evidência / Termo de Adesão ou Publicação Oficial:",
+                            value=raw_link_183,
+                            placeholder="Link do termo de adesão assinado, convênio ou publicação no Diário Oficial...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_183, "link"
+                        )
+
+                        def salvar_183():
+                            pts = recalc_183()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.3",
+                                valor=state_183["opcao"],
+                                pontos=pts,
+                                link=state_183["link"],
+                                comentarios=d183.get("comentarios", []),
+                                status=d183.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.3", on_click=salvar_183).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.3", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 18.4 (Indicadores Específicos para Atenção Psicossocial)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.4 • Indicadores da Atenção Psicossocial").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município possui indicadores específicos para a Atenção Psicossocial?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d184 = res_data.get("18.4") or {}
+                        raw_val_184 = str(d184.get("valor", "none"))
+                        raw_link_184 = str(d184.get("link") or "")
+
+                        state_184 = {
+                            "opcao": raw_val_184 if raw_val_184 in ["sim", "nao"] else "none",
+                            "link": raw_link_184,
+                        }
+
+                        opts_184 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim (0,0 ponto)",
+                            "nao": "Não (-5,0 pontos)",
+                        }
+
+                        rad_184 = ui.radio(
+                            options=opts_184,
+                            value=state_184["opcao"]
+                        ).classes("mb-4")
+                        rad_184.bind_value(state_184, "opcao")
+
+                        lbl_pts_184 = ui.label("Nota 18.4: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_184():
+                            val = state_184["opcao"]
+                            if val == "sim":
+                                pts = 0.0
+                                lbl_pts_184.classes(replace="text-sm font-bold text-green-600 mb-4")
+                            elif val == "nao":
+                                pts = -5.0
+                                lbl_pts_184.classes(replace="text-sm font-bold text-red-600 mb-4")
+                            else:
+                                pts = 0.0
+                                lbl_pts_184.classes(replace="text-sm font-bold text-gray-600 mb-4")
+
+                            lbl_pts_184.set_text(f"📊 Nota 18.4: {pts:.1f} pontos")
+                            return pts
+
+                        rad_184.on("update:model-value", recalc_184)
+                        recalc_184()
+
+                        ui.textarea(
+                            label="Link de Evidência / Matriz ou Painel de Indicadores da RAPS:",
+                            value=raw_link_184,
+                            placeholder="Link do documento com a definição, cadernos de indicadores ou painéis de monitoramento...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_184, "link"
+                        )
+
+                        def salvar_184():
+                            pts = recalc_184()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.4",
+                                valor=state_184["opcao"],
+                                pontos=pts,
+                                link=state_184["link"],
+                                comentarios=d184.get("comentarios", []),
+                                status=d184.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 18.4 salvo com sucesso! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.4", on_click=salvar_184).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.4", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 18.4.1 (Tipos de Indicadores da Atenção Psicossocial)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.4.1 • Tipos de Indicadores Utilizados").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale os tipos de indicadores da Atenção Psicossocial:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d1841 = res_data.get("18.4.1") or {}
+                        raw_val_1841 = d1841.get("valor") or []
+                        if not isinstance(raw_val_1841, list):
+                            raw_val_1841 = []
+
+                        raw_link_1841 = str(d1841.get("link") or "")
+
+                        state_1841 = {
+                            "opcoes": raw_val_1841,
+                            "link": raw_link_1841,
+                        }
+
+                        chk_options_1841 = [
+                            ("drogas", "Para Drogas (transtornos mentais incluindo aqueles relacionados ao uso de substâncias psicoativas)"),
+                            ("saude_mental", "Para Saúde Mental (transtornos mentais graves e persistentes)"),
+                            ("lacos_sociais", "Para outras situações clínicas que impossibilitem estabelecer laços sociais e realizar projetos de vida"),
+                            ("infantil", "Para Drogas e/ou Saúde Mental para crianças em específico"),
+                            ("outros", "Outros"),
+                        ]
+
+                        for key, label_text in chk_options_1841:
+                            chk = ui.checkbox(
+                                text=label_text,
+                                value=(key in state_1841["opcoes"])
+                            ).classes("mb-1")
+
+                            def make_on_change(k=key):
+                                def on_change(e):
+                                    if e.value and k not in state_1841["opcoes"]:
+                                        state_1841["opcoes"].append(k)
+                                    elif not e.value and k in state_1841["opcoes"]:
+                                        state_1841["opcoes"].remove(k)
+                                return on_change
+
+                            chk.on("update:model-value", make_on_change(key))
+
+                        ui.label("Nota 18.4.1: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 my-4"
+                        )
+
+                        ui.textarea(
+                            label="Link de Evidência / Fichas Técnicas dos Indicadores:",
+                            value=raw_link_1841,
+                            placeholder="Link do relatório com o detalhamento e resultados dos indicadores assinalados...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1841, "link"
+                        )
+
+                        def salvar_1841():
+                            pts = 0.0
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.4.1",
+                                valor=state_1841["opcoes"],
+                                pontos=pts,
+                                link=state_1841["link"],
+                                comentarios=d1841.get("comentarios", []),
+                                status=d1841.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.4.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.4.1", on_click=salvar_1841).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.4.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 18.5 (Porte Populacional > 15 mil habitantes - IBGE 2025)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.5 • População Municipal (IBGE 2025)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município possui população superior a 15 mil habitantes (conforme dados do IBGE 2025)?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d185 = res_data.get("18.5") or {}
+                        raw_val_185 = str(d185.get("valor", "none"))
+                        raw_link_185 = str(d185.get("link") or "")
+
+                        state_185 = {
+                            "opcao": raw_val_185 if raw_val_185 in ["sim", "nao"] else "none",
+                            "link": raw_link_185,
+                        }
+
+                        opts_185 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim",
+                            "nao": "Não",
+                        }
+
+                        rad_185 = ui.radio(
+                            options=opts_185,
+                            value=state_185["opcao"]
+                        ).classes("mb-4")
+                        rad_185.bind_value(state_185, "opcao")
+
+                        lbl_pts_185 = ui.label("Nota 18.5: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_185():
+                            pts = 0.0
+                            lbl_pts_185.set_text("📊 Nota 18.5: Informativo (0.0 pontos)")
+                            return pts
+
+                        ui.textarea(
+                            label="Link de Evidência / Estimativa Populacional IBGE 2025:",
+                            value=raw_link_185,
+                            placeholder="Link da certidão ou publicação oficial do IBGE 2025...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_185, "link"
+                        )
+
+                        def salvar_185():
+                            pts = recalc_185()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.5",
+                                valor=state_185["opcao"],
+                                pontos=pts,
+                                link=state_185["link"],
+                                comentarios=d185.get("comentarios", []),
+                                status=d185.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.5 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.5", on_click=salvar_185).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.5", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 18.5.1 (Dimensionamento da Rede CAPS / Unidades de Acolhimento)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("18.5.1 • Adequação da Rede CAPS e Unidades de Acolhimento").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A quantidade de CAPS e Unidades de Acolhimento Adulto e Infanto-Juvenil segundo a totalidade de habitantes do município é adequada?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d1851 = res_data.get("18.5.1") or {}
+                        raw_val_1851 = str(d1851.get("valor", "none"))
+                        raw_link_1851 = str(d1851.get("link") or "")
+
+                        state_1851 = {
+                            "opcao": raw_val_1851 if raw_val_1851 in ["sim", "nao"] else "none",
+                            "link": raw_link_1851,
+                        }
+
+                        opts_1851 = {
+                            "none": "Selecione uma opção...",
+                            "sim": "Sim",
+                            "nao": "Não",
+                        }
+
+                        rad_1851 = ui.radio(
+                            options=opts_1851,
+                            value=state_1851["opcao"]
+                        ).classes("mb-4")
+                        rad_1851.bind_value(state_1851, "opcao")
+
+                        lbl_pts_1851 = ui.label("Nota 18.5.1: Informativo (0.0 pontos)").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_1851():
+                            pts = 0.0
+                            lbl_pts_1851.set_text("📊 Nota 18.5.1: Informativo (0.0 pontos)")
+                            return pts
+
+                        ui.textarea(
+                            label="Link de Evidência / Cadastro CNES ou Relatório da RAPS:",
+                            value=raw_link_1851,
+                            placeholder="Link do CNES das unidades CAPS/UAA/UAI ou plano de expansão da RAPS...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_1851, "link"
+                        )
+
+                        def salvar_1851():
+                            pts = recalc_1851()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.5.1",
+                                valor=state_1851["opcao"],
+                                pontos=pts,
+                                link=state_1851["link"],
+                                comentarios=d1851.get("comentarios", []),
+                                status=d1851.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.5.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.5.1", on_click=salvar_1851).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.5.1", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
