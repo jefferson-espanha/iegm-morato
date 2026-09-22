@@ -11807,6 +11807,171 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("S6", res_data, render_conteudo.refresh)
 
+                    # =============================================================================
+                    # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITOS S7 E S8
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S7 (Cobertura Vacinal contra Influenza - Idosos ≥ 60 anos)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S7 • Cobertura Vacinal de Influenza (Idosos ≥ 60 anos)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o percentual (%) de cobertura vacinal contra a Influenza nos idosos com 60 anos ou mais. "
+                            "A meta estipulada pelo Ministério da Saúde é de 90,0%."
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds7 = res_data.get("S7") or {}
+                        val_s7 = ds7.get("valor") if isinstance(ds7.get("valor"), dict) else {}
+
+                        state_s7 = {
+                            "cobertura": float(val_s7.get("cobertura", 0.0)),
+                            "link": str(ds7.get("link") or "")
+                        }
+
+                        lbl_pontos_s7 = ui.label("").classes("text-base font-bold text-green-600 mb-4")
+
+                        def calc_s7(cob):
+                            meta = 90.0
+                            p1 = 20.0
+
+                            if cob >= meta:
+                                pts = p1
+                            else:
+                                pts = (cob / meta) * p1 if meta > 0 else 0.0
+
+                            return max(0.0, min(p1, pts))
+
+                        def atualizar_calculo_s7():
+                            cob_val = float(inp_cob_s7.value or 0)
+                            pts = calc_s7(cob_val)
+
+                            if cob_val >= 90.0:
+                                lbl_pontos_s7.set_text(f"Pontuação Calculada: {pts:.2f} / 20.0 pontos (Meta de 90% atingida!)")
+                            else:
+                                lbl_pontos_s7.set_text(f"Pontuação Calculada: {pts:.2f} / 20.0 pontos (Proporcional à meta de 90%)")
+
+                        inp_cob_s7 = ui.number(
+                            label="Percentual de Cobertura Vacinal (%):",
+                            value=state_s7["cobertura"],
+                            min=0,
+                            max=100,
+                            format="%.2f"
+                        ).classes("w-full mb-4").props("outlined dense")
+
+                        inp_cob_s7.on("update:model-value", lambda: atualizar_calculo_s7())
+
+                        ui.textarea(
+                            label="Link / Comprovação do Informe Técnico de Vacinação da Influenza:",
+                            value=state_s7["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s7, "link")
+
+                        atualizar_calculo_s7()
+
+                        def salvar_s7():
+                            cob_val = float(inp_cob_s7.value or 0)
+                            pts = calc_s7(cob_val)
+
+                            dados_finais = {
+                                "cobertura": cob_val,
+                                "meta": 90.0
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S7",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s7["link"],
+                                comentarios=ds7.get("comentarios", []),
+                                status=ds7.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S7 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S7", on_click=salvar_s7).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S7", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO S8 (Internações por Causas Sensíveis à Atenção Básica - SIH/SUS)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("S8 • Internações por Causas Sensíveis à Atenção Básica (ICSAB)").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o percentual (%) de internações por causas sensíveis à atenção básica no total de internações "
+                            "nos estabelecimentos sob gestão municipal (SIH/SUS). Este indicador aplica penalidade proporcional:"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        ds8 = res_data.get("S8") or {}
+                        val_s8 = ds8.get("valor") if isinstance(ds8.get("valor"), dict) else {}
+
+                        state_s8 = {
+                            "pi": float(val_s8.get("pi", 0.0)),
+                            "link": str(ds8.get("link") or "")
+                        }
+
+                        lbl_pontos_s8 = ui.label("").classes("text-base font-bold mb-4")
+
+                        def calc_s8(pi):
+                            if pi > 100.0:
+                                return -5.0
+                            else:
+                                return (pi / 100.0) * (-5.0)
+
+                        def atualizar_calculo_s8():
+                            pi_val = float(inp_pi_s8.value or 0)
+                            pts = calc_s8(pi_val)
+
+                            lbl_pontos_s8.set_text(f"Pontuação/Penalidade Calculada: {pts:.2f} pontos")
+                            if pts < 0:
+                                lbl_pontos_s8.classes(remove="text-green-600", add="text-red-600")
+                            else:
+                                lbl_pontos_s8.classes(remove="text-red-600", add="text-green-600")
+
+                        inp_pi_s8 = ui.number(
+                            label="Percentual de Internações Sensíveis (PI %):",
+                            value=state_s8["pi"],
+                            min=0,
+                            max=100,
+                            format="%.2f"
+                        ).classes("w-full mb-4").props("outlined dense")
+
+                        inp_pi_s8.on("update:model-value", lambda: atualizar_calculo_s8())
+
+                        ui.textarea(
+                            label="Link / Comprovação dos dados do SIH/SUS:",
+                            value=state_s8["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s8, "link")
+
+                        atualizar_calculo_s8()
+
+                        def salvar_s8():
+                            pi_val = float(inp_pi_s8.value or 0)
+                            pts = calc_s8(pi_val)
+
+                            dados_finais = {
+                                "pi": pi_val
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="S8",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_s8["link"],
+                                comentarios=ds8.get("comentarios", []),
+                                status=ds8.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito S8 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO S8", on_click=salvar_s8).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("S8", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
