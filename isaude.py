@@ -10598,6 +10598,113 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("36.1", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # QUESITO 37.0 - DESABASTECIMENTO DE MEDICAMENTOS DA ASSISTÊNCIA FARMACÊUTICA
+                    # =============================================================================
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("37.0 • Índice de Desabastecimento do Componente Básico da Assistência Farmacêutica").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Informe o número de medicamentos da REMUME em falta por mais de 1 mês em 2025 (MD) "
+                            "e o total de medicamentos cadastrados na REMUME (TM) para cálculo da proporção (Pd = MD / TM):"
+                        ).classes("text-sm text-gray-700 mb-4")
+
+                        d370 = res_data.get("37.0") or {}
+                        val_370 = d370.get("valor") if isinstance(d370.get("valor"), dict) else {}
+
+                        state_370 = {
+                            "md": float(val_370.get("md", 0.0)),
+                            "tm": float(val_370.get("tm", 0.0)),
+                            "link": str(d370.get("link") or "")
+                        }
+
+                        lbl_pd = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
+                        lbl_pontos_370 = ui.label("").classes("text-base font-bold text-green-600 mb-4")
+
+                        def calc_pontos_370(md, tm):
+                            if tm <= 0:
+                                return 0.0, 0.0  # Evita divisão por zero
+                            
+                            pd = (md / tm) * 100.0  # Em porcentagem
+
+                            if pd == 0:
+                                pts = 90.0
+                            elif 0 < pd <= 5.0:
+                                pts = 75.0
+                            elif 5.0 < pd <= 10.0:
+                                pts = 50.0
+                            elif 10.0 < pd <= 15.0:
+                                pts = 25.0
+                            else:  # pd > 15%
+                                pts = 0.0
+
+                            return pd, pts
+
+                        def atualizar_calculo_370():
+                            md_val = float(inp_md.value or 0)
+                            tm_val = float(inp_tm.value or 0)
+                            
+                            pd, pts = calc_pontos_370(md_val, tm_val)
+
+                            if tm_val > 0:
+                                lbl_pd.set_text(f"Proporção de Desabastecimento (Pd): {pd:.2f}% (MD: {int(md_val)} / TM: {int(tm_val)})")
+                            else:
+                                lbl_pd.set_text("Proporção de Desabastecimento (Pd): Infórme o Total de Medicamentos (TM)")
+
+                            lbl_pontos_370.set_text(f"Pontuação Calculada: {pts:.1f} / 90.0 pontos")
+
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            inp_md = ui.number(
+                                label="Nº de itens com desabastecimento > 1 mês em 2025 (MD):",
+                                value=state_370["md"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                            inp_tm = ui.number(
+                                label="Total de itens do Componente Básico na REMUME (TM):",
+                                value=state_370["tm"],
+                                min=0,
+                                format="%.0f"
+                            ).classes("w-full").props("outlined dense")
+
+                        inp_md.on("update:model-value", lambda: atualizar_calculo_370())
+                        inp_tm.on("update:model-value", lambda: atualizar_calculo_370())
+
+                        ui.textarea(
+                            label="Link / Comprovação do controle de estoque e lista REMUME:",
+                            value=state_370["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_370, "link")
+
+                        atualizar_calculo_370()
+
+                        def salvar_370():
+                            md_val = float(inp_md.value or 0)
+                            tm_val = float(inp_tm.value or 0)
+                            pd, pts = calc_pontos_370(md_val, tm_val)
+
+                            dados_finais = {
+                                "md": md_val,
+                                "tm": tm_val,
+                                "pd": round(pd, 4)
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="37.0",
+                                valor=dados_finais,
+                                pontos=pts,
+                                link=state_370["link"],
+                                comentarios=d370.get("comentarios", []),
+                                status=d370.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 37.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 37.0", on_click=salvar_370).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("37.0", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
