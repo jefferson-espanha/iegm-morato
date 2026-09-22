@@ -10705,6 +10705,310 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("37.0", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # MÓDULO DE TELEMEDICINA E COMENTÁRIOS FINAIS - QUESITOS 38.0 A 39.0
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 38.0 (Disponibilização do Serviço de Telemedicina)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("38.0 • Disponibilização de Serviços de Telemedicina").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Houve a disponibilização do serviço de telemedicina em 2025?").classes("text-sm text-gray-700 mb-4")
+
+                        d380 = res_data.get("38.0") or {}
+                        state_380 = {
+                            "opcao": d380.get("valor") if isinstance(d380.get("valor"), str) else "Não",
+                            "link": str(d380.get("link") or "")
+                        }
+
+                        radio_380 = ui.radio(["Sim", "Não"], value=state_380["opcao"]).classes("mb-3").bind_value(state_380, "opcao")
+
+                        ui.textarea(
+                            label="Link / Comprovação da oferta de telemedicina:",
+                            value=state_380["link"]
+                        ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_380, "link")
+
+                        def salvar_380():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="38.0",
+                                valor=state_380["opcao"],
+                                pontos=0.0,
+                                link=state_380["link"],
+                                comentarios=d380.get("comentarios", []),
+                                status=d380.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 38.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 38.0", on_click=salvar_380).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("38.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # BLOCO TELEMEDICINA (38.1 a 38.3) - Exibido apenas se 38.0 == "Sim"
+                    # -----------------------------------------------------------------------------
+                    if state_380["opcao"] == "Sim":
+
+                        # -------------------------------------------------------------------------
+                        # QUESITO 38.1 (Serviços Disponibilizados de Telemedicina)
+                        # -------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
+                            ui.label("38.1 • Serviços Disponibilizados").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("Assinale os serviços disponibilizados:").classes("text-sm text-gray-700 mb-4")
+
+                            d381 = res_data.get("38.1") or {}
+                            raw_val_381 = d381.get("valor") or []
+                            if not isinstance(raw_val_381, list):
+                                raw_val_381 = []
+
+                            state_381 = {
+                                "teleconsulta": "Teleconsulta" in raw_val_381,
+                                "teleinterconsulta": "Teleinterconsulta" in raw_val_381,
+                                "telediagnostico": "Telediagnóstico" in raw_val_381,
+                                "teletriagem": "Teletriagem" in raw_val_381,
+                                "telemonitoramento": "Telemonitoramento" in raw_val_381,
+                                "teleconsultoria": "Teleconsultoria" in raw_val_381,
+                                "outros": "Outros" in raw_val_381,
+                                "link": str(d381.get("link") or "")
+                            }
+
+                            ui.checkbox("Teleconsulta", value=state_381["teleconsulta"]).bind_value(state_381, "teleconsulta")
+                            ui.checkbox("Teleinterconsulta", value=state_381["teleinterconsulta"]).bind_value(state_381, "teleinterconsulta")
+                            ui.checkbox("Telediagnóstico", value=state_381["telediagnostico"]).bind_value(state_381, "telediagnostico")
+                            ui.checkbox("Teletriagem", value=state_381["teletriagem"]).bind_value(state_381, "teletriagem")
+                            ui.checkbox("Telemonitoramento", value=state_381["telemonitoramento"]).bind_value(state_381, "telemonitoramento")
+                            ui.checkbox("Teleconsultoria", value=state_381["teleconsultoria"]).bind_value(state_381, "teleconsultoria")
+                            ui.checkbox("Outros", value=state_381["outros"]).bind_value(state_381, "outros")
+
+                            ui.textarea(
+                                label="Link / Comprovação dos serviços de telemedicina:",
+                                value=state_381["link"]
+                            ).classes("w-full mb-3 mt-3").props("outlined dense rows=2").bind_value(state_381, "link")
+
+                            def salvar_381():
+                                sel_list = []
+                                if state_381["teleconsulta"]: sel_list.append("Teleconsulta")
+                                if state_381["teleinterconsulta"]: sel_list.append("Teleinterconsulta")
+                                if state_381["telediagnostico"]: sel_list.append("Telediagnóstico")
+                                if state_381["teletriagem"]: sel_list.append("Teletriagem")
+                                if state_381["telemonitoramento"]: sel_list.append("Telemonitoramento")
+                                if state_381["teleconsultoria"]: sel_list.append("Teleconsultoria")
+                                if state_381["outros"]: sel_list.append("Outros")
+
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="38.1",
+                                    valor=sel_list,
+                                    pontos=0.0,
+                                    link=state_381["link"],
+                                    comentarios=d381.get("comentarios", []),
+                                    status=d381.get("status", "Pendente")
+                                )
+                                ui.notify("Quesito 38.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 38.1", on_click=salvar_381).classes("bg-blue-600 text-white font-bold my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("38.1", res_data, render_conteudo.refresh)
+
+                        # -------------------------------------------------------------------------
+                        # QUESITO 38.2 (Sistema Informatizado para Prescrição Eletrônica)
+                        # -------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
+                            ui.label("38.2 • Prescrição e Atestados Eletrônicos").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("Foi utilizado sistema informatizado para prescrição eletrônica, que possibilitasse a emissão de receitas e atestados, assinados eletronicamente?").classes("text-sm text-gray-700 mb-4")
+
+                            d382 = res_data.get("38.2") or {}
+                            state_382 = {
+                                "opcao": d382.get("valor") if isinstance(d382.get("valor"), str) else "Não",
+                                "link": str(d382.get("link") or "")
+                            }
+
+                            radio_382 = ui.radio(["Sim", "Não"], value=state_382["opcao"]).classes("mb-3").bind_value(state_382, "opcao")
+
+                            ui.textarea(
+                                label="Link / Comprovação do sistema de prescrição eletrônica:",
+                                value=state_382["link"]
+                            ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_382, "link")
+
+                            def salvar_382():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="38.2",
+                                    valor=state_382["opcao"],
+                                    pontos=0.0,
+                                    link=state_382["link"],
+                                    comentarios=d382.get("comentarios", []),
+                                    status=d382.get("status", "Pendente")
+                                )
+                                ui.notify("Quesito 38.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 38.2", on_click=salvar_382).classes("bg-blue-600 text-white font-bold my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("38.2", res_data, render_conteudo.refresh)
+
+                        # -------------------------------------------------------------------------
+                        # QUESITO 38.2.1 (Ferramentas de Prescrição Utilizadas) - Se 38.2 == Sim
+                        # -------------------------------------------------------------------------
+                        if state_382["opcao"] == "Sim":
+                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-8"):
+                                ui.label("38.2.1 • Ferramenta Utilizada para Prescrição e Assinatura Eletrônica").classes("text-xl font-semibold text-blue-600 mb-2")
+                                ui.label("Assinale a ferramenta utilizada para prescrição e assinatura eletrônica:").classes("text-sm text-gray-700 mb-4")
+
+                                d3821 = res_data.get("38.2.1") or {}
+                                raw_val_3821 = d3821.get("valor") or []
+                                if not isinstance(raw_val_3821, list):
+                                    raw_val_3821 = []
+
+                                state_3821 = {
+                                    "ms": "Consultório Virtual da Família do Ministério da Saúde" in raw_val_3821,
+                                    "cfm": "Prescrição Eletrônica do Conselho Federal de Medicina" in raw_val_3821,
+                                    "outras": "Outras" in raw_val_3821,
+                                    "link": str(d3821.get("link") or "")
+                                }
+
+                                ui.checkbox("Consultório Virtual da Família do Ministério da Saúde", value=state_3821["ms"]).bind_value(state_3821, "ms")
+                                ui.checkbox("Prescrição Eletrônica do Conselho Federal de Medicina", value=state_3821["cfm"]).bind_value(state_3821, "cfm")
+                                ui.checkbox("Outras", value=state_3821["outras"]).bind_value(state_3821, "outras")
+
+                                ui.textarea(
+                                    label="Link / Especificação da plataforma utilizada:",
+                                    value=state_3821["link"]
+                                ).classes("w-full mb-3 mt-3").props("outlined dense rows=2").bind_value(state_3821, "link")
+
+                                def salvar_3821():
+                                    sel_list = []
+                                    if state_3821["ms"]: sel_list.append("Consultório Virtual da Família do Ministério da Saúde")
+                                    if state_3821["cfm"]: sel_list.append("Prescrição Eletrônica do Conselho Federal de Medicina")
+                                    if state_3821["outras"]: sel_list.append("Outras")
+
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="38.2.1",
+                                        valor=sel_list,
+                                        pontos=0.0,
+                                        link=state_3821["link"],
+                                        comentarios=d3821.get("comentarios", []),
+                                        status=d3821.get("status", "Pendente")
+                                    )
+                                    ui.notify("Quesito 38.2.1 salvo com sucesso!", type="positive")
+                                    if render_conteudo.refresh:
+                                        render_conteudo.refresh()
+
+                                ui.button("💾 SALVAR QUESITO 38.2.1", on_click=salvar_3821).classes("bg-blue-600 text-white font-bold my-2")
+                                ui.separator().classes("my-2")
+                                bloco_comentarios("38.2.1", res_data, render_conteudo.refresh)
+
+                        # -------------------------------------------------------------------------
+                        # QUESITO 38.3 (Modalidades de Consultas e Registros Realizados)
+                        # -------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
+                            ui.label("38.3 • Modalidades de Consultas e Registros de Telemedicina").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("Assinale as modalidades de consultas e registros realizados referentes aos serviços de telemedicina:").classes("text-sm text-gray-700 mb-4")
+
+                            d383 = res_data.get("38.3") or {}
+                            raw_val_383 = d383.get("valor") or []
+                            if not isinstance(raw_val_383, list):
+                                raw_val_383 = []
+
+                            state_383 = {
+                                "iniciais": "Consultas iniciais (primeiro atendimento)" in raw_val_383,
+                                "acompanhamento": "Consultas de acompanhamento/monitoramento" in raw_val_383,
+                                "urgencia": "Consultas em caráter de urgência" in raw_val_383,
+                                "supervisao": "Consultas de supervisão. Ex.: troca de experiências entre profissionais da saúde" in raw_val_383,
+                                "pec": "Prontuário Eletrônico do Cidadão (PEC)" in raw_val_383,
+                                "cds": "Fichas de Coletas de Dados Simplificados (CDS)" in raw_val_383,
+                                "outros": "Outros" in raw_val_383,
+                                "sem_registro": "Não houve registro" in raw_val_383,
+                                "link": str(d383.get("link") or "")
+                            }
+
+                            ui.checkbox("Consultas iniciais (primeiro atendimento)", value=state_383["iniciais"]).bind_value(state_383, "iniciais")
+                            ui.checkbox("Consultas de acompanhamento/monitoramento", value=state_383["acompanhamento"]).bind_value(state_383, "acompanhamento")
+                            ui.checkbox("Consultas em caráter de urgência", value=state_383["urgencia"]).bind_value(state_383, "urgencia")
+                            ui.checkbox("Consultas de supervisão. Ex.: troca de experiências entre profissionais da saúde", value=state_383["supervisao"]).bind_value(state_383, "supervisao")
+                            ui.checkbox("Prontuário Eletrônico do Cidadão (PEC)", value=state_383["pec"]).bind_value(state_383, "pec")
+                            ui.checkbox("Fichas de Coletas de Dados Simplificados (CDS)", value=state_383["cds"]).bind_value(state_383, "cds")
+                            ui.checkbox("Outros", value=state_383["outros"]).bind_value(state_383, "outros")
+                            ui.checkbox("Não houve registro", value=state_383["sem_registro"]).bind_value(state_383, "sem_registro")
+
+                            ui.textarea(
+                                label="Link / Comprovação dos registros de telemedicina:",
+                                value=state_383["link"]
+                            ).classes("w-full mb-3 mt-3").props("outlined dense rows=2").bind_value(state_383, "link")
+
+                            def salvar_383():
+                                sel_list = []
+                                if state_383["iniciais"]: sel_list.append("Consultas iniciais (primeiro atendimento)")
+                                if state_383["acompanhamento"]: sel_list.append("Consultas de acompanhamento/monitoramento")
+                                if state_383["urgencia"]: sel_list.append("Consultas em caráter de urgência")
+                                if state_383["supervisao"]: sel_list.append("Consultas de supervisão. Ex.: troca de experiências entre profissionais da saúde")
+                                if state_383["pec"]: sel_list.append("Prontuário Eletrônico do Cidadão (PEC)")
+                                if state_383["cds"]: sel_list.append("Fichas de Coletas de Dados Simplificados (CDS)")
+                                if state_383["outros"]: sel_list.append("Outros")
+                                if state_383["sem_registro"]: sel_list.append("Não houve registro")
+
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="38.3",
+                                    valor=sel_list,
+                                    pontos=0.0,
+                                    link=state_383["link"],
+                                    comentarios=d383.get("comentarios", []),
+                                    status=d383.get("status", "Pendente")
+                                )
+                                ui.notify("Quesito 38.3 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 38.3", on_click=salvar_383).classes("bg-blue-600 text-white font-bold my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("38.3", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 39.0 (Espaço para Impressões, Comentários e Sugestões do Questionário)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("39.0 • Impressões, Comentários e Sugestões").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label(
+                            "Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?\n"
+                            "Utilize o espaço abaixo para registrar suas impressões, comentários e sugestões a respeito do presente questionário."
+                        ).classes("text-sm text-gray-700 mb-4 whitespace-pre-line")
+
+                        d390 = res_data.get("39.0") or {}
+                        state_390 = {
+                            "texto": str(d390.get("valor") or "")
+                        }
+
+                        ui.textarea(
+                            label="Comentários e sugestões sobre o questionário:",
+                            value=state_390["texto"]
+                        ).classes("w-full mb-3").props("outlined dense rows=5").bind_value(state_390, "texto")
+
+                        def salvar_390():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="39.0",
+                                valor=state_390["texto"],
+                                pontos=0.0,
+                                link="",
+                                comentarios=d390.get("comentarios", []),
+                                status=d390.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 39.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 39.0", on_click=salvar_390).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("39.0", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
