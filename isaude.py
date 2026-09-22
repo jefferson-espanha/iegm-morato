@@ -1590,6 +1590,401 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("12.0", res_data, render_conteudo.refresh)
 
+    # =============================================================================
+                    # QUESITO 13.0 (Registro Eletrônico de Frequência)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("13.0 • Registro Eletrônico de Frequência dos Profissionais").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "A Prefeitura registra a frequência dos profissionais de saúde da Atenção Básica de forma eletrônica?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "⚠️ Obs: O encaminhamento de planilhas de ponto não será considerado como modalidade de registro eletrônico."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d130 = res_data.get("13.0") or res_data.get("13") or {}
+                        raw_val_130 = str(d130.get("valor", "none"))
+                        raw_link_130 = str(d130.get("link") or "")
+
+                        state_130 = {
+                            "opcao": raw_val_130 if raw_val_130 in ["05", "03", "01", "00"] else "none",
+                            "link": raw_link_130,
+                        }
+
+                        opts_130 = {
+                            "none": "Selecione uma opção...",
+                            "05": "Sim, para todos os profissionais da saúde – 05 pts",
+                            "03": "Sim, para a maior parte dos profissionais da saúde – 03 pts",
+                            "01": "Sim, para a menor parte dos profissionais da saúde – 01 pt",
+                            "00": "Não houve registro eletrônico de nenhum profissional de saúde – 00 pt",
+                        }
+
+                        rad_130 = ui.radio(
+                            options=opts_130,
+                            value=state_130["opcao"]
+                        ).classes("mb-4")
+                        rad_130.bind_value(state_130, "opcao")
+
+                        lbl_pts_130 = ui.label("Nota 13.0: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_130():
+                            val = state_130["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_130.set_text(f"📊 Nota 13.0: {pts:.1f} / 5.0 pontos")
+                            return pts
+
+                        rad_130.on("update:model-value", recalc_130)
+                        recalc_130()
+
+                        ui.textarea(
+                            label="Link de Evidência / Sistema de Ponto Eletrônico:",
+                            value=raw_link_130,
+                            placeholder="Link do relatório do sistema de ponto eletrônico ou portaria...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_130, "link"
+                        )
+
+                        def salvar_130():
+                            pts = recalc_130()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="13.0",
+                                valor=state_130["opcao"],
+                                pontos=pts,
+                                link=state_130["link"],
+                                comentarios=d130.get("comentarios", []),
+                                status=d130.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 13.0 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 13.0", on_click=salvar_130).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("13.0", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 13.1 (Jornada de Trabalho Médica)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("13.1 • Cumprimento da Jornada de Trabalho Médica").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Os médicos da Atenção Básica cumprem integralmente sua jornada de trabalho?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d131 = res_data.get("13.1") or {}
+                        raw_val_131 = str(d131.get("valor", "none"))
+                        raw_link_131 = str(d131.get("link") or "")
+
+                        state_131 = {
+                            "opcao": raw_val_131 if raw_val_131 in ["15", "08", "05", "02", "00"] else "none",
+                            "link": raw_link_131,
+                        }
+
+                        opts_131 = {
+                            "none": "Selecione uma opção...",
+                            "15": "Sim, todos cumprem integralmente a jornada de trabalho – 15 pts",
+                            "08": "Sim, a maior parte cumpre integralmente a jornada de trabalho – 08 pts",
+                            "05": "Sim, todos permanecem apenas nas consultas agendadas – 05 pts",
+                            "02": "Sim, a maior parte permanece apenas nas consultas agendadas – 02 pts",
+                            "00": "Não – 00 pt",
+                        }
+
+                        rad_131 = ui.radio(
+                            options=opts_131,
+                            value=state_131["opcao"]
+                        ).classes("mb-4")
+                        rad_131.bind_value(state_131, "opcao")
+
+                        lbl_pts_131 = ui.label("Nota 13.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_131():
+                            val = state_131["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_131.set_text(f"📊 Nota 13.1: {pts:.1f} / 15.0 pontos")
+                            return pts
+
+                        rad_131.on("update:model-value", recalc_131)
+                        recalc_131()
+
+                        ui.textarea(
+                            label="Link de Evidência / Escalas e Cumprimento de Jornada:",
+                            value=raw_link_131,
+                            placeholder="Link das folhas de ponto, relatórios de produtividade médica...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_131, "link"
+                        )
+
+                        def salvar_131():
+                            pts = recalc_131()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="13.1",
+                                valor=state_131["opcao"],
+                                pontos=pts,
+                                link=state_131["link"],
+                                comentarios=d131.get("comentarios", []),
+                                status=d131.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 13.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 13.1", on_click=salvar_131).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("13.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 14.0 (Intervalo de Agendamento das Consultas Médicas)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("14.0 • Intervalo de Agendamento de Consultas Médicas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Assinale o intervalo de agendamento das consultas médicas na Atenção Básica:"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d140 = res_data.get("14.0") or res_data.get("14") or {}
+                        raw_val_140 = str(d140.get("valor", "none"))
+                        raw_link_140 = str(d140.get("link") or "")
+
+                        state_140 = {
+                            "opcao": raw_val_140 if raw_val_140 in ["01_pa", "01_15m", "00_menos15m", "00_multi"] else "none",
+                            "link": raw_link_140,
+                        }
+
+                        opts_140 = {
+                            "none": "Selecione uma opção...",
+                            "01_pa": "Não há agendamento de consultas, pois todos os atendimentos são de pronto atendimento – 01 pt",
+                            "01_15m": "Agendamento de cada paciente em horário único com, no mínimo, 15 minutos de atendimento – 01 pt",
+                            "00_menos15m": "Agendamento de cada paciente em horário único com menos de 15 minutos de atendimento – 00 pt",
+                            "00_multi": "Agendamento de 2 ou mais pacientes no mesmo horário – 00 pt",
+                        }
+
+                        rad_140 = ui.radio(
+                            options=opts_140,
+                            value=state_140["opcao"]
+                        ).classes("mb-4")
+                        rad_140.bind_value(state_140, "opcao")
+
+                        lbl_pts_140 = ui.label("Nota 14.0: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_140():
+                            val = state_140["opcao"]
+                            pts = 1.0 if val in ["01_pa", "01_15m"] else 0.0
+                            lbl_pts_140.set_text(f"📊 Nota 14.0: {pts:.1f} / 1.0 ponto")
+                            return pts
+
+                        rad_140.on("update:model-value", recalc_140)
+                        recalc_140()
+
+                        ui.textarea(
+                            label="Link de Evidência / Agenda Médica do Prontuário Eletrônico:",
+                            value=raw_link_140,
+                            placeholder="Link das agendas das UBS no PEC/e-SUS...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_140, "link"
+                        )
+
+                        def salvar_140():
+                            pts = recalc_140()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="14.0",
+                                valor=state_140["opcao"],
+                                pontos=pts,
+                                link=state_140["link"],
+                                comentarios=d140.get("comentarios", []),
+                                status=d140.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 14.0 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 14.0", on_click=salvar_140).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("14.0", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 14.1 (Serviço de Agendamento Remoto)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("14.1 • Agendamento Remoto para Consulta Médica").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município disponibilizou serviço de agendamento remoto para consulta médica na Atenção Básica?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "Exemplos de Agendamento Remoto: por telefone, internet, aplicativo, VoIP etc."
+                        ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                        d141 = res_data.get("14.1") or {}
+                        raw_val_141 = str(d141.get("valor", "none"))
+                        raw_link_141 = str(d141.get("link") or "")
+
+                        state_141 = {
+                            "opcao": raw_val_141 if raw_val_141 in ["10", "00"] else "none",
+                            "link": raw_link_141,
+                        }
+
+                        opts_141 = {
+                            "none": "Selecione uma opção...",
+                            "10": "Sim – 10 pts",
+                            "00": "Não – 00 pt",
+                        }
+
+                        rad_141 = ui.radio(
+                            options=opts_141,
+                            value=state_141["opcao"]
+                        ).classes("mb-4")
+                        rad_141.bind_value(state_141, "opcao")
+
+                        lbl_pts_141 = ui.label("Nota 14.1: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_141():
+                            val = state_141["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_141.set_text(f"📊 Nota 14.1: {pts:.1f} / 10.0 pontos")
+                            return pts
+
+                        rad_141.on("update:model-value", recalc_141)
+                        recalc_141()
+
+                        ui.textarea(
+                            label="Link de Evidência / Canal de Agendamento Remoto:",
+                            value=raw_link_141,
+                            placeholder="Link do portal de agendamento, aplicativo ou canal telefônico...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_141, "link"
+                        )
+
+                        def salvar_141():
+                            pts = recalc_141()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="14.1",
+                                valor=state_141["opcao"],
+                                pontos=pts,
+                                link=state_141["link"],
+                                comentarios=d141.get("comentarios", []),
+                                status=d141.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 14.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 14.1", on_click=salvar_141).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("14.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 14.2 (Controle de Absenteísmo)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("14.2 • Controle de Absenteísmo nas Consultas Médicas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município possui controle de absenteísmo para as consultas médicas da Atenção Básica?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d142 = res_data.get("14.2") or {}
+                        raw_val_142 = str(d142.get("valor", "none"))
+                        raw_link_142 = str(d142.get("link") or "")
+
+                        state_142 = {
+                            "opcao": raw_val_142 if raw_val_142 in ["02", "01", "0.5", "00"] else "none",
+                            "link": raw_link_142,
+                        }
+
+                        opts_142 = {
+                            "none": "Selecione uma opção...",
+                            "02": "Sim, para todas as consultas – 02 pts",
+                            "01": "Sim, para a maior parte das consultas – 01 pt",
+                            "0.5": "Sim, para a menor parte das consultas – 0,5 pt",
+                            "00": "Não – 00 pt",
+                        }
+
+                        rad_142 = ui.radio(
+                            options=opts_142,
+                            value=state_142["opcao"]
+                        ).classes("mb-4")
+                        rad_142.bind_value(state_142, "opcao")
+
+                        lbl_pts_142 = ui.label("Nota 14.2: 0.0 pontos").classes(
+                            "text-sm font-bold text-green-600 mb-4"
+                        )
+
+                        def recalc_142():
+                            val = state_142["opcao"]
+                            pts = float(val) if val != "none" else 0.0
+                            lbl_pts_142.set_text(f"📊 Nota 14.2: {pts:.1f} / 2.0 pontos")
+                            return pts
+
+                        rad_142.on("update:model-value", recalc_142)
+                        recalc_142()
+
+                        ui.textarea(
+                            label="Link de Evidência / Relatórios de Absenteísmo e Faltas:",
+                            value=raw_link_142,
+                            placeholder="Link dos relatórios gerenciais de faltas e lembretes de consultas...",
+                        ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                            state_142, "link"
+                        )
+
+                        def salvar_142():
+                            pts = recalc_142()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="14.2",
+                                valor=state_142["opcao"],
+                                pontos=pts,
+                                link=state_142["link"],
+                                comentarios=d142.get("comentarios", []),
+                                status=d142.get("status", "Pendente"),
+                            )
+                            ui.notify(f"Quesito 14.2 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 14.2", on_click=salvar_142).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("14.2", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
