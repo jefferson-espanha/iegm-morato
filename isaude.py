@@ -8810,6 +8810,244 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("28.0", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE DETALHAMENTO DAS FILAS DE ESPERA - QUESITOS 28.1 A 28.2.2
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 28.1 (Tipo de Controle da Lista de Espera)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("28.1 • Tipo de Controle da Lista de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Assinale o tipo de controle da lista de espera para os atendimentos da Atenção Especializada que não foram inseridos no sistema de regulação do governo estadual:").classes("text-sm text-gray-700 mb-2")
+                        ui.label("Obs: Planilha eletrônica (Excel, Calc, etc.) não é considerada sistema informatizado.").classes("text-xs text-amber-700 font-medium mb-4")
+
+                        d281 = res_data.get("28.1") or {}
+                        raw_val_281 = d281.get("valor") or {}
+                        if not isinstance(raw_val_281, dict):
+                            raw_val_281 = {}
+
+                        state_281 = {
+                            "informatizado": bool(raw_val_281.get("informatizado", False)),
+                            "manual": bool(raw_val_281.get("manual", False)),
+                            "link": str(d281.get("link") or ""),
+                        }
+
+                        chk_inf = ui.checkbox("Em sistema informatizado (5,0 pontos)", value=state_281["informatizado"])
+                        chk_inf.bind_value(state_281, "informatizado")
+
+                        chk_man = ui.checkbox("De forma manual (-5,0 pontos)", value=state_281["manual"])
+                        chk_man.bind_value(state_281, "manual")
+
+                        lbl_pts_281 = ui.label("Pontuação: 0.0").classes("text-sm font-bold text-green-600 my-2")
+
+                        def recalc_281():
+                            pts = 0.0
+                            if state_281["informatizado"]:
+                                pts += 5.0
+                            if state_281["manual"]:
+                                pts -= 5.0
+                            cor = "text-green-600" if pts >= 0 else "text-red-600"
+                            lbl_pts_281.classes(replace=f"text-sm font-bold {cor} my-2")
+                            lbl_pts_281.set_text(f"📊 Pontuação Quesito 28.1: {pts:.1f} pontos")
+                            return pts
+
+                        chk_inf.on("update:model-value", recalc_281)
+                        chk_man.on("update:model-value", recalc_281)
+                        recalc_281()
+
+                        ui.textarea(label="Link / Telas do Sistema Informatizado ou Registros Manuais:", value=state_281["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_281, "link")
+
+                        def salvar_281():
+                            pts = recalc_281()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="28.1",
+                                valor=state_281,
+                                pontos=pts,
+                                link=state_281["link"],
+                                comentarios=d281.get("comentarios", []),
+                                status=d281.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 28.1 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 28.1", on_click=salvar_281).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("28.1", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 28.2 (Serviços com Lista de Espera Fora do Portal CROSS)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("28.2 • Serviços Especializados com Lista de Espera Própria").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Assinale os serviços da Atenção Especializada com lista de espera que não foram inseridos no sistema de regulação do governo estadual (Portal CROSS):").classes("text-sm text-gray-700 mb-4")
+
+                        d282 = res_data.get("28.2") or {}
+                        raw_val_282 = d282.get("valor") or {}
+                        if not isinstance(raw_val_282, dict):
+                            raw_val_282 = {}
+
+                        servicos_282 = [
+                            ("consultas", "Consultas por especialidade"),
+                            ("exames", "Exames"),
+                            ("terapias", "Terapias / tratamentos"),
+                            ("medicamentos", "Medicamentos"),
+                            ("opm", "OPM (Órteses, Próteses e Materiais Especiais)"),
+                            ("cirurgias", "Cirurgias eletivas"),
+                            ("outros", "Outros"),
+                        ]
+
+                        state_282 = {
+                            "itens": {k: bool(raw_val_282.get(k, False)) for k, _ in servicos_282},
+                            "link": str(d282.get("link") or ""),
+                        }
+
+                        for k, label_text in servicos_282:
+                            chk = ui.checkbox(label_text, value=state_282["itens"][k]).classes("mb-1")
+                            chk.bind_value(state_282["itens"], k)
+
+                        ui.label("Nota 28.2: Informativo (0.0 pontos)").classes("text-sm font-bold text-green-600 my-2")
+
+                        ui.textarea(label="Link / Relação de Serviços com Fila Própria:", value=state_282["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_282, "link")
+
+                        def salvar_282():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="28.2",
+                                valor=state_282["itens"],
+                                pontos=0.0,
+                                link=state_282["link"],
+                                comentarios=d282.get("comentarios", []),
+                                status=d282.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 28.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 28.2", on_click=salvar_282).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("28.2", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 28.2.1 (Consultas Médicas com Maior Tempo de Espera)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("28.2.1 • Consultas Médicas com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Informe as 3 consultas médicas com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+
+                        d2821 = res_data.get("28.2.1") or {}
+                        raw_val_2821 = d2821.get("valor") or {}
+                        if not isinstance(raw_val_2821, dict):
+                            raw_val_2821 = {}
+
+                        state_2821 = {
+                            "esp_1": str(raw_val_2821.get("esp_1", "")),
+                            "dias_1": str(raw_val_2821.get("dias_1", "")),
+                            "esp_2": str(raw_val_2821.get("esp_2", "")),
+                            "dias_2": str(raw_val_2821.get("dias_2", "")),
+                            "esp_3": str(raw_val_2821.get("esp_3", "")),
+                            "dias_3": str(raw_val_2821.get("dias_3", "")),
+                            "link": str(d2821.get("link") or ""),
+                        }
+
+                        ui.label("1ª Consulta Médica:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da especialidade médica", value=state_2821["esp_1"]).classes("w-2/3").bind_value(state_2821, "esp_1")
+                            ui.number("Tempo médio (dias)", value=state_2821["dias_1"]).classes("w-1/3").bind_value(state_2821, "dias_1")
+
+                        ui.label("2ª Consulta Médica:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da especialidade médica", value=state_2821["esp_2"]).classes("w-2/3").bind_value(state_2821, "esp_2")
+                            ui.number("Tempo médio (dias)", value=state_2821["dias_2"]).classes("w-1/3").bind_value(state_2821, "dias_2")
+
+                        ui.label("3ª Consulta Médica:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição da especialidade médica", value=state_2821["esp_3"]).classes("w-2/3").bind_value(state_2821, "esp_3")
+                            ui.number("Tempo médio (dias)", value=state_2821["dias_3"]).classes("w-1/3").bind_value(state_2821, "dias_3")
+
+                        ui.label("Nota 28.2.1: Informativo (0.0 pontos)").classes("text-sm font-bold text-green-600 my-2")
+
+                        ui.textarea(label="Link / Relatório Gerencial de Tempos de Espera (Consultas):", value=state_2821["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_2821, "link")
+
+                        def salvar_2821():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="28.2.1",
+                                valor=state_2821,
+                                pontos=0.0,
+                                link=state_2821["link"],
+                                comentarios=d2821.get("comentarios", []),
+                                status=d2821.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 28.2.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 28.2.1", on_click=salvar_2821).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("28.2.1", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 28.2.2 (Exames Médicos com Maior Tempo de Espera)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("28.2.2 • Exames Médicos com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("Informe os 3 exames médicos com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+
+                        d2822 = res_data.get("28.2.2") or {}
+                        raw_val_2822 = d2822.get("valor") or {}
+                        if not isinstance(raw_val_2822, dict):
+                            raw_val_2822 = {}
+
+                        state_2822 = {
+                            "exame_1": str(raw_val_2822.get("exame_1", "")),
+                            "dias_1": str(raw_val_2822.get("dias_1", "")),
+                            "exame_2": str(raw_val_2822.get("exame_2", "")),
+                            "dias_2": str(raw_val_2822.get("dias_2", "")),
+                            "exame_3": str(raw_val_2822.get("exame_3", "")),
+                            "dias_3": str(raw_val_2822.get("dias_3", "")),
+                            "link": str(d2822.get("link") or ""),
+                        }
+
+                        ui.label("1º Exame Médico:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição do exame médico", value=state_2822["exame_1"]).classes("w-2/3").bind_value(state_2822, "exame_1")
+                            ui.number("Tempo médio (dias)", value=state_2822["dias_1"]).classes("w-1/3").bind_value(state_2822, "dias_1")
+
+                        ui.label("2º Exame Médico:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição do exame médico", value=state_2822["exame_2"]).classes("w-2/3").bind_value(state_2822, "exame_2")
+                            ui.number("Tempo médio (dias)", value=state_2822["dias_2"]).classes("w-1/3").bind_value(state_2822, "dias_2")
+
+                        ui.label("3º Exame Médico:").classes("text-sm font-bold text-gray-800 mt-2")
+                        with ui.row().classes("w-full gap-4"):
+                            ui.input("Descrição do exame médico", value=state_2822["exame_3"]).classes("w-2/3").bind_value(state_2822, "exame_3")
+                            ui.number("Tempo médio (dias)", value=state_2822["dias_3"]).classes("w-1/3").bind_value(state_2822, "dias_3")
+
+                        ui.label("Nota 28.2.2: Informativo (0.0 pontos)").classes("text-sm font-bold text-green-600 my-2")
+
+                        ui.textarea(label="Link / Relatório Gerencial de Tempos de Espera (Exames):", value=state_2822["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_2822, "link")
+
+                        def salvar_2822():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="28.2.2",
+                                valor=state_2822,
+                                pontos=0.0,
+                                link=state_2822["link"],
+                                comentarios=d2822.get("comentarios", []),
+                                status=d2822.get("status", "Pendente")
+                            )
+                            ui.notify("Quesito 28.2.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 28.2.2", on_click=salvar_2822).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("28.2.2", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
