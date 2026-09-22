@@ -8575,6 +8575,241 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("24.1", res_data, render_conteudo.refresh)
 
+# =============================================================================
+                    # MÓDULO DE REGULAÇÃO EM SAÚDE E FILA DE ESPERA - QUESITOS 25.0 A 28.0
+                    # =============================================================================
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 25.0 (Ações Reguladoras e Complexo Regulador)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("25.0 • Ações Reguladoras e Complexo Regulador").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município desenvolve ações reguladoras em seu território, operacionalizando por meio de complexo regulador municipal e/ou participando em co-gestão da operacionalização dos Complexos Reguladores Regionais?").classes("text-sm text-gray-700 mb-4")
+
+                        d250 = res_data.get("25.0") or {}
+                        opts_250 = {
+                            "sim": "Sim (5,0 pontos)",
+                            "nao": "Não (0,0 ponto)",
+                        }
+
+                        val_250_init = d250.get("valor") if d250.get("valor") in opts_250 else "sim"
+                        link_250_init = str(d250.get("link") or "")
+
+                        state_250 = {"opcao": val_250_init, "link": link_250_init}
+
+                        rad_250 = ui.radio(opts_250, value=state_250["opcao"]).classes("mb-3")
+                        rad_250.bind_value(state_250, "opcao")
+
+                        lbl_pts_250 = ui.label("Pontuação: 5.0").classes("text-sm font-bold text-green-600 mb-2")
+
+                        def recalc_250():
+                            op = state_250["opcao"]
+                            pts = 5.0 if op == "sim" else 0.0
+                            cor = "text-green-600" if pts == 5.0 else "text-red-600"
+                            lbl_pts_250.classes(replace=f"text-sm font-bold {cor} mb-2")
+                            lbl_pts_250.set_text(f"📊 Pontuação Quesito 25.0: {pts:.1f} pontos")
+                            return pts
+
+                        rad_250.on("update:model-value", recalc_250)
+                        recalc_250()
+
+                        ui.textarea(label="Link / Portaria ou Documento de Pactuação do Complexo Regulador:", value=state_250["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_250, "link")
+
+                        def salvar_250():
+                            pts = recalc_250()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="25.0",
+                                valor=state_250["opcao"],
+                                pontos=pts,
+                                link=state_250["link"],
+                                comentarios=d250.get("comentarios", []),
+                                status=d250.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 25.0 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 25.0", on_click=salvar_250).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("25.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 26.0 (Protocolos de Regulação de Acesso Formalizados)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("26.0 • Protocolos de Regulação de Acesso").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município elaborou os protocolos de regulação de acesso formalizados?").classes("text-sm text-gray-700 mb-4")
+
+                        d260 = res_data.get("26.0") or {}
+                        opts_260 = {
+                            "sim": "Sim (10,0 pontos)",
+                            "nao": "Não (0,0 ponto)",
+                        }
+
+                        val_260_init = d260.get("valor") if d260.get("valor") in opts_260 else "sim"
+                        link_260_init = str(d260.get("link") or "")
+
+                        state_260 = {"opcao": val_260_init, "link": link_260_init}
+
+                        rad_260 = ui.radio(opts_260, value=state_260["opcao"]).classes("mb-3")
+                        rad_260.bind_value(state_260, "opcao")
+
+                        lbl_pts_260 = ui.label("Pontuação: 10.0").classes("text-sm font-bold text-green-600 mb-2")
+
+                        def recalc_260():
+                            op = state_260["opcao"]
+                            pts = 10.0 if op == "sim" else 0.0
+                            cor = "text-green-600" if pts == 10.0 else "text-red-600"
+                            lbl_pts_260.classes(replace=f"text-sm font-bold {cor} mb-2")
+                            lbl_pts_260.set_text(f"📊 Pontuação Quesito 26.0: {pts:.1f} pontos")
+                            return pts
+
+                        rad_260.on("update:model-value", recalc_260)
+                        recalc_260()
+
+                        ui.textarea(label="Link / Publicação dos Protocolos de Regulação em Diário Oficial:", value=state_260["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_260, "link")
+
+                        def salvar_260():
+                            pts = recalc_260()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="26.0",
+                                valor=state_260["opcao"],
+                                pontos=pts,
+                                link=state_260["link"],
+                                comentarios=d260.get("comentarios", []),
+                                status=d260.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 26.0 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 26.0", on_click=salvar_260).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("26.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 27.0 (Regulação da Referência Intermunicipal)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("27.0 • Regulação da Referência Intermunicipal").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município regula a referência a ser realizada em outros municípios, de acordo com a programação pactuada e integrada, integrando-se aos fluxos regionais estabelecidos?").classes("text-sm text-gray-700 mb-4")
+
+                        d270 = res_data.get("27.0") or {}
+                        opts_270 = {
+                            "sim": "Sim (5,0 pontos)",
+                            "nao": "Não (0,0 ponto)",
+                        }
+
+                        val_270_init = d270.get("valor") if d270.get("valor") in opts_270 else "sim"
+                        link_270_init = str(d270.get("link") or "")
+
+                        state_270 = {"opcao": val_270_init, "link": link_270_init}
+
+                        rad_270 = ui.radio(opts_270, value=state_270["opcao"]).classes("mb-3")
+                        rad_270.bind_value(state_270, "opcao")
+
+                        lbl_pts_270 = ui.label("Pontuação: 5.0").classes("text-sm font-bold text-green-600 mb-2")
+
+                        def recalc_270():
+                            op = state_270["opcao"]
+                            pts = 5.0 if op == "sim" else 0.0
+                            cor = "text-green-600" if pts == 5.0 else "text-red-600"
+                            lbl_pts_270.classes(replace=f"text-sm font-bold {cor} mb-2")
+                            lbl_pts_270.set_text(f"📊 Pontuação Quesito 27.0: {pts:.1f} pontos")
+                            return pts
+
+                        rad_270.on("update:model-value", recalc_270)
+                        recalc_270()
+
+                        ui.textarea(label="Link / Documentação da PPI ou Termos de Pactuação Regional:", value=state_270["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_270, "link")
+
+                        def salvar_270():
+                            pts = recalc_270()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="27.0",
+                                valor=state_270["opcao"],
+                                pontos=pts,
+                                link=state_270["link"],
+                                comentarios=d270.get("comentarios", []),
+                                status=d270.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 27.0 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 27.0", on_click=salvar_270).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("27.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 28.0 (Controle de Fila de Espera na Atenção Especializada)
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("28.0 • Controle da Fila de Espera na Atenção Especializada").classes("text-xl font-semibold text-blue-600 mb-2")
+                        ui.label("O município possui controle da fila de espera para os atendimentos da Atenção Especializada que não foram inseridos no sistema de regulação do governo estadual (Portal CROSS)?").classes("text-sm text-gray-700 mb-2")
+                        ui.label("Refere-se ao Município como Unidade Solicitante.").classes("text-xs text-gray-500 italic mb-4")
+
+                        d280 = res_data.get("28.0") or {}
+                        opts_280 = {
+                            "todos": "Sim, com a relação nominal de pacientes e tempo de espera para todos os serviços da Atenção Especializada com fila de espera (5,0 pontos)",
+                            "maior_parte": "Sim, com a relação nominal de pacientes e tempo de espera para a maior parte dos serviços da Atenção Especializada com fila de espera (2,0 pontos)",
+                            "menor_parte": "Sim, com a relação nominal de pacientes e tempo de espera para a menor parte dos serviços da Atenção Especializada com fila de espera (1,0 ponto)",
+                            "nao": "Não possui controle da fila de espera (0,0 ponto)",
+                            "somente_cross": "Não possui fila de espera além da inserida no sistema de regulação do governo estadual (Portal CROSS) (5,0 pontos)",
+                        }
+
+                        val_280_init = d280.get("valor") if d280.get("valor") in opts_280 else "todos"
+                        link_280_init = str(d280.get("link") or "")
+
+                        state_280 = {"opcao": val_280_init, "link": link_280_init}
+
+                        rad_280 = ui.radio(opts_280, value=state_280["opcao"]).classes("mb-3")
+                        rad_280.bind_value(state_280, "opcao")
+
+                        lbl_pts_280 = ui.label("Pontuação: 5.0").classes("text-sm font-bold text-green-600 mb-2")
+
+                        def recalc_280():
+                            op = state_280["opcao"]
+                            mapa_pts = {
+                                "todos": 5.0,
+                                "somente_cross": 5.0,
+                                "maior_parte": 2.0,
+                                "menor_parte": 1.0,
+                                "nao": 0.0,
+                            }
+                            pts = mapa_pts.get(op, 0.0)
+                            cor = "text-green-600" if pts > 0 else "text-red-600"
+                            lbl_pts_280.classes(replace=f"text-sm font-bold {cor} mb-2")
+                            lbl_pts_280.set_text(f"📊 Pontuação Quesito 28.0: {pts:.1f} pontos")
+                            return pts
+
+                        rad_280.on("update:model-value", recalc_280)
+                        recalc_280()
+
+                        ui.textarea(label="Link / Relatório do Sistema Próprio de Fila de Espera ou Extrato CROSS:", value=state_280["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_280, "link")
+
+                        def salvar_280():
+                            pts = recalc_280()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="28.0",
+                                valor=state_280["opcao"],
+                                pontos=pts,
+                                link=state_280["link"],
+                                comentarios=d280.get("comentarios", []),
+                                status=d280.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 28.0 salvo! ({pts:.1f} pts)", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 28.0", on_click=salvar_280).classes("bg-blue-600 text-white font-bold my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("28.0", res_data, render_conteudo.refresh)
+
     # Executa a renderização inicial
     render_conteudo()
 
