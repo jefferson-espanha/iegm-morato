@@ -1858,20 +1858,41 @@ def container_formulario_icidade(ano=None):
                         conn.close()
 
                         for row in rows:
-                            ano = int(str(row.get("ano", 0)).strip()[:4]) if row.get("ano") else None
+                            # Garante extração do ano como INT
+                            ano_raw = row.get("ano")
+                            ano = None
+                            if ano_raw:
+                                try:
+                                    ano = int(str(ano_raw).strip()[:4])
+                                except (ValueError, TypeError):
+                                    ano = None
+                            
+                            # Se a coluna 'ano' veio nula, tenta buscar no objeto JSON se existir
+                            json_field = row.get("dados") or row.get("resposta_json")
+                            if isinstance(json_field, dict):
+                                # Se o JSON tem chaves como "2025", "2026", desmola elas
+                                for key, content in json_field.items():
+                                    if str(key).isdigit() and len(str(key)) == 4:
+                                        y = int(key)
+                                        if y not in all_data:
+                                            all_data[y] = {}
+                                        if isinstance(content, dict):
+                                            all_data[y].update(content)
+
                             if not ano:
                                 continue
-                            
+                                
                             if ano not in all_data:
                                 all_data[ano] = {}
 
-                            # Caso a tabela armazene um JSON estruturado por ano
-                            if "dados" in row and isinstance(row["dados"], dict):
-                                all_data[ano].update(row["dados"])
-                            elif "resposta_json" in row and isinstance(row["resposta_json"], dict):
-                                all_data[ano].update(row["resposta_json"])
-                            # Caso armazene quesito a quesito em colunas ou registros
+                            # Trata JSONs diretos por linha/ano
+                            if isinstance(json_field, dict):
+                                # Se o dicionário não era separado por anos no topo:
+                                for k, v in json_field.items():
+                                    if not (str(k).isdigit() and len(str(k)) == 4):
+                                        all_data[ano][k] = v
                             else:
+                                # Trata registros linha a linha (quesito_id, pontos, etc)
                                 qid = str(row.get("quesito_id") or row.get("qid") or "").strip()
                                 if qid:
                                     all_data[ano][qid] = {
@@ -1880,9 +1901,31 @@ def container_formulario_icidade(ano=None):
                                         "link": str(row.get("link", "") or row.get("evidencia", ""))
                                     }
                     except Exception as e:
-                        logging.exception(f"Erro ao buscar serie historica no banco Neon: {e}")
+                        logging.exception(f"Erro ao buscar série histórica no banco Neon: {e}")
                     
                     return all_data
+
+                # --- LEITURA DO ANO ANTERIOR (NO GERADOR DE PDF) ---
+
+                dados_ano_anterior = all_data.get(ano_ant, {})
+
+                # Caso a busca por chave INT falhe, tenta buscar por STRING ("2025")
+                if not dados_ano_anterior:
+                    dados_ano_anterior = all_data.get(str(ano_ant), {})
+
+                nota_anterior = 0.0
+                for qid_ant, info_ant in dados_ano_anterior.items():
+                    if str(qid_ant).startswith("COM_"):
+                        continue
+                    
+                    if isinstance(info_ant, dict):
+                        pts = info_ant.get("pontos", 0)
+                        try:
+                            nota_anterior += float(pts)
+                        except (ValueError, TypeError):
+                            pass
+                    elif isinstance(info_ant, (int, float)):
+                        nota_anterior += float(info_ant)
 
 
                 # =============================================================================
