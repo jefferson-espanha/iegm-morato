@@ -1882,5 +1882,4 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )            
 
-# Chamada de renderização inicial da página
 render_conteudo()
