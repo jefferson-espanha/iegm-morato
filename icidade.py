@@ -1846,7 +1846,7 @@ def container_formulario_icidade(ano=None):
                 def get_all_years_data():
                     """
                     Busca todas as respostas registradas na tabela 'respostas' agrupadas por ano.
-                    Trata campos no formato JSON/Dict ou registros linha por linha.
+                    Trata flexivelmente colunas de ano (int, string, date) e estruturas em JSON/Dict.
                     """
                     all_data = {}
                     try:
@@ -1858,32 +1858,46 @@ def container_formulario_icidade(ano=None):
                         conn.close()
 
                         for row in rows:
-                            ano = int(str(row.get("ano", 0)).strip()[:4]) if row.get("ano") else None
+                            # Extração flexível do Ano (suporta int, string ou objeto date/datetime)
+                            raw_ano = row.get("ano") or row.get("exercicio")
+                            ano = None
+                            
+                            if isinstance(raw_ano, (int, float)):
+                                ano = int(raw_ano)
+                            elif isinstance(raw_ano, (date, datetime)):
+                                ano = raw_ano.year
+                            elif isinstance(raw_ano, str) and raw_ano.strip():
+                                match = re.search(r'\b(20\d{2})\b', raw_ano)
+                                if match:
+                                    ano = int(match.group(1))
+
                             if not ano:
                                 continue
-                            
+
                             if ano not in all_data:
                                 all_data[ano] = {}
 
-                            # Caso a tabela armazene um JSON estruturado por ano
+                            # 1. Trata se os dados estiverem empacotados em coluna JSON
                             if "dados" in row and isinstance(row["dados"], dict):
                                 all_data[ano].update(row["dados"])
                             elif "resposta_json" in row and isinstance(row["resposta_json"], dict):
                                 all_data[ano].update(row["resposta_json"])
-                            # Caso armazene quesito a quesito em colunas ou registros
+                            elif "dados_json" in row and isinstance(row["dados_json"], dict):
+                                all_data[ano].update(row["dados_json"])
+                            # 2. Trata se os dados estiverem linha por linha no banco
                             else:
-                                qid = str(row.get("quesito_id") or row.get("qid") or "").strip()
+                                qid = str(row.get("quesito_id") or row.get("qid") or row.get("quesito") or "").strip()
                                 if qid:
                                     all_data[ano][qid] = {
-                                        "pontos": float(row.get("pontos", 0) or 0),
-                                        "valor": str(row.get("resposta", "") or row.get("valor", "")),
-                                        "link": str(row.get("link", "") or row.get("evidencia", ""))
+                                        "pontos": float(row.get("pontos") or row.get("pontuacao") or 0),
+                                        "valor": str(row.get("resposta") or row.get("valor") or ""),
+                                        "link": str(row.get("link") or row.get("evidencia") or "")
                                     }
+
                     except Exception as e:
                         logging.exception(f"Erro ao buscar serie historica no banco Neon: {e}")
-                    
-                    return all_data
 
+                    return all_data
 
                 # =============================================================================
                 # 3. GERADOR DO RELATÓRIO PDF
