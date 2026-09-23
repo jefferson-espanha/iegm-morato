@@ -1818,7 +1818,9 @@ def container_formulario_icidade(ano=None):
                     ui.label("📄 Emissão de Relatório Analítico - iCidade").classes("text-xl font-bold text-blue-900 mb-1")
                     ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
 
-                    def baixar_pdf():
+                    async def baixar_pdf():
+                        # Exibe aviso visual imediato de processamento
+                        n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
                         try:
                             total_pts = float(sum(
                                 v.get("pontos", 0) 
@@ -1832,7 +1834,7 @@ def container_formulario_icidade(ano=None):
                             elif total_pts < 900.0: faixa = "B+"
                             else: faixa = "A"
 
-                            # 1. Gera os bytes do PDF
+                            # 1. Gera o PDF em memória
                             pdf_bytes = gerar_relatorio_pdf(
                                 dados=res_data,
                                 ano=ano_sel,
@@ -1840,20 +1842,22 @@ def container_formulario_icidade(ano=None):
                                 faixa=faixa
                             )
 
-                            # 2. Salva em um arquivo físico temporário
+                            # 2. Salva o arquivo temporário no disco
                             nome_arquivo = f"Relatorio_iCidade_{ano_sel}.pdf"
-                            caminho_arquivo = os.path.join(os.getcwd(), nome_arquivo)
-                            
-                            with open(caminho_arquivo, "wb") as f:
+                            with open(nome_arquivo, "wb") as f:
                                 f.write(pdf_bytes)
 
-                            # 3. Faz o download do arquivo salvo no disco
-                            ui.download(caminho_arquivo)
-                            ui.notify("Relatório em PDF gerado com sucesso!", type="positive")
+                            # 3. Dispara o download nativo do arquivo
+                            ui.download(nome_arquivo)
+                            
+                            n.dismiss()
+                            ui.notify("Relatório baixado com sucesso!", type="positive")
 
                         except Exception as e:
-                            logging.exception("Erro ao gerar PDF do iCidade:")
-                            ui.notify(f"Falha ao gerar o PDF: {e}", type="negative")
+                            n.dismiss()
+                            print(f"ERRO CRÍTICO AO GERAR PDF: {e}")
+                            logging.exception("Erro no PDF:")
+                            ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
 
                     ui.button("📥 GERAR E BAIXAR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
