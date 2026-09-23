@@ -1846,7 +1846,6 @@ def container_formulario_icidade(ano=None):
                 def get_all_years_data():
                     """
                     Busca todas as respostas registradas na tabela 'respostas' agrupadas por ano.
-                    Trata campos no formato JSON/Dict ou registros linha por linha.
                     """
                     all_data = {}
                     try:
@@ -1858,19 +1857,27 @@ def container_formulario_icidade(ano=None):
                         conn.close()
 
                         for row in rows:
-                            # Garante extração do ano como INT
+                            # 1. Tenta pegar o ano da coluna ou do JSON
                             ano_raw = row.get("ano")
                             ano = None
                             if ano_raw:
                                 try:
                                     ano = int(str(ano_raw).strip()[:4])
                                 except (ValueError, TypeError):
-                                    ano = None
+                                    pass
+
+                            json_field = row.get("dados") or row.get("resposta_json") or row.get("respostas")
                             
-                            # Se a coluna 'ano' veio nula, tenta buscar no objeto JSON se existir
-                            json_field = row.get("dados") or row.get("resposta_json")
+                            # Se o json_field veio como string do banco, tenta converter para dict
+                            if isinstance(json_field, str):
+                                try:
+                                    import json
+                                    json_field = json.loads(json_field)
+                                except Exception:
+                                    pass
+
+                            # Se o JSON tem anos no primeiro nível (ex: {"2025": {...}})
                             if isinstance(json_field, dict):
-                                # Se o JSON tem chaves como "2025", "2026", desmola elas
                                 for key, content in json_field.items():
                                     if str(key).isdigit() and len(str(key)) == 4:
                                         y = int(key)
@@ -1879,34 +1886,30 @@ def container_formulario_icidade(ano=None):
                                         if isinstance(content, dict):
                                             all_data[y].update(content)
 
-                            if not ano:
-                                continue
-                                
-                            if ano not in all_data:
-                                all_data[ano] = {}
+                            # Caso a linha pertença a um ano específico
+                            if ano:
+                                if ano not in all_data:
+                                    all_data[ano] = {}
 
-                            # Trata JSONs diretos por linha/ano
-                            if isinstance(json_field, dict):
-                                # Se o dicionário não era separado por anos no topo:
-                                for k, v in json_field.items():
-                                    if not (str(k).isdigit() and len(str(k)) == 4):
-                                        all_data[ano][k] = v
-                            else:
-                                # Trata registros linha a linha (quesito_id, pontos, etc)
-                                qid = str(row.get("quesito_id") or row.get("qid") or "").strip()
-                                if qid:
-                                    all_data[ano][qid] = {
-                                        "pontos": float(row.get("pontos", 0) or 0),
-                                        "valor": str(row.get("resposta", "") or row.get("valor", "")),
-                                        "link": str(row.get("link", "") or row.get("evidencia", ""))
-                                    }
+                                if isinstance(json_field, dict):
+                                    for k, v in json_field.items():
+                                        if not (str(k).isdigit() and len(str(k)) == 4):
+                                            all_data[ano][k] = v
+                                else:
+                                    qid = str(row.get("quesito_id") or row.get("qid") or "").strip()
+                                    if qid:
+                                        all_data[ano][qid] = {
+                                            "pontos": float(row.get("pontos", 0) or 0),
+                                            "valor": str(row.get("resposta", "") or row.get("valor", "")),
+                                            "link": str(row.get("link", "") or row.get("evidencia", ""))
+                                        }
+
                     except Exception as e:
                         logging.exception(f"Erro ao buscar série histórica no banco Neon: {e}")
                     
                     return all_data
 
-                # --- DEFINIÇÃO DOS ANOS (CORRIGE O NAMEERROR) ---
-                # Se você já tem a variável 'ano' no seu escopo, usa ela; caso contrário, define o ano atual
+                # --- DEFINIÇÃO DOS ANOS ---
                 if 'ano' not in locals() and 'ano' not in globals():
                     import datetime
                     ano = datetime.datetime.now().year
@@ -1917,11 +1920,22 @@ def container_formulario_icidade(ano=None):
                 # --- BUSCA OS DADOS DA SÉRIE HISTÓRICA ---
                 all_data = get_all_years_data()
 
-                # --- LEITURA DO ANO ANTERIOR (NO GERADOR DE PDF) ---
-                dados_ano_anterior = all_data.get(ano_ant, {})
+                # --- [PRINT DE DEBUG]: Olhe o console do Python/Terminal ao rodar isso ---
+                print(f"=== DEBUG BANCO ===")
+                print(f"Anos encontrados no banco: {list(all_data.keys())}")
+                print(f"Ano Atual Procurado: {ano_atual} (tipo: {type(ano_atual)})")
+                print(f"Ano Anterior Procurado: {ano_ant} (tipo: {type(ano_ant)})")
+                if ano_ant in all_data or str(ano_ant) in all_data:
+                    dados_temp = all_data.get(ano_ant) or all_data.get(str(ano_ant))
+                    print(f"Total de quesitos achados em {ano_ant}: {len(dados_temp)}")
+                    print(f"Amostra dos dados do ano anterior: {list(dados_temp.items())[:2]}")
+                else:
+                    print(f"ATENÇÃO: O ano {ano_ant} NÃO FOI ENCONTRADO dentro de all_data!")
+                print(f"===================")
 
-                # Caso a busca por chave INT falhe, tenta buscar por STRING ("2025")
-                if not dados_ano_anterior:
+                # --- LEITURA DO ANO ANTERIOR ---
+                dados_ano_anterior = all_data.get(ano_ant)
+                if dados_ano_anterior is None:
                     dados_ano_anterior = all_data.get(str(ano_ant), {})
 
                 nota_anterior = 0.0
@@ -1930,14 +1944,19 @@ def container_formulario_icidade(ano=None):
                         continue
                     
                     if isinstance(info_ant, dict):
-                        pts = info_ant.get("pontos", 0)
+                        # Tenta pegar a nota de diferentes chaves possíveis no seu JSON
+                        pts = info_ant.get("pontos") or info_ant.get("pontuacao") or info_ant.get("nota") or info_ant.get("valor") or 0
                         try:
                             nota_anterior += float(pts)
                         except (ValueError, TypeError):
                             pass
                     elif isinstance(info_ant, (int, float)):
                         nota_anterior += float(info_ant)
-
+                    elif isinstance(info_ant, str):
+                        try:
+                            nota_anterior += float(info_ant)
+                        except ValueError:
+                            pass
 
                 # =============================================================================
                 # 3. GERADOR DO RELATÓRIO PDF
