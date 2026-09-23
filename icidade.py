@@ -1845,8 +1845,8 @@ def container_formulario_icidade(ano=None):
 
                 def get_all_years_data():
                     """
-                    Busca todas as respostas registradas na tabela 'respostas' agrupadas por ano.
-                    Trata flexivelmente colunas de ano (int, string, date) e estruturas em JSON/Dict.
+                    Busca todas as respostas do banco agrupadas por ano.
+                    Garante tratamento de JSON string, dict e linhas individuais.
                     """
                     all_data = {}
                     try:
@@ -1858,7 +1858,6 @@ def container_formulario_icidade(ano=None):
                         conn.close()
 
                         for row in rows:
-                            # Extração flexível do Ano (suporta int, string ou objeto date/datetime)
                             raw_ano = row.get("ano") or row.get("exercicio")
                             ano = None
                             
@@ -1877,27 +1876,31 @@ def container_formulario_icidade(ano=None):
                             if ano not in all_data:
                                 all_data[ano] = {}
 
-                            # 1. Trata se os dados estiverem empacotados em coluna JSON
-                            if "dados" in row and isinstance(row["dados"], dict):
-                                all_data[ano].update(row["dados"])
-                            elif "resposta_json" in row and isinstance(row["resposta_json"], dict):
-                                all_data[ano].update(row["resposta_json"])
-                            elif "dados_json" in row and isinstance(row["dados_json"], dict):
-                                all_data[ano].update(row["dados_json"])
-                            # 2. Trata se os dados estiverem linha por linha no banco
+                            # Tenta obter dados estruturados de colunas JSON
+                            dados_obj = row.get("dados") or row.get("resposta_json") or row.get("dados_json") or row.get("conteudo")
+                            
+                            if isinstance(dados_obj, str):
+                                try:
+                                    dados_obj = json.loads(dados_obj)
+                                except Exception:
+                                    dados_obj = None
+
+                            if isinstance(dados_obj, dict):
+                                all_data[ano].update(dados_obj)
                             else:
+                                # Leitura de registros armazenados linha por linha
                                 qid = str(row.get("quesito_id") or row.get("qid") or row.get("quesito") or "").strip()
                                 if qid:
-                                    all_data[ano][qid] = {
-                                        "pontos": float(row.get("pontos") or row.get("pontuacao") or 0),
-                                        "valor": str(row.get("resposta") or row.get("valor") or ""),
-                                        "link": str(row.get("link") or row.get("evidencia") or "")
-                                    }
+                                    pts = float(row.get("pontos") or row.get("pontuacao") or 0)
+                                    val = str(row.get("resposta") or row.get("valor") or "")
+                                    lnk = str(row.get("link") or row.get("evidencia") or "")
+                                    all_data[ano][qid] = {"pontos": pts, "valor": val, "link": lnk}
 
                     except Exception as e:
                         logging.exception(f"Erro ao buscar serie historica no banco Neon: {e}")
 
                     return all_data
+
 
                 # =============================================================================
                 # 3. GERADOR DO RELATÓRIO PDF
@@ -1990,28 +1993,37 @@ def container_formulario_icidade(ano=None):
                         elif 750.0 <= pts <= 899.9:  return "B+"
                         else:                        return "A"
 
+                    # Busca o histórico no banco de dados
                     all_data = {}
                     try:
                         all_data = get_all_years_data()
-                    except Exception:
+                    except Exception as e:
+                        logging.error(f"Erro na busca de séries: {e}")
                         all_data = {}
 
+                    # Garante que os dados do ano selecionado estejam no dicionário
+                    all_data[ano_atual] = dados
+
                     dados_ano_anterior = all_data.get(ano_ant, {})
+
+                    # Cálculo da Nota do Ano Anterior
                     nota_anterior = 0.0
-                    if ano_ant in all_data:
-                        nota_anterior = float(sum(
-                            info_ant.get("pontos", 0) 
-                            for qid_ant, info_ant in dados_ano_anterior.items() 
-                            if isinstance(info_ant, dict) and not qid_ant.startswith("COM_")
-                        ))
+                    if dados_ano_anterior:
+                        for qid_ant, info_ant in dados_ano_anterior.items():
+                            if isinstance(info_ant, dict) and not str(qid_ant).startswith("COM_"):
+                                nota_anterior += float(info_ant.get("pontos", 0))
 
                     faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
                     faixa_real_atual = faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
 
                     variacao_pontos = nota_atual - nota_anterior
+
+                    # Ajuste do cálculo percentual (Evita divisão por zero se a nota anterior for 0)
                     if nota_anterior > 0:
-                        variacao_percentual = (variacao_pontos / nota_anterior) * 100
+                        variacao_percentual = (variacao_pontos / nota_anterior) * 100.0
                         texto_percentual = f"{variacao_percentual:+.2f}%"
+                    elif nota_atual > 0 and nota_anterior == 0:
+                        texto_percentual = "+100.00%"
                     else:
                         texto_percentual = "0.00%"
 
@@ -2053,7 +2065,7 @@ def container_formulario_icidade(ano=None):
                     elif variacao_pontos < 0:
                         texto_analise = f"<b>Análise de Tendência:</b> <font color='#dc3545'><b>Alerta de Retrocesso:</b></font> Foi identificada uma redução de <b>{texto_percentual}</b> na eficiência dos indicadores em relação a {ano_ant}."
                     else:
-                        texto_analise = f"<b>Análise de Tendência:</b> O município apresentou estagnação absoluta (0.00%) no seu índice geral de conformidade."
+                        texto_analise = f"<b>Análise de Tendência:</b> O município apresentou estagnação absoluta (0.00%) no seu índice geral de conformidade em relação a {ano_ant}."
 
                     elements.append(Paragraph(texto_analise, style_analise))
                     elements.append(Spacer(1, 15))
@@ -2069,21 +2081,22 @@ def container_formulario_icidade(ano=None):
                     reincidencias_detectadas = []
 
                     for qid, info in dados.items():
-                        if qid.startswith("COM_") or not isinstance(info, dict): continue
+                        if str(qid).startswith("COM_") or not isinstance(info, dict): continue
                         pts_obtidos = float(info.get("pontos", 0))
                         valor_resposta = info.get("valor", "")
                         link_evidencia = info.get("link", "")
-                        pts_maximo = float(PONTUACOES_MAX.get(qid, 0))
+                        pts_maximo = float(PONTUACOES_MAX.get(str(qid), 0))
                         
                         if pts_maximo > 0:
                             eficiencia = (pts_obtidos / pts_maximo) * 100
                             item_data = {"qid": qid, "pts_obtidos": pts_obtidos, "pts_maximo": pts_maximo, "eficiencia": eficiencia, "valor": valor_resposta, "link": link_evidencia}
-                            if eficiencia >= 70.0: lista_pontos_fortes.append(item_data)
+                            if eficiencia >= 70.0: 
+                                lista_pontos_fortes.append(item_data)
                             elif eficiencia < 50.0:
                                 lista_pontos_fracos.append(item_data)
                                 if qid in dados_ano_anterior:
                                     info_ant = dados_ano_anterior[qid]
-                                    pts_anterior = float(info_ant.get("pontos", 0))
+                                    pts_anterior = float(info_ant.get("pontos", 0)) if isinstance(info_ant, dict) else 0.0
                                     if pts_obtidos == pts_anterior:
                                         reincidencias_detectadas.append({"qid": qid, "tipo": "Ponto Fraco", "detalhe": "Eficiência Crítica", "ant": f"{pts_anterior:.1f} pts", "atual": f"{pts_obtidos:.1f} pts"})
 
@@ -2127,7 +2140,7 @@ def container_formulario_icidade(ano=None):
                             lista_penalidades.append({"qid": qid, "nota_real": nota_real, "pen_max": pen_max, "eficiencia": eficiencia_preventiva, "valor": info.get("valor", ""), "link": info.get("link", "")})
                             if eficiencia_preventiva < 100.0 and qid in dados_ano_anterior:
                                 info_ant = dados_ano_anterior[qid]
-                                nota_real_ant = float(info_ant.get("pontos", 0))
+                                nota_real_ant = float(info_ant.get("pontos", 0)) if isinstance(info_ant, dict) else 0.0
                                 if nota_real == nota_real_ant:
                                     reincidencias_detectadas.append({"qid": qid, "tipo": "Penalidade Aplicada", "detalhe": f"Impacto Recorrente de {nota_real:.1f} pts", "ant": f"{nota_real_ant:.1f} pts", "atual": f"{nota_real:.1f} pts"})
 
@@ -2171,7 +2184,7 @@ def container_formulario_icidade(ano=None):
 
                     analise_ods = []
                     for qid, info in dados.items():
-                        if qid.startswith("COM_") or not isinstance(info, dict): continue
+                        if str(qid).startswith("COM_") or not isinstance(info, dict): continue
                         resp = str(info.get("valor", "")).strip(); resp_l = resp.lower(); metas = ""; status = ""
                         if qid == "1.0": metas = "11.5, 16.6"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
                         elif qid == "1.4": metas = "11.5, 16.6"; status = "Não Atendido" if "não atuam de forma sistêmica" in resp_l else "Atendido"
@@ -2208,7 +2221,7 @@ def container_formulario_icidade(ano=None):
                         elif qid in ["15", "15.0"]: metas = "11.2, 17.14"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
                         elif qid in ["16", "16.0"]: metas = "11.2, 17.14"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
 
-                        if metas: analise_ods.append({"qid": qid, "status": status, "metas": metas, "resp": resp[:50]})
+                        if metas: analise_ods.append({"qid": str(qid), "status": status, "metas": metas, "resp": resp[:50]})
 
                     if analise_ods:
                         data_ods = [["Quesito", "Resposta Informada", "Vínculo Metas ODS", "Status de Cumprimento"]]
@@ -2236,7 +2249,8 @@ def container_formulario_icidade(ano=None):
                         if a == ano_atual: 
                             valores_serie.append(nota_atual)
                         elif a in all_data:
-                            valores_serie.append(float(sum(info_h.get("pontos", 0) for qid_h, info_h in all_data[a].items() if isinstance(info_h, dict) and not qid_h.startswith("COM_"))))
+                            val_ano = sum(float(info_h.get("pontos", 0)) for qid_h, info_h in all_data[a].items() if isinstance(info_h, dict) and not str(qid_h).startswith("COM_"))
+                            valores_serie.append(float(val_ano))
                         else: 
                             valores_serie.append(0.0)
 
@@ -2250,7 +2264,6 @@ def container_formulario_icidade(ano=None):
                     
                     bc.valueAxis.valueMin = 0; bc.valueAxis.valueMax = 1000; bc.valueAxis.valueStep = 200; bc.valueAxis.labels.fontSize = 8
                     
-                    # Rótulos (Pontuação em cima da barra)
                     bc.barLabels.nudge = 8
                     bc.barLabels.fontSize = 8
                     bc.barLabels.fontName = 'Helvetica-Bold'
@@ -2425,7 +2438,7 @@ def container_formulario_icidade(ano=None):
                             total_pts = float(sum(
                                 v.get("pontos", 0) 
                                 for k, v in res_data.items() 
-                                if isinstance(v, dict) and not k.startswith("COM_")
+                                if isinstance(v, dict) and not str(k).startswith("COM_")
                             ))
 
                             if total_pts < 500.0: faixa = "C"
