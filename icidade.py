@@ -1819,7 +1819,6 @@ def container_formulario_icidade(ano=None):
                     ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
 
                     async def baixar_pdf():
-                        # Exibe aviso visual imediato de processamento
                         n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
                         try:
                             total_pts = float(sum(
@@ -1834,20 +1833,19 @@ def container_formulario_icidade(ano=None):
                             elif total_pts < 900.0: faixa = "B+"
                             else: faixa = "A"
 
-                            # 1. Gera o PDF em memória
-                            pdf_bytes = gerar_relatorio_pdf(
-                                dados=res_data,
-                                ano=ano_sel,
-                                total=total_pts,
-                                faixa=faixa
+                            # Executa em thread separada para não travar a interface
+                            pdf_bytes = await run.cpu_bound(
+                                gerar_relatorio_pdf,
+                                res_data,
+                                ano_sel,
+                                total_pts,
+                                faixa
                             )
 
-                            # 2. Salva o arquivo temporário no disco
                             nome_arquivo = f"Relatorio_iCidade_{ano_sel}.pdf"
                             with open(nome_arquivo, "wb") as f:
                                 f.write(pdf_bytes)
 
-                            # 3. Dispara o download nativo do arquivo
                             ui.download(nome_arquivo)
                             
                             n.dismiss()
@@ -1860,5 +1858,98 @@ def container_formulario_icidade(ano=None):
                             ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
 
                     ui.button("📥 GERAR E BAIXAR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
+
+
+# =============================================================================
+# FUNÇÃO AUXILIAR REPORTLAB (ESCOPO GLOBAL - 0 ESPAÇOS DE INDENTAÇÃO)
+# =============================================================================
+def gerar_relatorio_pdf(dados, ano, total, faixa):
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # --- 1. CAPA ---
+    elements.append(Spacer(1, 100))
+    style_titulo_capa = ParagraphStyle('TituloCapa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=24, textColor=colors.HexColor("#2c3e50"), alignment=1)
+    elements.append(Paragraph("Relatório I-Cidade", style_titulo_capa))
+    elements.append(Spacer(1, 15))
+    
+    style_ano_capa = ParagraphStyle('AnoCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=16, textColor=colors.HexColor("#7f8c8d"), alignment=1)
+    elements.append(Paragraph(str(ano), style_ano_capa))
+    elements.append(PageBreak())
+
+    # --- 2. SUMÁRIO ---
+    elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
+    elements.append(Spacer(1, 20))
+    style_item_esquerda = ParagraphStyle('ItemEsq', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor("#2c3e50"))
+    style_pag_direita = ParagraphStyle('PagDir', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor("#1b4f72"), alignment=2)
+
+    dados_sumario = [
+        [Paragraph("1. Resumo Executivo", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
+        [Paragraph("2. Análise de Desempenho por Quesito", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
+    ]
+    tabela_sumario = Table(dados_sumario, colWidths=[400, 90])
+    tabela_sumario.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+    ]))
+    elements.append(tabela_sumario)
+    elements.append(PageBreak())
+
+    # --- 3. RESUMO EXECUTIVO ---
+    elements.append(Paragraph("<b>1. RESUMO EXECUTIVO</b>", styles["h2"]))
+    elements.append(Spacer(1, 10))
+
+    style_th = ParagraphStyle('Th', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.whitesmoke, alignment=1)
+    style_td = ParagraphStyle('Td', parent=styles['Normal'], fontName='Helvetica', fontSize=10, alignment=1)
+
+    dados_comp = [
+        [Paragraph("Exercício", style_th), Paragraph("Pontuação Total", style_th), Paragraph("Faixa Obtida", style_th)],
+        [Paragraph(str(ano), style_td), Paragraph(f"{total:.1f} pts", style_td), Paragraph(str(faixa), style_td)]
+    ]
+    tabela_comp = Table(dados_comp, colWidths=[150, 170, 160])
+    tabela_comp.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+    ]))
+    elements.append(tabela_comp)
+    elements.append(Spacer(1, 15))
+
+    # --- 4. DETALHAMENTO DE QUESITOS ---
+    elements.append(Paragraph("<b>2. DETALHAMENTO DOS QUESITOS</b>", styles["h2"]))
+    elements.append(Spacer(1, 10))
+
+    data_quesitos = [[Paragraph("Quesito", style_th), Paragraph("Resposta Informada", style_th), Paragraph("Pontos", style_th)]]
+    for qid, info in dados.items():
+        if isinstance(info, dict) and not qid.startswith("COM_"):
+            val = str(info.get("valor", "-"))[:40]
+            pts = float(info.get("pontos", 0.0))
+            data_quesitos.append([
+                Paragraph(str(qid), style_td),
+                Paragraph(val, styles["Normal"]),
+                Paragraph(f"{pts:.1f}", style_td)
+            ])
+
+    if len(data_quesitos) > 1:
+        tabela_q = Table(data_quesitos, colWidths=[80, 320, 80])
+        tabela_q.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1b4f72")),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("TOPPADDING", (0, 0), (-1, -1), 5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ]))
+        elements.append(tabela_q)
+
+    # Constrói o PDF e retorna os bytes
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer.getvalue()
 
     render_conteudo()
