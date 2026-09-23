@@ -1860,7 +1860,7 @@ def container_formulario_icidade(ano=None):
                             # 1. Tenta pegar o ano da coluna ou do JSON
                             ano_raw = row.get("ano")
                             ano = None
-                            if ano_raw:
+                            if ano_raw is not None:
                                 try:
                                     ano = int(str(ano_raw).strip()[:4])
                                 except (ValueError, TypeError):
@@ -1886,8 +1886,8 @@ def container_formulario_icidade(ano=None):
                                         if isinstance(content, dict):
                                             all_data[y].update(content)
 
-                            # Caso a linha pertença a um ano específico
-                            if ano:
+                            # Caso a linha pertença a um ano específico na coluna 'ano'
+                            if ano is not None:
                                 if ano not in all_data:
                                     all_data[ano] = {}
 
@@ -1918,25 +1918,32 @@ def container_formulario_icidade(ano=None):
                 ano_ant = ano_atual - 1
 
                 # --- BUSCA OS DADOS DA SÉRIE HISTÓRICA ---
-                all_data = get_all_years_data()
+                all_data = get_all_years_data() or {}
 
-                # --- [PRINT DE DEBUG]: Olhe o console do Python/Terminal ao rodar isso ---
+                # --- [PRINT DE DEBUG BLINDADO] ---
                 print(f"=== DEBUG BANCO ===")
                 print(f"Anos encontrados no banco: {list(all_data.keys())}")
-                print(f"Ano Atual Procurado: {ano_atual} (tipo: {type(ano_atual)})")
-                print(f"Ano Anterior Procurado: {ano_ant} (tipo: {type(ano_ant)})")
-                if ano_ant in all_data or str(ano_ant) in all_data:
-                    dados_temp = all_data.get(ano_ant) or all_data.get(str(ano_ant))
+                print(f"Ano Atual Procurado: {ano_atual}")
+                print(f"Ano Anterior Procurado: {ano_ant}")
+
+                dados_temp = all_data.get(ano_ant)
+                if dados_temp is None:
+                    dados_temp = all_data.get(str(ano_ant))
+
+                if isinstance(dados_temp, dict):
                     print(f"Total de quesitos achados em {ano_ant}: {len(dados_temp)}")
-                    print(f"Amostra dos dados do ano anterior: {list(dados_temp.items())[:2]}")
+                    print(f"Amostra dos dados de {ano_ant}: {list(dados_temp.items())[:2]}")
                 else:
-                    print(f"ATENÇÃO: O ano {ano_ant} NÃO FOI ENCONTRADO dentro de all_data!")
+                    print(f"ATENÇÃO: O ano {ano_ant} NÃO FOI ENCONTRADO em all_data!")
                 print(f"===================")
 
-                # --- LEITURA DO ANO ANTERIOR ---
+                # --- LEITURA DO ANO ANTERIOR (SOMA DA NOTA) ---
                 dados_ano_anterior = all_data.get(ano_ant)
                 if dados_ano_anterior is None:
-                    dados_ano_anterior = all_data.get(str(ano_ant), {})
+                    dados_ano_anterior = all_data.get(str(ano_ant))
+
+                if not isinstance(dados_ano_anterior, dict):
+                    dados_ano_anterior = {}
 
                 nota_anterior = 0.0
                 for qid_ant, info_ant in dados_ano_anterior.items():
@@ -1944,7 +1951,6 @@ def container_formulario_icidade(ano=None):
                         continue
                     
                     if isinstance(info_ant, dict):
-                        # Tenta pegar a nota de diferentes chaves possíveis no seu JSON
                         pts = info_ant.get("pontos") or info_ant.get("pontuacao") or info_ant.get("nota") or info_ant.get("valor") or 0
                         try:
                             nota_anterior += float(pts)
