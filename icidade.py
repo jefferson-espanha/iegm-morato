@@ -1819,10 +1819,9 @@ def container_formulario_icidade(ano=None):
                     ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
 
                     async def baixar_pdf():
-                        # Exibe a notificação na tela imediatamente
                         n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
                         
-                        # Garante que a interface renderize o aviso antes de rodar o código pesado
+                        # Pausa de 100ms para garantir que a notificação de "Aguarde" seja pintada na tela
                         await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 100))')
 
                         try:
@@ -1845,14 +1844,19 @@ def container_formulario_icidade(ano=None):
                                 faixa=faixa
                             )
 
-                            # Converter em base64 e abrir diretamente no navegador
-                            b64_pdf = base64.b64encode(pdf_bytes).decode('utf-8')
-                            pdf_data_url = f"data:application/pdf;base64,{b64_pdf}"
+                            # 1. Cria uma rota temporária dentro do próprio NiceGUI para servir os bytes do PDF
+                            rota_pdf = f"/relatorio_temp_{ano_sel}.pdf"
                             
-                            ui.run_javascript(f"window.open('{pdf_data_url}', '_blank');")
+                            @app.get(rota_pdf)
+                            def relatorio_endpoint():
+                                from fastapi import Response
+                                return Response(content=pdf_bytes, media_type="application/pdf")
+
+                            # 2. Instrução para o navegador abrir essa rota interna em uma nova aba
+                            ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
 
                             n.dismiss()
-                            ui.notify("Relatório aberto com sucesso!", type="positive")
+                            ui.notify("Relatório gerado com sucesso!", type="positive")
 
                         except Exception as e:
                             n.dismiss()
