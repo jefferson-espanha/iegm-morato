@@ -1832,6 +1832,7 @@ def container_formulario_icidade(ano=None):
                             elif total_pts < 900.0: faixa = "B+"
                             else: faixa = "A"
 
+                            # 1. Gera os bytes do PDF
                             pdf_bytes = gerar_relatorio_pdf(
                                 dados=res_data,
                                 ano=ano_sel,
@@ -1839,11 +1840,19 @@ def container_formulario_icidade(ano=None):
                                 faixa=faixa
                             )
 
-                            ui.download(pdf_bytes, f"Relatorio_iCidade_{ano_sel}.pdf")
+                            # 2. Salva em um arquivo físico temporário
+                            nome_arquivo = f"Relatorio_iCidade_{ano_sel}.pdf"
+                            caminho_arquivo = os.path.join(os.getcwd(), nome_arquivo)
+                            
+                            with open(caminho_arquivo, "wb") as f:
+                                f.write(pdf_bytes)
+
+                            # 3. Faz o download do arquivo salvo no disco
+                            ui.download(caminho_arquivo)
                             ui.notify("Relatório em PDF gerado com sucesso!", type="positive")
 
                         except Exception as e:
-                            logging.error(f"Erro ao gerar PDF do iCidade: {e}")
+                            logging.exception("Erro ao gerar PDF do iCidade:")
                             ui.notify(f"Falha ao gerar o PDF: {e}", type="negative")
 
                     ui.button("📥 GERAR E BAIXAR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
