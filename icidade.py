@@ -1005,45 +1005,6 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-    # ==========================================
-                # QUESITO 5.1.1 (Fiscalização de Áreas de Risco)
-                # ==========================================
-                opcoes_511 = {
-                    "Selecione...": 0.0,
-                    "Sim, integralmente (0.0 pts)": 0.0,
-                    "Sim, parcialmente (0.0 pts)": 0.0,
-                    "Não houve fiscalização (-100.0 pts)": -100.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1.1",
-                    titulo="Fiscalização das Áreas de Risco",
-                    pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
-                    opcoes=opcoes_511,
-                    placeholder_link="Insira o link dos relatórios de fiscalização...",
-                    on_save_callback=render_conteudo.refresh,
-                )
-
-                # ==========================================
-                # QUESITO 5.1.2 (Possibilidade de Ocupação)
-                # ==========================================
-                opcoes_512 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1.2",
-                    titulo="Áreas de Risco Sujeitas a Ocupação ou Invasão",
-                    pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
-                    opcoes=opcoes_512,
-                    placeholder_link="Insira o link do levantamento ou relatório de monitoramento...",
-                    on_save_callback=render_conteudo.refresh,
-                )
-
                 # ==========================================
                 # QUESITO 5.1.2.1 (Mecanismos de Vedação - Checkbox)
                 # ==========================================
