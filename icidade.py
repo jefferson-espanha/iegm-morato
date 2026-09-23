@@ -1,11 +1,20 @@
 import base64
 from datetime import datetime
 import json
+import logging
 import os
 import re
+from io import BytesIO
+
 from nicegui import app, ui
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
+
+# Imports do ReportLab (essenciais para a geração do PDF)
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.platypus import PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 # =============================================================================
 # BANCO DE DADOS (NEON)
