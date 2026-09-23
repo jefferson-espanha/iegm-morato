@@ -666,136 +666,26 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-                # =============================================================================
-                # QUESITO 2.2 (Público-Alvo dos Treinamentos - CHECKLIST)
-                # =============================================================================
-                with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                    ui.label("Quesito 2.2 • Público-Alvo dos Cursos e Treinamentos").classes("text-xl font-semibold text-blue-600 mb-2")
-                    ui.label(
-                        "A Prefeitura Municipal ofereceu cursos e treinamentos sobre Proteção e Defesa Civil "
-                        "para quais públicos? (Marque todos os públicos atendidos):"
-                    ).classes("text-sm text-gray-700 mb-4")
-
-                    # Dados salvos previamente
-                    d22 = res_data.get("2.2") or {}
-                    val_22 = d22.get("valor") if isinstance(d22.get("valor"), dict) else {}
-
-                    # Estado inicial dos checkboxes
-                    state_22 = {
-                        "escolas": bool(val_22.get("escolas", False)),
-                        "secretarias": bool(val_22.get("secretarias", False)),
-                        "municipes": bool(val_22.get("municipes", False)),
-                        "nenhum": bool(val_22.get("nenhum", False)),
-                        "link": str(d22.get("link") or "")
-                    }
-
-                    lbl_pontos_22 = ui.label("").classes("text-base font-bold text-green-600 mb-4")
-
-                    # Função de Cálculo da Pontuação
-                    def calc_22(escola, sec, mun, nen):
-                        if nen:
-                            return 0.0
-                        
-                        pts = 0.0
-                        if escola:
-                            pts += 5.0
-                        if sec:
-                            pts += 3.0
-                        if mun:
-                            pts += 2.0
-                        
-                        return min(10.0, pts)
-
-                    # Atualizador de Tela e Regras de Exclusão Mútua
-                    def atualizar_calculo_22(origem=None):
-                        # Se selecionar "Nenhum", desmarca os outros
-                        if origem == "nenhum" and chk_nenhum.value:
-                            chk_escolas.set_value(False)
-                            chk_secretarias.set_value(False)
-                            chk_municipes.set_value(False)
-                        # Se marcar qualquer outro público, desmarca "Nenhum"
-                        elif origem in ["escolas", "secretarias", "municipes"] and getattr(locals()[f"chk_{origem}"], 'value', False):
-                            chk_nenhum.set_value(False)
-
-                        total_pts = calc_22(
-                            chk_escolas.value,
-                            chk_secretarias.value,
-                            chk_municipes.value,
-                            chk_nenhum.value
-                        )
-
-                        lbl_pontos_22.set_text(f"Pontuação Calculada: {total_pts:.1f} / 10.0 pontos")
-
-                    # Interface com os Checkboxes (Checklist)
-                    with ui.column().classes("w-full gap-2 mb-4 p-4 bg-gray-50 rounded border"):
-                        chk_escolas = ui.checkbox(
-                            "Para escolas (5.0 pts)", 
-                            value=state_22["escolas"],
-                            on_change=lambda: atualizar_calculo_22("escolas")
-                        ).classes("text-sm font-medium text-gray-800")
-
-                        chk_secretarias = ui.checkbox(
-                            "Para outras secretarias / entidades municipais (3.0 pts)", 
-                            value=state_22["secretarias"],
-                            on_change=lambda: atualizar_calculo_22("secretarias")
-                        ).classes("text-sm font-medium text-gray-800")
-
-                        chk_municipes = ui.checkbox(
-                            "Para munícipes ou empresas (2.0 pts)", 
-                            value=state_22["municipes"],
-                            on_change=lambda: atualizar_calculo_22("municipes")
-                        ).classes("text-sm font-medium text-gray-800")
-
-                        ui.separator().classes("my-1")
-
-                        chk_nenhum = ui.checkbox(
-                            "Não ofereceu nenhum curso/treinamento no ano (0.0 pts)", 
-                            value=state_22["nenhum"],
-                            on_change=lambda: atualizar_calculo_22("nenhum")
-                        ).classes("text-sm font-semibold text-red-600")
-
-                    # Campo de Evidências / Link
-                    inp_link_22 = ui.input(
-                        label="Link de Comprovação / Evidências:",
-                        placeholder="Insira o link das evidências dos treinamentos oferecidos...",
-                        value=state_22["link"]
-                    ).classes("w-full mb-3").props("outlined dense")
-
-                    # Atualização inicial da pontuação no carregamento
-                    atualizar_calculo_22()
-
-                    # Função de Salvar no Banco/Storage
-                    def salvar_22():
-                        escola_val = chk_escolas.value
-                        sec_val = chk_secretarias.value
-                        mun_val = chk_municipes.value
-                        nen_val = chk_nenhum.value
-
-                        total_pts = calc_22(escola_val, sec_val, mun_val, nen_val)
-
-                        dados_finais = {
-                            "escolas": escola_val,
-                            "secretarias": sec_val,
-                            "municipes": mun_val,
-                            "nenhum": nen_val
-                        }
-
-                        save_resposta(
-                            ano=ano_sel,
-                            qid="2.2",
-                            valor=dados_finais,
-                            pontos=total_pts,
-                            link=inp_link_22.value,
-                            comentarios=d22.get("comentarios", []),
-                            status=d22.get("status", "Pendente")
-                        )
-                        ui.notify("Quesito 2.2 salvo com sucesso!", type="positive")
-                        if render_conteudo.refresh:
-                            render_conteudo.refresh()
-
-                    ui.button("💾 SALVAR QUESITO 2.2", on_click=salvar_22).classes("bg-blue-600 text-white font-bold my-2")
-                    ui.separator().classes("my-2")
-                    bloco_comentarios("2.2", res_data, render_conteudo.refresh)
+                # ==========================================
+                # QUESITO 2.2 (Público-Alvo dos Treinamentos)
+                # ==========================================
+                opcoes_22 = {
+                    "Selecione...": 0.0,
+                    "Para escolas (5.0 pts)": 5.0,
+                    "Para outras secretarias / entidades municipais (3.0 pts)": 3.0,
+                    "Para munícipes ou empresas (2.0 pts)": 2.0,
+                    "Não ofereceu nenhum curso/treinamento no ano (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="2.2",
+                    titulo="Público Alvo dos Cursos e Treinamentos",
+                    pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
+                    opcoes=opcoes_22,
+                    placeholder_link="Insira o link das evidências dos treinamentos oferecidos...",
+                    on_save_callback=render_conteudo.refresh,
+                )
 
                 # ==========================================
                 # QUESITO 3.0 (Estímulo à Participação)
@@ -1002,6 +892,45 @@ def container_formulario_icidade(ano=None):
                     pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
                     opcoes=opcoes_512,
                     placeholder_link="Insira o link da documentação de monitoramento ou parecer...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+    # ==========================================
+                # QUESITO 5.1.1 (Fiscalização de Áreas de Risco)
+                # ==========================================
+                opcoes_511 = {
+                    "Selecione...": 0.0,
+                    "Sim, integralmente (0.0 pts)": 0.0,
+                    "Sim, parcialmente (0.0 pts)": 0.0,
+                    "Não houve fiscalização (-100.0 pts)": -100.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.1.1",
+                    titulo="Fiscalização das Áreas de Risco",
+                    pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
+                    opcoes=opcoes_511,
+                    placeholder_link="Insira o link dos relatórios de fiscalização...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
+                # ==========================================
+                # QUESITO 5.1.2 (Possibilidade de Ocupação)
+                # ==========================================
+                opcoes_512 = {
+                    "Selecione...": 0.0,
+                    "Sim (0.0 pts)": 0.0,
+                    "Não (0.0 pts)": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="5.1.2",
+                    titulo="Áreas de Risco Sujeitas a Ocupação ou Invasão",
+                    pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
+                    opcoes=opcoes_512,
+                    placeholder_link="Insira o link do levantamento ou relatório de monitoramento...",
                     on_save_callback=render_conteudo.refresh,
                 )
 
@@ -1841,8 +1770,8 @@ def container_formulario_icidade(ano=None):
                     placeholder_texto="Registre aqui suas impressões, críticas ou sugestões sobre a avaliação...",
                     on_save_callback=render_conteudo.refresh,
                 )
- 
-                # ==========================================
+
+    # ==========================================
                 # DADOS EXTERNOS DO i-CIDADE: QUESITO C1
                 # ==========================================
                 opcoes_c1 = {
@@ -1880,6 +1809,6 @@ def container_formulario_icidade(ano=None):
                     opcoes=opcoes_c11,
                     placeholder_link="Insira o link para a certidão ou relatório de classificação da ONU/MCR2030...",
                     on_save_callback=render_conteudo.refresh,
-                )            
+                )
 
-render_conteudo()
+    render_conteudo()
