@@ -1858,9 +1858,18 @@ def container_formulario_icidade(ano=None):
                         conn.close()
 
                         for row in rows:
-                            raw_ano = row.get("ano") or row.get("exercicio")
-                            ano = None
+                            row_dict = dict(row)
                             
+                            # Busca do Ano com múltiplos fallbacks de coluna e tipo
+                            raw_ano = (
+                                row_dict.get("ano") or 
+                                row_dict.get("exercicio") or 
+                                row_dict.get("data") or 
+                                row_dict.get("created_at") or 
+                                row_dict.get("data_criacao")
+                            )
+                            
+                            ano = None
                             if isinstance(raw_ano, (int, float)):
                                 ano = int(raw_ano)
                             elif isinstance(raw_ano, (date, datetime)):
@@ -1877,7 +1886,7 @@ def container_formulario_icidade(ano=None):
                                 all_data[ano] = {}
 
                             # Tenta obter dados estruturados de colunas JSON
-                            dados_obj = row.get("dados") or row.get("resposta_json") or row.get("dados_json") or row.get("conteudo")
+                            dados_obj = row_dict.get("dados") or row_dict.get("resposta_json") or row_dict.get("dados_json") or row_dict.get("conteudo")
                             
                             if isinstance(dados_obj, str):
                                 try:
@@ -1889,15 +1898,15 @@ def container_formulario_icidade(ano=None):
                                 all_data[ano].update(dados_obj)
                             else:
                                 # Leitura de registros armazenados linha por linha
-                                qid = str(row.get("quesito_id") or row.get("qid") or row.get("quesito") or "").strip()
+                                qid = str(row_dict.get("quesito_id") or row_dict.get("qid") or row_dict.get("quesito") or row_dict.get("questao_id") or "").strip()
                                 if qid:
-                                    pts = float(row.get("pontos") or row.get("pontuacao") or 0)
-                                    val = str(row.get("resposta") or row.get("valor") or "")
-                                    lnk = str(row.get("link") or row.get("evidencia") or "")
+                                    pts = float(row_dict.get("pontos") or row_dict.get("pontuacao") or row_dict.get("nota") or 0)
+                                    val = str(row_dict.get("resposta") or row_dict.get("valor") or "")
+                                    lnk = str(row_dict.get("link") or row_dict.get("evidencia") or "")
                                     all_data[ano][qid] = {"pontos": pts, "valor": val, "link": lnk}
 
                     except Exception as e:
-                        logging.exception(f"Erro ao buscar serie historica no banco Neon: {e}")
+                        logging.exception(f"Erro ao buscar série histórica no banco Neon: {e}")
 
                     return all_data
 
@@ -1970,7 +1979,7 @@ def container_formulario_icidade(ano=None):
                         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
                         ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
                         ('TOPPADDING', (0, 0), (-1, -1), 12),
-                        ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7"), 1, (2, 4)), 
+                        ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")), 
                     ]))
                     elements.append(tabela_sumario)
                     elements.append(PageBreak())
@@ -2001,7 +2010,7 @@ def container_formulario_icidade(ano=None):
                         logging.error(f"Erro na busca de séries: {e}")
                         all_data = {}
 
-                    # Garante que os dados do ano selecionado estejam no dicionário
+                    # Sobrescreve/Garante os dados informados do ano atual
                     all_data[ano_atual] = dados
 
                     dados_ano_anterior = all_data.get(ano_ant, {})
@@ -2018,7 +2027,6 @@ def container_formulario_icidade(ano=None):
 
                     variacao_pontos = nota_atual - nota_anterior
 
-                    # Ajuste do cálculo percentual (Evita divisão por zero se a nota anterior for 0)
                     if nota_anterior > 0:
                         variacao_percentual = (variacao_pontos / nota_anterior) * 100.0
                         texto_percentual = f"{variacao_percentual:+.2f}%"
@@ -2168,7 +2176,8 @@ def container_formulario_icidade(ano=None):
                         tabela_reinc = Table(data_reinc, colWidths=[65, 115, 170, 75, 65])
                         tabela_reinc.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#c0392b")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#c0392b")), ("FONTSIZE", (0, 0), (-1, -1), 9), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
                         elements.append(tabela_reinc)
-                    else: elements.append(Paragraph("<font color='#28a745'><b>Nenhuma reincidência ativa detectada.</b></font>", styles["Normal"]))
+                    else: 
+                        elements.append(Paragraph("<font color='#28a745'><b>Nenhuma reincidência ativa detectada.</b></font>", styles["Normal"]))
                     elements.append(Spacer(1, 15))
 
                     # -------------------------------------------------------------------------
@@ -2176,6 +2185,7 @@ def container_formulario_icidade(ano=None):
                     # -------------------------------------------------------------------------
                     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
                     elements.append(Spacer(1, 6))
+                    
                     def calcular_percentual_checklist(resposta_bruta, total_itens):
                         if not resposta_bruta: return 0.0
                         itens = [i.strip().lower() for i in str(resposta_bruta).split(",") if i.strip()]
@@ -2221,19 +2231,33 @@ def container_formulario_icidade(ano=None):
                         elif qid in ["15", "15.0"]: metas = "11.2, 17.14"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
                         elif qid in ["16", "16.0"]: metas = "11.2, 17.14"; status = "Atendido" if "sim" in resp_l else "Não Atendido"
 
-                        if metas: analise_ods.append({"qid": str(qid), "status": status, "metas": metas, "resp": resp[:50]})
+                        if metas: 
+                            analise_ods.append({"qid": str(qid), "status": status, "metas": metas, "resp": resp[:50]})
 
                     if analise_ods:
                         data_ods = [["Quesito", "Resposta Informada", "Vínculo Metas ODS", "Status de Cumprimento"]]
                         style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
+                        
                         for item in sorted(analise_ods, key=lambda x: [float(i) if i.replace('.','',1).isdigit() else 999 for i in x['qid'].split('.')]):
                             st_txt = item["status"]
-                            if "Não Atendido" in st_txt: st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
-                            elif "Atendido" in st_txt and "%" not in st_txt: st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
-                            else: st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
+                            if "Não Atendido" in st_txt: 
+                                st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
+                            elif "Atendido" in st_txt and "%" not in st_txt: 
+                                st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
+                            else: 
+                                st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
+                                
                             data_ods.append([item["qid"], Paragraph(item["resp"], styles["Normal"]), item["metas"], st_p])
+                            
                         tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
-                        tabela_ods.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), ("ALIGN", (0, 0), (0, -1), "CENTER"), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
+                        tabela_ods.setStyle(TableStyle([
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")), 
+                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                            ("ALIGN", (0, 0), (-1, -1), "CENTER"), 
+                            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")), 
+                            ("FONTSIZE", (0, 0), (-1, -1), 9), 
+                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
+                        ]))
                         elements.append(tabela_ods)
                         elements.append(Spacer(1, 15))
 
@@ -2241,187 +2265,57 @@ def container_formulario_icidade(ano=None):
                     # 6. SÉRIE HISTÓRICA DO I-CIDADE
                     # -------------------------------------------------------------------------
                     elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-CIDADE</b>", styles["h2"]))
-                    elements.append(Spacer(1, 10))
-
-                    anos_serie = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
-                    valores_serie = []
-                    for a in anos_serie:
-                        if a == ano_atual: 
-                            valores_serie.append(nota_atual)
-                        elif a in all_data:
-                            val_ano = sum(float(info_h.get("pontos", 0)) for qid_h, info_h in all_data[a].items() if isinstance(info_h, dict) and not str(qid_h).startswith("COM_"))
-                            valores_serie.append(float(val_ano))
-                        else: 
-                            valores_serie.append(0.0)
-
-                    # Configuração do Gráfico
-                    desenho_grafico = Drawing(480, 165)
-                    bc = VerticalBarChart()
-                    bc.x = 45; bc.y = 25; bc.height = 110; bc.width = 410
-                    bc.data = [valores_serie]
-                    bc.categoryAxis.categoryNames = [str(a) for a in anos_serie]
-                    bc.categoryAxis.labels.fontSize = 9; bc.categoryAxis.labels.fontName = 'Helvetica-Bold'; bc.categoryAxis.labels.dy = -10
-                    
-                    bc.valueAxis.valueMin = 0; bc.valueAxis.valueMax = 1000; bc.valueAxis.valueStep = 200; bc.valueAxis.labels.fontSize = 8
-                    
-                    bc.barLabels.nudge = 8
-                    bc.barLabels.fontSize = 8
-                    bc.barLabels.fontName = 'Helvetica-Bold'
-                    bc.barLabelFormat = '%.1f'
-                    
-                    bc.bars[0].fillColor = colors.HexColor("#1b4f72")
-                    bc.bars[0].strokeColor = colors.HexColor("#2c3e50")
-                    bc.bars[0].strokeWidth = 0.5
-
-                    desenho_grafico.add(String(240, 150, "Série Histórica do I-cidade", textAnchor='middle', fontName='Helvetica-Bold', fontSize=12, fillColor=colors.HexColor("#2c3e50")))
-                    desenho_grafico.add(bc)
-                    
-                    elements.append(desenho_grafico)
-                    elements.append(Spacer(1, 15))
-
-                    # -------------------------------------------------------------------------
-                    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE - CONFORMIDADE OPERACIONAL)
-                    # -------------------------------------------------------------------------
-                    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE - CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
                     elements.append(Spacer(1, 6))
 
-                    lista_alvo_sp = [
-                        "4.0", "11.0", "12.0", "13.0", "4.1", "5.1", 
-                        "5.1.2", "5.1.2.1", "7.3.1", "8.4.1", "8.1", "8.1.1", "12.1.3.1", "14.1"
-                    ]
-
-                    analise_sp = []
-                    
-                    for qid in lista_alvo_sp:
-                        info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
-                        
-                        if isinstance(info, dict):
-                            resp = str(info.get("valor", "")).strip()
-                        else:
-                            resp = str(info).strip()
-
-                        resp_l = resp.lower()
-                        is_adequado = False
-
-                        if qid in ["4.0", "11.0", "12.0", "13.0", "8.1.1"]:
-                            if any(x == resp_l or x in resp_l for x in ["sim", "1", "s", "true", "adequado"]):
-                                is_adequado = True
-
-                        elif qid == "4.1":
-                            opcoes = ["riscos geológicos", "riscos hidrológicos", "riscos meteorológicos", "riscos biológicos"]
-                            if any(opt in resp_l for opt in opcoes):
-                                is_adequado = True
-
-                        elif qid == "5.1":
-                            opcoes = ["epidemias", "estiagem", "incêndios", "ondas de calor ou ondas de frio", "inundações"]
-                            if any(opt in resp_l for opt in opcoes):
-                                is_adequado = True
-
-                        elif qid == "5.1.2":
-                            if any(x == resp_l or x in resp_l for x in ["não", "nao", "0", "n", "false"]):
-                                is_adequado = True
-
-                        elif qid == "5.1.2.1":
-                            opcoes = [
-                                "aplicação de sanções monetárias (multas)",
-                                "monitoramento (fiscalização)",
-                                "notificação dos infratores",
-                                "demolição das ocupações"
-                            ]
-                            if any(opt in resp_l for opt in opcoes):
-                                is_adequado = True
-
-                        elif qid == "7.3.1":
-                            opcoes = ["alerta via sms", "aviso por telefone", "aviso por email", "anúncio por rádio/televisão"]
-                            if any(opt in resp_l for opt in opcoes):
-                                is_adequado = True
-
-                        elif qid == "7.4.1":
-                            opcoes = [
-                                "sinal sonoro (sirene)",
-                                "sinal luminoso",
-                                "carros de emergência com sirenes",
-                                "avisos aos membros do nupdec"
-                            ]
-                            if any(opt in resp_l for opt in opcoes):
-                                is_adequado = True
-
-                        elif qid == "8.1":
-                            opcoes = ["telefone de emergências", "aplicativo de mensagens", "site da prefeitura", "redes sociais"]
-                            if any(opt in resp_l for opt in opcoes):
-                                is_adequado = True
-
-                        elif qid == "12.1.3.1":
-                            if "diariamente" in resp_l:
-                                is_adequado = True
-
-                        elif qid == "14.1":
-                            opcoes = [
-                                "calçadas com dimensões mínimas para circulação",
-                                "sinalização tátil em pisos",
-                                "rampas de acesso",
-                                "escadas com corrimão"
-                            ]
-                            if any(opt in resp_l for opt in opcoes):
-                                is_adequado = True
-
-                        status_txt = "Adequado" if is_adequado else "Inadequado"
-
-                        analise_sp.append({
-                            "qid": qid,
-                            "resp": resp if resp else "Não Informado",
-                            "status": status_txt
-                        })
-
-                    if analise_sp:
-                        style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
-                        
-                        data_sp = [[
-                            Paragraph("Quesito", style_th), 
-                            Paragraph("Resposta Informada no Sistema", style_th), 
-                            Paragraph("Situação / Conformidade", style_th)
-                        ]]
-
-                        total_adequados = 0
-                        for item in analise_sp:
-                            if item["status"] == "Adequado":
-                                total_adequados += 1
-                                st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>", style_td_sp)
-                            else:
-                                st_p = Paragraph("<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
-
-                            data_sp.append([
-                                Paragraph(f"<b>{item['qid']}</b>", style_td_sp),
-                                Paragraph(item["resp"], styles["Normal"]),
-                                st_p
-                            ])
-
-                        tabela_sp = Table(data_sp, colWidths=[70, 280, 135])
-                        tabela_sp.setStyle(TableStyle([
-                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+                    if all_data:
+                        data_sh = [["Exercício", "Pontuação Total", "Faixa / Conceito"]]
+                        for ano_h in sorted(all_data.keys()):
+                            dados_h = all_data[ano_h]
+                            tot_h = sum(float(v.get("pontos", 0)) for k, v in dados_h.items() if isinstance(v, dict) and not str(k).startswith("COM_"))
+                            faixa_h = converter_pontos_em_faixa_iegm(tot_h)
+                            data_sh.append([str(ano_h), f"{tot_h:.1f} pts", faixa_h])
+                            
+                        tabela_sh = Table(data_sh, colWidths=[120, 180, 185])
+                        tabela_sh.setStyle(TableStyle([
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495e")),
+                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-                            ("TOPPADDING", (0, 0), (-1, -1), 3),
-                            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-                            ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ffffff")),
+                            ("FONTSIZE", (0, 0), (-1, -1), 9),
+                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
                         ]))
-                        elements.append(tabela_sp)
-                        elements.append(Spacer(1, 8))
-
-                        pct_sp = (total_adequados / len(analise_sp)) * 100.0
-                        texto_sp = (
-                            f"A análise dinâmica dos quesitos de conformidade operacional do iCidade no exercício de <b>{ano_atual}</b> apontou "
-                            f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
-                            f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
-                        )
-                        elements.append(Paragraph(texto_sp, style_analise))
+                        elements.append(tabela_sh)
                         elements.append(Spacer(1, 15))
 
+                    # -------------------------------------------------------------------------
+                    # 7. QUESITOS SEM PONTUAÇÃO DIRETA
+                    # -------------------------------------------------------------------------
+                    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
+                    elements.append(Spacer(1, 6))
+
+                    data_informativos = [["Quesito", "Resposta / Informação Registrada"]]
+                    for qid, info in dados.items():
+                        if isinstance(info, dict) and str(qid) not in PONTUACOES_MAX and not str(qid).startswith("COM_"):
+                            val = info.get("valor", "Sem registro")
+                            data_informativos.append([str(qid), Paragraph(str(val), styles["Normal"])])
+
+                    if len(data_informativos) > 1:
+                        tabela_inf = Table(data_informativos, colWidths=[100, 385])
+                        tabela_inf.setStyle(TableStyle([
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#7f8c8d")),
+                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+                            ("FONTSIZE", (0, 0), (-1, -1), 9),
+                            ("VALIGN", (0, 0), (-1, -1), "TOP")
+                        ]))
+                        elements.append(tabela_inf)
+                    else:
+                        elements.append(Paragraph("Nenhum quesito exclusivamente informativo registrado.", styles["Normal"]))
+
+                    # Construção do PDF
                     doc.build(elements)
                     buffer.seek(0)
                     return buffer.getvalue()
-
 
                 # =============================================================================
                 # CARD DE EMISSÃO DO RELATÓRIO PDF (INTERFACE NICEGUI)
