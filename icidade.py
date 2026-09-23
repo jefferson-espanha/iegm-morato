@@ -1882,36 +1882,46 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-import os
-from io import BytesIO
-from datetime import date
-from nicegui import app, ui, ui_run
+                # =============================================================================
+                # RELATÓRIO ANALÍTICO EM PDF (DOWLOAD / IMPRESSÃO)
+                # =============================================================================
+                with ui.card().classes("w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50"):
+                    ui.label("📄 Emissão de Relatório Analítico - iCidade").classes("text-xl font-bold text-blue-900 mb-1")
+                    ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
 
-# Importações do ReportLab
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, Image
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.graphics.shapes import Drawing, String
-from reportlab.graphics.charts.barcharts import VerticalBarChart
+                    def baixar_pdf():
+                        try:
+                            total_pts = float(sum(
+                                v.get("pontos", 0) 
+                                for k, v in res_data.items() 
+                                if isinstance(v, dict) and not k.startswith("COM_")
+                            ))
 
-# Tabela Global de Pontuações Máximas (Exemplo iCidade)
-PONTUACOES_MAX = {
-    "1.0": 10.0, "1.4": 10.0, "2.0": 10.0, "3.0": 10.0, "3.1": 10.0,
-    "4.0": 10.0, "5.0": 10.0, "5.1": 10.0, "5.1.1": 10.0, "5.1.1.1": 10.0,
-    "5.1.2": 10.0, "5.2": 10.0, "7.0": 10.0, "7.3": 10.0, "7.3.1": 10.0,
-    "7.4": 10.0, "7.4.1": 10.0, "7.5": 10.0, "7.6": 10.0, "8.0": 10.0,
-    "8.1": 10.0, "8.1.1": 10.0, "8.1.1.1": 10.0, "8.2": 10.0, "9.0": 10.0,
-    "10.0": 10.0, "11.0": 10.0, "11.1": 10.0, "12.0": 10.0, "12.1.3": 10.0,
-    "13.0": 10.0, "14.0": 10.0, "15.0": 10.0, "16.0": 10.0
-}
+                            if total_pts < 500.0: faixa = "C"
+                            elif total_pts < 600.0: faixa = "C+"
+                            elif total_pts < 750.0: faixa = "B"
+                            elif total_pts < 900.0: faixa = "B+"
+                            else: faixa = "A"
 
-# Dummy helper para obter dados históricos (substitua pela sua lógica do DB se houver)
-def get_all_years_data():
-    return app.storage.user.get("historico_completo_icidade", {})
+                            pdf_bytes = gerar_relatorio_pdf(
+                                dados=res_data,
+                                ano=ano_sel,
+                                total=total_pts,
+                                faixa=faixa
+                            )
+
+                            ui.download(pdf_bytes, f"Relatorio_iCidade_{ano_sel}.pdf")
+                            ui.notify("Relatório em PDF gerado com sucesso!", type="positive")
+
+                        except Exception as e:
+                            logging.error(f"Erro ao gerar PDF do iCidade: {e}")
+                            ui.notify(f"Falha ao gerar o PDF: {e}", type="negative")
+
+                    ui.button("📥 GERAR E BAIXAR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
+
 
 # =============================================================================
-# GERADOR DE PDF (REPORTLAB IN-MEMORY)
+# FUNÇÃO AUXILIAR REPORTLAB (GERAÇÃO BINÁRIA EM MEMÓRIA)
 # =============================================================================
 def gerar_relatorio_pdf(dados, ano, total, faixa):
     buffer = BytesIO()
@@ -1995,7 +2005,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
         elif 750.0 <= pts <= 899.9:  return "B+"
         else:                        return "A"
 
-    all_data = get_all_years_data()
+    all_data = app.storage.user.get("historico_completo_icidade", {})
     dados_ano_anterior = all_data.get(ano_ant, {})
     nota_anterior = 0.0
     if ano_ant in all_data:
@@ -2404,56 +2414,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
     doc.build(elements)
     buffer.seek(0)
     return buffer.getvalue()
-
-# =============================================================================
-# INTERFACE NICEGUI
-# =============================================================================
-def container_relatorio_icidade(year=None):
-    if year is None:
-        year = app.storage.user.get("ano_referencia_global", date.today().year)
-
-    ui.label("📄 Emissão de Relatório Analítico - iCidade").classes("text-2xl font-bold text-blue-900 mb-2")
-    ui.label("Gere o relatório analítico completo do iCidade em formato PDF com série histórica, análises ODS e diagnósticos de reincidência.").classes("text-sm text-gray-600 mb-6")
-
-    with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
-        with ui.row().classes("w-full items-center justify-between mb-4"):
-            ui.label(f"Exercício Selecionado: {year}").classes("font-bold text-lg text-gray-800")
-            
-        def baixar_pdf():
-            try:
-                # 1. Resgata respostas do banco/storage
-                chave_ano = f"respostas_{year}"
-                dados_exercicio = app.storage.user.get(chave_ano, {})
-
-                # 2. Calcula total e faixa para a capa/resumo
-                total_pontos = float(sum(
-                    v.get("pontos", 0) 
-                    for k, v in dados_exercicio.items() 
-                    if isinstance(v, dict) and not k.startswith("COM_")
-                ))
-
-                if total_pontos < 500.0: faixa = "C"
-                elif total_pontos < 600.0: faixa = "C+"
-                elif total_pontos < 750.0: faixa = "B"
-                elif total_pontos < 900.0: faixa = "B+"
-                else: faixa = "A"
-
-                # 3. Gera o binário do PDF
-                pdf_bytes = gerar_relatorio_pdf(
-                    dados=dados_exercicio,
-                    ano=year,
-                    total=total_pontos,
-                    faixa=faixa
-                )
-
-                # 4. Envia para o navegador via download
-                ui.download(pdf_bytes, f"Relatorio_iCidade_{year}.pdf")
-                ui.notify("Relatório gerado com sucesso!", type="positive")
-
-            except Exception as e:
-                ui.notify(f"Erro ao gerar relatório: {e}", type="negative")
-
-        ui.button("📥 GERAR E BAIXAR RELATÓRIO (PDF)", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold py-2 px-4 rounded")
 
 # Exemplo para execução direta/testes
 if __name__ in {"__main__", "__mp_main__"}:
