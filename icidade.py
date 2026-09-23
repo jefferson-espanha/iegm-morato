@@ -1845,8 +1845,7 @@ def container_formulario_icidade(ano=None):
 
                 def get_all_years_data():
                     """
-                    Busca todas as respostas do banco agrupadas por ano.
-                    Garante tratamento de JSON string, dict e linhas individuais.
+                    Busca todas as respostas do banco agrupadas por ano com depuração avançada.
                     """
                     all_data = {}
                     try:
@@ -1857,18 +1856,23 @@ def container_formulario_icidade(ano=None):
                         cur.close()
                         conn.close()
 
+                        print(f"\n[DEBUG DATABASE] Total de linhas retornadas da tabela 'respostas': {len(rows)}")
+                        
+                        if rows:
+                            # Imprime as chaves do primeiro registro para conferir o nome exato das colunas no terminal
+                            print(f"[DEBUG DATABASE] Colunas disponíveis na tabela: {list(dict(rows[0]).keys())}")
+
                         for row in rows:
                             row_dict = dict(row)
                             
-                            # Busca do Ano com múltiplos fallbacks de coluna e tipo
-                            raw_ano = (
-                                row_dict.get("ano") or 
-                                row_dict.get("exercicio") or 
-                                row_dict.get("data") or 
-                                row_dict.get("created_at") or 
-                                row_dict.get("data_criacao")
-                            )
-                            
+                            # 1. Tenta identificar o ANO procurando qualquer chave com nome parecido
+                            raw_ano = None
+                            for key, val in row_dict.items():
+                                if key.lower() in ["ano", "exercicio", "data", "created_at", "data_criacao", "ano_exercicio", "criado_em"]:
+                                    if val is not None:
+                                        raw_ano = val
+                                        break
+
                             ano = None
                             if isinstance(raw_ano, (int, float)):
                                 ano = int(raw_ano)
@@ -1879,15 +1883,20 @@ def container_formulario_icidade(ano=None):
                                 if match:
                                     ano = int(match.group(1))
 
+                            # Se não achou ano na coluna, define um fallback (ex: 2026) para os dados não sumirem
                             if not ano:
-                                continue
+                                ano = 2026
 
                             if ano not in all_data:
                                 all_data[ano] = {}
 
-                            # Tenta obter dados estruturados de colunas JSON
-                            dados_obj = row_dict.get("dados") or row_dict.get("resposta_json") or row_dict.get("dados_json") or row_dict.get("conteudo")
-                            
+                            # 2. Processa o JSON ou as linhas individuais
+                            dados_obj = None
+                            for key in ["dados", "resposta_json", "dados_json", "conteudo", "respostas"]:
+                                if key in row_dict and row_dict[key]:
+                                    dados_obj = row_dict[key]
+                                    break
+
                             if isinstance(dados_obj, str):
                                 try:
                                     dados_obj = json.loads(dados_obj)
@@ -1897,19 +1906,28 @@ def container_formulario_icidade(ano=None):
                             if isinstance(dados_obj, dict):
                                 all_data[ano].update(dados_obj)
                             else:
-                                # Leitura de registros armazenados linha por linha
-                                qid = str(row_dict.get("quesito_id") or row_dict.get("qid") or row_dict.get("quesito") or row_dict.get("questao_id") or "").strip()
+                                qid = str(
+                                    row_dict.get("quesito_id") or 
+                                    row_dict.get("qid") or 
+                                    row_dict.get("quesito") or 
+                                    row_dict.get("questao_id") or ""
+                                ).strip()
+                                
                                 if qid:
                                     pts = float(row_dict.get("pontos") or row_dict.get("pontuacao") or row_dict.get("nota") or 0)
                                     val = str(row_dict.get("resposta") or row_dict.get("valor") or "")
                                     lnk = str(row_dict.get("link") or row_dict.get("evidencia") or "")
                                     all_data[ano][qid] = {"pontos": pts, "valor": val, "link": lnk}
 
+                        print(f"[DEBUG DATABASE] Anos carregados com sucesso: {list(all_data.keys())}")
+                        for a, conteudos in all_data.items():
+                            print(f"[DEBUG DATABASE] -> Ano {a}: {len(conteudos)} quesitos encontrados.")
+
                     except Exception as e:
-                        logging.exception(f"Erro ao buscar série histórica no banco Neon: {e}")
+                        print(f"\n[ERRO BANCO DE DADOS] Falha ao consultar Neon PostgreSQL: {e}")
+                        logging.exception("Erro detalhado no banco:")
 
                     return all_data
-
 
                 # =============================================================================
                 # 3. GERADOR DO RELATÓRIO PDF
