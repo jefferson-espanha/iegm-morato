@@ -1845,33 +1845,45 @@ def container_formulario_icidade(ano=None):
 
                 def get_all_years_data():
                     """
-                    Busca todas as respostas do banco Neon (tabela respostas_icidade) 
-                    agrupadas por ano usando a estrutura oficial do sistema.
+                    Busca todas as respostas registradas na tabela 'respostas' agrupadas por ano.
+                    Trata campos no formato JSON/Dict ou registros linha por linha.
                     """
                     all_data = {}
                     try:
-                        # 1. Busca todos os anos distintos gravados na tabela
-                        with get_db_connection() as conn:
-                            with conn.cursor() as cur:
-                                cur.execute("SELECT DISTINCT ano FROM respostas_icidade ORDER BY ano;")
-                                rows = cur.fetchall()
-                                anos_no_banco = [r["ano"] for r in rows]
+                        conn = get_db_connection()
+                        cur = conn.cursor(cursor_factory=RealDictCursor)
+                        cur.execute("SELECT * FROM respostas")
+                        rows = cur.fetchall()
+                        cur.close()
+                        conn.close()
 
-                        print(f"\n[DEBUG DATABASE] Anos encontrados na tabela respostas_icidade: {anos_no_banco}")
+                        for row in rows:
+                            ano = int(str(row.get("ano", 0)).strip()[:4]) if row.get("ano") else None
+                            if not ano:
+                                continue
+                            
+                            if ano not in all_data:
+                                all_data[ano] = {}
 
-                        # 2. Carrega as respostas de cada ano usando sua função load_respostas
-                        for ano in anos_no_banco:
-                            dados_do_ano = load_respostas(ano)
-                            if dados_do_ano:
-                                all_data[int(ano)] = dados_do_ano
-
-                        print(f"[DEBUG DATABASE] Dados carregados no all_data para os anos: {list(all_data.keys())}")
-
+                            # Caso a tabela armazene um JSON estruturado por ano
+                            if "dados" in row and isinstance(row["dados"], dict):
+                                all_data[ano].update(row["dados"])
+                            elif "resposta_json" in row and isinstance(row["resposta_json"], dict):
+                                all_data[ano].update(row["resposta_json"])
+                            # Caso armazene quesito a quesito em colunas ou registros
+                            else:
+                                qid = str(row.get("quesito_id") or row.get("qid") or "").strip()
+                                if qid:
+                                    all_data[ano][qid] = {
+                                        "pontos": float(row.get("pontos", 0) or 0),
+                                        "valor": str(row.get("resposta", "") or row.get("valor", "")),
+                                        "link": str(row.get("link", "") or row.get("evidencia", ""))
+                                    }
                     except Exception as e:
-                        print(f"\n❌ ERRO BANCO DE DADOS ao montar série histórica: {e}")
-                        logging.exception("Erro detalhado no banco de dados:")
-
+                        logging.exception(f"Erro ao buscar serie historica no banco Neon: {e}")
+                    
                     return all_data
+
 
                 # =============================================================================
                 # 3. GERADOR DO RELATÓRIO PDF
@@ -1879,14 +1891,7 @@ def container_formulario_icidade(ano=None):
 
                 def gerar_relatorio_pdf(dados, ano, total, faixa):
                     buffer = BytesIO()
-                    doc = SimpleDocTemplate(
-                        buffer, 
-                        pagesize=A4, 
-                        rightMargin=30, 
-                        leftMargin=30, 
-                        topMargin=30, 
-                        bottomMargin=30
-                    )
+                    doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
                     elements = []
                     styles = getSampleStyleSheet()
 
@@ -1920,14 +1925,7 @@ def container_formulario_icidade(ano=None):
                     elements.append(Paragraph("Relatório I-Cidade", style_titulo_capa))
                     elements.append(Spacer(1, 15))
                     
-                    style_ano_capa = ParagraphStyle(
-                        'AnoCapa', 
-                        parent=styles['Normal'], 
-                        fontName='Helvetica', 
-                        fontSize=16, 
-                        textColor=colors.HexColor("#7f8c8d"), 
-                        alignment=1
-                    )
+                    style_ano_capa = ParagraphStyle('AnoCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=16, textColor=colors.HexColor("#7f8c8d"), alignment=1)
                     elements.append(Paragraph(str(ano), style_ano_capa))
                     elements.append(PageBreak())
 
@@ -1937,21 +1935,8 @@ def container_formulario_icidade(ano=None):
                     elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
                     elements.append(Spacer(1, 30))
 
-                    style_item_esquerda = ParagraphStyle(
-                        'ItemEsq', 
-                        parent=styles['Normal'], 
-                        fontName='Helvetica-Bold', 
-                        fontSize=11, 
-                        textColor=colors.HexColor("#2c3e50")
-                    )
-                    style_pag_direita = ParagraphStyle(
-                        'PagDir', 
-                        parent=styles['Normal'], 
-                        fontName='Helvetica-Bold', 
-                        fontSize=11, 
-                        textColor=colors.HexColor("#1b4f72"), 
-                        alignment=2
-                    )
+                    style_item_esquerda = ParagraphStyle('ItemEsq', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor("#2c3e50"))
+                    style_pag_direita = ParagraphStyle('PagDir', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor("#1b4f72"), alignment=2)
 
                     dados_sumario = [
                         [Paragraph("1. Resumo Executivo (Análise Comparativa)", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
@@ -1985,7 +1970,7 @@ def container_formulario_icidade(ano=None):
 
                     def converter_pontos_em_faixa_iegm(pontos):
                         pts = float(pontos)
-                        if pts < 500.0:             return "C"
+                        if pts < 500.0:              return "C"
                         elif 500.0 <= pts <= 599.9:  return "C+"
                         elif 600.0 <= pts <= 749.9:  return "B"
                         elif 750.0 <= pts <= 899.9:  return "B+"
@@ -2156,8 +2141,7 @@ def container_formulario_icidade(ano=None):
                         tabela_reinc = Table(data_reinc, colWidths=[65, 115, 170, 75, 65])
                         tabela_reinc.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#c0392b")), ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#c0392b")), ("FONTSIZE", (0, 0), (-1, -1), 9), ("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
                         elements.append(tabela_reinc)
-                    else: 
-                        elements.append(Paragraph("<font color='#28a745'><b>Nenhuma reincidência ativa detectada.</b></font>", styles["Normal"]))
+                    else: elements.append(Paragraph("<font color='#28a745'><b>Nenhuma reincidência ativa detectada.</b></font>", styles["Normal"]))
                     elements.append(Spacer(1, 15))
 
                     # -------------------------------------------------------------------------
@@ -2165,7 +2149,6 @@ def container_formulario_icidade(ano=None):
                     # -------------------------------------------------------------------------
                     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
                     elements.append(Spacer(1, 6))
-                    
                     def calcular_percentual_checklist(resposta_bruta, total_itens):
                         if not resposta_bruta: return 0.0
                         itens = [i.strip().lower() for i in str(resposta_bruta).split(",") if i.strip()]
@@ -2312,75 +2295,106 @@ def container_formulario_icidade(ano=None):
                                 is_adequado = True
 
                         elif qid == "5.1.2.1":
-                            opcoes = ["tecnologias corporativas", "plano de continuidade de negócios", "mecanismo de redundância de dados", "treinamento contínuo das equipes"]
+                            opcoes = [
+                                "aplicação de sanções monetárias (multas)",
+                                "monitoramento (fiscalização)",
+                                "notificação dos infratores",
+                                "demolição das ocupações"
+                            ]
                             if any(opt in resp_l for opt in opcoes):
                                 is_adequado = True
 
                         elif qid == "7.3.1":
-                            opcoes = ["alertas por SMS", "sirenes", "redes sociais", "comunicação por rádio", "carro de som"]
+                            opcoes = ["alerta via sms", "aviso por telefone", "aviso por email", "anúncio por rádio/televisão"]
                             if any(opt in resp_l for opt in opcoes):
                                 is_adequado = True
 
-                        elif qid == "8.4.1":
-                            if any(x == resp_l or x in resp_l for x in ["sim", "parcialmente"]):
+                        elif qid == "7.4.1":
+                            opcoes = [
+                                "sinal sonoro (sirene)",
+                                "sinal luminoso",
+                                "carros de emergência com sirenes",
+                                "avisos aos membros do nupdec"
+                            ]
+                            if any(opt in resp_l for opt in opcoes):
                                 is_adequado = True
 
                         elif qid == "8.1":
-                            opcoes = ["abrigos temporários", "rotas de fuga", "mapeamento de vulnerabilidades", "sistema de resgate"]
+                            opcoes = ["telefone de emergências", "aplicativo de mensagens", "site da prefeitura", "redes sociais"]
                             if any(opt in resp_l for opt in opcoes):
                                 is_adequado = True
 
                         elif qid == "12.1.3.1":
-                            if any(x == resp_l or x in resp_l for x in ["sim", "em andamento"]):
+                            if "diariamente" in resp_l:
                                 is_adequado = True
 
                         elif qid == "14.1":
-                            if any(x == resp_l or x in resp_l for x in ["sim", "integralmente"]):
+                            opcoes = [
+                                "calçadas com dimensões mínimas para circulação",
+                                "sinalização tátil em pisos",
+                                "rampas de acesso",
+                                "escadas com corrimão"
+                            ]
+                            if any(opt in resp_l for opt in opcoes):
                                 is_adequado = True
 
-                        status_sp = "Adequado" if is_adequado else "Inadequado"
-                        analise_sp.append({"qid": qid, "resp": resp if resp else "Sem Resposta", "status": status_sp})
+                        status_txt = "Adequado" if is_adequado else "Inadequado"
+
+                        analise_sp.append({
+                            "qid": qid,
+                            "resp": resp if resp else "Não Informado",
+                            "status": status_txt
+                        })
 
                     if analise_sp:
-                        data_sp = [["Quesito", "Resposta Informada", "Avaliação Operacional"]]
-                        style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
+                        style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
+                        
+                        data_sp = [[
+                            Paragraph("Quesito", style_th), 
+                            Paragraph("Resposta Informada no Sistema", style_th), 
+                            Paragraph("Situação / Conformidade", style_th)
+                        ]]
+
+                        total_adequados = 0
                         for item in analise_sp:
                             if item["status"] == "Adequado":
-                                st_p = Paragraph("<font color='#28a745'><b>Conforme / Adequado</b></font>", style_td_sp)
+                                total_adequados += 1
+                                st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>", style_td_sp)
                             else:
-                                st_p = Paragraph("<font color='#dc3545'><b>Inconforme / Inadequado</b></font>", style_td_sp)
-                            data_sp.append([item["qid"], Paragraph(item["resp"], styles["Normal"]), st_p])
+                                st_p = Paragraph("<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
 
-                        tabela_sp = Table(data_sp, colWidths=[70, 260, 155])
+                            data_sp.append([
+                                Paragraph(f"<b>{item['qid']}</b>", style_td_sp),
+                                Paragraph(item["resp"], styles["Normal"]),
+                                st_p
+                            ])
+
+                        tabela_sp = Table(data_sp, colWidths=[70, 280, 135])
                         tabela_sp.setStyle(TableStyle([
-                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495e")),
-                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                            ("ALIGN", (0, 0), (0, -1), "CENTER"),
-                            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#34495e")),
-                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+                            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+                            ("TOPPADDING", (0, 0), (-1, -1), 3),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                            ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ffffff")),
                         ]))
                         elements.append(tabela_sp)
+                        elements.append(Spacer(1, 8))
 
-                    # -------------------------------------------------------------------------
-                    # CONSTRUÇÃO DO DOCUMENTO PDF (COM NÚMERO DE PÁGINAS)
-                    # -------------------------------------------------------------------------
-                    def adicionar_rodape(canvas, doc):
-                        if doc.page > 1:
-                            canvas.saveState()
-                            canvas.setFont('Helvetica', 8)
-                            canvas.setFillColor(colors.HexColor("#7f8c8d"))
-                            canvas.drawString(30, 20, f"Relatório I-Cidade — Exercício {ano}")
-                            canvas.drawRightString(A4[0] - 30, 20, f"Página {doc.page}")
-                            canvas.setStrokeColor(colors.HexColor("#bdc3c7"))
-                            canvas.setLineWidth(0.5)
-                            canvas.line(30, 32, A4[0] - 30, 32)
-                            canvas.restoreState()
+                        pct_sp = (total_adequados / len(analise_sp)) * 100.0
+                        texto_sp = (
+                            f"A análise dinâmica dos quesitos de conformidade operacional do iCidade no exercício de <b>{ano_atual}</b> apontou "
+                            f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
+                            f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
+                        )
+                        elements.append(Paragraph(texto_sp, style_analise))
+                        elements.append(Spacer(1, 15))
 
-                    doc.build(elements, onFirstPage=adicionar_rodape, onLaterPages=adicionar_rodape)
-                    
-                    pdf = buffer.getvalue()
-                    buffer.close()
-                    return pdf
+                    doc.build(elements)
+                    buffer.seek(0)
+                    return buffer.getvalue()
+
 
                 # =============================================================================
                 # CARD DE EMISSÃO DO RELATÓRIO PDF (INTERFACE NICEGUI)
@@ -2389,19 +2403,15 @@ def container_formulario_icidade(ano=None):
                     ui.label("📄 Emissão de Relatório Analítico - iCidade").classes("text-xl font-bold text-blue-900 mb-1")
                     ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
 
-                    async def emitir_pdf(ano_base: int):
-                        n = ui.notify(f"Gerando PDF ({ano_base} vs {ano_base - 1}), aguarde...", type="info", timeout=0)
+                    async def baixar_pdf():
+                        n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
                         await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 100))')
 
                         try:
-                            # Tenta carregar dados específicos do ano base se não forem os da tela atual
-                            all_data = get_all_years_data()
-                            dados_ano = all_data.get(ano_base, res_data)
-
                             total_pts = float(sum(
                                 v.get("pontos", 0) 
-                                for k, v in dados_ano.items() 
-                                if isinstance(v, dict) and not str(k).startswith("COM_")
+                                for k, v in res_data.items() 
+                                if isinstance(v, dict) and not k.startswith("COM_")
                             ))
 
                             if total_pts < 500.0: faixa = "C"
@@ -2411,13 +2421,13 @@ def container_formulario_icidade(ano=None):
                             else: faixa = "A"
 
                             pdf_bytes = gerar_relatorio_pdf(
-                                dados=dados_ano,
-                                ano=ano_base,
+                                dados=res_data,
+                                ano=ano_sel,
                                 total=total_pts,
                                 faixa=faixa
                             )
 
-                            rota_pdf = f"/relatorio_temp_{ano_base}_{ano_base - 1}.pdf"
+                            rota_pdf = f"/relatorio_temp_{ano_sel}.pdf"
                             
                             @app.get(rota_pdf)
                             def relatorio_endpoint():
@@ -2427,17 +2437,14 @@ def container_formulario_icidade(ano=None):
                             ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
 
                             n.dismiss()
-                            ui.notify(f"Relatório {ano_base}-{ano_base - 1} aberto com sucesso!", type="positive")
+                            ui.notify("Relatório aberto com sucesso!", type="positive")
 
                         except Exception as e:
                             n.dismiss()
                             print(f"ERRO CRÍTICO AO GERAR PDF: {e}")
                             logging.exception("Erro no PDF:")
-                            ui.notify(f"Erro ao gerar o PDF ({ano_base}-{ano_base - 1}): {e}", type="negative", close_button=True)
+                            ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
 
-                    # Botões lado a lado para selecionar o relatório comparativo desejado
-                    with ui.row().classes('gap-4 my-2'):
-                        ui.button("📥 RELATÓRIO 2025 vs 2024", on_click=lambda: emitir_pdf(2025)).classes("bg-blue-700 text-white font-bold")
-                        ui.button("📥 RELATÓRIO 2026 vs 2025", on_click=lambda: emitir_pdf(2026)).classes("bg-indigo-700 text-white font-bold")
+                    ui.button("📥 GERAR E ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
     render_conteudo()
