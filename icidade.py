@@ -1882,46 +1882,26 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-                # =============================================================================
-                # CARD DE EMISSÃO DO RELATÓRIO PDF (AINDA DENTRO DO RENDER_CONTEUDO)
-                # =============================================================================
-                with ui.card().classes("w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50"):
-                    ui.label("📄 Emissão de Relatório Analítico - iCidade").classes("text-xl font-bold text-blue-900 mb-1")
-                    ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
+                import os
+import logging
+from io import BytesIO
+from datetime import date
+from nicegui import app, ui
 
-                    def baixar_pdf():
-                        try:
-                            total_pts = float(sum(
-                                v.get("pontos", 0) 
-                                for k, v in res_data.items() 
-                                if isinstance(v, dict) and not k.startswith("COM_")
-                            ))
-
-                            if total_pts < 500.0: faixa = "C"
-                            elif total_pts < 600.0: faixa = "C+"
-                            elif total_pts < 750.0: faixa = "B"
-                            elif total_pts < 900.0: faixa = "B+"
-                            else: faixa = "A"
-
-                            pdf_bytes = gerar_relatorio_pdf(
-                                dados=res_data,
-                                ano=ano_sel,
-                                total=total_pts,
-                                faixa=faixa
-                            )
-
-                            ui.download(pdf_bytes, f"Relatorio_iCidade_{ano_sel}.pdf")
-                            ui.notify("Relatório em PDF gerado com sucesso!", type="positive")
-
-                        except Exception as e:
-                            logging.error(f"Erro ao gerar PDF do iCidade: {e}")
-                            ui.notify(f"Falha ao gerar o PDF: {e}", type="negative")
-
-                    ui.button("📥 GERAR E BAIXAR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
+# Importações do ReportLab
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, Image
+)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.graphics.shapes import Drawing, String
+from reportlab.graphics.charts.barcharts import VerticalBarChart
 
 
 # =============================================================================
-# FUNÇÃO AUXILIAR REPORTLAB (FORA DO RENDER_CONTEUDO / NÍVEL RAIZ DO ARQUIVO)
+# FUNÇÃO AUXILIAR REPORTLAB (GERAÇÃO BINÁRIA EM MEMÓRIA)
+# Declare esta função ANTES das views do NiceGUI
 # =============================================================================
 def gerar_relatorio_pdf(dados, ano, total, faixa):
     buffer = BytesIO()
@@ -2279,8 +2259,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
         is_adequado = False
 
         if qid in ["4.0", "11.0", "12.0", "13.0", "8.1.1"]:
-            if any(x == resp_l or x in resp_l for x in ["sim", "1", "s", "true", "adequado"]):
-                is_adequado = True
+            if any(x == resp_l or x in resp_l for x in ["sim", "1", "s", "true", "adequado"]): is_adequado = True
         elif qid == "4.1":
             opcoes = ["riscos geológicos", "riscos hidrológicos", "riscos meteorológicos", "riscos biológicos"]
             if any(opt in resp_l for opt in opcoes): is_adequado = True
@@ -2350,4 +2329,77 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
     buffer.seek(0)
     return buffer.getvalue()
 
+
+# =============================================================================
+# FUNÇÃO PRINCIPAL DE RENDERIZAÇÃO DO CONTEÚDO (NICEGUI)
+# =============================================================================
+@ui.refreshable
+def render_conteudo():
+    ano_sel = app.storage.user.get("ano_referencia_global", date.today().year)
+    res_data = app.storage.user.get(f"respostas_{ano_sel}", {})
+
+    # (AQUI FICAM TODOS OS SEUS QUESITOS ANTERIORES - C1.0, ETC)
+
+    # # ==========================================
+    # # DADOS EXTERNOS DO i-CIDADE: QUESITO C1.1
+    # # ==========================================
+    opcoes_c11 = {
+        "Selecione...": 0.0,
+        "Etapa A (10.0 pts)": 10.0,
+        "Etapa B (20.0 pts)": 20.0,
+        "Etapa C (50.0 pts)": 50.0,
+        "Não classificada (0.0 pts)": 0.0,
+    }
+    
+    # Certifique-se de que render_quesito está importado/definido na sua aplicação
+    render_quesito(
+        ano=ano_sel,
+        res_data=res_data,
+        qid="C1.1",
+        titulo="Estágio do Município no Programa MCR2030",
+        pergunta="O Município foi classificado em qual estágio do Programa Construindo Cidades Resilientes 2030 da ONU?",
+        opcoes=opcoes_c11,
+        placeholder_link="Insira o link para a certidão ou relatório de classificação da ONU/MCR2030...",
+        on_save_callback=render_conteudo.refresh,
+    )
+
+    # =============================================================================
+    # CARD DE EMISSÃO DO RELATÓRIO PDF (DENTRO DO RENDER_CONTEUDO)
+    # =============================================================================
+    with ui.card().classes("w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50"):
+        ui.label("📄 Emissão de Relatório Analítico - iCidade").classes("text-xl font-bold text-blue-900 mb-1")
+        ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
+
+        def baixar_pdf():
+            try:
+                total_pts = float(sum(
+                    v.get("pontos", 0) 
+                    for k, v in res_data.items() 
+                    if isinstance(v, dict) and not k.startswith("COM_")
+                ))
+
+                if total_pts < 500.0: faixa = "C"
+                elif total_pts < 600.0: faixa = "C+"
+                elif total_pts < 750.0: faixa = "B"
+                elif total_pts < 900.0: faixa = "B+"
+                else: faixa = "A"
+
+                pdf_bytes = gerar_relatorio_pdf(
+                    dados=res_data,
+                    ano=ano_sel,
+                    total=total_pts,
+                    faixa=faixa
+                )
+
+                ui.download(pdf_bytes, f"Relatorio_iCidade_{ano_sel}.pdf")
+                ui.notify("Relatório em PDF gerado com sucesso!", type="positive")
+
+            except Exception as e:
+                logging.error(f"Erro ao gerar PDF do iCidade: {e}")
+                ui.notify(f"Falha ao gerar o PDF: {e}", type="negative")
+
+        ui.button("📥 GERAR E BAIXAR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
+
+
+# Chamada de renderização inicial da página
 render_conteudo()
