@@ -1,15 +1,22 @@
+import base64
+from datetime import date, datetime
+import json
+import logging
 import os
+import re
 from io import BytesIO
-from datetime import date
-from nicegui import app, ui, ui_run
+
+from nicegui import app, ui
+import psycopg2
+from psycopg2.extras import Json, RealDictCursor
 
 # Importações do ReportLab
+from reportlab.graphics.charts.barcharts import VerticalBarChart
+from reportlab.graphics.shapes import Drawing, String
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, Image
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.graphics.shapes import Drawing, String
-from reportlab.graphics.charts.barcharts import VerticalBarChart
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 # =============================================================================
 # BANCO DE DADOS (NEON)
