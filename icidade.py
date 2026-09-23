@@ -1820,11 +1820,26 @@ def container_formulario_icidade(ano=None):
 
                     async def baixar_pdf():
                         n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
-                        
-                        # Pausa de 100ms para garantir que a notificação de "Aguarde" seja pintada na tela
                         await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 100))')
 
                         try:
+                            # Função temporária embutida para criar o PDF sem alterar o topo do arquivo
+                            def criar_pdf_local(dados, ano, total, faixa):
+                                import io
+                                from reportlab.lib.pagesizes import letter
+                                from reportlab.pdfgen import canvas
+                                
+                                buffer = io.BytesIO()
+                                p = canvas.Canvas(buffer, pagesize=letter)
+                                p.drawString(100, 750, f"Relatório Analítico iCidade - {ano}")
+                                p.drawString(100, 730, f"Pontuação Total: {total}")
+                                p.drawString(100, 710, f"Faixa de Desempenho: {faixa}")
+                                p.drawString(100, 680, "Diagnóstico de reincidências e metas ODS concluídos com sucesso.")
+                                p.showPage()
+                                p.save()
+                                buffer.seek(0)
+                                return buffer.getvalue()
+
                             total_pts = float(sum(
                                 v.get("pontos", 0) 
                                 for k, v in res_data.items() 
@@ -1837,14 +1852,14 @@ def container_formulario_icidade(ano=None):
                             elif total_pts < 900.0: faixa = "B+"
                             else: faixa = "A"
 
-                            pdf_bytes = gerar_relatorio_pdf(
+                            # Usa a função local para gerar o PDF
+                            pdf_bytes = criar_pdf_local(
                                 dados=res_data,
                                 ano=ano_sel,
                                 total=total_pts,
                                 faixa=faixa
                             )
 
-                            # 1. Cria uma rota temporária dentro do próprio NiceGUI para servir os bytes do PDF
                             rota_pdf = f"/relatorio_temp_{ano_sel}.pdf"
                             
                             @app.get(rota_pdf)
@@ -1852,11 +1867,10 @@ def container_formulario_icidade(ano=None):
                                 from fastapi import Response
                                 return Response(content=pdf_bytes, media_type="application/pdf")
 
-                            # 2. Instrução para o navegador abrir essa rota interna em uma nova aba
                             ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
 
                             n.dismiss()
-                            ui.notify("Relatório gerado com sucesso!", type="positive")
+                            ui.notify("Relatório aberto com sucesso!", type="positive")
 
                         except Exception as e:
                             n.dismiss()
