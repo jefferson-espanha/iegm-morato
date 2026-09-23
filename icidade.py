@@ -2427,14 +2427,18 @@ def container_formulario_icidade(ano=None):
                     ui.label("📄 Emissão de Relatório Analítico - iCidade").classes("text-xl font-bold text-blue-900 mb-1")
                     ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
 
-                    async def baixar_pdf():
-                        n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
+                    async def emitir_pdf(ano_base: int):
+                        n = ui.notify(f"Gerando PDF ({ano_base} vs {ano_base - 1}), aguarde...", type="info", timeout=0)
                         await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 100))')
 
                         try:
+                            # Tenta carregar dados específicos do ano base se não forem os da tela atual
+                            all_data = get_all_years_data()
+                            dados_ano = all_data.get(ano_base, res_data)
+
                             total_pts = float(sum(
                                 v.get("pontos", 0) 
-                                for k, v in res_data.items() 
+                                for k, v in dados_ano.items() 
                                 if isinstance(v, dict) and not str(k).startswith("COM_")
                             ))
 
@@ -2445,13 +2449,13 @@ def container_formulario_icidade(ano=None):
                             else: faixa = "A"
 
                             pdf_bytes = gerar_relatorio_pdf(
-                                dados=res_data,
-                                ano=ano_sel,
+                                dados=dados_ano,
+                                ano=ano_base,
                                 total=total_pts,
                                 faixa=faixa
                             )
 
-                            rota_pdf = f"/relatorio_temp_{ano_sel}.pdf"
+                            rota_pdf = f"/relatorio_temp_{ano_base}_{ano_base - 1}.pdf"
                             
                             @app.get(rota_pdf)
                             def relatorio_endpoint():
@@ -2461,14 +2465,17 @@ def container_formulario_icidade(ano=None):
                             ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
 
                             n.dismiss()
-                            ui.notify("Relatório aberto com sucesso!", type="positive")
+                            ui.notify(f"Relatório {ano_base}-{ano_base - 1} aberto com sucesso!", type="positive")
 
                         except Exception as e:
                             n.dismiss()
                             print(f"ERRO CRÍTICO AO GERAR PDF: {e}")
                             logging.exception("Erro no PDF:")
-                            ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
+                            ui.notify(f"Erro ao gerar o PDF ({ano_base}-{ano_base - 1}): {e}", type="negative", close_button=True)
 
-                    ui.button("📥 GERAR E ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
+                    # Botões lado a lado para selecionar o relatório comparativo desejado
+                    with ui.row().classes('gap-4 my-2'):
+                        ui.button("📥 RELATÓRIO 2025 vs 2024", on_click=lambda: emitir_pdf(2025)).classes("bg-blue-700 text-white font-bold")
+                        ui.button("📥 RELATÓRIO 2026 vs 2025", on_click=lambda: emitir_pdf(2026)).classes("bg-indigo-700 text-white font-bold")
 
     render_conteudo()
