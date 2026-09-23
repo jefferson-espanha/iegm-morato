@@ -1811,4 +1811,41 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+                # =============================================================================
+                # CARD DE EMISSÃO DO RELATÓRIO PDF
+                # =============================================================================
+                with ui.card().classes("w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50"):
+                    ui.label("📄 Emissão de Relatório Analítico - iCidade").classes("text-xl font-bold text-blue-900 mb-1")
+                    ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
+
+                    def baixar_pdf():
+                        try:
+                            total_pts = float(sum(
+                                v.get("pontos", 0) 
+                                for k, v in res_data.items() 
+                                if isinstance(v, dict) and not k.startswith("COM_")
+                            ))
+
+                            if total_pts < 500.0: faixa = "C"
+                            elif total_pts < 600.0: faixa = "C+"
+                            elif total_pts < 750.0: faixa = "B"
+                            elif total_pts < 900.0: faixa = "B+"
+                            else: faixa = "A"
+
+                            pdf_bytes = gerar_relatorio_pdf(
+                                dados=res_data,
+                                ano=ano_sel,
+                                total=total_pts,
+                                faixa=faixa
+                            )
+
+                            ui.download(pdf_bytes, f"Relatorio_iCidade_{ano_sel}.pdf")
+                            ui.notify("Relatório em PDF gerado com sucesso!", type="positive")
+
+                        except Exception as e:
+                            logging.error(f"Erro ao gerar PDF do iCidade: {e}")
+                            ui.notify(f"Falha ao gerar o PDF: {e}", type="negative")
+
+                    ui.button("📥 GERAR E BAIXAR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
+
     render_conteudo()
