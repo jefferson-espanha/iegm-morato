@@ -2242,80 +2242,24 @@ def container_formulario_icidade(ano=None):
                             st_txt = item["status"]
                             if "Não Atendido" in st_txt: 
                                 st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
-                            elif "Atendido" in st_txt and "%" not in st_txt: 
+                            else:
                                 st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
-                            else: 
-                                st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
-                                
                             data_ods.append([item["qid"], Paragraph(item["resp"], styles["Normal"]), item["metas"], st_p])
-                            
-                        tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
+                        
+                        tabela_ods = Table(data_ods, colWidths=[60, 190, 110, 130])
                         tabela_ods.setStyle(TableStyle([
-                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")), 
-                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                            ("ALIGN", (0, 0), (-1, -1), "CENTER"), 
-                            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")), 
-                            ("FONTSIZE", (0, 0), (-1, -1), 9), 
-                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
-                        ]))
-                        elements.append(tabela_ods)
-                        elements.append(Spacer(1, 15))
-
-                    # -------------------------------------------------------------------------
-                    # 6. SÉRIE HISTÓRICA DO I-CIDADE
-                    # -------------------------------------------------------------------------
-                    elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-CIDADE</b>", styles["h2"]))
-                    elements.append(Spacer(1, 6))
-
-                    if all_data:
-                        data_sh = [["Exercício", "Pontuação Total", "Faixa / Conceito"]]
-                        for ano_h in sorted(all_data.keys()):
-                            dados_h = all_data[ano_h]
-                            tot_h = sum(float(v.get("pontos", 0)) for k, v in dados_h.items() if isinstance(v, dict) and not str(k).startswith("COM_"))
-                            faixa_h = converter_pontos_em_faixa_iegm(tot_h)
-                            data_sh.append([str(ano_h), f"{tot_h:.1f} pts", faixa_h])
-                            
-                        tabela_sh = Table(data_sh, colWidths=[120, 180, 185])
-                        tabela_sh.setStyle(TableStyle([
-                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495e")),
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
                             ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
                             ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
                             ("FONTSIZE", (0, 0), (-1, -1), 9),
                             ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
                         ]))
-                        elements.append(tabela_sh)
-                        elements.append(Spacer(1, 15))
+                        elements.append(tabela_ods)
 
-                    # -------------------------------------------------------------------------
-                    # 7. QUESITOS SEM PONTUAÇÃO DIRETA
-                    # -------------------------------------------------------------------------
-                    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
-                    elements.append(Spacer(1, 6))
-
-                    data_informativos = [["Quesito", "Resposta / Informação Registrada"]]
-                    for qid, info in dados.items():
-                        if isinstance(info, dict) and str(qid) not in PONTUACOES_MAX and not str(qid).startswith("COM_"):
-                            val = info.get("valor", "Sem registro")
-                            data_informativos.append([str(qid), Paragraph(str(val), styles["Normal"])])
-
-                    if len(data_informativos) > 1:
-                        tabela_inf = Table(data_informativos, colWidths=[100, 385])
-                        tabela_inf.setStyle(TableStyle([
-                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#7f8c8d")),
-                            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-                            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-                            ("FONTSIZE", (0, 0), (-1, -1), 9),
-                            ("VALIGN", (0, 0), (-1, -1), "TOP")
-                        ]))
-                        elements.append(tabela_inf)
-                    else:
-                        elements.append(Paragraph("Nenhum quesito exclusivamente informativo registrado.", styles["Normal"]))
-
-                    # Construção do PDF
                     doc.build(elements)
                     buffer.seek(0)
-                    return buffer.getvalue()
+                    return buffer
 
                 # =============================================================================
                 # CARD DE EMISSÃO DO RELATÓRIO PDF (INTERFACE NICEGUI)
