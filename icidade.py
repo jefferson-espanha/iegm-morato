@@ -1952,4 +1952,4 @@ def gerar_relatorio_pdf(dados, ano, total, faixa):
     buffer.seek(0)
     return buffer.getvalue()
 
-    render_conteudo()
+render_conteudo()
