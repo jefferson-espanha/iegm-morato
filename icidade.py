@@ -1845,87 +1845,31 @@ def container_formulario_icidade(ano=None):
 
                 def get_all_years_data():
                     """
-                    Busca todas as respostas do banco agrupadas por ano com depuração avançada.
+                    Busca todas as respostas do banco Neon (tabela respostas_icidade) 
+                    agrupadas por ano usando a estrutura oficial do sistema.
                     """
                     all_data = {}
                     try:
-                        conn = get_db_connection()
-                        cur = conn.cursor(cursor_factory=RealDictCursor)
-                        cur.execute("SELECT * FROM respostas")
-                        rows = cur.fetchall()
-                        cur.close()
-                        conn.close()
+                        # 1. Busca todos os anos distintos gravados na tabela
+                        with get_db_connection() as conn:
+                            with conn.cursor() as cur:
+                                cur.execute("SELECT DISTINCT ano FROM respostas_icidade ORDER BY ano;")
+                                rows = cur.fetchall()
+                                anos_no_banco = [r["ano"] for r in rows]
 
-                        print(f"\n[DEBUG DATABASE] Total de linhas retornadas da tabela 'respostas': {len(rows)}")
-                        
-                        if rows:
-                            # Imprime as chaves do primeiro registro para conferir o nome exato das colunas no terminal
-                            print(f"[DEBUG DATABASE] Colunas disponíveis na tabela: {list(dict(rows[0]).keys())}")
+                        print(f"\n[DEBUG DATABASE] Anos encontrados na tabela respostas_icidade: {anos_no_banco}")
 
-                        for row in rows:
-                            row_dict = dict(row)
-                            
-                            # 1. Tenta identificar o ANO procurando qualquer chave com nome parecido
-                            raw_ano = None
-                            for key, val in row_dict.items():
-                                if key.lower() in ["ano", "exercicio", "data", "created_at", "data_criacao", "ano_exercicio", "criado_em"]:
-                                    if val is not None:
-                                        raw_ano = val
-                                        break
+                        # 2. Carrega as respostas de cada ano usando sua função load_respostas
+                        for ano in anos_no_banco:
+                            dados_do_ano = load_respostas(ano)
+                            if dados_do_ano:
+                                all_data[int(ano)] = dados_do_ano
 
-                            ano = None
-                            if isinstance(raw_ano, (int, float)):
-                                ano = int(raw_ano)
-                            elif isinstance(raw_ano, (date, datetime)):
-                                ano = raw_ano.year
-                            elif isinstance(raw_ano, str) and raw_ano.strip():
-                                match = re.search(r'\b(20\d{2})\b', raw_ano)
-                                if match:
-                                    ano = int(match.group(1))
-
-                            # Se não achou ano na coluna, define um fallback (ex: 2026) para os dados não sumirem
-                            if not ano:
-                                ano = 2026
-
-                            if ano not in all_data:
-                                all_data[ano] = {}
-
-                            # 2. Processa o JSON ou as linhas individuais
-                            dados_obj = None
-                            for key in ["dados", "resposta_json", "dados_json", "conteudo", "respostas"]:
-                                if key in row_dict and row_dict[key]:
-                                    dados_obj = row_dict[key]
-                                    break
-
-                            if isinstance(dados_obj, str):
-                                try:
-                                    dados_obj = json.loads(dados_obj)
-                                except Exception:
-                                    dados_obj = None
-
-                            if isinstance(dados_obj, dict):
-                                all_data[ano].update(dados_obj)
-                            else:
-                                qid = str(
-                                    row_dict.get("quesito_id") or 
-                                    row_dict.get("qid") or 
-                                    row_dict.get("quesito") or 
-                                    row_dict.get("questao_id") or ""
-                                ).strip()
-                                
-                                if qid:
-                                    pts = float(row_dict.get("pontos") or row_dict.get("pontuacao") or row_dict.get("nota") or 0)
-                                    val = str(row_dict.get("resposta") or row_dict.get("valor") or "")
-                                    lnk = str(row_dict.get("link") or row_dict.get("evidencia") or "")
-                                    all_data[ano][qid] = {"pontos": pts, "valor": val, "link": lnk}
-
-                        print(f"[DEBUG DATABASE] Anos carregados com sucesso: {list(all_data.keys())}")
-                        for a, conteudos in all_data.items():
-                            print(f"[DEBUG DATABASE] -> Ano {a}: {len(conteudos)} quesitos encontrados.")
+                        print(f"[DEBUG DATABASE] Dados carregados no all_data para os anos: {list(all_data.keys())}")
 
                     except Exception as e:
-                        print(f"\n[ERRO BANCO DE DADOS] Falha ao consultar Neon PostgreSQL: {e}")
-                        logging.exception("Erro detalhado no banco:")
+                        print(f"\n❌ ERRO BANCO DE DADOS ao montar série histórica: {e}")
+                        logging.exception("Erro detalhado no banco de dados:")
 
                     return all_data
 
