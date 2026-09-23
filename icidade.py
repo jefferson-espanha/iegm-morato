@@ -1889,7 +1889,7 @@ def container_formulario_icidade(ano=None):
                             if isinstance(json_field, dict):
                                 # Se o dicionário não era separado por anos no topo:
                                 for k, v in json_field.items():
-                                    if not (str(k).isdigit() and len(str(k)) == 4):
+                                    if not (str(k).isdigit() and len(str(key)) == 4):
                                         all_data[ano][k] = v
                             else:
                                 # Trata registros linha a linha (quesito_id, pontos, etc)
@@ -1905,8 +1905,10 @@ def container_formulario_icidade(ano=None):
                     
                     return all_data
 
-                # --- LEITURA DO ANO ANTERIOR (NO GERADOR DE PDF) ---
+                # --- BUSCA OS DADOS (RESOLVE O NAMEERROR) ---
+                all_data = get_all_years_data()
 
+                # --- LEITURA DO ANO ANTERIOR (NO GERADOR DE PDF) ---
                 dados_ano_anterior = all_data.get(ano_ant, {})
 
                 # Caso a busca por chave INT falhe, tenta buscar por STRING ("2025")
