@@ -1882,7 +1882,7 @@ def container_formulario_icidade(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
-                import os
+import os
 import logging
 from io import BytesIO
 from datetime import date
