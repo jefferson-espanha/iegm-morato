@@ -2367,9 +2367,11 @@ def container_formulario_icidade(ano=None):
 
                     async def baixar_pdf():
                         n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
-                        await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 100))')
-
+                        
                         try:
+                            # Previne o TimeoutError do JavaScript no servidor de produção (Render)
+                            await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 300))', timeout=5.0)
+
                             total_pts = float(sum(
                                 v.get("pontos", 0) 
                                 for k, v in res_data.items() 
@@ -2397,15 +2399,20 @@ def container_formulario_icidade(ano=None):
                                 return Response(content=pdf_bytes, media_type="application/pdf")
 
                             ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
-
-                            n.dismiss()
                             ui.notify("Relatório aberto com sucesso!", type="positive")
 
                         except Exception as e:
-                            n.dismiss()
                             print(f"ERRO CRÍTICO AO GERAR PDF: {e}")
                             logging.exception("Erro no PDF:")
                             ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
+
+                        finally:
+                            # Trata a notificação para que nunca quebre caso já tenha expirado ou seja None
+                            if n is not None:
+                                try:
+                                    n.dismiss()
+                                except Exception:
+                                    pass
 
                     ui.button("📥 GERAR ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
