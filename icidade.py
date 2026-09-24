@@ -2000,8 +2000,12 @@ def container_formulario_icidade(ano=None):
                         elif 750.0 <= pts <= 899.9:  return "B+"
                         else:                        return "A"
 
-                    # 1. Busca os dados brutos e força normalização das chaves do dicionário de anos
+                    # Busca os dados do banco
                     all_data_raw = get_all_years_data() or {}
+                    
+                    # Usa o teu logger nativo para sair no terminal do NiceGUI
+                    logging.info(f"=== [DEBUG PDF] Anos retornados do Banco: {list(all_data_raw.keys())} ===")
+
                     all_data = {}
                     for k, v in all_data_raw.items():
                         try:
@@ -2009,21 +2013,18 @@ def container_formulario_icidade(ano=None):
                         except (ValueError, TypeError):
                             all_data[str(k).strip()] = v
 
-                    # DEBUG NO TERMINAL: Verifique o que está vindo no banco para o ano anterior
                     dados_ano_anterior = all_data.get(ano_ant) or all_data.get(str(ano_ant)) or {}
-                    print(f"\n[DEBUG PDF] Dados encontrados para {ano_ant}: {type(dados_ano_anterior)} - {len(dados_ano_anterior)} itens")
+                    logging.info(f"=== [DEBUG PDF] Dados do ano {ano_ant}: Tipo={type(dados_ano_anterior)} | Qtd={len(dados_ano_anterior)} ===")
 
-                    # 2. Varredura Ultra-Resiliente para extrair a pontuação do ano anterior
                     nota_anterior = 0.0
                     if isinstance(dados_ano_anterior, dict):
                         for qid_ant, info_ant in dados_ano_anterior.items():
-                            # Ignora comentários
                             if str(qid_ant).startswith("COM_"):
                                 continue
 
                             pts_val = None
                             if isinstance(info_ant, dict):
-                                # Tenta buscar por 'pontos', 'pontuacao', 'nota' ou 'valor'
+                                # Procura por qualquer nome possível de chave de pontos
                                 pts_val = info_ant.get("pontos") or info_ant.get("pontuacao") or info_ant.get("nota") or info_ant.get("valor")
                             elif isinstance(info_ant, (int, float, str)):
                                 pts_val = info_ant
@@ -2036,6 +2037,8 @@ def container_formulario_icidade(ano=None):
                             except (ValueError, TypeError):
                                 pass
 
+                    logging.info(f"=== [DEBUG PDF] Nota total calculada para {ano_ant}: {nota_anterior} ===")
+
                     faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
                     faixa_real_atual = faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
 
@@ -2044,7 +2047,7 @@ def container_formulario_icidade(ano=None):
                         variacao_percentual = (variacao_pontos / nota_anterior) * 100
                         texto_percentual = f"{variacao_percentual:+.2f}%"
                     else:
-                        texto_percentual = "N/A" if variacao_pontos == 0 else f"{variacao_pontos:+.1f} pts"
+                        texto_percentual = f"{variacao_pontos:+.1f} pts" if variacao_pontos != 0 else "0.00%"
 
                     if variacao_pontos > 0:
                         cor_variacao = colors.HexColor("#28a745")
