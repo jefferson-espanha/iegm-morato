@@ -3424,7 +3424,7 @@ def container_formulario_igov_ti():
                     alignment=1
                 )
 
-                elements.append(Paragraph("Relatório I-Cidade", style_titulo_capa))
+                elements.append(Paragraph("Relatório I-Gov TI", style_titulo_capa))
                 elements.append(Spacer(1, 15))
                 
                 style_ano_capa = ParagraphStyle('AnoCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=16, textColor=colors.HexColor("#7f8c8d"), alignment=1)
@@ -3446,7 +3446,7 @@ def container_formulario_igov_ti():
                     [Paragraph("3. Análise de Impacto e Penalidades", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
                     [Paragraph("4. Diagnóstico de Reincidências", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
                     [Paragraph("5. Alinhamento com a Agenda 2030 (ODS)", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
-                    [Paragraph("6. Série Histórica do I-cidade", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
+                    [Paragraph("6. Série Histórica do I-Gov TI", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
                     [Paragraph("7. Quesitos Sem Pontuação Direta", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
                 ]
                 
@@ -3641,6 +3641,432 @@ def container_formulario_igov_ti():
                     ]))
                     elements.append(tabela_fracos)
                     elements.append(Spacer(1, 15))
+
+            # -------------------------------------------------------------------------
+            # 3. ANÁLISE DE IMPACTO E PENALIDADES
+            # -------------------------------------------------------------------------
+            elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
+            elements.append(Spacer(1, 6))
+
+            PENALIDADES_MAX = {
+                 "8.3": -51.0,
+                 "8.4": -51.0
+            }
+
+            lista_penalidades = []
+            for qid, pen_max in PENALIDADES_MAX.items():
+                if qid in dados:
+                    info = dados[qid]
+                    nota_real = float(info.get("pontos", 0))
+                    nota_risco = nota_real if nota_real <= 0 else 0.0
+                    eficiencia_preventiva = (1.0 - (nota_risco / pen_max)) * 100.0
+                    lista_penalidades.append({"qid": qid, "nota_real": nota_real, "pen_max": pen_max, "eficiencia": eficiencia_preventiva, "valor": info.get("valor", ""), "link": info.get("link", "")})
+                    
+                    if eficiencia_preventiva < 100.0 and qid in dados_ano_anterior:
+                        info_ant = dados_ano_anterior[qid]
+                        nota_real_ant = float(info_ant.get("pontos", 0))
+                        if nota_real == nota_real_ant:
+                            reincidencias_detectadas.append({
+                                "qid": qid, "tipo": "Penalidade Aplicada", 
+                                "detalhe": f"Impacto Recorrente de {nota_real:.1f} pts", 
+                                "ant": f"{nota_real_ant:.1f} pts", "atual": f"{nota_real:.1f} pts"
+                            })
+
+            if lista_penalidades:
+                data_penalidades = [["Quesito", "Penalidade Aplicada", "Pior Cenário", "Eficiência Preventiva", "Status de Risco"]]
+                for item in sorted(lista_penalidades, key=lambda x: x["eficiencia"]):
+                    nota_txt = f"{item['nota_real']:.1f} pts"; teto_txt = f"{item['pen_max']:.1f} pts"; ef_txt = f"{item['eficiencia']:.1f}%"
+                    if item['eficiencia'] == 100.0: status = "<font color='#28a745'><b>Risco Mitigado</b></font>"
+                    elif item['eficiencia'] <= 0.0: status = "<font color='#dc3545'><b>Impacto Máximo</b></font>"
+                    else: status = "<font color='#ffc107'><b>Impacto Parcial</b></font>"
+                    data_penalidades.append([item['qid'], nota_txt, teto_txt, ef_txt, Paragraph(status, styles["Normal"])])
+                
+                tabela_pen = Table(data_penalidades, colWidths=[65, 110, 80, 115, 120])
+                tabela_pen.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1b4f72")), 
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"), 
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#1b4f72")), 
+                    ("FONTSIZE", (0, 0), (-1, -1), 9), 
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
+                ]))
+                elements.append(tabela_pen)
+                elements.append(Spacer(1, 15))
+
+            # -------------------------------------------------------------------------
+            # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
+            # -------------------------------------------------------------------------
+            elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["h2"]))
+            elements.append(Spacer(1, 6))
+            if reincidencias_detectadas:
+                data_reinc = [["Quesito", "Origem da Falha", "Impacto Histórico", "Exercício Anterior", "Exercício Atual"]]
+                for reinc in reincidencias_detectadas: 
+                    data_reinc.append([reinc["qid"], reinc["tipo"], Paragraph(f"<b>{reinc['detalhe']}</b>", styles["Normal"]), reinc["ant"], reinc["atual"]])
+                tabela_reinc = Table(data_reinc, colWidths=[65, 115, 170, 75, 65])
+                tabela_reinc.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#c0392b")), 
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#c0392b")), 
+                    ("FONTSIZE", (0, 0), (-1, -1), 9), 
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
+                ]))
+                elements.append(tabela_reinc)
+            else: 
+                elements.append(Paragraph("<font color='#28a745'><b>Nenhuma reincidência ativa detectada.</b></font>", styles["Normal"]))
+            
+            elements.append(Spacer(1, 15))
+
+            # -------------------------------------------------------------------------
+            # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
+            # -------------------------------------------------------------------------
+            elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
+            elements.append(Spacer(1, 6))
+
+            REGRAS_ODS = {
+                "1.0": {"metas": "16.6, 17.8", "total_chk": 0},
+                "1.2": {"metas": "9.c", "total_chk": 0},
+                "1.3": {"metas": "9.c, 16.6, 17.8", "total_chk": 0},
+                "1.4": {"metas": "16.6, 17.8", "total_chk": 0},
+                "1.4.2": {"metas": "16.6, 17.8", "total_chk": 0},
+                "2.0": {"metas": "16.6, 16.7, 17.8", "total_chk": 0},
+                "3.0": {"metas": "16.6, 16.a, 17.8", "total_chk": 0},
+                "3.1": {"metas": "16.6", "total_chk": 0},
+                "3.1.1": {"metas": "16.6", "total_chk": 0},
+                "3.3": {"metas": "16.6, 16.7, 17.8", "total_chk": 0},
+                "3.4": {"metas": "9.c, 16.6", "total_chk": 0},
+                "3.5": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
+                "3.6": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
+                "4.0": {"metas": "16.5, 16.6, 17.8", "total_chk": 0},
+                "5.0": {"metas": "9.4, 16.5, 16.6, 17.14", "total_chk": 0},
+                "6.0": {"metas": "16.6, 17.8", "total_chk": 0},
+                "6.1": {"metas": "9.c, 16.7, 17.8", "total_chk": 0},
+                "6.2": {"metas": "16.6", "total_chk": 0},
+                "6.3": {"metas": "16.6, 16.7", "total_chk": 0},
+                "6.4": {"metas": "10.2, 16.6, 17.8", "total_chk": 0},
+                "7.0": {"metas": "16.5, 16.6, 17.8", "total_chk": 0},
+                "7.1": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
+                "7.2": {"metas": "16.5, 16.6, 17.8", "total_chk": 0},
+                "7.3": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
+                "8.0": {"metas": "16.5, 16.6, 17.8, 17.14", "total_chk": 0},
+                "8.1": {"metas": "16.5, 16.6, 17.8", "total_chk": 17},
+                "8.2": {"metas": "16.5, 16.6, 17.8", "total_chk": 17},
+                "8.2.1": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
+                "8.4": {"metas": "16.5, 16.6, 17.8", "total_chk": 17},
+                "9.0": {"metas": "10.2, 16.6, 17.8", "total_chk": 0},
+                "9.1": {"metas": "16.6", "total_chk": 16},
+                "10.0": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
+                "10.3": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
+                "10.4": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
+                "10.5": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
+                "11.0": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0}
+            }
+            
+            def calcular_percentual_checklist(resposta_bruta, total_itens):
+                if not resposta_bruta or total_itens <= 0: return 0.0
+                itens = [i.strip().lower() for i in str(resposta_bruta).split(",") if i.strip()]
+                itens_validos = [i for i in itens if "outros" not in i]
+                return min((len(itens_validos) / total_itens) * 100.0, 100.0)
+
+            analise_ods = []
+            for qid, info in dados.items():
+                if qid.startswith("COM_") or not isinstance(info, dict): continue
+
+                # Trata variações na chave do quesito (ex: "8" vira "8.0")
+                qid_clean = qid.replace("Q_", "").strip()
+                if qid_clean in ["8", "10", "11"]:
+                    qid_clean += ".0"
+
+                if qid_clean in REGRAS_ODS:
+                    regra = REGRAS_ODS[qid_clean]
+                    resp = str(info.get("valor", "")).strip()
+                    resp_l = resp.lower()
+                    metas = regra["metas"]
+                    total_chk = regra["total_chk"]
+
+                    # Regra de cálculo / avaliação de conformidade
+                    if total_chk > 0:
+                        pct = calcular_percentual_checklist(resp, total_chk)
+                        status = f"{pct:.1f}% Atendido"
+                    else:
+                        if qid_clean == "1.4" and "não atuam de forma sistêmica" in resp_l:
+                            status = "Não Atendido"
+                        else:
+                            status = "Atendido" if any(x in resp_l for x in ["sim", "parcialmente", "atualizado"]) else "Não Atendido"
+
+                    analise_ods.append({
+                        "qid": qid_clean, 
+                        "status": status, 
+                        "metas": metas, 
+                        "resp": resp[:50]
+                    })
+
+            if analise_ods:
+                data_ods = [["Quesito", "Resposta Informada", "Vínculo Metas ODS", "Status de Cumprimento"]]
+                style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
+                
+                # Ordenação numérica dos quesitos
+                for item in sorted(analise_ods, key=lambda x: [float(i) if i.replace('.','',1).isdigit() else 999 for i in x['qid'].split('.')]):
+                    st_txt = item["status"]
+                    if "Não Atendido" in st_txt: 
+                        st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
+                    elif "Atendido" in st_txt and "%" not in st_txt: 
+                        st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
+                    else: 
+                        st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
+                    
+                    data_ods.append([item["qid"], Paragraph(item["resp"], styles["Normal"]), item["metas"], st_p])
+                
+                tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
+                tabela_ods.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")), 
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
+                    ("ALIGN", (0, 0), (0, -1), "CENTER"), 
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")), 
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
+                ]))
+                elements.append(tabela_ods)
+                elements.append(Spacer(1, 15))
+            # -------------------------------------------------------------------------
+            # 6. SÉRIE HISTÓRICA DO I-GOV TI
+            # -------------------------------------------------------------------------
+            elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-GOV TI</b>", styles["h2"]))
+            elements.append(Spacer(1, 10))
+
+            anos_serie = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+            valores_serie = []
+            for a in anos_serie:
+                if a == ano_atual: 
+                    valores_serie.append(nota_atual)
+                elif a in all_data:
+                    valores_serie.append(float(sum(info_h.get("pontos", 0) for qid_h, info_h in all_data[a].items() if isinstance(info_h, dict) and not qid_h.startswith("COM_"))))
+                else: 
+                    valores_serie.append(0.0)
+
+            # Configuração do Gráfico de Barras
+            desenho_grafico = Drawing(480, 165)
+            bc = VerticalBarChart()
+            bc.x = 45; bc.y = 25; bc.height = 110; bc.width = 410
+            bc.data = [valores_serie]
+            
+            bc.bars[0].fillColor = colors.HexColor("#2c3e50")
+            bc.categoryAxis.categoryNames = [str(a) for a in anos_serie]
+            bc.categoryAxis.labels.fontSize = 9
+            bc.categoryAxis.labels.fontName = 'Helvetica-Bold'
+            bc.categoryAxis.labels.dy = -10
+            bc.valueAxis.valueMin = 0
+            bc.valueAxis.valueMax = 1000
+            bc.valueAxis.valueStep = 200
+            
+            desenho_grafico.add(bc)
+            elements.append(desenho_grafico)
+
+            # -------------------------------------------------------------------------
+            # 7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV - CONFORMIDADE OPERACIONAL)
+            # -------------------------------------------------------------------------
+            elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV - CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
+            elements.append(Spacer(1, 6))
+
+            lista_alvo_sp = [
+                "4.0", "11.0", "12.0", "13.0", "4.1", "5.1", 
+                "5.1.2", "5.1.2.1", "7.3.1", "8.4.1", "8.1", "8.1.1", "12.1.3.1", "14.1"
+            ]
+
+            analise_sp = []
+            
+            for qid in lista_alvo_sp:
+                info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
+                
+                if isinstance(info, dict):
+                    resp = str(info.get("valor", "")).strip()
+                else:
+                    resp = str(info).strip()
+
+                resp_l = resp.lower()
+                is_adequado = False
+
+                if qid in ["4.0", "11.0", "12.0", "13.0", "8.1.1"]:
+                    if any(x == resp_l or x in resp_l for x in ["sim", "1", "s", "true", "adequado"]):
+                        is_adequado = True
+
+                elif qid == "4.1":
+                    opcoes = ["riscos geológicos", "riscos hidrológicos", "riscos meteorológicos", "riscos biológicos"]
+                    if any(opt in resp_l for opt in opcoes):
+                        is_adequado = True
+
+                elif qid == "5.1":
+                    opcoes = ["epidemias", "estiagem", "incêndios", "ondas de calor ou ondas de frio", "inundações"]
+                    if any(opt in resp_l for opt in opcoes):
+                        is_adequado = True
+
+                elif qid == "5.1.2":
+                    if any(x == resp_l or x in resp_l for x in ["não", "nao", "0", "n", "false"]):
+                        is_adequado = True
+
+                elif qid == "5.1.2.1":
+                    opcoes = [
+                        "aplicação de sanções monetárias (multas)",
+                        "monitoramento (fiscalização)",
+                        "notificação dos infratores",
+                        "demolição das ocupações"
+                    ]
+                    if any(opt in resp_l for opt in opcoes):
+                        is_adequado = True
+
+                elif qid == "7.3.1":
+                    opcoes = ["alerta via sms", "aviso por telefone", "aviso por email", "anúncio por rádio/televisão"]
+                    if any(opt in resp_l for opt in opcoes):
+                        is_adequado = True
+
+                elif qid == "7.4.1":
+                    opcoes = [
+                        "sinal sonoro (sirene)",
+                        "sinal luminoso",
+                        "carros de emergência com sirenes",
+                        "avisos aos membros do nupdec"
+                    ]
+                    if any(opt in resp_l for opt in opcoes):
+                        is_adequado = True
+
+                elif qid == "8.1":
+                    opcoes = ["telefone de emergências", "aplicativo de mensagens", "site da prefeitura", "redes sociais"]
+                    if any(opt in resp_l for opt in opcoes):
+                        is_adequado = True
+
+                elif qid == "12.1.3.1":
+                    if "diariamente" in resp_l:
+                        is_adequado = True
+
+                elif qid == "14.1":
+                    opcoes = [
+                        "calçadas com dimensões mínimas para circulação",
+                        "sinalização tátil em pisos",
+                        "rampas de acesso",
+                        "escadas com corrimão"
+                    ]
+                    if any(opt in resp_l for opt in opcoes):
+                        is_adequado = True
+
+                status_txt = "Adequado" if is_adequado else "Inadequado"
+
+                analise_sp.append({
+                    "qid": qid,
+                    "resp": resp if resp else "Não Informado",
+                    "status": status_txt
+                })
+
+            if analise_sp:
+                style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
+                
+                data_sp = [[
+                    Paragraph("Quesito", style_th), 
+                    Paragraph("Resposta Informada no Sistema", style_th), 
+                    Paragraph("Situação / Conformidade", style_th)
+                ]]
+
+                total_adequados = 0
+                for item in analise_sp:
+                    if item["status"] == "Adequado":
+                        total_adequados += 1
+                        st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>", style_td_sp)
+                    else:
+                        st_p = Paragraph("<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
+
+                    data_sp.append([
+                        Paragraph(f"<b>{item['qid']}</b>", style_td_sp),
+                        Paragraph(item["resp"], styles["Normal"]),
+                        st_p
+                    ])
+
+                tabela_sp = Table(data_sp, colWidths=[70, 280, 135])
+                tabela_sp.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+                    ("TOPPADDING", (0, 0), (-1, -1), 3),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                    ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ffffff")),
+                ]))
+                elements.append(tabela_sp)
+                elements.append(Spacer(1, 8))
+
+                pct_sp = (total_adequados / len(analise_sp)) * 100.0
+                texto_sp = (
+                    f"A análise dinâmica dos quesitos de conformidade operacional do iCidade no exercício de <b>{ano_atual}</b> apontou "
+                    f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
+                    f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
+                )
+                elements.append(Paragraph(texto_sp, style_analise))
+                elements.append(Spacer(1, 15))
+
+            # Compila o PDF no buffer de memória
+            doc.build(elements)
+            buffer.seek(0)
+            return buffer.getvalue()
+
+        # =============================================================================
+        # CARD DE EMISSÃO DO RELATÓRIO PDF (INTERFACE NICEGUI)
+        # =============================================================================
+        with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
+            ui.label("📄 Emissão de Relatório Analítico - iGov TI").classes("text-xl font-bold text-blue-900 mb-1")
+            ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
+
+            async def baixar_pdf():
+                n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
+                
+                try:
+                    await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 300))', timeout=5.0)
+
+                    total_pts = float(sum(
+                        v.get("pontos", 0) 
+                        for k, v in res_data.items() 
+                        if isinstance(v, dict) and not k.startswith("COM_")
+                    ))
+
+                    if total_pts < 500.0:
+                        faixa = "C"
+                    elif total_pts < 600.0:
+                        faixa = "C+"
+                    elif total_pts < 750.0:
+                        faixa = "B"
+                    elif total_pts < 900.0:
+                        faixa = "B+"
+                    else:
+                        faixa = "A"
+
+                    historico_todos_anos = get_all_years_data() or {}
+
+                    pdf_bytes = gerar_relatorio_pdf(
+                        dados=res_data,
+                        ano=ano_sel,
+                        total=total_pts,
+                        faixa=faixa,
+                        todos_dados=historico_todos_anos
+                    )
+                    
+                    rota_pdf = f"/relatorio_temp_{ano_sel}.pdf"
+                    
+                    @app.get(rota_pdf)
+                    def relatorio_endpoint():
+                        from fastapi import Response
+                        return Response(content=pdf_bytes, media_type="application/pdf")
+
+                    ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
+                    ui.notify("Relatório aberto com sucesso!", type="positive")
+
+                except Exception as e:
+                    print(f"ERRO CRÍTICO AO GERAR PDF: {e}")
+                    logging.exception("Erro no PDF:")
+                    ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
+
+                finally:
+                    if n is not None:
+                        try:
+                            n.dismiss()
+                        except Exception:
+                            pass
+
+            ui.button("📥 GERAR ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
