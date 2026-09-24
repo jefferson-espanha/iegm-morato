@@ -1908,7 +1908,7 @@ def container_formulario_icidade(ano=None):
 
                 except Exception as e:
                     logging.exception(f"Erro ao buscar série histórica no banco Neon: {e}")
-
+                    
                 return all_data
                 # =============================================================================
                 # 3. GERADOR DO RELATÓRIO PDF
