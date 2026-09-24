@@ -3315,7 +3315,7 @@ def container_formulario_igov_ti():
                 all_data = {}
                 query = """
                     SELECT id, ano, valor, pontos, link, comentarios
-                    FROM respostas_icidade
+                    FROM respostas_igov
                     ORDER BY ano ASC;
                 """
                 try:
