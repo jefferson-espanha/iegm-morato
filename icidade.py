@@ -1845,8 +1845,8 @@ def container_formulario_icidade(ano=None):
 
                 def get_all_years_data():
                     """
-                    Busca todas as respostas da tabela 'respostas_icidade' agrupadas por ano e por quesito.
-                    Lê a coluna 'id' em vez de 'qid'.
+                    Busca todas as respostas do banco Neon de forma resiliente
+                    (trata retorno por tupla ou por dicionário).
                     """
                     all_data = {}
                     query = """
@@ -1856,29 +1856,48 @@ def container_formulario_icidade(ano=None):
                     """
                     try:
                         with get_db_connection() as conn:
-                            with conn.cursor() as cur:
-                                cur.execute(query)
-                                rows = cur.fetchall()
+                            # Usando RealDictCursor se disponível, ou cursor padrão de tupla
+                            try:
+                                import psycopg2.extras
+                                cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+                            except Exception:
+                                cur = conn.cursor()
 
-                                for row in rows:
-                                    ano = int(row["ano"])
+                            cur.execute(query)
+                            rows = cur.fetchall()
+
+                            for row in rows:
+                                # Tratamento universal para Tupla (índice) ou Dict (chave)
+                                if isinstance(row, dict):
                                     qid = str(row["id"]).strip()
+                                    ano = int(row["ano"])
+                                    valor = row["valor"] or ""
+                                    pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
+                                    link = row["link"] if row["link"] != "EMPTY_STRING" else ""
+                                    comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
+                                else:
+                                    qid = str(row[0]).strip()
+                                    ano = int(row[1])
+                                    valor = row[2] or ""
+                                    pontos = float(row[3]) if row[3] is not None else 0.0
+                                    link = row[4] if row[4] != "EMPTY_STRING" else ""
+                                    comentarios = row[5] if isinstance(row[5], list) else []
 
-                                    if ano not in all_data:
-                                        all_data[ano] = {}
+                                if ano not in all_data:
+                                    all_data[ano] = {}
 
-                                    all_data[ano][qid] = {
-                                        "valor": row["valor"] or "",
-                                        "pontos": float(row["pontos"]) if row["pontos"] is not None else 0.0,
-                                        "link": row["link"] if row["link"] != "EMPTY_STRING" else "",
-                                        "comentarios": row["comentarios"] if isinstance(row["comentarios"], list) else []
-                                    }
+                                all_data[ano][qid] = {
+                                    "valor": valor,
+                                    "pontos": pontos,
+                                    "link": link,
+                                    "comentarios": comentarios
+                                }
 
                     except Exception as e:
-                        print(f"❌ Erro ao buscar série histórica no Neon DB (respostas_icidade): {e}")
+                        print(f"❌ Erro ao buscar série histórica no Neon DB: {e}")
 
                     return all_data
-
+                    
                 # =============================================================================
                 # 3. GERADOR DO RELATÓRIO PDF
                 # =============================================================================
@@ -1951,9 +1970,10 @@ def container_formulario_icidade(ano=None):
                             if str(qid_ant).startswith("COM_"):
                                 continue
 
+                            # Extração resiliente de pontos
                             pts_val = None
                             if isinstance(info_ant, dict):
-                                pts_val = info_ant.get("pontos") or info_ant.get("pontuacao") or info_ant.get("nota") or info_ant.get("valor")
+                                pts_val = info_ant.get("pontos") if info_ant.get("pontos") is not None else info_ant.get("pontuacao") if info_ant.get("pontuacao") is not None else info_ant.get("nota") if info_ant.get("nota") is not None else info_ant.get("valor")
                             elif isinstance(info_ant, (int, float, str)):
                                 pts_val = info_ant
                             elif isinstance(info_ant, (list, tuple)) and len(info_ant) > 0:
@@ -2039,7 +2059,7 @@ def container_formulario_icidade(ano=None):
                                 lista_pontos_fracos.append(item_data)
                                 if qid in dados_ano_anterior:
                                     info_ant = dados_ano_anterior[qid]
-                                    pts_anterior = float(info_ant.get("pontos", 0))
+                                    pts_anterior = float(info_ant.get("pontos", 0)) if isinstance(info_ant, dict) else 0.0
                                     if pts_obtidos == pts_anterior:
                                         reincidencias_detectadas.append({
                                             "qid": qid, "tipo": "Ponto Fraco", "detalhe": "Eficiência Crítica", 
@@ -2085,7 +2105,6 @@ def container_formulario_icidade(ano=None):
                         ]))
                         elements.append(tabela_fracos)
                         elements.append(Spacer(1, 15))
-
                     # -------------------------------------------------------------------------
                     # 3. ANÁLISE DE IMPACTO E PENALIDADES
                     # -------------------------------------------------------------------------
