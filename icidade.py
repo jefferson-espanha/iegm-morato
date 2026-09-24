@@ -2339,4 +2339,6 @@ def container_formulario_icidade(ano=None):
 
                     ui.button("📥 GERAR ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
+    render_conteudo()
+
    
