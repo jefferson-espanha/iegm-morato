@@ -1883,7 +1883,7 @@ def container_formulario_icidade(ano=None):
                 # 3. GERADOR DO RELATÓRIO PDF
                 # =============================================================================
 
-                def gerar_relatorio_pdf(dados, ano, total, faixa):
+               def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
                     buffer = BytesIO()
                     doc = SimpleDocTemplate(
                         buffer,
@@ -1904,75 +1904,6 @@ def container_formulario_icidade(ano=None):
                         leading=10,
                         wordWrap='CJK'
                     )
-
-                    # -------------------------------------------------------------------------
-                    # FOLHA 1: CAPA
-                    # -------------------------------------------------------------------------
-                    elements.append(Spacer(1, 100))
-                    
-                    logo_path = "iegm.png"
-                    if os.path.exists(logo_path):
-                        try:
-                            logo = Image(logo_path, width=380, height=180)
-                            logo.hAlign = 'CENTER'
-                            elements.append(logo)
-                        except Exception:
-                            elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
-                    else:
-                        elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
-                        
-                    elements.append(Spacer(1, 50))
-                    
-                    style_titulo_capa = ParagraphStyle(
-                        'TituloCapa', 
-                        parent=styles['Normal'], 
-                        fontName='Helvetica-Bold', 
-                        fontSize=24, 
-                        textColor=colors.HexColor("#2c3e50"), 
-                        alignment=1
-                    )
-
-                    elements.append(Paragraph("Relatório I-Cidade", style_titulo_capa))
-                    elements.append(Spacer(1, 15))
-                    
-                    style_ano_capa = ParagraphStyle(
-                        'AnoCapa', 
-                        parent=styles['Normal'], 
-                        fontName='Helvetica', 
-                        fontSize=16, 
-                        textColor=colors.HexColor("#7f8c8d"), 
-                        alignment=1
-                    )
-                    elements.append(Paragraph(str(ano), style_ano_capa))
-                    elements.append(PageBreak())
-
-                    # -------------------------------------------------------------------------
-                    # FOLHA 2: SUMÁRIO
-                    # -------------------------------------------------------------------------
-                    elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
-                    elements.append(Spacer(1, 30))
-
-                    style_item_esquerda = ParagraphStyle('ItemEsq', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor("#2c3e50"))
-                    style_pag_direita = ParagraphStyle('PagDir', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor("#1b4f72"), alignment=2)
-
-                    dados_sumario = [
-                        [Paragraph("1. Resumo Executivo (Análise Comparativa)", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
-                        [Paragraph("2. Análise de Desempenho por Quesito", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
-                        [Paragraph("3. Análise de Impacto e Penalidades", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
-                        [Paragraph("4. Diagnóstico de Reincidências", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
-                        [Paragraph("5. Alinhamento com a Agenda 2030 (ODS)", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
-                        [Paragraph("6. Série Histórica do I-cidade", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
-                    ]
-                    
-                    tabela_sumario = Table(dados_sumario, colWidths=[400, 90])
-                    tabela_sumario.setStyle(TableStyle([
-                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-                        ('TOPPADDING', (0, 0), (-1, -1), 12),
-                        ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")), 
-                    ]))
-                    elements.append(tabela_sumario)
-                    elements.append(PageBreak())
 
                     # -------------------------------------------------------------------------
                     # 1. RESUMO EXECUTIVO (COMPARATIVO COM O ANO ANTERIOR)
@@ -2000,11 +1931,10 @@ def container_formulario_icidade(ano=None):
                         elif 750.0 <= pts <= 899.9:  return "B+"
                         else:                        return "A"
 
-                    # Busca os dados do banco
-                    all_data_raw = get_all_years_data() or {}
+                    # Puxa os dados que vieram por parâmetro ou tenta buscar no banco
+                    all_data_raw = todos_dados if todos_dados is not None else (get_all_years_data() or {})
                     
-                    # Usa o teu logger nativo para sair no terminal do NiceGUI
-                    logging.info(f"=== [DEBUG PDF] Anos retornados do Banco: {list(all_data_raw.keys())} ===")
+                    logging.info(f"=== [DEBUG PDF] Anos disponíveis no PDF: {list(all_data_raw.keys())} ===")
 
                     all_data = {}
                     for k, v in all_data_raw.items():
@@ -2014,8 +1944,7 @@ def container_formulario_icidade(ano=None):
                             all_data[str(k).strip()] = v
 
                     dados_ano_anterior = all_data.get(ano_ant) or all_data.get(str(ano_ant)) or {}
-                    logging.info(f"=== [DEBUG PDF] Dados do ano {ano_ant}: Tipo={type(dados_ano_anterior)} | Qtd={len(dados_ano_anterior)} ===")
-
+                    
                     nota_anterior = 0.0
                     if isinstance(dados_ano_anterior, dict):
                         for qid_ant, info_ant in dados_ano_anterior.items():
@@ -2024,7 +1953,6 @@ def container_formulario_icidade(ano=None):
 
                             pts_val = None
                             if isinstance(info_ant, dict):
-                                # Procura por qualquer nome possível de chave de pontos
                                 pts_val = info_ant.get("pontos") or info_ant.get("pontuacao") or info_ant.get("nota") or info_ant.get("valor")
                             elif isinstance(info_ant, (int, float, str)):
                                 pts_val = info_ant
@@ -2037,7 +1965,7 @@ def container_formulario_icidade(ano=None):
                             except (ValueError, TypeError):
                                 pass
 
-                    logging.info(f"=== [DEBUG PDF] Nota total calculada para {ano_ant}: {nota_anterior} ===")
+                    logging.info(f"=== [DEBUG PDF] Nota calculada do ano {ano_ant}: {nota_anterior} ===")
 
                     faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
                     faixa_real_atual = faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
@@ -2084,17 +2012,6 @@ def container_formulario_icidade(ano=None):
                     ]))
                     elements.append(tabela_comp)
                     elements.append(Spacer(1, 12))
-
-                    style_analise = ParagraphStyle('Analise', parent=styles['Normal'], fontSize=10, leading=14)
-                    if variacao_pontos > 0:
-                        texto_analise = f"<b>Análise de Tendência:</b> O município registrou uma evolução de desempenho comparado ao exercício de {ano_ant}."
-                    elif variacao_pontos < 0:
-                        texto_analise = f"<b>Análise de Tendência:</b> <font color='#dc3545'><b>Alerta de Retrocesso:</b></font> Foi identificada uma redução na eficiência dos indicadores em relação a {ano_ant}."
-                    else:
-                        texto_analise = f"<b>Análise de Tendência:</b> O município apresentou estabilidade no seu índice geral de conformidade."
-
-                    elements.append(Paragraph(texto_analise, style_analise))
-                    elements.append(Spacer(1, 15))
                     
                     # -------------------------------------------------------------------------
                     # 2. ANÁLISE DE DESEMPENHO POR QUESITO
@@ -2369,7 +2286,6 @@ def container_formulario_icidade(ano=None):
                         n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
                         
                         try:
-                            # Previne o TimeoutError do JavaScript no servidor de produção (Render)
                             await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 300))', timeout=5.0)
 
                             total_pts = float(sum(
@@ -2384,11 +2300,15 @@ def container_formulario_icidade(ano=None):
                             elif total_pts < 900.0: faixa = "B+"
                             else: faixa = "A"
 
+                            # Puxa o histórico de todos os anos no contexto do usuário logado
+                            historico_todos_anos = get_all_years_data() or {}
+
                             pdf_bytes = gerar_relatorio_pdf(
                                 dados=res_data,
                                 ano=ano_sel,
                                 total=total_pts,
-                                faixa=faixa
+                                faixa=faixa,
+                                todos_dados=historico_todos_anos  # <--- PASSANDO O HISTÓRICO COMPLETO
                             )
                             
                             rota_pdf = f"/relatorio_temp_{ano_sel}.pdf"
@@ -2407,7 +2327,6 @@ def container_formulario_icidade(ano=None):
                             ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
 
                         finally:
-                            # Trata a notificação para que nunca quebre caso já tenha expirado ou seja None
                             if n is not None:
                                 try:
                                     n.dismiss()
