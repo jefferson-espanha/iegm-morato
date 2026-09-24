@@ -1846,11 +1846,11 @@ def container_formulario_icidade(ano=None):
                 def get_all_years_data():
                     """
                     Busca todas as respostas da tabela 'respostas_icidade' agrupadas por ano e por quesito.
-                    Retorna uma estrutura no formato: {2025: {'1.0': {'pontos': 10.0, ...}}, 2026: {...}}
+                    Lê a coluna 'id' em vez de 'qid'.
                     """
                     all_data = {}
                     query = """
-                        SELECT ano, qid, valor, pontos, link, comentarios, status
+                        SELECT id, ano, valor, pontos, link, comentarios
                         FROM respostas_icidade
                         ORDER BY ano ASC;
                     """
@@ -1862,7 +1862,7 @@ def container_formulario_icidade(ano=None):
 
                                 for row in rows:
                                     ano = int(row["ano"])
-                                    qid = str(row["qid"]).strip()
+                                    qid = str(row["id"]).strip()
 
                                     if ano not in all_data:
                                         all_data[ano] = {}
@@ -1871,14 +1871,14 @@ def container_formulario_icidade(ano=None):
                                         "valor": row["valor"] or "",
                                         "pontos": float(row["pontos"]) if row["pontos"] is not None else 0.0,
                                         "link": row["link"] if row["link"] != "EMPTY_STRING" else "",
-                                        "comentarios": row["comentarios"] if isinstance(row["comentarios"], list) else [],
-                                        "status": row["status"] or "Pendente"
+                                        "comentarios": row["comentarios"] if isinstance(row["comentarios"], list) else []
                                     }
 
                     except Exception as e:
                         print(f"❌ Erro ao buscar série histórica no Neon DB (respostas_icidade): {e}")
 
                     return all_data
+                    
                 # =============================================================================
                 # 3. GERADOR DO RELATÓRIO PDF
                 # =============================================================================
