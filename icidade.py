@@ -1844,72 +1844,72 @@ def container_formulario_icidade(ano=None):
                     return psycopg2.connect(DATABASE_URL)
 
                 def get_all_years_data():
-                """
-                Busca todas as respostas registradas na tabela 'respostas' agrupadas por ano (como inteiro).
-                Trata conversões de tipos (str/int) e formatos de payload JSON.
-                """
-                all_data = {}
-                try:
-                    conn = get_db_connection()
-                    cur = conn.cursor(cursor_factory=RealDictCursor)
-                    cur.execute("SELECT * FROM respostas")
-                    rows = cur.fetchall()
-                    cur.close()
-                    conn.close()
+                    """
+                    Busca todas as respostas registradas na tabela 'respostas' agrupadas por ano (como inteiro).
+                    Trata conversões de tipos (str/int) e formatos de payload JSON.
+                    """
+                    all_data = {}
+                    try:
+                        conn = get_db_connection()
+                        cur = conn.cursor(cursor_factory=RealDictCursor)
+                        cur.execute("SELECT * FROM respostas")
+                        rows = cur.fetchall()
+                        cur.close()
+                        conn.close()
 
-                    for row in rows:
-                        # 1. Tenta extrair o ano da coluna 'ano' da tabela
-                        ano_coluna = None
-                        raw_ano = row.get("ano")
-                        if raw_ano is not None:
-                            try:
-                                ano_coluna = int(str(raw_ano).strip()[:4])
-                            except (ValueError, TypeError):
-                                pass
+                        for row in rows:
+                            # 1. Tenta extrair o ano da coluna 'ano' da tabela
+                            ano_coluna = None
+                            raw_ano = row.get("ano")
+                            if raw_ano is not None:
+                                try:
+                                    ano_coluna = int(str(raw_ano).strip()[:4])
+                                except (ValueError, TypeError):
+                                    pass
 
-                        # 2. Processa o campo JSON de payload
-                        json_field = row.get("dados") or row.get("resposta_json") or row.get("respostas") or {}
-                        if isinstance(json_field, str):
-                            try:
-                                import json
-                                json_field = json.loads(json_field)
-                            except Exception:
-                                json_field = {}
+                            # 2. Processa o campo JSON de payload
+                            json_field = row.get("dados") or row.get("resposta_json") or row.get("respostas") or {}
+                            if isinstance(json_field, str):
+                                try:
+                                    import json
+                                    json_field = json.loads(json_field)
+                                except Exception:
+                                    json_field = {}
 
-                        # 3. Caso o JSON possua estrutura com anos nas chaves (ex: {"2025": {...}, "2026": {...}})
-                        if isinstance(json_field, dict):
-                            for key, content in json_field.items():
-                                key_str = str(key).strip()
-                                if key_str.isdigit() and len(key_str) == 4:
-                                    y = int(key_str)
-                                    if y not in all_data:
-                                        all_data[y] = {}
-                                    if isinstance(content, dict):
-                                        all_data[y].update(content)
-
-                        # 4. Caso os dados venham por linha com a coluna 'ano' definida
-                        if ano_coluna is not None:
-                            if ano_coluna not in all_data:
-                                all_data[ano_coluna] = {}
-
+                            # 3. Caso o JSON possua estrutura com anos nas chaves (ex: {"2025": {...}, "2026": {...}})
                             if isinstance(json_field, dict):
-                                for k, v in json_field.items():
-                                    # Insere apenas se a chave não for outro ano isolado
-                                    if not (str(k).strip().isdigit() and len(str(k).strip()) == 4):
-                                        all_data[ano_coluna][k] = v
-                            else:
-                                qid = str(row.get("quesito_id") or row.get("qid") or "").strip()
-                                if qid:
-                                    all_data[ano_coluna][qid] = {
-                                        "pontos": float(row.get("pontos", 0) or 0),
-                                        "valor": str(row.get("resposta", "") or row.get("valor", "")),
-                                        "link": str(row.get("link", "") or row.get("evidencia", ""))
-                                    }
+                                for key, content in json_field.items():
+                                    key_str = str(key).strip()
+                                    if key_str.isdigit() and len(key_str) == 4:
+                                        y = int(key_str)
+                                        if y not in all_data:
+                                            all_data[y] = {}
+                                        if isinstance(content, dict):
+                                            all_data[y].update(content)
 
-                except Exception as e:
-                    logging.exception(f"Erro ao buscar série histórica no banco Neon: {e}")
-                    
-                return all_data
+                            # 4. Caso os dados venham por linha com a coluna 'ano' definida
+                            if ano_coluna is not None:
+                                if ano_coluna not in all_data:
+                                    all_data[ano_coluna] = {}
+
+                                if isinstance(json_field, dict):
+                                    for k, v in json_field.items():
+                                        # Insere apenas se a chave não for outro ano isolado
+                                        if not (str(k).strip().isdigit() and len(str(k).strip()) == 4):
+                                            all_data[ano_coluna][k] = v
+                                else:
+                                    qid = str(row.get("quesito_id") or row.get("qid") or "").strip()
+                                    if qid:
+                                        all_data[ano_coluna][qid] = {
+                                            "pontos": float(row.get("pontos", 0) or 0),
+                                            "valor": str(row.get("resposta", "") or row.get("valor", "")),
+                                            "link": str(row.get("link", "") or row.get("evidencia", ""))
+                                        }
+
+                    except Exception as e:
+                        logging.exception(f"Erro ao buscar série histórica no banco Neon: {e}")
+
+                    return all_data
                 # =============================================================================
                 # 3. GERADOR DO RELATÓRIO PDF
                 # =============================================================================
