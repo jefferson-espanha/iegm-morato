@@ -2000,29 +2000,41 @@ def container_formulario_icidade(ano=None):
                         elif 750.0 <= pts <= 899.9:  return "B+"
                         else:                        return "A"
 
-                    # Puxa o histórico e normaliza as chaves (trata tipos Int e Str do Banco)
+                    # 1. Busca os dados brutos e força normalização das chaves do dicionário de anos
                     all_data_raw = get_all_years_data() or {}
                     all_data = {}
                     for k, v in all_data_raw.items():
                         try:
                             all_data[int(k)] = v
                         except (ValueError, TypeError):
-                            all_data[k] = v
+                            all_data[str(k).strip()] = v
 
-                    # Busca garantida do ano anterior (tenta chave int e tenta chave string)
+                    # DEBUG NO TERMINAL: Verifique o que está vindo no banco para o ano anterior
                     dados_ano_anterior = all_data.get(ano_ant) or all_data.get(str(ano_ant)) or {}
-                    
-                    # Soma com parsing individual seguro de cada quesito
+                    print(f"\n[DEBUG PDF] Dados encontrados para {ano_ant}: {type(dados_ano_anterior)} - {len(dados_ano_anterior)} itens")
+
+                    # 2. Varredura Ultra-Resiliente para extrair a pontuação do ano anterior
                     nota_anterior = 0.0
-                    if dados_ano_anterior:
+                    if isinstance(dados_ano_anterior, dict):
                         for qid_ant, info_ant in dados_ano_anterior.items():
-                            if isinstance(info_ant, dict) and not str(qid_ant).startswith("COM_"):
-                                pts_val = info_ant.get("pontos")
-                                try:
-                                    if pts_val is not None:
-                                        nota_anterior += float(pts_val)
-                                except (ValueError, TypeError):
-                                    pass
+                            # Ignora comentários
+                            if str(qid_ant).startswith("COM_"):
+                                continue
+
+                            pts_val = None
+                            if isinstance(info_ant, dict):
+                                # Tenta buscar por 'pontos', 'pontuacao', 'nota' ou 'valor'
+                                pts_val = info_ant.get("pontos") or info_ant.get("pontuacao") or info_ant.get("nota") or info_ant.get("valor")
+                            elif isinstance(info_ant, (int, float, str)):
+                                pts_val = info_ant
+                            elif isinstance(info_ant, (list, tuple)) and len(info_ant) > 0:
+                                pts_val = info_ant[0]
+
+                            try:
+                                if pts_val is not None:
+                                    nota_anterior += float(pts_val)
+                            except (ValueError, TypeError):
+                                pass
 
                     faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
                     faixa_real_atual = faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
@@ -2032,7 +2044,7 @@ def container_formulario_icidade(ano=None):
                         variacao_percentual = (variacao_pontos / nota_anterior) * 100
                         texto_percentual = f"{variacao_percentual:+.2f}%"
                     else:
-                        texto_percentual = "0.00%"
+                        texto_percentual = "N/A" if variacao_pontos == 0 else f"{variacao_pontos:+.1f} pts"
 
                     if variacao_pontos > 0:
                         cor_variacao = colors.HexColor("#28a745")
@@ -2072,15 +2084,15 @@ def container_formulario_icidade(ano=None):
 
                     style_analise = ParagraphStyle('Analise', parent=styles['Normal'], fontSize=10, leading=14)
                     if variacao_pontos > 0:
-                        texto_analise = f"<b>Análise de Tendência:</b> O município registrou uma evolução de desempenho com incremento de <b>{texto_percentual}</b> na sua pontuação global comparado ao exercício de {ano_ant}."
+                        texto_analise = f"<b>Análise de Tendência:</b> O município registrou uma evolução de desempenho comparado ao exercício de {ano_ant}."
                     elif variacao_pontos < 0:
-                        texto_analise = f"<b>Análise de Tendência:</b> <font color='#dc3545'><b>Alerta de Retrocesso:</b></font> Foi identificada uma redução de <b>{texto_percentual}</b> na eficiência dos indicadores em relação a {ano_ant}."
+                        texto_analise = f"<b>Análise de Tendência:</b> <font color='#dc3545'><b>Alerta de Retrocesso:</b></font> Foi identificada uma redução na eficiência dos indicadores em relação a {ano_ant}."
                     else:
-                        texto_analise = f"<b>Análise de Tendência:</b> O município apresentou estagnação absoluta (0.00%) no seu índice geral de conformidade."
+                        texto_analise = f"<b>Análise de Tendência:</b> O município apresentou estabilidade no seu índice geral de conformidade."
 
                     elements.append(Paragraph(texto_analise, style_analise))
                     elements.append(Spacer(1, 15))
-
+                    
                     # -------------------------------------------------------------------------
                     # 2. ANÁLISE DE DESEMPENHO POR QUESITO
                     # -------------------------------------------------------------------------
