@@ -1878,12 +1878,12 @@ def container_formulario_icidade(ano=None):
                         print(f"❌ Erro ao buscar série histórica no Neon DB (respostas_icidade): {e}")
 
                     return all_data
-                    
+
                 # =============================================================================
                 # 3. GERADOR DO RELATÓRIO PDF
                 # =============================================================================
 
-               def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
+                def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
                     buffer = BytesIO()
                     doc = SimpleDocTemplate(
                         buffer,
@@ -2305,7 +2305,6 @@ def container_formulario_icidade(ano=None):
                             else:
                                 faixa = "A"
 
-                            # Puxa o histórico de todos os anos no contexto do usuário logado
                             historico_todos_anos = get_all_years_data() or {}
 
                             pdf_bytes = gerar_relatorio_pdf(
@@ -2339,7 +2338,5 @@ def container_formulario_icidade(ano=None):
                                     pass
 
                     ui.button("📥 GERAR ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
-
-    render_conteudo()
 
    
