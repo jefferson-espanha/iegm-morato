@@ -1919,6 +1919,16 @@ def container_formulario_icidade(ano=None):
                         leading=10,
                         wordWrap='CJK'
                     )
+                   
+                    # Estilo que estava a faltar:
+                    style_analise = ParagraphStyle(
+                        'StyleAnalise',
+                        parent=styles['Normal'],
+                        fontName='Helvetica',
+                        fontSize=9,
+                        leading=12,
+                        textColor=colors.HexColor("#2c3e50")
+                    )
 
                     # -------------------------------------------------------------------------
                     # FOLHA 1: CAPA
