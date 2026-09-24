@@ -1921,6 +1921,69 @@ def container_formulario_icidade(ano=None):
                     )
 
                     # -------------------------------------------------------------------------
+                    # FOLHA 1: CAPA
+                    # -------------------------------------------------------------------------
+                    elements.append(Spacer(1, 100))
+                    
+                    logo_path = "iegm.png"
+                    if os.path.exists(logo_path):
+                        try:
+                            logo = Image(logo_path, width=380, height=180)
+                            logo.hAlign = 'CENTER'
+                            elements.append(logo)
+                        except Exception:
+                            elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
+                    else:
+                        elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
+                        
+                    elements.append(Spacer(1, 50))
+                    
+                    style_titulo_capa = ParagraphStyle(
+                        'TituloCapa', 
+                        parent=styles['Normal'], 
+                        fontName='Helvetica-Bold', 
+                        fontSize=24, 
+                        textColor=colors.HexColor("#2c3e50"), 
+                        alignment=1
+                    )
+
+                    elements.append(Paragraph("Relatório I-Cidade", style_titulo_capa))
+                    elements.append(Spacer(1, 15))
+                    
+                    style_ano_capa = ParagraphStyle('AnoCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=16, textColor=colors.HexColor("#7f8c8d"), alignment=1)
+                    elements.append(Paragraph(str(ano), style_ano_capa))
+                    elements.append(PageBreak())
+
+                    # -------------------------------------------------------------------------
+                    # FOLHA 2: SUMÁRIO
+                    # -------------------------------------------------------------------------
+                    elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
+                    elements.append(Spacer(1, 30))
+
+                    style_item_esquerda = ParagraphStyle('ItemEsq', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor("#2c3e50"))
+                    style_pag_direita = ParagraphStyle('PagDir', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor("#1b4f72"), alignment=2)
+
+                    dados_sumario = [
+                        [Paragraph("1. Resumo Executivo (Análise Comparativa)", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
+                        [Paragraph("2. Análise de Desempenho por Quesito", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
+                        [Paragraph("3. Análise de Impacto e Penalidades", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
+                        [Paragraph("4. Diagnóstico de Reincidências", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
+                        [Paragraph("5. Alinhamento com a Agenda 2030 (ODS)", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
+                        [Paragraph("6. Série Histórica do I-cidade", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
+                        [Paragraph("7. Quesitos Sem Pontuação Direta", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
+                    ]
+                    
+                    tabela_sumario = Table(dados_sumario, colWidths=[400, 90])
+                    tabela_sumario.setStyle(TableStyle([
+                        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+                        ('TOPPADDING', (0, 0), (-1, -1), 12),
+                        ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7"), 1, (2, 4)), 
+                    ]))
+                    elements.append(tabela_sumario)
+                    elements.append(PageBreak())
+
+                    # -------------------------------------------------------------------------
                     # 1. RESUMO EXECUTIVO (COMPARATIVO COM O ANO ANTERIOR)
                     # -------------------------------------------------------------------------
                     elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]))
@@ -2284,6 +2347,145 @@ def container_formulario_icidade(ano=None):
                     
                     desenho_grafico.add(bc)
                     elements.append(desenho_grafico)
+
+                    # -------------------------------------------------------------------------
+                    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE - CONFORMIDADE OPERACIONAL)
+                    # -------------------------------------------------------------------------
+                    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE - CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
+                    elements.append(Spacer(1, 6))
+
+                    lista_alvo_sp = [
+                        "4.0", "11.0", "12.0", "13.0", "4.1", "5.1", 
+                        "5.1.2", "5.1.2.1", "7.3.1", "8.4.1", "8.1", "8.1.1", "12.1.3.1", "14.1"
+                    ]
+
+                    analise_sp = []
+                    
+                    for qid in lista_alvo_sp:
+                        info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
+                        
+                        if isinstance(info, dict):
+                            resp = str(info.get("valor", "")).strip()
+                        else:
+                            resp = str(info).strip()
+
+                        resp_l = resp.lower()
+                        is_adequado = False
+
+                        if qid in ["4.0", "11.0", "12.0", "13.0", "8.1.1"]:
+                            if any(x == resp_l or x in resp_l for x in ["sim", "1", "s", "true", "adequado"]):
+                                is_adequado = True
+
+                        elif qid == "4.1":
+                            opcoes = ["riscos geológicos", "riscos hidrológicos", "riscos meteorológicos", "riscos biológicos"]
+                            if any(opt in resp_l for opt in opcoes):
+                                is_adequado = True
+
+                        elif qid == "5.1":
+                            opcoes = ["epidemias", "estiagem", "incêndios", "ondas de calor ou ondas de frio", "inundações"]
+                            if any(opt in resp_l for opt in opcoes):
+                                is_adequado = True
+
+                        elif qid == "5.1.2":
+                            if any(x == resp_l or x in resp_l for x in ["não", "nao", "0", "n", "false"]):
+                                is_adequado = True
+
+                        elif qid == "5.1.2.1":
+                            opcoes = [
+                                "aplicação de sanções monetárias (multas)",
+                                "monitoramento (fiscalização)",
+                                "notificação dos infratores",
+                                "demolição das ocupações"
+                            ]
+                            if any(opt in resp_l for opt in opcoes):
+                                is_adequado = True
+
+                        elif qid == "7.3.1":
+                            opcoes = ["alerta via sms", "aviso por telefone", "aviso por email", "anúncio por rádio/televisão"]
+                            if any(opt in resp_l for opt in opcoes):
+                                is_adequado = True
+
+                        elif qid == "7.4.1":
+                            opcoes = [
+                                "sinal sonoro (sirene)",
+                                "sinal luminoso",
+                                "carros de emergência com sirenes",
+                                "avisos aos membros do nupdec"
+                            ]
+                            if any(opt in resp_l for opt in opcoes):
+                                is_adequado = True
+
+                        elif qid == "8.1":
+                            opcoes = ["telefone de emergências", "aplicativo de mensagens", "site da prefeitura", "redes sociais"]
+                            if any(opt in resp_l for opt in opcoes):
+                                is_adequado = True
+
+                        elif qid == "12.1.3.1":
+                            if "diariamente" in resp_l:
+                                is_adequado = True
+
+                        elif qid == "14.1":
+                            opcoes = [
+                                "calçadas com dimensões mínimas para circulação",
+                                "sinalização tátil em pisos",
+                                "rampas de acesso",
+                                "escadas com corrimão"
+                            ]
+                            if any(opt in resp_l for opt in opcoes):
+                                is_adequado = True
+
+                        status_txt = "Adequado" if is_adequado else "Inadequado"
+
+                        analise_sp.append({
+                            "qid": qid,
+                            "resp": resp if resp else "Não Informado",
+                            "status": status_txt
+                        })
+
+                    if analise_sp:
+                        style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
+                        
+                        data_sp = [[
+                            Paragraph("Quesito", style_th), 
+                            Paragraph("Resposta Informada no Sistema", style_th), 
+                            Paragraph("Situação / Conformidade", style_th)
+                        ]]
+
+                        total_adequados = 0
+                        for item in analise_sp:
+                            if item["status"] == "Adequado":
+                                total_adequados += 1
+                                st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>", style_td_sp)
+                            else:
+                                st_p = Paragraph("<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
+
+                            data_sp.append([
+                                Paragraph(f"<b>{item['qid']}</b>", style_td_sp),
+                                Paragraph(item["resp"], styles["Normal"]),
+                                st_p
+                            ])
+
+                        tabela_sp = Table(data_sp, colWidths=[70, 280, 135])
+                        tabela_sp.setStyle(TableStyle([
+                            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+                            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+                            ("TOPPADDING", (0, 0), (-1, -1), 3),
+                            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+                            ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ffffff")),
+                        ]))
+                        elements.append(tabela_sp)
+                        elements.append(Spacer(1, 8))
+
+                        pct_sp = (total_adequados / len(analise_sp)) * 100.0
+                        texto_sp = (
+                            f"A análise dinâmica dos quesitos de conformidade operacional do iCidade no exercício de <b>{ano_atual}</b> apontou "
+                            f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
+                            f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
+                        )
+                        elements.append(Paragraph(texto_sp, style_analise))
+                        elements.append(Spacer(1, 15))
 
                     # Compila o PDF no buffer de memória
                     doc.build(elements)
