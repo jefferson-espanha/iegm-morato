@@ -2294,11 +2294,16 @@ def container_formulario_icidade(ano=None):
                                 if isinstance(v, dict) and not k.startswith("COM_")
                             ))
 
-                            if total_pts < 500.0: faixa = "C"
-                            elif total_pts < 600.0: faixa = "C+"
-                            elif total_pts < 750.0: faixa = "B"
-                            elif total_pts < 900.0: faixa = "B+"
-                            else: faixa = "A"
+                            if total_pts < 500.0:
+                                faixa = "C"
+                            elif total_pts < 600.0:
+                                faixa = "C+"
+                            elif total_pts < 750.0:
+                                faixa = "B"
+                            elif total_pts < 900.0:
+                                faixa = "B+"
+                            else:
+                                faixa = "A"
 
                             # Puxa o histórico de todos os anos no contexto do usuário logado
                             historico_todos_anos = get_all_years_data() or {}
@@ -2308,7 +2313,7 @@ def container_formulario_icidade(ano=None):
                                 ano=ano_sel,
                                 total=total_pts,
                                 faixa=faixa,
-                                todos_dados=historico_todos_anos  # <--- PASSANDO O HISTÓRICO COMPLETO
+                                todos_dados=historico_todos_anos
                             )
                             
                             rota_pdf = f"/relatorio_temp_{ano_sel}.pdf"
@@ -2336,3 +2341,5 @@ def container_formulario_icidade(ano=None):
                     ui.button("📥 GERAR ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
     render_conteudo()
+
+   
