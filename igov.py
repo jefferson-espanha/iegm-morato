@@ -2780,7 +2780,7 @@ def container_formulario_igov_ti():
                 on_save_callback=container_formulario_igov_ti.refresh,
             )
 
-            # =============================================================================
+           # =============================================================================
             # QUESITO 9.1 • TIPOS DE SERVIÇOS ONLINE (7,5 PONTOS POR ITEM)
             # =============================================================================
             with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
@@ -2815,6 +2815,8 @@ def container_formulario_igov_ti():
                     d91 = {"valor": "", "pontos": 0.0, "link": ""}
 
                 valor_salvo_91 = str(d91.get("valor") or "")
+                
+                # CORREÇÃO 1: Limpeza rigorosa com strip() para evitar incompatibilidade por espaços extras
                 itens_salvos_91 = [i.strip() for i in valor_salvo_91.split(",") if i.strip()]
                 evidencia_91_salva = str(d91.get("link") or "")
 
@@ -2829,18 +2831,22 @@ def container_formulario_igov_ti():
                     "Consulta a status de protocolos de todos os atendimentos dos serviços assinalados acima"
                 ]
 
+                # CORREÇÃO 2: Validação exata de presença do item na lista salva
                 state_91 = {item: item in itens_salvos_91 for item in opcoes_servicos_91}
                 state_91["link"] = evidencia_91_salva
 
                 def cb_processa_e_salva_91():
                     try:
-                        marcados = [item for item in opcoes_servicos_91 if state_91[item]]
+                        marcados = [item for item in opcoes_servicos_91 if state_91.get(item, False)]
                         pts_totais = 7.5 * len(marcados)
                         valor_string = ", ".join(marcados)
-                        lnk_val = str(state_91["link"] or "").strip()
+                        lnk_val = str(state_91.get("link", "") or "").strip()
 
                         salvar_no_banco_91("9.1", valor_string, pts_totais, lnk_val)
+                        
+                        # Atualiza a memória local para renderização dinâmica
                         res_data["9.1"] = {"valor": valor_string, "pontos": pts_totais, "link": lnk_val}
+                        
                         ui.notify("Quesito 9.1 salvo com sucesso!", type="positive")
                         container_formulario_igov_ti.refresh()
                     except Exception as err:
@@ -2858,16 +2864,19 @@ def container_formulario_igov_ti():
 
                 pts_atuais_91 = float(d91.get("pontos") or 0.0)
 
+                # CORREÇÃO 3: Exibição reativa puxando direto do state_91
+                marcados_atuais = [item for item in opcoes_servicos_91 if state_91.get(item, False)]
+                
                 with ui.row().classes("w-full justify-between items-center mb-4"):
                     with ui.column().classes("gap-0"):
-                        ui.label(f"📋 Serviços Selecionados ({len([i for i in opcoes_servicos_91 if state_91[i]])}): {valor_salvo_91 if valor_salvo_91 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
+                        ui.label(f"📋 Serviços Selecionados ({len(marcados_atuais)}): {', '.join(marcados_atuais) if marcados_atuais else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
                         ui.label(f"📊 Pontuação Total no Quesito 9.1: {pts_atuais_91:.1f} pontos").classes("text-sm font-bold text-green-700")
 
                     ui.button("Salvar Quesito 9.1", on_click=cb_processa_e_salva_91, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
 
                 ui.separator().classes("my-2")
                 bloco_comentarios("9.1", res_data, ano_sel)
-
+                
             # =============================================================================
             # QUESITO 9.2 • FORMAS DE ATENDIMENTO À DISTÂNCIA
             # =============================================================================
