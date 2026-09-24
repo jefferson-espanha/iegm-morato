@@ -2420,7 +2420,7 @@ def container_formulario_icidade(ano=None):
                                 total=total_pts,
                                 faixa=faixa
                             )
-
+                            
                             rota_pdf = f"/relatorio_temp_{ano_sel}.pdf"
                             
                             @app.get(rota_pdf)
