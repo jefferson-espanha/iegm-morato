@@ -1980,8 +1980,16 @@ def container_formulario_icidade(ano=None):
                     elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]))
                     elements.append(Spacer(1, 8))
 
-                    nota_atual = float(total)
-                    ano_atual = int(str(ano).strip()[:4])
+                    try:
+                        nota_atual = float(total) if total is not None else 0.0
+                    except (ValueError, TypeError):
+                        nota_atual = 0.0
+
+                    try:
+                        ano_atual = int(str(ano).strip()[:4])
+                    except Exception:
+                        ano_atual = 2025
+
                     ano_ant = ano_atual - 1
 
                     def converter_pontos_em_faixa_iegm(pontos):
@@ -1992,17 +2000,29 @@ def container_formulario_icidade(ano=None):
                         elif 750.0 <= pts <= 899.9:  return "B+"
                         else:                        return "A"
 
-                    # Busca os dados do banco e isola os dados do ano anterior
-                    all_data = get_all_years_data()
-                    dados_ano_anterior = all_data.get(ano_ant, {})
+                    # Puxa o histórico e normaliza as chaves (trata tipos Int e Str do Banco)
+                    all_data_raw = get_all_years_data() or {}
+                    all_data = {}
+                    for k, v in all_data_raw.items():
+                        try:
+                            all_data[int(k)] = v
+                        except (ValueError, TypeError):
+                            all_data[k] = v
+
+                    # Busca garantida do ano anterior (tenta chave int e tenta chave string)
+                    dados_ano_anterior = all_data.get(ano_ant) or all_data.get(str(ano_ant)) or {}
                     
+                    # Soma com parsing individual seguro de cada quesito
                     nota_anterior = 0.0
-                    if ano_ant in all_data:
-                        nota_anterior = float(sum(
-                            info_ant.get("pontos", 0) 
-                            for qid_ant, info_ant in dados_ano_anterior.items() 
-                            if isinstance(info_ant, dict) and not qid_ant.startswith("COM_")
-                        ))
+                    if dados_ano_anterior:
+                        for qid_ant, info_ant in dados_ano_anterior.items():
+                            if isinstance(info_ant, dict) and not str(qid_ant).startswith("COM_"):
+                                pts_val = info_ant.get("pontos")
+                                try:
+                                    if pts_val is not None:
+                                        nota_anterior += float(pts_val)
+                                except (ValueError, TypeError):
+                                    pass
 
                     faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
                     faixa_real_atual = faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
