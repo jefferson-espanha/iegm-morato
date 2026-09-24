@@ -1,11 +1,22 @@
-import ast
-from datetime import datetime
+import base64
+from datetime import date, datetime
 import json
+import logging
 import os
 import re
+from io import BytesIO
+
 from nicegui import app, ui
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
+
+# Importações do ReportLab
+from reportlab.graphics.charts.barcharts import VerticalBarChart
+from reportlab.graphics.shapes import Drawing, String
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 # =============================================================================
 # EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
