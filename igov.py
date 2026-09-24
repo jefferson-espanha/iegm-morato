@@ -3361,6 +3361,287 @@ def container_formulario_igov_ti():
 
                 return all_data
 
+            # =============================================================================
+            # 3. GERADOR DO RELATÓRIO PDF
+            # =============================================================================
+
+            def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
+                buffer = BytesIO()
+                doc = SimpleDocTemplate(
+                    buffer,
+                    pagesize=A4,
+                    rightMargin=30,
+                    leftMargin=30,
+                    topMargin=30,
+                    bottomMargin=30
+                )
+                elements = []
+                styles = getSampleStyleSheet()
+
+                # Estilo auxiliar para links e quebra de texto em tabelas
+                style_cell_link = ParagraphStyle(
+                    'CellLink',
+                    parent=styles['Normal'],
+                    fontSize=8,
+                    leading=10,
+                    wordWrap='CJK'
+                )
+                
+                # Estilo que estava a faltar:
+                style_analise = ParagraphStyle(
+                    'StyleAnalise',
+                    parent=styles['Normal'],
+                    fontName='Helvetica',
+                    fontSize=9,
+                    leading=12,
+                    textColor=colors.HexColor("#2c3e50")
+                )
+
+                # -------------------------------------------------------------------------
+                # FOLHA 1: CAPA
+                # -------------------------------------------------------------------------
+                elements.append(Spacer(1, 100))
+                
+                logo_path = "iegm.png"
+                if os.path.exists(logo_path):
+                    try:
+                        logo = Image(logo_path, width=380, height=180)
+                        logo.hAlign = 'CENTER'
+                        elements.append(logo)
+                    except Exception:
+                        elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
+                else:
+                    elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
+                    
+                elements.append(Spacer(1, 50))
+                
+                style_titulo_capa = ParagraphStyle(
+                    'TituloCapa', 
+                    parent=styles['Normal'], 
+                    fontName='Helvetica-Bold', 
+                    fontSize=24, 
+                    textColor=colors.HexColor("#2c3e50"), 
+                    alignment=1
+                )
+
+                elements.append(Paragraph("Relatório I-Cidade", style_titulo_capa))
+                elements.append(Spacer(1, 15))
+                
+                style_ano_capa = ParagraphStyle('AnoCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=16, textColor=colors.HexColor("#7f8c8d"), alignment=1)
+                elements.append(Paragraph(str(ano), style_ano_capa))
+                elements.append(PageBreak())
+
+                # -------------------------------------------------------------------------
+                # FOLHA 2: SUMÁRIO
+                # -------------------------------------------------------------------------
+                elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
+                elements.append(Spacer(1, 30))
+
+                style_item_esquerda = ParagraphStyle('ItemEsq', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor("#2c3e50"))
+                style_pag_direita = ParagraphStyle('PagDir', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=11, textColor=colors.HexColor("#1b4f72"), alignment=2)
+
+                dados_sumario = [
+                    [Paragraph("1. Resumo Executivo (Análise Comparativa)", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
+                    [Paragraph("2. Análise de Desempenho por Quesito", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
+                    [Paragraph("3. Análise de Impacto e Penalidades", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
+                    [Paragraph("4. Diagnóstico de Reincidências", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
+                    [Paragraph("5. Alinhamento com a Agenda 2030 (ODS)", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
+                    [Paragraph("6. Série Histórica do I-cidade", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
+                    [Paragraph("7. Quesitos Sem Pontuação Direta", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
+                ]
+                
+                tabela_sumario = Table(dados_sumario, colWidths=[400, 90])
+                tabela_sumario.setStyle(TableStyle([
+                    ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                    ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+                    ('TOPPADDING', (0, 0), (-1, -1), 12),
+                    ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7"), 1, (2, 4)), 
+                ]))
+                elements.append(tabela_sumario)
+                elements.append(PageBreak())
+
+                # -------------------------------------------------------------------------
+                # 1. RESUMO EXECUTIVO (COMPARATIVO COM O ANO ANTERIOR)
+                # -------------------------------------------------------------------------
+                elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]))
+                elements.append(Spacer(1, 8))
+
+                try:
+                    nota_atual = float(total) if total is not None else 0.0
+                except (ValueError, TypeError):
+                    nota_atual = 0.0
+
+                try:
+                    ano_atual = int(str(ano).strip()[:4])
+                except Exception:
+                    ano_atual = 2025
+
+                ano_ant = ano_atual - 1
+
+                def converter_pontos_em_faixa_iegm(pontos):
+                    pts = float(pontos)
+                    if pts < 500.0:              return "C"
+                    elif 500.0 <= pts <= 599.9:  return "C+"
+                    elif 600.0 <= pts <= 749.9:  return "B"
+                    elif 750.0 <= pts <= 899.9:  return "B+"
+                    else:                        return "A"
+
+                # Puxa os dados que vieram por parâmetro ou tenta buscar no banco
+                all_data_raw = todos_dados if todos_dados is not None else (get_all_years_data() or {})
+                
+                logging.info(f"=== [DEBUG PDF] Anos disponíveis no PDF: {list(all_data_raw.keys())} ===")
+
+                all_data = {}
+                for k, v in all_data_raw.items():
+                    try:
+                        all_data[int(k)] = v
+                    except (ValueError, TypeError):
+                        all_data[str(k).strip()] = v
+
+                dados_ano_anterior = all_data.get(ano_ant) or all_data.get(str(ano_ant)) or {}
+                
+                nota_anterior = 0.0
+                if isinstance(dados_ano_anterior, dict):
+                    for qid_ant, info_ant in dados_ano_anterior.items():
+                        if str(qid_ant).startswith("COM_"):
+                            continue
+
+                        # Extração resiliente de pontos
+                        pts_val = None
+                        if isinstance(info_ant, dict):
+                            pts_val = info_ant.get("pontos") if info_ant.get("pontos") is not None else info_ant.get("pontuacao") if info_ant.get("pontuacao") is not None else info_ant.get("nota") if info_ant.get("nota") is not None else info_ant.get("valor")
+                        elif isinstance(info_ant, (int, float, str)):
+                            pts_val = info_ant
+                        elif isinstance(info_ant, (list, tuple)) and len(info_ant) > 0:
+                            pts_val = info_ant[0]
+
+                        try:
+                            if pts_val is not None:
+                                nota_anterior += float(pts_val)
+                        except (ValueError, TypeError):
+                            pass
+
+                logging.info(f"=== [DEBUG PDF] Nota calculada do ano {ano_ant}: {nota_anterior} ===")
+
+                faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
+                faixa_real_atual = faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
+
+                variacao_pontos = nota_atual - nota_anterior
+                if nota_anterior > 0:
+                    variacao_percentual = (variacao_pontos / nota_anterior) * 100
+                    texto_percentual = f"{variacao_percentual:+.2f}%"
+                else:
+                    texto_percentual = f"{variacao_pontos:+.1f} pts" if variacao_pontos != 0 else "0.00%"
+
+                if variacao_pontos > 0:
+                    cor_variacao = colors.HexColor("#28a745")
+                    seta_tendencia = "▲"
+                elif variacao_pontos < 0:
+                    cor_variacao = colors.HexColor("#dc3545")
+                    seta_tendencia = "▼"
+                else:
+                    cor_variacao = colors.HexColor("#6c757d")
+                    seta_tendencia = "■"
+
+                style_th = ParagraphStyle('Th', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.whitesmoke, alignment=1)
+                style_td_ano = ParagraphStyle('TdAno', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2c3e50"), alignment=1)
+                style_td_pts = ParagraphStyle('TdPts', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, alignment=1)
+                style_td_faixa = ParagraphStyle('TdFaixa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, textColor=colors.HexColor("#1b4f72"), alignment=1)
+                style_td_var = ParagraphStyle('TdVar', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, textColor=cor_variacao, alignment=1)
+
+                dados_comparativos = [
+                    [Paragraph("Exercício", style_th), Paragraph("Pontuação Obtida", style_th), Paragraph("Faixa / Conceito", style_th), Paragraph("Variação Nominal", style_th), Paragraph("Variação Percentual", style_th)],
+                    [Paragraph(str(ano_ant), style_td_ano), Paragraph(f"{nota_anterior:.1f} pts", style_td_pts), Paragraph(str(faixa_anterior), style_td_faixa), Paragraph("-", style_td_var), Paragraph("-", style_td_var)],
+                    [Paragraph(str(ano_atual), style_td_ano), Paragraph(f"{nota_atual:.1f} pts", style_td_pts), Paragraph(str(faixa_real_atual), style_td_faixa), Paragraph(f"{seta_tendencia} {variacao_pontos:+.1f} pts", style_td_var), Paragraph(f"{seta_tendencia} {texto_percentual}", style_td_var)]
+                ]
+
+                tabela_comp = Table(dados_comparativos, colWidths=[80, 105, 95, 105, 105])
+                tabela_comp.setStyle(TableStyle([
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")), 
+                    ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), 
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")), 
+                    ("TOPPADDING", (0, 0), (-1, -1), 8), 
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+                    ("BACKGROUND", (0, 1), (-1, 1), colors.HexColor("#f8f9fa")), 
+                    ("BACKGROUND", (0, 2), (-1, 2), colors.whitesmoke),          
+                ]))
+                elements.append(tabela_comp)
+                elements.append(Spacer(1, 12))
+                
+                # -------------------------------------------------------------------------
+                # 2. ANÁLISE DE DESEMPENHO POR QUESITO
+                # -------------------------------------------------------------------------
+                elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO POR QUESITO</b>", styles["h2"]))
+                elements.append(Spacer(1, 6))
+
+                lista_pontos_fortes = []
+                lista_pontos_fracos = []
+                reincidencias_detectadas = []
+
+                for qid, info in dados.items():
+                    if qid.startswith("COM_") or not isinstance(info, dict): continue
+                    pts_obtidos = float(info.get("pontos", 0))
+                    valor_resposta = info.get("valor", "")
+                    link_evidencia = info.get("link", "")
+                    pts_maximo = float(PONTUACOES_MAX.get(qid, 0))
+                    
+                    if pts_maximo > 0:
+                        eficiencia = (pts_obtidos / pts_maximo) * 100
+                        item_data = {"qid": qid, "pts_obtidos": pts_obtidos, "pts_maximo": pts_maximo, "eficiencia": eficiencia, "valor": valor_resposta, "link": link_evidencia}
+                        if eficiencia >= 70.0: 
+                            lista_pontos_fortes.append(item_data)
+                        elif eficiencia < 50.0:
+                            lista_pontos_fracos.append(item_data)
+                            if qid in dados_ano_anterior:
+                                info_ant = dados_ano_anterior[qid]
+                                pts_anterior = float(info_ant.get("pontos", 0)) if isinstance(info_ant, dict) else 0.0
+                                if pts_obtidos == pts_anterior:
+                                    reincidencias_detectadas.append({
+                                        "qid": qid, "tipo": "Ponto Fraco", "detalhe": "Eficiência Crítica", 
+                                        "ant": f"{pts_anterior:.1f} pts", "atual": f"{pts_obtidos:.1f} pts"
+                                    })
+
+                if lista_pontos_fortes:
+                    elements.append(Paragraph("<b>✅ Pontos Fortes:</b>", styles["h3"]))
+                    data_fortes = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
+                    for item in sorted(lista_pontos_fortes, key=lambda x: x["pts_obtidos"], reverse=True):
+                        lnk_str = f"<br/><a href='{item['link']}'>{item['link']}</a>" if item['link'] else ""
+                        evidencia = f"<b>{item['valor']}</b>{lnk_str}"
+                        data_fortes.append([item['qid'], f"{item['pts_obtidos']:.1f} / {item['pts_maximo']:.1f}", f"{item['eficiencia']:.1f}%", Paragraph(evidencia, style_cell_link)])
+                    
+                    tabela_fortes = Table(data_fortes, colWidths=[65, 75, 65, 285])
+                    tabela_fortes.setStyle(TableStyle([
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#28a745")), 
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
+                        ("ALIGN", (0, 0), (2, -1), "CENTER"), 
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#28a745")), 
+                        ("FONTSIZE", (0, 0), (-1, -1), 9), 
+                        ("VALIGN", (0, 0), (-1, -1), "TOP")
+                    ]))
+                    elements.append(tabela_fortes)
+                    elements.append(Spacer(1, 12))
+
+                if lista_pontos_fracos:
+                    elements.append(Paragraph("<b>⚠️ Pontos Fracos Geral:</b>", styles["h3"]))
+                    data_fracos = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
+                    for item in sorted(lista_pontos_fracos, key=lambda x: x["pts_obtidos"]):
+                        lnk_str = f"<br/><a href='{item['link']}'>{item['link']}</a>" if item['link'] else ""
+                        evidencia = f"<b>{item['valor']}</b>{lnk_str}"
+                        data_fracos.append([item['qid'], f"{item['pts_obtidos']:.1f} / {item['pts_maximo']:.1f}", f"{item['eficiencia']:.1f}%", Paragraph(evidencia, style_cell_link)])
+                    
+                    tabela_fracos = Table(data_fracos, colWidths=[65, 75, 65, 285])
+                    tabela_fracos.setStyle(TableStyle([
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e67e22")), 
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
+                        ("ALIGN", (0, 0), (2, -1), "CENTER"), 
+                        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e67e22")), 
+                        ("FONTSIZE", (0, 0), (-1, -1), 9), 
+                        ("VALIGN", (0, 0), (-1, -1), "TOP")
+                    ]))
+                    elements.append(tabela_fracos)
+                    elements.append(Spacer(1, 15))
+
 # Ponte universal de execução para importação do main.py
 def render_igovti():
     container_formulario_igov_ti()
