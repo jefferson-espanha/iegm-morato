@@ -3303,10 +3303,18 @@ def container_formulario_igov_ti():
                 bloco_comentarios("12.0", res_data, ano_sel)
 
                 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+                from reportlab.lib import colors
+                from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
 
                 # Inicialização do contêiner de elementos e folha de estilos do ReportLab
                 elements = []
                 styles = getSampleStyleSheet()
+
+                # Definição dos estilos de texto e tabela para o ReportLab
+                style_title = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=16, leading=20, alignment=TA_CENTER, textColor=colors.HexColor("#1A365D"))
+                style_th = ParagraphStyle('THStyle', parent=styles['Normal'], fontSize=9, leading=11, fontName='Helvetica-Bold', alignment=TA_CENTER, textColor=colors.white)
+                style_td = ParagraphStyle('TDStyle', parent=styles['Normal'], fontSize=8, leading=10, fontName='Helvetica', alignment=TA_LEFT)
+                style_td_center = ParagraphStyle('TDCenterStyle', parent=styles['Normal'], fontSize=8, leading=10, fontName='Helvetica', alignment=TA_CENTER)
 
                 # String de conexão com o PostgreSQL
                 DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
@@ -3400,7 +3408,7 @@ def container_formulario_igov_ti():
                     elif isinstance(info_ant, (int, float)):
                         nota_anterior += float(info_ant)
 
-                # IDENTIFICAÇÃO DE REINCIDÊNCIAS (Quesitos sem pontuação máxima em ambos os anos)
+                # IDENTIFICAÇÃO DE REINCIDÊNCIAS
                 reincidencias_detectadas = []
                 for qid, info_atual in dados.items():
                     if str(qid).startswith("COM_"):
@@ -3409,12 +3417,10 @@ def container_formulario_igov_ti():
                     p_max = PONTUACOES_MAX.get(qid, 0)
                     pts_atual = info_atual.get("pontos", 0) if isinstance(info_atual, dict) else 0
                     
-                    # Se não atingiu nota máxima no ano atual
                     if p_max > 0 and pts_atual < p_max:
                         info_ant = dados_ano_anterior.get(qid, {})
                         pts_ant = info_ant.get("pontos", 0) if isinstance(info_ant, dict) else 0
                         
-                        # Se também não tinha atingido a pontuação no ano anterior, marca reincidência
                         if pts_ant < p_max:
                             reincidencias_detectadas.append({
                                 "qid": qid,
