@@ -3302,7 +3302,7 @@ def container_formulario_igov_ti():
                 ui.separator().classes("my-2")
                 bloco_comentarios("12.0", res_data, ano_sel)
 
-               import io
+                import io
                 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
                 from reportlab.lib import colors
                 from reportlab.lib.pagesizes import letter, A4
