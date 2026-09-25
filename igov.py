@@ -3302,15 +3302,29 @@ def container_formulario_igov_ti():
                 ui.separator().classes("my-2")
                 bloco_comentarios("12.0", res_data, ano_sel)
 
+               import io
                 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
                 from reportlab.lib import colors
+                from reportlab.lib.pagesizes import letter, A4
                 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
+                from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
-                # --- CONFIGURAÇÃO DE IMPORTS E ESTILOS REPORTLAB ---
+                # --- CRIAÇÃO DO BUFFER E DO DOCUMENTO (Corrige 'doc' is not defined) ---
+                buffer = io.BytesIO()
+                doc = SimpleDocTemplate(
+                    buffer,
+                    pagesize=A4,
+                    rightMargin=30,
+                    leftMargin=30,
+                    topMargin=30,
+                    bottomMargin=30
+                )
+
+                # --- CONFIGURAÇÃO DE ELEMENTOS E ESTILOS REPORTLAB ---
                 elements = []
                 styles = getSampleStyleSheet()
 
-                # Definindo todos os estilos de texto e tabelas do ReportLab
+                # Definindo os estilos visuais
                 style_title = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=16, leading=20, alignment=TA_CENTER, textColor=colors.HexColor("#1A365D"))
                 style_th = ParagraphStyle('THStyle', parent=styles['Normal'], fontSize=9, leading=11, fontName='Helvetica-Bold', alignment=TA_CENTER, textColor=colors.white)
                 style_td = ParagraphStyle('TDStyle', parent=styles['Normal'], fontSize=8, leading=10, fontName='Helvetica', alignment=TA_LEFT)
