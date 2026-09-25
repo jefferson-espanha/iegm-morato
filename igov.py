@@ -14,6 +14,7 @@ from psycopg2.extras import Json, RealDictCursor
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.shapes import Drawing, String
 from reportlab.lib import colors
+
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
@@ -4006,7 +4007,7 @@ def container_formulario_igov_ti():
 
                 pct_sp = (total_adequados / len(analise_sp)) * 100.0
                 texto_sp = (
-                    f"A análise dinâmica dos quesitos de conformidade operacional do iCidade no exercício de <b>{ano_atual}</b> apontou "
+                    f"A análise dinâmica dos quesitos de conformidade operacional do i-GOV TI no exercício de <b>{ano_atual}</b> apontou "
                     f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
                     f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
                 )
