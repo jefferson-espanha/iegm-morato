@@ -3302,11 +3302,14 @@ def container_formulario_igov_ti():
                 ui.separator().classes("my-2")
                 bloco_comentarios("12.0", res_data, ano_sel)
 
+                from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+                # Inicialização do contêiner de elementos e folha de estilos do ReportLab
+                elements = []
+                styles = getSampleStyleSheet()
+
                 # String de conexão com o PostgreSQL
                 DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-
-                # Inicialização do container do ReportLab para evitar o NameError
-                elements = []
 
                 # Dicionário global de Pontuações Máximas (Tetos) dos Quesitos
                 PONTUACOES_MAX = {
@@ -3323,8 +3326,7 @@ def container_formulario_igov_ti():
 
                 def get_all_years_data():
                     """
-                    Busca todas as respostas do banco Neon de forma resiliente
-                    (trata retorno por tupla ou por dicionário).
+                    Busca todas as respostas do banco Neon de forma resiliente.
                     """
                     all_data = {}
                     query = """
@@ -3334,7 +3336,6 @@ def container_formulario_igov_ti():
                     """
                     try:
                         with get_db_connection() as conn:
-                            # Usando RealDictCursor se disponível, ou cursor padrão de tupla
                             try:
                                 import psycopg2.extras
                                 cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -3345,7 +3346,6 @@ def container_formulario_igov_ti():
                             rows = cur.fetchall()
 
                             for row in rows:
-                                # Tratamento universal para Tupla (índice) ou Dict (chave)
                                 if isinstance(row, dict):
                                     qid = str(row["id"]).strip()
                                     ano = int(row["ano"])
@@ -3396,7 +3396,6 @@ def container_formulario_igov_ti():
                         nota_anterior += info_ant.get("pontos", 0.0)
                     elif isinstance(info_ant, (int, float)):
                         nota_anterior += float(info_ant)
-
             # =============================================================================
             # 3. GERADOR DO RELATÓRIO PDF
             # =============================================================================
