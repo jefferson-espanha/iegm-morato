@@ -4102,10 +4102,13 @@ def container_formulario_igov_ti():
                 try:
                     await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 300))', timeout=5.0)
 
+                    # Garante que res_data existe de forma segura
+                    dados_locais = res_data if 'res_data' in locals() or 'res_data' in globals() else {}
+
                     total_pts = float(sum(
                         v.get("pontos", 0) 
-                        for k, v in res_data.items() 
-                        if isinstance(v, dict) and not k.startswith("COM_")
+                        for k, v in dados_locais.items() 
+                        if isinstance(v, dict) and not str(k).startswith("COM_")
                     ))
 
                     if total_pts < 500.0:
@@ -4119,17 +4122,20 @@ def container_formulario_igov_ti():
                     else:
                         faixa = "A"
 
+                    # Fallback para o ano selecionado
+                    ano_alvo = ano_sel if 'ano_sel' in locals() or 'ano_sel' in globals() else ano
+
                     historico_todos_anos = get_all_years_data() or {}
 
                     pdf_bytes = gerar_relatorio_pdf(
-                        dados=res_data,
-                        ano=ano_sel,
+                        dados=dados_locais,
+                        ano=ano_alvo,
                         total=total_pts,
                         faixa=faixa,
                         todos_dados=historico_todos_anos
                     )
                     
-                    rota_pdf = f"/relatorio_temp_{ano_sel}.pdf"
+                    rota_pdf = f"/relatorio_temp_{ano_alvo}.pdf"
                     
                     @app.get(rota_pdf)
                     def relatorio_endpoint():
