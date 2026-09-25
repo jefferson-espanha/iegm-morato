@@ -3443,6 +3443,74 @@ def container_formulario_igov_ti():
                                 "pontos_anterior": pts_ant,
                                 "max": p_max
                             })
+    # =============================================================================
+    # CARD DE EMISSÃO DO RELATÓRIO PDF (4 ESPAÇOS DE INDENTAÇÃO)
+    # =============================================================================
+    with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
+        ui.label("📄 Emissão de Relatório Analítico - iGov TI").classes("text-xl font-bold text-blue-900 mb-1")
+        ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
+
+        async def baixar_pdf():
+            n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
+            
+            try:
+                await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 300))', timeout=5.0)
+
+                dados_locais = res_data if 'res_data' in locals() or 'res_data' in globals() else {}
+                ano_alvo = ano_sel if 'ano_sel' in locals() or 'ano_sel' in globals() else (ano if 'ano' in locals() else 2026)
+
+                total_pts = float(sum(
+                    v.get("pontos", 0) 
+                    for k, v in dados_locais.items() 
+                    if isinstance(v, dict) and not str(k).startswith("COM_")
+                ))
+
+                if total_pts < 500.0:
+                    faixa = "C"
+                elif total_pts < 600.0:
+                    faixa = "C+"
+                elif total_pts < 750.0:
+                    faixa = "B"
+                elif total_pts < 900.0:
+                    faixa = "B+"
+                else:
+                    faixa = "A"
+
+                historico_todos_anos = get_all_years_data() or {}
+
+                pdf_bytes = gerar_relatorio_pdf(
+                    dados=dados_locais,
+                    ano=ano_alvo,
+                    total=total_pts,
+                    faixa=faixa,
+                    todos_dados=historico_todos_anos
+                )
+                
+                rota_pdf = f"/relatorio_temp_{ano_alvo}.pdf"
+                
+                @app.get(rota_pdf)
+                def relatorio_endpoint():
+                    from fastapi import Response
+                    return Response(content=pdf_bytes, media_type="application/pdf")
+
+                ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
+                ui.notify("Relatório aberto com sucesso!", type="positive")
+
+            except Exception as e:
+                print(f"ERRO CRÍTICO AO GERAR PDF: {e}")
+                logging.exception("Erro no PDF:")
+                ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
+
+            finally:
+                if n is not None:
+                    try:
+                        n.dismiss()
+                    except Exception:
+                        pass
+
+        ui.button("📥 GERAR ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
+
+
 import os
 from io import BytesIO
 from reportlab.lib import colors
@@ -4119,74 +4187,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         doc.build(elements)
         buffer.seek(0)
         return buffer.getvalue()
-
-    # =============================================================================
-    # CARD DE EMISSÃO DO RELATÓRIO PDF (4 ESPAÇOS DE INDENTAÇÃO)
-    # =============================================================================
-    with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
-        ui.label("📄 Emissão de Relatório Analítico - iGov TI").classes("text-xl font-bold text-blue-900 mb-1")
-        ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
-
-        async def baixar_pdf():
-            n = ui.notify("Gerando PDF, aguarde...", type="info", timeout=0)
-            
-            try:
-                await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 300))', timeout=5.0)
-
-                dados_locais = res_data if 'res_data' in locals() or 'res_data' in globals() else {}
-                ano_alvo = ano_sel if 'ano_sel' in locals() or 'ano_sel' in globals() else (ano if 'ano' in locals() else 2026)
-
-                total_pts = float(sum(
-                    v.get("pontos", 0) 
-                    for k, v in dados_locais.items() 
-                    if isinstance(v, dict) and not str(k).startswith("COM_")
-                ))
-
-                if total_pts < 500.0:
-                    faixa = "C"
-                elif total_pts < 600.0:
-                    faixa = "C+"
-                elif total_pts < 750.0:
-                    faixa = "B"
-                elif total_pts < 900.0:
-                    faixa = "B+"
-                else:
-                    faixa = "A"
-
-                historico_todos_anos = get_all_years_data() or {}
-
-                pdf_bytes = gerar_relatorio_pdf(
-                    dados=dados_locais,
-                    ano=ano_alvo,
-                    total=total_pts,
-                    faixa=faixa,
-                    todos_dados=historico_todos_anos
-                )
-                
-                rota_pdf = f"/relatorio_temp_{ano_alvo}.pdf"
-                
-                @app.get(rota_pdf)
-                def relatorio_endpoint():
-                    from fastapi import Response
-                    return Response(content=pdf_bytes, media_type="application/pdf")
-
-                ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
-                ui.notify("Relatório aberto com sucesso!", type="positive")
-
-            except Exception as e:
-                print(f"ERRO CRÍTICO AO GERAR PDF: {e}")
-                logging.exception("Erro no PDF:")
-                ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
-
-            finally:
-                if n is not None:
-                    try:
-                        n.dismiss()
-                    except Exception:
-                        pass
-
-        ui.button("📥 GERAR ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
-
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
