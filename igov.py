@@ -3973,7 +3973,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     ]))
     elements.append(tabela_hist)
     elements.append(Spacer(1, 15))
-
     # -------------------------------------------------------------------------
     # 7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV TI - CONFORMIDADE OPERACIONAL)
     # -------------------------------------------------------------------------
