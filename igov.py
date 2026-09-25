@@ -4086,6 +4086,7 @@ def container_formulario_igov_ti():
 
     doc.build(elements)
     buffer.seek(0)
+    return buffer.getvalue()
 
     # =============================================================================
     # CARD DE EMISSÃO DO RELATÓRIO PDF (4 ESPAÇOS DE INDENTAÇÃO)
