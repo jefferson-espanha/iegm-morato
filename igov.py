@@ -3302,76 +3302,100 @@ def container_formulario_igov_ti():
                 ui.separator().classes("my-2")
                 bloco_comentarios("12.0", res_data, ano_sel)
 
-            # String de conexão com o PostgreSQL
-            DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+                # String de conexão com o PostgreSQL
+                DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
-            # Dicionário global de Pontuações Máximas (Tetos) dos Quesitos
-            PONTUACOES_MAX = {
-                "1.0": 30, "1.1": 30, "1.2": 30, "1.3": 30, "1.3.1": 30, "1.4.1": 40, "1.4.2": 20,
-                "2.0": 40, "2.1": 20, "2.2": 40, "2.3": 20,
-                "3.0": 50, "3.1": 20, "3.1.1": 40, "3.1.1.1": 10, "3.2.1": 10, "3.3": 30, "3.4": 30, "3.5": 30, "3.6": 20,
-                "4.0": 40, "6.0": 20, "6.1": 20, "6.2": 20, "6.3": 10, "6.4": 30, "7.0": 25, "7.1": 10, "7.2": 10, "7.3": 5,
-                "8.0": 40, "8.2.1": 50, "8.2.2": 30, "9.1": 120
-            }
+                # Inicialização do container do ReportLab para evitar o NameError
+                elements = []
 
-            def get_db_connection():
-                """Cria conexão segura com o Neon PostgreSQL."""
-                return psycopg2.connect(DATABASE_URL)
+                # Dicionário global de Pontuações Máximas (Tetos) dos Quesitos
+                PONTUACOES_MAX = {
+                    "1.0": 30, "1.1": 30, "1.2": 30, "1.3": 30, "1.3.1": 30, "1.4.1": 40, "1.4.2": 20,
+                    "2.0": 40, "2.1": 20, "2.2": 40, "2.3": 20,
+                    "3.0": 50, "3.1": 20, "3.1.1": 40, "3.1.1.1": 10, "3.2.1": 10, "3.3": 30, "3.4": 30, "3.5": 30, "3.6": 20,
+                    "4.0": 40, "6.0": 20, "6.1": 20, "6.2": 20, "6.3": 10, "6.4": 30, "7.0": 25, "7.1": 10, "7.2": 10, "7.3": 5,
+                    "8.0": 40, "8.2.1": 50, "8.2.2": 30, "9.1": 120
+                }
 
-            def get_all_years_data():
-                """
-                Busca todas as respostas do banco Neon de forma resiliente
-                (trata retorno por tupla ou por dicionário).
-                """
-                all_data = {}
-                query = """
-                    SELECT id, ano, valor, pontos, link, comentarios
-                    FROM respostas_igov
-                    ORDER BY ano ASC;
-                """
-                try:
-                    with get_db_connection() as conn:
-                        # Usando RealDictCursor se disponível, ou cursor padrão de tupla
-                        try:
-                            import psycopg2.extras
-                            cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                        except Exception:
-                            cur = conn.cursor()
+                def get_db_connection():
+                    """Cria conexão segura com o Neon PostgreSQL."""
+                    return psycopg2.connect(DATABASE_URL)
 
-                        cur.execute(query)
-                        rows = cur.fetchall()
+                def get_all_years_data():
+                    """
+                    Busca todas as respostas do banco Neon de forma resiliente
+                    (trata retorno por tupla ou por dicionário).
+                    """
+                    all_data = {}
+                    query = """
+                        SELECT id, ano, valor, pontos, link, comentarios
+                        FROM respostas_igovti
+                        ORDER BY ano ASC;
+                    """
+                    try:
+                        with get_db_connection() as conn:
+                            # Usando RealDictCursor se disponível, ou cursor padrão de tupla
+                            try:
+                                import psycopg2.extras
+                                cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+                            except Exception:
+                                cur = conn.cursor()
 
-                        for row in rows:
-                            # Tratamento universal para Tupla (índice) ou Dict (chave)
-                            if isinstance(row, dict):
-                                qid = str(row["id"]).strip()
-                                ano = int(row["ano"])
-                                valor = row["valor"] or ""
-                                pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
-                                link = row["link"] if row["link"] != "EMPTY_STRING" else ""
-                                comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
-                            else:
-                                qid = str(row[0]).strip()
-                                ano = int(row[1])
-                                valor = row[2] or ""
-                                pontos = float(row[3]) if row[3] is not None else 0.0
-                                link = row[4] if row[4] != "EMPTY_STRING" else ""
-                                comentarios = row[5] if isinstance(row[5], list) else []
+                            cur.execute(query)
+                            rows = cur.fetchall()
 
-                            if ano not in all_data:
-                                all_data[ano] = {}
+                            for row in rows:
+                                # Tratamento universal para Tupla (índice) ou Dict (chave)
+                                if isinstance(row, dict):
+                                    qid = str(row["id"]).strip()
+                                    ano = int(row["ano"])
+                                    valor = row["valor"] or ""
+                                    pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
+                                    link = row["link"] if row["link"] != "EMPTY_STRING" else ""
+                                    comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
+                                else:
+                                    qid = str(row[0]).strip()
+                                    ano = int(row[1])
+                                    valor = row[2] or ""
+                                    pontos = float(row[3]) if row[3] is not None else 0.0
+                                    link = row[4] if row[4] != "EMPTY_STRING" else ""
+                                    comentarios = row[5] if isinstance(row[5], list) else []
 
-                            all_data[ano][qid] = {
-                                "valor": valor,
-                                "pontos": pontos,
-                                "link": link,
-                                "comentarios": comentarios
-                            }
+                                if ano not in all_data:
+                                    all_data[ano] = {}
 
-                except Exception as e:
-                    print(f"❌ Erro ao buscar série histórica no Neon DB: {e}")
+                                all_data[ano][qid] = {
+                                    "valor": valor,
+                                    "pontos": pontos,
+                                    "link": link,
+                                    "comentarios": comentarios
+                                }
 
-                return all_data
+                    except Exception as e:
+                        print(f"❌ Erro ao buscar série histórica no Neon DB: {e}")
+
+                    return all_data
+
+                # --- BUSCA DOS DADOS E CÁLCULO DAS NOTAS ---
+                all_data = get_all_years_data()
+
+                if 'ano' not in locals() and 'ano' not in globals():
+                    import datetime
+                    ano = datetime.datetime.now().year
+
+                ano_atual = int(str(ano).strip()[:4])
+                ano_ant = ano_atual - 1
+
+                dados_ano_anterior = all_data.get(ano_ant, {})
+
+                nota_anterior = 0.0
+                for qid_ant, info_ant in dados_ano_anterior.items():
+                    if str(qid_ant).startswith("COM_"):
+                        continue
+                    if isinstance(info_ant, dict):
+                        nota_anterior += info_ant.get("pontos", 0.0)
+                    elif isinstance(info_ant, (int, float)):
+                        nota_anterior += float(info_ant)
 
             # =============================================================================
             # 3. GERADOR DO RELATÓRIO PDF
