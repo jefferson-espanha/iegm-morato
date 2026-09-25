@@ -3843,33 +3843,36 @@ def container_formulario_igov_ti():
             elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-GOV TI</b>", styles["h2"]))
             elements.append(Spacer(1, 10))
 
-            anos_serie = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
-            valores_serie = []
+            # Filtra os anos válidos ordenados
+            anos_serie = sorted([a for a in all_data.keys() if isinstance(a, int) or str(a).isdigit()])
+            
+            headers_hist = [Paragraph("<b>Ano</b>", styles["Normal"])]
+            valores_hist = [Paragraph("<b>Pontuação</b>", styles["Normal"])]
+            
             for a in anos_serie:
-                if a == ano_atual: 
-                    valores_serie.append(nota_atual)
-                elif a in all_data:
-                    valores_serie.append(float(sum(info_h.get("pontos", 0) for qid_h, info_h in all_data[a].items() if isinstance(info_h, dict) and not qid_h.startswith("COM_"))))
-                else: 
-                    valores_serie.append(0.0)
+                dados_a = all_data.get(a) or all_data.get(str(a)) or {}
+                soma_ano = 0.0
+                if isinstance(dados_a, dict):
+                    for q, info_q in dados_a.items():
+                        if str(q).startswith("COM_"): continue
+                        pts = info_q.get("pontos", 0) if isinstance(info_q, dict) else 0
+                        try: soma_ano += float(pts)
+                        except: pass
+                
+                headers_hist.append(Paragraph(f"<b>{a}</b>", styles["Normal"]))
+                valores_hist.append(Paragraph(f"{soma_ano:.1f} pts", styles["Normal"]))
 
-            # Configuração do Gráfico de Barras
-            desenho_grafico = Drawing(480, 165)
-            bc = VerticalBarChart()
-            bc.x = 45; bc.y = 25; bc.height = 110; bc.width = 410
-            bc.data = [valores_serie]
-            
-            bc.bars[0].fillColor = colors.HexColor("#2c3e50")
-            bc.categoryAxis.categoryNames = [str(a) for a in anos_serie]
-            bc.categoryAxis.labels.fontSize = 9
-            bc.categoryAxis.labels.fontName = 'Helvetica-Bold'
-            bc.categoryAxis.labels.dy = -10
-            bc.valueAxis.valueMin = 0
-            bc.valueAxis.valueMax = 1000
-            bc.valueAxis.valueStep = 200
-            
-            desenho_grafico.add(bc)
-            elements.append(desenho_grafico)
+            tabela_hist = Table([headers_hist, valores_hist])
+            tabela_hist.setStyle(TableStyle([
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6)
+            ]))
+            elements.append(tabela_hist)
+            elements.append(Spacer(1, 15))
 
             # -------------------------------------------------------------------------
             # 7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV - CONFORMIDADE OPERACIONAL)
