@@ -3304,8 +3304,6 @@ def container_formulario_igov_ti():
 
                 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-                from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-
                 # Inicialização do contêiner de elementos e folha de estilos do ReportLab
                 elements = []
                 styles = getSampleStyleSheet()
@@ -3388,12 +3386,11 @@ def container_formulario_igov_ti():
                 ano_atual = int(str(ano).strip()[:4])
                 ano_ant = ano_atual - 1
 
-                # DADOS DO ANO ATUAL (Corrige o NameError: 'dados')
+                # DADOS DO ANO ATUAL E ANTERIOR
                 dados = all_data.get(ano_atual, {})
-
-                # DADOS E CÁLCULO DA NOTA DO ANO ANTERIOR
                 dados_ano_anterior = all_data.get(ano_ant, {})
 
+                # CÁLCULO DA NOTA ANTERIOR
                 nota_anterior = 0.0
                 for qid_ant, info_ant in dados_ano_anterior.items():
                     if str(qid_ant).startswith("COM_"):
@@ -3402,6 +3399,29 @@ def container_formulario_igov_ti():
                         nota_anterior += info_ant.get("pontos", 0.0)
                     elif isinstance(info_ant, (int, float)):
                         nota_anterior += float(info_ant)
+
+                # IDENTIFICAÇÃO DE REINCIDÊNCIAS (Quesitos sem pontuação máxima em ambos os anos)
+                reincidencias_detectadas = []
+                for qid, info_atual in dados.items():
+                    if str(qid).startswith("COM_"):
+                        continue
+                    
+                    p_max = PONTUACOES_MAX.get(qid, 0)
+                    pts_atual = info_atual.get("pontos", 0) if isinstance(info_atual, dict) else 0
+                    
+                    # Se não atingiu nota máxima no ano atual
+                    if p_max > 0 and pts_atual < p_max:
+                        info_ant = dados_ano_anterior.get(qid, {})
+                        pts_ant = info_ant.get("pontos", 0) if isinstance(info_ant, dict) else 0
+                        
+                        # Se também não tinha atingido a pontuação no ano anterior, marca reincidência
+                        if pts_ant < p_max:
+                            reincidencias_detectadas.append({
+                                "qid": qid,
+                                "pontos_atual": pts_atual,
+                                "pontos_anterior": pts_ant,
+                                "max": p_max
+                            })
             # =============================================================================
             # 3. GERADOR DO RELATÓRIO PDF
             # =============================================================================
