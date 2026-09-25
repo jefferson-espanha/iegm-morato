@@ -3875,7 +3875,7 @@ def container_formulario_igov_ti():
             elements.append(Spacer(1, 15))
 
             # -------------------------------------------------------------------------
-            # 7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV - CONFORMIDADE OPERACIONAL)
+            # 7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV TI - CONFORMIDADE OPERACIONAL)
             # -------------------------------------------------------------------------
             elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV - CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
             elements.append(Spacer(1, 6))
