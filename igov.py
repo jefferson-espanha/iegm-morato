@@ -3306,20 +3306,21 @@ def container_formulario_igov_ti():
                 from reportlab.lib import colors
                 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
 
-                # Inicialização do contêiner de elementos e folha de estilos do ReportLab
+                # --- CONFIGURAÇÃO DE IMPORTS E ESTILOS REPORTLAB ---
                 elements = []
                 styles = getSampleStyleSheet()
 
-                # Definição dos estilos de texto e tabela para o ReportLab
+                # Definindo todos os estilos de texto e tabelas do ReportLab
                 style_title = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=16, leading=20, alignment=TA_CENTER, textColor=colors.HexColor("#1A365D"))
                 style_th = ParagraphStyle('THStyle', parent=styles['Normal'], fontSize=9, leading=11, fontName='Helvetica-Bold', alignment=TA_CENTER, textColor=colors.white)
                 style_td = ParagraphStyle('TDStyle', parent=styles['Normal'], fontSize=8, leading=10, fontName='Helvetica', alignment=TA_LEFT)
                 style_td_center = ParagraphStyle('TDCenterStyle', parent=styles['Normal'], fontSize=8, leading=10, fontName='Helvetica', alignment=TA_CENTER)
+                style_analise = ParagraphStyle('AnaliseStyle', parent=styles['Normal'], fontSize=8, leading=11, fontName='Helvetica-Oblique', alignment=TA_LEFT, textColor=colors.HexColor("#2D3748"))
 
                 # String de conexão com o PostgreSQL
                 DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
-                # Dicionário global de Pontuações Máximas (Tetos) dos Quesitos
+                # Dicionário de Pontuações Máximas (Tetos) dos Quesitos - iGovTI
                 PONTUACOES_MAX = {
                     "1.0": 30, "1.1": 30, "1.2": 30, "1.3": 30, "1.3.1": 30, "1.4.1": 40, "1.4.2": 20,
                     "2.0": 40, "2.1": 20, "2.2": 40, "2.3": 20,
@@ -3334,7 +3335,7 @@ def container_formulario_igov_ti():
 
                 def get_all_years_data():
                     """
-                    Busca todas as respostas do banco Neon de forma resiliente.
+                    Busca todas as respostas da tabela 'respostas_igovti' no Neon DB.
                     """
                     all_data = {}
                     query = """
@@ -3384,7 +3385,7 @@ def container_formulario_igov_ti():
 
                     return all_data
 
-                # --- BUSCA DOS DADOS E DEFINIÇÃO DAS VARIÁVEIS ---
+                # --- CARREGAMENTO DE DADOS E VARIÁVEIS DO RELATÓRIO ---
                 all_data = get_all_years_data()
 
                 if 'ano' not in locals() and 'ano' not in globals():
@@ -3394,11 +3395,11 @@ def container_formulario_igov_ti():
                 ano_atual = int(str(ano).strip()[:4])
                 ano_ant = ano_atual - 1
 
-                # DADOS DO ANO ATUAL E ANTERIOR
+                # Dicionários de respostas por ano
                 dados = all_data.get(ano_atual, {})
                 dados_ano_anterior = all_data.get(ano_ant, {})
 
-                # CÁLCULO DA NOTA ANTERIOR
+                # Cálculo da nota do ano anterior
                 nota_anterior = 0.0
                 for qid_ant, info_ant in dados_ano_anterior.items():
                     if str(qid_ant).startswith("COM_"):
@@ -3408,7 +3409,7 @@ def container_formulario_igov_ti():
                     elif isinstance(info_ant, (int, float)):
                         nota_anterior += float(info_ant)
 
-                # IDENTIFICAÇÃO DE REINCIDÊNCIAS
+                # Identificação de reincidências
                 reincidencias_detectadas = []
                 for qid, info_atual in dados.items():
                     if str(qid).startswith("COM_"):
