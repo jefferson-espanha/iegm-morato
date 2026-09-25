@@ -4084,11 +4084,6 @@ def container_formulario_igov_ti():
                 elements.append(Paragraph(texto_sp, style_analise))
                 elements.append(Spacer(1, 15))
 
-            # Compila o PDF no buffer de memória
-            doc.build(elements)
-            buffer.seek(0)
-            return buffer.getvalue()
-
     # =============================================================================
     # CARD DE EMISSÃO DO RELATÓRIO PDF (4 ESPAÇOS DE INDENTAÇÃO)
     # =============================================================================
