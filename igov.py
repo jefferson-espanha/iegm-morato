@@ -3304,6 +3304,8 @@ def container_formulario_igov_ti():
 
                 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
+                from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
                 # Inicialização do contêiner de elementos e folha de estilos do ReportLab
                 elements = []
                 styles = getSampleStyleSheet()
@@ -3376,7 +3378,7 @@ def container_formulario_igov_ti():
 
                     return all_data
 
-                # --- BUSCA DOS DADOS E CÁLCULO DAS NOTAS ---
+                # --- BUSCA DOS DADOS E DEFINIÇÃO DAS VARIÁVEIS ---
                 all_data = get_all_years_data()
 
                 if 'ano' not in locals() and 'ano' not in globals():
@@ -3386,6 +3388,10 @@ def container_formulario_igov_ti():
                 ano_atual = int(str(ano).strip()[:4])
                 ano_ant = ano_atual - 1
 
+                # DADOS DO ANO ATUAL (Corrige o NameError: 'dados')
+                dados = all_data.get(ano_atual, {})
+
+                # DADOS E CÁLCULO DA NOTA DO ANO ANTERIOR
                 dados_ano_anterior = all_data.get(ano_ant, {})
 
                 nota_anterior = 0.0
