@@ -5318,7 +5318,7 @@ def get_all_years_data():
     all_data = {}
     query = """
         SELECT qid, ano, valor, pontos, link, comentarios
-        FROM respostas_iamb_oficial
+        FROM respostas_iamb
         ORDER BY ano ASC;
     """
     try:
