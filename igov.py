@@ -3628,6 +3628,18 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_sumario)
     elements.append(PageBreak())
 
+    # =========================================================================
+    # DEFINIÇÃO GLOBAL DE ESTILOS DA FUNÇÃO (Evita NameError em qualquer escopo)
+    # =========================================================================
+    style_th = ParagraphStyle('Th', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.whitesmoke, alignment=1)
+    style_td_ano = ParagraphStyle('TdAno', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2c3e50"), alignment=1)
+    style_td_pts = ParagraphStyle('TdPts', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, alignment=1)
+    style_td_faixa = ParagraphStyle('TdFaixa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, textColor=colors.HexColor("#1b4f72"), alignment=1)
+    style_cell_link = ParagraphStyle('CellLink', parent=styles['Normal'], fontSize=8, leading=10)
+    style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
+    style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
+    style_analise = styles.get('Analise', ParagraphStyle('Analise', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor("#2c3e50"), leading=12))
+
     # -------------------------------------------------------------------------
     # 1. RESUMO EXECUTIVO (COMPARATIVO COM O ANO ANTERIOR)
     # -------------------------------------------------------------------------
@@ -3746,13 +3758,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
         qid_clean = str(qid_raw).replace("Q_", "").strip()
 
-        # Descarta itens operacionais sem pontuação direta
         if qid_clean in LISTA_ALVO_SP:
             continue
 
         pts_maximo = float(PONTUACOES_MAX.get(qid_clean, 0.0))
 
-        # Ignora se não houver teto válido cadastrado
         if pts_maximo <= 0:
             continue
 
@@ -3917,7 +3927,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU) - RESTAURADO!
+    # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
@@ -4000,7 +4010,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     if analise_ods:
         data_ods = [["Quesito", "Resposta Informada", "Vínculo Metas ODS", "Status de Cumprimento"]]
-        style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
         
         for item in sorted(analise_ods, key=lambda x: [float(i) if i.replace('.','',1).isdigit() else 999 for i in x['qid'].split('.')]):
             st_txt = item["status"]
@@ -4180,8 +4189,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         })
 
     if analise_sp:
-        style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
-        
         data_sp = [[
             Paragraph("Quesito", style_th), 
             Paragraph("Resposta Informada no Sistema", style_th), 
@@ -4221,8 +4228,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
             f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
         )
-        
-        style_analise = styles.get('Analise', ParagraphStyle('Analise', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor("#2c3e50"), leading=12))
         
         elements.append(Paragraph(texto_sp, style_analise))
         elements.append(Spacer(1, 15))
