@@ -5824,15 +5824,15 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
 
 def container_formulario_iamb(res_data=None, ano_sel=2026):
     """
-    Função contêiner principal do formulário I-AMB.
+    Função contêiner que renderiza o formulário e o card do PDF.
     """
-    # 1. Chame a função interna que renderiza as perguntas/campos do formulário aqui
+    # 1. Renderiza os campos/perguntas do formulário
     render_conteudo()
 
-    # 2. Renderiza o card do relatório no final da página
+    # 2. Renderiza o card do relatório PDF abaixo do formulário
     renderizar_card_relatorio_iamb(res_data=res_data, ano_sel=ano_sel)
 
 
-# Exporta as referências para o roteador
+# Exportações para o roteador do NiceGUI
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
