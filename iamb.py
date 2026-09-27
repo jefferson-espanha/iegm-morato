@@ -439,14 +439,37 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 # =============================================================================
 # MÓDULO PRINCIPAL DE REQUISITOS
 # =============================================================================
+def _obter_ano_com_respostas(ano_preferido=2026):
+    """Usa o ano escolhido quando há dados; senão, usa o ano mais recente da tabela."""
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT DISTINCT ano FROM respostas_iamb ORDER BY ano DESC;")
+                anos = [int(row["ano"]) for row in cur.fetchall()]
+        if int(ano_preferido) in anos:
+            return int(ano_preferido)
+        if anos:
+            return anos[0]
+    except Exception as e:
+        print(f"❌ Erro ao localizar ano com respostas no Neon DB: {e}")
+    return int(ano_preferido)
+
+
 def _render_formulario_iamb(ano=None):
+    ano_inicial = _obter_ano_com_respostas(ano if ano is not None else 2026)
     if "ano_referencia_global" not in app.storage.user:
-        app.storage.user["ano_referencia_global"] = ano if ano else 2026
+        app.storage.user["ano_referencia_global"] = ano_inicial
 
     @ui.refreshable
     def render_conteudo():
-        ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+        ano_sel = int(app.storage.user.get("ano_referencia_global", ano_inicial))
         res_data = load_respostas(ano_sel)
+        if not res_data:
+            ano_com_dados = _obter_ano_com_respostas(ano_sel)
+            if ano_com_dados != ano_sel:
+                app.storage.user["ano_referencia_global"] = ano_com_dados
+                ano_sel = ano_com_dados
+                res_data = load_respostas(ano_sel)
 
         def alterar_ano(novo_ano):
             app.storage.user["ano_referencia_global"] = int(novo_ano)
@@ -5207,8 +5230,8 @@ DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636
 # 2. FUNÇÕES AUXILIARES E REGRAS DE NEGÓCIO I-AMB
 # -----------------------------------------------------------------------------
 def get_db_connection():
-    """Cria conexão segura com o Neon PostgreSQL."""
-    return psycopg2.connect(DATABASE_URL)
+    """Cria conexão segura com o Neon PostgreSQL usando linhas por nome de coluna."""
+    return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
 
 
 def calcular_percentual_checklist(resp, total_itens):
