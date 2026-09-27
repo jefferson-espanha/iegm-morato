@@ -539,53 +539,43 @@ def container_formulario_iamb(ano=None):
                         v_comi_i = int(match_co.group(1)) if match_co else 0
                         v_terc_i = int(match_t.group(1)) if match_t else 0
 
-                    state_111 = {
-                        "efet": v_efet_i,
-                        "comi": v_comi_i,
-                        "terc": v_terc_i,
-                        "link": evidencia_111,
-                    }
-
                     with ui.grid(columns=2).classes(
                         "w-full gap-6 items-start mb-4"
                     ):
                         with ui.column().classes("w-full gap-3"):
-                            ui.number(
+                            input_efet = ui.number(
                                 "Nº de efetivos:", value=v_efet_i, min=0, step=1
-                            ).classes("w-full").props("outlined").bind_value(
-                                state_111, "efet"
-                            )
-                            ui.number(
+                            ).classes("w-full").props("outlined")
+
+                            input_comi = ui.number(
                                 "Nº de comissionados:",
                                 value=v_comi_i,
                                 min=0,
                                 step=1,
-                            ).classes("w-full").props("outlined").bind_value(
-                                state_111, "comi"
-                            )
-                            ui.number(
+                            ).classes("w-full").props("outlined")
+
+                            input_terc = ui.number(
                                 "Nº de terceirizados/contratados:",
                                 value=v_terc_i,
                                 min=0,
                                 step=1,
-                            ).classes("w-full").props("outlined").bind_value(
-                                state_111, "terc"
-                            )
+                            ).classes("w-full").props("outlined")
 
-                        ui.textarea(
+                        input_link = ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=evidencia_111,
                             placeholder="Insira a folha de pagamento simplificada, relatório de RH ou declaração...",
-                        ).classes("w-full").props("outlined rows=6").bind_value(
-                            state_111, "link"
-                        )
+                        ).classes("w-full").props("outlined rows=6")
 
                     def salvar_111():
-                        ef_val = int(state_111["efet"] or 0)
-                        co_val = int(state_111["comi"] or 0)
-                        te_val = int(state_111["terc"] or 0)
+                        # Obtém diretamente os valores dos componentes da tela
+                        ef_val = int(input_efet.value or 0)
+                        co_val = int(input_comi.value or 0)
+                        te_val = int(input_terc.value or 0)
+                        link_val = input_link.value or ""
+
                         total = ef_val + co_val + te_val
-                        composite = f"E:{ef_val},Co:{co_val},T:{te_val}|LINK:{state_111['link']}"
+                        composite = f"E:{ef_val},Co:{co_val},T:{te_val}|LINK:{link_val}"
 
                         save_resposta(
                             ano=ano_sel,
@@ -599,8 +589,7 @@ def container_formulario_iamb(ano=None):
                         ui.notify(
                             "Quesito 1.1.1 salvo com sucesso!", type="positive"
                         )
-                        if render_conteudo.refresh:
-                            render_conteudo.refresh()
+                        render_conteudo.refresh()
 
                     ui.button(
                         "💾 SALVAR QUESITO 1.1.1", on_click=salvar_111
