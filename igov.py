@@ -274,19 +274,9 @@ def render_painel_controle(on_refresh_callback=None):
                     "Confirmar e Zerar", on_click=executar_zerar
                 ).classes("bg-red-600 text-white")
 
-        with ui.row().classes("w-full gap-2 no-wrap"):
-            pdf_bytes = gerar_relatorio_pdf_bytes(
-                res_data, ano_atual, total_pts, faixa
-            )
-            ui.button(
-                "📄 Relatório",
-                on_click=lambda: ui.download(
-                    pdf_bytes, f"Relatorio_iGovTI_{ano_atual}.pdf"
-                ),
-            ).classes("flex-1 bg-green-700 text-white")
-            ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
-                "flex-1 bg-red-700 text-white"
-            )
+        ui.button("🗑️ Zerar", on_click=dialog_zerar.open).classes(
+            "w-full bg-red-700 text-white"
+        )
 
         ui.separator().classes("my-4")
         ui.html("""
@@ -297,7 +287,6 @@ def render_painel_controle(on_refresh_callback=None):
                 <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
             </div>
         """).classes("w-full")
-
 
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS INTERNOS
