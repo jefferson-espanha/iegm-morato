@@ -5344,6 +5344,36 @@ def obter_regra_ods_iamb(qid, resp):
 # -----------------------------------------------------------------------------
 # 3. GERADOR DE RELATÓRIO PDF (I-AMB)
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 3.1. HISTÓRICO PARA O RELATÓRIO PDF
+# -----------------------------------------------------------------------------
+def get_all_years_data():
+    """Carrega todos os anos e respostas da tabela correta respostas_iamb."""
+    all_data = {}
+    query = """
+        SELECT ano, qid, valor, pontos, link, comentarios, status
+        FROM respostas_iamb
+        ORDER BY ano ASC, qid ASC;
+    """
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query)
+                for row in cur.fetchall():
+                    ano = int(row["ano"])
+                    qid = str(row["qid"]).strip()
+                    all_data.setdefault(ano, {})[qid] = {
+                        "valor": row["valor"] or "",
+                        "pontos": float(row["pontos"]) if row["pontos"] is not None else 0.0,
+                        "link": "" if row["link"] == "EMPTY_STRING" else (row["link"] or ""),
+                        "comentarios": row["comentarios"] if isinstance(row["comentarios"], list) else [],
+                        "status": row["status"] or "Pendente",
+                    }
+    except Exception as e:
+        print(f"❌ Erro ao carregar histórico do Neon DB: {e}")
+    return all_data
+
+
 def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
     LISTA_ALVO_SP = ["1.0", "1.1", "5.0", "5.1", "7.0", "7.1", "7.7", "8.0", "8.1", "9.0", "10.0", "11.0", "13.0", "14.0", "15.0"]
 
@@ -5880,7 +5910,7 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
                 faixa = converter_pontos_em_faixa_iegm(total_pts)
                 historico_todos_anos = get_all_years_data() or {}
 
-                pdf_bytes = gerar_relatorio_pdf(
+                pdf_bytes = gerar_relatorio_pdf_iamb(
                     dados=dados_locais,
                     ano=ano_alvo,
                     total=total_pts,
