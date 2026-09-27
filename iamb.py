@@ -439,7 +439,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 # =============================================================================
 # MÓDULO PRINCIPAL DE REQUISITOS
 # =============================================================================
-def container_formulario_iamb(ano=None):
+def _render_formulario_iamb(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
@@ -5822,15 +5822,27 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
         ui.button("📥 GERAR E ABRIR RELATÓRIO PDF (I-AMB)", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
 
-def container_formulario_iamb(res_data=None, ano_sel=2026):
+def container_formulario_iamb(ano=None, res_data=None, ano_sel=2026):
     """
-    Função contêiner que renderiza o formulário e o card do PDF.
-    """
-    # 1. Renderiza os campos/perguntas do formulário
-    render_conteudo()
+    Ponto de entrada público do módulo i-AMB.
 
-    # 2. Renderiza o card do relatório PDF abaixo do formulário
-    renderizar_card_relatorio_iamb(res_data=res_data, ano_sel=ano_sel)
+    A função render_conteudo é criada dentro de _render_formulario_iamb,
+    portanto ela deve ser chamada nesse mesmo escopo. A versão anterior
+    tentava chamá-la aqui fora, causando NameError.
+    """
+    ano_inicial = ano if ano is not None else ano_sel
+
+    # Renderiza o formulário completo. Esta chamada cria e executa
+    # render_conteudo dentro do escopo em que ele está definido.
+    _render_formulario_iamb(ano=ano_inicial)
+
+    # Renderiza o card do relatório PDF com os dados do ano atualmente ativo.
+    ano_relatorio = int(app.storage.user.get("ano_referencia_global", ano_inicial))
+    dados_relatorio = res_data if res_data is not None else load_respostas(ano_relatorio)
+    renderizar_card_relatorio_iamb(
+        res_data=dados_relatorio,
+        ano_sel=ano_relatorio,
+    )
 
 
 # Exportações para o roteador do NiceGUI
