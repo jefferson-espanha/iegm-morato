@@ -5751,17 +5751,20 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     doc.build(elements)
     return buffer.getvalue()
 
+from nicegui import app, ui
 import asyncio
 from fastapi import Response
 
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
 # -----------------------------------------------------------------------------
-def renderizar_card_relatorio_iamb(ui, app, res_data, ano_sel):
+def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
     """
     Componente NiceGUI para renderizar o Card de Emissão do PDF do I-AMB.
-    Ajustado para indentação de 4 espaços.
+    Acessa 'ui' e 'app' diretamente do escopo global do NiceGUI.
     """
+    res_data = res_data or {}
+    
     with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
         ui.label("📄 Emissão de Relatório Analítico - I-AMB (Gestão Ambiental)").classes("text-xl font-bold text-blue-900 mb-1")
         ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
@@ -5770,7 +5773,6 @@ def renderizar_card_relatorio_iamb(ui, app, res_data, ano_sel):
             n = ui.notify("Gerando PDF do I-AMB, aguarde...", type="info", timeout=0)
             
             try:
-                # Substituído para asyncio.sleep para evitar travamentos de JS no NiceGUI
                 await asyncio.sleep(0.3)
 
                 dados_locais = res_data or {}
@@ -5795,15 +5797,14 @@ def renderizar_card_relatorio_iamb(ui, app, res_data, ano_sel):
                 
                 rota_pdf = f"/relatorio_iamb_temp_{ano_alvo}.pdf"
                 
-                # Registra ou atualiza o endpoint de download do PDF no FastAPI
+                # Registra o endpoint dinâmico no app do FastAPI/NiceGUI
                 try:
                     @app.get(rota_pdf)
                     def relatorio_endpoint():
                         return Response(content=pdf_bytes, media_type="application/pdf")
                 except Exception:
-                    pass  # Caso a rota já tenha sido registrada anteriormente
+                    pass
 
-                # Abre o PDF em uma nova aba
                 ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
                 ui.notify("Relatório I-AMB aberto com sucesso!", type="positive")
 
@@ -5822,19 +5823,20 @@ def renderizar_card_relatorio_iamb(ui, app, res_data, ano_sel):
         ui.button("📥 GERAR E ABRIR RELATÓRIO PDF (I-AMB)", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
 
-def container_formulario_iamb(ui, app, res_data, ano_sel):
+def container_formulario_iamb(res_data=None, ano_sel=2026):
     """
-    Função contêiner para estruturar a página principal do formulário I-AMB.
+    Função contêiner que pode ser chamada sem argumentos pelo roteador do NiceGUI.
     """
-    # 1. Cabeçalho com Botões de Navegação (como visto na imagem)
+    # 1. Cabeçalho alinhado com a interface exibida
     with ui.row().classes('w-full items-center justify-between p-4 border-b border-gray-300'):
         ui.button("← VOLTAR", on_click=lambda: ui.navigate.to('/')).classes('bg-blue-500 text-white font-bold')
         ui.label(f"i-Amb - {ano_sel}").classes('text-2xl font-bold text-blue-900')
         ui.button("🚪 SAIR", on_click=lambda: ui.navigate.to('/login')).classes('bg-blue-500 text-white font-bold')
 
-    # 2. Renderização do Card do Relatório
-    renderizar_card_relatorio_iamb(ui, app, res_data, ano_sel)
+    # 2. Renderiza o card do relatório
+    renderizar_card_relatorio_iamb(res_data=res_data, ano_sel=ano_sel)
 
-# Referências de exportação do aplicativo
+
+# Exportações para serem chamadas pelo NiceGUI
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
