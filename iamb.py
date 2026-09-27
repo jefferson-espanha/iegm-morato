@@ -490,6 +490,23 @@ def container_formulario_iamb(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+                # QUESITO 1.1
+                opcoes_11 = {
+                    "Selecione...": 0.0,
+                    "Sim": 0.0,
+                    "Não": 0.0,
+                }
+                render_quesito(
+                    ano=ano_sel,
+                    res_data=res_data,
+                    qid="1.1",
+                    titulo="Recursos Humanos para Meio Ambiente",
+                    pergunta="A Prefeitura possui recursos humanos para operacionalização dos assuntos ligados ao Meio Ambiente?",
+                    opcoes=opcoes_11,
+                    placeholder_link="Insira o link do comprovante ou documento de RH...",
+                    on_save_callback=render_conteudo.refresh,
+                )
+
                 # QUESITO 1.1.1
                 with ui.card().classes(
                     "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
