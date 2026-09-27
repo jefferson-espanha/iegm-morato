@@ -3355,7 +3355,7 @@ def container_formulario_igov_ti():
                     """
                     all_data = {}
                     query = """
-                        SELECT id, ano, valor, pontos, link, comentarios
+                        SELECT qid, ano, valor, pontos, link, comentarios
                         FROM respostas_igovti
                         ORDER BY ano ASC;
                     """
@@ -3374,7 +3374,7 @@ def container_formulario_igov_ti():
                             for row in rows:
                                 # Tratamento universal para Tupla (índice) ou Dict (chave)
                                 if isinstance(row, dict):
-                                    qid = str(row["id"]).strip()
+                                    qid = str(row["qid"]).strip()
                                     ano = int(row["ano"])
                                     valor = row["valor"] or ""
                                     pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
@@ -3460,8 +3460,8 @@ def container_formulario_igov_ti():
             try:
                 await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 300))', timeout=5.0)
 
-                dados_locais = res_data if 'res_data' in locals() or 'res_data' in globals() else {}
-                ano_alvo = ano_sel if 'ano_sel' in locals() or 'ano_sel' in globals() else (ano if 'ano' in locals() else 2026)
+                dados_locais = res_data or {}
+                ano_alvo = int(ano_sel)
 
                 total_pts = float(sum(
                     v.get("pontos", 0) 
@@ -3541,7 +3541,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     # Trata dados históricos sem dar erro de variável inexistente
     todos_dados = todos_dados or {}
-    ano_ant = ano - 1 if isinstance(ano, int) else None
+    try:
+        ano_normalizado = int(str(ano).strip()[:4])
+    except (TypeError, ValueError, AttributeError):
+        ano_normalizado = datetime.now().year
+    ano_ant = ano_normalizado - 1
     dados_ano_anterior = todos_dados.get(ano_ant) or todos_dados.get(str(ano_ant)) or {}
 
     style_cell_link = ParagraphStyle(
