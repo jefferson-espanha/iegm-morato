@@ -3516,11 +3516,18 @@ def container_formulario_igov_ti():
 
 
 import os
+from datetime import datetime
 from io import BytesIO
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, Table, TableStyle
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.charts.lineplots import LinePlot
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+# Constantes globais auxiliares (caso não estejam importadas no seu módulo principal)
+LISTA_ALVO_SP = getattr(globals(), 'LISTA_ALVO_SP', ["4.0", "4.1", "5.1", "5.1.2", "5.1.2.1", "7.3.1", "7.4.1", "8.1", "8.1.1", "11.0", "12.0", "12.1.3.1", "13.0", "14.1"])
+PONTUACOES_MAX = getattr(globals(), 'PONTUACOES_MAX', {})
 
 # =============================================================================
 # 1. FUNÇÃO EXCLUSIVA DO PDF (Nível zero de indentação - 0 espaços)
@@ -3599,7 +3606,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(Paragraph(str(ano), style_ano_capa))
     elements.append(PageBreak())
 
-                # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # FOLHA 2: SUMÁRIO
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
@@ -3629,7 +3636,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(PageBreak())
 
     # =========================================================================
-    # DEFINIÇÃO GLOBAL DE ESTILOS DA FUNÇÃO (Evita NameError em qualquer escopo)
+    # DEFINIÇÃO GLOBAL DE ESTILOS DA FUNÇÃO
     # =========================================================================
     style_th = ParagraphStyle('Th', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.whitesmoke, alignment=1)
     style_td_ano = ParagraphStyle('TdAno', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2c3e50"), alignment=1)
@@ -4195,47 +4202,32 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             Paragraph("Situação / Conformidade", style_th)
         ]]
 
-        total_adequados = 0
         for item in analise_sp:
             if item["status"] == "Adequado":
-                total_adequados += 1
                 st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>", style_td_sp)
             else:
                 st_p = Paragraph("<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
 
             data_sp.append([
-                Paragraph(f"<b>{item['qid']}</b>", style_td_sp),
+                Paragraph(item["qid"], styles["Normal"]),
                 Paragraph(item["resp"], styles["Normal"]),
                 st_p
             ])
 
-        tabela_sp = Table(data_sp, colWidths=[70, 280, 135])
+        tabela_sp = Table(data_sp, colWidths=[80, 280, 125])
         tabela_sp.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495e")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
             ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-            ("TOPPADDING", (0, 0), (-1, -1), 3),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-            ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ffffff")),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (2, 0), (2, -1), "CENTER")
         ]))
         elements.append(tabela_sp)
-        elements.append(Spacer(1, 8))
 
-        pct_sp = (total_adequados / len(analise_sp)) * 100.0
-        texto_sp = (
-            f"A análise dinâmica dos quesitos de conformidade operacional do i-GOV TI no exercício de <b>{ano_atual}</b> apontou "
-            f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
-            f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
-        )
-        
-        elements.append(Paragraph(texto_sp, style_analise))
-        elements.append(Spacer(1, 15))
-
+    # Constrói o PDF e retorna os bytes
     doc.build(elements)
     buffer.seek(0)
     return buffer.getvalue()
-
 # Ponte universal de execução para importação do main.py
 def render_igovti():
         container_formulario_igov_ti()
