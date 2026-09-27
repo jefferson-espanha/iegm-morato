@@ -4002,28 +4002,60 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (CONFORMIDADE OPERACIONAL)
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
+    # Lista com os novos quesitos informados para a Seção 7
+    LISTA_ALVO_SP = ["1.4", "3.2", "5.0", "5.3", "9.0", "10.0", "10.3", "10.4", "10.5", "11.0"]
+
+    # Mapeamento de regras específicas de conformidade por quesito
+    REGRAS_ADEQUACAO = {
+        "1.4":  lambda r: r == "sim",
+        "3.2":  lambda r: r == "sim",
+        "5.0":  lambda r: r == "sim",
+        "5.3":  lambda r: "sim, para todos os processos administrativos" in r or r == "sim",
+        "9.0":  lambda r: r == "sim",
+        "10.0": lambda r: r == "sim",
+        "10.3": lambda r: "todos os contratos vigentes" in r or r == "sim",
+        "10.4": lambda r: r == "sim",
+        "10.5": lambda r: r == "sim",
+        "11.0": lambda r: r == "sim",
+    }
+
     analise_sp = []
     for qid in LISTA_ALVO_SP:
         info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
-        resp = str(info.get("valor", "") if isinstance(info, dict) else info).strip()
-        resp_l = resp.lower()
-        
-        is_adequado = any(x in resp_l for x in ["sim", "adequad", "diariament", "1", "true"])
-        status_txt = "Adequado" if is_adequado else "Inadequado"
+        resp_original = str(info.get("valor", "") if isinstance(info, dict) else info).strip()
+        resp_lower = resp_original.lower()
 
-        analise_sp.append({"qid": qid, "resp": resp if resp else "Não Informado", "status": status_txt})
+        # Aplica a regra específica se existir, caso contrário aplica uma busca padrão por "sim"
+        if qid in REGRAS_ADEQUACAO:
+            is_adequado = REGRAS_ADEQUACAO[qid](resp_lower)
+        else:
+            is_adequado = any(x in resp_lower for x in ["sim", "adequad", "diariament", "1", "true"])
+
+        status_txt = "Adequado" if is_adequado else "Inadequado"
+        analise_sp.append({
+            "qid": qid,
+            "resp": resp_original if resp_original else "Não Informado",
+            "status": status_txt
+        })
 
     if analise_sp:
         data_sp = [[Paragraph("Quesito", style_th), Paragraph("Resposta Informada no Sistema", style_th), Paragraph("Situação / Conformidade", style_th)]]
 
         for item in analise_sp:
-            st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>" if item["status"] == "Adequado" else "<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
-            data_sp.append([Paragraph(item["qid"], styles["Normal"]), Paragraph(item["resp"], styles["Normal"]), st_p])
+            st_p = Paragraph(
+                "<font color='#28a745'><b>✅ Adequado</b></font>" if item["status"] == "Adequado" else "<font color='#dc3545'><b>❌ Inadequado</b></font>",
+                style_td_sp
+            )
+            data_sp.append([
+                Paragraph(item["qid"], styles["Normal"]),
+                Paragraph(item["resp"], styles["Normal"]),
+                st_p
+            ])
 
         tabela_sp = Table(data_sp, colWidths=[80, 280, 125])
         tabela_sp.setStyle(TableStyle([
