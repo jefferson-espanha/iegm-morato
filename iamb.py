@@ -5751,6 +5751,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     doc.build(elements)
     return buffer.getvalue()
 
+import asyncio
+from fastapi import Response
 
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
