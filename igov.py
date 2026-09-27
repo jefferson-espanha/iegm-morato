@@ -3534,9 +3534,25 @@ PONTUACOES_MAX_DEFAULT = {
     "8.0": 40, "8.2.1": 50, "8.2.2": 30, "9.1": 120
 }
 
-LISTA_ALVO_SP = getattr(globals(), 'LISTA_ALVO_SP', ["4.0", "4.1", "5.1", "5.1.2", "5.1.2.1", "7.3.1", "7.4.1", "8.1", "8.1.1", "11.0", "12.0", "12.1.3.1", "13.0", "14.1"])
-
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
+    # -------------------------------------------------------------------------
+    # DEFINIÇÃO DOS QUESITOS SEM PONTUAÇÃO DIRETA E SUAS REGRAS
+    # -------------------------------------------------------------------------
+    LISTA_ALVO_SP = ["1.4", "3.2", "5.0", "5.3", "9.0", "10.0", "10.3", "10.4", "10.5", "11.0"]
+
+    REGRAS_ADEQUACAO = {
+        "1.4":  lambda r: r == "sim",
+        "3.2":  lambda r: r == "sim",
+        "5.0":  lambda r: r == "sim",
+        "5.3":  lambda r: "sim, para todos os processos administrativos" in r or r == "sim",
+        "9.0":  lambda r: r == "sim",
+        "10.0": lambda r: r == "sim",
+        "10.3": lambda r: "todos os contratos vigentes" in r or r == "sim",
+        "10.4": lambda r: r == "sim",
+        "10.5": lambda r: r == "sim",
+        "11.0": lambda r: r == "sim",
+    }
+
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -3552,7 +3568,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # Tenta usar o PONTUACOES_MAX global ou o padrão definido
     pontuacoes_ref = globals().get('PONTUACOES_MAX', PONTUACOES_MAX_DEFAULT)
 
-    # Função auxiliar para converter valores numéricos
     def converter_para_float(val):
         if val is None:
             return 0.0
@@ -3567,7 +3582,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     except (TypeError, ValueError, AttributeError):
         ano_normalizado = datetime.now().year
     ano_ant = ano_normalizado - 1
-    dados_ano_anterior = todos_dados.get(ano_ant) or todos_dados.get(str(ano_ant)) or {}
 
     style_cell_link = ParagraphStyle(
         'CellLink',
@@ -3630,7 +3644,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_sumario)
     elements.append(PageBreak())
 
-    # ESTILOS DA TABELA
+    # ESTILOS DAS TABELAS
     style_th = ParagraphStyle('Th', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.whitesmoke, alignment=1)
     style_td_ano = ParagraphStyle('TdAno', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2c3e50"), alignment=1)
     style_td_pts = ParagraphStyle('TdPts', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, alignment=1)
@@ -3716,7 +3730,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(Spacer(1, 12))
 
     # -------------------------------------------------------------------------
-    # 2. ANÁLISE DE DESEMPENHO POR QUESITO (CORRIGIDO)
+    # 2. ANÁLISE DE DESEMPENHO POR QUESITO
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO POR QUESITO</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
@@ -3729,14 +3743,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         if str(qid_raw).startswith("COM_"):
             continue
 
-        # Normalização do ID do Quesito
         qid_clean = str(qid_raw).replace("Q_", "").strip()
 
-        # Ignora itens sem pontuação direta da lista de SP
+        # Ignora itens sem pontuação direta definidos na LISTA_ALVO_SP
         if qid_clean in LISTA_ALVO_SP:
             continue
 
-        # Busca teto em pontuacoes_ref testando variações (ex: "1.0" ou "1")
         pts_maximo = converter_para_float(
             pontuacoes_ref.get(qid_clean) or 
             pontuacoes_ref.get(f"{qid_clean}.0") or 
@@ -3766,13 +3778,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             "link": link_evidencia
         }
 
-        # REGRA: Igua/Superior a 70% é forte; Menos de 70% é fraco
         if eficiencia >= 70.0:
             lista_pontos_fortes.append(item_data)
         else:
             lista_pontos_fracos.append(item_data)
             
-            # Checa Reincidência
             info_ant = dados_ano_anterior.get(qid_raw) or dados_ano_anterior.get(qid_clean) or dados_ano_anterior.get(f"Q_{qid_clean}")
             if info_ant:
                 pts_ant = converter_para_float(info_ant.get("pontos") if isinstance(info_ant, dict) else info_ant)
@@ -3975,7 +3985,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_hist)
     elements.append(Spacer(1, 15))
 
-    # Gráfico em Barras Verticais
     if len(valores_grafico) >= 1:
         drawing = Drawing(450, 160)
         bc = VerticalBarChart()
@@ -3988,10 +3997,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         bc.categoryAxis.labels.fontSize = 9
         bc.categoryAxis.labels.fontName = 'Helvetica-Bold'
         
-        # Cor das Barras
         bc.bars[0].fillColor = colors.HexColor("#1b4f72")
         
-        # Ajuste de escala do Eixo Y
         max_val = max(valores_grafico + [100.0])
         bc.valueAxis.valueMin = 0
         bc.valueAxis.valueMax = max_val * 1.15
@@ -4002,27 +4009,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (CONFORMIDADE OPERACIONAL)
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
-
-    # Lista com os novos quesitos informados para a Seção 7
-    LISTA_ALVO_SP = ["1.4", "3.2", "5.0", "5.3", "9.0", "10.0", "10.3", "10.4", "10.5", "11.0"]
-
-    # Mapeamento de regras específicas de conformidade por quesito
-    REGRAS_ADEQUACAO = {
-        "1.4":  lambda r: r == "sim",
-        "3.2":  lambda r: r == "sim",
-        "5.0":  lambda r: r == "sim",
-        "5.3":  lambda r: "sim, para todos os processos administrativos" in r or r == "sim",
-        "9.0":  lambda r: r == "sim",
-        "10.0": lambda r: r == "sim",
-        "10.3": lambda r: "todos os contratos vigentes" in r or r == "sim",
-        "10.4": lambda r: r == "sim",
-        "10.5": lambda r: r == "sim",
-        "11.0": lambda r: r == "sim",
-    }
 
     analise_sp = []
     for qid in LISTA_ALVO_SP:
@@ -4030,7 +4020,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         resp_original = str(info.get("valor", "") if isinstance(info, dict) else info).strip()
         resp_lower = resp_original.lower()
 
-        # Aplica a regra específica se existir, caso contrário aplica uma busca padrão por "sim"
         if qid in REGRAS_ADEQUACAO:
             is_adequado = REGRAS_ADEQUACAO[qid](resp_lower)
         else:
