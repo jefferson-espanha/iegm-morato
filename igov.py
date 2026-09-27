@@ -3347,9 +3347,11 @@ def container_formulario_igov_ti():
                     """Cria conexão segura com o Neon PostgreSQL."""
                     return psycopg2.connect(DATABASE_URL)
 
+                
                 def get_all_years_data():
                     """
-                    Busca todas as respostas da tabela 'respostas_igovti' no Neon DB.
+                    Busca todas as respostas do banco Neon de forma resiliente
+                    (trata retorno por tupla ou por dicionário).
                     """
                     all_data = {}
                     query = """
@@ -3359,6 +3361,7 @@ def container_formulario_igov_ti():
                     """
                     try:
                         with get_db_connection() as conn:
+                            # Usando RealDictCursor se disponível, ou cursor padrão de tupla
                             try:
                                 import psycopg2.extras
                                 cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -3369,6 +3372,7 @@ def container_formulario_igov_ti():
                             rows = cur.fetchall()
 
                             for row in rows:
+                                # Tratamento universal para Tupla (índice) ou Dict (chave)
                                 if isinstance(row, dict):
                                     qid = str(row["id"]).strip()
                                     ano = int(row["ano"])
