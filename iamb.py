@@ -5768,7 +5768,8 @@ def renderizar_card_relatorio_iamb(ui, app, res_data, ano_sel):
             n = ui.notify("Gerando PDF do I-AMB, aguarde...", type="info", timeout=0)
             
             try:
-                await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 300))', timeout=5.0)
+                # Substituído para asyncio.sleep para evitar travamentos de JS no NiceGUI
+                await asyncio.sleep(0.3)
 
                 dados_locais = res_data or {}
                 ano_alvo = int(ano_sel)
@@ -5792,11 +5793,15 @@ def renderizar_card_relatorio_iamb(ui, app, res_data, ano_sel):
                 
                 rota_pdf = f"/relatorio_iamb_temp_{ano_alvo}.pdf"
                 
-                @app.get(rota_pdf)
-                def relatorio_endpoint():
-                    from fastapi import Response
-                    return Response(content=pdf_bytes, media_type="application/pdf")
+                # Registra ou atualiza o endpoint de download do PDF no FastAPI
+                try:
+                    @app.get(rota_pdf)
+                    def relatorio_endpoint():
+                        return Response(content=pdf_bytes, media_type="application/pdf")
+                except Exception:
+                    pass  # Caso a rota já tenha sido registrada anteriormente
 
+                # Abre o PDF em uma nova aba
                 ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
                 ui.notify("Relatório I-AMB aberto com sucesso!", type="positive")
 
@@ -5813,10 +5818,21 @@ def renderizar_card_relatorio_iamb(ui, app, res_data, ano_sel):
                         pass
 
         ui.button("📥 GERAR E ABRIR RELATÓRIO PDF (I-AMB)", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
-    
-    # Executa a renderização da interface
-    render_conteudo()
-                
-# Exporta referências principais para o aplicativo
+
+
+def container_formulario_iamb(ui, app, res_data, ano_sel):
+    """
+    Função contêiner para estruturar a página principal do formulário I-AMB.
+    """
+    # 1. Cabeçalho com Botões de Navegação (como visto na imagem)
+    with ui.row().classes('w-full items-center justify-between p-4 border-b border-gray-300'):
+        ui.button("← VOLTAR", on_click=lambda: ui.navigate.to('/')).classes('bg-blue-500 text-white font-bold')
+        ui.label(f"i-Amb - {ano_sel}").classes('text-2xl font-bold text-blue-900')
+        ui.button("🚪 SAIR", on_click=lambda: ui.navigate.to('/login')).classes('bg-blue-500 text-white font-bold')
+
+    # 2. Renderização do Card do Relatório
+    renderizar_card_relatorio_iamb(ui, app, res_data, ano_sel)
+
+# Referências de exportação do aplicativo
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
