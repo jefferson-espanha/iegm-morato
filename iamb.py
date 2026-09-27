@@ -5156,6 +5156,9 @@ def _render_formulario_iamb(ano=None):
                     on_save_callback=render_conteudo.refresh,
                 )
 
+    # Executa o formulário depois de definir todos os seus componentes.
+    render_conteudo()
+
     import io
 import os
 import logging
