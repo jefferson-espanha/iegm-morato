@@ -5155,6 +5155,664 @@ def container_formulario_iamb(ano=None):
                     placeholder_link="Insira o link de evidência/comprovação do SINISA...",
                     on_save_callback=render_conteudo.refresh,
                 )
+
+    import io
+import os
+import logging
+from datetime import datetime
+from io import BytesIO
+
+import psycopg2
+import psycopg2.extras
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
+from reportlab.platypus import (
+    SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, Table, TableStyle
+)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+# -----------------------------------------------------------------------------
+# 1. MAPEAMENTOS E TETOS DE PONTUAÇÃO DO I-AMB
+# -----------------------------------------------------------------------------
+PONTUACOES_MAX_IAMB = {
+    "1.1.2": 20.0, "1.1.3": 5.0, "1.2": 20.0, "2.0": 10.0, "2.1": 50.0,
+    "3.0": 10.0, "3.1": 20.0, "4.0": 20.0, "5.2.1": 20.0, "6.0": 20.0,
+    "6.1": 50.0, "6.2": 25.0, "7.2": 2.0, "7.3": 10.0, "7.3.1": 20.0,
+    "7.4": 10.0, "7.4.1": 20.0, "7.5": 30.0, "7.7": 30.0, "7.8": 20.0,
+    "7.8.1": 50.0, "7.9": 3.0, "8.2": 2.0, "8.3": 10.0, "8.4": 20.0,
+    "8.4.1": 10.0, "8.4.2": 30.0, "8.4.3": 50.0, "9.2": 100.0, "9.3": 5.0,
+    "9.3.1": 5.0, "11.2": 2.0, "11.3": 30.0, "11.3.2": 20.0, "11.3.3": 40.0,
+    "11.5": 10.0, "12.1": 54.0, "14.3": 30.0, "15": 2.0, "15.1": 3.0,
+    "A4.1.1": 90.0, "A4.1.2": 20.0, "A4.1.3": 22.0, "A6": 5.0
+}
+
+# Alias para evitar erros de referência no ReportLab
+PONTUACOES_MAX = PONTUACOES_MAX_IAMB
+
+PENALIDADES_MAX = {
+    "5.2": -15.0, "5.3": -10.0, "7.3.2": -5.0, "7.4.2": -5.0, "7.5.1": -5.0, 
+    "8.4.4": -30.0, "9.1": -30.0, "10.0": -100.0, "10.1": -30.0, "14.0": -30.0, "A1": -200.0
+}
+
+# String de conexão com o PostgreSQL
+DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+
+# -----------------------------------------------------------------------------
+# 2. FUNÇÕES AUXILIARES E REGRAS DE NEGÓCIO I-AMB
+# -----------------------------------------------------------------------------
+def get_db_connection():
+    """Cria conexão segura com o Neon PostgreSQL."""
+    return psycopg2.connect(DATABASE_URL)
+
+
+def calcular_percentual_checklist(resp, total_itens):
+    """Calcula a porcentagem de itens atendidos em um checklist."""
+    if not resp:
+        return 0.0
+    if isinstance(resp, list):
+        qtd = len(resp)
+    elif isinstance(resp, str):
+        qtd = len([item for item in resp.split(',') if item.strip()])
+    else:
+        qtd = 0
+    return min((qtd / total_itens) * 100.0, 100.0)
+
+
+def obter_regra_ods_iamb(qid, resp):
+    """Mapeia os quesitos do I-AMB para as metas da Agenda 2030 (ODS) e seu status."""
+    resp_l = str(resp).strip().lower()
+    metas = "-"
+    status = "Não Atendido"
+
+    if qid in ["1.0", "1.1"]:
+        metas = "12.2, 15.2, 16.6"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "1.1.2":
+        metas = "12.8"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "2.0":
+        metas = "4.7, 12.8, 15.1"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "3.0":
+        metas = "12.2, 16.6, 17.14"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "4.0":
+        metas = "12.4"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "5.0":
+        metas = "5.0"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "6.0":
+        metas = "6.4, 6.b, 16.6"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "6.2":
+        metas = "6.4, 6.5, 6.b, 16.6"
+        pct = calcular_percentual_checklist(resp, 3)
+        status = f"{pct:.1f}% Atendido"
+    elif qid in ["7.0", "7.3"]:
+        metas = "6.0, 16.6"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid in ["7.4", "7.5"]:
+        metas = "6.2, 6.3"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "7.7.1":
+        metas = "6.0, 16.6"
+        pct = calcular_percentual_checklist(resp, 3)
+        status = f"{pct:.1f}% Atendido"
+    elif qid == "7.8":
+        metas = "6.0, 16.6"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "7.8.1":
+        metas = "6.2, 6.3"
+        status = "Atendido" if "todas as metas foram cumpridas dentro do prazo" in resp_l else "Não Atendido"
+    elif qid == "7.9":
+        metas = "6.2, 6.3"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid in ["8.0", "8.3", "8.4", "9.0"]:
+        metas = "11.6, 12.5"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "8.3.1":
+        metas = "11.6, 12.5, 12.4"
+        pct = calcular_percentual_checklist(resp, 3)
+        status = f"{pct:.1f}% Atendido"
+    elif qid == "8.4.1":
+        metas = "11.6, 12.5, 12.4"
+        pct = calcular_percentual_checklist(resp, 4)
+        status = f"{pct:.1f}% Atendido"
+    elif qid in ["10.0", "10.1"]:
+        metas = "11.6, 12.5, 16.6"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "10.2":
+        metas = "11.6, 12.5, 16.6"
+        status = "Atendido" if "todos os bairros do município são atendidos" in resp_l else "Não Atendido"
+    elif qid == "10.3":
+        metas = "11.6, 12.5, 12.4, 16.6"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "11.0":
+        metas = "11.6, 12.4, 12.5, 16.6"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "12.0":
+        metas = "11.6, 12.5, 12.4"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "13.0":
+        metas = "11.6, 12.4"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "14.0":
+        metas = "11.6, 12.4"
+        status = "Atendido" if "não" in resp_l else "Não Atendido"
+    elif qid == "15.0":
+        metas = "12.0, 16.6"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+
+    return metas, status
+
+
+def get_all_years_data():
+    """Busca a série histórica do I-AMB no PostgreSQL Neon DB."""
+    all_data = {}
+    query = """
+        SELECT qid, ano, valor, pontos, link, comentarios
+        FROM respostas_iamb_oficial
+        ORDER BY ano ASC;
+    """
+    try:
+        with get_db_connection() as conn:
+            try:
+                cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            except Exception:
+                cur = conn.cursor()
+
+            cur.execute(query)
+            rows = cur.fetchall()
+
+            for row in rows:
+                if isinstance(row, dict):
+                    qid = str(row["qid"]).strip()
+                    ano = int(row["ano"])
+                    valor = row["valor"] or ""
+                    pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
+                    link = row["link"] if row["link"] != "EMPTY_STRING" else ""
+                    comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
+                else:
+                    qid = str(row[0]).strip()
+                    ano = int(row[1])
+                    valor = row[2] or ""
+                    pontos = float(row[3]) if row[3] is not None else 0.0
+                    link = row[4] if row[4] != "EMPTY_STRING" else ""
+                    comentarios = row[5] if isinstance(row[5], list) else []
+
+                if ano not in all_data:
+                    all_data[ano] = {}
+
+                all_data[ano][qid] = {
+                    "valor": valor,
+                    "pontos": pontos,
+                    "link": link,
+                    "comentarios": comentarios
+                }
+    except Exception as e:
+        print(f"❌ Erro ao buscar série histórica I-AMB no Neon DB: {e}")
+
+    return all_data
+
+
+def converter_para_float(val):
+    if val is None:
+        return 0.0
+    try:
+        return float(str(val).replace(',', '.').strip())
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def converter_pontos_em_faixa_iegm(pontos):
+    pts = float(pontos)
+    if pts < 500.0:
+        return "C"
+    elif 500.0 <= pts <= 599.9:
+        return "C+"
+    elif 600.0 <= pts <= 749.9:
+        return "B"
+    elif 750.0 <= pts <= 899.9:
+        return "B+"
+    else:
+        return "A"
+
+
+# -----------------------------------------------------------------------------
+# 3. GERADOR DE RELATÓRIO PDF COMPLETO (REPORTLAB)
+# -----------------------------------------------------------------------------
+def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
+    """Gere o relatório completo e não-resumido do I-AMB em PDF."""
+    
+    lista_alvo_iamb = [
+        "1.0", "1.1", "5.0", "7.0", "7.6", "7.6.1", 
+        "8.0", "9.0", "10.3", "11.0", "11.1", "11.6", "11.6.1", "12.0"
+    ]
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=30,
+        leftMargin=30,
+        topMargin=30,
+        bottomMargin=30
+    )
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Definindo e registrando estilos estilizados do relatório
+    styles.add(ParagraphStyle('TitleCapa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=24, textColor=colors.HexColor("#1b4f72"), alignment=TA_CENTER))
+    styles.add(ParagraphStyle('SubTitleCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=14, textColor=colors.HexColor("#5D6D7E"), alignment=TA_CENTER))
+    styles.add(ParagraphStyle('ItemEsq', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2C3E50")))
+    styles.add(ParagraphStyle('PagDir', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#1B4F72"), alignment=TA_RIGHT))
+    styles.add(ParagraphStyle('ThStyle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.white, alignment=TA_CENTER))
+    styles.add(ParagraphStyle('TdStyle', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=TA_LEFT))
+    styles.add(ParagraphStyle('TdCenter', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=TA_CENTER))
+    styles.add(ParagraphStyle('CellLink', parent=styles['Normal'], fontName='Helvetica', fontSize=8, leading=10, textColor=colors.HexColor("#1A5276")))
+
+    ano_normalizado = int(str(ano).strip()[:4])
+    ano_ant = ano_normalizado - 1
+    todos_dados = todos_dados or {}
+
+    # -------------------------------------------------------------------------
+    # CAPA
+    # -------------------------------------------------------------------------
+    elements.append(Spacer(1, 80))
+    logo_path = "iegm.png"
+    if os.path.exists(logo_path):
+        try:
+            logo = Image(logo_path, width=350, height=160)
+            logo.hAlign = 'CENTER'
+            elements.append(logo)
+        except Exception:
+            elements.append(Paragraph("<b>[IEGM - GESTÃO AMBIENTAL]</b>", styles["TitleCapa"]))
+    else:
+        elements.append(Paragraph("<b>[IEGM - GESTÃO AMBIENTAL]</b>", styles["TitleCapa"]))
+
+    elements.append(Spacer(1, 40))
+    elements.append(Paragraph("Relatório Analítico de Desempenho<br/><b>I-AMB (Gestão Ambiental)</b>", styles['TitleCapa']))
+    elements.append(Spacer(1, 15))
+    elements.append(Paragraph(f"Exercício de Referência: <b>{ano_normalizado}</b>", styles['SubTitleCapa']))
+    elements.append(PageBreak())
+
+    # -------------------------------------------------------------------------
+    # SUMÁRIO
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>SUMÁRIO DE CONTEÚDO</b>", styles["Heading1"]))
+    elements.append(Spacer(1, 20))
+
+    itens_sumario = [
+        [Paragraph("1. Resumo Executivo e Evolução Comparativa", styles['ItemEsq']), Paragraph("Pág. 3", styles['PagDir'])],
+        [Paragraph("2. Análise Detalhada de Desempenho por Quesito", styles['ItemEsq']), Paragraph("Pág. 3", styles['PagDir'])],
+        [Paragraph("3. Quadro de Penalidades e Impactos Negativos", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
+        [Paragraph("4. Diagnóstico de Reincidências de Fracasso", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
+        [Paragraph("5. Alinhamento com a Agenda 2030 (Metas ODS)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
+        [Paragraph("6. Evolução Temporal da Série Histórica (I-AMB)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
+        [Paragraph("7. Quesitos de Conformidade Operacional (Sem Pontuação Direta)", styles['ItemEsq']), Paragraph("Pág. 6", styles['PagDir'])],
+    ]
+
+    tabela_sumario = Table(itens_sumario, colWidths=[380, 100])
+    tabela_sumario.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+    ]))
+    elements.append(tabela_sumario)
+    elements.append(PageBreak())
+
+    # -------------------------------------------------------------------------
+    # 1. RESUMO EXECUTIVO
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>1. RESUMO EXECUTIVO E EVOLUÇÃO COMPARATIVA</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 8))
+
+    nota_atual = converter_para_float(total)
+    dados_ano_anterior = todos_dados.get(ano_ant) or todos_dados.get(str(ano_ant)) or {}
+    nota_anterior = 0.0
+
+    if isinstance(dados_ano_anterior, dict):
+        for qid_ant, info_ant in dados_ano_anterior.items():
+            if str(qid_ant).startswith("COM_"):
+                continue
+            pts = info_ant.get("pontos", 0.0) if isinstance(info_ant, dict) else info_ant
+            nota_anterior += converter_para_float(pts)
+
+    faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
+    faixa_atual = faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
+    variacao_nominal = nota_atual - nota_anterior
+
+    if nota_anterior > 0:
+        variacao_pct = (variacao_nominal / nota_anterior) * 100.0
+        str_pct = f"{variacao_pct:+.2f}%"
+    else:
+        str_pct = f"{variacao_nominal:+.1f} pts"
+
+    cor_var = colors.HexColor("#27AE60") if variacao_nominal >= 0 else colors.HexColor("#C0392B")
+    simbolo = "▲" if variacao_nominal > 0 else ("▼" if variacao_nominal < 0 else "■")
+
+    style_var_cell = ParagraphStyle('VarCell', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=cor_var, alignment=TA_CENTER)
+
+    dados_exec = [
+        [Paragraph("Exercício", styles['ThStyle']), Paragraph("Pontuação Obteve", styles['ThStyle']), Paragraph("Faixa IEGM", styles['ThStyle']), Paragraph("Variação Nominal", styles['ThStyle']), Paragraph("Variação %", styles['ThStyle'])],
+        [Paragraph(str(ano_ant), styles['TdCenter']), Paragraph(f"{nota_anterior:.1f} pts", styles['TdCenter']), Paragraph(faixa_anterior, styles['TdCenter']), Paragraph("-", styles['TdCenter']), Paragraph("-", styles['TdCenter'])],
+        [Paragraph(str(ano_normalizado), styles['TdCenter']), Paragraph(f"{nota_atual:.1f} pts", styles['TdCenter']), Paragraph(faixa_atual, styles['TdCenter']), Paragraph(f"{simbolo} {variacao_nominal:+.1f}", style_var_cell), Paragraph(f"{simbolo} {str_pct}", style_var_cell)]
+    ]
+
+    t_exec = Table(dados_exec, colWidths=[80, 100, 90, 105, 105])
+    t_exec.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1B4F72")),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(t_exec)
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 2. DESEMPENHO POR QUESITO (FORTES E FRACOS)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>2. ANÁLISE DETALHADA DE DESEMPENHO POR QUESITO</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 6))
+
+    pontos_fortes, pontos_fracos, reincidencias = [], [], []
+
+    for qid_raw, info in dados.items():
+        if str(qid_raw).startswith("COM_"):
+            continue
+
+        qid = str(qid_raw).replace("Q_", "").strip()
+        pts_max = PONTUACOES_MAX_IAMB.get(qid, 0.0)
+
+        if pts_max <= 0:
+            continue
+
+        if isinstance(info, dict):
+            pts_obt = converter_para_float(info.get("pontos", 0.0))
+            resp_val = str(info.get("valor", ""))
+            link_ev = str(info.get("link", ""))
+        else:
+            pts_obt = converter_para_float(info)
+            resp_val = str(info)
+            link_ev = ""
+
+        eficiencia = (pts_obt / pts_max) * 100.0
+        item = {"qid": qid, "pts": pts_obt, "max": pts_max, "efic": eficiencia, "resp": resp_val, "link": link_ev}
+
+        if eficiencia >= 70.0:
+            pontos_fortes.append(item)
+        else:
+            pontos_fracos.append(item)
+
+            # Teste de reincidência
+            info_ant = dados_ano_anterior.get(qid_raw) or dados_ano_anterior.get(qid)
+            if info_ant:
+                pts_ant = converter_para_float(info_ant.get("pontos") if isinstance(info_ant, dict) else info_ant)
+                if pts_ant < pts_max and pts_obt < pts_max:
+                    reincidencias.append({
+                        "qid": qid,
+                        "max": pts_max,
+                        "ant": pts_ant,
+                        "atual": pts_obt
+                    })
+
+    # Tabela Pontos Fortes
+    if pontos_fortes:
+        elements.append(Paragraph("<b>✅ Pontos Fortes (Eficiência ≥ 70%)</b>", styles["Heading3"]))
+        df_fortes = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
+        for f in sorted(pontos_fortes, key=lambda x: x["efic"], reverse=True):
+            lnk = f"<br/><a href='{f['link']}'>{f['link']}</a>" if f['link'] else ""
+            evid = f"<b>{f['resp']}</b>{lnk}"
+            df_fortes.append([f['qid'], f"{f['pts']:.1f} / {f['max']:.1f}", f"{f['efic']:.1f}%", Paragraph(evid, styles['CellLink'])])
+
+        tf = Table(df_fortes, colWidths=[65, 75, 65, 275])
+        tf.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#27AE60")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        elements.append(tf)
+        elements.append(Spacer(1, 10))
+
+    # Tabela Pontos Fracos
+    if pontos_fracos:
+        elements.append(Paragraph("<b>⚠️ Pontos Fracos (Eficiência < 70%)</b>", styles["Heading3"]))
+        df_fracos = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
+        for fr in sorted(pontos_fracos, key=lambda x: x["efic"]):
+            lnk = f"<br/><a href='{fr['link']}'>{fr['link']}</a>" if fr['link'] else ""
+            evid = f"<b>{fr['resp']}</b>{lnk}"
+            df_fracos.append([fr['qid'], f"{fr['pts']:.1f} / {fr['max']:.1f}", f"{fr['efic']:.1f}%", Paragraph(evid, styles['CellLink'])])
+
+        tfr = Table(df_fracos, colWidths=[65, 75, 65, 275])
+        tfr.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E67E22")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ]))
+        elements.append(tfr)
+
+    elements.append(PageBreak())
+
+    # -------------------------------------------------------------------------
+    # 3. PENALIDADES E IMPACTOS NEGATIVOS
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 6))
+
+    data_penal = [["Quesito", "Penalidade Máxima", "Aplicada?", "Valor Aplicado"]]
+    tem_penal = False
+
+    for qid_p, p_max in PENALIDADES_MAX.items():
+        info_p = dados.get(qid_p) or dados.get(f"Q_{qid_p}")
+        val_p = 0.0
+        aplicada = "Não"
+
+        if info_p:
+            pts_p = converter_para_float(info_p.get("pontos") if isinstance(info_p, dict) else info_p)
+            if pts_p < 0:
+                val_p = pts_p
+                aplicada = "Sim"
+                tem_penal = True
+
+        data_penal.append([qid_p, f"{p_max:.1f} pts", aplicada, f"{val_p:.1f} pts"])
+
+    t_penal = Table(data_penal, colWidths=[100, 120, 110, 150])
+    t_penal.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C0392B")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+        ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+    ]))
+    elements.append(t_penal)
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 6))
+
+    if reincidencias:
+        data_reinc = [["Quesito", "Teto Máximo", f"Pontos {ano_ant}", f"Pontos {ano_normalizado}", "Situação"]]
+        for r in reincidencias:
+            data_reinc.append([
+                r["qid"], f"{r['max']:.1f}", f"{r['ant']:.1f}", f"{r['atual']:.1f}", "Reincidente em Não-Atendimento"
+            ])
+        tr = Table(data_reinc, colWidths=[80, 80, 95, 95, 130])
+        tr.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#D35400")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+            ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+        ]))
+        elements.append(tr)
+    else:
+        elements.append(Paragraph("<i>Nenhuma reincidência de pontuação insatisfatória foi detectada entre os exercícios analisados.</i>", styles['TdStyle']))
+
+    elements.append(PageBreak())
+
+    # -------------------------------------------------------------------------
+    # 5. ALINHAMENTO COM AGENDA 2030 (ODS)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS)</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 6))
+
+    data_ods = [["Quesito", "Resposta Declarada", "Metas ODS Vinculadas", "Status do Atendimento"]]
+    
+    for qid_k, info_k in dados.items():
+        if str(qid_k).startswith("COM_"):
+            continue
+        qid_c = str(qid_k).replace("Q_", "").strip()
+        resp_c = info_k.get("valor", "") if isinstance(info_k, dict) else str(info_k)
+        
+        metas, status_ods = obter_regra_ods_iamb(qid_c, resp_c)
+        if metas != "-":
+            data_ods.append([qid_c, str(resp_c)[:35], metas, status_ods])
+
+    t_ods = Table(data_ods, colWidths=[65, 160, 125, 130])
+    t_ods.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#16A085")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+    ]))
+    elements.append(t_ods)
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 6. SÉRIE HISTÓRICA DO I-AMB
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-AMB</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 6))
+
+    data_hist = [["Exercício / Ano", "Pontuação Acumulada", "Faixa / Conceito"]]
+    anos_ordenados = sorted(todos_dados.keys())
+
+    for a in anos_ordenados:
+        sub_d = todos_dados[a]
+        tot_a = 0.0
+        if isinstance(sub_d, dict):
+            for k_a, v_a in sub_d.items():
+                if str(k_a).startswith("COM_"):
+                    continue
+                tot_a += converter_para_float(v_a.get("pontos") if isinstance(v_a, dict) else v_a)
+        
+        f_a = converter_pontos_em_faixa_iegm(tot_a)
+        data_hist.append([str(a), f"{tot_a:.1f} pts", f_a])
+
+    t_hist = Table(data_hist, colWidths=[120, 180, 180])
+    t_hist.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2C3E50")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+    ]))
+    elements.append(t_hist)
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-AMB - CONFORMIDADE OPERACIONAL)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-AMB - CONFORMIDADE OPERACIONAL)</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 6))
+
+    data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
+
+    for qsp in lista_alvo_iamb:
+        info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
+        resp_sp = "-"
+        status_sp = "Não Informado"
+
+        if info_sp:
+            resp_sp = info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
+            status_sp = "Em Conformidade" if "sim" in str(resp_sp).lower() else "Fora de Conformidade"
+
+        data_sp.append([qsp, Paragraph(str(resp_sp), styles['TdStyle']), status_sp])
+
+    t_sp = Table(data_sp, colWidths=[100, 250, 130])
+    t_sp.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495E")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (2, 0), (2, -1), "CENTER"),
+    ]))
+    elements.append(t_sp)
+
+    # Construção do Documento PDF
+    doc.build(elements)
+    return buffer.getvalue()
+
+
+# -----------------------------------------------------------------------------
+# 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
+# -----------------------------------------------------------------------------
+def renderizar_card_relatorio_iamb(ui, app, res_data, ano_sel):
+    """
+    Componente NiceGUI para renderizar o Card de Emissão do PDF do I-AMB.
+    Ajustado para indentação de 4 espaços.
+    """
+    with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
+        ui.label("📄 Emissão de Relatório Analítico - I-AMB (Gestão Ambiental)").classes("text-xl font-bold text-blue-900 mb-1")
+        ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
+
+        async def baixar_pdf():
+            n = ui.notify("Gerando PDF do I-AMB, aguarde...", type="info", timeout=0)
+            
+            try:
+                await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 300))', timeout=5.0)
+
+                dados_locais = res_data or {}
+                ano_alvo = int(ano_sel)
+
+                total_pts = float(sum(
+                    v.get("pontos", 0) 
+                    for k, v in dados_locais.items() 
+                    if isinstance(v, dict) and not str(k).startswith("COM_")
+                ))
+
+                faixa = converter_pontos_em_faixa_iegm(total_pts)
+                historico_todos_anos = get_all_years_data() or {}
+
+                pdf_bytes = gerar_relatorio_pdf(
+                    dados=dados_locais,
+                    ano=ano_alvo,
+                    total=total_pts,
+                    faixa=faixa,
+                    todos_dados=historico_todos_anos
+                )
+                
+                rota_pdf = f"/relatorio_iamb_temp_{ano_alvo}.pdf"
+                
+                @app.get(rota_pdf)
+                def relatorio_endpoint():
+                    from fastapi import Response
+                    return Response(content=pdf_bytes, media_type="application/pdf")
+
+                ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
+                ui.notify("Relatório I-AMB aberto com sucesso!", type="positive")
+
+            except Exception as e:
+                print(f"ERRO CRÍTICO AO GERAR PDF I-AMB: {e}")
+                logging.exception("Erro no PDF I-AMB:")
+                ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
+
+            finally:
+                if n is not None:
+                    try:
+                        n.dismiss()
+                    except Exception:
+                        pass
+
+        ui.button("📥 GERAR E ABRIR RELATÓRIO PDF (I-AMB)", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
     
     # Executa a renderização da interface
     render_conteudo()
