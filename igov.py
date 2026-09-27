@@ -3648,7 +3648,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     def converter_pontos_em_faixa_iegm(pontos):
         pts = float(pontos)
-        if pts < 500.0:            return "C"
+        if pts < 500.0:             return "C"
         elif 500.0 <= pts <= 599.9:  return "C+"
         elif 600.0 <= pts <= 749.9:  return "B"
         elif 750.0 <= pts <= 899.9:  return "B+"
@@ -3708,10 +3708,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         cor_variacao = colors.HexColor("#6c757d")
         seta_tendencia = "■"
 
-    style_th = ParagraphStyle('Th', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.whitesmoke, alignment=1)
-    style_td_ano = ParagraphStyle('TdAno', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2c3e50"), alignment=1)
-    style_td_pts = ParagraphStyle('TdPts', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, alignment=1)
-    style_td_faixa = ParagraphStyle('TdFaixa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, textColor=colors.HexColor("#1b4f72"), alignment=1)
     style_td_var = ParagraphStyle('TdVar', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, textColor=cor_variacao, alignment=1)
 
     dados_comparativos = [
@@ -3733,7 +3729,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     ]))
     elements.append(tabela_comp)
     elements.append(Spacer(1, 12))
-    
+
     # -------------------------------------------------------------------------
     # 2. ANÁLISE DE DESEMPENHO POR QUESITO
     # -------------------------------------------------------------------------
@@ -3744,31 +3740,48 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     lista_pontos_fracos = []
     reincidencias_detectadas = []
 
-    # Dicionário fallback de pontuação máxima para prevenir NameError:
-    pontos_max_dict = globals().get('PONTUACOES_MAX', {})
+    for qid_raw, info in dados.items():
+        if str(qid_raw).startswith("COM_") or not isinstance(info, dict): 
+            continue
 
-    for qid, info in dados.items():
-        if qid.startswith("COM_") or not isinstance(info, dict): continue
+        qid_clean = str(qid_raw).replace("Q_", "").strip()
+
+        # Descarta itens operacionais sem pontuação direta
+        if qid_clean in LISTA_ALVO_SP:
+            continue
+
+        pts_maximo = float(PONTUACOES_MAX.get(qid_clean, 0.0))
+
+        # Ignora se não houver teto válido cadastrado
+        if pts_maximo <= 0:
+            continue
+
         pts_obtidos = float(info.get("pontos", 0))
         valor_resposta = info.get("valor", "")
         link_evidencia = info.get("link", "")
-        pts_maximo = float(pontos_max_dict.get(qid, 10.0))  # Fallback para 10.0 se não achar
         
-        if pts_maximo > 0:
-            eficiencia = (pts_obtidos / pts_maximo) * 100
-            item_data = {"qid": qid, "pts_obtidos": pts_obtidos, "pts_maximo": pts_maximo, "eficiencia": eficiencia, "valor": valor_resposta, "link": link_evidencia}
-            if eficiencia >= 70.0: 
-                lista_pontos_fortes.append(item_data)
-            elif eficiencia < 50.0:
-                lista_pontos_fracos.append(item_data)
-                if qid in dados_ano_anterior:
-                    info_ant = dados_ano_anterior[qid]
-                    pts_anterior = float(info_ant.get("pontos", 0)) if isinstance(info_ant, dict) else 0.0
-                    if pts_obtidos == pts_anterior:
-                        reincidencias_detectadas.append({
-                            "qid": qid, "tipo": "Ponto Fraco", "detalhe": "Eficiência Crítica", 
-                            "ant": f"{pts_anterior:.1f} pts", "atual": f"{pts_obtidos:.1f} pts"
-                        })
+        eficiencia = (pts_obtidos / pts_maximo) * 100.0
+        item_data = {
+            "qid": qid_clean, 
+            "pts_obtidos": pts_obtidos, 
+            "pts_maximo": pts_maximo, 
+            "eficiencia": eficiencia, 
+            "valor": valor_resposta, 
+            "link": link_evidencia
+        }
+
+        if eficiencia >= 70.0: 
+            lista_pontos_fortes.append(item_data)
+        elif eficiencia < 50.0:
+            lista_pontos_fracos.append(item_data)
+            if qid_raw in dados_ano_anterior or qid_clean in dados_ano_anterior:
+                info_ant = dados_ano_anterior.get(qid_raw) or dados_ano_anterior.get(qid_clean)
+                pts_anterior = float(info_ant.get("pontos", 0)) if isinstance(info_ant, dict) else 0.0
+                if pts_obtidos == pts_anterior:
+                    reincidencias_detectadas.append({
+                        "qid": qid_clean, "tipo": "Ponto Fraco", "detalhe": "Eficiência Crítica", 
+                        "ant": f"{pts_anterior:.1f} pts", "atual": f"{pts_obtidos:.1f} pts"
+                    })
 
     if lista_pontos_fortes:
         elements.append(Paragraph("<b>✅ Pontos Fortes:</b>", styles["h3"]))
@@ -3810,21 +3823,18 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tabela_fracos)
         elements.append(Spacer(1, 15))
 
-           # -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
     # 3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
-    PENALIDADES_MAX = {
-        "8.3": -51.0,
-        "8.4": -51.0
-    }
-
+    PENALIDADES_MAX = {"8.3": -51.0, "8.4": -51.0}
     lista_penalidades = []
+
     for qid, pen_max in PENALIDADES_MAX.items():
-        if qid in dados:
-            info = dados[qid]
+        if qid in dados or f"Q_{qid}" in dados:
+            info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
             nota_real = float(info.get("pontos", 0))
             nota_risco = nota_real if nota_real <= 0 else 0.0
             eficiencia_preventiva = (1.0 - (nota_risco / pen_max)) * 100.0
@@ -3833,9 +3843,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
                 "eficiencia": eficiencia_preventiva, "valor": info.get("valor", ""), "link": info.get("link", "")
             })
             
-            if eficiencia_preventiva < 100.0 and qid in dados_ano_anterior:
-                info_ant = dados_ano_anterior[qid]
-                nota_real_ant = float(info_ant.get("pontos", 0))
+            if eficiencia_preventiva < 100.0 and (qid in dados_ano_anterior or f"Q_{qid}" in dados_ano_anterior):
+                info_ant = dados_ano_anterior.get(qid) or dados_ano_anterior.get(f"Q_{qid}")
+                nota_real_ant = float(info_ant.get("pontos", 0)) if isinstance(info_ant, dict) else 0.0
                 if nota_real == nota_real_ant:
                     reincidencias_detectadas.append({
                         "qid": qid, "tipo": "Penalidade Aplicada", 
@@ -3907,7 +3917,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
+    # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU) - RESTAURADO!
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
@@ -3959,9 +3969,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     analise_ods = []
     for qid, info in dados.items():
-        if qid.startswith("COM_") or not isinstance(info, dict): continue
+        if str(qid).startswith("COM_") or not isinstance(info, dict): continue
 
-        qid_clean = qid.replace("Q_", "").strip()
+        qid_clean = str(qid).replace("Q_", "").strip()
         if qid_clean in ["8", "10", "11"]:
             qid_clean += ".0"
 
@@ -4015,16 +4025,18 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 6. SÉRIE HISTÓRICA DO I-GOV TI
+    # 6. SÉRIE HISTÓRICA DO I-GOV TI (TABELA + GRÁFICO DE LINHAS)
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-GOV TI</b>", styles["h2"]))
     elements.append(Spacer(1, 10))
 
-    anos_serie = sorted([a for a in all_data.keys() if isinstance(a, int) or str(a).isdigit()])
+    anos_serie = sorted([int(a) for a in all_data.keys() if str(a).isdigit()])
     
     headers_hist = [Paragraph("<b>Ano</b>", styles["Normal"])]
     valores_hist = [Paragraph("<b>Pontuação</b>", styles["Normal"])]
     
+    pontos_grafico = []
+
     for a in anos_serie:
         dados_a = all_data.get(a) or all_data.get(str(a)) or {}
         soma_ano = 0.0
@@ -4037,6 +4049,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         
         headers_hist.append(Paragraph(f"<b>{a}</b>", styles["Normal"]))
         valores_hist.append(Paragraph(f"{soma_ano:.1f} pts", styles["Normal"]))
+        pontos_grafico.append((a, soma_ano))
 
     tabela_hist = Table([headers_hist, valores_hist])
     tabela_hist.setStyle(TableStyle([
@@ -4048,21 +4061,44 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         ("BOTTOMPADDING", (0, 0), (-1, -1), 6)
     ]))
     elements.append(tabela_hist)
-    elements.append(Spacer(1, 15))
+    elements.append(Spacer(1, 12))
+
+    # Renderização do Gráfico da Série Histórica
+    if len(pontos_grafico) >= 2:
+        drawing = Drawing(450, 160)
+        lp = LinePlot()
+        lp.x = 40
+        lp.y = 20
+        lp.height = 120
+        lp.width = 380
+        lp.data = [pontos_grafico]
+        lp.joinedLines = 1
+        
+        lp.lines[0].strokeColor = colors.HexColor("#1b4f72")
+        lp.lines[0].strokeWidth = 2.5
+        
+        lp.xValueAxis.valueMin = min(anos_serie) - 0.2
+        lp.xValueAxis.valueMax = max(anos_serie) + 0.2
+        lp.xValueAxis.valueStep = 1
+        lp.xValueAxis.labelTextFormat = '%d'
+        
+        y_max = max([p[1] for p in pontos_grafico] + [100.0])
+        lp.yValueAxis.valueMin = 0
+        lp.yValueAxis.valueMax = y_max * 1.15
+
+        drawing.add(lp)
+        elements.append(drawing)
+        elements.append(Spacer(1, 15))
+
     # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV TI - CONFORMIDADE OPERACIONAL)
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV - CONFORMIDADE OPERACIONAL)
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV - CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
-    lista_alvo_sp = [
-        "4.0", "11.0", "12.0", "13.0", "4.1", "5.1", 
-        "5.1.2", "5.1.2.1", "7.3.1", "7.4.1", "8.4.1", "8.1", "8.1.1", "12.1.3.1", "14.1"
-    ]
-
     analise_sp = []
     
-    for qid in lista_alvo_sp:
+    for qid in LISTA_ALVO_SP:
         info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
         
         if isinstance(info, dict):
@@ -4186,15 +4222,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
         )
         
-        # Garante a definição do estilo se ele não existir
         style_analise = styles.get('Analise', ParagraphStyle('Analise', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor("#2c3e50"), leading=12))
         
         elements.append(Paragraph(texto_sp, style_analise))
         elements.append(Spacer(1, 15))
 
-        doc.build(elements)
-        buffer.seek(0)
-        return buffer.getvalue()
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer.getvalue()
 
 # Ponte universal de execução para importação do main.py
 def render_igovti():
