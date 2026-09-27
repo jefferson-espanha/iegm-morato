@@ -3522,18 +3522,21 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, Table, TableStyle
 from reportlab.graphics.shapes import Drawing
-from reportlab.graphics.charts.lineplots import LinePlot
+from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-# Constantes globais auxiliares (caso não estejam importadas no seu módulo principal)
-LISTA_ALVO_SP = getattr(globals(), 'LISTA_ALVO_SP', ["4.0", "4.1", "5.1", "5.1.2", "5.1.2.1", "7.3.1", "7.4.1", "8.1", "8.1.1", "11.0", "12.0", "12.1.3.1", "13.0", "14.1"])
-PONTUACOES_MAX = getattr(globals(), 'PONTUACOES_MAX', {})
+# Dicionário global de pontuações máximas caso não venha de fora
+PONTUACOES_MAX_DEFAULT = {
+    "1.0": 30, "1.1": 30, "1.2": 30, "1.3": 30, "1.3.1": 30, "1.4.1": 40, "1.4.2": 20,
+    "2.0": 40, "2.1": 20, "2.2": 40, "2.3": 20,
+    "3.0": 50, "3.1": 20, "3.1.1": 40, "3.1.1.1": 10, "3.2.1": 10, "3.3": 30, "3.4": 30, "3.5": 30, "3.6": 20,
+    "4.0": 40, "6.0": 20, "6.1": 20, "6.2": 20, "6.3": 10, "6.4": 30, "7.0": 25, "7.1": 10, "7.2": 10, "7.3": 5,
+    "8.0": 40, "8.2.1": 50, "8.2.2": 30, "9.1": 120
+}
 
-# =============================================================================
-# 1. FUNÇÃO EXCLUSIVA DO PDF (Nível zero de indentação - 0 espaços)
-# =============================================================================
+LISTA_ALVO_SP = getattr(globals(), 'LISTA_ALVO_SP', ["4.0", "4.1", "5.1", "5.1.2", "5.1.2.1", "7.3.1", "7.4.1", "8.1", "8.1.1", "11.0", "12.0", "12.1.3.1", "13.0", "14.1"])
+
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
-    # Corpo da função sempre com 4 ESPAÇOS:
     buffer = BytesIO()
     doc = SimpleDocTemplate(
         buffer,
@@ -3546,7 +3549,18 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements = []
     styles = getSampleStyleSheet()
 
-    # Trata dados históricos sem dar erro de variável inexistente
+    # Tenta usar o PONTUACOES_MAX global ou o padrão definido
+    pontuacoes_ref = globals().get('PONTUACOES_MAX', PONTUACOES_MAX_DEFAULT)
+
+    # Função auxiliar para converter valores numéricos
+    def converter_para_float(val):
+        if val is None:
+            return 0.0
+        try:
+            return float(str(val).replace(',', '.').strip())
+        except (ValueError, TypeError):
+            return 0.0
+
     todos_dados = todos_dados or {}
     try:
         ano_normalizado = int(str(ano).strip()[:4])
@@ -3562,21 +3576,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         leading=10,
         wordWrap='CJK'
     )
-    
-    style_analise = ParagraphStyle(
-        'StyleAnalise',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=9,
-        leading=12,
-        textColor=colors.HexColor("#2c3e50")
-    )
 
     # -------------------------------------------------------------------------
     # FOLHA 1: CAPA
     # -------------------------------------------------------------------------
     elements.append(Spacer(1, 100))
-    
     logo_path = "iegm.png"
     if os.path.exists(logo_path):
         try:
@@ -3589,16 +3593,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Paragraph("[Logo: iegm.png]", styles["Title"]))
         
     elements.append(Spacer(1, 50))
-    
-    style_titulo_capa = ParagraphStyle(
-        'TituloCapa', 
-        parent=styles['Normal'], 
-        fontName='Helvetica-Bold', 
-        fontSize=24, 
-        textColor=colors.HexColor("#2c3e50"), 
-        alignment=1
-    )
-
+    style_titulo_capa = ParagraphStyle('TituloCapa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=24, textColor=colors.HexColor("#2c3e50"), alignment=1)
     elements.append(Paragraph("Relatório I-Gov TI", style_titulo_capa))
     elements.append(Spacer(1, 15))
     
@@ -3635,35 +3630,22 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_sumario)
     elements.append(PageBreak())
 
-    # =========================================================================
-    # DEFINIÇÃO GLOBAL DE ESTILOS DA FUNÇÃO
-    # =========================================================================
+    # ESTILOS DA TABELA
     style_th = ParagraphStyle('Th', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.whitesmoke, alignment=1)
     style_td_ano = ParagraphStyle('TdAno', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2c3e50"), alignment=1)
     style_td_pts = ParagraphStyle('TdPts', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, alignment=1)
     style_td_faixa = ParagraphStyle('TdFaixa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, textColor=colors.HexColor("#1b4f72"), alignment=1)
-    style_cell_link = ParagraphStyle('CellLink', parent=styles['Normal'], fontSize=8, leading=10)
     style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
     style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
-    style_analise = styles.get('Analise', ParagraphStyle('Analise', parent=styles['Normal'], fontSize=9, textColor=colors.HexColor("#2c3e50"), leading=12))
 
     # -------------------------------------------------------------------------
-    # 1. RESUMO EXECUTIVO (COMPARATIVO COM O ANO ANTERIOR)
+    # 1. RESUMO EXECUTIVO
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
 
-    try:
-        nota_atual = float(total) if total is not None else 0.0
-    except (ValueError, TypeError):
-        nota_atual = 0.0
-
-    try:
-        ano_atual = int(str(ano).strip()[:4])
-    except Exception:
-        ano_atual = 2026
-
-    ano_ant = ano_atual - 1
+    nota_atual = converter_para_float(total)
+    ano_atual = ano_normalizado
 
     def converter_pontos_em_faixa_iegm(pontos):
         pts = float(pontos)
@@ -3673,49 +3655,33 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elif 750.0 <= pts <= 899.9:  return "B+"
         else:                        return "A"
 
-    all_data_raw = todos_dados if todos_dados is not None else (globals().get('get_all_years_data', lambda: {})() or {})
-    
-    if 'logging' in globals():
-        logging.info(f"=== [DEBUG PDF] Anos disponíveis no PDF: {list(all_data_raw.keys())} ===")
-
     all_data = {}
-    for k, v in all_data_raw.items():
+    for k, v in todos_dados.items():
         try:
             all_data[int(k)] = v
         except (ValueError, TypeError):
             all_data[str(k).strip()] = v
 
     dados_ano_anterior = all_data.get(ano_ant) or all_data.get(str(ano_ant)) or {}
-    
     nota_anterior = 0.0
+
     if isinstance(dados_ano_anterior, dict):
         for qid_ant, info_ant in dados_ano_anterior.items():
-            if str(qid_ant).startswith("COM_"):
-                continue
-
+            if str(qid_ant).startswith("COM_"): continue
             pts_val = None
             if isinstance(info_ant, dict):
-                pts_val = info_ant.get("pontos") if info_ant.get("pontos") is not None else info_ant.get("pontuacao") if info_ant.get("pontuacao") is not None else info_ant.get("nota") if info_ant.get("nota") is not None else info_ant.get("valor")
+                pts_val = info_ant.get("pontos") or info_ant.get("pontuacao") or info_ant.get("nota") or info_ant.get("valor")
             elif isinstance(info_ant, (int, float, str)):
                 pts_val = info_ant
             elif isinstance(info_ant, (list, tuple)) and len(info_ant) > 0:
                 pts_val = info_ant[0]
-
-            try:
-                if pts_val is not None:
-                    nota_anterior += float(pts_val)
-            except (ValueError, TypeError):
-                pass
+            nota_anterior += converter_para_float(pts_val)
 
     faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
     faixa_real_atual = faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
 
     variacao_pontos = nota_atual - nota_anterior
-    if nota_anterior > 0:
-        variacao_percentual = (variacao_pontos / nota_anterior) * 100
-        texto_percentual = f"{variacao_percentual:+.2f}%"
-    else:
-        texto_percentual = f"{variacao_pontos:+.1f} pts" if variacao_pontos != 0 else "0.00%"
+    texto_percentual = f"{(variacao_pontos / nota_anterior) * 100:+.2f}%" if nota_anterior > 0 else f"{variacao_pontos:+.1f} pts"
 
     if variacao_pontos > 0:
         cor_variacao = colors.HexColor("#28a745")
@@ -3750,7 +3716,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(Spacer(1, 12))
 
     # -------------------------------------------------------------------------
-    # 2. ANÁLISE DE DESEMPENHO POR QUESITO
+    # 2. ANÁLISE DE DESEMPENHO POR QUESITO (CORRIGIDO)
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO POR QUESITO</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
@@ -3760,24 +3726,37 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     reincidencias_detectadas = []
 
     for qid_raw, info in dados.items():
-        if str(qid_raw).startswith("COM_") or not isinstance(info, dict): 
+        if str(qid_raw).startswith("COM_"):
             continue
 
+        # Normalização do ID do Quesito
         qid_clean = str(qid_raw).replace("Q_", "").strip()
 
+        # Ignora itens sem pontuação direta da lista de SP
         if qid_clean in LISTA_ALVO_SP:
             continue
 
-        pts_maximo = float(PONTUACOES_MAX.get(qid_clean, 0.0))
+        # Busca teto em pontuacoes_ref testando variações (ex: "1.0" ou "1")
+        pts_maximo = converter_para_float(
+            pontuacoes_ref.get(qid_clean) or 
+            pontuacoes_ref.get(f"{qid_clean}.0") or 
+            pontuacoes_ref.get(qid_clean.rstrip('.0'))
+        )
 
         if pts_maximo <= 0:
             continue
 
-        pts_obtidos = float(info.get("pontos", 0))
-        valor_resposta = info.get("valor", "")
-        link_evidencia = info.get("link", "")
-        
+        if isinstance(info, dict):
+            pts_obtidos = converter_para_float(info.get("pontos") or info.get("pontuacao") or info.get("nota"))
+            valor_resposta = str(info.get("valor", ""))
+            link_evidencia = str(info.get("link", ""))
+        else:
+            pts_obtidos = converter_para_float(info)
+            valor_resposta = str(info)
+            link_evidencia = ""
+
         eficiencia = (pts_obtidos / pts_maximo) * 100.0
+
         item_data = {
             "qid": qid_clean, 
             "pts_obtidos": pts_obtidos, 
@@ -3787,21 +3766,24 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             "link": link_evidencia
         }
 
-        if eficiencia >= 70.0: 
+        # REGRA: Igua/Superior a 70% é forte; Menos de 70% é fraco
+        if eficiencia >= 70.0:
             lista_pontos_fortes.append(item_data)
-        elif eficiencia < 50.0:
+        else:
             lista_pontos_fracos.append(item_data)
-            if qid_raw in dados_ano_anterior or qid_clean in dados_ano_anterior:
-                info_ant = dados_ano_anterior.get(qid_raw) or dados_ano_anterior.get(qid_clean)
-                pts_anterior = float(info_ant.get("pontos", 0)) if isinstance(info_ant, dict) else 0.0
-                if pts_obtidos == pts_anterior:
+            
+            # Checa Reincidência
+            info_ant = dados_ano_anterior.get(qid_raw) or dados_ano_anterior.get(qid_clean) or dados_ano_anterior.get(f"Q_{qid_clean}")
+            if info_ant:
+                pts_ant = converter_para_float(info_ant.get("pontos") if isinstance(info_ant, dict) else info_ant)
+                if pts_obtidos == pts_ant:
                     reincidencias_detectadas.append({
-                        "qid": qid_clean, "tipo": "Ponto Fraco", "detalhe": "Eficiência Crítica", 
-                        "ant": f"{pts_anterior:.1f} pts", "atual": f"{pts_obtidos:.1f} pts"
+                        "qid": qid_clean, "tipo": "Ponto Fraco", "detalhe": f"Eficiência {eficiencia:.1f}%", 
+                        "ant": f"{pts_ant:.1f} pts", "atual": f"{pts_obtidos:.1f} pts"
                     })
 
     if lista_pontos_fortes:
-        elements.append(Paragraph("<b>✅ Pontos Fortes:</b>", styles["h3"]))
+        elements.append(Paragraph("<b>✅ Pontos Fortes (Eficiência ≥ 70%):</b>", styles["h3"]))
         data_fortes = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
         for item in sorted(lista_pontos_fortes, key=lambda x: x["pts_obtidos"], reverse=True):
             lnk_str = f"<br/><a href='{item['link']}'>{item['link']}</a>" if item['link'] else ""
@@ -3821,9 +3803,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Spacer(1, 12))
 
     if lista_pontos_fracos:
-        elements.append(Paragraph("<b>⚠️ Pontos Fracos Geral:</b>", styles["h3"]))
+        elements.append(Paragraph("<b>⚠️ Pontos Fracos (Eficiência < 70%):</b>", styles["h3"]))
         data_fracos = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
-        for item in sorted(lista_pontos_fracos, key=lambda x: x["pts_obtidos"]):
+        for item in sorted(lista_pontos_fracos, key=lambda x: x["eficiencia"]):
             lnk_str = f"<br/><a href='{item['link']}'>{item['link']}</a>" if item['link'] else ""
             evidencia = f"<b>{item['valor']}</b>{lnk_str}"
             data_fracos.append([item['qid'], f"{item['pts_obtidos']:.1f} / {item['pts_maximo']:.1f}", f"{item['eficiencia']:.1f}%", Paragraph(evidencia, style_cell_link)])
@@ -3841,7 +3823,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)
+    # 3. ANÁLISE DE IMPACTO E PENALIDADES
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
@@ -3852,43 +3834,24 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     for qid, pen_max in PENALIDADES_MAX.items():
         if qid in dados or f"Q_{qid}" in dados:
             info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
-            nota_real = float(info.get("pontos", 0))
+            nota_real = converter_para_float(info.get("pontos") if isinstance(info, dict) else info)
             nota_risco = nota_real if nota_real <= 0 else 0.0
             eficiencia_preventiva = (1.0 - (nota_risco / pen_max)) * 100.0
+            
             lista_penalidades.append({
                 "qid": qid, "nota_real": nota_real, "pen_max": pen_max, 
-                "eficiencia": eficiencia_preventiva, "valor": info.get("valor", ""), "link": info.get("link", "")
+                "eficiencia": eficiencia_preventiva, "valor": info.get("valor", "") if isinstance(info, dict) else "", "link": info.get("link", "") if isinstance(info, dict) else ""
             })
-            
-            if eficiencia_preventiva < 100.0 and (qid in dados_ano_anterior or f"Q_{qid}" in dados_ano_anterior):
-                info_ant = dados_ano_anterior.get(qid) or dados_ano_anterior.get(f"Q_{qid}")
-                nota_real_ant = float(info_ant.get("pontos", 0)) if isinstance(info_ant, dict) else 0.0
-                if nota_real == nota_real_ant:
-                    reincidencias_detectadas.append({
-                        "qid": qid, "tipo": "Penalidade Aplicada", 
-                        "detalhe": f"Impacto Recorrente de {nota_real:.1f} pts", 
-                        "ant": f"{nota_real_ant:.1f} pts", "atual": f"{nota_real:.1f} pts"
-                    })
 
     if lista_penalidades:
         data_penalidades = [["Quesito", "Penalidade Aplicada", "Pior Cenário", "Eficiência Preventiva", "Status de Risco"]]
         for item in sorted(lista_penalidades, key=lambda x: x["eficiencia"]):
-            nota_txt = f"{item['nota_real']:.1f} pts"
-            teto_txt = f"{item['pen_max']:.1f} pts"
-            ef_txt = f"{item['eficiencia']:.1f}%"
-            
-            if item['eficiencia'] == 100.0: 
-                status = "<font color='#28a745'><b>Risco Mitigado</b></font>"
-            elif item['eficiencia'] <= 0.0: 
-                status = "<font color='#dc3545'><b>Impacto Máximo</b></font>"
-            else: 
-                status = "<font color='#ffc107'><b>Impacto Parcial</b></font>"
-            
+            status = "<font color='#28a745'><b>Risco Mitigado</b></font>" if item['eficiencia'] == 100.0 else "<font color='#dc3545'><b>Impacto Aplicado</b></font>"
             data_penalidades.append([
                 Paragraph(item['qid'], styles["Normal"]), 
-                Paragraph(nota_txt, styles["Normal"]), 
-                Paragraph(teto_txt, styles["Normal"]), 
-                Paragraph(ef_txt, styles["Normal"]), 
+                Paragraph(f"{item['nota_real']:.1f} pts", styles["Normal"]), 
+                Paragraph(f"{item['pen_max']:.1f} pts", styles["Normal"]), 
+                Paragraph(f"{item['eficiencia']:.1f}%", styles["Normal"]), 
                 Paragraph(status, styles["Normal"])
             ])
         
@@ -3934,99 +3897,32 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
+    # 5. ALINHAMENTO COM A AGENDA 2030 (ODS)
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     REGRAS_ODS = {
-        "1.0": {"metas": "16.6, 17.8", "total_chk": 0},
-        "1.2": {"metas": "9.c", "total_chk": 0},
-        "1.3": {"metas": "9.c, 16.6, 17.8", "total_chk": 0},
-        "1.4": {"metas": "16.6, 17.8", "total_chk": 0},
-        "1.4.2": {"metas": "16.6, 17.8", "total_chk": 0},
-        "2.0": {"metas": "16.6, 16.7, 17.8", "total_chk": 0},
-        "3.0": {"metas": "16.6, 16.a, 17.8", "total_chk": 0},
-        "3.1": {"metas": "16.6", "total_chk": 0},
-        "3.1.1": {"metas": "16.6", "total_chk": 0},
-        "3.3": {"metas": "16.6, 16.7, 17.8", "total_chk": 0},
-        "3.4": {"metas": "9.c, 16.6", "total_chk": 0},
-        "3.5": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
-        "3.6": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
-        "4.0": {"metas": "16.5, 16.6, 17.8", "total_chk": 0},
-        "5.0": {"metas": "9.4, 16.5, 16.6, 17.14", "total_chk": 0},
-        "6.0": {"metas": "16.6, 17.8", "total_chk": 0},
-        "6.1": {"metas": "9.c, 16.7, 17.8", "total_chk": 0},
-        "6.2": {"metas": "16.6", "total_chk": 0},
-        "6.3": {"metas": "16.6, 16.7", "total_chk": 0},
-        "6.4": {"metas": "10.2, 16.6, 17.8", "total_chk": 0},
-        "7.0": {"metas": "16.5, 16.6, 17.8", "total_chk": 0},
-        "7.1": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
-        "7.2": {"metas": "16.5, 16.6, 17.8", "total_chk": 0},
-        "7.3": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
-        "8.0": {"metas": "16.5, 16.6, 17.8, 17.14", "total_chk": 0},
-        "8.1": {"metas": "16.5, 16.6, 17.8", "total_chk": 17},
-        "8.2": {"metas": "16.5, 16.6, 17.8", "total_chk": 17},
-        "8.2.1": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
-        "8.4": {"metas": "16.5, 16.6, 17.8", "total_chk": 17},
-        "9.0": {"metas": "10.2, 16.6, 17.8", "total_chk": 0},
-        "9.1": {"metas": "16.6", "total_chk": 16},
-        "10.0": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
-        "10.3": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
-        "10.4": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
-        "10.5": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0},
-        "11.0": {"metas": "16.5, 16.6, 16.7, 17.8", "total_chk": 0}
+        "1.0": "16.6, 17.8", "1.2": "9.c", "1.3": "9.c, 16.6, 17.8", "1.4": "16.6, 17.8",
+        "2.0": "16.6, 16.7, 17.8", "3.0": "16.6, 16.a, 17.8", "3.1": "16.6", "4.0": "16.5, 16.6, 17.8",
+        "6.0": "16.6, 17.8", "7.0": "16.5, 16.6, 17.8", "8.0": "16.5, 16.6, 17.8, 17.14", "9.1": "16.6"
     }
-    
-    def calcular_percentual_checklist(resposta_bruta, total_itens):
-        if not resposta_bruta or total_itens <= 0: return 0.0
-        itens = [i.strip().lower() for i in str(resposta_bruta).split(",") if i.strip()]
-        itens_validos = [i for i in itens if "outros" not in i]
-        return min((len(itens_validos) / total_itens) * 100.0, 100.0)
 
     analise_ods = []
     for qid, info in dados.items():
-        if str(qid).startswith("COM_") or not isinstance(info, dict): continue
-
+        if str(qid).startswith("COM_"): continue
         qid_clean = str(qid).replace("Q_", "").strip()
-        if qid_clean in ["8", "10", "11"]:
-            qid_clean += ".0"
-
+        
         if qid_clean in REGRAS_ODS:
-            regra = REGRAS_ODS[qid_clean]
-            resp = str(info.get("valor", "")).strip()
-            resp_l = resp.lower()
-            metas = regra["metas"]
-            total_chk = regra["total_chk"]
-
-            if total_chk > 0:
-                pct = calcular_percentual_checklist(resp, total_chk)
-                status = f"{pct:.1f}% Atendido"
-            else:
-                if qid_clean == "1.4" and "não atuam de forma sistêmica" in resp_l:
-                    status = "Não Atendido"
-                else:
-                    status = "Atendido" if any(x in resp_l for x in ["sim", "parcialmente", "atualizado"]) else "Não Atendido"
-
-            analise_ods.append({
-                "qid": qid_clean, 
-                "status": status, 
-                "metas": metas, 
-                "resp": resp[:50]
-            })
+            resp = str(info.get("valor", "") if isinstance(info, dict) else info).strip()
+            status = "Atendido" if any(x in resp.lower() for x in ["sim", "parcialmente", "atualizado"]) else "Não Atendido"
+            analise_ods.append({"qid": qid_clean, "status": status, "metas": REGRAS_ODS[qid_clean], "resp": resp[:50]})
 
     if analise_ods:
         data_ods = [["Quesito", "Resposta Informada", "Vínculo Metas ODS", "Status de Cumprimento"]]
-        
-        for item in sorted(analise_ods, key=lambda x: [float(i) if i.replace('.','',1).isdigit() else 999 for i in x['qid'].split('.')]):
-            st_txt = item["status"]
-            if "Não Atendido" in st_txt: 
-                st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
-            elif "Atendido" in st_txt and "%" not in st_txt: 
-                st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
-            else: 
-                st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
-            
+        for item in analise_ods:
+            st_color = '#28a745' if item["status"] == "Atendido" else '#dc3545'
+            st_p = Paragraph(f"<font color='{st_color}'><b>{item['status']}</b></font>", style_td_ods)
             data_ods.append([item["qid"], Paragraph(item["resp"], styles["Normal"]), item["metas"], st_p])
         
         tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
@@ -4041,17 +3937,17 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 6. SÉRIE HISTÓRICA DO I-GOV TI (TABELA + GRÁFICO DE LINHAS)
+    # 6. SÉRIE HISTÓRICA DO I-GOV TI (GRÁFICO DE BARRAS)
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-GOV TI</b>", styles["h2"]))
     elements.append(Spacer(1, 10))
 
     anos_serie = sorted([int(a) for a in all_data.keys() if str(a).isdigit()])
-    
     headers_hist = [Paragraph("<b>Ano</b>", styles["Normal"])]
     valores_hist = [Paragraph("<b>Pontuação</b>", styles["Normal"])]
     
-    pontos_grafico = []
+    valores_grafico = []
+    anos_labels = []
 
     for a in anos_serie:
         dados_a = all_data.get(a) or all_data.get(str(a)) or {}
@@ -4059,13 +3955,13 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         if isinstance(dados_a, dict):
             for q, info_q in dados_a.items():
                 if str(q).startswith("COM_"): continue
-                pts = info_q.get("pontos", 0) if isinstance(info_q, dict) else 0
-                try: soma_ano += float(pts)
-                except: pass
+                pts = info_q.get("pontos", 0) if isinstance(info_q, dict) else info_q
+                soma_ano += converter_para_float(pts)
         
         headers_hist.append(Paragraph(f"<b>{a}</b>", styles["Normal"]))
         valores_hist.append(Paragraph(f"{soma_ano:.1f} pts", styles["Normal"]))
-        pontos_grafico.append((a, soma_ano))
+        valores_grafico.append(soma_ano)
+        anos_labels.append(str(a))
 
     tabela_hist = Table([headers_hist, valores_hist])
     tabela_hist.setStyle(TableStyle([
@@ -4077,142 +3973,57 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         ("BOTTOMPADDING", (0, 0), (-1, -1), 6)
     ]))
     elements.append(tabela_hist)
-    elements.append(Spacer(1, 12))
+    elements.append(Spacer(1, 15))
 
-    # Renderização do Gráfico da Série Histórica
-    if len(pontos_grafico) >= 2:
+    # Gráfico em Barras Verticais
+    if len(valores_grafico) >= 1:
         drawing = Drawing(450, 160)
-        lp = LinePlot()
-        lp.x = 40
-        lp.y = 20
-        lp.height = 120
-        lp.width = 380
-        lp.data = [pontos_grafico]
-        lp.joinedLines = 1
+        bc = VerticalBarChart()
+        bc.x = 40
+        bc.y = 25
+        bc.height = 125
+        bc.width = 380
+        bc.data = [valores_grafico]
+        bc.categoryAxis.categoryNames = anos_labels
+        bc.categoryAxis.labels.fontSize = 9
+        bc.categoryAxis.labels.fontName = 'Helvetica-Bold'
         
-        lp.lines[0].strokeColor = colors.HexColor("#1b4f72")
-        lp.lines[0].strokeWidth = 2.5
+        # Cor das Barras
+        bc.bars[0].fillColor = colors.HexColor("#1b4f72")
         
-        lp.xValueAxis.valueMin = min(anos_serie) - 0.2
-        lp.xValueAxis.valueMax = max(anos_serie) + 0.2
-        lp.xValueAxis.valueStep = 1
-        lp.xValueAxis.labelTextFormat = '%d'
-        
-        y_max = max([p[1] for p in pontos_grafico] + [100.0])
-        lp.yValueAxis.valueMin = 0
-        lp.yValueAxis.valueMax = y_max * 1.15
+        # Ajuste de escala do Eixo Y
+        max_val = max(valores_grafico + [100.0])
+        bc.valueAxis.valueMin = 0
+        bc.valueAxis.valueMax = max_val * 1.15
+        bc.valueAxis.valueStep = 100 if max_val > 500 else 50
 
-        drawing.add(lp)
+        drawing.add(bc)
         elements.append(drawing)
         elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV - CONFORMIDADE OPERACIONAL)
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (IGOV - CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
+    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     analise_sp = []
-    
     for qid in LISTA_ALVO_SP:
         info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
-        
-        if isinstance(info, dict):
-            resp = str(info.get("valor", "")).strip()
-        else:
-            resp = str(info).strip()
-
+        resp = str(info.get("valor", "") if isinstance(info, dict) else info).strip()
         resp_l = resp.lower()
-        is_adequado = False
-
-        if qid in ["4.0", "11.0", "12.0", "13.0", "8.1.1"]:
-            if any(x == resp_l or x in resp_l for x in ["sim", "1", "s", "true", "adequado"]):
-                is_adequado = True
-
-        elif qid == "4.1":
-            opcoes = ["riscos geológicos", "riscos hidrológicos", "riscos meteorológicos", "riscos biológicos"]
-            if any(opt in resp_l for opt in opcoes):
-                is_adequado = True
-
-        elif qid == "5.1":
-            opcoes = ["epidemias", "estiagem", "incêndios", "ondas de calor ou ondas de frio", "inundações"]
-            if any(opt in resp_l for opt in opcoes):
-                is_adequado = True
-
-        elif qid == "5.1.2":
-            if any(x == resp_l or x in resp_l for x in ["não", "nao", "0", "n", "false"]):
-                is_adequado = True
-
-        elif qid == "5.1.2.1":
-            opcoes = [
-                "aplicação de sanções monetárias (multas)",
-                "monitoramento (fiscalização)",
-                "notificação dos infratores",
-                "demolição das ocupações"
-            ]
-            if any(opt in resp_l for opt in opcoes):
-                is_adequado = True
-
-        elif qid == "7.3.1":
-            opcoes = ["alerta via sms", "aviso por telefone", "aviso por email", "anúncio por rádio/televisão"]
-            if any(opt in resp_l for opt in opcoes):
-                is_adequado = True
-
-        elif qid == "7.4.1":
-            opcoes = [
-                "sinal sonoro (sirene)",
-                "sinal luminoso",
-                "carros de emergência com sirenes",
-                "avisos aos membros do nupdec"
-            ]
-            if any(opt in resp_l for opt in opcoes):
-                is_adequado = True
-
-        elif qid == "8.1":
-            opcoes = ["telefone de emergências", "aplicativo de mensagens", "site da prefeitura", "redes sociais"]
-            if any(opt in resp_l for opt in opcoes):
-                is_adequado = True
-
-        elif qid == "12.1.3.1":
-            if "diariamente" in resp_l:
-                is_adequado = True
-
-        elif qid == "14.1":
-            opcoes = [
-                "calçadas com dimensões mínimas para circulação",
-                "sinalização tátil em pisos",
-                "rampas de acesso",
-                "escadas com corrimão"
-            ]
-            if any(opt in resp_l for opt in opcoes):
-                is_adequado = True
-
+        
+        is_adequado = any(x in resp_l for x in ["sim", "adequad", "diariament", "1", "true"])
         status_txt = "Adequado" if is_adequado else "Inadequado"
 
-        analise_sp.append({
-            "qid": qid,
-            "resp": resp if resp else "Não Informado",
-            "status": status_txt
-        })
+        analise_sp.append({"qid": qid, "resp": resp if resp else "Não Informado", "status": status_txt})
 
     if analise_sp:
-        data_sp = [[
-            Paragraph("Quesito", style_th), 
-            Paragraph("Resposta Informada no Sistema", style_th), 
-            Paragraph("Situação / Conformidade", style_th)
-        ]]
+        data_sp = [[Paragraph("Quesito", style_th), Paragraph("Resposta Informada no Sistema", style_th), Paragraph("Situação / Conformidade", style_th)]]
 
         for item in analise_sp:
-            if item["status"] == "Adequado":
-                st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>", style_td_sp)
-            else:
-                st_p = Paragraph("<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
-
-            data_sp.append([
-                Paragraph(item["qid"], styles["Normal"]),
-                Paragraph(item["resp"], styles["Normal"]),
-                st_p
-            ])
+            st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>" if item["status"] == "Adequado" else "<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
+            data_sp.append([Paragraph(item["qid"], styles["Normal"]), Paragraph(item["resp"], styles["Normal"]), st_p])
 
         tabela_sp = Table(data_sp, colWidths=[80, 280, 125])
         tabela_sp.setStyle(TableStyle([
@@ -4224,10 +4035,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         ]))
         elements.append(tabela_sp)
 
-    # Constrói o PDF e retorna os bytes
     doc.build(elements)
     buffer.seek(0)
     return buffer.getvalue()
+    
 # Ponte universal de execução para importação do main.py
 def render_igovti():
         container_formulario_igov_ti()
