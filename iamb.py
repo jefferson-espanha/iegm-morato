@@ -5751,8 +5751,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     doc.build(elements)
     return buffer.getvalue()
 
-from nicegui import app, ui
 import asyncio
+import logging
+from nicegui import app, ui
 from fastapi import Response
 
 # -----------------------------------------------------------------------------
@@ -5761,7 +5762,6 @@ from fastapi import Response
 def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
     """
     Componente NiceGUI para renderizar o Card de Emissão do PDF do I-AMB.
-    Acessa 'ui' e 'app' diretamente do escopo global do NiceGUI.
     """
     res_data = res_data or {}
     
@@ -5797,7 +5797,6 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
                 
                 rota_pdf = f"/relatorio_iamb_temp_{ano_alvo}.pdf"
                 
-                # Registra o endpoint dinâmico no app do FastAPI/NiceGUI
                 try:
                     @app.get(rota_pdf)
                     def relatorio_endpoint():
@@ -5825,18 +5824,15 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
 
 def container_formulario_iamb(res_data=None, ano_sel=2026):
     """
-    Função contêiner que pode ser chamada sem argumentos pelo roteador do NiceGUI.
+    Função contêiner principal do formulário I-AMB.
     """
-    # 1. Cabeçalho alinhado com a interface exibida
-    with ui.row().classes('w-full items-center justify-between p-4 border-b border-gray-300'):
-        ui.button("← VOLTAR", on_click=lambda: ui.navigate.to('/')).classes('bg-blue-500 text-white font-bold')
-        ui.label(f"i-Amb - {ano_sel}").classes('text-2xl font-bold text-blue-900')
-        ui.button("🚪 SAIR", on_click=lambda: ui.navigate.to('/login')).classes('bg-blue-500 text-white font-bold')
+    # 1. Chame a função interna que renderiza as perguntas/campos do formulário aqui
+    render_conteudo()
 
-    # 2. Renderiza o card do relatório
+    # 2. Renderiza o card do relatório no final da página
     renderizar_card_relatorio_iamb(res_data=res_data, ano_sel=ano_sel)
 
 
-# Exportações para serem chamadas pelo NiceGUI
+# Exporta as referências para o roteador
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
