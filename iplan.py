@@ -1362,77 +1362,77 @@ def container_formulario_plan(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO 11.1 (Percentual de Crédito Adicional Suplementar na LOA)
+                    # QUESITO 11.1 (Percentual de Crédito Adicional Suplementar na LOA - Calculadora Automática)
                     # ==========================================
                     q111_data = res_data.get("11.1", {}) if isinstance(res_data.get("11.1"), dict) else {}
                     
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("11.1 • Percentual Autorizado para Crédito Adicional Suplementar").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Qual o percentual autorizado na Lei Orçamentária Anual (LOA) para abertura de crédito adicional suplementar?").classes("text-base font-bold text-black mb-2")
+                        ui.label("Análise do percentual autorizado na Lei Orçamentária Anual (LOA) para abertura de crédito adicional suplementar em comparação com a inflação do período:").classes("text-base font-bold text-black mb-2")
                         
                         # Bloco Informativo de Regras de Pontuação
-                        with ui.expansion("ℹ️ Regras de Pontuação do Quesito 11.1", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                        with ui.expansion("ℹ️ Regras de Pontuação e Cálculo Automático", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                             ui.markdown("""
-                            * **Percentual <= Inflação:** Penalidade de **-6,0 pontos** (Aplica-se caso o percentual autorizado seja menor ou igual à inflação do período)
-                            * **Percentual > Inflação:** Neutro (**0,0 ponto**) (Não há penalização)
+                            * **Percentual Autorizado <= Inflação do Período:** Penalidade aplicada (**-6,0 pontos**)
+                            * **Percentual Autorizado > Inflação do Período:** Dentro do critério aceitável (**0,0 ponto**)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        # Seção do Formularinho Interno
+                        # Seção da Calculadora
                         with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("📊 Entrada do Percentual Autorizado").classes("font-bold text-blue-700 mb-2")
+                            ui.label("🧮 Calculadora Automática do Quesito 11.1").classes("font-bold text-blue-700 mb-2")
                             
+                            # Tenta recuperar o dicionário de valores salvos anteriormente
+                            val_salvo = q111_data.get("valor", {}) if isinstance(q111_data.get("valor"), dict) else {}
+
                             state_111 = {
-                                "percentual": float(q111_data.get("percentual", 0.0)),
-                                "opcao": q111_data.get("opcao", "Selecione..."),
+                                "perc_autorizado": float(val_salvo.get("perc_autorizado", 0.0)),
+                                "inflacao_periodo": float(val_salvo.get("inflacao_periodo", 0.0)),
                                 "link": q111_data.get("link", ""),
                                 "pts": float(q111_data.get("pontos", 0.0))
                             }
 
-                            opcoes_111 = {
-                                "Selecione...": 0.0,
-                                "Percentual <= Inflação – 06 pts": -6.0,
-                                "Percentual > Inflação – 00 pts": 0.0,
-                            }
-
                             with ui.grid(columns=2).classes("w-full gap-4"):
-                                input_percentual = (
-                                    ui.number(label="Percentual Autorizado na LOA (%)", value=state_111["percentual"], format="%.2f")
+                                input_perc_autorizado = (
+                                    ui.number(label="Percentual Autorizado na LOA (%)", value=state_111["perc_autorizado"], format="%.2f")
                                     .classes("w-full")
                                     .props("outlined bg-white suffix='%'")
                                 )
-                                
-                                select_opcao = (
-                                    ui.select(
-                                        options=list(opcoes_111.keys()),
-                                        value=state_111["opcao"] if state_111["opcao"] in opcoes_111 else "Selecione...",
-                                        label="Faixa do Percentual (Regra)"
-                                    )
+                                input_inflacao = (
+                                    ui.number(label="Inflação do Período (%)", value=state_111["inflacao_periodo"], format="%.2f")
                                     .classes("w-full")
-                                    .props("outlined bg-white")
+                                    .props("outlined bg-white suffix='%'")
                                 )
 
-                            lbl_pts_111 = ui.label().classes("text-sm font-bold text-green-600 mt-2")
+                            lbl_resultado_comp = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_pts_111 = ui.label().classes("text-sm font-bold text-green-600 mt-1")
 
-                            def atualizar_111(_=None):
-                                perc = input_percentual.value or 0.0
-                                op_sel = select_opcao.value or "Selecione..."
+                            def calcular_111(_=None):
+                                perc_aut = input_perc_autorizado.value or 0.0
+                                inflacao = input_inflacao.value or 0.0
                                 
-                                pts = opcoes_111.get(op_sel, 0.0)
-                                state_111["percentual"] = perc
-                                state_111["opcao"] = op_sel
+                                state_111["perc_autorizado"] = perc_aut
+                                state_111["inflacao_periodo"] = inflacao
+
+                                # Regra: Se % Autorizado <= Inflação do Período -> Perde 6 pontos (-6)
+                                if perc_aut <= inflacao:
+                                    pts = -6.0
+                                    lbl_resultado_comp.set_text(f"Resultado: Percentual Autorizado ({perc_aut:.2f}%) é MENOR ou IGUAL à Inflação ({inflacao:.2f}%)")
+                                else:
+                                    pts = 0.0
+                                    lbl_resultado_comp.set_text(f"Resultado: Percentual Autorizado ({perc_aut:.2f}%) é MAIOR que a Inflação ({inflacao:.2f}%)")
+                                
                                 state_111["pts"] = pts
+                                lbl_pts_111.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
 
-                                lbl_pts_111.set_text(f"📊 Impacto de Pontuação Selecionado: {pts:.2f} pontos")
-
-                            input_percentual.on("update:model-value", atualizar_111)
-                            select_opcao.on("update:model-value", atualizar_111)
-                            atualizar_111()
+                            input_perc_autorizado.on("update:model-value", calcular_111)
+                            input_inflacao.on("update:model-value", calcular_111)
+                            calcular_111()
 
                         # Campo de Evidência / Link
                         input_link_111 = ui.textarea(
-                            label="Link de Evidência / Documento:",
+                            label="Link de Evidência / Documento / Fonte da Inflação:",
                             value=state_111["link"],
-                            placeholder="Insira o link ou informe o dispositivo da LOA referente ao percentual autorizado..."
+                            placeholder="Insira o link com a LOA e a fonte do índice de inflação utilizado (Ex: IBGE/IPCA)..."
                         ).classes("w-full mb-4").props("outlined rows=3")
 
                         # Ação de Salvamento
@@ -1441,8 +1441,8 @@ def container_formulario_plan(ano=None):
                                 ano=ano_sel,
                                 qid="11.1",
                                 valor={
-                                    "percentual": state_111["percentual"],
-                                    "opcao": state_111["opcao"]
+                                    "perc_autorizado": state_111["perc_autorizado"],
+                                    "inflacao_periodo": state_111["inflacao_periodo"]
                                 },
                                 pontos=state_111["pts"],
                                 link=input_link_111.value,
