@@ -2037,36 +2037,128 @@ def container_formulario_plan(ano=None):
                     # QUESITO 14.5.1 (Atividades no Plano Operativo Anual - Checkbox)
                     # ==========================================
                     # Regra de cálculo: 1 a 5 opções = 1.0 pt; 6 a 10 opções = 3.0 pts; >= 11 opções = 5.0 pts.
-                    opcoes_1451 = {
-                        "Receitas": 0.0,
-                        "Despesas": 0.0,
-                        "Administração de pessoal": 0.0,
-                        "Estoques e almoxarifados": 0.0,
-                        "Administração do patrimônio": 0.0,
-                        "Cumprimento das metas do PPA e a execução dos programas de governo e dos orçamentos (LOA e LDO)": 0.0,
-                        "Cumprimento das metas fiscais, físicas e de resultados dos programas de governo, no que tange a eficiência, eficácia e efetividade": 0.0,
-                        "Aplicação de recursos públicos por entidades de direito público": 0.0,
-                        "Aplicação de recursos públicos por entidades de direito privado": 0.0,
-                        "Os limites e condições para a inscrição de despesas em Restos a Pagar": 0.0,
-                        "Cumprimento da legislação de licitações e fiscalização de contratos": 0.0,
-                        "Cumprimento do limite de gastos totais dos legislativos municipais, inclusive no que se refere ao atingimento de metas fiscais (Gestão Fiscal)": 0.0,
-                        "Transferência para o Legislativo Municipal (Repasses de Duodécimos)": 0.0,
-                        "Contabilidade": 0.0,
-                        "Transparência": 0.0,
-                        "Lei de Acesso à Informação": 0.0,
-                        "Outros": 0.0,
-                    }
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="14.5.1",
-                        titulo="Atividades Previstas no Plano Operativo Anual",
-                        pergunta="Assinale as atividades previstas no Plano Operativo Anual (1 a 5 assinalados = 1 pt | 6 a 10 = 3 pts | 11 ou mais = 5 pts):",
-                        tipo_input="checkbox",
-                        opcoes=opcoes_1451,
-                        placeholder_link="Insira o link comprovando o escopo do Plano Operativo...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                    import json
+                    import ast
+
+                    raw_1451 = res_data.get("14.5.1") or res_data.get(14.51) or {}
+                    q1451_data = raw_1451 if isinstance(raw_1451, dict) else {}
+
+                    # Trata o valor recuperado do banco (pode vir como lista ou string)
+                    raw_val_1451 = q1451_data.get("valor", [])
+                    
+                    if isinstance(raw_val_1451, str) and raw_val_1451.strip():
+                        try:
+                            marcados_salvos = json.loads(raw_val_1451)
+                        except Exception:
+                            try:
+                                marcados_salvos = ast.literal_eval(raw_val_1451)
+                            except Exception:
+                                marcados_salvos = []
+                    elif isinstance(raw_val_1451, list):
+                        marcados_salvos = raw_val_1451
+                    else:
+                        marcados_salvos = []
+
+                    lista_opcoes_1451 = [
+                        "Receitas",
+                        "Despesas",
+                        "Administração de pessoal",
+                        "Estoques e almoxarifados",
+                        "Administração do patrimônio",
+                        "Cumprimento das metas do PPA e a execução dos programas de governo e dos orçamentos (LOA e LDO)",
+                        "Cumprimento das metas fiscais, físicas e de resultados dos programas de governo, no que tange a eficiência, eficácia e efetividade",
+                        "Aplicação de recursos públicos por entidades de direito público",
+                        "Aplicação de recursos públicos por entidades de direito privado",
+                        "Os limites e condições para a inscrição de despesas em Restos a Pagar",
+                        "Cumprimento da legislação de licitações e fiscalização de contratos",
+                        "Cumprimento do limite de gastos totais dos legislativos municipais, inclusive no que se refere ao atingimento de metas fiscais (Gestão Fiscal)",
+                        "Transferência para o Legislativo Municipal (Repasses de Duodécimos)",
+                        "Contabilidade",
+                        "Transparência",
+                        "Lei de Acesso à Informação",
+                        "Outros",
+                    ]
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("14.5.1 • Atividades Previstas no Plano Operativo Anual").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale as atividades previstas no Plano Operativo Anual:").classes("text-base font-bold text-black mb-2")
+                        
+                        # Bloco de Regras
+                        with ui.expansion("ℹ️ Regras de Pontuação (Faixa por quantidade de itens)", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Nenhum item assinalado:** **0,0 ponto**
+                            * **1 a 5 itens assinalados:** **1,0 ponto**
+                            * **6 a 10 itens assinalados:** **3,0 pontos**
+                            * **11 ou mais itens assinalados:** **5,0 pontos**
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        # Grupo de Checkboxes
+                        checkbox_group = ui.checkbox_group(
+                            options=lista_opcoes_1451,
+                            value=marcados_salvos
+                        ).classes("w-full mb-4 grid grid-cols-1 md:grid-cols-2 gap-2")
+
+                        lbl_qtd_1451 = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                        lbl_pts_1451 = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+
+                        state_1451 = {"pts": float(q1451_data.get("pontos", 0.0))}
+
+                        def calcular_1451(_=None):
+                            marcados = checkbox_group.value or []
+                            qtd = len(marcados)
+                            
+                            # Cálculo por Faixas
+                            if qtd == 0:
+                                pts = 0.0
+                            elif 1 <= qtd <= 5:
+                                pts = 1.0
+                            elif 6 <= qtd <= 10:
+                                pts = 3.0
+                            else: # 11 ou mais
+                                pts = 5.0
+
+                            state_1451["pts"] = pts
+                            lbl_qtd_1451.set_text(f"Itens selecionados: {qtd} de {len(lista_opcoes_1451)}")
+                            lbl_pts_1451.set_text(f"📊 Pontuação Calculada: {pts:.1f} pontos")
+
+                        checkbox_group.on("update:model-value", calcular_1451)
+                        calcular_1451()
+
+                        # Campo de Link / Evidência
+                        input_link_1451 = ui.textarea(
+                            label="Link de Evidência / Documento do Plano Operativo:",
+                            value=str(q1451_data.get("link", "") or ""),
+                            placeholder="Insira o link comprovando o escopo do Plano Operativo..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        # Ação de Salvamento
+                        def salvar_1451():
+                            marcados = checkbox_group.value or []
+                            
+                            res_data["14.5.1"] = {
+                                "valor": marcados,
+                                "pontos": state_1451["pts"],
+                                "link": input_link_1451.value,
+                                "comentarios": q1451_data.get("comentarios", []),
+                                "status": q1451_data.get("status", "Pendente")
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="14.5.1",
+                                valor=marcados,
+                                pontos=state_1451["pts"],
+                                link=input_link_1451.value,
+                                comentarios=q1451_data.get("comentarios", []),
+                                status=q1451_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 14.5.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_1451).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("14.5.1", res_data, render_conteudo.refresh)
 
                     # ==========================================
                     # QUESITO 15.0 (Criação da Ouvidoria Pública - Radio)
