@@ -1372,15 +1372,12 @@ def container_formulario_plan(ano=None):
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="11.1",
-                        titulo="Percentual Autorizado para Crédito Adicional Suplementar",
+                        qid="11.1",  # <-- Garanta as aspas
+                        titulo="11.1 - Percentual Autorizado para Crédito Adicional Suplementar",  # Se a função não exibe o qid automaticamente, coloque direto no título
                         pergunta="Qual o percentual autorizado na Lei Orçamentária Anual (LOA) para abertura de crédito adicional suplementar?",
                         tipo_input="radio",
                         opcoes=opcoes_111,
-                        com_campo_valor=True,  # Habilita o campo de entrada numérica/texto do valor
-                        label_campo_valor="Valor do Percentual Autorizado (%):",
-                        placeholder_valor="Ex: 10%",
-                        placeholder_link="Insira o link ou fundamentação da LOA...",
+                        placeholder_link="Insira o link ou informe o percentual autorizado na LOA...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
