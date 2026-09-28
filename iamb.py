@@ -5873,7 +5873,6 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
 import asyncio
 import logging
 from nicegui import app, ui
-from fastapi import Response
 
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
@@ -5904,10 +5903,12 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
                 ))
 
                 faixa = converter_pontos_em_faixa_iegm(total_pts)
-                # Compara exclusivamente o ano selecionado com o ano anterior.
+                
+                # Carrega a série histórica do banco
                 historico_todos_anos = get_all_years_data(ano_alvo) or {}
 
-                pdf_bytes = gerar_relatorio_pdf_iamb(
+                # Gera o PDF (BytesIO)
+                pdf_buffer = gerar_relatorio_pdf_iamb(
                     dados=dados_locais,
                     ano=ano_alvo,
                     total=total_pts,
@@ -5915,17 +5916,12 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
                     todos_dados=historico_todos_anos
                 )
                 
-                rota_pdf = f"/relatorio_iamb_temp_{ano_alvo}.pdf"
-                
-                try:
-                    @app.get(rota_pdf)
-                    def relatorio_endpoint():
-                        return Response(content=pdf_bytes, media_type="application/pdf")
-                except Exception:
-                    pass
+                # Extrai os bytes brutos do buffer
+                pdf_bytes = pdf_buffer.getvalue()
 
-                ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
-                ui.notify("Relatório I-AMB aberto com sucesso!", type="positive")
+                # Baixa/Abre diretamente via NiceGUI sem criar rotas FastAPI em runtime
+                ui.download(pdf_bytes, filename=f"relatorio_iamb_{ano_alvo}.pdf")
+                ui.notify("Relatório I-AMB gerado com sucesso!", type="positive")
 
             except Exception as e:
                 print(f"ERRO CRÍTICO AO GERAR PDF I-AMB: {e}")
@@ -5945,20 +5941,14 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
 def container_formulario_iamb(ano=None, res_data=None, ano_sel=2026):
     """
     Ponto de entrada público do módulo i-AMB.
-
-    A função render_conteudo é criada dentro de _render_formulario_iamb,
-    portanto ela deve ser chamada nesse mesmo escopo. A versão anterior
-    tentava chamá-la aqui fora, causando NameError.
     """
     ano_inicial = ano if ano is not None else ano_sel
 
-    # Renderiza o formulário completo. Esta chamada cria e executa
-    # render_conteudo dentro do escopo em que ele está definido.
     _render_formulario_iamb(ano=ano_inicial)
 
-    # Renderiza o card do relatório PDF com os dados do ano atualmente ativo.
     ano_relatorio = int(app.storage.user.get("ano_referencia_global", ano_inicial))
     dados_relatorio = res_data if res_data is not None else load_respostas(ano_relatorio)
+    
     renderizar_card_relatorio_iamb(
         res_data=dados_relatorio,
         ano_sel=ano_relatorio,
