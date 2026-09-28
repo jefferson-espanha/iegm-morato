@@ -1369,18 +1369,39 @@ def container_formulario_plan(ano=None):
                         "Percentual <= Inflação – 06 pts": 6.0,
                         "Percentual > Inflação – 00 pts": 0.0,
                     }
+                    
+                    # 1. Desenha o quesito com as opções de rádio
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="11.1",  # <-- Garanta as aspas
-                        titulo="11.1 - Percentual Autorizado para Crédito Adicional Suplementar",  # Se a função não exibe o qid automaticamente, coloque direto no título
+                        qid="11.1",
+                        titulo="11.1 - Percentual Autorizado para Crédito Adicional Suplementar",
                         pergunta="Qual o percentual autorizado na Lei Orçamentária Anual (LOA) para abertura de crédito adicional suplementar?",
                         tipo_input="radio",
                         opcoes=opcoes_111,
-                        placeholder_link="Insira o link ou informe o percentual autorizado na LOA...",
+                        placeholder_link="Insira o link ou fundamentação legal da LOA...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
+                    # 2. Adiciona o campo para o usuário digitar o valor em %
+                    dados_111 = res_data.get("11.1", {}) if isinstance(res_data.get("11.1"), dict) else {}
+                    val_atual = dados_111.get("percentual_digitado", "")
+
+                    async def salvar_percentual_111(e):
+                        if "11.1" not in res_data or not isinstance(res_data["11.1"], dict):
+                            res_data["11.1"] = {}
+                        res_data["11.1"]["percentual_digitado"] = e.value
+                        # Salva a resposta no banco/storage se houver a função
+                        if "save_respostas" in globals():
+                            save_respostas(ano_sel, res_data)
+
+                    ui.input(
+                        label="Percentual Autorizado na LOA (%)",
+                        placeholder="Ex: 5.0%",
+                        value=str(val_atual),
+                        on_change=salvar_percentual_111
+                    ).classes("w-full max-w-xs -mt-3 mb-4 ml-4").props("outlined dense suffix='%'")
+                    
                     # ==========================================
                     # QUESITO 12.0 (Estrutura Administrativa de Planejamento - Radio)
                     # ==========================================
