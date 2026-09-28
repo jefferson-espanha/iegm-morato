@@ -5182,7 +5182,7 @@ def _render_formulario_iamb(ano=None):
     # Executa o formulário depois de definir todos os seus componentes.
     render_conteudo()
 
-    import io
+import io
 import os
 import logging
 from datetime import datetime
