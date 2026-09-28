@@ -2092,36 +2092,40 @@ def container_formulario_plan(ano=None):
                             * **11 ou mais itens assinalados:** **5,0 pontos**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        # Grupo de Checkboxes
-                        checkbox_group = ui.checkbox_group(
-                            options=lista_opcoes_1451,
-                            value=marcados_salvos
-                        ).classes("w-full mb-4 grid grid-cols-1 md:grid-cols-2 gap-2")
-
+                        # Dicionário para armazenar a referência das instâncias de ui.checkbox
+                        checkboxes_dict = {}
+                        
                         lbl_qtd_1451 = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
                         lbl_pts_1451 = ui.label().classes("text-sm font-bold text-green-600 mt-1")
-
                         state_1451 = {"pts": float(q1451_data.get("pontos", 0.0))}
 
                         def calcular_1451(_=None):
-                            marcados = checkbox_group.value or []
+                            # Filtra as opções que estão marcadas (value == True)
+                            marcados = [op for op, cb in checkboxes_dict.items() if cb.value]
                             qtd = len(marcados)
                             
-                            # Cálculo por Faixas
+                            # Regra de cálculo por Faixa
                             if qtd == 0:
                                 pts = 0.0
                             elif 1 <= qtd <= 5:
                                 pts = 1.0
                             elif 6 <= qtd <= 10:
                                 pts = 3.0
-                            else: # 11 ou mais
+                            else:  # >= 11
                                 pts = 5.0
 
                             state_1451["pts"] = pts
                             lbl_qtd_1451.set_text(f"Itens selecionados: {qtd} de {len(lista_opcoes_1451)}")
                             lbl_pts_1451.set_text(f"📊 Pontuação Calculada: {pts:.1f} pontos")
 
-                        checkbox_group.on("update:model-value", calcular_1451)
+                        # Grid de Checkboxes individuais
+                        with ui.grid(columns=1).classes("w-full mb-4 md:grid-cols-2 gap-2"):
+                            for opcao in lista_opcoes_1451:
+                                is_checked = opcao in marcados_salvos
+                                cb = ui.checkbox(text=opcao, value=is_checked)
+                                cb.on("change", calcular_1451)
+                                checkboxes_dict[opcao] = cb
+
                         calcular_1451()
 
                         # Campo de Link / Evidência
@@ -2133,7 +2137,7 @@ def container_formulario_plan(ano=None):
 
                         # Ação de Salvamento
                         def salvar_1451():
-                            marcados = checkbox_group.value or []
+                            marcados = [op for op, cb in checkboxes_dict.items() if cb.value]
                             
                             res_data["14.5.1"] = {
                                 "valor": marcados,
