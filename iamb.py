@@ -5347,18 +5347,20 @@ def obter_regra_ods_iamb(qid, resp):
 # -----------------------------------------------------------------------------
 # 3.1. HISTÓRICO PARA O RELATÓRIO PDF
 # -----------------------------------------------------------------------------
-def get_all_years_data():
-    """Carrega todos os anos e respostas da tabela correta respostas_iamb."""
+def get_all_years_data(ano_selecionado):
+    """Carrega somente o ano selecionado e o ano imediatamente anterior."""
     all_data = {}
+    ano_ref = int(ano_selecionado)
     query = """
         SELECT ano, qid, valor, pontos, link, comentarios, status
         FROM respostas_iamb
+        WHERE ano IN (%s, %s)
         ORDER BY ano ASC, qid ASC;
     """
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query)
+                cur.execute(query, (ano_ref - 1, ano_ref))
                 for row in cur.fetchall():
                     ano = int(row["ano"])
                     qid = str(row["qid"]).strip()
@@ -5908,7 +5910,8 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
                 ))
 
                 faixa = converter_pontos_em_faixa_iegm(total_pts)
-                historico_todos_anos = get_all_years_data() or {}
+                # Compara exclusivamente o ano selecionado com o ano anterior.
+                historico_todos_anos = get_all_years_data(ano_alvo) or {}
 
                 pdf_bytes = gerar_relatorio_pdf_iamb(
                     dados=dados_locais,
