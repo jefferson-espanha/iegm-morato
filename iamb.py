@@ -5903,11 +5903,9 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
                 ))
 
                 faixa = converter_pontos_em_faixa_iegm(total_pts)
-                
-                # Carrega a série histórica do banco
                 historico_todos_anos = get_all_years_data(ano_alvo) or {}
 
-                # Gera o PDF (BytesIO)
+                # 1. Gera o objeto BytesIO contendo o PDF
                 pdf_buffer = gerar_relatorio_pdf_iamb(
                     dados=dados_locais,
                     ano=ano_alvo,
@@ -5916,10 +5914,10 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
                     todos_dados=historico_todos_anos
                 )
                 
-                # Extrai os bytes brutos do buffer
-                pdf_bytes = pdf_buffer.getvalue()
+                # 2. Extrai os bytes brutos do buffer (Corrige o AttributeError: '_io.BytesIO' object has no attribute 'encode')
+                pdf_bytes = pdf_buffer.getvalue() if hasattr(pdf_buffer, 'getvalue') else pdf_buffer
 
-                # Baixa/Abre diretamente via NiceGUI sem criar rotas FastAPI em runtime
+                # 3. Faz o download nativo via NiceGUI sem precisar do Response/FastAPI endpoint
                 ui.download(pdf_bytes, filename=f"relatorio_iamb_{ano_alvo}.pdf")
                 ui.notify("Relatório I-AMB gerado com sucesso!", type="positive")
 
