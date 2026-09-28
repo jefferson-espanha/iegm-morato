@@ -5244,7 +5244,7 @@ def converter_para_float(val):
 
 def converter_pontos_em_faixa_iegm(pontos):
     pts = float(pontos)
-    if pts < 500.0:        return "C"
+    if pts < 500.0:         return "C"
     elif 500.0 <= pts <= 599.9: return "C+"
     elif 600.0 <= pts <= 749.9: return "B"
     elif 750.0 <= pts <= 899.9: return "B+"
@@ -5343,9 +5343,6 @@ def obter_regra_ods_iamb(qid, resp):
 # -----------------------------------------------------------------------------
 # 3. GERADOR DE RELATÓRIO PDF (I-AMB)
 # -----------------------------------------------------------------------------
-# -----------------------------------------------------------------------------
-# 3.1. HISTÓRICO PARA O RELATÓRIO PDF
-# -----------------------------------------------------------------------------
 def get_all_years_data(ano_selecionado):
     """Carrega somente o ano selecionado e o ano imediatamente anterior."""
     all_data = {}
@@ -5378,19 +5375,20 @@ def get_all_years_data(ano_selecionado):
 def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
     LISTA_ALVO_SP = ["1.0", "1.1", "5.0", "5.1", "7.0", "7.1", "7.7", "8.0", "8.1", "9.0", "10.0", "11.0", "13.0", "14.0", "15.0"]
 
+    # CORREÇÃO AQUI: Normalização e teste para aceitar respostas como "Sim -- 00 pts"
     REGRAS_ADEQUACAO = {
-        "1.0":  lambda r: r == "sim",
-        "1.1":  lambda r: r == "sim",
-        "5.0":  lambda r: r == "sim",
-        "7.0":  lambda r: r == "sim",
-        "7.7":  lambda r: "sim" in r,
-        "8.0":  lambda r: r == "sim",
-        "9.0":  lambda r: r == "sim",
-        "10.0": lambda r: r == "sim",
-        "11.0": lambda r: r == "sim",
-        "13.0": lambda r: r == "sim",
-        "14.0": lambda r: r == "sim",
-        "15.0": lambda r: r == "sim",
+        "1.0":  lambda r: str(r).strip().lower().startswith("sim"),
+        "1.1":  lambda r: str(r).strip().lower().startswith("sim"),
+        "5.0":  lambda r: str(r).strip().lower().startswith("sim"),
+        "7.0":  lambda r: str(r).strip().lower().startswith("sim"),
+        "7.7":  lambda r: "sim" in str(r).strip().lower(),
+        "8.0":  lambda r: str(r).strip().lower().startswith("sim"),
+        "9.0":  lambda r: str(r).strip().lower().startswith("sim"),
+        "10.0": lambda r: str(r).strip().lower().startswith("sim"),
+        "11.0": lambda r: str(r).strip().lower().startswith("sim"),
+        "13.0": lambda r: str(r).strip().lower().startswith("sim"),
+        "14.0": lambda r: str(r).strip().lower().startswith("sim"),
+        "15.0": lambda r: str(r).strip().lower().startswith("sim"),
     }
 
     buffer = BytesIO()
@@ -5403,7 +5401,7 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
 
     pontuacoes_ref = PONTUACOES_MAX_IAMB
     todos_dados = todos_dados or {}
-    
+
     try:
         ano_normalizado = int(str(ano).strip()[:4])
     except (TypeError, ValueError, AttributeError):
@@ -5426,12 +5424,12 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
             elements.append(Paragraph("[Logo: IEGM / I-AMB]", styles["Title"]))
     else:
         elements.append(Paragraph("[Logo: IEGM / I-AMB]", styles["Title"]))
-        
+
     elements.append(Spacer(1, 40))
     style_titulo_capa = ParagraphStyle('TituloCapa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=24, textColor=colors.HexColor("#1e8449"), alignment=1)
     elements.append(Paragraph("Relatório I-Amb", style_titulo_capa))
     elements.append(Spacer(1, 8))
-    
+
     style_sub_capa = ParagraphStyle('SubCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=14, textColor=colors.HexColor("#27ae60"), alignment=1)
     elements.append(Spacer(1, 15))
 
@@ -5457,7 +5455,7 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
         [Paragraph("6. Série Histórica do I-Amb", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
         [Paragraph("7. Quesitos Sem Pontuação Direta", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
     ]
-    
+
     tabela_sumario = Table(dados_sumario, colWidths=[400, 90])
     tabela_sumario.setStyle(TableStyle([
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
@@ -5500,7 +5498,7 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
             if str(qid_ant).startswith("COM_"): continue
             pts_val = None
             if isinstance(info_ant, dict):
-                pts_val = info_ant.get("pontos") or info_ant.get("pontuacao") or info_ant.get("nota") or info_ant.get("valor")
+                pts_val = info_ant.get("pontos") or info_ant.get("pontuacao") or info_ant.get("nota")
             elif isinstance(info_ant, (int, float, str)):
                 pts_val = info_ant
             elif isinstance(info_ant, (list, tuple)) and len(info_ant) > 0:
@@ -5544,7 +5542,7 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
     ]))
     elements.append(tabela_comp)
     elements.append(Spacer(1, 12))
-    
+
     # -------------------------------------------------------------------------
     # 2. ANÁLISE DE DESEMPENHO POR QUESITO
     # -------------------------------------------------------------------------
@@ -5650,7 +5648,7 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # 3. ANÁLISE DE IMPACTO E PENALIDADES (I-AMB)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES 1(EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
+    elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     lista_penalidades = []
@@ -5661,7 +5659,6 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
             nota_real = converter_para_float(info.get("pontos") if isinstance(info, dict) else info)
             nota_risco = nota_real if nota_real <= 0 else 0.0
             
-            # Penalidade máxima tratada em módulo
             abs_pen_max = abs(pen_max)
             eficiencia_preventiva = (1.0 - (abs(nota_risco) / abs_pen_max)) * 100.0 if abs_pen_max > 0 else 100.0
             
@@ -5776,7 +5773,10 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
         if isinstance(dados_a, dict):
             for q, info_q in dados_a.items():
                 if str(q).startswith("COM_"): continue
-                pts = info_q.get("pontos", 0) if isinstance(info_q, dict) else info_q
+                pts = (
+                    info_q.get("pontos") or info_q.get("pontuacao") or info_q.get("nota") 
+                    if isinstance(info_q, dict) else info_q
+                )
                 soma_ano += converter_para_float(pts)
         
         headers_hist.append(Paragraph(f"<b>{a}</b>", styles["Normal"]))
@@ -5829,12 +5829,11 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
     for qid in LISTA_ALVO_SP:
         info = dados.get(qid) or dados.get(f"Q_{qid}") or {}
         resp_original = str(info.get("valor", "") if isinstance(info, dict) else info).strip()
-        resp_lower = resp_original.lower()
 
         if qid in REGRAS_ADEQUACAO:
-            is_adequado = REGRAS_ADEQUACAO[qid](resp_lower)
+            is_adequado = REGRAS_ADEQUACAO[qid](resp_original)
         else:
-            is_adequado = any(x in resp_lower for x in ["sim", "adequad", "diariament", "1", "true"])
+            is_adequado = any(x in resp_original.lower() for x in ["sim", "adequad", "diariament", "1", "true"])
 
         status_txt = "Adequado" if is_adequado else "Inadequado"
         analise_sp.append({
@@ -5848,7 +5847,7 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
 
         for item in analise_sp:
             st_p = Paragraph(
-                "<font color='#28a745'><b>✅ Adequado</b></font>" if item["status"] == "Adequado" else "<font color='#dc3545'><b>❌ Inadequado</b></font>",
+                "<font color='#28a745'><b>■ Adequado</b></font>" if item["status"] == "Adequado" else "<font color='#dc3545'><b>■ Inadequado</b></font>",
                 style_td_sp
             )
             data_sp.append([
@@ -5869,7 +5868,7 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
 
     doc.build(elements)
     buffer.seek(0)
-    return buffer.getvalue()
+    return buffer
 
 import asyncio
 import logging
