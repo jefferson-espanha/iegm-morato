@@ -5544,7 +5544,7 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
     ]))
     elements.append(tabela_comp)
     elements.append(Spacer(1, 12))
-
+    
     # -------------------------------------------------------------------------
     # 2. ANÁLISE DE DESEMPENHO POR QUESITO
     # -------------------------------------------------------------------------
