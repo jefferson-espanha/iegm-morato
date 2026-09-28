@@ -1364,17 +1364,36 @@ def container_formulario_plan(ano=None):
                     # ==========================================
                     # QUESITO 11.1 (Percentual de Crédito Adicional Suplementar na LOA)
                     # ==========================================
-                    # Garantir que recuperamos o dicionário do 11.1 corretamente (seja chave str ou float no dict)
+                    import json
+                    import ast
+
                     raw_q111 = res_data.get("11.1") or res_data.get(11.1) or {}
                     q111_data = raw_q111 if isinstance(raw_q111, dict) else {}
 
-                    # Extrai o sub-dicionário "valor"
-                    val_salvo = q111_data.get("valor") if isinstance(q111_data.get("valor"), dict) else {}
+                    # Extrai e converte o campo "valor" do banco (seja dict, string JSON ou string dict do Python)
+                    raw_val = q111_data.get("valor", {})
+                    val_salvo = {}
 
-                    # Dicionário de Estado Reativo
+                    if isinstance(raw_val, dict):
+                        val_salvo = raw_val
+                    elif isinstance(raw_val, str) and raw_val.strip():
+                        try:
+                            # Primeiro tenta converter como JSON
+                            val_salvo = json.loads(raw_val)
+                        except Exception:
+                            try:
+                                # Se falhar (por conta de aspas simples do banco), converte via ast.literal_eval
+                                val_salvo = ast.literal_eval(raw_val)
+                            except Exception:
+                                val_salvo = {}
+
+                    # Garante extração dos valores convertidos
+                    p_aut = float(val_salvo.get("perc_autorizado", 0.0)) if isinstance(val_salvo, dict) else 0.0
+                    i_per = float(val_salvo.get("inflacao_periodo", 0.0)) if isinstance(val_salvo, dict) else 0.0
+
                     state_111 = {
-                        "perc_autorizado": float(val_salvo.get("perc_autorizado", 0.0)),
-                        "inflacao_periodo": float(val_salvo.get("inflacao_periodo", 0.0)),
+                        "perc_autorizado": p_aut,
+                        "inflacao_periodo": i_per,
                         "link": str(q111_data.get("link", "") or ""),
                         "pts": float(q111_data.get("pontos", 0.0))
                     }
@@ -1395,16 +1414,13 @@ def container_formulario_plan(ano=None):
                             ui.label("🧮 Calculadora Automática do Quesito 11.1").classes("font-bold text-blue-700 mb-2")
                             
                             with ui.grid(columns=2).classes("w-full gap-4"):
-                                # Usa bind_value para manter o valor acoplado diretamente ao dicionário em tempo real
                                 input_perc_autorizado = (
-                                    ui.number(label="Percentual Autorizado na LOA (%)", format="%.2f")
-                                    .bind_value(state_111, "perc_autorizado")
+                                    ui.number(label="Percentual Autorizado na LOA (%)", value=state_111["perc_autorizado"], format="%.2f")
                                     .classes("w-full")
                                     .props("outlined bg-white suffix='%'")
                                 )
                                 input_inflacao = (
-                                    ui.number(label="Inflação do Período (%)", format="%.2f")
-                                    .bind_value(state_111, "inflacao_periodo")
+                                    ui.number(label="Inflação do Período (%)", value=state_111["inflacao_periodo"], format="%.2f")
                                     .classes("w-full")
                                     .props("outlined bg-white suffix='%'")
                                 )
@@ -1413,10 +1429,13 @@ def container_formulario_plan(ano=None):
                             lbl_pts_111 = ui.label().classes("text-sm font-bold text-green-600 mt-1")
 
                             def calcular_111(_=None):
-                                perc_aut = float(state_111["perc_autorizado"] or 0.0)
-                                inflacao = float(state_111["inflacao_periodo"] or 0.0)
+                                perc_aut = float(input_perc_autorizado.value or 0.0)
+                                inflacao = float(input_inflacao.value or 0.0)
                                 
-                                # Regra: Se % Autorizado <= Inflação -> 6.0 pontos, senão 0.0 ponto
+                                state_111["perc_autorizado"] = perc_aut
+                                state_111["inflacao_periodo"] = inflacao
+
+                                # Regra: Se % Autorizado <= Inflação -> 6.0 pontos, senão 0.0
                                 if perc_aut <= inflacao:
                                     pts = 6.0
                                     lbl_resultado_comp.set_text(f"Resultado: Percentual Autorizado ({perc_aut:.2f}%) é MENOR ou IGUAL à Inflação ({inflacao:.2f}%)")
@@ -1431,49 +1450,40 @@ def container_formulario_plan(ano=None):
                             input_inflacao.on("update:model-value", calcular_111)
                             calcular_111()
 
-                        # Campo de Evidência / Link acoplado
-                        input_link_111 = (
-                            ui.textarea(
-                                label="Link de Evidência / Documento / Fonte da Inflação:",
-                                placeholder="Insira o link com a LOA e a fonte do índice de inflação utilizado..."
-                            )
-                            .bind_value(state_111, "link")
-                            .classes("w-full mb-4")
-                            .props("outlined rows=3")
-                        )
+                        # Campo de Evidência / Link
+                        input_link_111 = ui.textarea(
+                            label="Link de Evidência / Documento / Fonte da Inflação:",
+                            value=state_111["link"],
+                            placeholder="Insira o link com a LOA e a fonte do índice de inflação utilizado..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
 
                         # Ação de Salvamento
                         def salvar_111():
                             dict_valor = {
-                                "perc_autorizado": float(state_111["perc_autorizado"] or 0.0),
-                                "inflacao_periodo": float(state_111["inflacao_periodo"] or 0.0)
+                                "perc_autorizado": state_111["perc_autorizado"],
+                                "inflacao_periodo": state_111["inflacao_periodo"]
                             }
                             
-                            # Atualiza a estrutura completa na memória do res_data (tanto em str quanto float para evitar perda de referência)
-                            estrutura_resposta = {
+                            # Atualiza a memória local exatamente no formato salvo
+                            res_data["11.1"] = {
                                 "valor": dict_valor,
                                 "pontos": state_111["pts"],
-                                "link": state_111["link"],
+                                "link": input_link_111.value,
                                 "comentarios": q111_data.get("comentarios", []),
                                 "status": q111_data.get("status", "Pendente")
                             }
-                            res_data["11.1"] = estrutura_resposta
-                            res_data[11.1] = estrutura_resposta
 
-                            # Dispara o salvamento oficial da aplicação
                             save_resposta(
                                 ano=ano_sel,
                                 qid="11.1",
                                 valor=dict_valor,
                                 pontos=state_111["pts"],
-                                link=state_111["link"],
+                                link=input_link_111.value,
                                 comentarios=q111_data.get("comentarios", []),
                                 status=q111_data.get("status", "Pendente"),
                             )
-                            
                             ui.notify("Quesito 11.1 salvo com sucesso!", type="positive")
-                            
-                            if hasattr(render_conteudo, "refresh") and render_conteudo.refresh:
+                            if render_conteudo.refresh:
                                 render_conteudo.refresh()
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_111).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
