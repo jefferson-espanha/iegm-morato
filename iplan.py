@@ -2311,7 +2311,7 @@ def container_formulario_plan(ano=None):
                    # ==========================================
                     # QUESITO 15.5 (Iniciativas de Divulgação da Ouvidoria - Checkbox)
                     # ==========================================
-                    # Regra de cálculo: Perde -0.5 pt apenas para os 2 itens de palestras/eventos NÃO assinalados.
+                    # Regra de cálculo: Perde -0.5 pt apenas para os 2 itens digitais/página se NÃO assinalados.
                     import json
                     import ast
 
@@ -2334,13 +2334,13 @@ def container_formulario_plan(ano=None):
                     else:
                         marcados_salvos = []
 
-                    # Apenas estes 2 itens sofrem penalidade (-0.5 cada) se NÃO estiverem marcados
+                    # Apenas estes 2 itens geram penalidade (-0.5 cada) se NÃO estiverem marcados
                     itens_com_penalidade_155 = [
-                        "Realização de palestras para grupos e instituições. Ex.: escolas, igrejas, associações civis, outros grupos organizados etc.",
-                        "Realização de eventos que estimulem a participação e coleta das demandas sociais. Ex.: realização de audiências públicas para divulgação dos trabalhos desempenhados pela ouvidoria e ouvir as demandas da população."
+                        "Link da página eletrônica da ouvidoria no sítio da Prefeitura Municipal",
+                        "Utilização de outras plataformas digitais para a divulgação da missão, do modo de trabalho das ouvidorias e incentivando a participação popular. Ex.: instagram, facebook, twitter etc."
                     ]
 
-                    # Lista completa de opções para exibição no formulário
+                    # Lista completa das opções
                     todos_itens_155 = [
                         "Link da página eletrônica da ouvidoria no sítio da Prefeitura Municipal",
                         "Utilização de outras plataformas digitais para a divulgação da missão, do modo de trabalho das ouvidorias e incentivando a participação popular. Ex.: instagram, facebook, twitter etc.",
@@ -2356,8 +2356,8 @@ def container_formulario_plan(ano=None):
                         # Bloco Informativo de Regras
                         with ui.expansion("ℹ️ Regras de Pontuação / Penalidade", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                             ui.markdown("""
-                            * **Itens de Palestras e Eventos assinalados:** **0,0 ponto** (Sem penalidade)
-                            * **Para cada um dos 2 itens (Palestras / Eventos) NÃO assinalado:** Penalidade de **-0,5 ponto**
+                            * **Itens de Página/Plataformas Digitais assinalados:** **0,0 ponto** (Sem penalidade)
+                            * **Para cada um dos 2 itens digitais NÃO assinalado:** Penalidade de **-0,5 ponto**
                             """).classes("text-sm text-gray-700 p-2")
 
                         checkboxes_dict_155 = {}
@@ -2368,14 +2368,14 @@ def container_formulario_plan(ano=None):
                         def calcular_155(_=None):
                             marcados = [op for op, cb in checkboxes_dict_155.items() if cb.value]
                             
-                            # Avalia a ausência APENAS nos 2 itens mapeados
+                            # Avalia a ausência APENAS nos 2 primeiros itens digitais
                             nao_marcados_alvo = sum(1 for item in itens_com_penalidade_155 if item not in marcados)
                             
-                            # Penalidade: -0.5 por item ausente (máximo -1.0)
+                            # Penalidade: -0.5 por item ausente
                             pts = nao_marcados_alvo * -0.5
 
                             state_155["pts"] = pts
-                            lbl_penalidade_155.set_text(f"Itens com penalidade não assinalados: {nao_marcados_alvo} de {len(itens_com_penalidade_155)}")
+                            lbl_penalidade_155.set_text(f"Itens digitais obrigatórios não assinalados: {nao_marcados_alvo} de {len(itens_com_penalidade_155)}")
                             lbl_pts_155.set_text(f"📊 Pontuação / Penalidade Calculada: {pts:.1f} pontos")
 
                         # Renderiza todos os checkboxes na tela
@@ -2423,7 +2423,6 @@ def container_formulario_plan(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_155).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("15.5", res_data, render_conteudo.refresh)
-
                     # ==========================================
                     # QUESITO 16.0 (Elaboração da Carta de Serviços ao Usuário - Radio)
                     # ==========================================
