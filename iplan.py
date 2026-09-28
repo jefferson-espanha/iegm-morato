@@ -646,7 +646,7 @@ def container_formulario_plan(ano=None):
                     # ==========================================
                     opcoes_13 = {
                         "Selecione...": 0.0,
-                        "Sim – 02 pts": 2.0,
+                        "Sim – 00 pts": 0.0,
                         "Não – 00 pts": 0.0,
                     }
                     render_quesito(
