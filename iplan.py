@@ -2308,28 +2308,118 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   # ==========================================
                     # QUESITO 15.5 (Iniciativas de Divulgação da Ouvidoria - Checkbox)
                     # ==========================================
-                    # Regra de cálculo: Perde -0,5 pt para cada item principal não assinalado.
-                    opcoes_155 = {
-                        "Link da página eletrônica da ouvidoria no sítio da Prefeitura Municipal": 0.0,
-                        "Utilização de outras plataformas digitais para a divulgação da missão, do modo de trabalho das ouvidorias e incentivando a participação popular. Ex.: instagram, facebook, twitter etc.": 0.0,
-                        "Realização de palestras para grupos e instituições. Ex.: escolas, igrejas, associações civis, outros grupos organizados etc.": 0.0,
-                        "Realização de eventos que estimulem a participação e coleta das demandas sociais. Ex.: realização de audiências públicas para divulgação dos trabalhos desempenhados pela ouvidoria e ouvir as demandas da população.": 0.0,
-                        "Outras": 0.0,
-                    }
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="15.5",
-                        titulo="Iniciativas de Divulgação e Mobilização Social das Ouvidorias",
-                        pergunta="Assinale as iniciativas de divulgação e mobilização social das ouvidorias (Perde -0,5 pt para cada item não assinalado):",
-                        tipo_input="checkbox",
-                        opcoes=opcoes_155,
-                        placeholder_link="Insira o link com comprovação das ações de divulgação...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                    # Regra de cálculo: Perde -0.5 pt para cada item principal NÃO assinalado.
+                    import json
+                    import ast
+
+                    raw_155 = res_data.get("15.5") or res_data.get(15.5) or {}
+                    q155_data = raw_155 if isinstance(raw_155, dict) else {}
+
+                    # Recupera itens salvos do banco (tratando caso venha como string/JSON/lista)
+                    raw_val_155 = q155_data.get("valor", [])
+                    
+                    if isinstance(raw_val_155, str) and raw_val_155.strip():
+                        try:
+                            marcados_salvos = json.loads(raw_val_155)
+                        except Exception:
+                            try:
+                                marcados_salvos = ast.literal_eval(raw_val_155)
+                            except Exception:
+                                marcados_salvos = []
+                    elif isinstance(raw_val_155, list):
+                        marcados_salvos = raw_val_155
+                    else:
+                        marcados_salvos = []
+
+                    # Itens principais sujeitos à penalidade (-0.5 cada se NÃO for marcado)
+                    itens_principais_155 = [
+                        "Link da página eletrônica da ouvidoria no sítio da Prefeitura Municipal",
+                        "Utilização de outras plataformas digitais para a divulgação da missão, do modo de trabalho das ouvidorias e incentivando a participação popular. Ex.: instagram, facebook, twitter etc.",
+                        "Realização de palestras para grupos e instituições. Ex.: escolas, igrejas, associações civis, outros grupos organizados etc.",
+                        "Realização de eventos que estimulem a participação e coleta das demandas sociais. Ex.: realização de audiências públicas para divulgação dos trabalhos desempenhados pela ouvidoria e ouvir as demandas da população."
+                    ]
+                    
+                    # Todos os itens para exibição (incluindo "Outras")
+                    todos_itens_155 = itens_principais_155 + ["Outras"]
+
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("15.5 • Iniciativas de Divulgação e Mobilização Social das Ouvidorias").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale as iniciativas de divulgação e mobilização social das ouvidorias efetuadas:").classes("text-base font-bold text-black mb-2")
+                        
+                        # Bloco Informativo de Regras
+                        with ui.expansion("ℹ️ Regras de Pontuação / Penalidade", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Todos os 4 itens principais assinalados:** **0,0 ponto** (Nenhuma penalidade)
+                            * **Para cada item principal NÃO assinalado:** Penalidade de **-0,5 ponto**
+                            * *Obs.: O item "Outras" é complementar e não gera penalidade.*
+                            """).classes("text-sm text-gray-700 p-2")
+
+                        checkboxes_dict_155 = {}
+                        lbl_penalidade_155 = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                        lbl_pts_155 = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+                        state_155 = {"pts": float(q155_data.get("pontos", 0.0))}
+
+                        def calcular_155(_=None):
+                            marcados = [op for op, cb in checkboxes_dict_155.items() if cb.value]
+                            
+                            # Conta quantos itens principais NÃO foram marcados
+                            nao_marcados_principais = sum(1 for item in itens_principais_155 if item not in marcados)
+                            
+                            # Penalidade: -0.5 para cada item principal ausente
+                            pts = nao_marcados_principais * -0.5
+
+                            state_155["pts"] = pts
+                            lbl_penalidade_155.set_text(f"Itens principais não assinalados: {nao_marcados_principais} de {len(itens_principais_155)}")
+                            lbl_pts_155.set_text(f"📊 Pontuação / Penalidade Calculada: {pts:.1f} pontos")
+
+                        # Renderiza os checkboxes
+                        with ui.grid(columns=1).classes("w-full mb-4 gap-2"):
+                            for opcao in todos_itens_155:
+                                is_checked = opcao in marcados_salvos
+                                cb = ui.checkbox(text=opcao, value=is_checked)
+                                cb.on("change", calcular_155)
+                                checkboxes_dict_155[opcao] = cb
+
+                        calcular_155()
+
+                        # Campo de Link / Evidência
+                        input_link_155 = ui.textarea(
+                            label="Link de Evidência / Comprovação das Ações:",
+                            value=str(q155_data.get("link", "") or ""),
+                            placeholder="Insira o link com comprovação das ações de divulgação..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        # Ação de Salvamento
+                        def salvar_155():
+                            marcados = [op for op, cb in checkboxes_dict_155.items() if cb.value]
+                            
+                            res_data["15.5"] = {
+                                "valor": marcados,
+                                "pontos": state_155["pts"],
+                                "link": input_link_155.value,
+                                "comentarios": q155_data.get("comentarios", []),
+                                "status": q155_data.get("status", "Pendente")
+                            }
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.5",
+                                valor=marcados,
+                                pontos=state_155["pts"],
+                                link=input_link_155.value,
+                                comentarios=q155_data.get("comentarios", []),
+                                status=q155_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 15.5 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_155).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.5", res_data, render_conteudo.refresh)
 
                     # ==========================================
                     # QUESITO 16.0 (Elaboração da Carta de Serviços ao Usuário - Radio)
