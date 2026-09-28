@@ -44,7 +44,6 @@ def init_db():
 
 init_db()
 
-
 def load_respostas(ano):
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
