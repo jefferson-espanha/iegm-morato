@@ -3,7 +3,7 @@ from datetime import datetime
 import json
 import os
 import re
-from nicegui import app, ui
+from nicegui import app, ui, run
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
@@ -17,7 +17,7 @@ DATABASE_URL = os.getenv(
 
 
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
+    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor, connect_timeout=15)
 
 
 def init_db():
@@ -5230,7 +5230,7 @@ DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636
 # -----------------------------------------------------------------------------
 def get_db_connection():
     """Cria conexão segura com o Neon PostgreSQL."""
-    return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+    return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor, connect_timeout=15)
 
 
 def converter_para_float(val):
@@ -5877,6 +5877,36 @@ from nicegui import app, ui
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
 # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
+# 3.1. GERAÇÃO BLOQUEANTE DO PDF FORA DO LOOP DA INTERFACE
+# -----------------------------------------------------------------------------
+def _gerar_pdf_completo(dados, ano):
+    """Gera o PDF e retorna bytes; executada em thread de I/O pelo evento NiceGUI."""
+    total_pts = float(sum(
+        v.get("pontos", 0)
+        for k, v in (dados or {}).items()
+        if isinstance(v, dict) and not str(k).startswith("COM_")
+    ))
+    faixa = converter_pontos_em_faixa_iegm(total_pts)
+    historico_todos_anos = get_all_years_data(int(ano)) or {}
+    pdf_buffer = gerar_relatorio_pdf_iamb(
+        dados=dados or {},
+        ano=int(ano),
+        total=total_pts,
+        faixa=faixa,
+        todos_dados=historico_todos_anos,
+    )
+    if hasattr(pdf_buffer, "getvalue"):
+        pdf_bytes = pdf_buffer.getvalue()
+    else:
+        pdf_bytes = pdf_buffer
+    if not isinstance(pdf_bytes, (bytes, bytearray)):
+        raise TypeError(f"O gerador não retornou bytes; recebeu {type(pdf_bytes).__name__}.")
+    if not pdf_bytes:
+        raise ValueError("O gerador retornou um PDF vazio.")
+    return bytes(pdf_bytes)
+
+
 def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
     """
     Componente NiceGUI para renderizar o Card de Emissão do PDF do I-AMB.
@@ -5889,43 +5919,33 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
 
         async def baixar_pdf():
             n = ui.notify("Gerando PDF do I-AMB, aguarde...", type="info", timeout=0)
-            
             try:
-                await asyncio.sleep(0.3)
-
                 dados_locais = res_data or {}
                 ano_alvo = int(ano_sel)
-
-                total_pts = float(sum(
-                    v.get("pontos", 0) 
-                    for k, v in dados_locais.items() 
-                    if isinstance(v, dict) and not str(k).startswith("COM_")
-                ))
-
-                faixa = converter_pontos_em_faixa_iegm(total_pts)
-                historico_todos_anos = get_all_years_data(ano_alvo) or {}
-
-                # 1. Gera o objeto BytesIO contendo o PDF
-                pdf_buffer = gerar_relatorio_pdf_iamb(
-                    dados=dados_locais,
-                    ano=ano_alvo,
-                    total=total_pts,
-                    faixa=faixa,
-                    todos_dados=historico_todos_anos
+                # Geração e consulta ao banco fora do loop principal da interface.
+                pdf_bytes = await asyncio.wait_for(
+                    run.io_bound(_gerar_pdf_completo, dados_locais, ano_alvo),
+                    timeout=120,
                 )
-                
-                # 2. Extrai os bytes brutos do buffer (Corrige o AttributeError: '_io.BytesIO' object has no attribute 'encode')
-                pdf_bytes = pdf_buffer.getvalue() if hasattr(pdf_buffer, 'getvalue') else pdf_buffer
-
-                # 3. Faz o download nativo via NiceGUI sem precisar do Response/FastAPI endpoint
-                ui.download(pdf_bytes, filename=f"relatorio_iamb_{ano_alvo}.pdf")
+                ui.download(
+                    pdf_bytes,
+                    filename=f"relatorio_iamb_{ano_alvo}.pdf",
+                )
                 ui.notify("Relatório I-AMB gerado com sucesso!", type="positive")
-
+            except asyncio.TimeoutError:
+                ui.notify(
+                    "A geração do PDF excedeu 120 segundos. Verifique a conexão com o banco de dados.",
+                    type="negative",
+                    close_button=True,
+                )
             except Exception as e:
                 print(f"ERRO CRÍTICO AO GERAR PDF I-AMB: {e}")
                 logging.exception("Erro no PDF I-AMB:")
-                ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
-
+                ui.notify(
+                    f"Erro ao gerar o PDF: {e}",
+                    type="negative",
+                    close_button=True,
+                )
             finally:
                 if n is not None:
                     try:
