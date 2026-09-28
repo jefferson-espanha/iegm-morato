@@ -1367,7 +1367,7 @@ def container_formulario_plan(ano=None):
                     # Nota: Se % alteração <= inflação ganha -6 pts (perde 6), se > inflação ganha 0 pts.
                     opcoes_111 = {
                         "Selecione...": 0.0,
-                        "Percentual <= Inflação – -06 pts": -6.0,
+                        "Percentual <= Inflação – 06 pts": 6.0,
                         "Percentual > Inflação – 00 pts": 0.0,
                     }
                     render_quesito(
