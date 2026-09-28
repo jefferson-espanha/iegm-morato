@@ -604,7 +604,6 @@ def container_formulario_plan(ano=None):
                     # ==========================================
                     opcoes_11 = {
                         "Selecione...": 0.0,
-                        "Não – 00 pts": 0.0,
                         "PPA inicial 2026-2029 – 01 pt": 1.0,
                         "LDO 2026 – 01 pt": 1.0,
                         "LOA 2026 – 01 pt": 1.0,
