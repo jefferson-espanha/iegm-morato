@@ -5382,12 +5382,9 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
         "1.0":  lambda r: r == "sim",
         "1.1":  lambda r: r == "sim",
         "5.0":  lambda r: r == "sim",
-        "5.1":  lambda r: "sim" in r,
         "7.0":  lambda r: r == "sim",
-        "7.1":  lambda r: r == "sim",
         "7.7":  lambda r: "sim" in r,
         "8.0":  lambda r: r == "sim",
-        "8.1":  lambda r: "sim" in r,
         "9.0":  lambda r: r == "sim",
         "10.0": lambda r: r == "sim",
         "11.0": lambda r: r == "sim",
@@ -5436,7 +5433,6 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
     elements.append(Spacer(1, 8))
     
     style_sub_capa = ParagraphStyle('SubCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=14, textColor=colors.HexColor("#27ae60"), alignment=1)
-    elements.append(Paragraph("Índice de Governança Municipal em Meio Ambiente", style_sub_capa))
     elements.append(Spacer(1, 15))
 
     style_ano_capa = ParagraphStyle('AnoCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=16, textColor=colors.HexColor("#7f8c8d"), alignment=1)
