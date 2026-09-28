@@ -2311,14 +2311,14 @@ def container_formulario_plan(ano=None):
                    # ==========================================
                     # QUESITO 15.5 (Iniciativas de Divulgação da Ouvidoria - Checkbox)
                     # ==========================================
-                    # Regra de cálculo: Perde -0.5 pt para cada item principal NÃO assinalado.
+                    # Regra de cálculo: Perde -0.5 pt apenas para os 2 itens de palestras/eventos NÃO assinalados.
                     import json
                     import ast
 
                     raw_155 = res_data.get("15.5") or res_data.get(15.5) or {}
                     q155_data = raw_155 if isinstance(raw_155, dict) else {}
 
-                    # Recupera itens salvos do banco (tratando caso venha como string/JSON/lista)
+                    # Recupera itens salvos do banco
                     raw_val_155 = q155_data.get("valor", [])
                     
                     if isinstance(raw_val_155, str) and raw_val_155.strip():
@@ -2334,16 +2334,20 @@ def container_formulario_plan(ano=None):
                     else:
                         marcados_salvos = []
 
-                    # Itens principais sujeitos à penalidade (-0.5 cada se NÃO for marcado)
-                    itens_principais_155 = [
-                        "Link da página eletrônica da ouvidoria no sítio da Prefeitura Municipal",
-                        "Utilização de outras plataformas digitais para a divulgação da missão, do modo de trabalho das ouvidorias e incentivando a participação popular. Ex.: instagram, facebook, twitter etc.",
+                    # Apenas estes 2 itens sofrem penalidade (-0.5 cada) se NÃO estiverem marcados
+                    itens_com_penalidade_155 = [
                         "Realização de palestras para grupos e instituições. Ex.: escolas, igrejas, associações civis, outros grupos organizados etc.",
                         "Realização de eventos que estimulem a participação e coleta das demandas sociais. Ex.: realização de audiências públicas para divulgação dos trabalhos desempenhados pela ouvidoria e ouvir as demandas da população."
                     ]
-                    
-                    # Todos os itens para exibição (incluindo "Outras")
-                    todos_itens_155 = itens_principais_155 + ["Outras"]
+
+                    # Lista completa de opções para exibição no formulário
+                    todos_itens_155 = [
+                        "Link da página eletrônica da ouvidoria no sítio da Prefeitura Municipal",
+                        "Utilização de outras plataformas digitais para a divulgação da missão, do modo de trabalho das ouvidorias e incentivando a participação popular. Ex.: instagram, facebook, twitter etc.",
+                        "Realização de palestras para grupos e instituições. Ex.: escolas, igrejas, associações civis, outros grupos organizados etc.",
+                        "Realização de eventos que estimulem a participação e coleta das demandas sociais. Ex.: realização de audiências públicas para divulgação dos trabalhos desempenhados pela ouvidoria e ouvir as demandas da população.",
+                        "Outras"
+                    ]
 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("15.5 • Iniciativas de Divulgação e Mobilização Social das Ouvidorias").classes("text-xl font-semibold text-blue-500 mb-3")
@@ -2352,9 +2356,8 @@ def container_formulario_plan(ano=None):
                         # Bloco Informativo de Regras
                         with ui.expansion("ℹ️ Regras de Pontuação / Penalidade", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                             ui.markdown("""
-                            * **Todos os 4 itens principais assinalados:** **0,0 ponto** (Nenhuma penalidade)
-                            * **Para cada item principal NÃO assinalado:** Penalidade de **-0,5 ponto**
-                            * *Obs.: O item "Outras" é complementar e não gera penalidade.*
+                            * **Itens de Palestras e Eventos assinalados:** **0,0 ponto** (Sem penalidade)
+                            * **Para cada um dos 2 itens (Palestras / Eventos) NÃO assinalado:** Penalidade de **-0,5 ponto**
                             """).classes("text-sm text-gray-700 p-2")
 
                         checkboxes_dict_155 = {}
@@ -2365,17 +2368,17 @@ def container_formulario_plan(ano=None):
                         def calcular_155(_=None):
                             marcados = [op for op, cb in checkboxes_dict_155.items() if cb.value]
                             
-                            # Conta quantos itens principais NÃO foram marcados
-                            nao_marcados_principais = sum(1 for item in itens_principais_155 if item not in marcados)
+                            # Avalia a ausência APENAS nos 2 itens mapeados
+                            nao_marcados_alvo = sum(1 for item in itens_com_penalidade_155 if item not in marcados)
                             
-                            # Penalidade: -0.5 para cada item principal ausente
-                            pts = nao_marcados_principais * -0.5
+                            # Penalidade: -0.5 por item ausente (máximo -1.0)
+                            pts = nao_marcados_alvo * -0.5
 
                             state_155["pts"] = pts
-                            lbl_penalidade_155.set_text(f"Itens principais não assinalados: {nao_marcados_principais} de {len(itens_principais_155)}")
+                            lbl_penalidade_155.set_text(f"Itens com penalidade não assinalados: {nao_marcados_alvo} de {len(itens_com_penalidade_155)}")
                             lbl_pts_155.set_text(f"📊 Pontuação / Penalidade Calculada: {pts:.1f} pontos")
 
-                        # Renderiza os checkboxes
+                        # Renderiza todos os checkboxes na tela
                         with ui.grid(columns=1).classes("w-full mb-4 gap-2"):
                             for opcao in todos_itens_155:
                                 is_checked = opcao in marcados_salvos
