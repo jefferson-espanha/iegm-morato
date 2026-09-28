@@ -5448,7 +5448,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # CAPA
     # -------------------------------------------------------------------------
-    elements.append(Spacer(1, 80))
+    elements.append(Spacer(1, 40))
     logo_path = "iegm.png"
     if os.path.exists(logo_path):
         try:
@@ -5461,8 +5461,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Paragraph("<b>[IEGM - GESTÃO AMBIENTAL]</b>", styles["TitleCapa"]))
 
     elements.append(Spacer(1, 40))
-    elements.append(Paragraph("Relatório <br/><b>I-AMB (Gestão Ambiental)</b>", styles['TitleCapa']))
+    
+    # Título limpo em linha única
+    elements.append(Paragraph("<b>Relatório I-AMB</b>", styles['TitleCapa']))
     elements.append(Spacer(1, 15))
+    
+    # Subtítulo com Ano de Referência
     elements.append(Paragraph(f"Exercício de Referência: <b>{ano_normalizado}</b>", styles['SubTitleCapa']))
     elements.append(PageBreak())
 
@@ -5670,7 +5674,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         data_reinc = [["Quesito", "Teto Máximo", f"Pontos {ano_ant}", f"Pontos {ano_normalizado}", "Situação"]]
         for r in reincidencias:
             data_reinc.append([
-                r["qid"], f"{r['max']:.1f}", f"{r['ant']:.1f}", f"{r['atual']:.1f}", "Reincidente em Não-Atendimento"
+                r["qid"], f"{r['max']:.1f}", f"{r['ant']:.1f}", f"{r['atual']:.1f}", "Reincidente"
             ])
         tr = Table(data_reinc, colWidths=[80, 80, 95, 95, 130])
         tr.setStyle(TableStyle([
