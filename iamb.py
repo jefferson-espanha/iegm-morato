@@ -5461,7 +5461,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Paragraph("<b>[IEGM - GESTÃO AMBIENTAL]</b>", styles["TitleCapa"]))
 
     elements.append(Spacer(1, 40))
-    elements.append(Paragraph("Relatório Analítico de Desempenho<br/><b>I-AMB (Gestão Ambiental)</b>", styles['TitleCapa']))
+    elements.append(Paragraph("Relatório <br/><b>I-AMB (Gestão Ambiental)</b>", styles['TitleCapa']))
     elements.append(Spacer(1, 15))
     elements.append(Paragraph(f"Exercício de Referência: <b>{ano_normalizado}</b>", styles['SubTitleCapa']))
     elements.append(PageBreak())
