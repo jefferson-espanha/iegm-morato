@@ -1364,44 +1364,99 @@ def container_formulario_plan(ano=None):
                     # ==========================================
                     # QUESITO 11.1 (Percentual de Crédito Adicional Suplementar na LOA)
                     # ==========================================
-                    opcoes_111 = {
-                        "Selecione...": 0.0,
-                        "Percentual <= Inflação – 06 pts": 6.0,
-                        "Percentual > Inflação – 00 pts": 0.0,
-                    }
+                    q111_data = res_data.get("11.1", {}) if isinstance(res_data.get("11.1"), dict) else {}
                     
-                    # 1. Desenha o quesito com as opções de rádio
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="11.1",
-                        titulo="11.1 - Percentual Autorizado para Crédito Adicional Suplementar",
-                        pergunta="Qual o percentual autorizado na Lei Orçamentária Anual (LOA) para abertura de crédito adicional suplementar?",
-                        tipo_input="radio",
-                        opcoes=opcoes_111,
-                        placeholder_link="Insira o link ou fundamentação legal da LOA...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("11.1 • Percentual Autorizado para Crédito Adicional Suplementar").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Qual o percentual autorizado na Lei Orçamentária Anual (LOA) para abertura de crédito adicional suplementar?").classes("text-base font-bold text-black mb-2")
+                        
+                        # Bloco Informativo de Regras de Pontuação
+                        with ui.expansion("ℹ️ Regras de Pontuação do Quesito 11.1", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                            ui.markdown("""
+                            * **Percentual <= Inflação:** Penalidade de **-6,0 pontos** (Aplica-se caso o percentual autorizado seja menor ou igual à inflação do período)
+                            * **Percentual > Inflação:** Neutro (**0,0 ponto**) (Não há penalização)
+                            """).classes("text-sm text-gray-700 p-2")
 
-                    # 2. Adiciona o campo para o usuário digitar o valor em %
-                    dados_111 = res_data.get("11.1", {}) if isinstance(res_data.get("11.1"), dict) else {}
-                    val_atual = dados_111.get("percentual_digitado", "")
+                        # Seção do Formularinho Interno
+                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
+                            ui.label("📊 Entrada do Percentual Autorizado").classes("font-bold text-blue-700 mb-2")
+                            
+                            state_111 = {
+                                "percentual": float(q111_data.get("percentual", 0.0)),
+                                "opcao": q111_data.get("opcao", "Selecione..."),
+                                "link": q111_data.get("link", ""),
+                                "pts": float(q111_data.get("pontos", 0.0))
+                            }
 
-                    async def salvar_percentual_111(e):
-                        if "11.1" not in res_data or not isinstance(res_data["11.1"], dict):
-                            res_data["11.1"] = {}
-                        res_data["11.1"]["percentual_digitado"] = e.value
-                        # Salva a resposta no banco/storage se houver a função
-                        if "save_respostas" in globals():
-                            save_respostas(ano_sel, res_data)
+                            opcoes_111 = {
+                                "Selecione...": 0.0,
+                                "Percentual <= Inflação – 06 pts": -6.0,
+                                "Percentual > Inflação – 00 pts": 0.0,
+                            }
 
-                    ui.input(
-                        label="Percentual Autorizado na LOA (%)",
-                        placeholder="Ex: 5.0%",
-                        value=str(val_atual),
-                        on_change=salvar_percentual_111
-                    ).classes("w-full max-w-xs -mt-3 mb-4 ml-4").props("outlined dense suffix='%'")
-                    
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                input_percentual = (
+                                    ui.number(label="Percentual Autorizado na LOA (%)", value=state_111["percentual"], format="%.2f")
+                                    .classes("w-full")
+                                    .props("outlined bg-white suffix='%'")
+                                )
+                                
+                                select_opcao = (
+                                    ui.select(
+                                        options=list(opcoes_111.keys()),
+                                        value=state_111["opcao"] if state_111["opcao"] in opcoes_111 else "Selecione...",
+                                        label="Faixa do Percentual (Regra)"
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined bg-white")
+                                )
+
+                            lbl_pts_111 = ui.label().classes("text-sm font-bold text-green-600 mt-2")
+
+                            def atualizar_111(_=None):
+                                perc = input_percentual.value or 0.0
+                                op_sel = select_opcao.value or "Selecione..."
+                                
+                                pts = opcoes_111.get(op_sel, 0.0)
+                                state_111["percentual"] = perc
+                                state_111["opcao"] = op_sel
+                                state_111["pts"] = pts
+
+                                lbl_pts_111.set_text(f"📊 Impacto de Pontuação Selecionado: {pts:.2f} pontos")
+
+                            input_percentual.on("update:model-value", atualizar_111)
+                            select_opcao.on("update:model-value", atualizar_111)
+                            atualizar_111()
+
+                        # Campo de Evidência / Link
+                        input_link_111 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_111["link"],
+                            placeholder="Insira o link ou informe o dispositivo da LOA referente ao percentual autorizado..."
+                        ).classes("w-full mb-4").props("outlined rows=3")
+
+                        # Ação de Salvamento
+                        def salvar_111():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="11.1",
+                                valor={
+                                    "percentual": state_111["percentual"],
+                                    "opcao": state_111["opcao"]
+                                },
+                                pontos=state_111["pts"],
+                                link=input_link_111.value,
+                                comentarios=q111_data.get("comentarios", []),
+                                status=q111_data.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 11.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_111).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("11.1", res_data, render_conteudo.refresh)
+                        
                     # ==========================================
                     # QUESITO 12.0 (Estrutura Administrativa de Planejamento - Radio)
                     # ==========================================
