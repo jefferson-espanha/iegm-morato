@@ -5650,7 +5650,7 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # 3. ANÁLISE DE IMPACTO E PENALIDADES (I-AMB)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
+    elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES 1(EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     lista_penalidades = []
