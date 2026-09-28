@@ -1361,10 +1361,9 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-    # ==========================================
-                    # QUESITO 11.1 (Percentual de Crédito Adicional Suplementar na LOA - Radio)
                     # ==========================================
-                    # Nota: Se % alteração <= inflação ganha -6 pts (perde 6), se > inflação ganha 0 pts.
+                    # QUESITO 11.1 (Percentual de Crédito Adicional Suplementar na LOA)
+                    # ==========================================
                     opcoes_111 = {
                         "Selecione...": 0.0,
                         "Percentual <= Inflação – 06 pts": 6.0,
@@ -1378,7 +1377,10 @@ def container_formulario_plan(ano=None):
                         pergunta="Qual o percentual autorizado na Lei Orçamentária Anual (LOA) para abertura de crédito adicional suplementar?",
                         tipo_input="radio",
                         opcoes=opcoes_111,
-                        placeholder_link="Insira o link ou informe o percentual autorizado na LOA...",
+                        com_campo_valor=True,  # Habilita o campo de entrada numérica/texto do valor
+                        label_campo_valor="Valor do Percentual Autorizado (%):",
+                        placeholder_valor="Ex: 10%",
+                        placeholder_link="Insira o link ou fundamentação da LOA...",
                         on_save_callback=render_conteudo.refresh,
                     )
 
