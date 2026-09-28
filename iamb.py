@@ -17,7 +17,12 @@ DATABASE_URL = os.getenv(
 
 
 def get_db_connection():
-    return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor, connect_timeout=15)
+    return psycopg2.connect(
+        DATABASE_URL,
+        cursor_factory=RealDictCursor,
+        connect_timeout=15,
+        options="-c statement_timeout=60000",
+    )
 
 
 def init_db():
@@ -5230,7 +5235,12 @@ DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636
 # -----------------------------------------------------------------------------
 def get_db_connection():
     """Cria conexão segura com o Neon PostgreSQL."""
-    return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor, connect_timeout=15)
+    return psycopg2.connect(
+        DATABASE_URL,
+        cursor_factory=psycopg2.extras.RealDictCursor,
+        connect_timeout=15,
+        options="-c statement_timeout=60000",
+    )
 
 
 def converter_para_float(val):
@@ -5872,6 +5882,8 @@ def gerar_relatorio_pdf_iamb(dados, ano, total, faixa, todos_dados=None):
 
 import asyncio
 import logging
+import uuid
+from fastapi import Response
 from nicegui import app, ui
 
 # -----------------------------------------------------------------------------
@@ -5924,12 +5936,19 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
                 ano_alvo = int(ano_sel)
                 # Geração e consulta ao banco fora do loop principal da interface.
                 pdf_bytes = await asyncio.wait_for(
-                    run.io_bound(_gerar_pdf_completo, dados_locais, ano_alvo),
+                    asyncio.to_thread(_gerar_pdf_completo, dados_locais, ano_alvo),
                     timeout=120,
                 )
-                ui.download(
-                    pdf_bytes,
-                    filename=f"relatorio_iamb_{ano_alvo}.pdf",
+
+                # Publica o PDF em uma rota temporária e abre uma nova aba.
+                rota_pdf = f"/relatorio_iamb_{ano_alvo}_{uuid.uuid4().hex}.pdf"
+
+                async def relatorio_endpoint():
+                    return Response(content=pdf_bytes, media_type="application/pdf")
+
+                app.get(rota_pdf)(relatorio_endpoint)
+                ui.run_javascript(
+                    f"window.open('{rota_pdf}', '_blank', 'noopener,noreferrer')"
                 )
                 ui.notify("Relatório I-AMB gerado com sucesso!", type="positive")
             except asyncio.TimeoutError:
