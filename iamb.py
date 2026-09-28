@@ -5720,11 +5720,17 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # 6. SÉRIE HISTÓRICA DO I-AMB
     # -------------------------------------------------------------------------
+    from reportlab.graphics.shapes import Drawing
+    from reportlab.graphics.charts.barcharts import VerticalBarChart
+
     elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-AMB</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
     data_hist = [["Exercício / Ano", "Pontuação Acumulada", "Faixa / Conceito"]]
     anos_ordenados = sorted(todos_dados.keys())
+
+    anos_labels = []
+    pontos_valores = []
 
     for a in anos_ordenados:
         sub_d = todos_dados[a]
@@ -5738,6 +5744,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         f_a = converter_pontos_em_faixa_iegm(tot_a)
         data_hist.append([str(a), f"{tot_a:.1f} pts", f_a])
 
+        # Coleta dados para o gráfico
+        anos_labels.append(str(a))
+        pontos_valores.append(tot_a)
+
+    # 1. Tabela
     t_hist = Table(data_hist, colWidths=[120, 180, 180])
     t_hist.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2C3E50")),
@@ -5747,6 +5758,37 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     ]))
     elements.append(t_hist)
     elements.append(Spacer(1, 15))
+
+    # 2. Gráfico de Barras Vertical
+    if pontos_valores:
+        d = Drawing(480, 180)
+        
+        bc = VerticalBarChart()
+        bc.x = 40
+        bc.y = 25
+        bc.height = 135
+        bc.width = 410
+        bc.data = [pontos_valores]
+        
+        # Eixo X (Anos)
+        bc.categoryAxis.categoryNames = anos_labels
+        bc.categoryAxis.labels.fontSize = 9
+        bc.categoryAxis.labels.dy = -10
+        
+        # Eixo Y (Pontuação)
+        max_v = max(pontos_valores) if pontos_valores else 100
+        bc.valueAxis.valueMin = 0
+        bc.valueAxis.valueMax = max(max_v * 1.15, 100)
+        bc.valueAxis.valueStep = 20
+        bc.valueAxis.labels.fontSize = 8
+        
+        # Estilo das Barras
+        bc.bars[0].fillColor = colors.HexColor("#2980B9")
+        bc.bars[0].strokeColor = colors.HexColor("#1B4F72")
+
+        d.add(bc)
+        elements.append(d)
+        elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
     # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-AMB - CONFORMIDADE OPERACIONAL)
