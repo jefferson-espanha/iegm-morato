@@ -1557,7 +1557,7 @@ def container_formulario_plan(ano=None):
                     # ==========================================
                     opcoes_1212 = {
                         "Selecione...": 0.0,
-                        "Sim (Treinamento periódico pelo menos 1 vez ao ano) – 00 pts": 0.0,
+                        "Sim  – 00 pts": 0.0,
                         "Não – -10 pts": -10.0,
                     }
                     render_quesito(
