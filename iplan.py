@@ -3602,11 +3602,12 @@ def _render_formulario_iplan(ano=2026):
     """
     Renderiza os campos do formulário do I-PLAN na interface NiceGUI.
     """
-    def render_conteudo():
-        ui.label(f"Formulário do I-PLAN - Exercício {ano}").classes("text-2xl font-bold text-gray-800 mb-4")
-        # Os campos do formulário são construídos dinamicamente aqui
-        
-    render_conteudo()
+    with ui.column().classes("w-full p-4"):
+        ui.label(f"Formulário do I-PLAN - Exercício {ano}").classes(
+            "text-2xl font-bold text-gray-800 mb-4"
+        )
+        # Aqui devem ser inseridos os campos do checklist/formulário i-Plan
+        ui.label("Preencha os dados abaixo para calcular o I-PLAN:").classes("text-gray-600 mb-2")
 
 
 def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
@@ -3615,15 +3616,28 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
     """
     ano_inicial = ano if ano is not None else ano_sel
 
-    # 1. Renderiza a estrutura do formulário
-    _render_formulario_iplan(ano=ano_inicial)
+    # Container principal centralizado
+    with ui.container().classes("w-full max-w-5xl mx-auto p-4"):
+        # 1. Renderiza a estrutura do formulário
+        _render_formulario_iplan(ano=ano_inicial)
 
-    # 2. Carrega as respostas do banco de dados se não foram fornecidas
-    ano_relatorio = int(app.storage.user.get("ano_referencia_global", ano_inicial)) if hasattr(app, "storage") and hasattr(app.storage, "user") else ano_inicial
-    dados_relatorio = res_data if res_data is not None else load_respostas(ano_relatorio)
+        # 2. Carrega as respostas do banco de dados com tratamento de exceção seguro
+        dados_relatorio = res_data
+        if dados_relatorio is None:
+            try:
+                ano_relatorio = ano_inicial
+                if hasattr(app, "storage") and hasattr(app.storage, "user"):
+                    ano_relatorio = int(app.storage.user.get("ano_referencia_global", ano_inicial))
+                dados_relatorio = load_respostas(ano_relatorio)
+            except Exception as err:
+                print(f"⚠️ Aviso ao carregar respostas do DB: {err}")
+                dados_relatorio = {}
+                ano_relatorio = ano_inicial
+        else:
+            ano_relatorio = ano_inicial
 
-    # 3. Renderiza o card do relatório PDF
-    renderizar_card_relatorio_iplan(
-        res_data=dados_relatorio,
-        ano_sel=ano_relatorio,
-    )
+        # 3. Renderiza o card do relatório PDF
+        renderizar_card_relatorio_iplan(
+            res_data=dados_relatorio,
+            ano_sel=ano_relatorio,
+        )
