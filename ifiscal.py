@@ -99,10 +99,10 @@ def save_resposta(
         "status": status,
     }
 
-    # Gera um ID único simples combinando Ano e Quesito se necessário
+    # Gera um ID único simples combinando Ano e Quesito
     registro_id = f"{ano}_{qid}"
 
-query = """
+    query = """
         INSERT INTO respostas_ifiscal (id, ano, quesito, resposta, pontos, detalhes, atualizado_em)
         VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
         ON CONFLICT (id) 
@@ -138,7 +138,7 @@ def zerar_questionario_db(ano):
         with get_db_connection() as conn:
             with conn.cursor() as cur:
                 cur.execute(query, (int(ano),))
-                conn.commit()
+            conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
 
