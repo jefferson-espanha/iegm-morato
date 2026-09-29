@@ -2276,12 +2276,14 @@ def container_formulario_plan(ano=None):
                     # Recupera os itens já assinalados e salvos no banco de forma segura
                     raw_val_1541 = q1541_data.get("valor", [])
                     marcados_salvos_1541 = []
-                    
+
                     if isinstance(raw_val_1541, str) and raw_val_1541.strip():
                         try:
+                            import json
                             marcados_salvos_1541 = json.loads(raw_val_1541)
                         except Exception:
                             try:
+                                import ast
                                 marcados_salvos_1541 = ast.literal_eval(raw_val_1541)
                             except Exception:
                                 marcados_salvos_1541 = []
@@ -2309,15 +2311,14 @@ def container_formulario_plan(ano=None):
                         checkboxes_dict_1541 = {}
                         lbl_penalidade_1541 = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
                         lbl_pts_1541 = ui.label().classes("text-sm font-bold text-green-600 mt-1")
-                        
-                        # Guardamos os pontos em um dicionário simples mutável
+
                         pontos_state_1541 = {"valor": float(q1541_data.get("pontos", 0.0))}
 
                         def recao_alteracao_1541(*args):
                             marcados = [op for op, cb in checkboxes_dict_1541.items() if cb.value]
                             nao_marcados = sum(1 for item in itens_obrigatorios_1541 if item not in marcados)
                             pts = nao_marcados * -2.5
-                            
+
                             pontos_state_1541["valor"] = pts
                             lbl_penalidade_1541.set_text(f"Itens ausentes/não assinalados: {nao_marcados} de {len(itens_obrigatorios_1541)}")
                             lbl_pts_1541.set_text(f"📊 Pontuação / Penalidade Calculada: {pts:.1f} pontos")
@@ -2342,6 +2343,7 @@ def container_formulario_plan(ano=None):
 
                         # Ação de Salvamento
                         def acao_salvar_1541():
+                            import json
                             marcados = [op for op, cb in checkboxes_dict_1541.items() if cb.value]
                             pts_finais = pontos_state_1541["valor"]
                             link_txt = input_link_1541.value or ""
