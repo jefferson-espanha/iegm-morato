@@ -2776,7 +2776,7 @@ def container_formulario_ifiscal(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                   # ==========================================
+                    # ==========================================
                     # QUESITO F1 (Análise da Receita - Execução Orçamentária)
                     # ==========================================
                     f1_data = res_data.get("F1", {})
@@ -2784,7 +2784,7 @@ def container_formulario_ifiscal(ano=None):
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("F1 • Análise da Receita (Execução Orçamentária) – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Divisão da receita arrecadada (O) pela receita prevista atualizada (P), com base nos dados da LOA (Q = O / P):").classes("text-base font-bold text-black mb-2")
-                        
+
                         with ui.expansion("ℹ️ Tabela de Regras do Indicador Q", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                             ui.markdown("""
                             * **Q >= 1,5:** Pontuação = **0,0 ponto**
@@ -2796,14 +2796,15 @@ def container_formulario_ifiscal(ano=None):
 
                         with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
                             ui.label("🧮 Calculadora Automática do Indicador Q").classes("font-bold text-blue-700 mb-2")
-                            
+
+                            # Desserialização segura do dicionário salvo
                             val_f1_bruto = f1_data.get("valor", {})
-                            if isinstance(val_f1_bruto, str):
-                                import json
+                            while isinstance(val_f1_bruto, str):
                                 try:
                                     val_f1_bruto = json.loads(val_f1_bruto)
                                 except Exception:
                                     val_f1_bruto = {}
+                                    break
 
                             if not isinstance(val_f1_bruto, dict):
                                 val_f1_bruto = {}
@@ -2825,17 +2826,19 @@ def container_formulario_ifiscal(ano=None):
                                 "val_o": val_o_init,
                                 "val_p": val_p_init,
                                 "link": f1_data.get("link", ""),
-                                "pts": float(f1_data.get("pontos", 0.0))
+                                "pts": float(f1_data.get("pontos", 0.0)),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_o = (
-                                    ui.number(label="Receita Arrecadada (O)", value=state_f1["val_o"], format="%.2f")
+                                    ui.number(label="Receita Arrecadada (O)", format="%.2f")
+                                    .bind_value(state_f1, "val_o")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_p = (
-                                    ui.number(label="Receita Prevista Atualizada (P)", value=state_f1["val_p"], format="%.2f")
+                                    ui.number(label="Receita Prevista Atualizada (P)", format="%.2f")
+                                    .bind_value(state_f1, "val_p")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
@@ -2845,17 +2848,14 @@ def container_formulario_ifiscal(ano=None):
 
                             def calcular_q(_=None):
                                 try:
-                                    o = float(input_o.value) if input_o.value is not None else 0.0
+                                    o = float(state_f1["val_o"]) if state_f1["val_o"] is not None else 0.0
                                 except (ValueError, TypeError):
                                     o = 0.0
 
                                 try:
-                                    p = float(input_p.value) if input_p.value is not None else 0.0
+                                    p = float(state_f1["val_p"]) if state_f1["val_p"] is not None else 0.0
                                 except (ValueError, TypeError):
                                     p = 0.0
-
-                                state_f1["val_o"] = o
-                                state_f1["val_p"] = p
 
                                 if p > 0:
                                     q = o / p
@@ -2869,7 +2869,7 @@ def container_formulario_ifiscal(ano=None):
                                         pts = ((q - 0.5) / 0.35) * 75.0
                                     else:
                                         pts = 0.0
-                                    
+
                                     state_f1["pts"] = pts
                                     lbl_q.set_text(f"Resultado Q (O / P): {q:.4f}")
                                     lbl_pts_q.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
@@ -2885,37 +2885,34 @@ def container_formulario_ifiscal(ano=None):
                         input_link_f1 = ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_f1["link"],
-                            placeholder="Insira o link do balanço orçamentário ou relatório contábil..."
+                            placeholder="Insira o link do balanço orçamentário ou relatório contábil...",
                         ).classes("w-full mb-4").props("outlined rows=3")
 
                         def salvar_f1():
-                            import json
                             calcular_q()
-                            
-                            val_dict = {"O": state_f1["val_o"], "P": state_f1["val_p"]}
-                            
-                            # Converte o dicionário para string JSON para salvar com segurança no campo TEXT da tabela
-                            valor_str = json.dumps(val_dict)
+
+                            val_dict = {
+                                "O": float(state_f1["val_o"]) if state_f1["val_o"] is not None else 0.0,
+                                "P": float(state_f1["val_p"]) if state_f1["val_p"] is not None else 0.0,
+                            }
 
                             try:
-                                # Chama a função de salvar no banco de dados
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="F1",
-                                    valor=valor_str,  # passa como string JSON para a coluna 'resposta'
+                                    valor=val_dict,
                                     pontos=state_f1["pts"],
                                     link=input_link_f1.value,
                                     comentarios=f1_data.get("comentarios", []),
                                     status=f1_data.get("status", "Pendente"),
                                 )
 
-                                # Atualiza no dicionário em memória do estado local
                                 res_data["F1"] = {
                                     "valor": val_dict,
                                     "pontos": state_f1["pts"],
                                     "link": input_link_f1.value,
                                     "comentarios": f1_data.get("comentarios", []),
-                                    "status": f1_data.get("status", "Pendente")
+                                    "status": f1_data.get("status", "Pendente"),
                                 }
 
                                 ui.notify("Quesito F1 salvo com sucesso no Banco de Dados!", type="positive")
@@ -2926,7 +2923,6 @@ def container_formulario_ifiscal(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f1).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F1", res_data, render_conteudo.refresh)
-
                     # ==========================================
                     # QUESITO F2 (Análise da Despesa - Execução Orçamentária)
                     # ==========================================
