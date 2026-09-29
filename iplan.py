@@ -1,3 +1,4 @@
+import ast
 import base64
 from datetime import datetime
 import json
@@ -3642,4 +3643,4 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
             ano_sel=ano_relatorio,
         )
 
-render_conteudo()
+container_formulario_plan()
