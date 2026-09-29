@@ -3641,3 +3641,5 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
             res_data=dados_relatorio,
             ano_sel=ano_relatorio,
         )
+
+render_conteudo()
