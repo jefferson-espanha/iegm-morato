@@ -2836,6 +2836,8 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
+    render_conteudo()
+
 import io
 import os
 import logging
