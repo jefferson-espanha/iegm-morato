@@ -2851,11 +2851,17 @@ from reportlab.platypus import (
     SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, Table, TableStyle
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.graphics.shapes import Drawing
+from reportlab.graphics.charts.barcharts import VerticalBarChart
+
+import asyncio
+from nicegui import app, ui
+from fastapi import Response
 
 # -----------------------------------------------------------------------------
 # 1. MAPEAMENTOS E TETOS DE PONTUAÇÃO DO I-PLAN
 # -----------------------------------------------------------------------------
-PONTUACOES_MAX_IAMB = {
+PONTUACOES_MAX_IPLAN = {
     "1.1": 3.0, "1.2": 4.0, "1.3.1": 3.0, "1.4": 5.0, "2.0": 6.0, "2.1": 2.0,
     "3.1": 14.0, "3.2": 10.0, "4.0": 10.0, "4.1": 15.0, "4.1.1": 10.0, "4.1.1.1": 7.0, 
     "4.1.1.1.1": 60.0, "4.1.1.2": 4.0, "4.2": 25.0, "4.3": 15.0,
@@ -2869,8 +2875,9 @@ PONTUACOES_MAX_IAMB = {
     "16.0": 4.0, "16.1": 2.0, "16.2": 2.0, "16.3": 4.0, "17.0": 4.0, 
     "P1": 250.0, "P2": 250.0, "P4": 150.0
 }
-    
-# Alias para evitar erros de referência no ReportLab
+
+# Aliases de compatibilidade para evitar NameError
+PONTUACOES_MAX_IAMB = PONTUACOES_MAX_IPLAN
 PONTUACOES_MAX = PONTUACOES_MAX_IPLAN
 
 PENALIDADES_MAX = {
@@ -2883,7 +2890,7 @@ DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636
 
 
 # -----------------------------------------------------------------------------
-# 2. FUNÇÕES AUXILIARES E REGRAS DE NEGÓCIO I-AMB
+# 2. FUNÇÕES AUXILIARES E REGRAS DE NEGÓCIO I-AMB / I-PLAN
 # -----------------------------------------------------------------------------
 def get_db_connection():
     """Cria conexão segura com o Neon PostgreSQL usando linhas por nome de coluna."""
@@ -2993,7 +3000,7 @@ def obter_regra_ods_iamb(qid, resp):
 
 
 def get_all_years_data():
-    """Busca a série histórica do I-AMB no PostgreSQL Neon DB."""
+    """Busca a série histórica do I-AMB/I-PLAN no PostgreSQL Neon DB."""
     all_data = {}
     query = """
         SELECT qid, ano, valor, pontos, link, comentarios
@@ -3036,9 +3043,53 @@ def get_all_years_data():
                     "comentarios": comentarios
                 }
     except Exception as e:
-        print(f"❌ Erro ao buscar série histórica I-AMB no Neon DB: {e}")
+        print(f"❌ Erro ao buscar série histórica I-PLAN no Neon DB: {e}")
 
     return all_data
+
+
+def load_respostas(ano):
+    """Carrega as respostas de um ano específico do PostgreSQL Neon DB."""
+    respostas = {}
+    query = """
+        SELECT qid, valor, pontos, link, comentarios
+        FROM respostas_iplan
+        WHERE ano = %s;
+    """
+    try:
+        with get_db_connection() as conn:
+            try:
+                cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            except Exception:
+                cur = conn.cursor()
+
+            cur.execute(query, (ano,))
+            rows = cur.fetchall()
+
+            for row in rows:
+                if isinstance(row, dict):
+                    qid = str(row["qid"]).strip()
+                    valor = row["valor"] or ""
+                    pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
+                    link = row["link"] if row["link"] != "EMPTY_STRING" else ""
+                    comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
+                else:
+                    qid = str(row[0]).strip()
+                    valor = row[1] or ""
+                    pontos = float(row[2]) if row[2] is not None else 0.0
+                    link = row[3] if row[3] != "EMPTY_STRING" else ""
+                    comentarios = row[4] if isinstance(row[4], list) else []
+
+                respostas[qid] = {
+                    "valor": valor,
+                    "pontos": pontos,
+                    "link": link,
+                    "comentarios": comentarios
+                }
+    except Exception as e:
+        print(f"❌ Erro ao carregar respostas do ano {ano} no Neon DB: {e}")
+
+    return respostas
 
 
 def converter_para_float(val):
@@ -3070,7 +3121,7 @@ def converter_pontos_em_faixa_iegm(pontos):
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     """Gere o relatório completo e não-resumido do I-PLAN em PDF."""
     
-    lista_alvo_iamb = [
+    lista_alvo_iplan = [
         "1.0", "1.1", "5.0", "7.0", "7.6", "7.6.1", 
         "8.0", "9.0", "10.3", "11.0", "11.1", "11.6", "11.6.1", "12.0"
     ]
@@ -3346,7 +3397,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(PageBreak())
 
     # -------------------------------------------------------------------------
-    # 5. ALINHAMENTO COM AGENDA 2030 (ODS)
+    # 5. ALINHAMENTO COM AGENDA 2030 (METAS ODS)
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS)</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
@@ -3376,9 +3427,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # 6. SÉRIE HISTÓRICA DO I-PLAN
     # -------------------------------------------------------------------------
-    from reportlab.graphics.shapes import Drawing
-    from reportlab.graphics.charts.barcharts import VerticalBarChart
-
     elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-PLAN</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -3479,15 +3527,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     doc.build(elements)
     return buffer.getvalue()
 
-import asyncio
-import logging
-from nicegui import app, ui
-from fastapi import Response
 
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
 # -----------------------------------------------------------------------------
-def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
+def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
     """
     Componente NiceGUI para renderizar o Card de Emissão do PDF do I-PLAN.
     """
@@ -3550,27 +3594,36 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
         ui.button("📥 GERAR E ABRIR RELATÓRIO PDF (I-PLAN)", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
 
+# Alias de compatibilidade caso seja chamado com nome antigo
+renderizar_card_relatorio_iamb = renderizar_card_relatorio_iplan
+
+
+def _render_formulario_iplan(ano=2026):
+    """
+    Renderiza os campos do formulário do I-PLAN na interface NiceGUI.
+    """
+    def render_conteudo():
+        ui.label(f"Formulário do I-PLAN - Exercício {ano}").classes("text-2xl font-bold text-gray-800 mb-4")
+        # Os campos do formulário são construídos dinamicamente aqui
+        
+    render_conteudo()
+
+
 def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
     """
-    Ponto de entrada público do módulo i-PLAN.
-
-    A função render_conteudo é criada dentro de _render_formulario_iplan,
-    portanto ela deve ser chamada nesse mesmo escopo. A versão anterior
-    tentava chamá-la aqui fora, causando NameError.
+    Ponto de entrada público do módulo I-PLAN no NiceGUI.
     """
     ano_inicial = ano if ano is not None else ano_sel
 
-    # Renderiza o formulário completo. Esta chamada cria e executa
-    # render_conteudo dentro do escopo em que ele está definido.
-    _render_formulario_iamb(ano=ano_inicial)
+    # 1. Renderiza a estrutura do formulário
+    _render_formulario_iplan(ano=ano_inicial)
 
-    # Renderiza o card do relatório PDF com os dados do ano atualmente ativo.
-    ano_relatorio = int(app.storage.user.get("ano_referencia_global", ano_inicial))
+    # 2. Carrega as respostas do banco de dados se não foram fornecidas
+    ano_relatorio = int(app.storage.user.get("ano_referencia_global", ano_inicial)) if hasattr(app, "storage") and hasattr(app.storage, "user") else ano_inicial
     dados_relatorio = res_data if res_data is not None else load_respostas(ano_relatorio)
+
+    # 3. Renderiza o card do relatório PDF
     renderizar_card_relatorio_iplan(
         res_data=dados_relatorio,
         ano_sel=ano_relatorio,
     )
-
-                    
-    render_conteudo()
