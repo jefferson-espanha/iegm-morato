@@ -3643,4 +3643,12 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
             ano_sel=ano_relatorio,
         )
 
-container_formulario_plan()
+@ui.page("/")
+def pagina_principal():
+    container_formulario_plan()
+
+
+if __name__ == "__main__":
+    ui.run(
+        storage_secret=os.getenv("NICEGUI_STORAGE_SECRET", "chave-local-altere-em-producao")
+    )
