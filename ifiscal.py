@@ -2809,9 +2809,19 @@ def container_formulario_ifiscal(ano=None):
                             if not isinstance(val_f1_bruto, dict):
                                 val_f1_bruto = {}
 
+                            try:
+                                val_o_init = float(val_f1_bruto.get("O", 0.0))
+                            except (ValueError, TypeError):
+                                val_o_init = 0.0
+
+                            try:
+                                val_p_init = float(val_f1_bruto.get("P", 0.0))
+                            except (ValueError, TypeError):
+                                val_p_init = 0.0
+
                             state_f1 = {
-                                "val_o": float(val_f1_bruto.get("O", 0.0)),
-                                "val_p": float(val_f1_bruto.get("P", 0.0)),
+                                "val_o": val_o_init,
+                                "val_p": val_p_init,
                                 "link": f1_data.get("link", ""),
                                 "pts": float(f1_data.get("pontos", 0.0))
                             }
@@ -2832,8 +2842,16 @@ def container_formulario_ifiscal(ano=None):
                             lbl_pts_q = ui.label().classes("text-sm font-bold text-green-600 mt-1")
 
                             def calcular_q(_=None):
-                                o = input_o.value or 0.0
-                                p = input_p.value or 0.0
+                                try:
+                                    o = float(input_o.value) if input_o.value is not None else 0.0
+                                except (ValueError, TypeError):
+                                    o = 0.0
+
+                                try:
+                                    p = float(input_p.value) if input_p.value is not None else 0.0
+                                except (ValueError, TypeError):
+                                    p = 0.0
+
                                 state_f1["val_o"] = o
                                 state_f1["val_p"] = p
 
@@ -2869,6 +2887,8 @@ def container_formulario_ifiscal(ano=None):
                         ).classes("w-full mb-4").props("outlined rows=3")
 
                         def salvar_f1():
+                            calcular_q()
+                            
                             save_resposta(
                                 ano=ano_sel,
                                 qid="F1",
