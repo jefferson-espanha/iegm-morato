@@ -2372,7 +2372,7 @@ def container_formulario_plan(ano=None):
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_1541).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
-                        bloco_comentarios("15.4.1", res_data, render_conteudo.refresh)                    
+                        bloco_comentarios("15.4.1", res_data, render_conteudo.refresh)
 
                     # ==========================================
                     # QUESITO 15.4.2 (Divulgação do Relatório de Gestão 2025 - Radio/Text)
@@ -2394,7 +2394,7 @@ def container_formulario_plan(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                   # ==========================================
+                    # ==========================================
                     # QUESITO 15.5 (Iniciativas de Divulgação da Ouvidoria - Checkbox)
                     # ==========================================
                     # Regra de cálculo: Perde -0.5 pt apenas para os 2 itens digitais/página se NÃO assinalados.
