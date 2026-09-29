@@ -2687,9 +2687,34 @@ def container_formulario_plan(ano=None):
                     # ==========================================
                     # QUESITO P3 (Percentual de Alteração do Planejamento Inicial - Calculadora Monetária)
                     # ==========================================
+                    import json
+                    import ast
+
                     # Estado local para persistência e cálculo dos valores monetários
-                    p3_data = res_data.get("P3", {})
-                    
+                    raw_p3 = res_data.get("P3") or res_data.get("p3") or {}
+                    p3_data = raw_p3 if isinstance(raw_p3, dict) else {}
+
+                    # Tratamento do campo 'valor' para restaurar I e J salvos
+                    raw_val_p3 = p3_data.get("valor", {})
+                    val_dict_p3 = {}
+
+                    if isinstance(raw_val_p3, str) and raw_val_p3.strip():
+                        try:
+                            val_dict_p3 = json.loads(raw_val_p3)
+                        except Exception:
+                            try:
+                                val_dict_p3 = ast.literal_eval(raw_val_p3)
+                            except Exception:
+                                val_dict_p3 = {}
+                    elif isinstance(raw_val_p3, dict):
+                        val_dict_p3 = raw_val_p3
+
+                    state_p3 = {
+                        "val_i": float(val_dict_p3.get("I", 0.0)),
+                        "val_j": float(val_dict_p3.get("J", 0.0)),
+                        "pts": float(p3_data.get("pontos", 0.0))
+                    }
+
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("P3 • Percentual de Alteração do Planejamento Inicial").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Total dos valores dos programas estabelecidos inicialmente na LOA comparado com os valores finais apurados para os mesmos programas (K = J / I):").classes("text-base font-bold text-black mb-2")
@@ -2706,13 +2731,6 @@ def container_formulario_plan(ano=None):
                         # Seção da Calculadora Monetária
                         with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
                             ui.label("🧮 Calculadora Automática do Indicador K").classes("font-bold text-blue-700 mb-2")
-                            
-                            state_p3 = {
-                                "val_i": float(p3_data.get("valor_i", 0.0)),
-                                "val_j": float(p3_data.get("valor_j", 0.0)),
-                                "link": p3_data.get("link", ""),
-                                "pts": float(p3_data.get("pontos", 0.0))
-                            }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_i = (
@@ -2759,20 +2777,33 @@ def container_formulario_plan(ano=None):
                             calcular_k()
 
                         # Campo de Evidência / Link
-                        input_link = ui.textarea(
+                        input_link_p3 = ui.textarea(
                             label="Link de Evidência / Documento:",
-                            value=state_p3["link"],
+                            value=str(p3_data.get("link", "") or ""),
                             placeholder="Insira o link ou anexo com a memória de cálculo dos valores I e J..."
                         ).classes("w-full mb-4").props("outlined rows=3")
 
                         # Ação de Salvamento
                         def salvar_p3():
+                            # Monta o dicionário com os valores calculados
+                            valores_dict = {"I": state_p3["val_i"], "J": state_p3["val_j"]}
+                            
+                            # Atualiza a memória local da aplicação
+                            res_data["P3"] = {
+                                "valor": valores_dict,
+                                "pontos": state_p3["pts"],
+                                "link": input_link_p3.value,
+                                "comentarios": p3_data.get("comentarios", []),
+                                "status": p3_data.get("status", "Pendente")
+                            }
+
+                            # Salva no Banco de Dados (Convertendo 'valor' para string JSON se necessário)
                             save_resposta(
                                 ano=ano_sel,
                                 qid="P3",
-                                valor={"I": state_p3["val_i"], "J": state_p3["val_j"]},
+                                valor=json.dumps(valores_dict),
                                 pontos=state_p3["pts"],
-                                link=input_link.value,
+                                link=input_link_p3.value,
                                 comentarios=p3_data.get("comentarios", []),
                                 status=p3_data.get("status", "Pendente"),
                             )
