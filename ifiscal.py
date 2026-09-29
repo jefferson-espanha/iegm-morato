@@ -2784,7 +2784,7 @@ def container_formulario_ifiscal(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   # ==========================================
                     # QUESITO F1 (Análise da Receita - Execução Orçamentária)
                     # ==========================================
                     f1_data = res_data.get("F1", {})
@@ -2806,16 +2806,27 @@ def container_formulario_ifiscal(ano=None):
                             ui.label("🧮 Calculadora Automática do Indicador Q").classes("font-bold text-blue-700 mb-2")
                             
                             val_f1_bruto = f1_data.get("valor", {})
+                            if isinstance(val_f1_bruto, str):
+                                import json
+                                try:
+                                    val_f1_bruto = json.loads(val_f1_bruto)
+                                except Exception:
+                                    val_f1_bruto = {}
+
                             if not isinstance(val_f1_bruto, dict):
                                 val_f1_bruto = {}
 
+                            # Trata tanto chaves maiúsculas quanto minúsculas (O/o e P/p)
+                            raw_o = val_f1_bruto.get("O", val_f1_bruto.get("o", 0.0))
+                            raw_p = val_f1_bruto.get("P", val_f1_bruto.get("p", 0.0))
+
                             try:
-                                val_o_init = float(val_f1_bruto.get("O", 0.0))
+                                val_o_init = float(raw_o) if raw_o is not None else 0.0
                             except (ValueError, TypeError):
                                 val_o_init = 0.0
 
                             try:
-                                val_p_init = float(val_f1_bruto.get("P", 0.0))
+                                val_p_init = float(raw_p) if raw_p is not None else 0.0
                             except (ValueError, TypeError):
                                 val_p_init = 0.0
 
@@ -2889,15 +2900,28 @@ def container_formulario_ifiscal(ano=None):
                         def salvar_f1():
                             calcular_q()
                             
+                            val_dict = {"O": state_f1["val_o"], "P": state_f1["val_p"]}
+                            
+                            # Salva no Banco de Dados
                             save_resposta(
                                 ano=ano_sel,
                                 qid="F1",
-                                valor={"O": state_f1["val_o"], "P": state_f1["val_p"]},
+                                valor=val_dict,
                                 pontos=state_f1["pts"],
                                 link=input_link_f1.value,
                                 comentarios=f1_data.get("comentarios", []),
                                 status=f1_data.get("status", "Pendente"),
                             )
+                            
+                            # Atualiza a memória local res_data ANTES do refresh para não zerar na tela
+                            res_data["F1"] = {
+                                "valor": val_dict,
+                                "pontos": state_f1["pts"],
+                                "link": input_link_f1.value,
+                                "comentarios": f1_data.get("comentarios", []),
+                                "status": f1_data.get("status", "Pendente")
+                            }
+
                             ui.notify("Quesito F1 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
