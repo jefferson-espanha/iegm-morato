@@ -3648,6 +3648,11 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
 @ui.page("/")
 def pagina_principal():
     container_formulario_plan()
+    ano_relatorio = int(app.storage.user.get("ano_referencia_global", 2026))
+    renderizar_card_relatorio_iplan(
+        res_data=load_respostas(ano_relatorio),
+        ano_sel=ano_relatorio,
+    )
 
 
 if __name__ == "__main__":
