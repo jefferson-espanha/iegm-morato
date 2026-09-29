@@ -3438,7 +3438,7 @@ def container_formulario_ifiscal(ano=None):
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("F6 • Despesas com Pessoal – Poder Legislativo").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Relação entre a Despesa de Pessoal do Poder Legislativo (DPPL) e a Receita Corrente Líquida (RCL), extraída do item GF27 da AUDESP (AB = DPPL / RCL):").classes("text-base font-bold text-black mb-2")
-                        
+
                         with ui.expansion("ℹ️ Tabela de Regras do Indicador AB", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                             ui.markdown("""
                             * **AB > 0,06 (Acima de 6,0% - Limite Máximo LRF):** Penalidade máxima (**-10,0 pontos**)
@@ -3448,26 +3448,49 @@ def container_formulario_ifiscal(ano=None):
 
                         with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
                             ui.label("🧮 Calculadora Automática do Indicador AB").classes("font-bold text-blue-700 mb-2")
-                            
+
+                            # Desserialização segura do dicionário salvo
                             val_f6_bruto = f6_data.get("valor", {})
+                            while isinstance(val_f6_bruto, str):
+                                try:
+                                    val_f6_bruto = json.loads(val_f6_bruto)
+                                except Exception:
+                                    val_f6_bruto = {}
+                                    break
+
                             if not isinstance(val_f6_bruto, dict):
                                 val_f6_bruto = {}
 
+                            raw_dppl = val_f6_bruto.get("DPPL", val_f6_bruto.get("dppl", 0.0))
+                            raw_rcl = val_f6_bruto.get("RCL", val_f6_bruto.get("rcl", 0.0))
+
+                            try:
+                                val_dppl_init = float(raw_dppl) if raw_dppl is not None else 0.0
+                            except (ValueError, TypeError):
+                                val_dppl_init = 0.0
+
+                            try:
+                                val_rcl_init = float(raw_rcl) if raw_rcl is not None else 0.0
+                            except (ValueError, TypeError):
+                                val_rcl_init = 0.0
+
                             state_f6 = {
-                                "val_dppl": float(val_f6_bruto.get("DPPL", 0.0) or 0.0),
-                                "val_rcl": float(val_f6_bruto.get("RCL", 0.0) or 0.0),
+                                "val_dppl": val_dppl_init,
+                                "val_rcl": val_rcl_init,
                                 "link": f6_data.get("link", ""),
-                                "pts": float(f6_data.get("pontos", 0.0) or 0.0)
+                                "pts": float(f6_data.get("pontos", 0.0) or 0.0),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_dppl = (
-                                    ui.number(label="Despesa de Pessoal - Legislativo (DPPL)", value=state_f6["val_dppl"], format="%.2f")
+                                    ui.number(label="Despesa de Pessoal - Legislativo (DPPL)", format="%.2f")
+                                    .bind_value(state_f6, "val_dppl")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_rcl = (
-                                    ui.number(label="Receita Corrente Líquida (RCL)", value=state_f6["val_rcl"], format="%.2f")
+                                    ui.number(label="Receita Corrente Líquida (RCL)", format="%.2f")
+                                    .bind_value(state_f6, "val_rcl")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
@@ -3477,13 +3500,14 @@ def container_formulario_ifiscal(ano=None):
 
                             def calcular_ab(_=None):
                                 try:
-                                    dppl = float(input_dppl.value or 0.0)
-                                    rcl = float(input_rcl.value or 0.0)
+                                    dppl = float(state_f6["val_dppl"]) if state_f6["val_dppl"] is not None else 0.0
                                 except (ValueError, TypeError):
-                                    dppl, rcl = 0.0, 0.0
+                                    dppl = 0.0
 
-                                state_f6["val_dppl"] = dppl
-                                state_f6["val_rcl"] = rcl
+                                try:
+                                    rcl = float(state_f6["val_rcl"]) if state_f6["val_rcl"] is not None else 0.0
+                                except (ValueError, TypeError):
+                                    rcl = 0.0
 
                                 if rcl > 0:
                                     ab = dppl / rcl
@@ -3496,7 +3520,7 @@ def container_formulario_ifiscal(ano=None):
                                     else:
                                         pts = 0.0
                                         lbl_pts_ab.classes(remove="text-red-600 text-amber-600", add="text-green-600")
-                                    
+
                                     state_f6["pts"] = pts
                                     lbl_ab.set_text(f"Resultado AB (DPPL / RCL): {ab:.4f} ({ab*100:.2f}%)")
                                     lbl_pts_ab.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
@@ -3513,26 +3537,45 @@ def container_formulario_ifiscal(ano=None):
                         input_link_f6 = ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_f6["link"],
-                            placeholder="Insira o link do Relatório GF27 do AUDESP ou Relatório de Gestão Fiscal (RGF) da Câmara..."
+                            placeholder="Insira o link do Relatório GF27 do AUDESP ou Relatório de Gestão Fiscal (RGF) da Câmara...",
                         ).classes("w-full mb-4").props("outlined rows=3")
 
                         def salvar_f6():
-                            save_resposta(
-                                ano=ano_sel,
-                                qid="F6",
-                                valor={"DPPL": state_f6["val_dppl"], "RCL": state_f6["val_rcl"]},
-                                pontos=state_f6["pts"],
-                                link=input_link_f6.value,
-                                comentarios=f6_data.get("comentarios", []),
-                                status=f6_data.get("status", "Pendente"),
-                            )
-                            ui.notify("Quesito F6 salvo com sucesso!", type="positive")
-                            render_conteudo.refresh()
+                            calcular_ab()
+
+                            val_dict = {
+                                "DPPL": float(state_f6["val_dppl"]) if state_f6["val_dppl"] is not None else 0.0,
+                                "RCL": float(state_f6["val_rcl"]) if state_f6["val_rcl"] is not None else 0.0,
+                            }
+
+                            try:
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="F6",
+                                    valor=val_dict,
+                                    pontos=state_f6["pts"],
+                                    link=input_link_f6.value,
+                                    comentarios=f6_data.get("comentarios", []),
+                                    status=f6_data.get("status", "Pendente"),
+                                )
+
+                                res_data["F6"] = {
+                                    "valor": val_dict,
+                                    "pontos": state_f6["pts"],
+                                    "link": input_link_f6.value,
+                                    "comentarios": f6_data.get("comentarios", []),
+                                    "status": f6_data.get("status", "Pendente"),
+                                }
+
+                                ui.notify("Quesito F6 salvo com sucesso no Banco de Dados!", type="positive")
+                                render_conteudo.refresh()
+                            except Exception as e:
+                                ui.notify(f"Erro ao salvar no Banco de Dados: {e}", type="negative")
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f6).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F6", res_data, render_conteudo.refresh)
-
+                        
                     # ==========================================
                     # QUESITO F7 (Apuração do Resultado Financeiro – Resultado Consolidado)
                     # ==========================================
