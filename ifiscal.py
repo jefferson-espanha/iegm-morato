@@ -2816,7 +2816,6 @@ def container_formulario_ifiscal(ano=None):
                             if not isinstance(val_f1_bruto, dict):
                                 val_f1_bruto = {}
 
-                            # Trata tanto chaves maiúsculas quanto minúsculas (O/o e P/p)
                             raw_o = val_f1_bruto.get("O", val_f1_bruto.get("o", 0.0))
                             raw_p = val_f1_bruto.get("P", val_f1_bruto.get("p", 0.0))
 
@@ -2898,32 +2897,39 @@ def container_formulario_ifiscal(ano=None):
                         ).classes("w-full mb-4").props("outlined rows=3")
 
                         def salvar_f1():
+                            import json
                             calcular_q()
                             
                             val_dict = {"O": state_f1["val_o"], "P": state_f1["val_p"]}
                             
-                            # Salva no Banco de Dados
-                            save_resposta(
-                                ano=ano_sel,
-                                qid="F1",
-                                valor=val_dict,
-                                pontos=state_f1["pts"],
-                                link=input_link_f1.value,
-                                comentarios=f1_data.get("comentarios", []),
-                                status=f1_data.get("status", "Pendente"),
-                            )
-                            
-                            # Atualiza a memória local res_data ANTES do refresh para não zerar na tela
-                            res_data["F1"] = {
-                                "valor": val_dict,
-                                "pontos": state_f1["pts"],
-                                "link": input_link_f1.value,
-                                "comentarios": f1_data.get("comentarios", []),
-                                "status": f1_data.get("status", "Pendente")
-                            }
+                            # Converte o dicionário para string JSON para salvar com segurança no campo TEXT da tabela
+                            valor_str = json.dumps(val_dict)
 
-                            ui.notify("Quesito F1 salvo com sucesso!", type="positive")
-                            render_conteudo.refresh()
+                            try:
+                                # Chama a função de salvar no banco de dados
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="F1",
+                                    valor=valor_str,  # passa como string JSON para a coluna 'resposta'
+                                    pontos=state_f1["pts"],
+                                    link=input_link_f1.value,
+                                    comentarios=f1_data.get("comentarios", []),
+                                    status=f1_data.get("status", "Pendente"),
+                                )
+
+                                # Atualiza no dicionário em memória do estado local
+                                res_data["F1"] = {
+                                    "valor": val_dict,
+                                    "pontos": state_f1["pts"],
+                                    "link": input_link_f1.value,
+                                    "comentarios": f1_data.get("comentarios", []),
+                                    "status": f1_data.get("status", "Pendente")
+                                }
+
+                                ui.notify("Quesito F1 salvo com sucesso no Banco de Dados!", type="positive")
+                                render_conteudo.refresh()
+                            except Exception as e:
+                                ui.notify(f"Erro ao salvar no Banco de Dados: {e}", type="negative")
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f1).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
