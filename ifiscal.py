@@ -86,20 +86,25 @@ def save_resposta(
 
     link_final = link.strip() if link else ""
 
-    # Serialização do campo 'resposta'
-    if isinstance(valor, (list, dict)):
+    # Trata caso o valor venha como dict/list ou como string que precisa ser tratada
+    if isinstance(valor, (dict, list)):
         resposta_str = json.dumps(valor, ensure_ascii=False)
+    elif isinstance(valor, str):
+        # Se já for string, tenta ler como JSON para garantir que não haverá dupla serialização
+        try:
+            parsed = json.loads(valor)
+            resposta_str = json.dumps(parsed, ensure_ascii=False)
+        except Exception:
+            resposta_str = valor
     else:
         resposta_str = str(valor) if valor is not None else ""
 
-    # Estrutura do objeto 'detalhes' (JSONB)
     detalhes_data = {
         "link": link_final,
         "comentarios": comentarios,
         "status": status,
     }
 
-    # Gera um ID único simples combinando Ano e Quesito
     registro_id = f"{ano}_{qid}"
 
     query = """
@@ -127,25 +132,12 @@ def save_resposta(
                     ),
                 )
             conn.commit()
-            print(f"✅ Quesito {qid} ({ano}) salvo com sucesso na tabela respostas_ifiscal!")
+            print(
+                f"✅ Quesito {qid} ({ano}) salvo com sucesso na tabela"
+                " respostas_ifiscal!"
+            )
     except Exception as e:
         print(f"❌ Erro ao salvar resposta na tabela respostas_ifiscal: {e}")
-
-
-def zerar_questionario_db(ano):
-    query = "DELETE FROM respostas_ifiscal WHERE ano = %s;"
-    try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
-            conn.commit()
-    except Exception as e:
-        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
-
-
-def _obter_lista_comentarios(dados_q):
-    coms = dados_q.get("comentarios", [])
-    return coms if isinstance(coms, list) else []
 
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
