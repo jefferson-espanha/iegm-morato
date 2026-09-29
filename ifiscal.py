@@ -2944,7 +2944,7 @@ def container_formulario_ifiscal(ano=None):
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f1).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("F1", res_data, render_conteudo.refresh)
-                    # ==========================================
+                   # ==========================================
                     # QUESITO F2 (Análise da Despesa - Execução Orçamentária)
                     # ==========================================
                     f2_data = res_data.get("F2", {})
@@ -2952,7 +2952,7 @@ def container_formulario_ifiscal(ano=None):
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("F2 • Análise da Despesa (Execução Orçamentária) – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Divisão da despesa executada (R) pela despesa fixada final (S), com base nos dados da LOA (T = R / S):").classes("text-base font-bold text-black mb-2")
-                        
+
                         with ui.expansion("ℹ️ Tabela de Regras do Indicador T", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                             ui.markdown("""
                             * **T >= 1,1:** Pontuação = **0,0 ponto**
@@ -2964,26 +2964,49 @@ def container_formulario_ifiscal(ano=None):
 
                         with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
                             ui.label("🧮 Calculadora Automática do Indicador T").classes("font-bold text-blue-700 mb-2")
-                            
+
+                            # Desserialização segura do dicionário salvo
                             val_f2_bruto = f2_data.get("valor", {})
+                            while isinstance(val_f2_bruto, str):
+                                try:
+                                    val_f2_bruto = json.loads(val_f2_bruto)
+                                except Exception:
+                                    val_f2_bruto = {}
+                                    break
+
                             if not isinstance(val_f2_bruto, dict):
                                 val_f2_bruto = {}
 
+                            raw_r = val_f2_bruto.get("R", val_f2_bruto.get("r", 0.0))
+                            raw_s = val_f2_bruto.get("S", val_f2_bruto.get("s", 0.0))
+
+                            try:
+                                val_r_init = float(raw_r) if raw_r is not None else 0.0
+                            except (ValueError, TypeError):
+                                val_r_init = 0.0
+
+                            try:
+                                val_s_init = float(raw_s) if raw_s is not None else 0.0
+                            except (ValueError, TypeError):
+                                val_s_init = 0.0
+
                             state_f2 = {
-                                "val_r": float(val_f2_bruto.get("R", 0.0)),
-                                "val_s": float(val_f2_bruto.get("S", 0.0)),
+                                "val_r": val_r_init,
+                                "val_s": val_s_init,
                                 "link": f2_data.get("link", ""),
-                                "pts": float(f2_data.get("pontos", 0.0))
+                                "pts": float(f2_data.get("pontos", 0.0)),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_r = (
-                                    ui.number(label="Despesa Executada (R)", value=state_f2["val_r"], format="%.2f")
+                                    ui.number(label="Despesa Executada (R)", format="%.2f")
+                                    .bind_value(state_f2, "val_r")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_s = (
-                                    ui.number(label="Despesa Fixada Final (S)", value=state_f2["val_s"], format="%.2f")
+                                    ui.number(label="Despesa Fixada Final (S)", format="%.2f")
+                                    .bind_value(state_f2, "val_s")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
@@ -2992,10 +3015,15 @@ def container_formulario_ifiscal(ano=None):
                             lbl_pts_t = ui.label().classes("text-sm font-bold text-green-600 mt-1")
 
                             def calcular_t(_=None):
-                                r = input_r.value or 0.0
-                                s = input_s.value or 0.0
-                                state_f2["val_r"] = r
-                                state_f2["val_s"] = s
+                                try:
+                                    r = float(state_f2["val_r"]) if state_f2["val_r"] is not None else 0.0
+                                except (ValueError, TypeError):
+                                    r = 0.0
+
+                                try:
+                                    s = float(state_f2["val_s"]) if state_f2["val_s"] is not None else 0.0
+                                except (ValueError, TypeError):
+                                    s = 0.0
 
                                 if s > 0:
                                     t = r / s
@@ -3009,7 +3037,7 @@ def container_formulario_ifiscal(ano=None):
                                         pts = ((t - 0.5) / 0.40) * 75.0
                                     else:
                                         pts = 0.0
-                                    
+
                                     state_f2["pts"] = pts
                                     lbl_t.set_text(f"Resultado T (R / S): {t:.4f}")
                                     lbl_pts_t.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
@@ -3025,21 +3053,40 @@ def container_formulario_ifiscal(ano=None):
                         input_link_f2 = ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_f2["link"],
-                            placeholder="Insira o link do balanço orçamentário ou relatório contábil..."
+                            placeholder="Insira o link do balanço orçamentário ou relatório contábil...",
                         ).classes("w-full mb-4").props("outlined rows=3")
 
                         def salvar_f2():
-                            save_resposta(
-                                ano=ano_sel,
-                                qid="F2",
-                                valor={"R": state_f2["val_r"], "S": state_f2["val_s"]},
-                                pontos=state_f2["pts"],
-                                link=input_link_f2.value,
-                                comentarios=f2_data.get("comentarios", []),
-                                status=f2_data.get("status", "Pendente"),
-                            )
-                            ui.notify("Quesito F2 salvo com sucesso!", type="positive")
-                            render_conteudo.refresh()
+                            calcular_t()
+
+                            val_dict = {
+                                "R": float(state_f2["val_r"]) if state_f2["val_r"] is not None else 0.0,
+                                "S": float(state_f2["val_s"]) if state_f2["val_s"] is not None else 0.0,
+                            }
+
+                            try:
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="F2",
+                                    valor=val_dict,
+                                    pontos=state_f2["pts"],
+                                    link=input_link_f2.value,
+                                    comentarios=f2_data.get("comentarios", []),
+                                    status=f2_data.get("status", "Pendente"),
+                                )
+
+                                res_data["F2"] = {
+                                    "valor": val_dict,
+                                    "pontos": state_f2["pts"],
+                                    "link": input_link_f2.value,
+                                    "comentarios": f2_data.get("comentarios", []),
+                                    "status": f2_data.get("status", "Pendente"),
+                                }
+
+                                ui.notify("Quesito F2 salvo com sucesso no Banco de Dados!", type="positive")
+                                render_conteudo.refresh()
+                            except Exception as e:
+                                ui.notify(f"Erro ao salvar no Banco de Dados: {e}", type="negative")
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_f2).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                         ui.separator().classes("my-2")
