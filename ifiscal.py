@@ -102,10 +102,10 @@ def save_resposta(
     # Gera um ID único simples combinando Ano e Quesito se necessário
     registro_id = f"{ano}_{qid}"
 
-    query = """
+query = """
         INSERT INTO respostas_ifiscal (id, ano, quesito, resposta, pontos, detalhes, atualizado_em)
         VALUES (%s, %s, %s, %s, %s, %s, CURRENT_TIMESTAMP)
-        ON CONFLICT (ano, quesito) 
+        ON CONFLICT (id) 
         DO UPDATE SET
             resposta = EXCLUDED.resposta,
             pontos = EXCLUDED.pontos,
@@ -126,8 +126,8 @@ def save_resposta(
                         Json(detalhes_data),
                     ),
                 )
-                conn.commit()
-                print(f"✅ Quesito {qid} ({ano}) salvo com sucesso na tabela respostas_ifiscal!")
+            conn.commit()
+            print(f"✅ Quesito {qid} ({ano}) salvo com sucesso na tabela respostas_ifiscal!")
     except Exception as e:
         print(f"❌ Erro ao salvar resposta na tabela respostas_ifiscal: {e}")
 
