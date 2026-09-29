@@ -36,16 +36,19 @@ def load_respostas(ano):
                     q_id = row["quesito"]
                     val_bruto = row["resposta"] or ""
 
-                    # Tenta converter resposta de JSON caso seja dicionário/lista salvos como string
+                    # Desserialização recursiva/segura do campo 'resposta'
                     val_final = val_bruto
-                    if isinstance(val_bruto, str) and (
-                        (val_bruto.startswith("[") and val_bruto.endswith("]")) or 
-                        (val_bruto.startswith("{") and val_bruto.endswith("}"))
-                    ):
-                        try:
-                            val_final = json.loads(val_bruto)
-                        except Exception:
-                            val_final = val_bruto
+                    while isinstance(val_final, str):
+                        val_str = val_final.strip()
+                        if (val_str.startswith("[") and val_str.endswith("]")) or (
+                            val_str.startswith("{") and val_str.endswith("}")
+                        ):
+                            try:
+                                val_final = json.loads(val_str)
+                            except Exception:
+                                break
+                        else:
+                            break
 
                     # Extrai link e comentarios dentro do campo JSONB 'detalhes'
                     detalhes_obj = row["detalhes"] or {}
@@ -90,7 +93,7 @@ def save_resposta(
     if isinstance(valor, (dict, list)):
         resposta_str = json.dumps(valor, ensure_ascii=False)
     elif isinstance(valor, str):
-        # Se já for string, tenta ler como JSON para garantir que não haverá dupla serialização
+        # Se já for string JSON, desserializa e grava limpo
         try:
             parsed = json.loads(valor)
             resposta_str = json.dumps(parsed, ensure_ascii=False)
@@ -138,6 +141,24 @@ def save_resposta(
             )
     except Exception as e:
         print(f"❌ Erro ao salvar resposta na tabela respostas_ifiscal: {e}")
+
+
+def zerar_questionario_db(ano):
+    query = "DELETE FROM respostas_ifiscal WHERE ano = %s;"
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query, (int(ano),))
+            conn.commit()
+    except Exception as e:
+        print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
+
+
+def _obter_lista_comentarios(dados_q):
+    if not isinstance(dados_q, dict):
+        return []
+    coms = dados_q.get("comentarios", [])
+    return coms if isinstance(coms, list) else []
 
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
