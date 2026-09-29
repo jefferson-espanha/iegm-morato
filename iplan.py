@@ -2269,109 +2269,24 @@ def container_formulario_plan(ano=None):
                     # ==========================================
                     # QUESITO 15.4.1 (Conteúdo dos Relatórios da Ouvidoria - Checkbox)
                     # ==========================================
-                    # Regra de cálculo: Perde -2,5 pts para cada item NÃO assinalado (penalidade de 0.0 a -10.0 pts).
-                    raw_1541 = res_data.get("15.4.1") or res_data.get(15.4.1) or {}
-                    q1541_data = raw_1541 if isinstance(raw_1541, dict) else {}
-
-                    # Recupera os itens já assinalados e salvos no banco de forma segura
-                    raw_val_1541 = q1541_data.get("valor", [])
-                    marcados_salvos_1541 = []
-
-                    if isinstance(raw_val_1541, str) and raw_val_1541.strip():
-                        try:
-                            import json
-                            marcados_salvos_1541 = json.loads(raw_val_1541)
-                        except Exception:
-                            try:
-                                import ast
-                                marcados_salvos_1541 = ast.literal_eval(raw_val_1541)
-                            except Exception:
-                                marcados_salvos_1541 = []
-                    elif isinstance(raw_val_1541, list):
-                        marcados_salvos_1541 = raw_val_1541
-
-                    itens_obrigatorios_1541 = [
-                        "Número de manifestações recebidas no exercício anterior",
-                        "Motivos das Manifestações",
-                        "Análise dos Pontos recorrentes",
-                        "Providências adotadas pela administração pública nas soluções apresentadas"
-                    ]
-
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("15.4.1 • Informações Constantes nos Relatórios Gerenciais da Ouvidoria").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Assinale as informações constantes nos relatórios gerenciais elaborados pela ouvidoria:").classes("text-base font-bold text-black mb-2")
-
-                        # Bloco Informativo de Regras
-                        with ui.expansion("ℹ️ Regras de Pontuação / Penalidade", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
-                            ui.markdown("""
-                            * **Todos os 4 itens assinalados:** **0,0 ponto** (Sem penalidade)
-                            * **Para cada item NÃO assinalado:** Penalidade de **-2,5 pontos** (Máximo de **-10,0 pontos**)
-                            """).classes("text-sm text-gray-700 p-2")
-
-                        checkboxes_dict_1541 = {}
-                        lbl_penalidade_1541 = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
-                        lbl_pts_1541 = ui.label().classes("text-sm font-bold text-green-600 mt-1")
-
-                        pontos_state_1541 = {"valor": float(q1541_data.get("pontos", 0.0))}
-
-                        def recao_alteracao_1541(*args):
-                            marcados = [op for op, cb in checkboxes_dict_1541.items() if cb.value]
-                            nao_marcados = sum(1 for item in itens_obrigatorios_1541 if item not in marcados)
-                            pts = nao_marcados * -2.5
-
-                            pontos_state_1541["valor"] = pts
-                            lbl_penalidade_1541.set_text(f"Itens ausentes/não assinalados: {nao_marcados} de {len(itens_obrigatorios_1541)}")
-                            lbl_pts_1541.set_text(f"📊 Pontuação / Penalidade Calculada: {pts:.1f} pontos")
-
-                        # Renderiza as caixas de seleção
-                        with ui.grid(columns=1).classes("w-full mb-4 gap-2"):
-                            for opcao in itens_obrigatorios_1541:
-                                is_checked = opcao in marcados_salvos_1541
-                                cb = ui.checkbox(text=opcao, value=is_checked)
-                                cb.on_value_change(recao_alteracao_1541)
-                                checkboxes_dict_1541[opcao] = cb
-
-                        # Campo de Evidência / Link
-                        input_link_1541 = ui.textarea(
-                            label="Link de Evidência / Comprovação:",
-                            value=str(q1541_data.get("link", "") or ""),
-                            placeholder="Insira o link demonstrando o conteúdo dos relatórios..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
-
-                        # Atualiza os rótulos de cálculo iniciais
-                        recao_alteracao_1541()
-
-                        # Ação de Salvamento
-                        def acao_salvar_1541():
-                            import json
-                            marcados = [op for op, cb in checkboxes_dict_1541.items() if cb.value]
-                            pts_finais = pontos_state_1541["valor"]
-                            link_txt = input_link_1541.value or ""
-
-                            res_data["15.4.1"] = {
-                                "valor": marcados,
-                                "pontos": pts_finais,
-                                "link": link_txt,
-                                "comentarios": q1541_data.get("comentarios", []),
-                                "status": q1541_data.get("status", "Pendente")
-                            }
-
-                            save_resposta(
-                                ano=ano_sel,
-                                qid="15.4.1",
-                                valor=json.dumps(marcados),
-                                pontos=pts_finais,
-                                link=link_txt,
-                                comentarios=q1541_data.get("comentarios", []),
-                                status=q1541_data.get("status", "Pendente"),
-                            )
-                            ui.notify("Quesito 15.4.1 salvo com sucesso!", type="positive")
-                            if getattr(render_conteudo, "refresh", None):
-                                render_conteudo.refresh()
-
-                        ui.button("SALVAR RESPOSTA", on_click=acao_salvar_1541).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                        ui.separator().classes("my-2")
-                        bloco_comentarios("15.4.1", res_data, render_conteudo.refresh)
+                    # Regra de cálculo: Perde -2,5 pts para cada item não assinalado (pontuação de 0 a -10 pts).
+                    opcoes_1541 = {
+                        "Número de manifestações recebidas no exercício anterior": 0.0,
+                        "Motivos das Manifestações": 0.0,
+                        "Análise dos Pontos recorrentes": 0.0,
+                        "Providências adotadas pela administração pública nas soluções apresentadas": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.4.1",
+                        titulo="Informações Constantes nos Relatórios Gerenciais da Ouvidoria",
+                        pergunta="Assinale as informações constantes nos relatórios gerenciais elaborados pela ouvidoria (Cada item não marcado perde -2,5 pts):",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_1541,
+                        placeholder_link="Insira o link demonstrando o conteúdo dos relatórios...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
                    
                     # ==========================================
                     # QUESITO 15.4.2 (Divulgação do Relatório de Gestão 2025 - Radio/Text)
