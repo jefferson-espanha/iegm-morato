@@ -6729,53 +6729,63 @@ def obter_regra_ods_iamb(qid, resp):
     return metas, status
 
 
+def _desserializar_resposta(valor):
+    """Converte respostas JSON armazenadas como texto sem perder textos comuns."""
+    resultado = valor
+    while isinstance(resultado, str):
+        texto = resultado.strip()
+        if not (
+            (texto.startswith("[") and texto.endswith("]"))
+            or (texto.startswith("{") and texto.endswith("}"))
+        ):
+            break
+        try:
+            resultado = json.loads(texto)
+        except (TypeError, ValueError):
+            break
+    return resultado
+
+
 def get_all_years_data():
     """Busca a série histórica do I-Fiscal no PostgreSQL Neon DB."""
     all_data = {}
     query = """
-        SELECT qid, ano, valor, pontos, link, comentarios
+        SELECT ano, quesito, resposta, pontos, detalhes
         FROM respostas_ifiscal
         ORDER BY ano ASC;
     """
     try:
         with get_db_connection() as conn:
-            try:
-                cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            except Exception:
-                cur = conn.cursor()
+            with conn.cursor() as cur:
+                cur.execute(query)
+                rows = cur.fetchall()
 
-            cur.execute(query)
-            rows = cur.fetchall()
-
-            for row in rows:
-                if isinstance(row, dict):
-                    qid = str(row["qid"]).strip()
+                for row in rows:
                     ano = int(row["ano"])
-                    valor = row["valor"] or ""
-                    pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
-                    link = row["link"] if row["link"] != "EMPTY_STRING" else ""
-                    comentarios = (
-                        row["comentarios"]
-                        if isinstance(row["comentarios"], list)
-                        else []
+                    qid = str(row["quesito"]).strip()
+                    valor = row["resposta"] or ""
+                    pontos = (
+                        float(row["pontos"]) if row["pontos"] is not None else 0.0
                     )
-                else:
-                    qid = str(row[0]).strip()
-                    ano = int(row[1])
-                    valor = row[2] or ""
-                    pontos = float(row[3]) if row[3] is not None else 0.0
-                    link = row[4] if row[4] != "EMPTY_STRING" else ""
-                    comentarios = row[5] if isinstance(row[5], list) else []
+                    detalhes = row["detalhes"] or {}
+                    if isinstance(detalhes, str):
+                        try:
+                            detalhes = json.loads(detalhes)
+                        except Exception:
+                            detalhes = {}
 
-                if ano not in all_data:
-                    all_data[ano] = {}
+                    if ano not in all_data:
+                        all_data[ano] = {}
 
-                all_data[ano][qid] = {
-                    "valor": valor,
-                    "pontos": pontos,
-                    "link": link,
-                    "comentarios": comentarios,
-                }
+                    all_data[ano][qid] = {
+                        "valor": _desserializar_resposta(valor),
+                        "pontos": pontos,
+                        "link": detalhes.get("link", ""),
+                        "comentarios": detalhes.get("comentarios", [])
+                        if isinstance(detalhes.get("comentarios", []), list)
+                        else [],
+                        "status": detalhes.get("status", "Pendente"),
+                    }
     except Exception as e:
         print(f"❌ Erro ao buscar série histórica I-Fiscal no Neon DB: {e}")
 
@@ -6786,44 +6796,38 @@ def load_respostas(ano):
     """Carrega as respostas de um ano específico do PostgreSQL Neon DB."""
     respostas = {}
     query = """
-        SELECT qid, valor, pontos, link, comentarios
+        SELECT id, ano, quesito, resposta, pontos, detalhes
         FROM respostas_ifiscal
         WHERE ano = %s;
     """
     try:
         with get_db_connection() as conn:
-            try:
-                cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-            except Exception:
-                cur = conn.cursor()
+            with conn.cursor() as cur:
+                cur.execute(query, (int(ano),))
+                rows = cur.fetchall()
 
-            cur.execute(query, (ano,))
-            rows = cur.fetchall()
-
-            for row in rows:
-                if isinstance(row, dict):
-                    qid = str(row["qid"]).strip()
-                    valor = row["valor"] or ""
-                    pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
-                    link = row["link"] if row["link"] != "EMPTY_STRING" else ""
-                    comentarios = (
-                        row["comentarios"]
-                        if isinstance(row["comentarios"], list)
-                        else []
+                for row in rows:
+                    qid = str(row["quesito"]).strip()
+                    valor = row["resposta"] or ""
+                    pontos = (
+                        float(row["pontos"]) if row["pontos"] is not None else 0.0
                     )
-                else:
-                    qid = str(row[0]).strip()
-                    valor = row[1] or ""
-                    pontos = float(row[2]) if row[2] is not None else 0.0
-                    link = row[3] if row[3] != "EMPTY_STRING" else ""
-                    comentarios = row[4] if isinstance(row[4], list) else []
+                    detalhes = row["detalhes"] or {}
+                    if isinstance(detalhes, str):
+                        try:
+                            detalhes = json.loads(detalhes)
+                        except Exception:
+                            detalhes = {}
 
-                respostas[qid] = {
-                    "valor": valor,
-                    "pontos": pontos,
-                    "link": link,
-                    "comentarios": comentarios,
-                }
+                    respostas[qid] = {
+                        "valor": _desserializar_resposta(valor),
+                        "pontos": pontos,
+                        "link": detalhes.get("link", ""),
+                        "comentarios": detalhes.get("comentarios", [])
+                        if isinstance(detalhes.get("comentarios", []), list)
+                        else [],
+                        "status": detalhes.get("status", "Pendente"),
+                    }
     except Exception as e:
         print(f"❌ Erro ao carregar respostas do ano {ano} no Neon DB: {e}")
 
@@ -7880,14 +7884,14 @@ def _render_formulario_iplan(ano=2026):
 
 def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
     """
-    Ponto de entrada público do módulo I-Fiscal no NiceGUI.
+    Ponto de entrada público do módulo I-PLAN no NiceGUI.
     """
     ano_inicial = ano if ano is not None else ano_sel
 
     # Container principal centralizado
     with ui.container().classes("w-full max-w-5xl mx-auto p-4"):
         # 1. Renderiza a estrutura do formulário
-        _render_formulario_ifiscal(ano=ano_inicial)
+        _render_formulario_iplan(ano=ano_inicial)
 
         # 2. Carrega as respostas do banco de dados com tratamento de exceção seguro
         dados_relatorio = res_data
@@ -7907,7 +7911,7 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
             ano_relatorio = ano_inicial
 
         # 3. Renderiza o card do relatório PDF
-        renderizar_card_relatorio_ifiscal(
+        renderizar_card_relatorio_iplan(
             res_data=dados_relatorio,
             ano_sel=ano_relatorio,
         )
@@ -7915,7 +7919,7 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
 
 @ui.page("/")
 def pagina_principal():
-    container_formulario_ifiscal()
+    container_formulario_iplan()
 
 
 if __name__ == "__main__":
