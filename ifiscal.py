@@ -7925,3 +7925,5 @@ if __name__ == "__main__":
             "NICEGUI_STORAGE_SECRET", "chave-local-altere-em-producao"
         )
     )
+
+    render_conteudo()
