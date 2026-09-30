@@ -7876,6 +7876,8 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
 
 # Alias de compatibilidade caso seja chamado com nome antigo
 renderizar_card_relatorio_iamb = renderizar_card_relatorio_iplan
+# Alias compatível com a chamada usada pela página principal.
+renderizar_card_relatorio_ifiscal = renderizar_card_relatorio_iplan
 
 
 def _render_formulario_iplan(ano=2026):
@@ -7928,7 +7930,8 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
 
 @ui.page("/")
 def pagina_principal():
-    container_formulario_ifiscal()
+    # Usa o contêiner completo, que renderiza o questionário e o card do relatório.
+    container_formulario_iplan()
 
 
 if __name__ == "__main__":
