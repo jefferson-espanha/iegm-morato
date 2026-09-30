@@ -5220,8 +5220,26 @@ PONTUACOES_MAX_IAMB = PONTUACOES_MAX_Fiscal
 PONTUACOES_MAX = PONTUACOES_MAX_Fiscal
 
 PENALIDADES_MAX = {
-    "5.2": -15.0, "5.3": -10.0, "7.3.2": -5.0, "7.4.2": -5.0, "7.5.1": -5.0, 
-    "8.4.4": -30.0, "9.1": -30.0, "10.0": -100.0, "10.1": -30.0, "14.0": -30.0, "A1": -200.0
+    '7.2': -3.0,
+    '8.3': -15.0,
+    '9.6': -30.0,
+    '10.3': -5.0,
+    '12.1': -10.0,
+    '12.2': -5.0,
+    '12.3': -5.0,
+    '12.3.1': -5.0,
+    '12.5.2': -10.0,
+    '16': -10.0,
+    '16.3': -5.0,
+    '17.0': -5.0,
+    '23.0': -30.0,
+    '24.1': -30.0,
+    '25.1': -25.0,
+    'F6': -20.0,
+    'F7': -10.0,
+    'F9': -10.0,
+    'F21': -50.0,
+    
 }
 
 # String de conexão com o PostgreSQL
@@ -5250,7 +5268,7 @@ def calcular_percentual_checklist(resp, total_itens):
 
 
 def obter_regra_ods_iamb(qid, resp):
-    """Mapeia os quesitos do I-AMB para as metas da Agenda 2030 (ODS) e seu status."""
+    """Mapeia os quesitos do I-Fiscal para as metas da Agenda 2030 (ODS) e seu status."""
     resp_l = str(resp).strip().lower()
     metas = "-"
     status = "Não Atendido"
