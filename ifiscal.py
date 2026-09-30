@@ -6503,7 +6503,7 @@ def container_formulario_ifiscal(ano=None):
 
     render_conteudo()
 
-    
+
 import io
 import os
 import logging
@@ -7786,7 +7786,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
 
 # -----------------------------------------------------------------------------
-# 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI) - CORRIGIDO
+# 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
 # -----------------------------------------------------------------------------
 def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
     """
@@ -7808,7 +7808,7 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
             n = ui.notify("Gerando PDF do I-Fiscal, aguarde...", type="info", timeout=0)
 
             try:
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(0.3)
 
                 dados_locais = res_data or {}
                 ano_alvo = int(ano_sel)
@@ -7824,7 +7824,6 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
                 faixa = converter_pontos_em_faixa_iegm(total_pts)
                 historico_todos_anos = get_all_years_data() or {}
 
-                # Gera o relatório em memória (bytes)
                 pdf_bytes = gerar_relatorio_pdf(
                     dados=dados_locais,
                     ano=ano_alvo,
@@ -7833,13 +7832,18 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
                     todos_dados=historico_todos_anos,
                 )
 
-                # Dispara o download direto do buffer em memória pelo NiceGUI
-                ui.download(
-                    pdf_bytes,
-                    filename=f"relatorio_ifiscal_{ano_alvo}.pdf"
-                )
+                rota_pdf = f"/relatorio_ifiscal_temp_{ano_alvo}.pdf"
 
-                ui.notify("Relatório I-PLAN gerado e baixado com sucesso!", type="positive")
+                try:
+
+                    @app.get(rota_pdf)
+                    def relatorio_endpoint():
+                        return Response(content=pdf_bytes, media_type="application/pdf")
+                except Exception:
+                    pass
+
+                ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
+                ui.notify("Relatório I-PLAN aberto com sucesso!", type="positive")
 
             except Exception as e:
                 print(f"ERRO CRÍTICO AO GERAR PDF I-FISCAL: {e}")
@@ -7864,14 +7868,15 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
 renderizar_card_relatorio_iamb = renderizar_card_relatorio_iplan
 
 
-def container_formulario_ifiscal(ano=2026):
+def _render_formulario_iplan(ano=2026):
     """
-    Renderiza os campos do formulário do I-Fiscal na interface NiceGUI.
+    Renderiza os campos do formulário do I-PLAN na interface NiceGUI.
     """
     with ui.column().classes("w-full p-4"):
         ui.label(f"Formulário do I-Fiscal - Exercício {ano}").classes(
             "text-2xl font-bold text-gray-800 mb-4"
         )
+        # Aqui devem ser inseridos os campos do checklist/formulário i-Plan
         ui.label("Preencha os dados abaixo para calcular o I-PLAN:").classes(
             "text-gray-600 mb-2"
         )
@@ -7882,12 +7887,12 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
     Ponto de entrada público do módulo I-PLAN no NiceGUI.
     """
     ano_inicial = ano if ano is not None else ano_sel
-    
+    # Container principal centralizado
     with ui.container().classes("w-full max-w-5xl mx-auto p-4"):
-        # 1. Renderiza o formulário I-Fiscal
+        # 1. Renderiza o formulário I-Fiscal real exibido ao usuário.
         container_formulario_ifiscal(ano=ano_inicial)
 
-        # 2. Carrega as respostas do banco de dados com segurança
+        # 2. Carrega as respostas do banco de dados com tratamento de exceção seguro
         dados_relatorio = res_data
         if dados_relatorio is None:
             try:
@@ -7916,7 +7921,7 @@ def pagina_principal():
     container_formulario_iplan()
 
 
-if __name__ in {"__main__", "__mp_main__"}:
+if __name__ == "__main__":
     ui.run(
         storage_secret=os.getenv(
             "NICEGUI_STORAGE_SECRET", "chave-local-altere-em-producao"
