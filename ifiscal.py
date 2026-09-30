@@ -5,6 +5,10 @@ import json
 import os
 import re
 from nicegui import app, ui
+import asyncio
+import io
+import logging
+from fastapi import Response
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
@@ -7889,7 +7893,7 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
     """
     ano_inicial = ano if ano is not None else ano_sel
     # Container principal centralizado
-    with ui.container().classes("w-full max-w-5xl mx-auto p-4"):
+    with ui.element("div").classes("w-full max-w-5xl mx-auto p-4"):
         # 1. Renderiza o formulário I-Fiscal real exibido ao usuário.
         container_formulario_ifiscal(ano=ano_inicial)
 
