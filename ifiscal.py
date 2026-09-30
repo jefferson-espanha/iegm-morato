@@ -6868,7 +6868,7 @@ def converter_pontos_em_faixa_iegm(pontos):
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     """Gere o relatório completo e não-resumido do I-Fiscal em PDF."""
 
-    lista_alvo_ifiscal = [
+    lista_alvo_iplan = [
         "1.0",
         "1.1",
         "5.0",
@@ -7178,7 +7178,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             continue
 
         qid = str(qid_raw).replace("Q_", "").strip()
-        pts_max = PONTUACOES_MAX_ifiscal.get(qid, 0.0)
+        pts_max = PONTUACOES_MAX_IPLAN.get(qid, 0.0)
 
         if pts_max <= 0:
             continue
@@ -7754,7 +7754,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
 
-    for qsp in lista_alvo_ifiscal:
+    for qsp in lista_alvo_iplan:
         info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
         resp_sp = "-"
         status_sp = "Não Informado"
@@ -7793,7 +7793,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
 # -----------------------------------------------------------------------------
-def renderizar_card_relatorio_ifiscal(res_data=None, ano_sel=2026):
+def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
     """
     Componente NiceGUI para renderizar o Card de Emissão do PDF do I-Fiscal.
     """
@@ -7875,12 +7875,12 @@ def renderizar_card_relatorio_ifiscal(res_data=None, ano_sel=2026):
 
 
 # Alias de compatibilidade caso seja chamado com nome antigo
-renderizar_card_relatorio_iamb = renderizar_card_relatorio_ifiscal
+renderizar_card_relatorio_iamb = renderizar_card_relatorio_iplan
 # Alias compatível com a chamada usada pela página principal.
-renderizar_card_relatorio_ifiscal = renderizar_card_relatorio_ifiscal
+renderizar_card_relatorio_ifiscal = renderizar_card_relatorio_iplan
 
 
-def _render_formulario_ifiscal(ano=2026):
+def _render_formulario_iplan(ano=2026):
     """
     Renderiza os campos do formulário do I-PLAN na interface NiceGUI.
     """
@@ -7894,7 +7894,7 @@ def _render_formulario_ifiscal(ano=2026):
         )
 
 
-def container_formulario_ifiscal(ano=None, res_data=None, ano_sel=2026):
+def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
     """
     Ponto de entrada público do módulo I-PLAN no NiceGUI.
     """
@@ -7930,8 +7930,16 @@ def container_formulario_ifiscal(ano=None, res_data=None, ano_sel=2026):
 
 @ui.page("/")
 def pagina_principal():
-    # Usa o contêiner completo, que renderiza o questionário e o card do relatório.
-    container_formulario_fiscal()
+    # Renderiza o questionário uma única vez.
+    container_formulario_ifiscal()
+
+    # Renderiza o card do relatório diretamente depois do questionário,
+    # evitando chamadas encadeadas entre contêineres.
+    ano_relatorio = int(app.storage.user.get("ano_referencia_global", 2026))
+    renderizar_card_relatorio_ifiscal(
+        res_data=load_respostas(ano_relatorio),
+        ano_sel=ano_relatorio,
+    )
 
 
 if __name__ == "__main__":
