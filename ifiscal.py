@@ -7835,7 +7835,6 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
                 rota_pdf = f"/relatorio_ifiscal_temp_{ano_alvo}.pdf"
 
                 try:
-
                     @app.get(rota_pdf)
                     def relatorio_endpoint():
                         return Response(content=pdf_bytes, media_type="application/pdf")
@@ -7859,6 +7858,7 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
                     except Exception:
                         pass
 
+        # ✅ CORREÇÃO: Alinhado no escopo do 'with ui.card()', fora da função baixar_pdf
         ui.button(
             "📥 GERAR E ABRIR RELATÓRIO PDF (I-FISCAL)", on_click=baixar_pdf
         ).classes("bg-blue-700 text-white font-bold my-2")
