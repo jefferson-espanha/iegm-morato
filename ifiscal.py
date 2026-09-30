@@ -7790,7 +7790,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 # -----------------------------------------------------------------------------
 def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
     """
-    Componente NiceGUI para renderizar o Card de Emissão do PDF do I-PLAN.
+    Componente NiceGUI para renderizar o Card de Emissão do PDF do I-Fiscal.
     """
     res_data = res_data or {}
 
