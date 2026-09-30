@@ -7790,7 +7790,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 # -----------------------------------------------------------------------------
 def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
     """
-    Componente NiceGUI para renderizar o Card de Emissão do PDF do I-Fiscal.
+    Componente NiceGUI para renderizar o Card de Emissão do PDF do I-PLAN.
     """
     res_data = res_data or {}
 
@@ -7887,11 +7887,10 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
     Ponto de entrada público do módulo I-PLAN no NiceGUI.
     """
     ano_inicial = ano if ano is not None else ano_sel
-
     # Container principal centralizado
     with ui.container().classes("w-full max-w-5xl mx-auto p-4"):
-        # 1. Renderiza a estrutura do formulário
-        _render_formulario_iplan(ano=ano_inicial)
+        # 1. Renderiza o formulário I-Fiscal real exibido ao usuário.
+        container_formulario_ifiscal(ano=ano_inicial)
 
         # 2. Carrega as respostas do banco de dados com tratamento de exceção seguro
         dados_relatorio = res_data
