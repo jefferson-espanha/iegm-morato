@@ -1,3 +1,4 @@
+import ast
 import base64
 from datetime import datetime
 import json
@@ -70,7 +71,9 @@ def load_respostas(ano):
 
                     respostas[q_id] = {
                         "valor": val_final,
-                        "pontos": float(row["pontos"]) if row["pontos"] is not None else 0.0,
+                        "pontos": float(row["pontos"])
+                        if row["pontos"] is not None
+                        else 0.0,
                         "link": link_val,
                         "comentarios": comentarios_val,
                         "status": status_val,
@@ -160,6 +163,7 @@ def _obter_lista_comentarios(dados_q):
     coms = dados_q.get("comentarios", [])
     return coms if isinstance(coms, list) else []
 
+
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
 # =============================================================================
@@ -197,7 +201,11 @@ def render_quesito(
     elif tipo_input == "text":
         valor_atual = str(dados_q.get("valor", ""))
     else:  # radio
-        padrao = "Selecione..." if "Selecione..." in opcoes else (list(opcoes.keys())[0] if opcoes else "")
+        padrao = (
+            "Selecione..."
+            if "Selecione..." in opcoes
+            else (list(opcoes.keys())[0] if opcoes else "")
+        )
         valor_atual = dados_q.get("valor", padrao)
         if valor_atual not in opcoes and opcoes:
             valor_atual = padrao
@@ -214,9 +222,9 @@ def render_quesito(
             "text-xl font-semibold text-blue-500 mb-3"
         )
         ui.label(pergunta).classes("text-base font-bold text-black mb-1")
-        ui.label(
-            "ℹ Preencha os campos abaixo e clique no botão de salvar."
-        ).classes("text-xs text-gray-400 mb-6")
+        ui.label("ℹ Preencha os campos abaixo e clique no botão de salvar.").classes(
+            "text-xs text-gray-400 mb-6"
+        )
 
         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
             if tipo_input == "checkbox":
@@ -230,6 +238,7 @@ def render_quesito(
                             elif not e.value and opt in state["opcao"]:
                                 state["opcao"].remove(opt)
                             atualizar_impacto()
+
                         return on_change
 
                     for opt_key in opcoes.keys():
@@ -237,7 +246,7 @@ def render_quesito(
                         chk = ui.checkbox(
                             text=opt_key,
                             value=is_checked,
-                            on_change=make_on_change(opt_key)
+                            on_change=make_on_change(opt_key),
                         ).props("color=blue")
                         chk_states[opt_key] = chk
 
@@ -260,9 +269,7 @@ def render_quesito(
                     label="Resposta / Comentário:",
                     value=state["opcao"],
                     placeholder="Digite sua resposta...",
-                ).classes("w-full").props("outlined rows=4").bind_value(
-                    state, "opcao"
-                )
+                ).classes("w-full").props("outlined rows=4").bind_value(state, "opcao")
 
             else:  # radio
                 input_radio = (
@@ -278,9 +285,7 @@ def render_quesito(
                 label="Link de Evidência / Documento:",
                 value=state["link"],
                 placeholder=placeholder_link,
-            ).classes("w-full").props("outlined rows=5").bind_value(
-                state, "link"
-            )
+            ).classes("w-full").props("outlined rows=5").bind_value(state, "link")
 
         def calcular_pontos(opcao_sel):
             if tipo_input in ["number", "float"]:
@@ -328,9 +333,7 @@ def render_quesito(
             if on_save_callback:
                 on_save_callback()
 
-        ui.button(
-            "SALVAR RESPOSTA", on_click=salvar_acao
-        ).classes(
+        ui.button("SALVAR RESPOSTA", on_click=salvar_acao).classes(
             "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
         )
 
@@ -357,9 +360,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     else:
         faixa, cor = "A", "text-green-700"
 
-    with ui.card().classes(
-        "w-full bg-slate-100 p-4 border rounded-lg shadow-sm"
-    ):
+    with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
         ui.label("🛠️ Painel de Controle (iFiscal)").classes(
             "text-lg font-bold mb-2 text-blue-900"
         )
@@ -384,9 +385,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
 
         def zerar_acao():
             zerar_questionario_db(ano_atual)
-            ui.notify(
-                f"✅ Questionário de {ano_atual} zerado!", type="positive"
-            )
+            ui.notify(f"✅ Questionário de {ano_atual} zerado!", type="positive")
             on_refresh()
 
         ui.button("🔄 ATUALIZAR UI", on_click=on_refresh).classes(
@@ -423,9 +422,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             status_global = com["status_definido"]
             break
 
-    badge_status = (
-        "🔴 PENDENTE" if status_global == "Pendente" else "🟢 RESOLVIDO"
-    )
+    badge_status = "🔴 PENDENTE" if status_global == "Pendente" else "🟢 RESOLVIDO"
 
     with ui.expansion(
         f"💬 Diálogo Interno {qid} | Status: {badge_status}",
@@ -503,9 +500,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
                             </div>"""
                         ).classes("w-full")
 
-                    ui.button("🗑️", on_click=deletar_comentario).props(
-                        "flat dense"
-                    )
+                    ui.button("🗑️", on_click=deletar_comentario).props("flat dense")
 
         input_novo_comentario = (
             ui.textarea(placeholder="Novo comentário...")
@@ -516,12 +511,14 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         def postar_comentario():
             txt = input_novo_comentario.value.strip()
             if txt:
-                historico.append({
-                    "autor": usuario_atual,
-                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-                    "texto": txt,
-                    "status_definido": status_global,
-                })
+                historico.append(
+                    {
+                        "autor": usuario_atual,
+                        "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                        "texto": txt,
+                        "status_definido": status_global,
+                    }
+                )
                 save_resposta(
                     ano=ano_sel,
                     qid=qid,
@@ -561,7 +558,9 @@ def container_formulario_ifiscal(ano=None):
                 ui.notify(f"Ano alterado para {novo_ano}", type="info")
                 render_conteudo.refresh()
 
-            with ui.element("div").classes("w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"):
+            with ui.element("div").classes(
+                "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
+            ):
                 # Coluna 1: Painel Lateral (3/12)
                 with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
                     render_painel_controle(
@@ -571,12 +570,16 @@ def container_formulario_ifiscal(ano=None):
                     )
 
                 # Coluna 2: Formulário Principal (9/12)
-                with ui.element("div").classes("md:col-span-8 lg:col-span-9 flex flex-col gap-4"):
-                    with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
+                with ui.element("div").classes(
+                    "md:col-span-8 lg:col-span-9 flex flex-col gap-4"
+                ):
+                    with ui.card().classes(
+                        "w-full p-6 border rounded-lg shadow-sm bg-white"
+                    ):
                         ui.label(f"📋 Módulo i-Fiscal — Ano {ano_sel}").classes(
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
-                        
+
                     # ==========================================
                     # QUESITO 1.0
                     # ==========================================
@@ -642,39 +645,66 @@ def container_formulario_ifiscal(ano=None):
                             return 1.5
                         return 0.0
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("1.2 • Número de Cargos de Fiscais/Auditores Tributários Preenchidos").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Qual o número de cargos de fiscais/auditores tributários preenchidos?").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Fórmula: Se efetivos > 0 E comissão = 0 E terceirizados = 0 -> 1,5 pts | Caso contrário -> 0,0 pts").classes("text-xs text-gray-500 mb-6")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "1.2 • Número de Cargos de Fiscais/Auditores Tributários Preenchidos"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Qual o número de cargos de fiscais/auditores tributários preenchidos?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Fórmula: Se efetivos > 0 E comissão = 0 E terceirizados = 0 -> 1,5 pts | Caso contrário -> 0,0 pts"
+                        ).classes("text-xs text-gray-500 mb-6")
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.grid(columns=2).classes(
+                            "w-full gap-6 items-start mb-4"
+                        ):
                             with ui.column().classes("gap-3 w-full"):
-                                num_efetivo = ui.number(
-                                    label="Efetivo:",
-                                    value=state_1_2["efetivo"],
-                                    min=0,
-                                    precision=0
-                                ).classes("w-full").props("outlined color=blue").bind_value(state_1_2, "efetivo")
+                                num_efetivo = (
+                                    ui.number(
+                                        label="Efetivo:",
+                                        value=state_1_2["efetivo"],
+                                        min=0,
+                                        precision=0,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_1_2, "efetivo")
+                                )
 
-                                num_comissao = ui.number(
-                                    label="Em comissão:",
-                                    value=state_1_2["comissao"],
-                                    min=0,
-                                    precision=0
-                                ).classes("w-full").props("outlined color=blue").bind_value(state_1_2, "comissao")
+                                num_comissao = (
+                                    ui.number(
+                                        label="Em comissão:",
+                                        value=state_1_2["comissao"],
+                                        min=0,
+                                        precision=0,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_1_2, "comissao")
+                                )
 
-                                num_terceirizado = ui.number(
-                                    label="Terceirizado:",
-                                    value=state_1_2["terceirizado"],
-                                    min=0,
-                                    precision=0
-                                ).classes("w-full").props("outlined color=blue").bind_value(state_1_2, "terceirizado")
+                                num_terceirizado = (
+                                    ui.number(
+                                        label="Terceirizado:",
+                                        value=state_1_2["terceirizado"],
+                                        min=0,
+                                        precision=0,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_1_2, "terceirizado")
+                                )
 
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_1_2["link"],
-                                placeholder="Insira o link com a relação de cargos e quadro de pessoal..."
-                            ).classes("w-full").props("outlined rows=7").bind_value(state_1_2, "link")
+                                placeholder="Insira o link com a relação de cargos e quadro de pessoal...",
+                            ).classes("w-full").props("outlined rows=7").bind_value(
+                                state_1_2, "link"
+                            )
 
                         pts_1_2 = calc_pts_1_2()
                         label_impacto_1_2 = ui.label(
@@ -683,7 +713,9 @@ def container_formulario_ifiscal(ano=None):
 
                         def atualizar_impacto_1_2(e=None):
                             pts_att = calc_pts_1_2()
-                            label_impacto_1_2.set_text(f"📊 Impacto de Pontuação no Quesito 1.2: {pts_att:.1f} pontos")
+                            label_impacto_1_2.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 1.2: {pts_att:.1f} pontos"
+                            )
 
                         num_efetivo.on("update:model-value", atualizar_impacto_1_2)
                         num_comissao.on("update:model-value", atualizar_impacto_1_2)
@@ -703,7 +735,7 @@ def container_formulario_ifiscal(ano=None):
                                 pontos=pts_final,
                                 link=state_1_2["link"],
                                 comentarios=dados_1_2.get("comentarios", []),
-                                status=dados_1_2.get("status", "Pendente")
+                                status=dados_1_2.get("status", "Pendente"),
                             )
                             ui.notify("Quesito 1.2 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
@@ -756,7 +788,7 @@ def container_formulario_ifiscal(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO 1.4.1 (Texto Dissertativo)
                     # ==========================================
                     render_quesito(
@@ -1194,25 +1226,44 @@ def container_formulario_ifiscal(ano=None):
                     }
 
                     def calc_pts_7_2():
-                        return -3.0 if state_7_2["texto"].strip().upper() == "XYZ" else 0.0
+                        return (
+                            -3.0 if state_7_2["texto"].strip().upper() == "XYZ" else 0.0
+                        )
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("7.2 • Divulgação da Isenção do IPTU na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Informe a página eletrônica (link na internet) de divulgação do Instrumento normativo de regulamentação do programa de isenção do IPTU:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Se não estiver disponível na internet, inserir o texto 'XYZ' no campo de resposta. (Regra: Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "7.2 • Divulgação da Isenção do IPTU na Internet"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) de divulgação do Instrumento normativo de regulamentação do programa de isenção do IPTU:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Se não estiver disponível na internet, inserir o texto 'XYZ' no campo de resposta. (Regra: Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)"
+                        ).classes("text-xs text-gray-500 mb-6")
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            txt_7_2 = ui.textarea(
-                                label="Página Eletrônica / Resposta:",
-                                value=state_7_2["texto"],
-                                placeholder="Digite a URL ou o texto XYZ..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_7_2, "texto")
+                        with ui.grid(columns=2).classes(
+                            "w-full gap-6 items-start mb-4"
+                        ):
+                            txt_7_2 = (
+                                ui.textarea(
+                                    label="Página Eletrônica / Resposta:",
+                                    value=state_7_2["texto"],
+                                    placeholder="Digite a URL ou o texto XYZ...",
+                                )
+                                .classes("w-full")
+                                .props("outlined rows=5")
+                                .bind_value(state_7_2, "texto")
+                            )
 
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_7_2["link"],
-                                placeholder="Insira o link de evidência adicional..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_7_2, "link")
+                                placeholder="Insira o link de evidência adicional...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_7_2, "link"
+                            )
 
                         pts_7_2 = calc_pts_7_2()
                         label_impacto_7_2 = ui.label(
@@ -1221,7 +1272,9 @@ def container_formulario_ifiscal(ano=None):
 
                         def atualizar_impacto_7_2(e=None):
                             pts_att = calc_pts_7_2()
-                            label_impacto_7_2.set_text(f"📊 Impacto de Pontuação no Quesito 7.2: {pts_att:.1f} pontos")
+                            label_impacto_7_2.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 7.2: {pts_att:.1f} pontos"
+                            )
 
                         txt_7_2.on("update:model-value", atualizar_impacto_7_2)
 
@@ -1234,7 +1287,7 @@ def container_formulario_ifiscal(ano=None):
                                 pontos=pts_final,
                                 link=state_7_2["link"],
                                 comentarios=dados_7_2.get("comentarios", []),
-                                status=dados_7_2.get("status", "Pendente")
+                                status=dados_7_2.get("status", "Pendente"),
                             )
                             ui.notify("Quesito 7.2 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
@@ -1404,25 +1457,44 @@ def container_formulario_ifiscal(ano=None):
                     }
 
                     def calc_pts_9_2():
-                        return -3.0 if state_9_2["texto"].strip().upper() == "XYZ" else 0.0
+                        return (
+                            -3.0 if state_9_2["texto"].strip().upper() == "XYZ" else 0.0
+                        )
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("9.2 • Divulgação do ITBI na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Informe a página eletrônica (link na internet) de divulgação da regulamentação do ITBI:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("9.2 • Divulgação do ITBI na Internet").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) de divulgação da regulamentação do ITBI:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)"
+                        ).classes("text-xs text-gray-500 mb-6")
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            txt_9_2 = ui.textarea(
-                                label="Página Eletrônica / Resposta:",
-                                value=state_9_2["texto"],
-                                placeholder="Digite a URL ou o texto XYZ..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_9_2, "texto")
+                        with ui.grid(columns=2).classes(
+                            "w-full gap-6 items-start mb-4"
+                        ):
+                            txt_9_2 = (
+                                ui.textarea(
+                                    label="Página Eletrônica / Resposta:",
+                                    value=state_9_2["texto"],
+                                    placeholder="Digite a URL ou o texto XYZ...",
+                                )
+                                .classes("w-full")
+                                .props("outlined rows=5")
+                                .bind_value(state_9_2, "texto")
+                            )
 
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_9_2["link"],
-                                placeholder="Insira o link de evidência adicional..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_9_2, "link")
+                                placeholder="Insira o link de evidência adicional...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_9_2, "link"
+                            )
 
                         pts_9_2 = calc_pts_9_2()
                         label_impacto_9_2 = ui.label(
@@ -1431,7 +1503,9 @@ def container_formulario_ifiscal(ano=None):
 
                         def atualizar_impacto_9_2(e=None):
                             pts_att = calc_pts_9_2()
-                            label_impacto_9_2.set_text(f"📊 Impacto de Pontuação no Quesito 9.2: {pts_att:.1f} pontos")
+                            label_impacto_9_2.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 9.2: {pts_att:.1f} pontos"
+                            )
 
                         txt_9_2.on("update:model-value", atualizar_impacto_9_2)
 
@@ -1444,7 +1518,7 @@ def container_formulario_ifiscal(ano=None):
                                 pontos=pts_final,
                                 link=state_9_2["link"],
                                 comentarios=dados_9_2.get("comentarios", []),
-                                status=dados_9_2.get("status", "Pendente")
+                                status=dados_9_2.get("status", "Pendente"),
                             )
                             ui.notify("Quesito 9.2 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
@@ -1610,25 +1684,46 @@ def container_formulario_ifiscal(ano=None):
                     }
 
                     def calc_pts_10_2():
-                        return -3.0 if state_10_2["texto"].strip().upper() == "XYZ" else 0.0
+                        return (
+                            -3.0
+                            if state_10_2["texto"].strip().upper() == "XYZ"
+                            else 0.0
+                        )
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("10.2 • Divulgação da CIP na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Informe a página eletrônica (link na internet) de divulgação do instrumento normativo de instituição da Contribuição para Custeio do Serviço de Iluminação Pública (CIP):").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("10.2 • Divulgação da CIP na Internet").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) de divulgação do instrumento normativo de instituição da Contribuição para Custeio do Serviço de Iluminação Pública (CIP):"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)"
+                        ).classes("text-xs text-gray-500 mb-6")
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            txt_10_2 = ui.textarea(
-                                label="Página Eletrônica / Resposta:",
-                                value=state_10_2["texto"],
-                                placeholder="Digite a URL ou o texto XYZ..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_10_2, "texto")
+                        with ui.grid(columns=2).classes(
+                            "w-full gap-6 items-start mb-4"
+                        ):
+                            txt_10_2 = (
+                                ui.textarea(
+                                    label="Página Eletrônica / Resposta:",
+                                    value=state_10_2["texto"],
+                                    placeholder="Digite a URL ou o texto XYZ...",
+                                )
+                                .classes("w-full")
+                                .props("outlined rows=5")
+                                .bind_value(state_10_2, "texto")
+                            )
 
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_10_2["link"],
-                                placeholder="Insira o link de evidência adicional..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_10_2, "link")
+                                placeholder="Insira o link de evidência adicional...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_10_2, "link"
+                            )
 
                         pts_10_2 = calc_pts_10_2()
                         label_impacto_10_2 = ui.label(
@@ -1637,7 +1732,9 @@ def container_formulario_ifiscal(ano=None):
 
                         def atualizar_impacto_10_2(e=None):
                             pts_att = calc_pts_10_2()
-                            label_impacto_10_2.set_text(f"📊 Impacto de Pontuação no Quesito 10.2: {pts_att:.1f} pontos")
+                            label_impacto_10_2.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 10.2: {pts_att:.1f} pontos"
+                            )
 
                         txt_10_2.on("update:model-value", atualizar_impacto_10_2)
 
@@ -1650,9 +1747,11 @@ def container_formulario_ifiscal(ano=None):
                                 pontos=pts_final,
                                 link=state_10_2["link"],
                                 comentarios=dados_10_2.get("comentarios", []),
-                                status=dados_10_2.get("status", "Pendente")
+                                status=dados_10_2.get("status", "Pendente"),
                             )
-                            ui.notify("Quesito 10.2 salvo com sucesso!", type="positive")
+                            ui.notify(
+                                "Quesito 10.2 salvo com sucesso!", type="positive"
+                            )
                             render_conteudo.refresh()
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_10_2).classes(
@@ -1772,25 +1871,46 @@ def container_formulario_ifiscal(ano=None):
                     }
 
                     def calc_pts_12_1_2():
-                        return -3.0 if state_12_1_2["texto"].strip().upper() == "XYZ" else 0.0
+                        return (
+                            -3.0
+                            if state_12_1_2["texto"].strip().upper() == "XYZ"
+                            else 0.0
+                        )
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("12.1.2 • Divulgação da Renúncia de Receita na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Informe a página eletrônica (link na internet) de divulgação do instrumento normativo de regulamentação dos procedimentos relativos à renúncia de receita:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "12.1.2 • Divulgação da Renúncia de Receita na Internet"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) de divulgação do instrumento normativo de regulamentação dos procedimentos relativos à renúncia de receita:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)"
+                        ).classes("text-xs text-gray-500 mb-6")
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            txt_12_1_2 = ui.textarea(
-                                label="Página Eletrônica / Resposta:",
-                                value=state_12_1_2["texto"],
-                                placeholder="Digite a URL ou o texto XYZ..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_12_1_2, "texto")
+                        with ui.grid(columns=2).classes(
+                            "w-full gap-6 items-start mb-4"
+                        ):
+                            txt_12_1_2 = (
+                                ui.textarea(
+                                    label="Página Eletrônica / Resposta:",
+                                    value=state_12_1_2["texto"],
+                                    placeholder="Digite a URL ou o texto XYZ...",
+                                )
+                                .classes("w-full")
+                                .props("outlined rows=5")
+                                .bind_value(state_12_1_2, "texto")
+                            )
 
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_12_1_2["link"],
-                                placeholder="Insira o link de evidência adicional..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_12_1_2, "link")
+                                placeholder="Insira o link de evidência adicional...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_12_1_2, "link"
+                            )
 
                         pts_12_1_2 = calc_pts_12_1_2()
                         label_impacto_12_1_2 = ui.label(
@@ -1799,7 +1919,9 @@ def container_formulario_ifiscal(ano=None):
 
                         def atualizar_impacto_12_1_2(e=None):
                             pts_att = calc_pts_12_1_2()
-                            label_impacto_12_1_2.set_text(f"📊 Impacto de Pontuação no Quesito 12.1.2: {pts_att:.1f} pontos")
+                            label_impacto_12_1_2.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 12.1.2: {pts_att:.1f} pontos"
+                            )
 
                         txt_12_1_2.on("update:model-value", atualizar_impacto_12_1_2)
 
@@ -1812,9 +1934,11 @@ def container_formulario_ifiscal(ano=None):
                                 pontos=pts_final,
                                 link=state_12_1_2["link"],
                                 comentarios=dados_12_1_2.get("comentarios", []),
-                                status=dados_12_1_2.get("status", "Pendente")
+                                status=dados_12_1_2.get("status", "Pendente"),
                             )
-                            ui.notify("Quesito 12.1.2 salvo com sucesso!", type="positive")
+                            ui.notify(
+                                "Quesito 12.1.2 salvo com sucesso!", type="positive"
+                            )
                             render_conteudo.refresh()
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_12_1_2).classes(
@@ -1960,25 +2084,46 @@ def container_formulario_ifiscal(ano=None):
                     }
 
                     def calc_pts_12_5_2():
-                        return -10.0 if state_12_5_2["texto"].strip().upper() == "XYZ" else 0.0
+                        return (
+                            -10.0
+                            if state_12_5_2["texto"].strip().upper() == "XYZ"
+                            else 0.0
+                        )
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("12.5.2 • Divulgação dos Benefícios da Renúncia na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Informe a página eletrônica (link na internet) de divulgação das informações referente aos benefícios concedidos por Renúncia de Receitas em 2025:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -10,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "12.5.2 • Divulgação dos Benefícios da Renúncia na Internet"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) de divulgação das informações referente aos benefícios concedidos por Renúncia de Receitas em 2025:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -10,0 pts | Caso contrário = 0,0 pts)"
+                        ).classes("text-xs text-gray-500 mb-6")
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            txt_12_5_2 = ui.textarea(
-                                label="Página Eletrônica / Resposta:",
-                                value=state_12_5_2["texto"],
-                                placeholder="Digite a URL ou o texto XYZ..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_12_5_2, "texto")
+                        with ui.grid(columns=2).classes(
+                            "w-full gap-6 items-start mb-4"
+                        ):
+                            txt_12_5_2 = (
+                                ui.textarea(
+                                    label="Página Eletrônica / Resposta:",
+                                    value=state_12_5_2["texto"],
+                                    placeholder="Digite a URL ou o texto XYZ...",
+                                )
+                                .classes("w-full")
+                                .props("outlined rows=5")
+                                .bind_value(state_12_5_2, "texto")
+                            )
 
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_12_5_2["link"],
-                                placeholder="Insira o link de evidência adicional..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_12_5_2, "link")
+                                placeholder="Insira o link de evidência adicional...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_12_5_2, "link"
+                            )
 
                         pts_12_5_2 = calc_pts_12_5_2()
                         label_impacto_12_5_2 = ui.label(
@@ -1987,7 +2132,9 @@ def container_formulario_ifiscal(ano=None):
 
                         def atualizar_impacto_12_5_2(e=None):
                             pts_att = calc_pts_12_5_2()
-                            label_impacto_12_5_2.set_text(f"📊 Impacto de Pontuação no Quesito 12.5.2: {pts_att:.1f} pontos")
+                            label_impacto_12_5_2.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 12.5.2: {pts_att:.1f} pontos"
+                            )
 
                         txt_12_5_2.on("update:model-value", atualizar_impacto_12_5_2)
 
@@ -2000,9 +2147,11 @@ def container_formulario_ifiscal(ano=None):
                                 pontos=pts_final,
                                 link=state_12_5_2["link"],
                                 comentarios=dados_12_5_2.get("comentarios", []),
-                                status=dados_12_5_2.get("status", "Pendente")
+                                status=dados_12_5_2.get("status", "Pendente"),
                             )
-                            ui.notify("Quesito 12.5.2 salvo com sucesso!", type="positive")
+                            ui.notify(
+                                "Quesito 12.5.2 salvo com sucesso!", type="positive"
+                            )
                             render_conteudo.refresh()
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_12_5_2).classes(
@@ -2011,7 +2160,7 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("12.5.2", res_data, render_conteudo.refresh)
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO 13.0 (Radio)
                     # ==========================================
                     opcoes_13_0 = {
@@ -2059,25 +2208,46 @@ def container_formulario_ifiscal(ano=None):
                     }
 
                     def calc_pts_13_2():
-                        return -3.0 if state_13_2["texto"].strip().upper() == "XYZ" else 0.0
+                        return (
+                            -3.0
+                            if state_13_2["texto"].strip().upper() == "XYZ"
+                            else 0.0
+                        )
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("13.2 • Divulgação da Regulamentação da Dívida Ativa na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Informe a página eletrônica (link na internet) de divulgação da regulamentação da dívida ativa:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "13.2 • Divulgação da Regulamentação da Dívida Ativa na Internet"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) de divulgação da regulamentação da dívida ativa:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)"
+                        ).classes("text-xs text-gray-500 mb-6")
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            txt_13_2 = ui.textarea(
-                                label="Página Eletrônica / Resposta:",
-                                value=state_13_2["texto"],
-                                placeholder="Digite a URL ou o texto XYZ..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_13_2, "texto")
+                        with ui.grid(columns=2).classes(
+                            "w-full gap-6 items-start mb-4"
+                        ):
+                            txt_13_2 = (
+                                ui.textarea(
+                                    label="Página Eletrônica / Resposta:",
+                                    value=state_13_2["texto"],
+                                    placeholder="Digite a URL ou o texto XYZ...",
+                                )
+                                .classes("w-full")
+                                .props("outlined rows=5")
+                                .bind_value(state_13_2, "texto")
+                            )
 
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_13_2["link"],
-                                placeholder="Insira o link de evidência adicional..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_13_2, "link")
+                                placeholder="Insira o link de evidência adicional...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_13_2, "link"
+                            )
 
                         pts_13_2 = calc_pts_13_2()
                         label_impacto_13_2 = ui.label(
@@ -2086,7 +2256,9 @@ def container_formulario_ifiscal(ano=None):
 
                         def atualizar_impacto_13_2(e=None):
                             pts_att = calc_pts_13_2()
-                            label_impacto_13_2.set_text(f"📊 Impacto de Pontuação no Quesito 13.2: {pts_att:.1f} pontos")
+                            label_impacto_13_2.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 13.2: {pts_att:.1f} pontos"
+                            )
 
                         txt_13_2.on("update:model-value", atualizar_impacto_13_2)
 
@@ -2099,9 +2271,11 @@ def container_formulario_ifiscal(ano=None):
                                 pontos=pts_final,
                                 link=state_13_2["link"],
                                 comentarios=dados_13_2.get("comentarios", []),
-                                status=dados_13_2.get("status", "Pendente")
+                                status=dados_13_2.get("status", "Pendente"),
                             )
-                            ui.notify("Quesito 13.2 salvo com sucesso!", type="positive")
+                            ui.notify(
+                                "Quesito 13.2 salvo com sucesso!", type="positive"
+                            )
                             render_conteudo.refresh()
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_13_2).classes(
@@ -2502,7 +2676,7 @@ def container_formulario_ifiscal(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO 21.0 (Radio)
                     # ==========================================
                     opcoes_21_0 = {
@@ -2536,25 +2710,46 @@ def container_formulario_ifiscal(ano=None):
                     }
 
                     def calc_pts_21_1():
-                        return -3.0 if state_21_1["texto"].strip().upper() == "XYZ" else 0.0
+                        return (
+                            -3.0
+                            if state_21_1["texto"].strip().upper() == "XYZ"
+                            else 0.0
+                        )
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("21.1 • Divulgação da Remuneração na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Informe a página eletrônica (link na internet) de divulgação da remuneração individualizada por nome do agente público:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "21.1 • Divulgação da Remuneração na Internet"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) de divulgação da remuneração individualizada por nome do agente público:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)"
+                        ).classes("text-xs text-gray-500 mb-6")
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            txt_21_1 = ui.textarea(
-                                label="Página Eletrônica / Resposta:",
-                                value=state_21_1["texto"],
-                                placeholder="Digite a URL ou o texto XYZ..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_21_1, "texto")
+                        with ui.grid(columns=2).classes(
+                            "w-full gap-6 items-start mb-4"
+                        ):
+                            txt_21_1 = (
+                                ui.textarea(
+                                    label="Página Eletrônica / Resposta:",
+                                    value=state_21_1["texto"],
+                                    placeholder="Digite a URL ou o texto XYZ...",
+                                )
+                                .classes("w-full")
+                                .props("outlined rows=5")
+                                .bind_value(state_21_1, "texto")
+                            )
 
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_21_1["link"],
-                                placeholder="Insira o link de evidência adicional..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_21_1, "link")
+                                placeholder="Insira o link de evidência adicional...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_21_1, "link"
+                            )
 
                         pts_21_1 = calc_pts_21_1()
                         label_impacto_21_1 = ui.label(
@@ -2563,7 +2758,9 @@ def container_formulario_ifiscal(ano=None):
 
                         def atualizar_impacto_21_1(e=None):
                             pts_att = calc_pts_21_1()
-                            label_impacto_21_1.set_text(f"📊 Impacto de Pontuação no Quesito 21.1: {pts_att:.1f} pontos")
+                            label_impacto_21_1.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 21.1: {pts_att:.1f} pontos"
+                            )
 
                         txt_21_1.on("update:model-value", atualizar_impacto_21_1)
 
@@ -2576,9 +2773,11 @@ def container_formulario_ifiscal(ano=None):
                                 pontos=pts_final,
                                 link=state_21_1["link"],
                                 comentarios=dados_21_1.get("comentarios", []),
-                                status=dados_21_1.get("status", "Pendente")
+                                status=dados_21_1.get("status", "Pendente"),
                             )
-                            ui.notify("Quesito 21.1 salvo com sucesso!", type="positive")
+                            ui.notify(
+                                "Quesito 21.1 salvo com sucesso!", type="positive"
+                            )
                             render_conteudo.refresh()
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_21_1).classes(
@@ -2621,25 +2820,46 @@ def container_formulario_ifiscal(ano=None):
                     }
 
                     def calc_pts_22_1():
-                        return -3.0 if state_22_1["texto"].strip().upper() == "XYZ" else 0.0
+                        return (
+                            -3.0
+                            if state_22_1["texto"].strip().upper() == "XYZ"
+                            else 0.0
+                        )
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("22.1 • Divulgação de Diárias e Passagens na Internet").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Informe a página eletrônica (link na internet) de divulgação de diárias e passagens:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)").classes("text-xs text-gray-500 mb-6")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "22.1 • Divulgação de Diárias e Passagens na Internet"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) de divulgação de diárias e passagens:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto 'XYZ'. (Texto XYZ = -3,0 pts | Caso contrário = 0,0 pts)"
+                        ).classes("text-xs text-gray-500 mb-6")
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            txt_22_1 = ui.textarea(
-                                label="Página Eletrônica / Resposta:",
-                                value=state_22_1["texto"],
-                                placeholder="Digite a URL ou o texto XYZ..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_22_1, "texto")
+                        with ui.grid(columns=2).classes(
+                            "w-full gap-6 items-start mb-4"
+                        ):
+                            txt_22_1 = (
+                                ui.textarea(
+                                    label="Página Eletrônica / Resposta:",
+                                    value=state_22_1["texto"],
+                                    placeholder="Digite a URL ou o texto XYZ...",
+                                )
+                                .classes("w-full")
+                                .props("outlined rows=5")
+                                .bind_value(state_22_1, "texto")
+                            )
 
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_22_1["link"],
-                                placeholder="Insira o link de evidência adicional..."
-                            ).classes("w-full").props("outlined rows=5").bind_value(state_22_1, "link")
+                                placeholder="Insira o link de evidência adicional...",
+                            ).classes("w-full").props("outlined rows=5").bind_value(
+                                state_22_1, "link"
+                            )
 
                         pts_22_1 = calc_pts_22_1()
                         label_impacto_22_1 = ui.label(
@@ -2648,7 +2868,9 @@ def container_formulario_ifiscal(ano=None):
 
                         def atualizar_impacto_22_1(e=None):
                             pts_att = calc_pts_22_1()
-                            label_impacto_22_1.set_text(f"📊 Impacto de Pontuação no Quesito 22.1: {pts_att:.1f} pontos")
+                            label_impacto_22_1.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 22.1: {pts_att:.1f} pontos"
+                            )
 
                         txt_22_1.on("update:model-value", atualizar_impacto_22_1)
 
@@ -2661,9 +2883,11 @@ def container_formulario_ifiscal(ano=None):
                                 pontos=pts_final,
                                 link=state_22_1["link"],
                                 comentarios=dados_22_1.get("comentarios", []),
-                                status=dados_22_1.get("status", "Pendente")
+                                status=dados_22_1.get("status", "Pendente"),
                             )
-                            ui.notify("Quesito 22.1 salvo com sucesso!", type="positive")
+                            ui.notify(
+                                "Quesito 22.1 salvo com sucesso!", type="positive"
+                            )
                             render_conteudo.refresh()
 
                         ui.button("SALVAR RESPOSTA", on_click=salvar_22_1).classes(
@@ -2696,7 +2920,7 @@ def container_formulario_ifiscal(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO 24.0 (Radio)
                     # ==========================================
                     opcoes_24_0 = {
@@ -2802,11 +3026,21 @@ def container_formulario_ifiscal(ano=None):
                     # ==========================================
                     f1_data = res_data.get("F1", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F1 • Análise da Receita (Execução Orçamentária) – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Divisão da receita arrecadada (O) pela receita prevista atualizada (P), com base nos dados da LOA (Q = O / P):").classes("text-base font-bold text-black mb-2")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F1 • Análise da Receita (Execução Orçamentária) – Resultado Consolidado"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Divisão da receita arrecadada (O) pela receita prevista atualizada (P), com base nos dados da LOA (Q = O / P):"
+                        ).classes("text-base font-bold text-black mb-2")
 
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador Q", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador Q", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **Q >= 1,5:** Pontuação = **0,0 ponto**
                             * **1,15 < Q < 1,5:** Graduação entre 75 e 0 `((Q - 1,5) * (-1) / 0,35) * 75`
@@ -2815,8 +3049,12 @@ def container_formulario_ifiscal(ano=None):
                             * **Q <= 0,5:** Pontuação = **0,0 ponto**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador Q").classes("font-bold text-blue-700 mb-2")
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador Q"
+                            ).classes("font-bold text-blue-700 mb-2")
 
                             # Desserialização segura do dicionário salvo
                             val_f1_bruto = f1_data.get("valor", {})
@@ -2852,29 +3090,46 @@ def container_formulario_ifiscal(ano=None):
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_o = (
-                                    ui.number(label="Receita Arrecadada (O)", format="%.2f")
+                                    ui.number(
+                                        label="Receita Arrecadada (O)", format="%.2f"
+                                    )
                                     .bind_value(state_f1, "val_o")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_p = (
-                                    ui.number(label="Receita Prevista Atualizada (P)", format="%.2f")
+                                    ui.number(
+                                        label="Receita Prevista Atualizada (P)",
+                                        format="%.2f",
+                                    )
                                     .bind_value(state_f1, "val_p")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_q = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
-                            lbl_pts_q = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+                            lbl_q = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
+                            lbl_pts_q = ui.label().classes(
+                                "text-sm font-bold text-green-600 mt-1"
+                            )
 
                             def calcular_q(_=None):
                                 try:
-                                    o = float(state_f1["val_o"]) if state_f1["val_o"] is not None else 0.0
+                                    o = (
+                                        float(state_f1["val_o"])
+                                        if state_f1["val_o"] is not None
+                                        else 0.0
+                                    )
                                 except (ValueError, TypeError):
                                     o = 0.0
 
                                 try:
-                                    p = float(state_f1["val_p"]) if state_f1["val_p"] is not None else 0.0
+                                    p = (
+                                        float(state_f1["val_p"])
+                                        if state_f1["val_p"] is not None
+                                        else 0.0
+                                    )
                                 except (ValueError, TypeError):
                                     p = 0.0
 
@@ -2893,28 +3148,42 @@ def container_formulario_ifiscal(ano=None):
 
                                     state_f1["pts"] = pts
                                     lbl_q.set_text(f"Resultado Q (O / P): {q:.4f}")
-                                    lbl_pts_q.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_pts_q.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_q.set_text("Resultado Q: Indefinido (A Receita Prevista 'P' deve ser maior que R$ 0,00)")
-                                    lbl_pts_q.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    lbl_q.set_text(
+                                        "Resultado Q: Indefinido (A Receita Prevista 'P' deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_q.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos"
+                                    )
                                     state_f1["pts"] = 0.0
 
                             input_o.on("update:model-value", calcular_q)
                             input_p.on("update:model-value", calcular_q)
                             calcular_q()
 
-                        input_link_f1 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f1["link"],
-                            placeholder="Insira o link do balanço orçamentário ou relatório contábil...",
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f1 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f1["link"],
+                                placeholder="Insira o link do balanço orçamentário ou relatório contábil...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f1():
                             calcular_q()
 
                             val_dict = {
-                                "O": float(state_f1["val_o"]) if state_f1["val_o"] is not None else 0.0,
-                                "P": float(state_f1["val_p"]) if state_f1["val_p"] is not None else 0.0,
+                                "O": float(state_f1["val_o"])
+                                if state_f1["val_o"] is not None
+                                else 0.0,
+                                "P": float(state_f1["val_p"])
+                                if state_f1["val_p"] is not None
+                                else 0.0,
                             }
 
                             try:
@@ -2936,24 +3205,42 @@ def container_formulario_ifiscal(ano=None):
                                     "status": f1_data.get("status", "Pendente"),
                                 }
 
-                                ui.notify("Quesito F1 salvo com sucesso no Banco de Dados!", type="positive")
+                                ui.notify(
+                                    "Quesito F1 salvo com sucesso no Banco de Dados!",
+                                    type="positive",
+                                )
                                 render_conteudo.refresh()
                             except Exception as e:
-                                ui.notify(f"Erro ao salvar no Banco de Dados: {e}", type="negative")
+                                ui.notify(
+                                    f"Erro ao salvar no Banco de Dados: {e}",
+                                    type="negative",
+                                )
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f1).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f1).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F1", res_data, render_conteudo.refresh)
-                   # ==========================================
+                    # ==========================================
                     # QUESITO F2 (Análise da Despesa - Execução Orçamentária)
                     # ==========================================
                     f2_data = res_data.get("F2", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F2 • Análise da Despesa (Execução Orçamentária) – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Divisão da despesa executada (R) pela despesa fixada final (S), com base nos dados da LOA (T = R / S):").classes("text-base font-bold text-black mb-2")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F2 • Análise da Despesa (Execução Orçamentária) – Resultado Consolidado"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Divisão da despesa executada (R) pela despesa fixada final (S), com base nos dados da LOA (T = R / S):"
+                        ).classes("text-base font-bold text-black mb-2")
 
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador T", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador T", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **T >= 1,1:** Pontuação = **0,0 ponto**
                             * **1,0 < T < 1,1:** Graduação entre 75 e 0 `((T - 1,1) * (-1) / 0,10) * 75`
@@ -2962,8 +3249,12 @@ def container_formulario_ifiscal(ano=None):
                             * **T <= 0,5:** Pontuação = **0,0 ponto**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador T").classes("font-bold text-blue-700 mb-2")
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador T"
+                            ).classes("font-bold text-blue-700 mb-2")
 
                             # Desserialização segura do dicionário salvo
                             val_f2_bruto = f2_data.get("valor", {})
@@ -2999,29 +3290,45 @@ def container_formulario_ifiscal(ano=None):
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_r = (
-                                    ui.number(label="Despesa Executada (R)", format="%.2f")
+                                    ui.number(
+                                        label="Despesa Executada (R)", format="%.2f"
+                                    )
                                     .bind_value(state_f2, "val_r")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_s = (
-                                    ui.number(label="Despesa Fixada Final (S)", format="%.2f")
+                                    ui.number(
+                                        label="Despesa Fixada Final (S)", format="%.2f"
+                                    )
                                     .bind_value(state_f2, "val_s")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_t = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
-                            lbl_pts_t = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+                            lbl_t = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
+                            lbl_pts_t = ui.label().classes(
+                                "text-sm font-bold text-green-600 mt-1"
+                            )
 
                             def calcular_t(_=None):
                                 try:
-                                    r = float(state_f2["val_r"]) if state_f2["val_r"] is not None else 0.0
+                                    r = (
+                                        float(state_f2["val_r"])
+                                        if state_f2["val_r"] is not None
+                                        else 0.0
+                                    )
                                 except (ValueError, TypeError):
                                     r = 0.0
 
                                 try:
-                                    s = float(state_f2["val_s"]) if state_f2["val_s"] is not None else 0.0
+                                    s = (
+                                        float(state_f2["val_s"])
+                                        if state_f2["val_s"] is not None
+                                        else 0.0
+                                    )
                                 except (ValueError, TypeError):
                                     s = 0.0
 
@@ -3040,28 +3347,42 @@ def container_formulario_ifiscal(ano=None):
 
                                     state_f2["pts"] = pts
                                     lbl_t.set_text(f"Resultado T (R / S): {t:.4f}")
-                                    lbl_pts_t.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_pts_t.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_t.set_text("Resultado T: Indefinido (A Despesa Fixada 'S' deve ser maior que R$ 0,00)")
-                                    lbl_pts_t.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    lbl_t.set_text(
+                                        "Resultado T: Indefinido (A Despesa Fixada 'S' deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_t.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos"
+                                    )
                                     state_f2["pts"] = 0.0
 
                             input_r.on("update:model-value", calcular_t)
                             input_s.on("update:model-value", calcular_t)
                             calcular_t()
 
-                        input_link_f2 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f2["link"],
-                            placeholder="Insira o link do balanço orçamentário ou relatório contábil...",
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f2 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f2["link"],
+                                placeholder="Insira o link do balanço orçamentário ou relatório contábil...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f2():
                             calcular_t()
 
                             val_dict = {
-                                "R": float(state_f2["val_r"]) if state_f2["val_r"] is not None else 0.0,
-                                "S": float(state_f2["val_s"]) if state_f2["val_s"] is not None else 0.0,
+                                "R": float(state_f2["val_r"])
+                                if state_f2["val_r"] is not None
+                                else 0.0,
+                                "S": float(state_f2["val_s"])
+                                if state_f2["val_s"] is not None
+                                else 0.0,
                             }
 
                             try:
@@ -3083,12 +3404,20 @@ def container_formulario_ifiscal(ano=None):
                                     "status": f2_data.get("status", "Pendente"),
                                 }
 
-                                ui.notify("Quesito F2 salvo com sucesso no Banco de Dados!", type="positive")
+                                ui.notify(
+                                    "Quesito F2 salvo com sucesso no Banco de Dados!",
+                                    type="positive",
+                                )
                                 render_conteudo.refresh()
                             except Exception as e:
-                                ui.notify(f"Erro ao salvar no Banco de Dados: {e}", type="negative")
+                                ui.notify(
+                                    f"Erro ao salvar no Banco de Dados: {e}",
+                                    type="negative",
+                                )
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f2).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f2).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F2", res_data, render_conteudo.refresh)
 
@@ -3097,11 +3426,21 @@ def container_formulario_ifiscal(ano=None):
                     # ==========================================
                     f3_data = res_data.get("F3", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F3 • Análise do Resultado da Execução Orçamentária – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Relação entre Despesa Executada (R) e Receita Arrecadada (O), considerando a cobertura do déficit por Superávit Financeiro (V = R / O):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador V", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F3 • Análise do Resultado da Execução Orçamentária – Resultado Consolidado"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Relação entre Despesa Executada (R) e Receita Arrecadada (O), considerando a cobertura do déficit por Superávit Financeiro (V = R / O):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador V", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **V >= 1,2:** Pontuação = **0,0 ponto**
                             * **1,1 < V < 1,2 (COM cobertura do déficit):** Graduação entre 100 e 0 `((V - 1,2) * (-1) / 0,10) * 100`
@@ -3112,9 +3451,13 @@ def container_formulario_ifiscal(ano=None):
                             * **V <= 0,75:** Pontuação = **0,0 ponto**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador V").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador V"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f3_bruto = f3_data.get("valor", {})
                             if not isinstance(val_f3_bruto, dict):
                                 val_f3_bruto = {}
@@ -3122,31 +3465,51 @@ def container_formulario_ifiscal(ano=None):
                             state_f3 = {
                                 "val_r": float(val_f3_bruto.get("R", 0.0)),
                                 "val_o": float(val_f3_bruto.get("O", 0.0)),
-                                "val_superavit": float(val_f3_bruto.get("superavit", 0.0)),
+                                "val_superavit": float(
+                                    val_f3_bruto.get("superavit", 0.0)
+                                ),
                                 "link": f3_data.get("link", ""),
-                                "pts": float(f3_data.get("pontos", 0.0))
+                                "pts": float(f3_data.get("pontos", 0.0)),
                             }
 
                             with ui.grid(columns=3).classes("w-full gap-4"):
                                 input_r = (
-                                    ui.number(label="Despesa Executada (R)", value=state_f3["val_r"], format="%.2f")
+                                    ui.number(
+                                        label="Despesa Executada (R)",
+                                        value=state_f3["val_r"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_o = (
-                                    ui.number(label="Receita Arrecadada (O)", value=state_f3["val_o"], format="%.2f")
+                                    ui.number(
+                                        label="Receita Arrecadada (O)",
+                                        value=state_f3["val_o"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_superavit = (
-                                    ui.number(label="Créditos de Superávit Financeiro", value=state_f3["val_superavit"], format="%.2f")
+                                    ui.number(
+                                        label="Créditos de Superávit Financeiro",
+                                        value=state_f3["val_superavit"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_v = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
-                            lbl_cobertura = ui.label().classes("text-sm font-semibold text-blue-800 mt-1")
-                            lbl_pts_v = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+                            lbl_v = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
+                            lbl_cobertura = ui.label().classes(
+                                "text-sm font-semibold text-blue-800 mt-1"
+                            )
+                            lbl_pts_v = ui.label().classes(
+                                "text-sm font-bold text-green-600 mt-1"
+                            )
 
                             def calcular_v(_=None):
                                 r = input_r.value or 0.0
@@ -3164,38 +3527,60 @@ def container_formulario_ifiscal(ano=None):
 
                                     if v >= 1.2:
                                         pts = 0.0
-                                        lbl_cobertura.set_text("Déficit excessivo (V >= 1,2)")
+                                        lbl_cobertura.set_text(
+                                            "Déficit excessivo (V >= 1,2)"
+                                        )
                                     elif 1.1 < v < 1.2:
                                         if tem_cobertura:
                                             pts = ((v - 1.2) * (-1.0) / 0.10) * 100.0
-                                            lbl_cobertura.set_text(f"Déficit (R$ {deficit:,.2f}) COBERTO por Superávit (R$ {sup:,.2f})")
+                                            lbl_cobertura.set_text(
+                                                f"Déficit (R$ {deficit:,.2f}) COBERTO por Superávit (R$ {sup:,.2f})"
+                                            )
                                         else:
                                             pts = 0.0
-                                            lbl_cobertura.set_text(f"Déficit (R$ {deficit:,.2f}) NÃO COBERTO por Superávit (R$ {sup:,.2f})")
+                                            lbl_cobertura.set_text(
+                                                f"Déficit (R$ {deficit:,.2f}) NÃO COBERTO por Superávit (R$ {sup:,.2f})"
+                                            )
                                     elif 1.0 < v <= 1.1:
                                         if tem_cobertura:
                                             pts = 100.0
-                                            lbl_cobertura.set_text(f"Déficit (R$ {deficit:,.2f}) COBERTO por Superávit (R$ {sup:,.2f})")
+                                            lbl_cobertura.set_text(
+                                                f"Déficit (R$ {deficit:,.2f}) COBERTO por Superávit (R$ {sup:,.2f})"
+                                            )
                                         else:
                                             pts = 0.0
-                                            lbl_cobertura.set_text(f"Déficit (R$ {deficit:,.2f}) NÃO COBERTO por Superávit (R$ {sup:,.2f})")
+                                            lbl_cobertura.set_text(
+                                                f"Déficit (R$ {deficit:,.2f}) NÃO COBERTO por Superávit (R$ {sup:,.2f})"
+                                            )
                                     elif 0.9 <= v <= 1.0:
                                         pts = 100.0
-                                        lbl_cobertura.set_text("Execução em equilíbrio/superavitária")
+                                        lbl_cobertura.set_text(
+                                            "Execução em equilíbrio/superavitária"
+                                        )
                                     elif 0.75 < v < 0.9:
                                         pts = ((v - 0.75) / 0.15) * 100.0
-                                        lbl_cobertura.set_text("Execução abaixo do ideal (Graduação proporcional)")
+                                        lbl_cobertura.set_text(
+                                            "Execução abaixo do ideal (Graduação proporcional)"
+                                        )
                                     else:
                                         pts = 0.0
-                                        lbl_cobertura.set_text("Execução criticamente abaixo do planejado (V <= 0,75)")
+                                        lbl_cobertura.set_text(
+                                            "Execução criticamente abaixo do planejado (V <= 0,75)"
+                                        )
 
                                     state_f3["pts"] = pts
                                     lbl_v.set_text(f"Resultado V (R / O): {v:.4f}")
-                                    lbl_pts_v.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_pts_v.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_v.set_text("Resultado V: Indefinido (A Receita Arrecadada 'O' deve ser maior que R$ 0,00)")
+                                    lbl_v.set_text(
+                                        "Resultado V: Indefinido (A Receita Arrecadada 'O' deve ser maior que R$ 0,00)"
+                                    )
                                     lbl_cobertura.set_text("")
-                                    lbl_pts_v.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    lbl_pts_v.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos"
+                                    )
                                     state_f3["pts"] = 0.0
 
                             input_r.on("update:model-value", calcular_v)
@@ -3203,11 +3588,15 @@ def container_formulario_ifiscal(ano=None):
                             input_superavit.on("update:model-value", calcular_v)
                             calcular_v()
 
-                        input_link_f3 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f3["link"],
-                            placeholder="Insira o link do balanço orçamentário, apuração do superávit ou demonstrativos..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f3 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f3["link"],
+                                placeholder="Insira o link do balanço orçamentário, apuração do superávit ou demonstrativos...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f3():
                             save_resposta(
@@ -3226,7 +3615,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F3 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f3).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f3).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F3", res_data, render_conteudo.refresh)
 
@@ -3235,20 +3626,34 @@ def container_formulario_ifiscal(ano=None):
                     # ==========================================
                     f4_data = res_data.get("F4", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F4 • Análise do Nível de Cancelamento de Restos a Pagar – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Divisão dos cancelamentos realizados dos restos a pagar (C) pela sua posição inicial (B), com base na AUDESP (K = C / B):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador K", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F4 • Análise do Nível de Cancelamento de Restos a Pagar – Resultado Consolidado"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Divisão dos cancelamentos realizados dos restos a pagar (C) pela sua posição inicial (B), com base na AUDESP (K = C / B):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador K", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **K >= 0,20:** Pontuação = **0,0 ponto**
                             * **0,05 < K < 0,20:** Graduação entre 0 e 25 `((0,20 - K) / 0,15) * 25`
                             * **K <= 0,05:** Pontuação máxima = **25,0 pontos**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador K").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador K"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f4_bruto = f4_data.get("valor", {})
                             if not isinstance(val_f4_bruto, dict):
                                 val_f4_bruto = {}
@@ -3257,23 +3662,35 @@ def container_formulario_ifiscal(ano=None):
                                 "val_c": float(val_f4_bruto.get("C", 0.0) or 0.0),
                                 "val_b": float(val_f4_bruto.get("B", 0.0) or 0.0),
                                 "link": f4_data.get("link", ""),
-                                "pts": float(f4_data.get("pontos", 0.0) or 0.0)
+                                "pts": float(f4_data.get("pontos", 0.0) or 0.0),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_c = (
-                                    ui.number(label="Cancelamentos de Restos a Pagar (C)", value=state_f4["val_c"], format="%.2f")
+                                    ui.number(
+                                        label="Cancelamentos de Restos a Pagar (C)",
+                                        value=state_f4["val_c"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_b = (
-                                    ui.number(label="Posição Inicial dos Restos a Pagar (B)", value=state_f4["val_b"], format="%.2f")
+                                    ui.number(
+                                        label="Posição Inicial dos Restos a Pagar (B)",
+                                        value=state_f4["val_b"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_k = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
-                            lbl_pts_k = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+                            lbl_k = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
+                            lbl_pts_k = ui.label().classes(
+                                "text-sm font-bold text-green-600 mt-1"
+                            )
 
                             def calcular_k(_=None):
                                 try:
@@ -3293,24 +3710,34 @@ def container_formulario_ifiscal(ano=None):
                                         pts = ((0.20 - k) / 0.15) * 25.0
                                     else:
                                         pts = 25.0
-                                    
+
                                     state_f4["pts"] = pts
                                     lbl_k.set_text(f"Resultado K (C / B): {k:.4f}")
-                                    lbl_pts_k.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_pts_k.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_k.set_text("Resultado K: Indefinido (A Posição Inicial 'B' deve ser maior que R$ 0,00)")
-                                    lbl_pts_k.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    lbl_k.set_text(
+                                        "Resultado K: Indefinido (A Posição Inicial 'B' deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_k.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos"
+                                    )
                                     state_f4["pts"] = 0.0
 
                             input_c.on("update:model-value", calcular_k)
                             input_b.on("update:model-value", calcular_k)
                             calcular_k()
 
-                        input_link_f4 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f4["link"],
-                            placeholder="Insira o link ou relatório GF26 do AUDESP referente aos Restos a Pagar..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f4 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f4["link"],
+                                placeholder="Insira o link ou relatório GF26 do AUDESP referente aos Restos a Pagar...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f4():
                             save_resposta(
@@ -3325,7 +3752,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F4 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f4).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f4).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F4", res_data, render_conteudo.refresh)
 
@@ -3334,43 +3763,63 @@ def container_formulario_ifiscal(ano=None):
                     # ==========================================
                     f5_data = res_data.get("F5", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F5 • Despesas com Pessoal – Poder Executivo").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Índice do comprometimento da receita corrente líquida com despesa de pessoal do Poder Executivo (extraído do item GF27 da AUDESP):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador de Pessoal", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("F5 • Despesas com Pessoal – Poder Executivo").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Índice do comprometimento da receita corrente líquida com despesa de pessoal do Poder Executivo (extraído do item GF27 da AUDESP):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador de Pessoal", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **Maior que 0,54 (54% - Limite Máximo LRF):** **Rebaixa 1 faixa do i-Fiscal** (Penalidade máxima / Nota impactada na classificação final)
                             * **Entre 0,513 e 0,54 (51,3% a 54% - Limite Prudencial LRF):** Penalidade de **-20,0 pontos**
                             * **Menor que 0,513 (Abaixo de 51,3%):** Sem penalidade (**0,0 ponto**)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática de Despesa com Pessoal").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática de Despesa com Pessoal"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f5_bruto = f5_data.get("valor", {})
                             if not isinstance(val_f5_bruto, dict):
                                 val_f5_bruto = {}
 
                             state_f5 = {
-                                "perc_pessoal": float(val_f5_bruto.get("perc_pessoal", 0.0) or 0.0),
+                                "perc_pessoal": float(
+                                    val_f5_bruto.get("perc_pessoal", 0.0) or 0.0
+                                ),
                                 "link": f5_data.get("link", ""),
                                 "pts": float(f5_data.get("pontos", 0.0) or 0.0),
-                                "rebaixa": val_f5_bruto.get("rebaixa_faixa", False)
+                                "rebaixa": val_f5_bruto.get("rebaixa_faixa", False),
                             }
 
                             input_pessoal = (
                                 ui.number(
                                     label="Índice de Despesa com Pessoal (Ex: 0.52 para 52% ou digite o valor decimal)",
                                     value=state_f5["perc_pessoal"],
-                                    format="%.4f"
+                                    format="%.4f",
                                 )
                                 .classes("w-full")
                                 .props("outlined bg-white step=0.001")
                             )
 
-                            lbl_res_pessoal = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
-                            lbl_pts_pessoal = ui.label().classes("text-sm font-bold mt-1")
+                            lbl_res_pessoal = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
+                            lbl_pts_pessoal = ui.label().classes(
+                                "text-sm font-bold mt-1"
+                            )
 
                             def calcular_pessoal(_=None):
                                 try:
@@ -3383,32 +3832,57 @@ def container_formulario_ifiscal(ano=None):
                                 if val > 0.54:
                                     pts = 0.0
                                     state_f5["rebaixa_faixa"] = True
-                                    lbl_res_pessoal.set_text(f"Índice Apurado: {val*100:.2f}% (Acima do Limite Máximo de 54%)")
-                                    lbl_pts_pessoal.set_text("⚠️ ALERTA CRÍTICO: Rebaixa 1 faixa do i-Fiscal!")
-                                    lbl_pts_pessoal.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                    lbl_res_pessoal.set_text(
+                                        f"Índice Apurado: {val * 100:.2f}% (Acima do Limite Máximo de 54%)"
+                                    )
+                                    lbl_pts_pessoal.set_text(
+                                        "⚠️ ALERTA CRÍTICO: Rebaixa 1 faixa do i-Fiscal!"
+                                    )
+                                    lbl_pts_pessoal.classes(
+                                        remove="text-green-600 text-amber-600",
+                                        add="text-red-600",
+                                    )
                                 elif 0.513 <= val <= 0.54:
                                     pts = -20.0
                                     state_f5["rebaixa_faixa"] = False
-                                    lbl_res_pessoal.set_text(f"Índice Apurado: {val*100:.2f}% (Enquadrado no Limite Prudencial - 51,3% a 54%)")
-                                    lbl_pts_pessoal.set_text("📊 Impacto de Pontuação Calculado: -20.00 pontos")
-                                    lbl_pts_pessoal.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                    lbl_res_pessoal.set_text(
+                                        f"Índice Apurado: {val * 100:.2f}% (Enquadrado no Limite Prudencial - 51,3% a 54%)"
+                                    )
+                                    lbl_pts_pessoal.set_text(
+                                        "📊 Impacto de Pontuação Calculado: -20.00 pontos"
+                                    )
+                                    lbl_pts_pessoal.classes(
+                                        remove="text-green-600 text-red-600",
+                                        add="text-amber-600",
+                                    )
                                 else:
                                     pts = 0.0
                                     state_f5["rebaixa_faixa"] = False
-                                    lbl_res_pessoal.set_text(f"Índice Apurado: {val*100:.2f}% (Dentro do limite regular - Menor que 51,3%)")
-                                    lbl_pts_pessoal.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
-                                    lbl_pts_pessoal.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+                                    lbl_res_pessoal.set_text(
+                                        f"Índice Apurado: {val * 100:.2f}% (Dentro do limite regular - Menor que 51,3%)"
+                                    )
+                                    lbl_pts_pessoal.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos"
+                                    )
+                                    lbl_pts_pessoal.classes(
+                                        remove="text-red-600 text-amber-600",
+                                        add="text-green-600",
+                                    )
 
                                 state_f5["pts"] = pts
 
                             input_pessoal.on("update:model-value", calcular_pessoal)
                             calcular_pessoal()
 
-                        input_link_f5 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f5["link"],
-                            placeholder="Insira o link ou relatório GF27 do AUDESP / Relatório de Gestão Fiscal (RGF)..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f5 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f5["link"],
+                                placeholder="Insira o link ou relatório GF27 do AUDESP / Relatório de Gestão Fiscal (RGF)...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f5():
                             save_resposta(
@@ -3416,7 +3890,9 @@ def container_formulario_ifiscal(ano=None):
                                 qid="F5",
                                 valor={
                                     "perc_pessoal": state_f5["perc_pessoal"],
-                                    "rebaixa_faixa": state_f5.get("rebaixa_faixa", False)
+                                    "rebaixa_faixa": state_f5.get(
+                                        "rebaixa_faixa", False
+                                    ),
                                 },
                                 pontos=state_f5["pts"],
                                 link=input_link_f5.value,
@@ -3426,7 +3902,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F5 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f5).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f5).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F5", res_data, render_conteudo.refresh)
 
@@ -3435,19 +3913,33 @@ def container_formulario_ifiscal(ano=None):
                     # ==========================================
                     f6_data = res_data.get("F6", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F6 • Despesas com Pessoal – Poder Legislativo").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Relação entre a Despesa de Pessoal do Poder Legislativo (DPPL) e a Receita Corrente Líquida (RCL), extraída do item GF27 da AUDESP (AB = DPPL / RCL):").classes("text-base font-bold text-black mb-2")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F6 • Despesas com Pessoal – Poder Legislativo"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Relação entre a Despesa de Pessoal do Poder Legislativo (DPPL) e a Receita Corrente Líquida (RCL), extraída do item GF27 da AUDESP (AB = DPPL / RCL):"
+                        ).classes("text-base font-bold text-black mb-2")
 
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AB", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador AB", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **AB > 0,06 (Acima de 6,0% - Limite Máximo LRF):** Penalidade máxima (**-10,0 pontos**)
                             * **0,057 < AB <= 0,06 (Graduação Proporcional):** Penalidade calculada por `((AB - 0,057) / 0,003) * -10`
                             * **AB <= 0,057 (Até 5,7%):** Dentro do limite regular (**0,0 ponto**)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador AB").classes("font-bold text-blue-700 mb-2")
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador AB"
+                            ).classes("font-bold text-blue-700 mb-2")
 
                             # Desserialização segura do dicionário salvo
                             val_f6_bruto = f6_data.get("valor", {})
@@ -3461,16 +3953,24 @@ def container_formulario_ifiscal(ano=None):
                             if not isinstance(val_f6_bruto, dict):
                                 val_f6_bruto = {}
 
-                            raw_dppl = val_f6_bruto.get("DPPL", val_f6_bruto.get("dppl", 0.0))
-                            raw_rcl = val_f6_bruto.get("RCL", val_f6_bruto.get("rcl", 0.0))
+                            raw_dppl = val_f6_bruto.get(
+                                "DPPL", val_f6_bruto.get("dppl", 0.0)
+                            )
+                            raw_rcl = val_f6_bruto.get(
+                                "RCL", val_f6_bruto.get("rcl", 0.0)
+                            )
 
                             try:
-                                val_dppl_init = float(raw_dppl) if raw_dppl is not None else 0.0
+                                val_dppl_init = (
+                                    float(raw_dppl) if raw_dppl is not None else 0.0
+                                )
                             except (ValueError, TypeError):
                                 val_dppl_init = 0.0
 
                             try:
-                                val_rcl_init = float(raw_rcl) if raw_rcl is not None else 0.0
+                                val_rcl_init = (
+                                    float(raw_rcl) if raw_rcl is not None else 0.0
+                                )
                             except (ValueError, TypeError):
                                 val_rcl_init = 0.0
 
@@ -3483,29 +3983,45 @@ def container_formulario_ifiscal(ano=None):
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_dppl = (
-                                    ui.number(label="Despesa de Pessoal - Legislativo (DPPL)", format="%.2f")
+                                    ui.number(
+                                        label="Despesa de Pessoal - Legislativo (DPPL)",
+                                        format="%.2f",
+                                    )
                                     .bind_value(state_f6, "val_dppl")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_rcl = (
-                                    ui.number(label="Receita Corrente Líquida (RCL)", format="%.2f")
+                                    ui.number(
+                                        label="Receita Corrente Líquida (RCL)",
+                                        format="%.2f",
+                                    )
                                     .bind_value(state_f6, "val_rcl")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_ab = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_ab = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
                             lbl_pts_ab = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_ab(_=None):
                                 try:
-                                    dppl = float(state_f6["val_dppl"]) if state_f6["val_dppl"] is not None else 0.0
+                                    dppl = (
+                                        float(state_f6["val_dppl"])
+                                        if state_f6["val_dppl"] is not None
+                                        else 0.0
+                                    )
                                 except (ValueError, TypeError):
                                     dppl = 0.0
 
                                 try:
-                                    rcl = float(state_f6["val_rcl"]) if state_f6["val_rcl"] is not None else 0.0
+                                    rcl = (
+                                        float(state_f6["val_rcl"])
+                                        if state_f6["val_rcl"] is not None
+                                        else 0.0
+                                    )
                                 except (ValueError, TypeError):
                                     rcl = 0.0
 
@@ -3513,39 +4029,67 @@ def container_formulario_ifiscal(ano=None):
                                     ab = dppl / rcl
                                     if ab > 0.06:
                                         pts = -10.0
-                                        lbl_pts_ab.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                        lbl_pts_ab.classes(
+                                            remove="text-green-600 text-amber-600",
+                                            add="text-red-600",
+                                        )
                                     elif 0.057 < ab <= 0.06:
                                         pts = ((ab - 0.057) / 0.003) * -10.0
-                                        lbl_pts_ab.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                        lbl_pts_ab.classes(
+                                            remove="text-green-600 text-red-600",
+                                            add="text-amber-600",
+                                        )
                                     else:
                                         pts = 0.0
-                                        lbl_pts_ab.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+                                        lbl_pts_ab.classes(
+                                            remove="text-red-600 text-amber-600",
+                                            add="text-green-600",
+                                        )
 
                                     state_f6["pts"] = pts
-                                    lbl_ab.set_text(f"Resultado AB (DPPL / RCL): {ab:.4f} ({ab*100:.2f}%)")
-                                    lbl_pts_ab.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_ab.set_text(
+                                        f"Resultado AB (DPPL / RCL): {ab:.4f} ({ab * 100:.2f}%)"
+                                    )
+                                    lbl_pts_ab.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_ab.set_text("Resultado AB: Indefinido (A RCL deve ser maior que R$ 0,00)")
-                                    lbl_pts_ab.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
-                                    lbl_pts_ab.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+                                    lbl_ab.set_text(
+                                        "Resultado AB: Indefinido (A RCL deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_ab.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos"
+                                    )
+                                    lbl_pts_ab.classes(
+                                        remove="text-red-600 text-amber-600",
+                                        add="text-green-600",
+                                    )
                                     state_f6["pts"] = 0.0
 
                             input_dppl.on("update:model-value", calcular_ab)
                             input_rcl.on("update:model-value", calcular_ab)
                             calcular_ab()
 
-                        input_link_f6 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f6["link"],
-                            placeholder="Insira o link do Relatório GF27 do AUDESP ou Relatório de Gestão Fiscal (RGF) da Câmara...",
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f6 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f6["link"],
+                                placeholder="Insira o link do Relatório GF27 do AUDESP ou Relatório de Gestão Fiscal (RGF) da Câmara...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f6():
                             calcular_ab()
 
                             val_dict = {
-                                "DPPL": float(state_f6["val_dppl"]) if state_f6["val_dppl"] is not None else 0.0,
-                                "RCL": float(state_f6["val_rcl"]) if state_f6["val_rcl"] is not None else 0.0,
+                                "DPPL": float(state_f6["val_dppl"])
+                                if state_f6["val_dppl"] is not None
+                                else 0.0,
+                                "RCL": float(state_f6["val_rcl"])
+                                if state_f6["val_rcl"] is not None
+                                else 0.0,
                             }
 
                             try:
@@ -3567,25 +4111,43 @@ def container_formulario_ifiscal(ano=None):
                                     "status": f6_data.get("status", "Pendente"),
                                 }
 
-                                ui.notify("Quesito F6 salvo com sucesso no Banco de Dados!", type="positive")
+                                ui.notify(
+                                    "Quesito F6 salvo com sucesso no Banco de Dados!",
+                                    type="positive",
+                                )
                                 render_conteudo.refresh()
                             except Exception as e:
-                                ui.notify(f"Erro ao salvar no Banco de Dados: {e}", type="negative")
+                                ui.notify(
+                                    f"Erro ao salvar no Banco de Dados: {e}",
+                                    type="negative",
+                                )
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f6).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f6).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F6", res_data, render_conteudo.refresh)
-                        
+
                     # ==========================================
                     # QUESITO F7 (Apuração do Resultado Financeiro – Resultado Consolidado)
                     # ==========================================
                     f7_data = res_data.get("F7", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F7 • Apuração do Resultado Financeiro (Superávit/Déficit) – Resultado Consolidado").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Divisão entre o Ativo Financeiro (AC) e o Passivo Financeiro (AD), extraído do Balanço Patrimonial AUDESP (AE = AC / AD):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AE", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F7 • Apuração do Resultado Financeiro (Superávit/Déficit) – Resultado Consolidado"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Divisão entre o Ativo Financeiro (AC) e o Passivo Financeiro (AD), extraído do Balanço Patrimonial AUDESP (AE = AC / AD):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador AE", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **AE >= 1,30 (Superávit Elevado):** Pontuação = **0,0 ponto** *(Economia excessiva)*
                             * **1,10 < AE < 1,30 (Superávit Moderado):** Graduação entre 75 e 0 `((1,30 - AE) / 0,20) * 75`
@@ -3594,9 +4156,13 @@ def container_formulario_ifiscal(ano=None):
                             * **AE <= 0,75 (Déficit Elevado):** Pontuação = **0,0 ponto**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador AE").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador AE"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f7_bruto = f7_data.get("valor", {})
                             if not isinstance(val_f7_bruto, dict):
                                 val_f7_bruto = {}
@@ -3605,23 +4171,35 @@ def container_formulario_ifiscal(ano=None):
                                 "val_ac": float(val_f7_bruto.get("AC", 0.0) or 0.0),
                                 "val_ad": float(val_f7_bruto.get("AD", 0.0) or 0.0),
                                 "link": f7_data.get("link", ""),
-                                "pts": float(f7_data.get("pontos", 0.0) or 0.0)
+                                "pts": float(f7_data.get("pontos", 0.0) or 0.0),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_ac = (
-                                    ui.number(label="Ativo Financeiro (AC)", value=state_f7["val_ac"], format="%.2f")
+                                    ui.number(
+                                        label="Ativo Financeiro (AC)",
+                                        value=state_f7["val_ac"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_ad = (
-                                    ui.number(label="Passivo Financeiro (AD)", value=state_f7["val_ad"], format="%.2f")
+                                    ui.number(
+                                        label="Passivo Financeiro (AD)",
+                                        value=state_f7["val_ad"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_ae = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
-                            lbl_pts_ae = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+                            lbl_ae = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
+                            lbl_pts_ae = ui.label().classes(
+                                "text-sm font-bold text-green-600 mt-1"
+                            )
 
                             def calcular_ae(_=None):
                                 try:
@@ -3645,30 +4223,43 @@ def container_formulario_ifiscal(ano=None):
                                         pts = ((ae - 0.75) / 0.25) * 75.0
                                     else:
                                         pts = 0.0
-                                    
+
                                     state_f7["pts"] = pts
                                     lbl_ae.set_text(f"Resultado AE (AC / AD): {ae:.4f}")
-                                    lbl_pts_ae.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_pts_ae.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_ae.set_text("Resultado AE: Indefinido (O Passivo Financeiro 'AD' deve ser maior que R$ 0,00)")
-                                    lbl_pts_ae.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    lbl_ae.set_text(
+                                        "Resultado AE: Indefinido (O Passivo Financeiro 'AD' deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_ae.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos"
+                                    )
                                     state_f7["pts"] = 0.0
 
                             input_ac.on("update:model-value", calcular_ae)
                             input_ad.on("update:model-value", calcular_ae)
                             calcular_ae()
 
-                        input_link_f7 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f7["link"],
-                            placeholder="Insira o link ou relatório do Balanço Patrimonial AUDESP referente ao Ativo e Passivo Financeiro..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f7 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f7["link"],
+                                placeholder="Insira o link ou relatório do Balanço Patrimonial AUDESP referente ao Ativo e Passivo Financeiro...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f7():
                             save_resposta(
                                 ano=ano_sel,
                                 qid="F7",
-                                valor={"AC": state_f7["val_ac"], "AD": state_f7["val_ad"]},
+                                valor={
+                                    "AC": state_f7["val_ac"],
+                                    "AD": state_f7["val_ad"],
+                                },
                                 pontos=state_f7["pts"],
                                 link=input_link_f7.value,
                                 comentarios=f7_data.get("comentarios", []),
@@ -3677,29 +4268,45 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F7 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f7).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f7).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F7", res_data, render_conteudo.refresh)
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO F8 (Apuração da Dívida Fundada - Aumento/Redução)
                     # ==========================================
                     f8_data = res_data.get("F8", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F8 • Apuração da Dívida Fundada (Aumento/Redução)").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Relação entre a Dívida Consolidada Líquida (DCL) e a Receita Corrente Líquida (RCL), extraída do item GF28 da AUDESP (AF = DCL / RCL):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AF", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F8 • Apuração da Dívida Fundada (Aumento/Redução)"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Relação entre a Dívida Consolidada Líquida (DCL) e a Receita Corrente Líquida (RCL), extraída do item GF28 da AUDESP (AF = DCL / RCL):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador AF", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **AF > 1,20 (Acima de 120% da RCL):** Penalidade máxima (**-10,0 pontos**)
                             * **1,10 <= AF <= 1,20 (Graduação Proporcional):** Penalidade calculada por `((AF - 1,10) / 0,10) * -10,0`
                             * **AF < 1,10 (Abaixo de 110% da RCL):** Dentro do limite seguro (**0,0 ponto**)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador AF").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador AF"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f8_bruto = f8_data.get("valor", {})
                             if not isinstance(val_f8_bruto, dict):
                                 val_f8_bruto = {}
@@ -3708,22 +4315,32 @@ def container_formulario_ifiscal(ano=None):
                                 "val_dcl": float(val_f8_bruto.get("DCL", 0.0) or 0.0),
                                 "val_rcl": float(val_f8_bruto.get("RCL", 0.0) or 0.0),
                                 "link": f8_data.get("link", ""),
-                                "pts": float(f8_data.get("pontos", 0.0) or 0.0)
+                                "pts": float(f8_data.get("pontos", 0.0) or 0.0),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_dcl = (
-                                    ui.number(label="Dívida Consolidada Líquida (DCL)", value=state_f8["val_dcl"], format="%.2f")
+                                    ui.number(
+                                        label="Dívida Consolidada Líquida (DCL)",
+                                        value=state_f8["val_dcl"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_rcl = (
-                                    ui.number(label="Receita Corrente Líquida (RCL)", value=state_f8["val_rcl"], format="%.2f")
+                                    ui.number(
+                                        label="Receita Corrente Líquida (RCL)",
+                                        value=state_f8["val_rcl"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_af = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_af = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
                             lbl_pts_af = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_af(_=None):
@@ -3740,38 +4357,65 @@ def container_formulario_ifiscal(ano=None):
                                     af = dcl / rcl
                                     if af > 1.20:
                                         pts = -10.0
-                                        lbl_pts_af.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                        lbl_pts_af.classes(
+                                            remove="text-green-600 text-amber-600",
+                                            add="text-red-600",
+                                        )
                                     elif 1.10 <= af <= 1.20:
                                         pts = ((af - 1.10) / 0.10) * -10.0
-                                        lbl_pts_af.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                        lbl_pts_af.classes(
+                                            remove="text-green-600 text-red-600",
+                                            add="text-amber-600",
+                                        )
                                     else:
                                         pts = 0.0
-                                        lbl_pts_af.classes(remove="text-red-600 text-amber-600", add="text-green-600")
-                                    
+                                        lbl_pts_af.classes(
+                                            remove="text-red-600 text-amber-600",
+                                            add="text-green-600",
+                                        )
+
                                     state_f8["pts"] = pts
-                                    lbl_af.set_text(f"Resultado AF (DCL / RCL): {af:.4f} ({af*100:.2f}%)")
-                                    lbl_pts_af.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_af.set_text(
+                                        f"Resultado AF (DCL / RCL): {af:.4f} ({af * 100:.2f}%)"
+                                    )
+                                    lbl_pts_af.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_af.set_text("Resultado AF: Indefinido (A RCL deve ser maior que R$ 0,00)")
-                                    lbl_pts_af.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
-                                    lbl_pts_af.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+                                    lbl_af.set_text(
+                                        "Resultado AF: Indefinido (A RCL deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_af.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos"
+                                    )
+                                    lbl_pts_af.classes(
+                                        remove="text-red-600 text-amber-600",
+                                        add="text-green-600",
+                                    )
                                     state_f8["pts"] = 0.0
 
                             input_dcl.on("update:model-value", calcular_af)
                             input_rcl.on("update:model-value", calcular_af)
                             calcular_af()
 
-                        input_link_f8 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f8["link"],
-                            placeholder="Insira o link ou relatório GF28 do AUDESP referente à Dívida Consolidada Líquida..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f8 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f8["link"],
+                                placeholder="Insira o link ou relatório GF28 do AUDESP referente à Dívida Consolidada Líquida...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f8():
                             save_resposta(
                                 ano=ano_sel,
                                 qid="F8",
-                                valor={"DCL": state_f8["val_dcl"], "RCL": state_f8["val_rcl"]},
+                                valor={
+                                    "DCL": state_f8["val_dcl"],
+                                    "RCL": state_f8["val_rcl"],
+                                },
                                 pontos=state_f8["pts"],
                                 link=input_link_f8.value,
                                 comentarios=f8_data.get("comentarios", []),
@@ -3780,29 +4424,45 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F8 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f8).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f8).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F8", res_data, render_conteudo.refresh)
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO F9 (Apuração dos Pagamentos dos Precatórios)
                     # ==========================================
                     f9_data = res_data.get("F9", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F9 • Apuração dos Pagamentos dos Precatórios").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Relação entre o Estoque Final (AG) e o Estoque Inicial (AH) dos Precatórios, extraídos da contabilidade AUDESP (AI = AG / AH):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AI", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F9 • Apuração dos Pagamentos dos Precatórios"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Relação entre o Estoque Final (AG) e o Estoque Inicial (AH) dos Precatórios, extraídos da contabilidade AUDESP (AI = AG / AH):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador AI", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **AI >= 1,00 (Estoque Mantido ou Aumentado):** Pontuação = **0,0 ponto**
                             * **0,90 < AI < 1,00 (Redução Parcial):** Graduação entre 0 e 75 `((1,00 - AI) / 0,10) * 75,0`
                             * **AI <= 0,90 (Redução de 10% ou mais):** Pontuação máxima = **75,0 pontos**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador AI").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador AI"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f9_bruto = f9_data.get("valor", {})
                             if not isinstance(val_f9_bruto, dict):
                                 val_f9_bruto = {}
@@ -3811,23 +4471,35 @@ def container_formulario_ifiscal(ano=None):
                                 "val_ag": float(val_f9_bruto.get("AG", 0.0) or 0.0),
                                 "val_ah": float(val_f9_bruto.get("AH", 0.0) or 0.0),
                                 "link": f9_data.get("link", ""),
-                                "pts": float(f9_data.get("pontos", 0.0) or 0.0)
+                                "pts": float(f9_data.get("pontos", 0.0) or 0.0),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_ag = (
-                                    ui.number(label="Estoque Final dos Precatórios (AG)", value=state_f9["val_ag"], format="%.2f")
+                                    ui.number(
+                                        label="Estoque Final dos Precatórios (AG)",
+                                        value=state_f9["val_ag"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_ah = (
-                                    ui.number(label="Estoque Inicial dos Precatórios (AH)", value=state_f9["val_ah"], format="%.2f")
+                                    ui.number(
+                                        label="Estoque Inicial dos Precatórios (AH)",
+                                        value=state_f9["val_ah"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_ai = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
-                            lbl_pts_ai = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+                            lbl_ai = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
+                            lbl_pts_ai = ui.label().classes(
+                                "text-sm font-bold text-green-600 mt-1"
+                            )
 
                             def calcular_ai(_=None):
                                 try:
@@ -3847,30 +4519,45 @@ def container_formulario_ifiscal(ano=None):
                                         pts = ((1.0 - ai_val) / 0.10) * 75.0
                                     else:
                                         pts = 75.0
-                                    
+
                                     state_f9["pts"] = pts
-                                    lbl_ai.set_text(f"Resultado AI (AG / AH): {ai_val:.4f}")
-                                    lbl_pts_ai.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_ai.set_text(
+                                        f"Resultado AI (AG / AH): {ai_val:.4f}"
+                                    )
+                                    lbl_pts_ai.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_ai.set_text("Resultado AI: Indefinido (O Estoque Inicial 'AH' deve ser maior que R$ 0,00)")
-                                    lbl_pts_ai.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+                                    lbl_ai.set_text(
+                                        "Resultado AI: Indefinido (O Estoque Inicial 'AH' deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_ai.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos"
+                                    )
                                     state_f9["pts"] = 0.0
 
                             input_ag.on("update:model-value", calcular_ai)
                             input_ah.on("update:model-value", calcular_ai)
                             calcular_ai()
 
-                        input_link_f9 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f9["link"],
-                            placeholder="Insira o link ou relatório AUDESP referente ao Estoque de Precatórios..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f9 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f9["link"],
+                                placeholder="Insira o link ou relatório AUDESP referente ao Estoque de Precatórios...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f9():
                             save_resposta(
                                 ano=ano_sel,
                                 qid="F9",
-                                valor={"AG": state_f9["val_ag"], "AH": state_f9["val_ah"]},
+                                valor={
+                                    "AG": state_f9["val_ag"],
+                                    "AH": state_f9["val_ah"],
+                                },
                                 pontos=state_f9["pts"],
                                 link=input_link_f9.value,
                                 comentarios=f9_data.get("comentarios", []),
@@ -3879,7 +4566,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F9 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f9).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f9).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F9", res_data, render_conteudo.refresh)
 
@@ -3888,42 +4577,64 @@ def container_formulario_ifiscal(ano=None):
                     # ==========================================
                     f10_data = res_data.get("F10", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F10 • Repasse de Duodécimos às Câmaras").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Verificação do limite percentual de repasse à Câmara de Vereadores (Transferências à Câmara / Receita Base):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Repasse de Duodécimos", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("F10 • Repasse de Duodécimos às Câmaras").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Verificação do limite percentual de repasse à Câmara de Vereadores (Transferências à Câmara / Receita Base):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Repasse de Duodécimos", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **Maior que 6,00% (Acima do Limite Constitucional):** **REBAIXA IEG-M PARA A FAIXA C** (Penalidade máxima de rebaixamento de faixa)
                             * **Menor ou igual a 6,00% (Dentro do Limite):** Conforme a regra (**0,0 ponto** / Sem penalidade)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Repasse de Duodécimo").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Repasse de Duodécimo"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f10_bruto = f10_data.get("valor", {})
                             if not isinstance(val_f10_bruto, dict):
                                 val_f10_bruto = {}
 
                             state_f10 = {
-                                "perc_duodecimo": float(val_f10_bruto.get("perc_duodecimo", 0.0) or 0.0),
+                                "perc_duodecimo": float(
+                                    val_f10_bruto.get("perc_duodecimo", 0.0) or 0.0
+                                ),
                                 "link": f10_data.get("link", ""),
                                 "pts": float(f10_data.get("pontos", 0.0) or 0.0),
-                                "rebaixa_c": val_f10_bruto.get("rebaixa_faixa_c", False)
+                                "rebaixa_c": val_f10_bruto.get(
+                                    "rebaixa_faixa_c", False
+                                ),
                             }
 
                             input_duodecimo = (
                                 ui.number(
                                     label="Percentual de Repasse Apurado (Ex: 0.058 para 5,8% ou digite o valor decimal)",
                                     value=state_f10["perc_duodecimo"],
-                                    format="%.4f"
+                                    format="%.4f",
                                 )
                                 .classes("w-full")
                                 .props("outlined bg-white step=0.001")
                             )
 
-                            lbl_res_duodecimo = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
-                            lbl_pts_duodecimo = ui.label().classes("text-sm font-bold mt-1")
+                            lbl_res_duodecimo = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
+                            lbl_pts_duodecimo = ui.label().classes(
+                                "text-sm font-bold mt-1"
+                            )
 
                             def calcular_duodecimo(_=None):
                                 try:
@@ -3936,26 +4647,42 @@ def container_formulario_ifiscal(ano=None):
                                 if val > 0.06:
                                     pts = 0.0
                                     state_f10["rebaixa_faixa_c"] = True
-                                    lbl_res_duodecimo.set_text(f"Percentual Repassado: {val*100:.2f}% (Acima do limite de 6,00%)")
-                                    lbl_pts_duodecimo.set_text("⚠️ ALERTA CRÍTICO: Rebaixa o IEG-M diretamente para a FAIXA C!")
-                                    lbl_pts_duodecimo.classes(remove="text-green-600", add="text-red-600")
+                                    lbl_res_duodecimo.set_text(
+                                        f"Percentual Repassado: {val * 100:.2f}% (Acima do limite de 6,00%)"
+                                    )
+                                    lbl_pts_duodecimo.set_text(
+                                        "⚠️ ALERTA CRÍTICO: Rebaixa o IEG-M diretamente para a FAIXA C!"
+                                    )
+                                    lbl_pts_duodecimo.classes(
+                                        remove="text-green-600", add="text-red-600"
+                                    )
                                 else:
                                     pts = 0.0
                                     state_f10["rebaixa_faixa_c"] = False
-                                    lbl_res_duodecimo.set_text(f"Percentual Repassado: {val*100:.2f}% (Dentro do limite regular - Até 6,00%)")
-                                    lbl_pts_duodecimo.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos (Sem penalidade)")
-                                    lbl_pts_duodecimo.classes(remove="text-red-600", add="text-green-600")
+                                    lbl_res_duodecimo.set_text(
+                                        f"Percentual Repassado: {val * 100:.2f}% (Dentro do limite regular - Até 6,00%)"
+                                    )
+                                    lbl_pts_duodecimo.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos (Sem penalidade)"
+                                    )
+                                    lbl_pts_duodecimo.classes(
+                                        remove="text-red-600", add="text-green-600"
+                                    )
 
                                 state_f10["pts"] = pts
 
                             input_duodecimo.on("update:model-value", calcular_duodecimo)
                             calcular_duodecimo()
 
-                        input_link_f10 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f10["link"],
-                            placeholder="Insira o link da demonstração contábil do repasse de duodécimo / relatório de contas do AUDESP..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f10 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f10["link"],
+                                placeholder="Insira o link da demonstração contábil do repasse de duodécimo / relatório de contas do AUDESP...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f10():
                             save_resposta(
@@ -3963,7 +4690,9 @@ def container_formulario_ifiscal(ano=None):
                                 qid="F10",
                                 valor={
                                     "perc_duodecimo": state_f10["perc_duodecimo"],
-                                    "rebaixa_faixa_c": state_f10.get("rebaixa_faixa_c", False)
+                                    "rebaixa_faixa_c": state_f10.get(
+                                        "rebaixa_faixa_c", False
+                                    ),
                                 },
                                 pontos=state_f10["pts"],
                                 link=input_link_f10.value,
@@ -3973,46 +4702,64 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F10 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f10).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f10).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F10", res_data, render_conteudo.refresh)
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO F11 (Pontualidade na Prestação de Contas)
                     # ==========================================
                     f11_data = res_data.get("F11", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F11 • Pontualidade na Prestação de Contas").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Avaliação do cumprimento dos prazos na entrega de relatórios, peças contábeis, conciliações e questionários no Sistema AUDESP:").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras de Pontualidade", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("F11 • Pontualidade na Prestação de Contas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Avaliação do cumprimento dos prazos na entrega de relatórios, peças contábeis, conciliações e questionários no Sistema AUDESP:"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras de Pontualidade", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **Encaminhou no prazo:** Pontuação máxima = **50,0 pontos**
                             * **Encaminhou fora do prazo:** Pontuação parcial = **25,0 pontos**
                             * **Não encaminhou:** Sem pontuação = **0,0 ponto**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Seleção de Status do Envio").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label("🧮 Seleção de Status do Envio").classes(
+                                "font-bold text-blue-700 mb-2"
+                            )
+
                             val_f11_bruto = f11_data.get("valor", {})
                             if not isinstance(val_f11_bruto, dict):
                                 val_f11_bruto = {"status_envio": "Encaminhou no prazo"}
 
                             state_f11 = {
-                                "status_envio": val_f11_bruto.get("status_envio", "Encaminhou no prazo"),
+                                "status_envio": val_f11_bruto.get(
+                                    "status_envio", "Encaminhou no prazo"
+                                ),
                                 "link": f11_data.get("link", ""),
-                                "pts": float(f11_data.get("pontos", 50.0) or 50.0)
+                                "pts": float(f11_data.get("pontos", 50.0) or 50.0),
                             }
 
                             radio_pontualidade = ui.radio(
                                 options=[
                                     "Encaminhou no prazo",
                                     "Encaminhou fora do prazo",
-                                    "Não encaminhou"
+                                    "Não encaminhou",
                                 ],
-                                value=state_f11["status_envio"]
+                                value=state_f11["status_envio"],
                             ).classes("w-full mb-2")
 
                             lbl_pts_f11 = ui.label().classes("text-sm font-bold mt-2")
@@ -4023,27 +4770,46 @@ def container_formulario_ifiscal(ano=None):
 
                                 if opcao == "Encaminhou no prazo":
                                     pts = 50.0
-                                    lbl_pts_f11.set_text("📊 Impacto de Pontuação Calculado: 50.00 pontos (Pontuação Máxima)")
-                                    lbl_pts_f11.classes(remove="text-amber-600 text-red-600", add="text-green-600")
+                                    lbl_pts_f11.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 50.00 pontos (Pontuação Máxima)"
+                                    )
+                                    lbl_pts_f11.classes(
+                                        remove="text-amber-600 text-red-600",
+                                        add="text-green-600",
+                                    )
                                 elif opcao == "Encaminhou fora do prazo":
                                     pts = 25.0
-                                    lbl_pts_f11.set_text("📊 Impacto de Pontuação Calculado: 25.00 pontos (Envio com Atraso)")
-                                    lbl_pts_f11.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                    lbl_pts_f11.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 25.00 pontos (Envio com Atraso)"
+                                    )
+                                    lbl_pts_f11.classes(
+                                        remove="text-green-600 text-red-600",
+                                        add="text-amber-600",
+                                    )
                                 else:
                                     pts = 0.0
-                                    lbl_pts_f11.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos (Inadimplente / Não Enviado)")
-                                    lbl_pts_f11.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                    lbl_pts_f11.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos (Inadimplente / Não Enviado)"
+                                    )
+                                    lbl_pts_f11.classes(
+                                        remove="text-green-600 text-amber-600",
+                                        add="text-red-600",
+                                    )
 
                                 state_f11["pts"] = pts
 
                             radio_pontualidade.on("update:model-value", calcular_f11)
                             calcular_f11()
 
-                        input_link_f11 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f11["link"],
-                            placeholder="Insira o link do Relatório de Situação de Entrega do Sistema AUDESP..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f11 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f11["link"],
+                                placeholder="Insira o link do Relatório de Situação de Entrega do Sistema AUDESP...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f11():
                             save_resposta(
@@ -4058,7 +4824,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F11 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f11).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f11).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F11", res_data, render_conteudo.refresh)
 
@@ -4067,19 +4835,33 @@ def container_formulario_ifiscal(ano=None):
                     # ==========================================
                     f12_data = res_data.get("F12", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F12 • Dívida Ativa: Percentual de Recebimento").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Nível de recebimento da Dívida Ativa em relação ao estoque inicial (AL = Valor Arrecadado / Estoque Inicial da Dívida Ativa):").classes("text-base font-bold text-black mb-2")
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F12 • Dívida Ativa: Percentual de Recebimento"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Nível de recebimento da Dívida Ativa em relação ao estoque inicial (AL = Valor Arrecadado / Estoque Inicial da Dívida Ativa):"
+                        ).classes("text-base font-bold text-black mb-2")
 
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AL", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador AL", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **AL >= 0,10 (Arrecadação >= 10% do estoque):** Pontuação máxima (**50,0 pontos**)
                             * **0,00 < AL < 0,10 (Graduação Proporcional):** Pontuação calculada por `(AL / 0,10) * 50,0`
                             * **AL = 0,00 (Nenhum recebimento):** Sem pontuação (**0,0 ponto**)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador AL").classes("font-bold text-blue-700 mb-2")
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador AL"
+                            ).classes("font-bold text-blue-700 mb-2")
 
                             # Desserialização segura do dicionário salvo
                             val_f12_bruto = f12_data.get("valor", {})
@@ -4093,16 +4875,25 @@ def container_formulario_ifiscal(ano=None):
                             if not isinstance(val_f12_bruto, dict):
                                 val_f12_bruto = {}
 
-                            raw_arr = val_f12_bruto.get("arrecadado", val_f12_bruto.get("ARRECADADO", 0.0))
-                            raw_est = val_f12_bruto.get("estoque_inicial", val_f12_bruto.get("ESTOQUE_INICIAL", 0.0))
+                            raw_arr = val_f12_bruto.get(
+                                "arrecadado", val_f12_bruto.get("ARRECADADO", 0.0)
+                            )
+                            raw_est = val_f12_bruto.get(
+                                "estoque_inicial",
+                                val_f12_bruto.get("ESTOQUE_INICIAL", 0.0),
+                            )
 
                             try:
-                                val_arr_init = float(raw_arr) if raw_arr is not None else 0.0
+                                val_arr_init = (
+                                    float(raw_arr) if raw_arr is not None else 0.0
+                                )
                             except (ValueError, TypeError):
                                 val_arr_init = 0.0
 
                             try:
-                                val_est_init = float(raw_est) if raw_est is not None else 0.0
+                                val_est_init = (
+                                    float(raw_est) if raw_est is not None else 0.0
+                                )
                             except (ValueError, TypeError):
                                 val_est_init = 0.0
 
@@ -4115,29 +4906,45 @@ def container_formulario_ifiscal(ano=None):
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_arrecadado = (
-                                    ui.number(label="Valor Arrecadado da Dívida Ativa", format="%.2f")
+                                    ui.number(
+                                        label="Valor Arrecadado da Dívida Ativa",
+                                        format="%.2f",
+                                    )
                                     .bind_value(state_f12, "val_arrecadado")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_estoque = (
-                                    ui.number(label="Estoque Inicial da Dívida Ativa", format="%.2f")
+                                    ui.number(
+                                        label="Estoque Inicial da Dívida Ativa",
+                                        format="%.2f",
+                                    )
                                     .bind_value(state_f12, "val_estoque")
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_al = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_al = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
                             lbl_pts_f12 = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_f12(_=None):
                                 try:
-                                    arrecadado = float(state_f12["val_arrecadado"]) if state_f12["val_arrecadado"] is not None else 0.0
+                                    arrecadado = (
+                                        float(state_f12["val_arrecadado"])
+                                        if state_f12["val_arrecadado"] is not None
+                                        else 0.0
+                                    )
                                 except (ValueError, TypeError):
                                     arrecadado = 0.0
 
                                 try:
-                                    estoque = float(state_f12["val_estoque"]) if state_f12["val_estoque"] is not None else 0.0
+                                    estoque = (
+                                        float(state_f12["val_estoque"])
+                                        if state_f12["val_estoque"] is not None
+                                        else 0.0
+                                    )
                                 except (ValueError, TypeError):
                                     estoque = 0.0
 
@@ -4145,43 +4952,74 @@ def container_formulario_ifiscal(ano=None):
                                     al = arrecadado / estoque
                                     if al >= 0.10:
                                         pts = 50.0
-                                        lbl_pts_f12.classes(remove="text-red-600 text-amber-600 text-gray-500", add="text-green-600")
+                                        lbl_pts_f12.classes(
+                                            remove="text-red-600 text-amber-600 text-gray-500",
+                                            add="text-green-600",
+                                        )
                                     elif 0.0 < al < 0.10:
                                         pts = (al / 0.10) * 50.0
-                                        lbl_pts_f12.classes(remove="text-green-600 text-red-600 text-gray-500", add="text-amber-600")
+                                        lbl_pts_f12.classes(
+                                            remove="text-green-600 text-red-600 text-gray-500",
+                                            add="text-amber-600",
+                                        )
                                     else:
                                         pts = 0.0
-                                        lbl_pts_f12.classes(remove="text-green-600 text-amber-600 text-gray-500", add="text-red-600")
+                                        lbl_pts_f12.classes(
+                                            remove="text-green-600 text-amber-600 text-gray-500",
+                                            add="text-red-600",
+                                        )
 
                                     state_f12["pts"] = pts
-                                    lbl_al.set_text(f"Resultado AL (Arrecadado / Estoque): {al:.4f} ({al*100:.2f}%)")
-                                    lbl_pts_f12.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_al.set_text(
+                                        f"Resultado AL (Arrecadado / Estoque): {al:.4f} ({al * 100:.2f}%)"
+                                    )
+                                    lbl_pts_f12.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_al.set_text("Resultado AL: Indefinido (O Estoque Inicial deve ser maior que R$ 0,00)")
-                                    lbl_pts_f12.set_text("⚠️ Informe os valores válidos de Estoque Inicial e Arrecadação.")
-                                    lbl_pts_f12.classes(remove="text-green-600 text-amber-600 text-red-600", add="text-gray-500")
+                                    lbl_al.set_text(
+                                        "Resultado AL: Indefinido (O Estoque Inicial deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_f12.set_text(
+                                        "⚠️ Informe os valores válidos de Estoque Inicial e Arrecadação."
+                                    )
+                                    lbl_pts_f12.classes(
+                                        remove="text-green-600 text-amber-600 text-red-600",
+                                        add="text-gray-500",
+                                    )
                                     state_f12["pts"] = 0.0
 
                             input_arrecadado.on("update:model-value", calcular_f12)
                             input_estoque.on("update:model-value", calcular_f12)
                             calcular_f12()
 
-                        input_link_f12 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f12["link"],
-                            placeholder="Insira o link do Relatório de Análises Anuais Eletrônicas do Sistema AUDESP...",
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f12 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f12["link"],
+                                placeholder="Insira o link do Relatório de Análises Anuais Eletrônicas do Sistema AUDESP...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f12():
                             calcular_f12()
 
                             if state_f12["val_estoque"] <= 0:
-                                ui.notify("Por favor, informe um valor válido para o Estoque Inicial da Dívida Ativa!", type="warning")
+                                ui.notify(
+                                    "Por favor, informe um valor válido para o Estoque Inicial da Dívida Ativa!",
+                                    type="warning",
+                                )
                                 return
 
                             val_dict = {
-                                "arrecadado": float(state_f12["val_arrecadado"]) if state_f12["val_arrecadado"] is not None else 0.0,
-                                "estoque_inicial": float(state_f12["val_estoque"]) if state_f12["val_estoque"] is not None else 0.0,
+                                "arrecadado": float(state_f12["val_arrecadado"])
+                                if state_f12["val_arrecadado"] is not None
+                                else 0.0,
+                                "estoque_inicial": float(state_f12["val_estoque"])
+                                if state_f12["val_estoque"] is not None
+                                else 0.0,
                             }
 
                             try:
@@ -4203,58 +5041,94 @@ def container_formulario_ifiscal(ano=None):
                                     "status": f12_data.get("status", "Pendente"),
                                 }
 
-                                ui.notify("Quesito F12 salvo com sucesso no Banco de Dados!", type="positive")
+                                ui.notify(
+                                    "Quesito F12 salvo com sucesso no Banco de Dados!",
+                                    type="positive",
+                                )
                                 render_conteudo.refresh()
                             except Exception as e:
-                                ui.notify(f"Erro ao salvar no Banco de Dados: {e}", type="negative")
+                                ui.notify(
+                                    f"Erro ao salvar no Banco de Dados: {e}",
+                                    type="negative",
+                                )
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f12).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f12).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F12", res_data, render_conteudo.refresh)
-                        
+
                     # ==========================================
                     # QUESITO F13 (Dívida Ativa: Percentual de Cancelamento)
                     # ==========================================
                     f13_data = res_data.get("F13", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F13 • Dívida Ativa: Percentual de Cancelamento").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Nível de cancelamento da Dívida Ativa em relação ao estoque inicial (AM = Valor Cancelado / Estoque Inicial da Dívida Ativa):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador AM", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F13 • Dívida Ativa: Percentual de Cancelamento"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Nível de cancelamento da Dívida Ativa em relação ao estoque inicial (AM = Valor Cancelado / Estoque Inicial da Dívida Ativa):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador AM", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **AM = 0,00 (Nenhum cancelamento):** Pontuação máxima (**50,0 pontos**)
                             * **0,00 < AM < 0,10 (Graduação Proporcional):** Pontuação calculada por `((AM - 0,10) * (-1) / 0,10) * 50,0`
                             * **AM >= 0,10 (Cancelamento >= 10% do estoque):** Sem pontuação (**0,0 ponto**)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador AM").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador AM"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f13_bruto = f13_data.get("valor", {})
                             if not isinstance(val_f13_bruto, dict):
                                 val_f13_bruto = {}
 
                             state_f13 = {
-                                "val_cancelado": float(val_f13_bruto.get("cancelado", 0.0) or 0.0),
-                                "val_estoque": float(val_f13_bruto.get("estoque_inicial", 0.0) or 0.0),
+                                "val_cancelado": float(
+                                    val_f13_bruto.get("cancelado", 0.0) or 0.0
+                                ),
+                                "val_estoque": float(
+                                    val_f13_bruto.get("estoque_inicial", 0.0) or 0.0
+                                ),
                                 "link": f13_data.get("link", ""),
-                                "pts": float(f13_data.get("pontos", 50.0) or 50.0)
+                                "pts": float(f13_data.get("pontos", 50.0) or 50.0),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_cancelado = (
-                                    ui.number(label="Valor Cancelado da Dívida Ativa", value=state_f13["val_cancelado"], format="%.2f")
+                                    ui.number(
+                                        label="Valor Cancelado da Dívida Ativa",
+                                        value=state_f13["val_cancelado"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_estoque = (
-                                    ui.number(label="Estoque Inicial da Dívida Ativa", value=state_f13["val_estoque"], format="%.2f")
+                                    ui.number(
+                                        label="Estoque Inicial da Dívida Ativa",
+                                        value=state_f13["val_estoque"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_am = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_am = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
                             lbl_pts_f13 = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_f13(_=None):
@@ -4271,36 +5145,63 @@ def container_formulario_ifiscal(ano=None):
                                     am = cancelado / estoque
                                     if am == 0.0:
                                         pts = 50.0
-                                        lbl_pts_f13.classes(remove="text-red-600 text-amber-600 text-gray-500", add="text-green-600")
+                                        lbl_pts_f13.classes(
+                                            remove="text-red-600 text-amber-600 text-gray-500",
+                                            add="text-green-600",
+                                        )
                                     elif 0.0 < am < 0.10:
                                         pts = ((am - 0.10) * (-1) / 0.10) * 50.0
-                                        lbl_pts_f13.classes(remove="text-green-600 text-red-600 text-gray-500", add="text-amber-600")
+                                        lbl_pts_f13.classes(
+                                            remove="text-green-600 text-red-600 text-gray-500",
+                                            add="text-amber-600",
+                                        )
                                     else:
                                         pts = 0.0
-                                        lbl_pts_f13.classes(remove="text-green-600 text-amber-600 text-gray-500", add="text-red-600")
+                                        lbl_pts_f13.classes(
+                                            remove="text-green-600 text-amber-600 text-gray-500",
+                                            add="text-red-600",
+                                        )
 
                                     state_f13["pts"] = pts
-                                    lbl_am.set_text(f"Resultado AM (Cancelado / Estoque): {am:.4f} ({am*100:.2f}%)")
-                                    lbl_pts_f13.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_am.set_text(
+                                        f"Resultado AM (Cancelado / Estoque): {am:.4f} ({am * 100:.2f}%)"
+                                    )
+                                    lbl_pts_f13.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_am.set_text("Resultado AM: Indefinido (O Estoque Inicial deve ser maior que R$ 0,00)")
-                                    lbl_pts_f13.set_text("⚠️ Informe os valores válidos de Estoque Inicial e Cancelamento.")
-                                    lbl_pts_f13.classes(remove="text-green-600 text-amber-600 text-red-600", add="text-gray-500")
+                                    lbl_am.set_text(
+                                        "Resultado AM: Indefinido (O Estoque Inicial deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_f13.set_text(
+                                        "⚠️ Informe os valores válidos de Estoque Inicial e Cancelamento."
+                                    )
+                                    lbl_pts_f13.classes(
+                                        remove="text-green-600 text-amber-600 text-red-600",
+                                        add="text-gray-500",
+                                    )
                                     state_f13["pts"] = 0.0
 
                             input_cancelado.on("update:model-value", calcular_f13)
                             input_estoque.on("update:model-value", calcular_f13)
                             calcular_f13()
 
-                        input_link_f13 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f13["link"],
-                            placeholder="Insira o link do Relatório de Análises Anuais Eletrônicas do Sistema AUDESP..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f13 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f13["link"],
+                                placeholder="Insira o link do Relatório de Análises Anuais Eletrônicas do Sistema AUDESP...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f13():
                             if state_f13["val_estoque"] <= 0:
-                                ui.notify("Por favor, informe um valor válido para o Estoque Inicial da Dívida Ativa!", type="warning")
+                                ui.notify(
+                                    "Por favor, informe um valor válido para o Estoque Inicial da Dívida Ativa!",
+                                    type="warning",
+                                )
                                 return
 
                             save_resposta(
@@ -4308,7 +5209,7 @@ def container_formulario_ifiscal(ano=None):
                                 qid="F13",
                                 valor={
                                     "cancelado": state_f13["val_cancelado"],
-                                    "estoque_inicial": state_f13["val_estoque"]
+                                    "estoque_inicial": state_f13["val_estoque"],
                                 },
                                 pontos=state_f13["pts"],
                                 link=input_link_f13.value,
@@ -4318,37 +5219,55 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F13 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f13).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f13).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F13", res_data, render_conteudo.refresh)
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO F14 (Alertas do Sistema AUDESP)
                     # ==========================================
                     f14_data = res_data.get("F14", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F14 • Alertas do Sistema AUDESP").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Quantidade total de alertas gerados pelo Sistema AUDESP no exercício:").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Quesito F14", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("F14 • Alertas do Sistema AUDESP").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Quantidade total de alertas gerados pelo Sistema AUDESP no exercício:"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Quesito F14", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **Até 20 Alertas (<= 20):** Pontuação máxima = **25,0 pontos**
                             * **Entre 21 e 40 Alertas (20 < Alertas < 41):** Pontuação intermediária = **10,0 pontos**
                             * **41 Alertas ou mais (>= 41):** Sem pontuação = **0,0 ponto**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Apuração da Quantidade de Alertas").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label("🧮 Apuração da Quantidade de Alertas").classes(
+                                "font-bold text-blue-700 mb-2"
+                            )
+
                             val_f14_bruto = f14_data.get("valor", {})
                             if not isinstance(val_f14_bruto, dict):
                                 val_f14_bruto = {}
 
                             state_f14 = {
-                                "qtd_alertas": int(val_f14_bruto.get("qtd_alertas", 0) or 0),
+                                "qtd_alertas": int(
+                                    val_f14_bruto.get("qtd_alertas", 0) or 0
+                                ),
                                 "link": f14_data.get("link", ""),
-                                "pts": float(f14_data.get("pontos", 25.0) or 25.0)
+                                "pts": float(f14_data.get("pontos", 25.0) or 25.0),
                             }
 
                             input_alertas = (
@@ -4356,7 +5275,7 @@ def container_formulario_ifiscal(ano=None):
                                     label="Quantidade de Alertas do AUDESP no Exercício",
                                     value=state_f14["qtd_alertas"],
                                     format="%d",
-                                    precision=0
+                                    precision=0,
                                 )
                                 .classes("w-full")
                                 .props("outlined bg-white min=0 step=1")
@@ -4374,31 +5293,53 @@ def container_formulario_ifiscal(ano=None):
 
                                 if qtd <= 20:
                                     pts = 25.0
-                                    lbl_pts_f14.set_text(f"Alertas apurados: {qtd} | Pontuação: 25.00 pontos (Faixa Ótima)")
-                                    lbl_pts_f14.classes(remove="text-amber-600 text-red-600", add="text-green-600")
+                                    lbl_pts_f14.set_text(
+                                        f"Alertas apurados: {qtd} | Pontuação: 25.00 pontos (Faixa Ótima)"
+                                    )
+                                    lbl_pts_f14.classes(
+                                        remove="text-amber-600 text-red-600",
+                                        add="text-green-600",
+                                    )
                                 elif 20 < qtd < 41:
                                     pts = 10.0
-                                    lbl_pts_f14.set_text(f"Alertas apurados: {qtd} | Pontuação: 10.00 pontos (Faixa Intermediária)")
-                                    lbl_pts_f14.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                    lbl_pts_f14.set_text(
+                                        f"Alertas apurados: {qtd} | Pontuação: 10.00 pontos (Faixa Intermediária)"
+                                    )
+                                    lbl_pts_f14.classes(
+                                        remove="text-green-600 text-red-600",
+                                        add="text-amber-600",
+                                    )
                                 else:
                                     pts = 0.0
-                                    lbl_pts_f14.set_text(f"Alertas apurados: {qtd} | Pontuação: 0.00 pontos (Faixa Crítica - 41 ou mais alertas)")
-                                    lbl_pts_f14.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                    lbl_pts_f14.set_text(
+                                        f"Alertas apurados: {qtd} | Pontuação: 0.00 pontos (Faixa Crítica - 41 ou mais alertas)"
+                                    )
+                                    lbl_pts_f14.classes(
+                                        remove="text-green-600 text-amber-600",
+                                        add="text-red-600",
+                                    )
 
                                 state_f14["pts"] = pts
 
                             input_alertas.on("update:model-value", calcular_f14)
                             calcular_f14()
 
-                        input_link_f14 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f14["link"],
-                            placeholder="Insira o link ou relatório de consolidação de Alertas emitidos pelo Sistema AUDESP..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f14 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f14["link"],
+                                placeholder="Insira o link ou relatório de consolidação de Alertas emitidos pelo Sistema AUDESP...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f14():
                             if state_f14["qtd_alertas"] < 0:
-                                ui.notify("A quantidade de alertas não pode ser um número negativo!", type="warning")
+                                ui.notify(
+                                    "A quantidade de alertas não pode ser um número negativo!",
+                                    type="warning",
+                                )
                                 return
 
                             save_resposta(
@@ -4413,7 +5354,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F14 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f14).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f14).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F14", res_data, render_conteudo.refresh)
 
@@ -4422,28 +5365,44 @@ def container_formulario_ifiscal(ano=None):
                     # ==========================================
                     f15_data = res_data.get("F15", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F15 • Balancetes Rejeitados").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Quantidade média de balancetes rejeitados pelo município no exercício:").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Quesito F15", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("F15 • Balancetes Rejeitados").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Quantidade média de balancetes rejeitados pelo município no exercício:"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Quesito F15", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **Até 1 Balancete Rejeitado (<= 1):** Pontuação máxima = **25,0 pontos**
                             * **Mais de 1 e menos de 18 (1 < Rejeitados < 18):** Pontuação intermediária = **10,0 pontos**
                             * **18 Balancetes Rejeitados ou mais (>= 18):** Sem pontuação = **0,0 ponto**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Apuração da Quantidade Média de Balancetes Rejeitados").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Apuração da Quantidade Média de Balancetes Rejeitados"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f15_bruto = f15_data.get("valor", {})
                             if not isinstance(val_f15_bruto, dict):
                                 val_f15_bruto = {}
 
                             state_f15 = {
-                                "qtd_rejeitados": float(val_f15_bruto.get("qtd_rejeitados", 0.0) or 0.0),
+                                "qtd_rejeitados": float(
+                                    val_f15_bruto.get("qtd_rejeitados", 0.0) or 0.0
+                                ),
                                 "link": f15_data.get("link", ""),
-                                "pts": float(f15_data.get("pontos", 25.0) or 25.0)
+                                "pts": float(f15_data.get("pontos", 25.0) or 25.0),
                             }
 
                             input_rejeitados = (
@@ -4451,7 +5410,7 @@ def container_formulario_ifiscal(ano=None):
                                     label="Quantidade Média de Balancetes Rejeitados no Exercício",
                                     value=state_f15["qtd_rejeitados"],
                                     format="%.2f",
-                                    precision=2
+                                    precision=2,
                                 )
                                 .classes("w-full")
                                 .props("outlined bg-white min=0 step=0.1")
@@ -4469,31 +5428,53 @@ def container_formulario_ifiscal(ano=None):
 
                                 if qtd <= 1.0:
                                     pts = 25.0
-                                    lbl_pts_f15.set_text(f"Balancetes rejeitados: {qtd:.2f} | Pontuação: 25.00 pontos (Faixa Ótima)")
-                                    lbl_pts_f15.classes(remove="text-amber-600 text-red-600", add="text-green-600")
+                                    lbl_pts_f15.set_text(
+                                        f"Balancetes rejeitados: {qtd:.2f} | Pontuação: 25.00 pontos (Faixa Ótima)"
+                                    )
+                                    lbl_pts_f15.classes(
+                                        remove="text-amber-600 text-red-600",
+                                        add="text-green-600",
+                                    )
                                 elif 1.0 < qtd < 18.0:
                                     pts = 10.0
-                                    lbl_pts_f15.set_text(f"Balancetes rejeitados: {qtd:.2f} | Pontuação: 10.00 pontos (Faixa Intermediária)")
-                                    lbl_pts_f15.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                    lbl_pts_f15.set_text(
+                                        f"Balancetes rejeitados: {qtd:.2f} | Pontuação: 10.00 pontos (Faixa Intermediária)"
+                                    )
+                                    lbl_pts_f15.classes(
+                                        remove="text-green-600 text-red-600",
+                                        add="text-amber-600",
+                                    )
                                 else:
                                     pts = 0.0
-                                    lbl_pts_f15.set_text(f"Balancetes rejeitados: {qtd:.2f} | Pontuação: 0.00 pontos (Faixa Crítica - 18 ou mais)")
-                                    lbl_pts_f15.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                    lbl_pts_f15.set_text(
+                                        f"Balancetes rejeitados: {qtd:.2f} | Pontuação: 0.00 pontos (Faixa Crítica - 18 ou mais)"
+                                    )
+                                    lbl_pts_f15.classes(
+                                        remove="text-green-600 text-amber-600",
+                                        add="text-red-600",
+                                    )
 
                                 state_f15["pts"] = pts
 
                             input_rejeitados.on("update:model-value", calcular_f15)
                             calcular_f15()
 
-                        input_link_f15 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f15["link"],
-                            placeholder="Insira o link ou relatório de acompanhamento de balancetes do AUDESP..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f15 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f15["link"],
+                                placeholder="Insira o link ou relatório de acompanhamento de balancetes do AUDESP...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f15():
                             if state_f15["qtd_rejeitados"] < 0:
-                                ui.notify("A quantidade de balancetes rejeitados não pode ser negativa!", type="warning")
+                                ui.notify(
+                                    "A quantidade de balancetes rejeitados não pode ser negativa!",
+                                    type="warning",
+                                )
                                 return
 
                             save_resposta(
@@ -4508,7 +5489,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F15 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f15).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f15).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F15", res_data, render_conteudo.refresh)
 
@@ -4517,45 +5500,75 @@ def container_formulario_ifiscal(ano=None):
                     # ==========================================
                     f16_data = res_data.get("F16", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F16 • Resultado Primário (Operacional)").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Capacidade de reduzir o endividamento municipal (RP = Receitas Realizadas [RR] - Despesas Liquidadas [DL] do 6º Bimestre):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Quesito F16", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("F16 • Resultado Primário (Operacional)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Capacidade de reduzir o endividamento municipal (RP = Receitas Realizadas [RR] - Despesas Liquidadas [DL] do 6º Bimestre):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Quesito F16", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **Resultado Primário Acima de ZERO (RP > 0):** Pontuação máxima = **75,0 pontos**
                             * **Resultado Primário Igual a ZERO (RP = 0):** Pontuação intermediária = **40,0 pontos**
                             * **Resultado Primário Abaixo de ZERO (RP < 0):** Sem pontuação = **0,0 ponto**
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Apuração do Resultado Primário (RP = RR - DL)").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Apuração do Resultado Primário (RP = RR - DL)"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f16_bruto = f16_data.get("valor", {})
                             if not isinstance(val_f16_bruto, dict):
                                 val_f16_bruto = {}
 
                             state_f16 = {
-                                "val_rr": float(val_f16_bruto.get("receitas_realizadas", 0.0) or 0.0),
-                                "val_dl": float(val_f16_bruto.get("despesas_liquidadas", 0.0) or 0.0),
-                                "rp": float(val_f16_bruto.get("resultado_primario", 0.0) or 0.0),
+                                "val_rr": float(
+                                    val_f16_bruto.get("receitas_realizadas", 0.0) or 0.0
+                                ),
+                                "val_dl": float(
+                                    val_f16_bruto.get("despesas_liquidadas", 0.0) or 0.0
+                                ),
+                                "rp": float(
+                                    val_f16_bruto.get("resultado_primario", 0.0) or 0.0
+                                ),
                                 "link": f16_data.get("link", ""),
-                                "pts": float(f16_data.get("pontos", 0.0) or 0.0)
+                                "pts": float(f16_data.get("pontos", 0.0) or 0.0),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_rr = (
-                                    ui.number(label="Receitas Realizadas (RR) - RLR", value=state_f16["val_rr"], format="%.2f")
+                                    ui.number(
+                                        label="Receitas Realizadas (RR) - RLR",
+                                        value=state_f16["val_rr"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_dl = (
-                                    ui.number(label="Despesas Liquidadas (DL) - DPL", value=state_f16["val_dl"], format="%.2f")
+                                    ui.number(
+                                        label="Despesas Liquidadas (DL) - DPL",
+                                        value=state_f16["val_dl"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_rp = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_rp = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
                             lbl_pts_f16 = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_f16(_=None):
@@ -4572,29 +5585,50 @@ def container_formulario_ifiscal(ano=None):
 
                                 if rp > 0.0:
                                     pts = 75.0
-                                    lbl_pts_f16.set_text("📊 Impacto de Pontuação Calculado: 75.00 pontos (Resultado Primário Superavitário)")
-                                    lbl_pts_f16.classes(remove="text-amber-600 text-red-600", add="text-green-600")
+                                    lbl_pts_f16.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 75.00 pontos (Resultado Primário Superavitário)"
+                                    )
+                                    lbl_pts_f16.classes(
+                                        remove="text-amber-600 text-red-600",
+                                        add="text-green-600",
+                                    )
                                 elif rp == 0.0:
                                     pts = 40.0
-                                    lbl_pts_f16.set_text("📊 Impacto de Pontuação Calculado: 40.00 pontos (Resultado Primário Equilibrado)")
-                                    lbl_pts_f16.classes(remove="text-green-600 text-red-600", add="text-amber-600")
+                                    lbl_pts_f16.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 40.00 pontos (Resultado Primário Equilibrado)"
+                                    )
+                                    lbl_pts_f16.classes(
+                                        remove="text-green-600 text-red-600",
+                                        add="text-amber-600",
+                                    )
                                 else:
                                     pts = 0.0
-                                    lbl_pts_f16.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos (Resultado Primário Deficitário)")
-                                    lbl_pts_f16.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                    lbl_pts_f16.set_text(
+                                        "📊 Impacto de Pontuação Calculado: 0.00 pontos (Resultado Primário Deficitário)"
+                                    )
+                                    lbl_pts_f16.classes(
+                                        remove="text-green-600 text-amber-600",
+                                        add="text-red-600",
+                                    )
 
                                 state_f16["pts"] = pts
-                                lbl_rp.set_text(f"Resultado Primário Calculado (RP): R$ {rp:,.2f}")
+                                lbl_rp.set_text(
+                                    f"Resultado Primário Calculado (RP): R$ {rp:,.2f}"
+                                )
 
                             input_rr.on("update:model-value", calcular_f16)
                             input_dl.on("update:model-value", calcular_f16)
                             calcular_f16()
 
-                        input_link_f16 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f16["link"],
-                            placeholder="Insira o link do Demonstrativo do Resultado Primário do 6º bimestre (Item GF20 AUDESP)..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f16 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f16["link"],
+                                placeholder="Insira o link do Demonstrativo do Resultado Primário do 6º bimestre (Item GF20 AUDESP)...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f16():
                             save_resposta(
@@ -4603,7 +5637,7 @@ def container_formulario_ifiscal(ano=None):
                                 valor={
                                     "receitas_realizadas": state_f16["val_rr"],
                                     "despesas_liquidadas": state_f16["val_dl"],
-                                    "resultado_primario": state_f16["rp"]
+                                    "resultado_primario": state_f16["rp"],
                                 },
                                 pontos=state_f16["pts"],
                                 link=input_link_f16.value,
@@ -4613,53 +5647,83 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F16 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f16).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f16).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F16", res_data, render_conteudo.refresh)
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO F17 (Índice de Liquidez Imediata)
                     # ==========================================
                     f17_data = res_data.get("F17", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F17 • Índice de Liquidez Imediata").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Capacidade de pagamento com recursos do Ativo Disponível (IL = Disponível [D] / Passivo Circulante [PC]):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador IL", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("F17 • Índice de Liquidez Imediata").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Capacidade de pagamento com recursos do Ativo Disponível (IL = Disponível [D] / Passivo Circulante [PC]):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador IL", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **IL >= 1,00 (Disponível cobre integralmente o PC):** Pontuação máxima (**75,0 pontos**)
                             * **0,80 < IL < 1,00 (Graduação Proporcional):** Pontuação calculada por `((IL - 0.80) * 75.0) / 0.20`
                             * **IL <= 0,80 (Liquidez Insuficiente):** Sem pontuação (**0,0 ponto**)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador IL").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador IL"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f17_bruto = f17_data.get("valor", {})
                             if not isinstance(val_f17_bruto, dict):
                                 val_f17_bruto = {}
 
                             state_f17 = {
-                                "val_disponivel": float(val_f17_bruto.get("disponivel", 0.0) or 0.0),
-                                "val_passivo_circulante": float(val_f17_bruto.get("passivo_circulante", 0.0) or 0.0),
+                                "val_disponivel": float(
+                                    val_f17_bruto.get("disponivel", 0.0) or 0.0
+                                ),
+                                "val_passivo_circulante": float(
+                                    val_f17_bruto.get("passivo_circulante", 0.0) or 0.0
+                                ),
                                 "link": f17_data.get("link", ""),
-                                "pts": float(f17_data.get("pontos", 0.0) or 0.0)
+                                "pts": float(f17_data.get("pontos", 0.0) or 0.0),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_disponivel = (
-                                    ui.number(label="Ativo Disponível (D)", value=state_f17["val_disponivel"], format="%.2f")
+                                    ui.number(
+                                        label="Ativo Disponível (D)",
+                                        value=state_f17["val_disponivel"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_passivo = (
-                                    ui.number(label="Passivo Circulante (PC)", value=state_f17["val_passivo_circulante"], format="%.2f")
+                                    ui.number(
+                                        label="Passivo Circulante (PC)",
+                                        value=state_f17["val_passivo_circulante"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_il = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_il = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
                             lbl_pts_f17 = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_f17(_=None):
@@ -4676,36 +5740,63 @@ def container_formulario_ifiscal(ano=None):
                                     il = d / pc
                                     if il >= 1.0:
                                         pts = 75.0
-                                        lbl_pts_f17.classes(remove="text-red-600 text-amber-600 text-gray-500", add="text-green-600")
+                                        lbl_pts_f17.classes(
+                                            remove="text-red-600 text-amber-600 text-gray-500",
+                                            add="text-green-600",
+                                        )
                                     elif 0.80 < il < 1.0:
                                         pts = ((il - 0.80) * 75.0) / 0.20
-                                        lbl_pts_f17.classes(remove="text-green-600 text-red-600 text-gray-500", add="text-amber-600")
+                                        lbl_pts_f17.classes(
+                                            remove="text-green-600 text-red-600 text-gray-500",
+                                            add="text-amber-600",
+                                        )
                                     else:
                                         pts = 0.0
-                                        lbl_pts_f17.classes(remove="text-green-600 text-amber-600 text-gray-500", add="text-red-600")
+                                        lbl_pts_f17.classes(
+                                            remove="text-green-600 text-amber-600 text-gray-500",
+                                            add="text-red-600",
+                                        )
 
                                     state_f17["pts"] = pts
-                                    lbl_il.set_text(f"Resultado IL (Disponível / Passivo Circulante): {il:.4f}")
-                                    lbl_pts_f17.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_il.set_text(
+                                        f"Resultado IL (Disponível / Passivo Circulante): {il:.4f}"
+                                    )
+                                    lbl_pts_f17.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_il.set_text("Resultado IL: Indefinido (O Passivo Circulante deve ser maior que R$ 0,00)")
-                                    lbl_pts_f17.set_text("⚠️ Informe os valores válidos de Disponível e Passivo Circulante.")
-                                    lbl_pts_f17.classes(remove="text-green-600 text-amber-600 text-red-600", add="text-gray-500")
+                                    lbl_il.set_text(
+                                        "Resultado IL: Indefinido (O Passivo Circulante deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_f17.set_text(
+                                        "⚠️ Informe os valores válidos de Disponível e Passivo Circulante."
+                                    )
+                                    lbl_pts_f17.classes(
+                                        remove="text-green-600 text-amber-600 text-red-600",
+                                        add="text-gray-500",
+                                    )
                                     state_f17["pts"] = 0.0
 
                             input_disponivel.on("update:model-value", calcular_f17)
                             input_passivo.on("update:model-value", calcular_f17)
                             calcular_f17()
 
-                        input_link_f17 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f17["link"],
-                            placeholder="Insira o link do Relatório RAAE - Item 4.1 (Capacidade de Pagamento)..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f17 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f17["link"],
+                                placeholder="Insira o link do Relatório RAAE - Item 4.1 (Capacidade de Pagamento)...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f17():
                             if state_f17["val_passivo_circulante"] <= 0:
-                                ui.notify("Por favor, informe um valor válido para o Passivo Circulante!", type="warning")
+                                ui.notify(
+                                    "Por favor, informe um valor válido para o Passivo Circulante!",
+                                    type="warning",
+                                )
                                 return
 
                             save_resposta(
@@ -4713,7 +5804,9 @@ def container_formulario_ifiscal(ano=None):
                                 qid="F17",
                                 valor={
                                     "disponivel": state_f17["val_disponivel"],
-                                    "passivo_circulante": state_f17["val_passivo_circulante"]
+                                    "passivo_circulante": state_f17[
+                                        "val_passivo_circulante"
+                                    ],
                                 },
                                 pontos=state_f17["pts"],
                                 link=input_link_f17.value,
@@ -4723,60 +5816,102 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F17 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f17).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f17).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F17", res_data, render_conteudo.refresh)
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO F18 (Limite de Endividamento - Regra de Ouro)
                     # ==========================================
                     f18_data = res_data.get("F18", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F18 • Limite de Endividamento – Regra de Ouro").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Verifica se as Operações de Crédito excedem as Despesas de Capital (RO = Operações de Crédito [OC] - Despesas de Capital [DC] - Créditos Autorizados por Maioria Absoluta [AL]):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador RO (Regra de Ouro)", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F18 • Limite de Endividamento – Regra de Ouro"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Verifica se as Operações de Crédito excedem as Despesas de Capital (RO = Operações de Crédito [OC] - Despesas de Capital [DC] - Créditos Autorizados por Maioria Absoluta [AL]):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador RO (Regra de Ouro)",
+                            icon="info",
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **RO <= 0 (Cumpre a Regra de Ouro):** Pontuação neutra (**0,0 ponto**) - Sem penalidade na nota/faixa.
                             * **RO > 0 (Aumentou o endividamento para despesas correntes):** **Rebaixa 1 faixa na classificação do i-Fiscal**.
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Apuração do Indicador Regra de Ouro (RO = OC - DC - AL)").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Apuração do Indicador Regra de Ouro (RO = OC - DC - AL)"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f18_bruto = f18_data.get("valor", {})
                             if not isinstance(val_f18_bruto, dict):
                                 val_f18_bruto = {}
 
                             state_f18 = {
-                                "val_oc": float(val_f18_bruto.get("operacoes_credito", 0.0) or 0.0),
-                                "val_dc": float(val_f18_bruto.get("despesas_capital", 0.0) or 0.0),
-                                "val_al": float(val_f18_bruto.get("creditos_legislativo", 0.0) or 0.0),
-                                "ro": float(val_f18_bruto.get("ro_calculado", 0.0) or 0.0),
-                                "rebaixar_faixa": bool(val_f18_bruto.get("rebaixar_faixa", False)),
+                                "val_oc": float(
+                                    val_f18_bruto.get("operacoes_credito", 0.0) or 0.0
+                                ),
+                                "val_dc": float(
+                                    val_f18_bruto.get("despesas_capital", 0.0) or 0.0
+                                ),
+                                "val_al": float(
+                                    val_f18_bruto.get("creditos_legislativo", 0.0)
+                                    or 0.0
+                                ),
+                                "ro": float(
+                                    val_f18_bruto.get("ro_calculado", 0.0) or 0.0
+                                ),
+                                "rebaixar_faixa": bool(
+                                    val_f18_bruto.get("rebaixar_faixa", False)
+                                ),
                                 "link": f18_data.get("link", ""),
-                                "pts": 0.0
+                                "pts": 0.0,
                             }
 
                             with ui.grid(columns=3).classes("w-full gap-4"):
                                 input_oc = (
-                                    ui.number(label="Operações de Crédito (OC)", value=state_f18["val_oc"], format="%.2f")
+                                    ui.number(
+                                        label="Operações de Crédito (OC)",
+                                        value=state_f18["val_oc"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_dc = (
-                                    ui.number(label="Despesas de Capital Liquidadas (DC)", value=state_f18["val_dc"], format="%.2f")
+                                    ui.number(
+                                        label="Despesas de Capital Liquidadas (DC)",
+                                        value=state_f18["val_dc"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_al = (
-                                    ui.number(label="Créditos Aut. Legislativo (AL)", value=state_f18["val_al"], format="%.2f")
+                                    ui.number(
+                                        label="Créditos Aut. Legislativo (AL)",
+                                        value=state_f18["val_al"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_ro = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_ro = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
                             lbl_pts_f18 = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_f18(_=None):
@@ -4790,18 +5925,28 @@ def container_formulario_ifiscal(ano=None):
                                 state_f18["val_oc"] = oc
                                 state_f18["val_dc"] = dc
                                 state_f18["val_al"] = al
-                                
+
                                 ro = oc - dc - al
                                 state_f18["ro"] = ro
 
                                 if ro <= 0.0:
                                     state_f18["rebaixar_faixa"] = False
-                                    lbl_pts_f18.set_text("✅ Cumpre a Regra de Ouro (RO <= 0) - Sem rebaixamento de faixa no i-Fiscal.")
-                                    lbl_pts_f18.classes(remove="text-red-600 text-amber-600", add="text-green-600")
+                                    lbl_pts_f18.set_text(
+                                        "✅ Cumpre a Regra de Ouro (RO <= 0) - Sem rebaixamento de faixa no i-Fiscal."
+                                    )
+                                    lbl_pts_f18.classes(
+                                        remove="text-red-600 text-amber-600",
+                                        add="text-green-600",
+                                    )
                                 else:
                                     state_f18["rebaixar_faixa"] = True
-                                    lbl_pts_f18.set_text("⚠️ RO > 0: Descumprimento da Regra de Ouro! O município REBAIARÁ 1 FAIXA no i-Fiscal.")
-                                    lbl_pts_f18.classes(remove="text-green-600 text-amber-600", add="text-red-600")
+                                    lbl_pts_f18.set_text(
+                                        "⚠️ RO > 0: Descumprimento da Regra de Ouro! O município REBAIARÁ 1 FAIXA no i-Fiscal."
+                                    )
+                                    lbl_pts_f18.classes(
+                                        remove="text-green-600 text-amber-600",
+                                        add="text-red-600",
+                                    )
 
                                 state_f18["pts"] = 0.0
                                 lbl_ro.set_text(f"Resultado RO Calculado: R$ {ro:,.2f}")
@@ -4811,11 +5956,15 @@ def container_formulario_ifiscal(ano=None):
                             input_al.on("update:model-value", calcular_f18)
                             calcular_f18()
 
-                        input_link_f18 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f18["link"],
-                            placeholder="Insira o link das demonstrações contábeis e relatórios de Operações de Crédito..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f18 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f18["link"],
+                                placeholder="Insira o link das demonstrações contábeis e relatórios de Operações de Crédito...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f18():
                             save_resposta(
@@ -4826,7 +5975,7 @@ def container_formulario_ifiscal(ano=None):
                                     "despesas_capital": state_f18["val_dc"],
                                     "creditos_legislativo": state_f18["val_al"],
                                     "ro_calculado": state_f18["ro"],
-                                    "rebaixar_faixa": state_f18["rebaixar_faixa"]
+                                    "rebaixar_faixa": state_f18["rebaixar_faixa"],
                                 },
                                 pontos=state_f18["pts"],
                                 link=input_link_f18.value,
@@ -4836,59 +5985,96 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F18 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f18).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f18).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F18", res_data, render_conteudo.refresh)
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO F19 (Percentual da Taxa de Investimento)
                     # ==========================================
                     f19_data = res_data.get("F19", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F19 • Percentual da Taxa de Investimento").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Taxa de investimento em relação à receita arrecadada (N = (Despesas Liquidadas em Investimentos [L] + Liquidação de RPNP [F]) / Receita Total Arrecadada [M]):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador N (Taxa de Investimento)", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("F19 • Percentual da Taxa de Investimento").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Taxa de investimento em relação à receita arrecadada (N = (Despesas Liquidadas em Investimentos [L] + Liquidação de RPNP [F]) / Receita Total Arrecadada [M]):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador N (Taxa de Investimento)",
+                            icon="info",
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **N >= 0,15 (Investimento >= 15% da Receita):** Pontuação máxima (**50,0 pontos**)
                             * **0,02 < N < 0,15 (Graduação Proporcional):** Pontuação calculada por `((N - 0,02) / 0,13) * 50,0`
                             * **N <= 0,02 (Investimento <= 2% da Receita):** Sem pontuação (**0,0 ponto**)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador N").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador N"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f19_bruto = f19_data.get("valor", {})
                             if not isinstance(val_f19_bruto, dict):
                                 val_f19_bruto = {}
 
                             state_f19 = {
-                                "val_l": float(val_f19_bruto.get("desp_investimentos", 0.0) or 0.0),
-                                "val_f": float(val_f19_bruto.get("liq_rpnp", 0.0) or 0.0),
-                                "val_m": float(val_f19_bruto.get("receita_total", 0.0) or 0.0),
+                                "val_l": float(
+                                    val_f19_bruto.get("desp_investimentos", 0.0) or 0.0
+                                ),
+                                "val_f": float(
+                                    val_f19_bruto.get("liq_rpnp", 0.0) or 0.0
+                                ),
+                                "val_m": float(
+                                    val_f19_bruto.get("receita_total", 0.0) or 0.0
+                                ),
                                 "link": f19_data.get("link", ""),
-                                "pts": float(f19_data.get("pontos", 0.0) or 0.0)
+                                "pts": float(f19_data.get("pontos", 0.0) or 0.0),
                             }
 
                             with ui.grid(columns=3).classes("w-full gap-4"):
                                 input_l = (
-                                    ui.number(label="Despesa Liquidada - Grupo 44 (L)", value=state_f19["val_l"], format="%.2f")
+                                    ui.number(
+                                        label="Despesa Liquidada - Grupo 44 (L)",
+                                        value=state_f19["val_l"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_f = (
-                                    ui.number(label="Liquidação de RPNP (F)", value=state_f19["val_f"], format="%.2f")
+                                    ui.number(
+                                        label="Liquidação de RPNP (F)",
+                                        value=state_f19["val_f"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_m = (
-                                    ui.number(label="Receita Total Arrecadada (M)", value=state_f19["val_m"], format="%.2f")
+                                    ui.number(
+                                        label="Receita Total Arrecadada (M)",
+                                        value=state_f19["val_m"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_n = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_n = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
                             lbl_pts_f19 = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_f19(_=None):
@@ -4907,21 +6093,41 @@ def container_formulario_ifiscal(ano=None):
                                     n_ind = (l_val + f_val) / m_val
                                     if n_ind >= 0.15:
                                         pts = 50.0
-                                        lbl_pts_f19.classes(remove="text-red-600 text-amber-600 text-gray-500", add="text-green-600")
+                                        lbl_pts_f19.classes(
+                                            remove="text-red-600 text-amber-600 text-gray-500",
+                                            add="text-green-600",
+                                        )
                                     elif 0.02 < n_ind < 0.15:
                                         pts = ((n_ind - 0.02) / 0.13) * 50.0
-                                        lbl_pts_f19.classes(remove="text-green-600 text-red-600 text-gray-500", add="text-amber-600")
+                                        lbl_pts_f19.classes(
+                                            remove="text-green-600 text-red-600 text-gray-500",
+                                            add="text-amber-600",
+                                        )
                                     else:
                                         pts = 0.0
-                                        lbl_pts_f19.classes(remove="text-green-600 text-amber-600 text-gray-500", add="text-red-600")
+                                        lbl_pts_f19.classes(
+                                            remove="text-green-600 text-amber-600 text-gray-500",
+                                            add="text-red-600",
+                                        )
 
                                     state_f19["pts"] = pts
-                                    lbl_n.set_text(f"Resultado N (Investimento Total / Receita Total): {n_ind:.4f} ({n_ind*100:.2f}%)")
-                                    lbl_pts_f19.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_n.set_text(
+                                        f"Resultado N (Investimento Total / Receita Total): {n_ind:.4f} ({n_ind * 100:.2f}%)"
+                                    )
+                                    lbl_pts_f19.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_n.set_text("Resultado N: Indefinido (A Receita Total deve ser maior que R$ 0,00)")
-                                    lbl_pts_f19.set_text("⚠️ Informe valores válidos para calcular o indicador.")
-                                    lbl_pts_f19.classes(remove="text-green-600 text-amber-600 text-red-600", add="text-gray-500")
+                                    lbl_n.set_text(
+                                        "Resultado N: Indefinido (A Receita Total deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_f19.set_text(
+                                        "⚠️ Informe valores válidos para calcular o indicador."
+                                    )
+                                    lbl_pts_f19.classes(
+                                        remove="text-green-600 text-amber-600 text-red-600",
+                                        add="text-gray-500",
+                                    )
                                     state_f19["pts"] = 0.0
 
                             input_l.on("update:model-value", calcular_f19)
@@ -4929,15 +6135,22 @@ def container_formulario_ifiscal(ano=None):
                             input_m.on("update:model-value", calcular_f19)
                             calcular_f19()
 
-                        input_link_f19 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f19["link"],
-                            placeholder="Insira o link das demonstrações contábeis / balanço orçamentário do AUDESP..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f19 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f19["link"],
+                                placeholder="Insira o link das demonstrações contábeis / balanço orçamentário do AUDESP...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f19():
                             if state_f19["val_m"] <= 0:
-                                ui.notify("Por favor, informe um valor válido para a Receita Total!", type="warning")
+                                ui.notify(
+                                    "Por favor, informe um valor válido para a Receita Total!",
+                                    type="warning",
+                                )
                                 return
 
                             save_resposta(
@@ -4946,7 +6159,7 @@ def container_formulario_ifiscal(ano=None):
                                 valor={
                                     "desp_investimentos": state_f19["val_l"],
                                     "liq_rpnp": state_f19["val_f"],
-                                    "receita_total": state_f19["val_m"]
+                                    "receita_total": state_f19["val_m"],
                                 },
                                 pontos=state_f19["pts"],
                                 link=input_link_f19.value,
@@ -4956,53 +6169,84 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F19 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f19).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f19).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F19", res_data, render_conteudo.refresh)
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO F20 (Relação Despesas Correntes / Receitas Correntes - Art. 167-A)
                     # ==========================================
                     f20_data = res_data.get("F20", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F20 • Relação entre Despesas Correntes e Receitas Correntes").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Verifica o limite do Art. 167-A da CF (LDC = Despesa Corrente Liquidada [DC] / Receita Corrente Arrecadada [RC]):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador LDC (Art. 167-A da CF)", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label(
+                            "F20 • Relação entre Despesas Correntes e Receitas Correntes"
+                        ).classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label(
+                            "Verifica o limite do Art. 167-A da CF (LDC = Despesa Corrente Liquidada [DC] / Receita Corrente Arrecadada [RC]):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador LDC (Art. 167-A da CF)",
+                            icon="info",
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **LDC <= 0,85 (Gastos Correntes <= 85%):** Sem penalização (**0,0 ponto**)
                             * **0,85 < LDC <= 0,95 (Graduação Proporcional de Penalidade):** Perda de pontos calculada por `((LDC - 0,85) / 0,10) * (-50,0)`
                             * **LDC > 0,95 (Ultrpassou o limite de 95% do Art. 167-A):** Penalidade máxima (**-50,0 pontos**)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora Automática do Indicador LDC").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática do Indicador LDC"
+                            ).classes("font-bold text-blue-700 mb-2")
+
                             val_f20_bruto = f20_data.get("valor", {})
                             if not isinstance(val_f20_bruto, dict):
                                 val_f20_bruto = {}
 
                             state_f20 = {
-                                "val_dc": float(val_f20_bruto.get("despesa_corrente", 0.0) or 0.0),
-                                "val_rc": float(val_f20_bruto.get("receita_corrente", 0.0) or 0.0),
+                                "val_dc": float(
+                                    val_f20_bruto.get("despesa_corrente", 0.0) or 0.0
+                                ),
+                                "val_rc": float(
+                                    val_f20_bruto.get("receita_corrente", 0.0) or 0.0
+                                ),
                                 "link": f20_data.get("link", ""),
-                                "pts": float(f20_data.get("pontos", 0.0) or 0.0)
+                                "pts": float(f20_data.get("pontos", 0.0) or 0.0),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_dc = (
-                                    ui.number(label="Despesa Corrente Liquidada (DC)", value=state_f20["val_dc"], format="%.2f")
+                                    ui.number(
+                                        label="Despesa Corrente Liquidada (DC)",
+                                        value=state_f20["val_dc"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_rc = (
-                                    ui.number(label="Receita Corrente Arrecadada (RC)", value=state_f20["val_rc"], format="%.2f")
+                                    ui.number(
+                                        label="Receita Corrente Arrecadada (RC)",
+                                        value=state_f20["val_rc"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_ldc = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_ldc = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
                             lbl_pts_f20 = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_f20(_=None):
@@ -5019,36 +6263,63 @@ def container_formulario_ifiscal(ano=None):
                                     ldc = dc / rc
                                     if ldc <= 0.85:
                                         pts = 0.0
-                                        lbl_pts_f20.classes(remove="text-red-600 text-amber-600 text-gray-500", add="text-green-600")
+                                        lbl_pts_f20.classes(
+                                            remove="text-red-600 text-amber-600 text-gray-500",
+                                            add="text-green-600",
+                                        )
                                     elif 0.85 < ldc <= 0.95:
                                         pts = ((ldc - 0.85) / 0.10) * (-50.0)
-                                        lbl_pts_f20.classes(remove="text-green-600 text-red-600 text-gray-500", add="text-amber-600")
+                                        lbl_pts_f20.classes(
+                                            remove="text-green-600 text-red-600 text-gray-500",
+                                            add="text-amber-600",
+                                        )
                                     else:
                                         pts = -50.0
-                                        lbl_pts_f20.classes(remove="text-green-600 text-amber-600 text-gray-500", add="text-red-600")
+                                        lbl_pts_f20.classes(
+                                            remove="text-green-600 text-amber-600 text-gray-500",
+                                            add="text-red-600",
+                                        )
 
                                     state_f20["pts"] = pts
-                                    lbl_ldc.set_text(f"Resultado LDC (Despesa Corrente / Receita Corrente): {ldc:.4f} ({ldc*100:.2f}%)")
-                                    lbl_pts_f20.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_ldc.set_text(
+                                        f"Resultado LDC (Despesa Corrente / Receita Corrente): {ldc:.4f} ({ldc * 100:.2f}%)"
+                                    )
+                                    lbl_pts_f20.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_ldc.set_text("Resultado LDC: Indefinido (A Receita Corrente deve ser maior que R$ 0,00)")
-                                    lbl_pts_f20.set_text("⚠️ Informe os valores válidos de Despesa e Receita Corrente.")
-                                    lbl_pts_f20.classes(remove="text-green-600 text-amber-600 text-red-600", add="text-gray-500")
+                                    lbl_ldc.set_text(
+                                        "Resultado LDC: Indefinido (A Receita Corrente deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_f20.set_text(
+                                        "⚠️ Informe os valores válidos de Despesa e Receita Corrente."
+                                    )
+                                    lbl_pts_f20.classes(
+                                        remove="text-green-600 text-amber-600 text-red-600",
+                                        add="text-gray-500",
+                                    )
                                     state_f20["pts"] = 0.0
 
                             input_dc.on("update:model-value", calcular_f20)
                             input_rc.on("update:model-value", calcular_f20)
                             calcular_f20()
 
-                        input_link_f20 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f20["link"],
-                            placeholder="Insira o link do Relatório de Instrução (Item GF56 Audesp)..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f20 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f20["link"],
+                                placeholder="Insira o link do Relatório de Instrução (Item GF56 Audesp)...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f20():
                             if state_f20["val_rc"] <= 0:
-                                ui.notify("Por favor, informe um valor válido para a Receita Corrente!", type="warning")
+                                ui.notify(
+                                    "Por favor, informe um valor válido para a Receita Corrente!",
+                                    type="warning",
+                                )
                                 return
 
                             save_resposta(
@@ -5056,7 +6327,7 @@ def container_formulario_ifiscal(ano=None):
                                 qid="F20",
                                 valor={
                                     "despesa_corrente": state_f20["val_dc"],
-                                    "receita_corrente": state_f20["val_rc"]
+                                    "receita_corrente": state_f20["val_rc"],
                                 },
                                 pontos=state_f20["pts"],
                                 link=input_link_f20.value,
@@ -5066,52 +6337,80 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F20 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f20).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f20).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F20", res_data, render_conteudo.refresh)
 
-    # ==========================================
+                    # ==========================================
                     # QUESITO F21 (Liquidez dos Restos a Pagar - LRP)
                     # ==========================================
                     f21_data = res_data.get("F21", {})
 
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("F21 • Liquidez dos Restos a Pagar").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Verifica a cobertura financeira do estoque de Restos a Pagar (LRP = RPA / D):").classes("text-base font-bold text-black mb-2")
-                        
-                        with ui.expansion("ℹ️ Tabela de Regras do Indicador LRP", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("F21 • Liquidez dos Restos a Pagar").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Verifica a cobertura financeira do estoque de Restos a Pagar (LRP = RPA / D):"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        with ui.expansion(
+                            "ℹ️ Tabela de Regras do Indicador LRP", icon="info"
+                        ).classes(
+                            "w-full mb-4 bg-gray-50 border border-gray-200 rounded"
+                        ):
                             ui.markdown("""
                             * **LRP <= 1,0 (Restos a Pagar <= Disponibilidade de Caixa):** Cobertura suficiente (**0,0 ponto**)
                             * **LRP > 1,0 (Restos a Pagar > Disponibilidade de Caixa):** Insuficiência de caixa para cobrir restos a pagar (**-5,0 pontos**)
                             """).classes("text-sm text-gray-700 p-2")
 
-                        with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
-                            ui.label("🧮 Calculadora do Indicador LRP").classes("font-bold text-blue-700 mb-2")
-                            
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label("🧮 Calculadora do Indicador LRP").classes(
+                                "font-bold text-blue-700 mb-2"
+                            )
+
                             val_f21_bruto = f21_data.get("valor", {})
                             if not isinstance(val_f21_bruto, dict):
                                 val_f21_bruto = {}
 
                             state_f21 = {
                                 "val_rpa": float(val_f21_bruto.get("rpa", 0.0) or 0.0),
-                                "val_d": float(val_f21_bruto.get("disponivel", 0.0) or 0.0),
+                                "val_d": float(
+                                    val_f21_bruto.get("disponivel", 0.0) or 0.0
+                                ),
                                 "link": f21_data.get("link", ""),
-                                "pts": float(f21_data.get("pontos", 0.0) or 0.0)
+                                "pts": float(f21_data.get("pontos", 0.0) or 0.0),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-4"):
                                 input_rpa = (
-                                    ui.number(label="Estoque de Restos a Pagar - Processados e Não Processados (RPA)", value=state_f21["val_rpa"], format="%.2f")
+                                    ui.number(
+                                        label="Estoque de Restos a Pagar - Processados e Não Processados (RPA)",
+                                        value=state_f21["val_rpa"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
                                 input_d = (
-                                    ui.number(label="Disponibilidade de Caixa / Disponível (D)", value=state_f21["val_d"], format="%.2f")
+                                    ui.number(
+                                        label="Disponibilidade de Caixa / Disponível (D)",
+                                        value=state_f21["val_d"],
+                                        format="%.2f",
+                                    )
                                     .classes("w-full")
                                     .props("outlined bg-white prefix='R$'")
                                 )
 
-                            lbl_lrp = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            lbl_lrp = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
+                            )
                             lbl_pts_f21 = ui.label().classes("text-sm font-bold mt-1")
 
                             def calcular_f21(_=None):
@@ -5128,33 +6427,57 @@ def container_formulario_ifiscal(ano=None):
                                     lrp = rpa / d
                                     if lrp > 1.0:
                                         pts = -5.0
-                                        lbl_pts_f21.classes(remove="text-green-600 text-gray-500", add="text-red-600")
+                                        lbl_pts_f21.classes(
+                                            remove="text-green-600 text-gray-500",
+                                            add="text-red-600",
+                                        )
                                     else:
                                         pts = 0.0
-                                        lbl_pts_f21.classes(remove="text-red-600 text-gray-500", add="text-green-600")
+                                        lbl_pts_f21.classes(
+                                            remove="text-red-600 text-gray-500",
+                                            add="text-green-600",
+                                        )
 
                                     state_f21["pts"] = pts
-                                    lbl_lrp.set_text(f"Resultado LRP (RPA / D): {lrp:.4f}")
-                                    lbl_pts_f21.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos")
+                                    lbl_lrp.set_text(
+                                        f"Resultado LRP (RPA / D): {lrp:.4f}"
+                                    )
+                                    lbl_pts_f21.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
                                 else:
-                                    lbl_lrp.set_text("Resultado LRP: Indefinido (A Disponibilidade de Caixa deve ser maior que R$ 0,00)")
-                                    lbl_pts_f21.set_text("⚠️ Informe os valores válidos de Restos a Pagar e Disponibilidade.")
-                                    lbl_pts_f21.classes(remove="text-green-600 text-red-600", add="text-gray-500")
+                                    lbl_lrp.set_text(
+                                        "Resultado LRP: Indefinido (A Disponibilidade de Caixa deve ser maior que R$ 0,00)"
+                                    )
+                                    lbl_pts_f21.set_text(
+                                        "⚠️ Informe os valores válidos de Restos a Pagar e Disponibilidade."
+                                    )
+                                    lbl_pts_f21.classes(
+                                        remove="text-green-600 text-red-600",
+                                        add="text-gray-500",
+                                    )
                                     state_f21["pts"] = 0.0
 
                             input_rpa.on("update:model-value", calcular_f21)
                             input_d.on("update:model-value", calcular_f21)
                             calcular_f21()
 
-                        input_link_f21 = ui.textarea(
-                            label="Link de Evidência / Documento:",
-                            value=state_f21["link"],
-                            placeholder="Insira o link do Relatório de Análises Anuais Eletrônicas (RAAE) / Relatório de Instrução (RI)..."
-                        ).classes("w-full mb-4").props("outlined rows=3")
+                        input_link_f21 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_f21["link"],
+                                placeholder="Insira o link do Relatório de Análises Anuais Eletrônicas (RAAE) / Relatório de Instrução (RI)...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
 
                         def salvar_f21():
                             if state_f21["val_d"] <= 0:
-                                ui.notify("Por favor, informe um valor válido para a Disponibilidade de Caixa (D)!", type="warning")
+                                ui.notify(
+                                    "Por favor, informe um valor válido para a Disponibilidade de Caixa (D)!",
+                                    type="warning",
+                                )
                                 return
 
                             save_resposta(
@@ -5162,7 +6485,7 @@ def container_formulario_ifiscal(ano=None):
                                 qid="F21",
                                 valor={
                                     "rpa": state_f21["val_rpa"],
-                                    "disponivel": state_f21["val_d"]
+                                    "disponivel": state_f21["val_d"],
                                 },
                                 pontos=state_f21["pts"],
                                 link=input_link_f21.value,
@@ -5172,12 +6495,14 @@ def container_formulario_ifiscal(ano=None):
                             ui.notify("Quesito F21 salvo com sucesso!", type="positive")
                             render_conteudo.refresh()
 
-                        ui.button("SALVAR RESPOSTA", on_click=salvar_f21).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.button("SALVAR RESPOSTA", on_click=salvar_f21).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
                         ui.separator().classes("my-2")
                         bloco_comentarios("F21", res_data, render_conteudo.refresh)
 
-                      
     render_conteudo()
+
 
 import io
 import os
@@ -5192,7 +6517,13 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
 from reportlab.platypus import (
-    SimpleDocTemplate, Paragraph, Spacer, Image, PageBreak, Table, TableStyle
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Image,
+    PageBreak,
+    Table,
+    TableStyle,
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.graphics.shapes import Drawing
@@ -5206,13 +6537,48 @@ from fastapi import Response
 # 1. MAPEAMENTOS E TETOS DE PONTUAÇÃO DO I-PLAN
 # -----------------------------------------------------------------------------
 PONTUACOES_MAX_Fiscal = {
-    '1.1': 0.5, '1.2': 1.5, '1.3': 10.0, '1.4': 3.0, '1.5': 5.0, '1.5.1': 5.0,
-    '2.0': 4.0, '3.0': 30.0, '4.3': 5.0, '5.0': 3.0, '5.3': 3.0, '5.4': 6.0, '6.0': 2.0,
-    '8.0': 1.0, '8.1': 2.0, '8.2': 15.0, '9.4': 2.0, '9.4.1': 3.0, '11.0': 3.0, '13.0': 1.0, '13.3': 9.0,
-    '18.1': 15.0, '19.0': 3.0, '19.1': 3.0, '20.0': 3.0, '20.1': 6.0, '21.0': 3.0, '22.0': 3.0,
-    'F1': 75.0, 'F2': 75.0, 'F3': 100.0, 'F4': 25.0, 'F5': 25.0,
-    'F8': 75.0, 'F10': 75.0, 'F12': 50.0, 'F13': 50.0, 'F14': 50.0,
-    'F15': 25.0, 'F16': 25.0, 'F17': 75.0, 'F18': 75.0
+    "1.1": 0.5,
+    "1.2": 1.5,
+    "1.3": 10.0,
+    "1.4": 3.0,
+    "1.5": 5.0,
+    "1.5.1": 5.0,
+    "2.0": 4.0,
+    "3.0": 30.0,
+    "4.3": 5.0,
+    "5.0": 3.0,
+    "5.3": 3.0,
+    "5.4": 6.0,
+    "6.0": 2.0,
+    "8.0": 1.0,
+    "8.1": 2.0,
+    "8.2": 15.0,
+    "9.4": 2.0,
+    "9.4.1": 3.0,
+    "11.0": 3.0,
+    "13.0": 1.0,
+    "13.3": 9.0,
+    "18.1": 15.0,
+    "19.0": 3.0,
+    "19.1": 3.0,
+    "20.0": 3.0,
+    "20.1": 6.0,
+    "21.0": 3.0,
+    "22.0": 3.0,
+    "F1": 75.0,
+    "F2": 75.0,
+    "F3": 100.0,
+    "F4": 25.0,
+    "F5": 25.0,
+    "F8": 75.0,
+    "F10": 75.0,
+    "F12": 50.0,
+    "F13": 50.0,
+    "F14": 50.0,
+    "F15": 25.0,
+    "F16": 25.0,
+    "F17": 75.0,
+    "F18": 75.0,
 }
 
 # Aliases de compatibilidade para evitar NameError
@@ -5220,26 +6586,25 @@ PONTUACOES_MAX_IAMB = PONTUACOES_MAX_Fiscal
 PONTUACOES_MAX = PONTUACOES_MAX_Fiscal
 
 PENALIDADES_MAX = {
-    '7.2': -3.0,
-    '8.3': -15.0,
-    '9.6': -30.0,
-    '10.3': -5.0,
-    '12.1': -10.0,
-    '12.2': -5.0,
-    '12.3': -5.0,
-    '12.3.1': -5.0,
-    '12.5.2': -10.0,
-    '16': -10.0,
-    '16.3': -5.0,
-    '17.0': -5.0,
-    '23.0': -30.0,
-    '24.1': -30.0,
-    '25.1': -25.0,
-    'F6': -20.0,
-    'F7': -10.0,
-    'F9': -10.0,
-    'F21': -50.0,
-    
+    "7.2": -3.0,
+    "8.3": -15.0,
+    "9.6": -30.0,
+    "10.3": -5.0,
+    "12.1": -10.0,
+    "12.2": -5.0,
+    "12.3": -5.0,
+    "12.3.1": -5.0,
+    "12.5.2": -10.0,
+    "16": -10.0,
+    "16.3": -5.0,
+    "17.0": -5.0,
+    "23.0": -30.0,
+    "24.1": -30.0,
+    "25.1": -25.0,
+    "F6": -20.0,
+    "F7": -10.0,
+    "F9": -10.0,
+    "F21": -50.0,
 }
 
 # String de conexão com o PostgreSQL
@@ -5261,7 +6626,7 @@ def calcular_percentual_checklist(resp, total_itens):
     if isinstance(resp, list):
         qtd = len(resp)
     elif isinstance(resp, str):
-        qtd = len([item for item in resp.split(',') if item.strip()])
+        qtd = len([item for item in resp.split(",") if item.strip()])
     else:
         qtd = 0
     return min((qtd / total_itens) * 100.0, 100.0)
@@ -5313,7 +6678,11 @@ def obter_regra_ods_iamb(qid, resp):
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
     elif qid == "7.8.1":
         metas = "6.2, 6.3"
-        status = "Atendido" if "todas as metas foram cumpridas dentro do prazo" in resp_l else "Não Atendido"
+        status = (
+            "Atendido"
+            if "todas as metas foram cumpridas dentro do prazo" in resp_l
+            else "Não Atendido"
+        )
     elif qid == "7.9":
         metas = "6.2, 6.3"
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -5333,7 +6702,11 @@ def obter_regra_ods_iamb(qid, resp):
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
     elif qid == "10.2":
         metas = "11.6, 12.5, 16.6"
-        status = "Atendido" if "todos os bairros do município são atendidos" in resp_l else "Não Atendido"
+        status = (
+            "Atendido"
+            if "todos os bairros do município são atendidos" in resp_l
+            else "Não Atendido"
+        )
     elif qid == "10.3":
         metas = "11.6, 12.5, 12.4, 16.6"
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -5381,7 +6754,11 @@ def get_all_years_data():
                     valor = row["valor"] or ""
                     pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
                     link = row["link"] if row["link"] != "EMPTY_STRING" else ""
-                    comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
+                    comentarios = (
+                        row["comentarios"]
+                        if isinstance(row["comentarios"], list)
+                        else []
+                    )
                 else:
                     qid = str(row[0]).strip()
                     ano = int(row[1])
@@ -5397,7 +6774,7 @@ def get_all_years_data():
                     "valor": valor,
                     "pontos": pontos,
                     "link": link,
-                    "comentarios": comentarios
+                    "comentarios": comentarios,
                 }
     except Exception as e:
         print(f"❌ Erro ao buscar série histórica I-Fiscal no Neon DB: {e}")
@@ -5429,7 +6806,11 @@ def load_respostas(ano):
                     valor = row["valor"] or ""
                     pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
                     link = row["link"] if row["link"] != "EMPTY_STRING" else ""
-                    comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
+                    comentarios = (
+                        row["comentarios"]
+                        if isinstance(row["comentarios"], list)
+                        else []
+                    )
                 else:
                     qid = str(row[0]).strip()
                     valor = row[1] or ""
@@ -5441,7 +6822,7 @@ def load_respostas(ano):
                     "valor": valor,
                     "pontos": pontos,
                     "link": link,
-                    "comentarios": comentarios
+                    "comentarios": comentarios,
                 }
     except Exception as e:
         print(f"❌ Erro ao carregar respostas do ano {ano} no Neon DB: {e}")
@@ -5453,7 +6834,7 @@ def converter_para_float(val):
     if val is None:
         return 0.0
     try:
-        return float(str(val).replace(',', '.').strip())
+        return float(str(val).replace(",", ".").strip())
     except (ValueError, TypeError):
         return 0.0
 
@@ -5477,10 +6858,22 @@ def converter_pontos_em_faixa_iegm(pontos):
 # -----------------------------------------------------------------------------
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     """Gere o relatório completo e não-resumido do I-Fiscal em PDF."""
-    
+
     lista_alvo_iplan = [
-        "1.0", "1.1", "5.0", "7.0", "7.6", "7.6.1", 
-        "8.0", "9.0", "10.3", "11.0", "11.1", "11.6", "11.6.1", "12.0"
+        "1.0",
+        "1.1",
+        "5.0",
+        "7.0",
+        "7.6",
+        "7.6.1",
+        "8.0",
+        "9.0",
+        "10.3",
+        "11.0",
+        "11.1",
+        "11.6",
+        "11.6.1",
+        "12.0",
     ]
 
     buffer = BytesIO()
@@ -5490,20 +6883,89 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         rightMargin=30,
         leftMargin=30,
         topMargin=30,
-        bottomMargin=30
+        bottomMargin=30,
     )
     elements = []
     styles = getSampleStyleSheet()
 
     # Definindo e registrando estilos estilizados do relatório
-    styles.add(ParagraphStyle('TitleCapa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=24, textColor=colors.HexColor("#1b4f72"), alignment=TA_CENTER))
-    styles.add(ParagraphStyle('SubTitleCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=14, textColor=colors.HexColor("#5D6D7E"), alignment=TA_CENTER))
-    styles.add(ParagraphStyle('ItemEsq', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2C3E50")))
-    styles.add(ParagraphStyle('PagDir', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#1B4F72"), alignment=TA_RIGHT))
-    styles.add(ParagraphStyle('ThStyle', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=colors.white, alignment=TA_CENTER))
-    styles.add(ParagraphStyle('TdStyle', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=TA_LEFT))
-    styles.add(ParagraphStyle('TdCenter', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=TA_CENTER))
-    styles.add(ParagraphStyle('CellLink', parent=styles['Normal'], fontName='Helvetica', fontSize=8, leading=10, textColor=colors.HexColor("#1A5276")))
+    styles.add(
+        ParagraphStyle(
+            "TitleCapa",
+            parent=styles["Normal"],
+            fontName="Helvetica-Bold",
+            fontSize=24,
+            textColor=colors.HexColor("#1b4f72"),
+            alignment=TA_CENTER,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            "SubTitleCapa",
+            parent=styles["Normal"],
+            fontName="Helvetica",
+            fontSize=14,
+            textColor=colors.HexColor("#5D6D7E"),
+            alignment=TA_CENTER,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            "ItemEsq",
+            parent=styles["Normal"],
+            fontName="Helvetica-Bold",
+            fontSize=10,
+            textColor=colors.HexColor("#2C3E50"),
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            "PagDir",
+            parent=styles["Normal"],
+            fontName="Helvetica-Bold",
+            fontSize=10,
+            textColor=colors.HexColor("#1B4F72"),
+            alignment=TA_RIGHT,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            "ThStyle",
+            parent=styles["Normal"],
+            fontName="Helvetica-Bold",
+            fontSize=9,
+            textColor=colors.white,
+            alignment=TA_CENTER,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            "TdStyle",
+            parent=styles["Normal"],
+            fontName="Helvetica",
+            fontSize=8,
+            alignment=TA_LEFT,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            "TdCenter",
+            parent=styles["Normal"],
+            fontName="Helvetica",
+            fontSize=8,
+            alignment=TA_CENTER,
+        )
+    )
+    styles.add(
+        ParagraphStyle(
+            "CellLink",
+            parent=styles["Normal"],
+            fontName="Helvetica",
+            fontSize=8,
+            leading=10,
+            textColor=colors.HexColor("#1A5276"),
+        )
+    )
 
     ano_normalizado = int(str(ano).strip()[:4])
     ano_ant = ano_normalizado - 1
@@ -5517,21 +6979,27 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     if os.path.exists(logo_path):
         try:
             logo = Image(logo_path, width=350, height=160)
-            logo.hAlign = 'CENTER'
+            logo.hAlign = "CENTER"
             elements.append(logo)
         except Exception:
-            elements.append(Paragraph("<b>[IEGM - Planejamento]</b>", styles["TitleCapa"]))
+            elements.append(
+                Paragraph("<b>[IEGM - Planejamento]</b>", styles["TitleCapa"])
+            )
     else:
         elements.append(Paragraph("<b>[IEGM - Planejamento]</b>", styles["TitleCapa"]))
 
     elements.append(Spacer(1, 40))
-    
+
     # Título limpo em linha única
-    elements.append(Paragraph("<b>Relatório I-PLAN</b>", styles['TitleCapa']))
+    elements.append(Paragraph("<b>Relatório I-PLAN</b>", styles["TitleCapa"]))
     elements.append(Spacer(1, 15))
-    
+
     # Subtítulo com Ano de Referência
-    elements.append(Paragraph(f"Exercício de Referência: <b>{ano_normalizado}</b>", styles['SubTitleCapa']))
+    elements.append(
+        Paragraph(
+            f"Exercício de Referência: <b>{ano_normalizado}</b>", styles["SubTitleCapa"]
+        )
+    )
     elements.append(PageBreak())
 
     # -------------------------------------------------------------------------
@@ -5541,29 +7009,69 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(Spacer(1, 20))
 
     itens_sumario = [
-        [Paragraph("1. Resumo Executivo e Evolução Comparativa", styles['ItemEsq']), Paragraph("Pág. 3", styles['PagDir'])],
-        [Paragraph("2. Análise Detalhada de Desempenho por Quesito", styles['ItemEsq']), Paragraph("Pág. 3", styles['PagDir'])],
-        [Paragraph("3. Quadro de Penalidades e Impactos Negativos", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
-        [Paragraph("4. Diagnóstico de Reincidências de Fracasso", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
-        [Paragraph("5. Alinhamento com a Agenda 2030 (Metas ODS)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
-        [Paragraph("6. Evolução Temporal da Série Histórica (I-PLAN)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
-        [Paragraph("7. Quesitos de Conformidade Operacional (Sem Pontuação Direta)", styles['ItemEsq']), Paragraph("Pág. 6", styles['PagDir'])],
+        [
+            Paragraph("1. Resumo Executivo e Evolução Comparativa", styles["ItemEsq"]),
+            Paragraph("Pág. 3", styles["PagDir"]),
+        ],
+        [
+            Paragraph(
+                "2. Análise Detalhada de Desempenho por Quesito", styles["ItemEsq"]
+            ),
+            Paragraph("Pág. 3", styles["PagDir"]),
+        ],
+        [
+            Paragraph(
+                "3. Quadro de Penalidades e Impactos Negativos", styles["ItemEsq"]
+            ),
+            Paragraph("Pág. 4", styles["PagDir"]),
+        ],
+        [
+            Paragraph("4. Diagnóstico de Reincidências de Fracasso", styles["ItemEsq"]),
+            Paragraph("Pág. 4", styles["PagDir"]),
+        ],
+        [
+            Paragraph(
+                "5. Alinhamento com a Agenda 2030 (Metas ODS)", styles["ItemEsq"]
+            ),
+            Paragraph("Pág. 5", styles["PagDir"]),
+        ],
+        [
+            Paragraph(
+                "6. Evolução Temporal da Série Histórica (I-PLAN)", styles["ItemEsq"]
+            ),
+            Paragraph("Pág. 5", styles["PagDir"]),
+        ],
+        [
+            Paragraph(
+                "7. Quesitos de Conformidade Operacional (Sem Pontuação Direta)",
+                styles["ItemEsq"],
+            ),
+            Paragraph("Pág. 6", styles["PagDir"]),
+        ],
     ]
 
     tabela_sumario = Table(itens_sumario, colWidths=[380, 100])
-    tabela_sumario.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-        ('TOPPADDING', (0, 0), (-1, -1), 10),
-        ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-    ]))
+    tabela_sumario.setStyle(
+        TableStyle(
+            [
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+                ("TOPPADDING", (0, 0), (-1, -1), 10),
+                ("LINEBELOW", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+            ]
+        )
+    )
     elements.append(tabela_sumario)
     elements.append(PageBreak())
 
     # -------------------------------------------------------------------------
     # 1. RESUMO EXECUTIVO
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>1. RESUMO EXECUTIVO E EVOLUÇÃO COMPARATIVA</b>", styles["Heading2"]))
+    elements.append(
+        Paragraph(
+            "<b>1. RESUMO EXECUTIVO E EVOLUÇÃO COMPARATIVA</b>", styles["Heading2"]
+        )
+    )
     elements.append(Spacer(1, 8))
 
     nota_atual = converter_para_float(total)
@@ -5574,7 +7082,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         for qid_ant, info_ant in dados_ano_anterior.items():
             if str(qid_ant).startswith("COM_"):
                 continue
-            pts = info_ant.get("pontos", 0.0) if isinstance(info_ant, dict) else info_ant
+            pts = (
+                info_ant.get("pontos", 0.0) if isinstance(info_ant, dict) else info_ant
+            )
             nota_anterior += converter_para_float(pts)
 
     faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
@@ -5587,32 +7097,69 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     else:
         str_pct = f"{variacao_nominal:+.1f} pts"
 
-    cor_var = colors.HexColor("#27AE60") if variacao_nominal >= 0 else colors.HexColor("#C0392B")
+    cor_var = (
+        colors.HexColor("#27AE60")
+        if variacao_nominal >= 0
+        else colors.HexColor("#C0392B")
+    )
     simbolo = "▲" if variacao_nominal > 0 else ("▼" if variacao_nominal < 0 else "■")
 
-    style_var_cell = ParagraphStyle('VarCell', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, textColor=cor_var, alignment=TA_CENTER)
+    style_var_cell = ParagraphStyle(
+        "VarCell",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=9,
+        textColor=cor_var,
+        alignment=TA_CENTER,
+    )
 
     dados_exec = [
-        [Paragraph("Exercício", styles['ThStyle']), Paragraph("Pontuação Obteve", styles['ThStyle']), Paragraph("Faixa IEGM", styles['ThStyle']), Paragraph("Variação Nominal", styles['ThStyle']), Paragraph("Variação %", styles['ThStyle'])],
-        [Paragraph(str(ano_ant), styles['TdCenter']), Paragraph(f"{nota_anterior:.1f} pts", styles['TdCenter']), Paragraph(faixa_anterior, styles['TdCenter']), Paragraph("-", styles['TdCenter']), Paragraph("-", styles['TdCenter'])],
-        [Paragraph(str(ano_normalizado), styles['TdCenter']), Paragraph(f"{nota_atual:.1f} pts", styles['TdCenter']), Paragraph(faixa_atual, styles['TdCenter']), Paragraph(f"{simbolo} {variacao_nominal:+.1f}", style_var_cell), Paragraph(f"{simbolo} {str_pct}", style_var_cell)]
+        [
+            Paragraph("Exercício", styles["ThStyle"]),
+            Paragraph("Pontuação Obteve", styles["ThStyle"]),
+            Paragraph("Faixa IEGM", styles["ThStyle"]),
+            Paragraph("Variação Nominal", styles["ThStyle"]),
+            Paragraph("Variação %", styles["ThStyle"]),
+        ],
+        [
+            Paragraph(str(ano_ant), styles["TdCenter"]),
+            Paragraph(f"{nota_anterior:.1f} pts", styles["TdCenter"]),
+            Paragraph(faixa_anterior, styles["TdCenter"]),
+            Paragraph("-", styles["TdCenter"]),
+            Paragraph("-", styles["TdCenter"]),
+        ],
+        [
+            Paragraph(str(ano_normalizado), styles["TdCenter"]),
+            Paragraph(f"{nota_atual:.1f} pts", styles["TdCenter"]),
+            Paragraph(faixa_atual, styles["TdCenter"]),
+            Paragraph(f"{simbolo} {variacao_nominal:+.1f}", style_var_cell),
+            Paragraph(f"{simbolo} {str_pct}", style_var_cell),
+        ],
     ]
 
     t_exec = Table(dados_exec, colWidths=[80, 100, 90, 105, 105])
-    t_exec.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1B4F72")),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-    ]))
+    t_exec.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1B4F72")),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("TOPPADDING", (0, 0), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ]
+        )
+    )
     elements.append(t_exec)
     elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
     # 2. DESEMPENHO POR QUESITO (FORTES E FRACOS)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>2. ANÁLISE DETALHADA DE DESEMPENHO POR QUESITO</b>", styles["Heading2"]))
+    elements.append(
+        Paragraph(
+            "<b>2. ANÁLISE DETALHADA DE DESEMPENHO POR QUESITO</b>", styles["Heading2"]
+        )
+    )
     elements.append(Spacer(1, 6))
 
     pontos_fortes, pontos_fracos, reincidencias = [], [], []
@@ -5637,7 +7184,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             link_ev = ""
 
         eficiencia = (pts_obt / pts_max) * 100.0
-        item = {"qid": qid, "pts": pts_obt, "max": pts_max, "efic": eficiencia, "resp": resp_val, "link": link_ev}
+        item = {
+            "qid": qid,
+            "pts": pts_obt,
+            "max": pts_max,
+            "efic": eficiencia,
+            "resp": resp_val,
+            "link": link_ev,
+        }
 
         if eficiencia >= 70.0:
             pontos_fortes.append(item)
@@ -5647,50 +7201,75 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             # Teste de reincidência
             info_ant = dados_ano_anterior.get(qid_raw) or dados_ano_anterior.get(qid)
             if info_ant:
-                pts_ant = converter_para_float(info_ant.get("pontos") if isinstance(info_ant, dict) else info_ant)
+                pts_ant = converter_para_float(
+                    info_ant.get("pontos") if isinstance(info_ant, dict) else info_ant
+                )
                 if pts_ant < pts_max and pts_obt < pts_max:
-                    reincidencias.append({
-                        "qid": qid,
-                        "max": pts_max,
-                        "ant": pts_ant,
-                        "atual": pts_obt
-                    })
+                    reincidencias.append(
+                        {"qid": qid, "max": pts_max, "ant": pts_ant, "atual": pts_obt}
+                    )
 
     # Tabela Pontos Fortes
     if pontos_fortes:
-        elements.append(Paragraph("<b>✅ Pontos Fortes (Eficiência ≥ 70%)</b>", styles["Heading3"]))
+        elements.append(
+            Paragraph("<b>✅ Pontos Fortes (Eficiência ≥ 70%)</b>", styles["Heading3"])
+        )
         df_fortes = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
         for f in sorted(pontos_fortes, key=lambda x: x["efic"], reverse=True):
-            lnk = f"<br/><a href='{f['link']}'>{f['link']}</a>" if f['link'] else ""
+            lnk = f"<br/><a href='{f['link']}'>{f['link']}</a>" if f["link"] else ""
             evid = f"<b>{f['resp']}</b>{lnk}"
-            df_fortes.append([f['qid'], f"{f['pts']:.1f} / {f['max']:.1f}", f"{f['efic']:.1f}%", Paragraph(evid, styles['CellLink'])])
+            df_fortes.append(
+                [
+                    f["qid"],
+                    f"{f['pts']:.1f} / {f['max']:.1f}",
+                    f"{f['efic']:.1f}%",
+                    Paragraph(evid, styles["CellLink"]),
+                ]
+            )
 
         tf = Table(df_fortes, colWidths=[65, 75, 65, 275])
-        tf.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#27AE60")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ]))
+        tf.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#27AE60")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ]
+            )
+        )
         elements.append(tf)
         elements.append(Spacer(1, 10))
 
     # Tabela Pontos Fracos
     if pontos_fracos:
-        elements.append(Paragraph("<b>⚠️ Pontos Fracos (Eficiência < 70%)</b>", styles["Heading3"]))
+        elements.append(
+            Paragraph("<b>⚠️ Pontos Fracos (Eficiência < 70%)</b>", styles["Heading3"])
+        )
         df_fracos = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
         for fr in sorted(pontos_fracos, key=lambda x: x["efic"]):
-            lnk = f"<br/><a href='{fr['link']}'>{fr['link']}</a>" if fr['link'] else ""
+            lnk = f"<br/><a href='{fr['link']}'>{fr['link']}</a>" if fr["link"] else ""
             evid = f"<b>{fr['resp']}</b>{lnk}"
-            df_fracos.append([fr['qid'], f"{fr['pts']:.1f} / {fr['max']:.1f}", f"{fr['efic']:.1f}%", Paragraph(evid, styles['CellLink'])])
+            df_fracos.append(
+                [
+                    fr["qid"],
+                    f"{fr['pts']:.1f} / {fr['max']:.1f}",
+                    f"{fr['efic']:.1f}%",
+                    Paragraph(evid, styles["CellLink"]),
+                ]
+            )
 
         tfr = Table(df_fracos, colWidths=[65, 75, 65, 275])
-        tfr.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E67E22")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-        ]))
+        tfr.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#E67E22")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                ]
+            )
+        )
         elements.append(tfr)
 
     elements.append(PageBreak())
@@ -5698,7 +7277,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # 3. PENALIDADES E IMPACTOS NEGATIVOS
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES</b>", styles["Heading2"]))
+    elements.append(
+        Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES</b>", styles["Heading2"])
+    )
     elements.append(Spacer(1, 6))
 
     data_penal = [["Quesito", "Penalidade Máxima", "Aplicada?", "Valor Aplicado"]]
@@ -5710,7 +7291,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         aplicada = "Não"
 
         if info_p:
-            pts_p = converter_para_float(info_p.get("pontos") if isinstance(info_p, dict) else info_p)
+            pts_p = converter_para_float(
+                info_p.get("pontos") if isinstance(info_p, dict) else info_p
+            )
             if pts_p < 0:
                 val_p = pts_p
                 aplicada = "Sim"
@@ -5719,51 +7302,86 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         data_penal.append([qid_p, f"{p_max:.1f} pts", aplicada, f"{val_p:.1f} pts"])
 
     t_penal = Table(data_penal, colWidths=[100, 120, 110, 150])
-    t_penal.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C0392B")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-        ("ALIGN", (1, 0), (-1, -1), "CENTER"),
-    ]))
+    t_penal.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#C0392B")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+            ]
+        )
+    )
     elements.append(t_penal)
     elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
     # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["Heading2"]))
+    elements.append(
+        Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["Heading2"])
+    )
     elements.append(Spacer(1, 6))
 
     if reincidencias:
-        data_reinc = [["Quesito", "Teto Máximo", f"Pontos {ano_ant}", f"Pontos {ano_normalizado}", "Situação"]]
+        data_reinc = [
+            [
+                "Quesito",
+                "Teto Máximo",
+                f"Pontos {ano_ant}",
+                f"Pontos {ano_normalizado}",
+                "Situação",
+            ]
+        ]
         for r in reincidencias:
-            data_reinc.append([
-                r["qid"], f"{r['max']:.1f}", f"{r['ant']:.1f}", f"{r['atual']:.1f}", "Reincidente"
-            ])
+            data_reinc.append(
+                [
+                    r["qid"],
+                    f"{r['max']:.1f}",
+                    f"{r['ant']:.1f}",
+                    f"{r['atual']:.1f}",
+                    "Reincidente",
+                ]
+            )
         tr = Table(data_reinc, colWidths=[80, 80, 95, 95, 130])
-        tr.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#D35400")),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-            ("ALIGN", (1, 0), (-1, -1), "CENTER"),
-        ]))
+        tr.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#D35400")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                    ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+                ]
+            )
+        )
         elements.append(tr)
     else:
-        elements.append(Paragraph("<i>Nenhuma reincidência de pontuação insatisfatória foi detectada entre os exercícios analisados.</i>", styles['TdStyle']))
+        elements.append(
+            Paragraph(
+                "<i>Nenhuma reincidência de pontuação insatisfatória foi detectada entre os exercícios analisados.</i>",
+                styles["TdStyle"],
+            )
+        )
 
     elements.append(PageBreak())
 
     # -------------------------------------------------------------------------
     # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU) - I-AMB
     # -------------------------------------------------------------------------
-    elements.append(Paragraph('<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>', styles['h2']))
+    elements.append(
+        Paragraph(
+            "<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]
+        )
+    )
     elements.append(Spacer(1, 6))
 
-    def calcular_percentual_checklist(resposta_bruta, total_itens, ignorar_filtros=False):
+    def calcular_percentual_checklist(
+        resposta_bruta, total_itens, ignorar_filtros=False
+    ):
         if not resposta_bruta:
             return 0.0
 
-        if str(resposta_bruta).startswith('['):
+        if str(resposta_bruta).startswith("["):
             try:
                 itens_lista = ast.literal_eval(str(resposta_bruta))
                 if isinstance(itens_lista, list):
@@ -5773,16 +7391,26 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
                         itens_validos = [
                             str(i).strip().lower()
                             for i in itens_lista
-                            if i and 'outros' not in str(i).lower() and 'não' not in str(i).lower()
+                            if i
+                            and "outros" not in str(i).lower()
+                            and "não" not in str(i).lower()
                         ]
-                    return min((len(itens_validos) / total_itens) * 100.0, 100.0) if total_itens > 0 else 0.0
+                    return (
+                        min((len(itens_validos) / total_itens) * 100.0, 100.0)
+                        if total_itens > 0
+                        else 0.0
+                    )
             except Exception:
                 pass
 
-        itens = [i.strip() for i in str(resposta_bruta).split(',') if i.strip()]
+        itens = [i.strip() for i in str(resposta_bruta).split(",") if i.strip()]
         if not ignorar_filtros:
-            itens = [i for i in itens if 'outros' not in i.lower() and 'não' not in i.lower()]
-        return min((len(itens) / total_itens) * 100.0, 100.0) if total_itens > 0 else 0.0
+            itens = [
+                i for i in itens if "outros" not in i.lower() and "não" not in i.lower()
+            ]
+        return (
+            min((len(itens) / total_itens) * 100.0, 100.0) if total_itens > 0 else 0.0
+        )
 
     def obter_regra_ods_ifiscal(qid, resp):
         """Mapeia os quesitos do I-Fiscal para as metas da Agenda 2030 (ODS) e seu status."""
@@ -5830,7 +7458,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
         elif qid == "7.8.1":
             metas = "6.2, 6.3"
-            status = "Atendido" if "todas as metas foram cumpridas dentro do prazo" in resp_l else "Não Atendido"
+            status = (
+                "Atendido"
+                if "todas as metas foram cumpridas dentro do prazo" in resp_l
+                else "Não Atendido"
+            )
         elif qid == "7.9":
             metas = "6.2, 6.3"
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -5850,7 +7482,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
         elif qid == "10.2":
             metas = "11.6, 12.5, 16.6"
-            status = "Atendido" if "todos os bairros do município são atendidos" in resp_l else "Não Atendido"
+            status = (
+                "Atendido"
+                if "todos os bairros do município são atendidos" in resp_l
+                else "Não Atendido"
+            )
         elif qid == "10.3":
             metas = "11.6, 12.5, 12.4, 16.6"
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -5874,49 +7510,101 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     # Lista de Quesitos do I-Fiscal mapeados na regra ODS
     QUESITOS_IFISCAL_ODS = [
-        "1.0", "1.1", "1.1.2", "2.0", "3.0", "4.0", "5.0", "6.0", "6.2", 
-        "7.0", "7.3", "7.4", "7.5", "7.7.1", "7.8", "7.8.1", "7.9", 
-        "8.0", "8.3", "8.3.1", "8.4", "8.4.1", "9.0", "10.0", "10.1", 
-        "10.2", "10.3", "11.0", "12.0", "13.0", "14.0", "15.0"
+        "1.0",
+        "1.1",
+        "1.1.2",
+        "2.0",
+        "3.0",
+        "4.0",
+        "5.0",
+        "6.0",
+        "6.2",
+        "7.0",
+        "7.3",
+        "7.4",
+        "7.5",
+        "7.7.1",
+        "7.8",
+        "7.8.1",
+        "7.9",
+        "8.0",
+        "8.3",
+        "8.3.1",
+        "8.4",
+        "8.4.1",
+        "9.0",
+        "10.0",
+        "10.1",
+        "10.2",
+        "10.3",
+        "11.0",
+        "12.0",
+        "13.0",
+        "14.0",
+        "15.0",
     ]
 
     analise_ods = []
     dados_reference = dados if isinstance(dados, dict) else {}
 
     for qid in QUESITOS_IFISCAL_ODS:
-        info = dados_reference.get(qid, {}) if isinstance(dados_reference, dict) else {'valor': 'Não Respondido'}
+        info = (
+            dados_reference.get(qid, {})
+            if isinstance(dados_reference, dict)
+            else {"valor": "Não Respondido"}
+        )
         if not isinstance(info, dict):
-            info = {'valor': str(info)}
+            info = {"valor": str(info)}
 
-        resp = str(info.get('valor', '')).strip()
+        resp = str(info.get("valor", "")).strip()
         resp_l = resp.lower()
 
-        if not resp or resp_l == 'não respondido' or resp == '[]':
+        if not resp or resp_l == "não respondido" or resp == "[]":
             continue
 
         # Obtém metas e status calculados dinamicamente
         metas, status = obter_regra_ods_iamb(qid, resp)
 
         exibicao_resp = resp
-        if exibicao_resp.startswith('['):
-            exibicao_resp = exibicao_resp.replace('[', '').replace(']', '').replace("'", '').replace('"', '')
+        if exibicao_resp.startswith("["):
+            exibicao_resp = (
+                exibicao_resp.replace("[", "")
+                .replace("]", "")
+                .replace("'", "")
+                .replace('"', "")
+            )
 
-        analise_ods.append({
-            'qid': qid,
-            'status': status,
-            'metas': metas,
-            'resp': exibicao_resp[:45] + '...' if len(exibicao_resp) > 45 else exibicao_resp,
-        })
+        analise_ods.append(
+            {
+                "qid": qid,
+                "status": status,
+                "metas": metas,
+                "resp": exibicao_resp[:45] + "..."
+                if len(exibicao_resp) > 45
+                else exibicao_resp,
+            }
+        )
 
     if analise_ods:
-        data_ods = [['Quesito', 'Resposta Informada', 'Vínculo Metas ODS', 'Status de Cumprimento']]
+        data_ods = [
+            [
+                "Quesito",
+                "Resposta Informada",
+                "Vínculo Metas ODS",
+                "Status de Cumprimento",
+            ]
+        ]
         style_td_ods = ParagraphStyle(
-            'TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1
+            "TdOds",
+            parent=styles["Normal"],
+            fontName="Helvetica-Bold",
+            fontSize=9,
+            alignment=1,
         )
 
         def chave_ordenacao_ods(item):
             partes = []
-            for p in item['qid'].split('.'):
+            for p in item["qid"].split("."):
                 if p.isdigit():
                     partes.append(int(p))
                 else:
@@ -5924,31 +7612,44 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             return partes
 
         for item in sorted(analise_ods, key=chave_ordenacao_ods):
-            st_txt = item['status']
+            st_txt = item["status"]
 
-            if 'Não Atendido' in st_txt:
-                st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
-            elif 'Atendido' in st_txt and '%' not in st_txt:
-                st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
+            if "Não Atendido" in st_txt:
+                st_p = Paragraph(
+                    f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods
+                )
+            elif "Atendido" in st_txt and "%" not in st_txt:
+                st_p = Paragraph(
+                    f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods
+                )
             else:
-                st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
+                st_p = Paragraph(
+                    f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods
+                )
 
             data_ods.append(
-                [item['qid'], Paragraph(item['resp'], styles['Normal']), item['metas'], st_p]
+                [
+                    item["qid"],
+                    Paragraph(item["resp"], styles["Normal"]),
+                    item["metas"],
+                    st_p,
+                ]
             )
 
         tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
         tabela_ods.setStyle(
-            TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), rl_colors.HexColor('#0f9d58')),
-                ('TEXTCOLOR', (0, 0), (-1, 0), rl_colors.whitesmoke),
-                ('ALIGN', (0, 0), (0, -1), 'CENTER'),
-                ('ALIGN', (2, 0), (3, -1), 'CENTER'),
-                ('GRID', (0, 0), (-1, -1), 0.5, rl_colors.HexColor('#0f9d58')),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                ('TOPPADDING', (0, 0), (-1, -1), 6),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
-            ])
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, 0), rl_colors.HexColor("#0f9d58")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), rl_colors.whitesmoke),
+                    ("ALIGN", (0, 0), (0, -1), "CENTER"),
+                    ("ALIGN", (2, 0), (3, -1), "CENTER"),
+                    ("GRID", (0, 0), (-1, -1), 0.5, rl_colors.HexColor("#0f9d58")),
+                    ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
         )
         elements.append(tabela_ods)
         elements.append(Spacer(1, 15))
@@ -5956,7 +7657,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # 6. SÉRIE HISTÓRICA DO I-FISCAL
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-PLAN</b>", styles["Heading2"]))
+    elements.append(
+        Paragraph("<b>6. SÉRIE HISTÓRICA DO I-PLAN</b>", styles["Heading2"])
+    )
     elements.append(Spacer(1, 6))
 
     data_hist = [["Exercício / Ano", "Pontuação Acumulada", "Faixa / Conceito"]]
@@ -5972,8 +7675,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             for k_a, v_a in sub_d.items():
                 if str(k_a).startswith("COM_"):
                     continue
-                tot_a += converter_para_float(v_a.get("pontos") if isinstance(v_a, dict) else v_a)
-        
+                tot_a += converter_para_float(
+                    v_a.get("pontos") if isinstance(v_a, dict) else v_a
+                )
+
         f_a = converter_pontos_em_faixa_iegm(tot_a)
         data_hist.append([str(a), f"{tot_a:.1f} pts", f_a])
 
@@ -5983,38 +7688,42 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     # 1. Tabela
     t_hist = Table(data_hist, colWidths=[120, 180, 180])
-    t_hist.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2C3E50")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-    ]))
+    t_hist.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2C3E50")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ]
+        )
+    )
     elements.append(t_hist)
     elements.append(Spacer(1, 15))
 
     # 2. Gráfico de Barras Vertical
     if pontos_valores:
         d = Drawing(480, 180)
-        
+
         bc = VerticalBarChart()
         bc.x = 40
         bc.y = 25
         bc.height = 135
         bc.width = 410
         bc.data = [pontos_valores]
-        
+
         # Eixo X (Anos)
         bc.categoryAxis.categoryNames = anos_labels
         bc.categoryAxis.labels.fontSize = 9
         bc.categoryAxis.labels.dy = -10
-        
+
         # Eixo Y (Pontuação)
         max_v = max(pontos_valores) if pontos_valores else 100
         bc.valueAxis.valueMin = 0
         bc.valueAxis.valueMax = max(max_v * 1.15, 100)
         bc.valueAxis.valueStep = 20
         bc.valueAxis.labels.fontSize = 8
-        
+
         # Estilo das Barras
         bc.bars[0].fillColor = colors.HexColor("#2980B9")
         bc.bars[0].strokeColor = colors.HexColor("#1B4F72")
@@ -6026,7 +7735,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)</b>", styles["Heading2"]))
+    elements.append(
+        Paragraph(
+            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)</b>",
+            styles["Heading2"],
+        )
+    )
     elements.append(Spacer(1, 6))
 
     data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
@@ -6037,19 +7751,29 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         status_sp = "Não Informado"
 
         if info_sp:
-            resp_sp = info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
-            status_sp = "Em Conformidade" if "sim" in str(resp_sp).lower() else "Fora de Conformidade"
+            resp_sp = (
+                info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
+            )
+            status_sp = (
+                "Em Conformidade"
+                if "sim" in str(resp_sp).lower()
+                else "Fora de Conformidade"
+            )
 
-        data_sp.append([qsp, Paragraph(str(resp_sp), styles['TdStyle']), status_sp])
+        data_sp.append([qsp, Paragraph(str(resp_sp), styles["TdStyle"]), status_sp])
 
     t_sp = Table(data_sp, colWidths=[100, 250, 130])
-    t_sp.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495E")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("ALIGN", (2, 0), (2, -1), "CENTER"),
-    ]))
+    t_sp.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495E")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (2, 0), (2, -1), "CENTER"),
+            ]
+        )
+    )
     elements.append(t_sp)
 
     # Construção do Documento PDF
@@ -6065,25 +7789,33 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
     Componente NiceGUI para renderizar o Card de Emissão do PDF do I-PLAN.
     """
     res_data = res_data or {}
-    
-    with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
-        ui.label("📄 Emissão de Relatório Analítico - I-Fiscal").classes("text-xl font-bold text-blue-900 mb-1")
-        ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
+
+    with ui.card().classes(
+        "w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50"
+    ):
+        ui.label("📄 Emissão de Relatório Analítico - I-Fiscal").classes(
+            "text-xl font-bold text-blue-900 mb-1"
+        )
+        ui.label(
+            "Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030."
+        ).classes("text-sm text-gray-700 mb-4")
 
         async def baixar_pdf():
             n = ui.notify("Gerando PDF do I-Fiscal, aguarde...", type="info", timeout=0)
-            
+
             try:
                 await asyncio.sleep(0.3)
 
                 dados_locais = res_data or {}
                 ano_alvo = int(ano_sel)
 
-                total_pts = float(sum(
-                    v.get("pontos", 0) 
-                    for k, v in dados_locais.items() 
-                    if isinstance(v, dict) and not str(k).startswith("COM_")
-                ))
+                total_pts = float(
+                    sum(
+                        v.get("pontos", 0)
+                        for k, v in dados_locais.items()
+                        if isinstance(v, dict) and not str(k).startswith("COM_")
+                    )
+                )
 
                 faixa = converter_pontos_em_faixa_iegm(total_pts)
                 historico_todos_anos = get_all_years_data() or {}
@@ -6093,12 +7825,13 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
                     ano=ano_alvo,
                     total=total_pts,
                     faixa=faixa,
-                    todos_dados=historico_todos_anos
+                    todos_dados=historico_todos_anos,
                 )
-                
+
                 rota_pdf = f"/relatorio_ifiscal_temp_{ano_alvo}.pdf"
-                
+
                 try:
+
                     @app.get(rota_pdf)
                     def relatorio_endpoint():
                         return Response(content=pdf_bytes, media_type="application/pdf")
@@ -6111,7 +7844,9 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
             except Exception as e:
                 print(f"ERRO CRÍTICO AO GERAR PDF I-FISCAL: {e}")
                 logging.exception("Erro no PDF I-Fiscal:")
-                ui.notify(f"Erro ao gerar o PDF: {e}", type="negative", close_button=True)
+                ui.notify(
+                    f"Erro ao gerar o PDF: {e}", type="negative", close_button=True
+                )
 
             finally:
                 if n is not None:
@@ -6120,11 +7855,13 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
                     except Exception:
                         pass
 
-        ui.button("📥 GERAR E ABRIR RELATÓRIO PDF (I-FISCAL)", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
+        ui.button(
+            "📥 GERAR E ABRIR RELATÓRIO PDF (I-FISCAL)", on_click=baixar_pdf
+        ).classes("bg-blue-700 text-white font-bold my-2")
 
 
 # Alias de compatibilidade caso seja chamado com nome antigo
-renderizar_card_relatorio_iamb = renderizar_card_relatorio_ifiscal
+renderizar_card_relatorio_iamb = renderizar_card_relatorio_iplan
 
 
 def _render_formulario_iplan(ano=2026):
@@ -6136,19 +7873,21 @@ def _render_formulario_iplan(ano=2026):
             "text-2xl font-bold text-gray-800 mb-4"
         )
         # Aqui devem ser inseridos os campos do checklist/formulário i-Plan
-        ui.label("Preencha os dados abaixo para calcular o I-PLAN:").classes("text-gray-600 mb-2")
+        ui.label("Preencha os dados abaixo para calcular o I-PLAN:").classes(
+            "text-gray-600 mb-2"
+        )
 
 
 def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
     """
-    Ponto de entrada público do módulo I-PLAN no NiceGUI.
+    Ponto de entrada público do módulo I-Fiscal no NiceGUI.
     """
     ano_inicial = ano if ano is not None else ano_sel
 
     # Container principal centralizado
     with ui.container().classes("w-full max-w-5xl mx-auto p-4"):
         # 1. Renderiza a estrutura do formulário
-        _render_formulario_iplan(ano=ano_inicial)
+        _render_formulario_ifiscal(ano=ano_inicial)
 
         # 2. Carrega as respostas do banco de dados com tratamento de exceção seguro
         dados_relatorio = res_data
@@ -6156,7 +7895,9 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
             try:
                 ano_relatorio = ano_inicial
                 if hasattr(app, "storage") and hasattr(app.storage, "user"):
-                    ano_relatorio = int(app.storage.user.get("ano_referencia_global", ano_inicial))
+                    ano_relatorio = int(
+                        app.storage.user.get("ano_referencia_global", ano_inicial)
+                    )
                 dados_relatorio = load_respostas(ano_relatorio)
             except Exception as err:
                 print(f"⚠️ Aviso ao carregar respostas do DB: {err}")
@@ -6166,17 +7907,20 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
             ano_relatorio = ano_inicial
 
         # 3. Renderiza o card do relatório PDF
-        renderizar_card_relatorio_iplan(
+        renderizar_card_relatorio_ifiscal(
             res_data=dados_relatorio,
             ano_sel=ano_relatorio,
         )
 
+
 @ui.page("/")
 def pagina_principal():
-    container_formulario_plan()
+    container_formulario_ifiscal()
 
 
 if __name__ == "__main__":
     ui.run(
-        storage_secret=os.getenv("NICEGUI_STORAGE_SECRET", "chave-local-altere-em-producao")
+        storage_secret=os.getenv(
+            "NICEGUI_STORAGE_SECRET", "chave-local-altere-em-producao"
+        )
     )
