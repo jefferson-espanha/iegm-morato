@@ -10340,7 +10340,7 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("3.23", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       # =============================================================================
                         # QUESITO 3.23.1 (Ações Específicas Realizadas para Redução do Abandono)
                         # =============================================================================
                         with ui.card().classes(
@@ -10353,14 +10353,10 @@ def container_formulario_ieduc(ano=None):
                                 "Assinale as ações e medidas realizadas:"
                             ).classes("text-base font-bold text-black mb-6")
 
-                            d3231 = res_data.get("3.231") or res_data.get("3.23.1") or {}
+                            # Tenta buscar por '3.23.1' primeiro (padrão de salvamento)
+                            d3231 = res_data.get("3.23.1") or res_data.get("3.231") or {}
                             raw_val_3231 = str(d3231.get("valor") or "")
                             raw_link_3231 = str(d3231.get("link") or "")
-
-                            # Parse das opções previamente marcadas (separadas por vírgula ou ponto-e-vírgula)
-                            itens_marcados_i = [
-                                item.strip() for item in raw_val_3231.split(";") if item.strip()
-                            ]
 
                             opcoes_3231 = [
                                 "Ligação/mensagem para os responsáveis",
@@ -10374,18 +10370,28 @@ def container_formulario_ieduc(ano=None):
                                 "Outro",
                             ]
 
+                            # Parse dos itens salvos limpando espaços
+                            brutos_salvos = [
+                                item.strip() for item in raw_val_3231.split(";") if item.strip()
+                            ]
+
+                            itens_selecionados = []
+                            outro_texto = ""
+
+                            for item in brutos_salvos:
+                                if item.startswith("Outro:"):
+                                    outro_texto = item.replace("Outro:", "").strip()
+                                    if "Outro" not in itens_selecionados:
+                                        itens_selecionados.append("Outro")
+                                elif item in opcoes_3231:
+                                    if item not in itens_selecionados:
+                                        itens_selecionados.append(item)
+
                             state_3231 = {
-                                "selecionados": itens_marcados_i,
-                                "outro_desc": "",
+                                "selecionados": itens_selecionados,
+                                "outro_desc": outro_texto,
                                 "link": raw_link_3231,
                             }
-
-                            # Identificar se "Outro" possui texto complementar salvo
-                            for item in itens_marcados_i:
-                                if item.startswith("Outro:"):
-                                    state_3231["outro_desc"] = item.replace("Outro:", "").strip()
-                                    if "Outro" not in state_3231["selecionados"]:
-                                        state_3231["selecionados"].append("Outro")
 
                             with ui.grid(columns=1).classes("w-full gap-2 mb-4"):
                                 for op in opcoes_3231:
@@ -10404,7 +10410,7 @@ def container_formulario_ieduc(ano=None):
 
                                     chk.on("update:model-value", on_chk_change)
 
-                            inp_outro_3231 = ui.input(
+                            ui.input(
                                 "Caso tenha marcado 'Outro', especifique:",
                                 value=state_3231["outro_desc"]
                             ).classes("w-full mb-4").props("outlined color=blue").bind_value(state_3231, "outro_desc")
@@ -10418,15 +10424,18 @@ def container_formulario_ieduc(ano=None):
                             )
 
                             def salvar_3231():
-                                # Montar string formatada final
                                 final_list = []
                                 for op in state_3231["selecionados"]:
-                                    if op == "Outro" and state_3231["outro_desc"]:
-                                        final_list.append(f"Outro: {state_3231['outro_desc']}")
+                                    if op == "Outro":
+                                        desc = state_3231["outro_desc"].strip()
+                                        if desc:
+                                            final_list.append(f"Outro: {desc}")
+                                        else:
+                                            final_list.append("Outro")
                                     else:
                                         final_list.append(op)
 
-                                valor_str = " ; ".join(final_list)
+                                valor_str = "; ".join(final_list)
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="3.23.1",
@@ -10438,7 +10447,7 @@ def container_formulario_ieduc(ano=None):
                                 )
 
                                 ui.notify("Quesito 3.23.1 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 3.23.1", on_click=salvar_3231).classes(
