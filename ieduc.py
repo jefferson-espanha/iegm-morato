@@ -953,8 +953,8 @@ def container_formulario_ieduc(ano=None):
                                 "font-bold text-blue-700 mb-2"
                             )
 
-                            # Extração e Parsing seguro do campo armazenado no banco
-                            val_112_raw = d112.get("resposta") if d112.get("resposta") is not None else d112.get("valor")
+                            # Extração e Parsing seguro tratando EMPTY_STRING e None
+                            val_112_raw = d112.get("resposta") or d112.get("valor") or ""
 
                             cron_init, ncron_init, solic_init, nmanu_init = 0, 0, 0, 0
 
@@ -963,7 +963,7 @@ def container_formulario_ieduc(ano=None):
                                 ncron_init = int(val_112_raw.get("NCRON", 0) or 0)
                                 solic_init = int(val_112_raw.get("SOLIC", 0) or 0)
                                 nmanu_init = int(val_112_raw.get("NMANU", 0) or 0)
-                            elif isinstance(val_112_raw, str):
+                            elif isinstance(val_112_raw, str) and val_112_raw.strip() and val_112_raw != "EMPTY_STRING":
                                 try:
                                     parsed = json.loads(val_112_raw)
                                     if isinstance(parsed, dict):
@@ -986,7 +986,7 @@ def container_formulario_ieduc(ano=None):
                                 "val_ncron": ncron_init,
                                 "val_solic": solic_init,
                                 "val_nmanu": nmanu_init,
-                                "link": str(d112.get("link") or ""),
+                                "link": str(d112.get("link") or "").replace("EMPTY_STRING", ""),
                                 "pts": float(d112.get("pontos", 0.0)),
                             }
 
@@ -1029,7 +1029,7 @@ def container_formulario_ieduc(ano=None):
                                     lbl_dist_112.set_text("Distribuição: Nenhuma creche preenchida até o momento.")
                                     lbl_pts_112.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
 
-                        # Inputs fora do card da calculadora (idêntico ao layout do 1.1.1)
+                        # Inputs fora do card da calculadora (mesma disposição funcional do 1.1.1)
                         with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
                             ui.number(
                                 label="Possuem e CUMPRIRAM o cronograma (CRON)",
@@ -1087,9 +1087,11 @@ def container_formulario_ieduc(ano=None):
                             str_resposta = json.dumps(val_dict)
 
                             try:
+                                # Gravação enviando explicitamente os dois parâmetros para evitar divergência de assinatura
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="1.1.2",
+                                    resposta=str_resposta,
                                     valor=str_resposta,
                                     pontos=state_112["pts"],
                                     link=input_link_112.value,
@@ -1097,6 +1099,7 @@ def container_formulario_ieduc(ano=None):
                                     status=d112.get("status", "Pendente"),
                                 )
 
+                                # Atualiza a estrutura local em memória
                                 novos_dados = {
                                     "resposta": str_resposta,
                                     "valor": str_resposta,
