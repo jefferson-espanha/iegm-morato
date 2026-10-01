@@ -6509,6 +6509,23 @@ def container_formulario_ifiscal(ano=None):
     # Sem esta chamada, o container é criado, mas permanece vazio.
     render_conteudo()
 
+    # O card do relatório pertence ao mesmo fluxo do formulário.
+    # Ele é chamado depois da renderização inicial, como no módulo-modelo.
+    try:
+        ano_relatorio = int(
+            app.storage.user.get("ano_referencia_global", ano or 2026)
+        )
+        dados_relatorio = load_respostas(ano_relatorio)
+    except Exception as err:
+        print(f"⚠️ Aviso ao carregar respostas para o relatório: {err}")
+        ano_relatorio = int(ano or 2026)
+        dados_relatorio = {}
+
+    renderizar_card_relatorio_ifiscal(
+        res_data=dados_relatorio,
+        ano_sel=ano_relatorio,
+    )
+
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
 # -----------------------------------------------------------------------------
@@ -7933,16 +7950,8 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
 
 @ui.page("/")
 def pagina_principal():
-    # Renderiza o questionário uma única vez.
+    # O container monta o formulário e, ao final, o card do relatório.
     container_formulario_ifiscal()
-
-    # Renderiza o card do relatório diretamente depois do questionário,
-    # evitando chamadas encadeadas entre contêineres.
-    ano_relatorio = int(app.storage.user.get("ano_referencia_global", 2026))
-    renderizar_card_relatorio_ifiscal(
-        res_data=load_respostas(ano_relatorio),
-        ano_sel=ano_relatorio,
-    )
 
 
 # O NiceGUI pode iniciar o módulo como __mp_main__ quando usa multiprocessing.
