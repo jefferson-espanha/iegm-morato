@@ -945,7 +945,7 @@ def container_formulario_ieduc(ano=None):
                             "Informe a distribuição das creches quanto à realização e cumprimento do cronograma de manutenção:"
                         ).classes("text-base font-bold text-black mb-2")
 
-                        # Card da Calculadora Automática (Espelho Exato do 1.1.1)
+                        # Card da Calculadora Automática (Apenas labels, idêntico ao 1.1.1)
                         with ui.card().classes(
                             "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
                         ):
@@ -1029,40 +1029,41 @@ def container_formulario_ieduc(ano=None):
                                     lbl_dist_112.set_text("Distribuição: Nenhuma creche preenchida até o momento.")
                                     lbl_pts_112.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
 
-                            with ui.grid(columns=2).classes("w-full gap-4"):
-                                ui.number(
-                                    label="Possuem e CUMPRIRAM o cronograma (CRON)",
-                                    value=state_112["val_cron"],
-                                    min=0,
-                                    step=1,
-                                    on_change=lambda e: [state_112.update({"val_cron": e.value}), calcular_112()],
-                                ).classes("w-full").props("outlined bg-white")
+                        # Inputs fora do card da calculadora (idêntico ao layout do 1.1.1)
+                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
+                            ui.number(
+                                label="Possuem e CUMPRIRAM o cronograma (CRON)",
+                                value=state_112["val_cron"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_112.update({"val_cron": e.value}), calcular_112()],
+                            ).classes("w-full").props("outlined bg-white")
 
-                                ui.number(
-                                    label="Possuem e NÃO cumpriram o cronograma (NCRON)",
-                                    value=state_112["val_ncron"],
-                                    min=0,
-                                    step=1,
-                                    on_change=lambda e: [state_112.update({"val_ncron": e.value}), calcular_112()],
-                                ).classes("w-full").props("outlined bg-white")
+                            ui.number(
+                                label="Possuem e NÃO cumpriram o cronograma (NCRON)",
+                                value=state_112["val_ncron"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_112.update({"val_ncron": e.value}), calcular_112()],
+                            ).classes("w-full").props("outlined bg-white")
 
-                                ui.number(
-                                    label="Manutenção SOMENTE por solicitação (SOLIC)",
-                                    value=state_112["val_solic"],
-                                    min=0,
-                                    step=1,
-                                    on_change=lambda e: [state_112.update({"val_solic": e.value}), calcular_112()],
-                                ).classes("w-full").props("outlined bg-white")
+                            ui.number(
+                                label="Manutenção SOMENTE por solicitação (SOLIC)",
+                                value=state_112["val_solic"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_112.update({"val_solic": e.value}), calcular_112()],
+                            ).classes("w-full").props("outlined bg-white")
 
-                                ui.number(
-                                    label="NÃO realizam manutenção/troca (NMANU)",
-                                    value=state_112["val_nmanu"],
-                                    min=0,
-                                    step=1,
-                                    on_change=lambda e: [state_112.update({"val_nmanu": e.value}), calcular_112()],
-                                ).classes("w-full").props("outlined bg-white")
+                            ui.number(
+                                label="NÃO realizam manutenção/troca (NMANU)",
+                                value=state_112["val_nmanu"],
+                                min=0,
+                                step=1,
+                                on_change=lambda e: [state_112.update({"val_nmanu": e.value}), calcular_112()],
+                            ).classes("w-full").props("outlined bg-white")
 
-                            calcular_112()
+                        calcular_112()
 
                         input_link_112 = (
                             ui.textarea(
@@ -1086,7 +1087,6 @@ def container_formulario_ieduc(ano=None):
                             str_resposta = json.dumps(val_dict)
 
                             try:
-                                # Grava no banco de dados
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="1.1.2",
@@ -1097,7 +1097,6 @@ def container_formulario_ieduc(ano=None):
                                     status=d112.get("status", "Pendente"),
                                 )
 
-                                # Atualiza a estrutura local de dados em memória antes do refresh
                                 novos_dados = {
                                     "resposta": str_resposta,
                                     "valor": str_resposta,
@@ -1126,6 +1125,7 @@ def container_formulario_ieduc(ano=None):
                         )
                         ui.separator().classes("my-2")
                         bloco_comentarios("1.1.2", res_data, render_conteudo.refresh)
+                        
                         # ==========================================
                         # QUESITO 1.2
                         # ==========================================
