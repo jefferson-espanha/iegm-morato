@@ -6505,6 +6505,10 @@ def container_formulario_ifiscal(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("F21", res_data, render_conteudo.refresh)
 
+    # Renderiza o conteúdo na primeira abertura da página.
+    # Sem esta chamada, o container é criado, mas permanece vazio.
+    render_conteudo()
+
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
 # -----------------------------------------------------------------------------
