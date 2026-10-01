@@ -8019,17 +8019,40 @@ def container_formulario_ieduc(ano=None):
                             if "AULAS:" in raw_link_3121:
                                 dt_aulas_3121 = raw_link_3121.replace("AULAS:", "").strip()
 
-                            dt_entrega_3121 = str(d3121.get("valor") or "2025-02-03")
+                            dt_entrega_3121 = str(d3121.get("valor") or "").strip()
+
+                            # Helper para tratar tanto YYYY-MM-DD quanto DD/MM/YYYY
+                            def parse_data(dt_str):
+                                if not dt_str:
+                                    return None
+                                dt_str = dt_str.strip()
+                                for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d"):
+                                    try:
+                                        return datetime.strptime(dt_str, fmt)
+                                    except ValueError:
+                                        continue
+                                return None
+
+                            # Formata para YYYY-MM-DD exigido pelo input type=date
+                            def normalizar_para_iso(dt_str, padrao="2025-02-03"):
+                                dt_obj = parse_data(dt_str)
+                                if dt_obj:
+                                    return dt_obj.strftime("%Y-%m-%d")
+                                return padrao
 
                             state_3121 = {
-                                "dt_aulas": dt_aulas_3121,
-                                "dt_entrega": dt_entrega_3121,
+                                "dt_aulas": normalizar_para_iso(dt_aulas_3121, "2025-02-03"),
+                                "dt_entrega": normalizar_para_iso(dt_entrega_3121, "2025-02-03"),
                             }
 
                             def calc_pts_3121():
                                 try:
-                                    d_aulas = datetime.strptime(state_3121["dt_aulas"], "%Y-%m-%d")
-                                    d_ent = datetime.strptime(state_3121["dt_entrega"], "%Y-%m-%d")
+                                    d_aulas = parse_data(state_3121["dt_aulas"])
+                                    d_ent = parse_data(state_3121["dt_entrega"])
+
+                                    if not d_aulas or not d_ent:
+                                        return 0.0
+
                                     d_limite = d_aulas + timedelta(days=15)
 
                                     if d_ent <= d_aulas:
@@ -8038,7 +8061,8 @@ def container_formulario_ieduc(ano=None):
                                         return 10.0
                                     else:
                                         return 4.0
-                                except Exception:
+                                except Exception as err:
+                                    print(f"Erro no cálculo 3.12.1: {err}")
                                     return 0.0
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
@@ -8061,8 +8085,9 @@ def container_formulario_ieduc(ano=None):
                                     f"📊 Impacto Estimado na Pontuação: {calc_pts_3121():.1f} / 20.0 pontos"
                                 )
 
-                            inp_dt_aulas_3121.on("update:model-value", att_pts_3121)
-                            inp_dt_entrega_3121.on("update:model-value", att_pts_3121)
+                            # Garante a atualização imediata da pontuação ao alterar a data no componente
+                            inp_dt_aulas_3121.on_value_change(att_pts_3121)
+                            inp_dt_entrega_3121.on_value_change(att_pts_3121)
 
                             def salvar_3121():
                                 pts = calc_pts_3121()
@@ -8077,7 +8102,7 @@ def container_formulario_ieduc(ano=None):
                                 )
 
                                 ui.notify("Quesito 3.12.1 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 3.12.1", on_click=salvar_3121).classes(
