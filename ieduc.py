@@ -8428,7 +8428,7 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("3.13.2", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+                        # =============================================================================
                         # QUESITO 3.14 (Entrega de Uniforme Escolar - Anos Iniciais)
                         # =============================================================================
                         with ui.card().classes(
@@ -8442,18 +8442,11 @@ def container_formulario_ieduc(ano=None):
                             ).classes("text-base font-bold text-black mb-6")
 
                             d314 = res_data.get("3.14") or {}
-                            d3141 = res_data.get("3.141") or res_data.get("3.14.1") or {}
 
-                            opcoes_314 = {
-                                "Selecione...": 0.0,
-                                "Sim": 0.0,
-                                "Não": 0.0,
-                            }
+                            opcoes_314 = ["Selecione...", "Sim", "Não"]
 
                             val_314_bruto = str(d314.get("valor") or "")
-                            val_314_valido = "Selecione..."
-                            if val_314_bruto in opcoes_314:
-                                val_314_valido = val_314_bruto
+                            val_314_valido = val_314_bruto if val_314_bruto in opcoes_314 else "Selecione..."
 
                             raw_link_314 = str(d314.get("link") or "")
 
@@ -8462,34 +8455,9 @@ def container_formulario_ieduc(ano=None):
                                 "link": raw_link_314,
                             }
 
-                            def calc_pts_314():
-                                op = state_314["opcao"]
-                                if op == "Sim":
-                                    dt_entrega_str = str(d3141.get("valor") or "")
-                                    dt_link_str = str(d3141.get("link") or "")
-
-                                    dt_aulas_str = "2025-02-03"
-                                    if "AULAS:" in dt_link_str:
-                                        dt_aulas_str = dt_link_str.replace("AULAS:", "").strip()
-
-                                    try:
-                                        d_aulas = datetime.strptime(dt_aulas_str, "%Y-%m-%d")
-                                        d_ent = datetime.strptime(dt_entrega_str, "%Y-%m-%d")
-                                        d_limite = d_aulas + timedelta(days=60)
-
-                                        if d_ent <= d_aulas:
-                                            return 20.0
-                                        elif d_ent < d_limite:
-                                            return 10.0
-                                        else:
-                                            return 4.0
-                                    except Exception:
-                                        return 20.0
-                                return 0.0
-
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                rad_314 = ui.radio(
-                                    options=list(opcoes_314.keys()),
+                                ui.radio(
+                                    options=opcoes_314,
                                     value=state_314["opcao"],
                                 ).props("color=blue").bind_value(state_314, "opcao")
 
@@ -8501,31 +8469,19 @@ def container_formulario_ieduc(ano=None):
                                     state_314, "link"
                                 )
 
-                            lbl_pts_314 = ui.label(
-                                f"📊 Impacto de Pontuação no Quesito 3.14: {calc_pts_314():.1f} / 20.0 pontos"
-                            ).classes("text-sm font-bold text-green-600 my-4")
-
-                            def att_pts_314():
-                                lbl_pts_314.set_text(
-                                    f"📊 Impacto de Pontuação no Quesito 3.14: {calc_pts_314():.1f} / 20.0 pontos"
-                                )
-
-                            rad_314.on("update:model-value", att_pts_314)
-
                             def salvar_314():
-                                pts = calc_pts_314()
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="3.14",
                                     valor=state_314["opcao"],
-                                    pontos=pts,
+                                    pontos=0.0,
                                     link=state_314["link"],
                                     comentarios=d314.get("comentarios", []),
                                     status=d314.get("status", "Pendente"),
                                 )
 
                                 ui.notify("Quesito 3.14 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 3.14", on_click=salvar_314).classes(
