@@ -7945,7 +7945,9 @@ def pagina_principal():
     )
 
 
-if __name__ == "__main__":
+# O NiceGUI pode iniciar o módulo como __mp_main__ quando usa multiprocessing.
+# Com apenas __main__, o servidor sobe e encerra antes de renderizar a página.
+if __name__ in {"__main__", "__mp_main__"}:
     ui.run(
         storage_secret=os.getenv(
             "NICEGUI_STORAGE_SECRET", "chave-local-altere-em-producao"
