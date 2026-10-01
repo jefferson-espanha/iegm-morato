@@ -7891,7 +7891,131 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     doc.build(elements)
     return buffer.getvalue()
 
+    # -------------------------------------------------------------------------
+    # 6. SÉRIE HISTÓRICA DO I-FISCAL
+    # -------------------------------------------------------------------------
+    elements.append(
+        Paragraph("<b>6. SÉRIE HISTÓRICA DO I-PLAN</b>", styles["Heading2"])
+    )
+    elements.append(Spacer(1, 6))
 
+    data_hist = [["Exercício / Ano", "Pontuação Acumulada", "Faixa / Conceito"]]
+    anos_ordenados = sorted(todos_dados.keys())
+
+    anos_labels = []
+    pontos_valores = []
+
+    for a in anos_ordenados:
+        sub_d = todos_dados[a]
+        tot_a = 0.0
+        if isinstance(sub_d, dict):
+            for k_a, v_a in sub_d.items():
+                if str(k_a).startswith("COM_"):
+                    continue
+                tot_a += converter_para_float(
+                    v_a.get("pontos") if isinstance(v_a, dict) else v_a
+                )
+
+        f_a = converter_pontos_em_faixa_iegm(tot_a)
+        data_hist.append([str(a), f"{tot_a:.1f} pts", f_a])
+
+        # Coleta dados para o gráfico
+        anos_labels.append(str(a))
+        pontos_valores.append(tot_a)
+
+    # 1. Tabela
+    t_hist = Table(data_hist, colWidths=[120, 180, 180])
+    t_hist.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2C3E50")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ]
+        )
+    )
+    elements.append(t_hist)
+    elements.append(Spacer(1, 15))
+
+    # 2. Gráfico de Barras Vertical
+    if pontos_valores:
+        d = Drawing(480, 180)
+
+        bc = VerticalBarChart()
+        bc.x = 40
+        bc.y = 25
+        bc.height = 135
+        bc.width = 410
+        bc.data = [pontos_valores]
+
+        # Eixo X (Anos)
+        bc.categoryAxis.categoryNames = anos_labels
+        bc.categoryAxis.labels.fontSize = 9
+        bc.categoryAxis.labels.dy = -10
+
+        # Eixo Y (Pontuação)
+        max_v = max(pontos_valores) if pontos_valores else 100
+        bc.valueAxis.valueMin = 0
+        bc.valueAxis.valueMax = max(max_v * 1.15, 100)
+        bc.valueAxis.valueStep = 20
+        bc.valueAxis.labels.fontSize = 8
+
+        # Estilo das Barras
+        bc.bars[0].fillColor = colors.HexColor("#2980B9")
+        bc.bars[0].strokeColor = colors.HexColor("#1B4F72")
+
+        d.add(bc)
+        elements.append(d)
+        elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)
+    # -------------------------------------------------------------------------
+    elements.append(
+        Paragraph(
+            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)</b>",
+            styles["Heading2"],
+        )
+    )
+    elements.append(Spacer(1, 6))
+
+    data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
+
+    for qsp in lista_alvo_IFISCAL:
+        info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
+        resp_sp = "-"
+        status_sp = "Não Informado"
+
+        if info_sp:
+            resp_sp = (
+                info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
+            )
+            status_sp = (
+                "Em Conformidade"
+                if "sim" in str(resp_sp).lower()
+                else "Fora de Conformidade"
+            )
+
+        data_sp.append([qsp, Paragraph(str(resp_sp), styles["TdStyle"]), status_sp])
+
+    t_sp = Table(data_sp, colWidths=[100, 250, 130])
+    t_sp.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495E")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (2, 0), (2, -1), "CENTER"),
+            ]
+        )
+    )
+    elements.append(t_sp)
+
+    # Construção do Documento PDF
+    doc.build(elements)
+    return buffer.getvalue()
 
 
 # Alias de compatibilidade caso seja chamado com nome antigo
