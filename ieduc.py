@@ -945,105 +945,130 @@ def container_formulario_ieduc(ano=None):
                             "Informe a distribuição das creches quanto à realização e cumprimento do cronograma de manutenção:"
                         ).classes("text-base font-bold text-black mb-2")
 
-                        val_112_raw = d112.get("valor") or d112.get("resposta") or ""
-                        cron_init, ncron_init, solic_init, nmanu_init = 0, 0, 0, 0
+                        # Leitura dos dados já gravados no banco.
+                        valor_salvo = d112.get("valor") or d112.get("resposta") or ""
+                        cron = ncron = solic = nmanu = 0
 
-                        if isinstance(val_112_raw, dict):
-                            cron_init = int(val_112_raw.get("CRON", val_112_raw.get("cron", 0)) or 0)
-                            ncron_init = int(val_112_raw.get("NCRON", val_112_raw.get("ncron", 0)) or 0)
-                            solic_init = int(val_112_raw.get("SOLIC", val_112_raw.get("solic", 0)) or 0)
-                            nmanu_init = int(val_112_raw.get("NMANU", val_112_raw.get("nmanu", 0)) or 0)
-                        elif isinstance(val_112_raw, str) and val_112_raw.strip() != "EMPTY_STRING":
+                        if isinstance(valor_salvo, dict):
+                            cron = int(valor_salvo.get("CRON", valor_salvo.get("cron", 0)) or 0)
+                            ncron = int(valor_salvo.get("NCRON", valor_salvo.get("ncron", 0)) or 0)
+                            solic = int(valor_salvo.get("SOLIC", valor_salvo.get("solic", 0)) or 0)
+                            nmanu = int(valor_salvo.get("NMANU", valor_salvo.get("nmanu", 0)) or 0)
+                        elif isinstance(valor_salvo, str) and valor_salvo.strip() not in ("", "EMPTY_STRING"):
                             try:
-                                parsed = json.loads(val_112_raw)
-                                if isinstance(parsed, dict):
-                                    cron_init = int(parsed.get("CRON", parsed.get("cron", 0)) or 0)
-                                    ncron_init = int(parsed.get("NCRON", parsed.get("ncron", 0)) or 0)
-                                    solic_init = int(parsed.get("SOLIC", parsed.get("solic", 0)) or 0)
-                                    nmanu_init = int(parsed.get("NMANU", parsed.get("nmanu", 0)) or 0)
+                                valor_json = json.loads(valor_salvo)
+                                if isinstance(valor_json, dict):
+                                    cron = int(valor_json.get("CRON", valor_json.get("cron", 0)) or 0)
+                                    ncron = int(valor_json.get("NCRON", valor_json.get("ncron", 0)) or 0)
+                                    solic = int(valor_json.get("SOLIC", valor_json.get("solic", 0)) or 0)
+                                    nmanu = int(valor_json.get("NMANU", valor_json.get("nmanu", 0)) or 0)
                             except (TypeError, ValueError, json.JSONDecodeError):
                                 pass
 
-                        state_112 = {
-                            "val_cron": cron_init,
-                            "val_ncron": ncron_init,
-                            "val_solic": solic_init,
-                            "val_nmanu": nmanu_init,
+                        estado_112 = {
+                            "cron": cron,
+                            "ncron": ncron,
+                            "solic": solic,
+                            "nmanu": nmanu,
                             "link": str(d112.get("link") or "").replace("EMPTY_STRING", ""),
-                            "pts": float(d112.get("pontos") or 0.0),
+                            "pontos": float(d112.get("pontos") or 0.0),
                         }
 
-                        lbl_dist_112 = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
-                        lbl_pts_112 = ui.label().classes("text-sm font-bold text-green-600 mt-1")
+                        with ui.card().classes(
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                        ):
+                            ui.label(
+                                "🧮 Calculadora Automática de Indicador (CRON / NCRON / SOLIC / NMANU)"
+                            ).classes("font-bold text-blue-700 mb-2")
+                            label_distribuicao = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
+                            label_pontos = ui.label().classes("text-sm font-bold text-green-600 mt-1")
 
-                        def calcular_112():
-                            c = int(state_112["val_cron"] or 0)
-                            nc = int(state_112["val_ncron"] or 0)
-                            s = int(state_112["val_solic"] or 0)
-                            nm = int(state_112["val_nmanu"] or 0)
-                            total = c + nc + s + nm
+                            def recalcular_112():
+                                c = int(estado_112.get("cron") or 0)
+                                nc = int(estado_112.get("ncron") or 0)
+                                so = int(estado_112.get("solic") or 0)
+                                nm = int(estado_112.get("nmanu") or 0)
+                                total = c + nc + so + nm
 
-                            if total:
-                                state_112["pts"] = (nm / total) * -2.0 + (nc / total) + (c / total) * 3.0
-                                lbl_dist_112.set_text(
-                                    f"Distribuição: CRON={c} | NCRON={nc} | SOLIC={s} | NMANU={nm} (Total: {total})"
+                                if total > 0:
+                                    pontos = ((c / total) * 3.0) + ((nc / total) * 1.0) - ((nm / total) * 2.0)
+                                else:
+                                    pontos = 0.0
+
+                                estado_112["pontos"] = pontos
+                                label_distribuicao.set_text(
+                                    f"Distribuição: CRON={c} | NCRON={nc} | SOLIC={so} | NMANU={nm} | Total={total}"
                                 )
-                                lbl_pts_112.set_text(
-                                    f"📊 Impacto de Pontuação Calculado: {state_112['pts']:.2f} pontos"
+                                label_pontos.set_text(
+                                    f"📊 Impacto de Pontuação Calculado: {pontos:.2f} pontos"
                                 )
-                            else:
-                                state_112["pts"] = 0.0
-                                lbl_dist_112.set_text("Distribuição: Nenhuma creche preenchida até o momento.")
-                                lbl_pts_112.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
 
-                        with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
-                            ui.number(
-                                label="Possuem e CUMPRIRAM o cronograma (CRON)",
-                                value=state_112["val_cron"], min=0, step=1,
-                                on_change=lambda e: [state_112.update({"val_cron": e.value}), calcular_112()],
-                            ).classes("w-full").props("outlined bg-white")
+                            def atualizar_campo(nome):
+                                def callback(evento):
+                                    try:
+                                        estado_112[nome] = int(evento.value or 0)
+                                    except (TypeError, ValueError):
+                                        estado_112[nome] = 0
+                                    recalcular_112()
+                                return callback
 
-                            ui.number(
-                                label="Possuem e NÃO cumpriram o cronograma (NCRON)",
-                                value=state_112["val_ncron"], min=0, step=1,
-                                on_change=lambda e: [state_112.update({"val_ncron": e.value}), calcular_112()],
-                            ).classes("w-full").props("outlined bg-white")
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                ui.number(
+                                    label="Possuem e CUMPRIRAM o cronograma (CRON)",
+                                    value=estado_112["cron"],
+                                    min=0,
+                                    step=1,
+                                    on_change=atualizar_campo("cron"),
+                                ).classes("w-full").props("outlined bg-white")
 
-                            ui.number(
-                                label="Manutenção SOMENTE por solicitação (SOLIC)",
-                                value=state_112["val_solic"], min=0, step=1,
-                                on_change=lambda e: [state_112.update({"val_solic": e.value}), calcular_112()],
-                            ).classes("w-full").props("outlined bg-white")
+                                ui.number(
+                                    label="Possuem e NÃO cumpriram o cronograma (NCRON)",
+                                    value=estado_112["ncron"],
+                                    min=0,
+                                    step=1,
+                                    on_change=atualizar_campo("ncron"),
+                                ).classes("w-full").props("outlined bg-white")
 
-                            ui.number(
-                                label="NÃO realizam manutenção/troca (NMANU)",
-                                value=state_112["val_nmanu"], min=0, step=1,
-                                on_change=lambda e: [state_112.update({"val_nmanu": e.value}), calcular_112()],
-                            ).classes("w-full").props("outlined bg-white")
+                                ui.number(
+                                    label="Manutenção SOMENTE por solicitação (SOLIC)",
+                                    value=estado_112["solic"],
+                                    min=0,
+                                    step=1,
+                                    on_change=atualizar_campo("solic"),
+                                ).classes("w-full").props("outlined bg-white")
 
-                        calcular_112()
+                                ui.number(
+                                    label="NÃO realizam manutenção/troca (NMANU)",
+                                    value=estado_112["nmanu"],
+                                    min=0,
+                                    step=1,
+                                    on_change=atualizar_campo("nmanu"),
+                                ).classes("w-full").props("outlined bg-white")
+
+                            recalcular_112()
 
                         input_link_112 = ui.textarea(
                             label="Link de Evidência / Documento:",
-                            value=state_112["link"],
-                            placeholder="Insira os relatórios de manutenção, cronogramas ou ordem de serviço...",
+                            value=estado_112["link"],
+                            placeholder="Insira os relatórios de manutenção, cronogramas ou ordens de serviço...",
                         ).classes("w-full mb-4").props("outlined rows=3")
 
                         def salvar_112():
                             try:
-                                calcular_112()
-                                c = int(state_112["val_cron"] or 0)
-                                nc = int(state_112["val_ncron"] or 0)
-                                s = int(state_112["val_solic"] or 0)
-                                nm = int(state_112["val_nmanu"] or 0)
-                                resposta = {"CRON": c, "NCRON": nc, "SOLIC": s, "NMANU": nm}
+                                recalcular_112()
+                                resposta_112 = {
+                                    "CRON": int(estado_112.get("cron") or 0),
+                                    "NCRON": int(estado_112.get("ncron") or 0),
+                                    "SOLIC": int(estado_112.get("solic") or 0),
+                                    "NMANU": int(estado_112.get("nmanu") or 0),
+                                }
 
-                                # IMPORTANTE: save_resposta aceita 'valor', não aceita 'resposta'.
+                                # save_resposta recebe valor=; não use resposta= aqui.
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="1.1.2",
-                                    valor=resposta,
-                                    pontos=state_112["pts"],
+                                    valor=resposta_112,
+                                    pontos=float(estado_112["pontos"]),
                                     link=input_link_112.value or "",
                                     comentarios=d112.get("comentarios", []),
                                     status=d112.get("status", "Pendente"),
@@ -1052,13 +1077,15 @@ def container_formulario_ieduc(ano=None):
                                 ui.notify("Quesito 1.1.2 salvo com sucesso!", type="positive")
                                 if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
-                            except Exception as exc:
-                                print(f"Erro ao salvar o quesito 1.1.2: {exc}")
-                                ui.notify(f"Erro ao salvar Quesito 1.1.2: {exc}", type="negative")
+                            except Exception as erro:
+                                print(f"Erro ao salvar Quesito 1.1.2: {erro}")
+                                ui.notify(f"Erro ao salvar Quesito 1.1.2: {erro}", type="negative")
 
-                        ui.button("💾 SALVAR QUESITO 1.1.2", on_click=salvar_112).classes(
-                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                        )
+                        ui.button(
+                            "💾 SALVAR QUESITO 1.1.2",
+                            on_click=salvar_112,
+                        ).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+
                         ui.separator().classes("my-2")
                         bloco_comentarios("1.1.2", res_data, render_conteudo.refresh)
                 
