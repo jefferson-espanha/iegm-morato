@@ -6690,6 +6690,7 @@ PONTUACOES_MAX_Fiscal = {
 
 # Aliases de compatibilidade para evitar NameError
 PONTUACOES_MAX_IAMB = PONTUACOES_MAX_Fiscal
+PONTUACOES_MAX_IFISCAL = PONTUACOES_MAX_Fiscal
 PONTUACOES_MAX = PONTUACOES_MAX_Fiscal
 
 PENALIDADES_MAX = {
@@ -7856,7 +7857,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
 
-    for qsp in lista_alvo_IFISCAL:
+    for qsp in lista_alvo_ifiscal:
         info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
         resp_sp = "-"
         status_sp = "Não Informado"
@@ -7982,7 +7983,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
 
-    for qsp in lista_alvo_IFISCAL:
+    for qsp in lista_alvo_ifiscal:
         info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
         resp_sp = "-"
         status_sp = "Não Informado"
