@@ -930,209 +930,202 @@ def container_formulario_ieduc(ano=None):
                             )
                             ui.separator().classes("my-2")
                             bloco_comentarios("1.1.1", res_data, render_conteudo.refresh)
-                        # =============================================================================
-                        # QUESITO 1.1.2 (Manutenção Preventiva / Troca de Brinquedos)
-                        # =============================================================================
-                        d112 = res_data.get("1.1.2") or res_data.get("112") or {}
+                    # =============================================================================
+                    # QUESITO 1.1.2 (Manutenção Preventiva dos Brinquedos do Pátio)
+                    # =============================================================================
+                    d112 = res_data.get("1.1.2") or res_data.get("112") or {}
 
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("1.1.2 • Manutenção Preventiva dos Brinquedos do Pátio").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a distribuição das creches quanto à realização e cumprimento do cronograma de manutenção:"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        # Card da Calculadora Automática (Espelho Exato do 1.1.1)
                         with ui.card().classes(
-                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                            "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
                         ):
-                            ui.label("1.1.2 • Manutenção Preventiva dos Brinquedos do Pátio").classes(
-                                "text-xl font-semibold text-blue-500 mb-3"
-                            )
-                            ui.label(
-                                "Informe a distribuição das creches quanto à realização e cumprimento do cronograma de manutenção:"
-                            ).classes("text-base font-bold text-black mb-2")
-
-                            # Card da Calculadora Automática (Estilo F1 / 1.1.1)
-                            with ui.card().classes(
-                                "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
-                            ):
-                                ui.label("🧮 Calculadora Automática de Indicador (CRON / NCRON / SOLIC / NMANU)").classes(
-                                    "font-bold text-blue-700 mb-2"
-                                )
-
-                                # Extração de dados da resposta (com suporte a JSON e formatos antigos)
-                                val_112_raw = d112.get("resposta") if d112.get("resposta") is not None else d112.get("valor")
-                                raw_link_112 = str(d112.get("link") or "")
-
-                                cron_i, ncron_i, solic_i, nmanu_i = 0, 0, 0, 0
-                                evidencia_112 = raw_link_112
-
-                                if isinstance(val_112_raw, dict):
-                                    cron_i = int(val_112_raw.get("CRON", 0) or 0)
-                                    ncron_i = int(val_112_raw.get("NCRON", 0) or 0)
-                                    solic_i = int(val_112_raw.get("SOLIC", 0) or 0)
-                                    nmanu_i = int(val_112_raw.get("NMANU", 0) or 0)
-                                elif isinstance(val_112_raw, str):
-                                    try:
-                                        parsed = json.loads(val_112_raw)
-                                        if isinstance(parsed, dict):
-                                            cron_i = int(parsed.get("CRON", 0) or 0)
-                                            ncron_i = int(parsed.get("NCRON", 0) or 0)
-                                            solic_i = int(parsed.get("SOLIC", 0) or 0)
-                                            nmanu_i = int(parsed.get("NMANU", 0) or 0)
-                                    except Exception:
-                                        m_cron = re.search(r"CRON:(\d+)", val_112_raw)
-                                        m_ncron = re.search(r"NCRON:(\d+)", val_112_raw)
-                                        m_solic = re.search(r"SOLIC:(\d+)", val_112_raw)
-                                        m_nmanu = re.search(r"NMANU:(\d+)", val_112_raw)
-                                        if m_cron: cron_i = int(m_cron.group(1))
-                                        if m_ncron: ncron_i = int(m_ncron.group(1))
-                                        if m_solic: solic_i = int(m_solic.group(1))
-                                        if m_nmanu: nmanu_i = int(m_nmanu.group(1))
-
-                                if "|LINK:" in raw_link_112:
-                                    partes_112, evidencia_112 = raw_link_112.split("|LINK:", 1)
-                                    if cron_i == 0 and ncron_i == 0 and solic_i == 0 and nmanu_i == 0:
-                                        m_cron = re.search(r"CRON:(\d+)", partes_112)
-                                        m_ncron = re.search(r"NCRON:(\d+)", partes_112)
-                                        m_solic = re.search(r"SOLIC:(\d+)", partes_112)
-                                        m_nmanu = re.search(r"NMANU:(\d+)", partes_112)
-                                        cron_i = int(m_cron.group(1)) if m_cron else 0
-                                        ncron_i = int(m_ncron.group(1)) if m_ncron else 0
-                                        solic_i = int(m_solic.group(1)) if m_solic else 0
-                                        nmanu_i = int(m_nmanu.group(1)) if m_nmanu else 0
-
-                                state_112 = {
-                                    "cron": cron_i,
-                                    "ncron": ncron_i,
-                                    "solic": solic_i,
-                                    "nmanu": nmanu_i,
-                                    "link": evidencia_112,
-                                    "pts": float(d112.get("pontos", 0.0)),
-                                }
-
-                                lbl_resumo_112 = ui.label().classes(
-                                    "text-sm font-bold text-gray-800 mt-2"
-                                )
-                                lbl_pts_112 = ui.label().classes(
-                                    "text-sm font-bold text-green-600 mt-1"
-                                )
-
-                                def calcular_112():
-                                    try: c = int(state_112["cron"]) if state_112["cron"] is not None else 0
-                                    except (ValueError, TypeError): c = 0
-                                    try: nc = int(state_112["ncron"]) if state_112["ncron"] is not None else 0
-                                    except (ValueError, TypeError): nc = 0
-                                    try: s = int(state_112["solic"]) if state_112["solic"] is not None else 0
-                                    except (ValueError, TypeError): s = 0
-                                    try: nm = int(state_112["nmanu"]) if state_112["nmanu"] is not None else 0
-                                    except (ValueError, TypeError): nm = 0
-
-                                    total_resp = c + nc + s + nm
-                                    if total_resp > 0:
-                                        p1 = (nm / total_resp) * (-2.0)
-                                        p2 = (nc / total_resp) * 1.0
-                                        p3 = (c / total_resp) * 3.0
-                                        pts = p1 + p2 + p3
-                                        state_112["pts"] = pts
-
-                                        cor = "text-red-600" if pts < 0 else "text-green-600"
-                                        lbl_pts_112.classes(remove="text-red-600 text-green-600", add=cor)
-                                        lbl_resumo_112.set_text(
-                                            f"Distribuição Informada: CRON={c} | NCRON={nc} | SOLIC={s} | NMANU={nm} (Total: {total_resp})"
-                                        )
-                                        lbl_pts_112.set_text(
-                                            f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
-                                        )
-                                    else:
-                                        state_112["pts"] = 0.0
-                                        lbl_resumo_112.set_text("Distribuição: Nenhuma creche preenchida até o momento.")
-                                        lbl_pts_112.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
-
-                                with ui.grid(columns=2).classes("w-full gap-4"):
-                                    ui.number(
-                                        label="Possuem e CUMPRIRAM o cronograma (CRON)",
-                                        value=state_112["cron"],
-                                        min=0,
-                                        step=1,
-                                        on_change=lambda e: [state_112.update({"cron": e.value}), calcular_112()],
-                                    ).classes("w-full").props("outlined bg-white")
-
-                                    ui.number(
-                                        label="Possuem e NÃO cumpriram o cronograma (NCRON)",
-                                        value=state_112["ncron"],
-                                        min=0,
-                                        step=1,
-                                        on_change=lambda e: [state_112.update({"ncron": e.value}), calcular_112()],
-                                    ).classes("w-full").props("outlined bg-white")
-
-                                    ui.number(
-                                        label="Manutenção SOMENTE por solicitação (SOLIC)",
-                                        value=state_112["solic"],
-                                        min=0,
-                                        step=1,
-                                        on_change=lambda e: [state_112.update({"solic": e.value}), calcular_112()],
-                                    ).classes("w-full").props("outlined bg-white")
-
-                                    ui.number(
-                                        label="NÃO realizam manutenção/troca (NMANU)",
-                                        value=state_112["nmanu"],
-                                        min=0,
-                                        step=1,
-                                        on_change=lambda e: [state_112.update({"nmanu": e.value}), calcular_112()],
-                                    ).classes("w-full").props("outlined bg-white")
-
-                                calcular_112()
-
-                            input_link_112 = (
-                                ui.textarea(
-                                    label="Link de Evidência / Documento:",
-                                    value=state_112["link"],
-                                    placeholder="Insira os relatórios de manutenção, cronogramas ou ordem de serviço...",
-                                )
-                                .classes("w-full mb-4")
-                                .props("outlined rows=3")
+                            ui.label("🧮 Calculadora Automática de Indicador (CRON / NCRON / SOLIC / NMANU)").classes(
+                                "font-bold text-blue-700 mb-2"
                             )
 
-                            def salvar_112():
-                                calcular_112()
+                            # Extração e Parsing seguro do campo armazenado no banco
+                            val_112_raw = d112.get("resposta") if d112.get("resposta") is not None else d112.get("valor")
 
-                                c = int(state_112["cron"]) if state_112["cron"] is not None else 0
-                                nc = int(state_112["ncron"]) if state_112["ncron"] is not None else 0
-                                s = int(state_112["solic"]) if state_112["solic"] is not None else 0
-                                nm = int(state_112["nmanu"]) if state_112["nmanu"] is not None else 0
+                            cron_init, ncron_init, solic_init, nmanu_init = 0, 0, 0, 0
 
-                                val_dict = {"CRON": c, "NCRON": nc, "SOLIC": s, "NMANU": nm}
-                                str_resposta = json.dumps(val_dict)
-                                link_val = input_link_112.value or ""
-
+                            if isinstance(val_112_raw, dict):
+                                cron_init = int(val_112_raw.get("CRON", 0) or 0)
+                                ncron_init = int(val_112_raw.get("NCRON", 0) or 0)
+                                solic_init = int(val_112_raw.get("SOLIC", 0) or 0)
+                                nmanu_init = int(val_112_raw.get("NMANU", 0) or 0)
+                            elif isinstance(val_112_raw, str):
                                 try:
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="1.1.2",
-                                        valor=str_resposta,
-                                        pontos=state_112["pts"],
-                                        link=link_val,
-                                        comentarios=d112.get("comentarios", []),
-                                        status=d112.get("status", "Pendente"),
-                                    )
+                                    parsed = json.loads(val_112_raw)
+                                    if isinstance(parsed, dict):
+                                        cron_init = int(parsed.get("CRON", 0) or 0)
+                                        ncron_init = int(parsed.get("NCRON", 0) or 0)
+                                        solic_init = int(parsed.get("SOLIC", 0) or 0)
+                                        nmanu_init = int(parsed.get("NMANU", 0) or 0)
+                                except Exception:
+                                    m_cron = re.search(r"CRON:(\d+)", val_112_raw)
+                                    m_ncron = re.search(r"NCRON:(\d+)", val_112_raw)
+                                    m_solic = re.search(r"SOLIC:(\d+)", val_112_raw)
+                                    m_nmanu = re.search(r"NMANU:(\d+)", val_112_raw)
+                                    if m_cron: cron_init = int(m_cron.group(1))
+                                    if m_ncron: ncron_init = int(m_ncron.group(1))
+                                    if m_solic: solic_init = int(m_solic.group(1))
+                                    if m_nmanu: nmanu_init = int(m_nmanu.group(1))
 
-                                    novos_dados = {
-                                        "resposta": str_resposta,
-                                        "valor": str_resposta,
-                                        "pontos": state_112["pts"],
-                                        "link": link_val,
-                                        "comentarios": d112.get("comentarios", []),
-                                        "status": d112.get("status", "Pendente"),
-                                    }
-                                    res_data["1.1.2"] = novos_dados
-                                    res_data["112"] = novos_dados
+                            state_112 = {
+                                "val_cron": cron_init,
+                                "val_ncron": ncron_init,
+                                "val_solic": solic_init,
+                                "val_nmanu": nmanu_init,
+                                "link": str(d112.get("link") or ""),
+                                "pts": float(d112.get("pontos", 0.0)),
+                            }
 
-                                    ui.notify("Quesito 1.1.2 salvo com sucesso!", type="positive")
-                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
-                                        render_conteudo.refresh()
-                                except Exception as e:
-                                    ui.notify(f"Erro ao salvar Quesito 1.1.2: {e}", type="negative")
-
-                            ui.button("💾 SALVAR QUESITO 1.1.2", on_click=salvar_112).classes(
-                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            lbl_dist_112 = ui.label().classes(
+                                "text-sm font-bold text-gray-800 mt-2"
                             )
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("1.1.2", res_data, render_conteudo.refresh)
-                        
+                            lbl_pts_112 = ui.label().classes(
+                                "text-sm font-bold text-green-600 mt-1"
+                            )
+
+                            def calcular_112():
+                                try: c = int(state_112["val_cron"]) if state_112["val_cron"] is not None else 0
+                                except (ValueError, TypeError): c = 0
+
+                                try: nc = int(state_112["val_ncron"]) if state_112["val_ncron"] is not None else 0
+                                except (ValueError, TypeError): nc = 0
+
+                                try: s = int(state_112["val_solic"]) if state_112["val_solic"] is not None else 0
+                                except (ValueError, TypeError): s = 0
+
+                                try: nm = int(state_112["val_nmanu"]) if state_112["val_nmanu"] is not None else 0
+                                except (ValueError, TypeError): nm = 0
+
+                                total_resp = c + nc + s + nm
+                                if total_resp > 0:
+                                    p1 = (nm / total_resp) * (-2.0)
+                                    p2 = (nc / total_resp) * 1.0
+                                    p3 = (c / total_resp) * 3.0
+                                    pts = p1 + p2 + p3
+                                    state_112["pts"] = pts
+
+                                    lbl_dist_112.set_text(
+                                        f"Distribuição Informada: CRON={c} | NCRON={nc} | SOLIC={s} | NMANU={nm} (Total: {total_resp})"
+                                    )
+                                    lbl_pts_112.set_text(
+                                        f"📊 Impacto de Pontuação Calculado: {pts:.2f} pontos"
+                                    )
+                                else:
+                                    state_112["pts"] = 0.0
+                                    lbl_dist_112.set_text("Distribuição: Nenhuma creche preenchida até o momento.")
+                                    lbl_pts_112.set_text("📊 Impacto de Pontuação Calculado: 0.00 pontos")
+
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                ui.number(
+                                    label="Possuem e CUMPRIRAM o cronograma (CRON)",
+                                    value=state_112["val_cron"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_112.update({"val_cron": e.value}), calcular_112()],
+                                ).classes("w-full").props("outlined bg-white")
+
+                                ui.number(
+                                    label="Possuem e NÃO cumpriram o cronograma (NCRON)",
+                                    value=state_112["val_ncron"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_112.update({"val_ncron": e.value}), calcular_112()],
+                                ).classes("w-full").props("outlined bg-white")
+
+                                ui.number(
+                                    label="Manutenção SOMENTE por solicitação (SOLIC)",
+                                    value=state_112["val_solic"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_112.update({"val_solic": e.value}), calcular_112()],
+                                ).classes("w-full").props("outlined bg-white")
+
+                                ui.number(
+                                    label="NÃO realizam manutenção/troca (NMANU)",
+                                    value=state_112["val_nmanu"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_112.update({"val_nmanu": e.value}), calcular_112()],
+                                ).classes("w-full").props("outlined bg-white")
+
+                            calcular_112()
+
+                        input_link_112 = (
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_112["link"],
+                                placeholder="Insira os relatórios de manutenção, cronogramas ou ordem de serviço...",
+                            )
+                            .classes("w-full mb-4")
+                            .props("outlined rows=3")
+                        )
+
+                        def salvar_112():
+                            calcular_112()
+
+                            c = int(state_112["val_cron"]) if state_112["val_cron"] is not None else 0
+                            nc = int(state_112["val_ncron"]) if state_112["val_ncron"] is not None else 0
+                            s = int(state_112["val_solic"]) if state_112["val_solic"] is not None else 0
+                            nm = int(state_112["val_nmanu"]) if state_112["val_nmanu"] is not None else 0
+
+                            val_dict = {"CRON": c, "NCRON": nc, "SOLIC": s, "NMANU": nm}
+                            str_resposta = json.dumps(val_dict)
+
+                            try:
+                                # Grava no banco de dados
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="1.1.2",
+                                    valor=str_resposta,
+                                    pontos=state_112["pts"],
+                                    link=input_link_112.value,
+                                    comentarios=d112.get("comentarios", []),
+                                    status=d112.get("status", "Pendente"),
+                                )
+
+                                # Atualiza a estrutura local de dados em memória antes do refresh
+                                novos_dados = {
+                                    "resposta": str_resposta,
+                                    "valor": str_resposta,
+                                    "pontos": state_112["pts"],
+                                    "link": input_link_112.value,
+                                    "comentarios": d112.get("comentarios", []),
+                                    "status": d112.get("status", "Pendente"),
+                                }
+                                res_data["1.1.2"] = novos_dados
+                                res_data["112"] = novos_dados
+
+                                ui.notify(
+                                    "Quesito 1.1.2 salvo com sucesso!",
+                                    type="positive",
+                                )
+                                if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                    render_conteudo.refresh()
+                            except Exception as e:
+                                ui.notify(
+                                    f"Erro ao salvar Quesito 1.1.2: {e}",
+                                    type="negative",
+                                )
+
+                        ui.button("💾 SALVAR QUESITO 1.1.2", on_click=salvar_112).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("1.1.2", res_data, render_conteudo.refresh)
                         # ==========================================
                         # QUESITO 1.2
                         # ==========================================
