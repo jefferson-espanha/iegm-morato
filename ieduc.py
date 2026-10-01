@@ -14165,8 +14165,19 @@ def container_formulario_ieduc(ano=None):
                         ui.label("16.4 • Aprovação de Contas da SME pelo Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("O Conselho Municipal de Educação aprovou as contas da Secretaria Municipal de Educação referente ao exercício de 2025?").classes("text-base font-bold text-black mb-4")
 
+                        # Lista oficial de opções do Radio
+                        opts_164 = [
+                            "Sim",
+                            "Não",
+                            "Não compete ao Conselho aprovar as contas da Secretaria – 00",
+                            "Não compete ao Conselho aprovar as contas da Secretaria",
+                        ]
+
                         d164 = res_data.get("16.4") or res_data.get("164") or {}
-                        val_164 = str(d164.get("valor") or "Sim")
+                        val_164_raw = str(d164.get("valor") or "Sim").strip()
+
+                        # Validação de fallback: garante que o valor pertença às opções válidas do NiceGUI
+                        val_164 = val_164_raw if val_164_raw in opts_164 else opts_164[0]
                         link_164 = str(d164.get("link") or "")
 
                         state_164 = {
@@ -14181,13 +14192,11 @@ def container_formulario_ieduc(ano=None):
                                 state_164["pontos"] = -50.0
                             else:
                                 state_164["pontos"] = 0.0
+                            
+                            # Define cor do texto dinamicamente (vermelho se houver penalidade)
+                            cor_classe = "text-red-600" if state_164["pontos"] < 0 else "text-green-600"
+                            lbl_pontos_164.classes(replace=f"text-sm font-bold mb-4 {cor_classe}")
                             lbl_pontos_164.set_text(f"📊 Pontuação Quesito 16.4: {state_164['pontos']:.1f} pontos".replace(".", ","))
-
-                        opts_164 = [
-                            "Sim",
-                            "Não",
-                            "Não compete ao Conselho aprovar as contas da Secretaria",
-                        ]
 
                         ui.radio(
                             options=opts_164,
