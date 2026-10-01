@@ -6589,9 +6589,6 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
         ).props("no-caps")
 
 
-    render_conteudo()
-
-
 import io
 import os
 import logging
