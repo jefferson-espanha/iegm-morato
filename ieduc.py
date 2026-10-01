@@ -713,7 +713,7 @@ def container_formulario_ieduc(ano=None):
                     # =============================================================================
                     # QUESITO 1.1.1 (Brinquedos no Pátio Infantil - BPI)
                     # =============================================================================
-                    d111 = res_data.get("1.1.1", {})
+                    d111 = res_data.get("1.1.1") or res_data.get("111") or {}
 
                     with ui.card().classes(
                         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -733,30 +733,26 @@ def container_formulario_ieduc(ano=None):
                                 "font-bold text-blue-700 mb-2"
                             )
 
-                            # Desserialização do campo do banco ('resposta' ou 'valor')
-                            val_111_bruto = d111.get("resposta") or d111.get("valor") or {}
-                            while isinstance(val_111_bruto, str):
+                            # Extração e Parsing seguro do campo armazenado no banco
+                            val_111_raw = d111.get("resposta") if d111.get("resposta") is not None else d111.get("valor")
+                            
+                            bpi_init, tot_init = 0, 0
+
+                            if isinstance(val_111_raw, dict):
+                                bpi_init = int(val_111_raw.get("BPI", val_111_raw.get("bpi", 0)) or 0)
+                                tot_init = int(val_111_raw.get("TOT", val_111_raw.get("tot", 0)) or 0)
+                            elif isinstance(val_111_raw, str):
+                                # Tenta fazer o parse de string JSON ou formato "X/Y"
                                 try:
-                                    val_111_bruto = json.loads(val_111_bruto)
+                                    parsed = json.loads(val_111_raw)
+                                    if isinstance(parsed, dict):
+                                        bpi_init = int(parsed.get("BPI", parsed.get("bpi", 0)) or 0)
+                                        tot_init = int(parsed.get("TOT", parsed.get("tot", 0)) or 0)
                                 except Exception:
-                                    val_111_bruto = {}
-                                    break
-
-                            if not isinstance(val_111_bruto, dict):
-                                val_111_bruto = {}
-
-                            raw_bpi = val_111_bruto.get("BPI", val_111_bruto.get("bpi", 0))
-                            raw_tot = val_111_bruto.get("TOT", val_111_bruto.get("tot", 0))
-
-                            try:
-                                bpi_init = int(raw_bpi) if raw_bpi is not None else 0
-                            except (ValueError, TypeError):
-                                bpi_init = 0
-
-                            try:
-                                tot_init = int(raw_tot) if raw_tot is not None else 0
-                            except (ValueError, TypeError):
-                                tot_init = 0
+                                    if "/" in val_111_raw:
+                                        partes = val_111_raw.split("/")
+                                        bpi_init = int(partes[0].strip()) if partes[0].strip().isdigit() else 0
+                                        tot_init = int(partes[1].strip()) if partes[1].strip().isdigit() else 0
 
                             state_111 = {
                                 "val_bpi": bpi_init,
@@ -765,31 +761,6 @@ def container_formulario_ieduc(ano=None):
                                 "pts": float(d111.get("pontos", 0.0)),
                             }
 
-                            with ui.grid(columns=2).classes("w-full gap-4"):
-                                input_bpi = (
-                                    ui.number(
-                                        label="Nº de creches COM brinquedos no pátio",
-                                        value=state_111["val_bpi"],
-                                        min=0,
-                                        step=1,
-                                    )
-                                    .bind_value(state_111, "val_bpi")
-                                    .classes("w-full")
-                                    .props("outlined bg-white")
-                                )
-
-                                input_tot = (
-                                    ui.number(
-                                        label="TOTAL de creches no município",
-                                        value=state_111["val_tot"],
-                                        min=0,
-                                        step=1,
-                                    )
-                                    .bind_value(state_111, "val_tot")
-                                    .classes("w-full")
-                                    .props("outlined bg-white")
-                                )
-
                             lbl_prop_111 = ui.label().classes(
                                 "text-sm font-bold text-gray-800 mt-2"
                             )
@@ -797,7 +768,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-sm font-bold text-green-600 mt-1"
                             )
 
-                            def calcular_111(_=None):
+                            def calcular_111():
                                 try:
                                     bpi = int(state_111["val_bpi"]) if state_111["val_bpi"] is not None else 0
                                 except (ValueError, TypeError):
@@ -819,8 +790,23 @@ def container_formulario_ieduc(ano=None):
                                     lbl_prop_111.set_text("Proporção: Indefinida (O Total de creches deve ser maior que 0)")
                                     lbl_pts_111.set_text("📊 Impacto de Pontuação Calculado: 0.00 / 2.00 pontos")
 
-                            input_bpi.on("update:model-value", calcular_111)
-                            input_tot.on("update:model-value", calcular_111)
+                            with ui.grid(columns=2).classes("w-full gap-4"):
+                                ui.number(
+                                    label="Nº de creches COM brinquedos no pátio",
+                                    value=state_111["val_bpi"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_111.update({"val_bpi": e.value}), calcular_111()],
+                                ).classes("w-full").props("outlined bg-white")
+
+                                ui.number(
+                                    label="TOTAL de creches no município",
+                                    value=state_111["val_tot"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_111.update({"val_tot": e.value}), calcular_111()],
+                                ).classes("w-full").props("outlined bg-white")
+
                             calcular_111()
 
                         input_link_111 = (
@@ -836,39 +822,41 @@ def container_formulario_ieduc(ano=None):
                         def salvar_111():
                             calcular_111()
 
-                            val_dict = {
-                                "BPI": int(state_111["val_bpi"]) if state_111["val_bpi"] is not None else 0,
-                                "TOT": int(state_111["val_tot"]) if state_111["val_tot"] is not None else 0,
-                            }
-                            # Converte o dicionário em JSON String para salvar na coluna `text`
-                            json_resposta = json.dumps(val_dict)
+                            b_val = int(state_111["val_bpi"]) if state_111["val_bpi"] is not None else 0
+                            t_val = int(state_111["val_tot"]) if state_111["val_tot"] is not None else 0
+
+                            val_dict = {"BPI": b_val, "TOT": t_val}
+                            str_resposta = json.dumps(val_dict)
 
                             try:
+                                # Grava no banco de dados
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="1.1.1",
-                                    valor=json_resposta,
+                                    valor=str_resposta,
                                     pontos=state_111["pts"],
                                     link=input_link_111.value,
                                     comentarios=d111.get("comentarios", []),
                                     status=d111.get("status", "Pendente"),
                                 )
 
-                                # Atualiza cache na memória local para re-renderização imediata
-                                res_data["1.1.1"] = {
-                                    "resposta": json_resposta,
-                                    "valor": json_resposta,
+                                # Atualiza a estrutura local de dados em memória antes do refresh
+                                novos_dados = {
+                                    "resposta": str_resposta,
+                                    "valor": str_resposta,
                                     "pontos": state_111["pts"],
                                     "link": input_link_111.value,
                                     "comentarios": d111.get("comentarios", []),
                                     "status": d111.get("status", "Pendente"),
                                 }
+                                res_data["1.1.1"] = novos_dados
+                                res_data["111"] = novos_dados
 
                                 ui.notify(
                                     "Quesito 1.1.1 salvo com sucesso!",
                                     type="positive",
                                 )
-                                if render_conteudo.refresh:
+                                if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
                                     render_conteudo.refresh()
                             except Exception as e:
                                 ui.notify(
@@ -881,7 +869,6 @@ def container_formulario_ieduc(ano=None):
                         )
                         ui.separator().classes("my-2")
                         bloco_comentarios("1.1.1", res_data, render_conteudo.refresh)
-
                     # =============================================================================
                     # QUESITO 1.1.2 (Manutenção Preventiva / Troca de Brinquedos)
                     # =============================================================================
