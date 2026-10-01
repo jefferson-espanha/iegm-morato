@@ -725,7 +725,7 @@ def container_formulario_ieduc(ano=None):
                             "Informe o número de creches com brinquedos no pátio e o total de creches no município:"
                         ).classes("text-base font-bold text-black mb-2")
 
-                        # Card de Calculadora (Estilo F1)
+                        # Card da Calculadora Automática
                         with ui.card().classes(
                             "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
                         ):
@@ -733,8 +733,8 @@ def container_formulario_ieduc(ano=None):
                                 "font-bold text-blue-700 mb-2"
                             )
 
-                            # Desserialização segura do campo 'valor'
-                            val_111_bruto = d111.get("valor", {})
+                            # Desserialização do campo do banco ('resposta' ou 'valor')
+                            val_111_bruto = d111.get("resposta") or d111.get("valor") or {}
                             while isinstance(val_111_bruto, str):
                                 try:
                                     val_111_bruto = json.loads(val_111_bruto)
@@ -761,7 +761,7 @@ def container_formulario_ieduc(ano=None):
                             state_111 = {
                                 "val_bpi": bpi_init,
                                 "val_tot": tot_init,
-                                "link": d111.get("link", ""),
+                                "link": str(d111.get("link") or ""),
                                 "pts": float(d111.get("pontos", 0.0)),
                             }
 
@@ -840,21 +840,24 @@ def container_formulario_ieduc(ano=None):
                                 "BPI": int(state_111["val_bpi"]) if state_111["val_bpi"] is not None else 0,
                                 "TOT": int(state_111["val_tot"]) if state_111["val_tot"] is not None else 0,
                             }
+                            # Converte o dicionário em JSON String para salvar na coluna `text`
+                            json_resposta = json.dumps(val_dict)
 
                             try:
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="1.1.1",
-                                    valor=val_dict,
+                                    valor=json_resposta,
                                     pontos=state_111["pts"],
                                     link=input_link_111.value,
                                     comentarios=d111.get("comentarios", []),
                                     status=d111.get("status", "Pendente"),
                                 )
 
-                                # Atualiza cache local do estado para re-renderização imediata
+                                # Atualiza cache na memória local para re-renderização imediata
                                 res_data["1.1.1"] = {
-                                    "valor": val_dict,
+                                    "resposta": json_resposta,
+                                    "valor": json_resposta,
                                     "pontos": state_111["pts"],
                                     "link": input_link_111.value,
                                     "comentarios": d111.get("comentarios", []),
@@ -862,14 +865,14 @@ def container_formulario_ieduc(ano=None):
                                 }
 
                                 ui.notify(
-                                    "Quesito 1.1.1 salvo com sucesso no Banco de Dados!",
+                                    "Quesito 1.1.1 salvo com sucesso!",
                                     type="positive",
                                 )
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
                             except Exception as e:
                                 ui.notify(
-                                    f"Erro ao salvar no Banco de Dados: {e}",
+                                    f"Erro ao salvar Quesito 1.1.1: {e}",
                                     type="negative",
                                 )
 
