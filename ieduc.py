@@ -7722,6 +7722,156 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("3.10.1", res_data, render_conteudo.refresh)
 
                         # =============================================================================
+                    # QUESITO 3.11 (Ações Governamentais para Enfrentamento ao Bullying)
+                    # =============================================================================
+                    d311 = res_data.get("3.11") or {}
+                    valor_salvo_311 = str(d311.get("valor") or d311.get("resposta") or "").strip()
+
+                    state_311 = {
+                        "resposta": valor_salvo_311 if valor_salvo_311 in ("Sim", "Não") else "Não",
+                        "link": str(d311.get("link") or "").replace("EMPTY_STRING", ""),
+                        "pontos": float(d311.get("pontos") or 0.0),
+                    }
+
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.11 • Enfrentamento ao Bullying no Planejamento").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O Município possui, no planejamento, ações governamentais para enfrentamento ao bullying?"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Pontuação: Sim = 2,0 pts | Não = 0,0 pts"
+                        ).classes("text-xs text-gray-400 mb-4")
+
+                        lbl_pts_311 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+
+                        def recalcular_311():
+                            resp = state_311.get("resposta", "Não")
+                            pts = 2.0 if resp == "Sim" else 0.0
+                            state_311["pontos"] = pts
+                            lbl_pts_311.set_text(
+                                f"📊 Impacto de Pontuação no Quesito 3.11: {pts:.2f} / 2.0 pontos"
+                            )
+
+                        radio_311 = (
+                            ui.radio(
+                                options=["Sim", "Não"],
+                                value=state_311["resposta"],
+                                on_change=lambda e: [
+                                    state_311.update({"resposta": e.value}),
+                                    recalcular_311(),
+                                ],
+                            )
+                            .props("inline color=blue")
+                            .classes("mb-4")
+                        )
+
+                        input_link_311 = ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_311["link"],
+                            placeholder="Insira o link do plano de governo, diretrizes da SME ou decreto...",
+                        ).classes("w-full mb-4").props("outlined rows=3").bind_value(
+                            state_311, "link"
+                        )
+
+                        recalcular_311()
+
+                        def salvar_311():
+                            try:
+                                recalcular_311()
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="3.11",
+                                    valor=state_311["resposta"],
+                                    pontos=float(state_311["pontos"]),
+                                    link=state_311["link"] or "",
+                                    comentarios=d311.get("comentarios", []),
+                                    status=d311.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 3.11 salvo com sucesso!", type="positive")
+                                if callable(getattr(render_conteudo, "refresh", None)):
+                                    render_conteudo.refresh()
+                            except Exception as erro:
+                                print(f"Erro ao salvar Quesito 3.11: {erro}")
+                                ui.notify(f"Erro ao salvar Quesito 3.11: {erro}", type="negative")
+
+                        ui.button(
+                            "💾 SALVAR QUESITO 3.11",
+                            on_click=salvar_311,
+                        ).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.11", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 3.11.1 (Descrição das Ações Governamentais de Enfrentamento ao Bullying)
+                    # =============================================================================
+                    d311_1 = res_data.get("3.11.1") or {}
+                    valor_salvo_311_1 = str(
+                        d311_1.get("valor") or d311_1.get("resposta") or ""
+                    ).replace("EMPTY_STRING", "")
+
+                    state_311_1 = {
+                        "descricao": valor_salvo_311_1,
+                        "link": str(d311_1.get("link") or "").replace("EMPTY_STRING", ""),
+                    }
+
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("3.11.1 • Descrição das Ações de Enfrentamento ao Bullying").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Descreva as ações governamentais para enfrentamento ao bullying:"
+                        ).classes("text-base font-bold text-black mb-2")
+
+                        inp_desc_311_1 = ui.textarea(
+                            label="Ações governamentais para enfrentamento ao bullying:",
+                            value=state_311_1["descricao"],
+                            placeholder="Detalhe os programas, projetos, palestras ou rotinas pedagógicas voltadas à prevenção do bullying...",
+                        ).classes("w-full mb-4").props("outlined rows=5").bind_value(
+                            state_311_1, "descricao"
+                        )
+
+                        input_link_311_1 = ui.textarea(
+                            label="Link de Evidência / Documento complementar:",
+                            value=state_311_1["link"],
+                            placeholder="Insira links de portarias, materiais de apoio, fotos ou relatórios de execução...",
+                        ).classes("w-full mb-4").props("outlined rows=3").bind_value(
+                            state_311_1, "link"
+                        )
+
+                        def salvar_311_1():
+                            try:
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="3.11.1",
+                                    valor=state_311_1["descricao"],
+                                    pontos=0.0,  # Quesito eminentemente descritivo
+                                    link=state_311_1["link"] or "",
+                                    comentarios=d311_1.get("comentarios", []),
+                                    status=d311_1.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 3.11.1 salvo com sucesso!", type="positive")
+                                if callable(getattr(render_conteudo, "refresh", None)):
+                                    render_conteudo.refresh()
+                            except Exception as erro:
+                                print(f"Erro ao salvar Quesito 3.11.1: {erro}")
+                                ui.notify(f"Erro ao salvar Quesito 3.11.1: {erro}", type="negative")
+
+                        ui.button(
+                            "💾 SALVAR QUESITO 3.11.1",
+                            on_click=salvar_311_1,
+                        ).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("3.11.1", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
                         # QUESITO 3.12 (Entrega do Kit Escolar - Anos Iniciais)
                         # =============================================================================
                         with ui.card().classes(
