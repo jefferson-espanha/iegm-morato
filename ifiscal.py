@@ -8038,7 +8038,7 @@ def _render_formulario_ifiscal(ano=2026):
         )
 
 
-def container_formulario_ifiscal(ano=None, res_data=None, ano_sel=2026):
+def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
     """
     Ponto de entrada público do módulo I-PLAN no NiceGUI.
     """
