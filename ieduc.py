@@ -4882,166 +4882,165 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("2.7.2", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
-                        # QUESITO 2.8 (Rotatividade do Corpo Docente em Pré-escola)
-                        # =============================================================================
-                        with ui.card().classes(
-                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                        ):
-                            ui.label("2.8 • Rotatividade de Professores de Pré-escola").classes(
-                                "text-xl font-semibold text-blue-500 mb-3"
-                            )
-                            ui.label(
-                                "Informe o número de escolas em cada faixa de rotatividade de professores de Pré-escola:"
-                            ).classes("text-base font-bold text-black mb-1")
-                            ui.label(
-                                "ℹ Cálculo: NF = 3.0 × (3×Q1 + 2×Q2 + 1×Q3 + 0×Q4) | Pmáx = 3.0 pts."
-                            ).classes("text-xs text-gray-400 mb-6")
+                    # =============================================================================
+                    # QUESITO 2.8 (Rotatividade do Corpo Docente em Pré-escola)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("2.8 • Rotatividade de Professores de Pré-escola").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o número de escolas em cada faixa de rotatividade de professores de Pré-escola:"
+                        ).classes("text-base font-bold text-black mb-1")
+                        ui.label(
+                            "ℹ Cálculo: NF = 3.0×Q1 + 2.0×Q2 + 1.0×Q3 + 0.0×Q4 (sendo Qi as proporções) | Pmáx = 3.0 pts."
+                        ).classes("text-xs text-gray-400 mb-6")
 
-                            d28 = res_data.get("2.8") or {}
-                            raw_link_28 = str(d28.get("link") or "")
+                        d28 = res_data.get("2.8") or {}
+                        raw_link_28 = str(d28.get("link") or "")
 
-                            pq1_i, pq2_i, pq3_i, pq4_i = 0, 0, 0, 0
-                            evidencia_28 = raw_link_28
+                        pq1_i, pq2_i, pq3_i, pq4_i = 0, 0, 0, 0
+                        evidencia_28 = raw_link_28
 
-                            if "|LINK:" in raw_link_28:
-                                partes_28, evidencia_28 = raw_link_28.split("|LINK:", 1)
-                                m_q1 = re.search(r"Q1:(\d+)", partes_28)
-                                m_q2 = re.search(r"Q2:(\d+)", partes_28)
-                                m_q3 = re.search(r"Q3:(\d+)", partes_28)
-                                m_q4 = re.search(r"Q4:(\d+)", partes_28)
-                                pq1_i = int(m_q1.group(1)) if m_q1 else 0
-                                pq2_i = int(m_q2.group(1)) if m_q2 else 0
-                                pq3_i = int(m_q3.group(1)) if m_q3 else 0
-                                pq4_i = int(m_q4.group(1)) if m_q4 else 0
+                        if "|LINK:" in raw_link_28:
+                            partes_28, evidencia_28 = raw_link_28.split("|LINK:", 1)
+                            m_q1 = re.search(r"Q1:(\d+)", partes_28)
+                            m_q2 = re.search(r"Q2:(\d+)", partes_28)
+                            m_q3 = re.search(r"Q3:(\d+)", partes_28)
+                            m_q4 = re.search(r"Q4:(\d+)", partes_28)
+                            pq1_i = int(m_q1.group(1)) if m_q1 else 0
+                            pq2_i = int(m_q2.group(1)) if m_q2 else 0
+                            pq3_i = int(m_q3.group(1)) if m_q3 else 0
+                            pq4_i = int(m_q4.group(1)) if m_q4 else 0
 
-                            state_28 = {
-                                "q1": pq1_i,
-                                "q2": pq2_i,
-                                "q3": pq3_i,
-                                "q4": pq4_i,
-                                "link": evidencia_28,
-                            }
+                        state_28 = {
+                            "q1": pq1_i,
+                            "q2": pq2_i,
+                            "q3": pq3_i,
+                            "q4": pq4_i,
+                            "link": evidencia_28,
+                        }
 
-                            def calc_pts_28():
-                                c1 = int(state_28["q1"] or 0)
-                                c2 = int(state_28["q2"] or 0)
-                                c3 = int(state_28["q3"] or 0)
-                                c4 = int(state_28["q4"] or 0)
-                                tot_escolas = c1 + c2 + c3 + c4
-                                if tot_escolas <= 0:
-                                    return 0.0
+                        def calc_pts_28():
+                            c1 = int(state_28["q1"] or 0)
+                            c2 = int(state_28["q2"] or 0)
+                            c3 = int(state_28["q3"] or 0)
+                            c4 = int(state_28["q4"] or 0)
+                            tot_escolas = c1 + c2 + c3 + c4
 
-                                prop1 = c1 / tot_escolas
-                                prop2 = c2 / tot_escolas
-                                prop3 = c3 / tot_escolas
-                                prop4 = c4 / tot_escolas
+                            if tot_escolas <= 0:
+                                return 0.0
 
-                                n1 = 3.0 * prop1
-                                n2 = 2.0 * prop2
-                                n3 = 1.0 * prop3
-                                n4 = 0.0 * prop4
+                            prop1 = c1 / tot_escolas
+                            prop2 = c2 / tot_escolas
+                            prop3 = c3 / tot_escolas
+                            prop4 = c4 / tot_escolas
 
-                                return min(3.0 * (n1 + n2 + n3 + n4), 3.0)
+                            # Média ponderada direta pela escala de 0 a 3.0 pontos
+                            pontuacao = (3.0 * prop1) + (2.0 * prop2) + (1.0 * prop3) + (0.0 * prop4)
 
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("w-full gap-3"):
-                                    inp_pq1 = (
-                                        ui.number(
-                                            "Escolas com rotatividade MENOR que 20%:",
-                                            value=pq1_i,
-                                            min=0,
-                                            step=1,
-                                        )
-                                        .classes("w-full")
-                                        .props("outlined color=blue")
-                                        .bind_value(state_28, "q1")
+                            return min(pontuacao, 3.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-3"):
+                                inp_pq1 = (
+                                    ui.number(
+                                        "Escolas com rotatividade MENOR que 20%:",
+                                        value=pq1_i,
+                                        min=0,
+                                        step=1,
                                     )
-
-                                    inp_pq2 = (
-                                        ui.number(
-                                            "Escolas com rotatividade entre 20% e 29,9%:",
-                                            value=pq2_i,
-                                            min=0,
-                                            step=1,
-                                        )
-                                        .classes("w-full")
-                                        .props("outlined color=blue")
-                                        .bind_value(state_28, "q2")
-                                    )
-
-                                    inp_pq3 = (
-                                        ui.number(
-                                            "Escolas com rotatividade entre 30% e 39,9%:",
-                                            value=pq3_i,
-                                            min=0,
-                                            step=1,
-                                        )
-                                        .classes("w-full")
-                                        .props("outlined color=blue")
-                                        .bind_value(state_28, "q3")
-                                    )
-
-                                    inp_pq4 = (
-                                        ui.number(
-                                            "Escolas com rotatividade MAIOR ou igual a 40%:",
-                                            value=pq4_i,
-                                            min=0,
-                                            step=1,
-                                        )
-                                        .classes("w-full")
-                                        .props("outlined color=blue")
-                                        .bind_value(state_28, "q4")
-                                    )
-
-                                ui.textarea(
-                                    label="Link de Evidência / Documento:",
-                                    value=evidencia_28,
-                                    placeholder="Insira relatórios de atribuição de aulas, remoção de docentes ou folhas de ponto...",
-                                ).classes("w-full").props("outlined rows=10").bind_value(
-                                    state_28, "link"
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_28, "q1")
                                 )
 
-                            lbl_pts_28 = ui.label(
+                                inp_pq2 = (
+                                    ui.number(
+                                        "Escolas com rotatividade entre 20% e 29,9%:",
+                                        value=pq2_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_28, "q2")
+                                )
+
+                                inp_pq3 = (
+                                    ui.number(
+                                        "Escolas com rotatividade entre 30% e 39,9%:",
+                                        value=pq3_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_28, "q3")
+                                )
+
+                                inp_pq4 = (
+                                    ui.number(
+                                        "Escolas com rotatividade MAIOR ou igual a 40%:",
+                                        value=pq4_i,
+                                        min=0,
+                                        step=1,
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined color=blue")
+                                    .bind_value(state_28, "q4")
+                                )
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=evidencia_28,
+                                placeholder="Insira relatórios de atribuição de aulas, remoção de docentes ou folhas de ponto...",
+                            ).classes("w-full").props("outlined rows=10").bind_value(
+                                state_28, "link"
+                            )
+
+                        lbl_pts_28 = ui.label(
+                            f"📊 Impacto de Pontuação no Quesito 2.8: {calc_pts_28():.2f} / 3.0 pontos"
+                        ).classes("text-sm font-bold text-green-600 my-4")
+
+                        def att_pts_28():
+                            lbl_pts_28.set_text(
                                 f"📊 Impacto de Pontuação no Quesito 2.8: {calc_pts_28():.2f} / 3.0 pontos"
-                            ).classes("text-sm font-bold text-green-600 my-4")
-
-                            def att_pts_28():
-                                lbl_pts_28.set_text(
-                                    f"📊 Impacto de Pontuação no Quesito 2.8: {calc_pts_28():.2f} / 3.0 pontos"
-                                )
-
-                            inp_pq1.on("update:model-value", att_pts_28)
-                            inp_pq2.on("update:model-value", att_pts_28)
-                            inp_pq3.on("update:model-value", att_pts_28)
-                            inp_pq4.on("update:model-value", att_pts_28)
-
-                            def salvar_28():
-                                c1 = int(state_28["q1"] or 0)
-                                c2 = int(state_28["q2"] or 0)
-                                c3 = int(state_28["q3"] or 0)
-                                c4 = int(state_28["q4"] or 0)
-                                pts_finais = calc_pts_28()
-                                composite = f"Q1:{c1},Q2:{c2},Q3:{c3},Q4:{c4}|LINK:{state_28['link']}"
-
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="2.8",
-                                    valor=f"Q1:{c1}/Q2:{c2}/Q3:{c3}/Q4:{c4}",
-                                    pontos=pts_finais,
-                                    link=composite,
-                                    comentarios=d28.get("comentarios", []),
-                                    status=d28.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito 2.8 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 2.8", on_click=salvar_28).classes(
-                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("2.8", res_data, render_conteudo.refresh)
+
+                        inp_pq1.on("update:model-value", att_pts_28)
+                        inp_pq2.on("update:model-value", att_pts_28)
+                        inp_pq3.on("update:model-value", att_pts_28)
+                        inp_pq4.on("update:model-value", att_pts_28)
+
+                        def salvar_28():
+                            c1 = int(state_28["q1"] or 0)
+                            c2 = int(state_28["q2"] or 0)
+                            c3 = int(state_28["q3"] or 0)
+                            c4 = int(state_28["q4"] or 0)
+                            pts_finais = calc_pts_28()
+                            composite = f"Q1:{c1},Q2:{c2},Q3:{c3},Q4:{c4}|LINK:{state_28['link']}"
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="2.8",
+                                valor=f"Q1:{c1}/Q2:{c2}/Q3:{c3}/Q4:{c4}",
+                                pontos=pts_finais,
+                                link=composite,
+                                comentarios=d28.get("comentarios", []),
+                                status=d28.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 2.8 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 2.8", on_click=salvar_28).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("2.8", res_data, render_conteudo.refresh)
 
         # =============================================================================
                         # QUESITO 2.9 (Regularidade e Permanência dos Gestores de Pré-escola)
