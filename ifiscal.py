@@ -7752,11 +7752,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         tabela_ods.setStyle(
             TableStyle(
                 [
-                    ("BACKGROUND", (0, 0), (-1, 0), rl_colors.HexColor("#0f9d58")),
-                    ("TEXTCOLOR", (0, 0), (-1, 0), rl_colors.whitesmoke),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")),
+                    ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
                     ("ALIGN", (0, 0), (0, -1), "CENTER"),
                     ("ALIGN", (2, 0), (3, -1), "CENTER"),
-                    ("GRID", (0, 0), (-1, -1), 0.5, rl_colors.HexColor("#0f9d58")),
+                    ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")),
                     ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
                     ("TOPPADDING", (0, 0), (-1, -1), 6),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
