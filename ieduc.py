@@ -8188,20 +8188,19 @@ def container_formulario_ieduc(ano=None):
                             ).classes("text-xs text-gray-400 mb-6")
 
                             d313 = res_data.get("3.13") or {}
-                            d3131 = res_data.get("3.13.1") or {}
 
-                            opcoes_313 = {
-                                "Selecione...": 0.0,
-                                "Sim": 0.0,
-                                "Não": 0.0,
-                            }
+                            opcoes_313 = [
+                                "Selecione...",
+                                "Sim",
+                                "Não",
+                            ]
 
                             val_313_bruto = str(d313.get("valor") or "")
                             val_313_valido = "Selecione..."
                             if val_313_bruto in opcoes_313:
                                 val_313_valido = val_313_bruto
                             else:
-                                for chave in opcoes_313.keys():
+                                for chave in opcoes_313:
                                     if chave != "Selecione..." and chave.startswith(val_313_bruto):
                                         val_313_valido = chave
                                         break
@@ -8213,34 +8212,10 @@ def container_formulario_ieduc(ano=None):
                                 "link": raw_link_313,
                             }
 
-                            def calc_pts_313():
-                                if state_313["opcao"] == "Sim":
-                                    dt_entrega_str = str(d3131.get("valor") or "")
-                                    dt_link_str = str(d3131.get("link") or "")
-
-                                    dt_aulas_str = "2025-02-03"
-                                    if "AULAS:" in dt_link_str:
-                                        dt_aulas_str = dt_link_str.replace("AULAS:", "").strip()
-
-                                    try:
-                                        d_aulas = datetime.strptime(dt_aulas_str, "%Y-%m-%d")
-                                        d_ent = datetime.strptime(dt_entrega_str, "%Y-%m-%d")
-                                        d_limite = d_aulas + timedelta(days=15)
-
-                                        if d_ent <= d_aulas:
-                                            return 20.0
-                                        elif d_ent < d_limite:
-                                            return 10.0
-                                        else:
-                                            return 4.0
-                                    except Exception:
-                                        return 20.0
-                                return 0.0
-
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 with ui.column().classes("w-full gap-3"):
                                     rad_313 = ui.radio(
-                                        options=list(opcoes_313.keys()),
+                                        options=opcoes_313,
                                         value=state_313["opcao"],
                                     ).props("color=blue").bind_value(state_313, "opcao")
 
@@ -8252,31 +8227,19 @@ def container_formulario_ieduc(ano=None):
                                     state_313, "link"
                                 )
 
-                            lbl_pts_313 = ui.label(
-                                f"📊 Impacto de Pontuação no Quesito 3.13: {calc_pts_313():.1f} / 20.0 pontos"
-                            ).classes("text-sm font-bold text-green-600 my-4")
-
-                            def att_pts_313():
-                                lbl_pts_313.set_text(
-                                    f"📊 Impacto de Pontuação no Quesito 3.13: {calc_pts_313():.1f} / 20.0 pontos"
-                                )
-
-                            rad_313.on("update:model-value", att_pts_313)
-
                             def salvar_313():
-                                pts = calc_pts_313()
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="3.13",
                                     valor=state_313["opcao"],
-                                    pontos=pts,
+                                    pontos=0.0,
                                     link=state_313["link"],
                                     comentarios=d313.get("comentarios", []),
                                     status=d313.get("status", "Pendente"),
                                 )
 
                                 ui.notify("Quesito 3.13 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 3.13", on_click=salvar_313).classes(
