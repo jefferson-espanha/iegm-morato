@@ -7997,7 +7997,7 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("3.12", res_data, render_conteudo.refresh)
 
                         # =============================================================================
-                        # QUESITO 3.12.1 (Data da Última Entrega do Kit Escolar)
+                        # QUESITO 3.12.1 (Data da Última Entrega do Kit Escolar - Anos Iniciais)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -8006,97 +8006,94 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a data da última entrega na escola:"
+                                "Informe a data da última entrega e a data de início das aulas em 2025:"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "ℹ Fórmula: ≤ Início das Aulas (20,0 pts) | < Início + 15 dias (10,0 pts) | ≥ Início + 15 dias (4,0 pts)."
+                                "ℹ Cálculo: ≤ Início Aulas = 20.0 pts | < Início + 15 dias = 10.0 pts | ≥ Início + 15 dias = 4.0 pts."
                             ).classes("text-xs text-gray-400 mb-6")
 
-                            d3121 = res_data.get("3.121") or res_data.get("3.12.1") or {}
+                            d3121 = res_data.get("3.12.1") or res_data.get("3.121") or {}
                             raw_link_3121 = str(d3121.get("link") or "")
 
-                            dt_aulas_3121 = "2025-02-03"
-                            if "AULAS:" in raw_link_3121:
-                                dt_aulas_3121 = raw_link_3121.replace("AULAS:", "").strip()
+                            dt_entrega_3121, dt_inicio_3121 = "", "05/02/2025"
+                            evidencia_3121 = raw_link_3121
 
-                            dt_entrega_3121 = str(d3121.get("valor") or "").strip()
-
-                            # Helper para tratar tanto YYYY-MM-DD quanto DD/MM/YYYY
-                            def parse_data(dt_str):
-                                if not dt_str:
-                                    return None
-                                dt_str = dt_str.strip()
-                                for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%Y/%m/%d"):
-                                    try:
-                                        return datetime.strptime(dt_str, fmt)
-                                    except ValueError:
-                                        continue
-                                return None
-
-                            # Formata para YYYY-MM-DD exigido pelo input type=date
-                            def normalizar_para_iso(dt_str, padrao="2025-02-03"):
-                                dt_obj = parse_data(dt_str)
-                                if dt_obj:
-                                    return dt_obj.strftime("%Y-%m-%d")
-                                return padrao
+                            if "|LINK:" in raw_link_3121:
+                                partes_3121, evidencia_3121 = raw_link_3121.split("|LINK:", 1)
+                                m_ent = re.search(r"ENTREGA:([\d/]+)", partes_3121)
+                                m_ini = re.search(r"INICIO:([\d/]+)", partes_3121)
+                                dt_entrega_3121 = m_ent.group(1) if m_ent else ""
+                                dt_inicio_3121 = m_ini.group(1) if m_ini else "05/02/2025"
+                            elif d3121.get("valor"):
+                                dt_entrega_3121 = str(d3121.get("valor"))
 
                             state_3121 = {
-                                "dt_aulas": normalizar_para_iso(dt_aulas_3121, "2025-02-03"),
-                                "dt_entrega": normalizar_para_iso(dt_entrega_3121, "2025-02-03"),
+                                "dt_entrega": dt_entrega_3121,
+                                "dt_inicio": dt_inicio_3121,
+                                "link": evidencia_3121,
                             }
 
                             def calc_pts_3121():
                                 try:
-                                    d_aulas = parse_data(state_3121["dt_aulas"])
-                                    d_ent = parse_data(state_3121["dt_entrega"])
+                                    ent = datetime.strptime(state_3121["dt_entrega"].strip(), "%d/%m/%Y")
+                                    ini = datetime.strptime(state_3121["dt_inicio"].strip(), "%d/%m/%Y")
+                                    diff_dias = (ent - ini).days
 
-                                    if not d_aulas or not d_ent:
-                                        return 0.0
-
-                                    d_limite = d_aulas + timedelta(days=15)
-
-                                    if d_ent <= d_aulas:
+                                    if diff_dias <= 0:
                                         return 20.0
-                                    elif d_ent < d_limite:
+                                    elif diff_dias < 15:
                                         return 10.0
                                     else:
                                         return 4.0
-                                except Exception as err:
-                                    print(f"Erro no cálculo 3.12.1: {err}")
+                                except Exception:
                                     return 0.0
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                inp_dt_aulas_3121 = ui.input(
-                                    "Data de início das aulas:",
-                                    value=state_3121["dt_aulas"]
-                                ).props("type=date outlined color=blue").bind_value(state_3121, "dt_aulas")
+                                with ui.column().classes("w-full gap-3"):
+                                    inp_dt_ent_3121 = ui.input(
+                                        label="Data da última entrega (DD/MM/AAAA):",
+                                        value=dt_entrega_3121,
+                                        placeholder="Ex: 02/02/2025",
+                                    ).classes("w-full").props("outlined color=blue").bind_value(state_3121, "dt_entrega")
 
-                                inp_dt_entrega_3121 = ui.input(
-                                    "Data da última entrega do kit escolar:",
-                                    value=state_3121["dt_entrega"]
-                                ).props("type=date outlined color=blue").bind_value(state_3121, "dt_entrega")
+                                    inp_dt_ini_3121 = ui.input(
+                                        label="Data de início das aulas (DD/MM/AAAA):",
+                                        value=dt_inicio_3121,
+                                        placeholder="Ex: 05/02/2025",
+                                    ).classes("w-full").props("outlined color=blue").bind_value(state_3121, "dt_inicio")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Documento:",
+                                    value=evidencia_3121,
+                                    placeholder="Insira os comprovantes de entrega, termos de recebimento nas escolas...",
+                                ).classes("w-full").props("outlined rows=5").bind_value(
+                                    state_3121, "link"
+                                )
 
                             lbl_pts_3121 = ui.label(
-                                f"📊 Impacto Estimado na Pontuação: {calc_pts_3121():.1f} / 20.0 pontos"
+                                f"📊 Impacto de Pontuação no Quesito 3.12.1: {calc_pts_3121():.1f} / 20.0 pontos"
                             ).classes("text-sm font-bold text-green-600 my-4")
 
                             def att_pts_3121():
                                 lbl_pts_3121.set_text(
-                                    f"📊 Impacto Estimado na Pontuação: {calc_pts_3121():.1f} / 20.0 pontos"
+                                    f"📊 Impacto de Pontuação no Quesito 3.12.1: {calc_pts_3121():.1f} / 20.0 pontos"
                                 )
 
-                            # Garante a atualização imediata da pontuação ao alterar a data no componente
-                            inp_dt_aulas_3121.on_value_change(att_pts_3121)
-                            inp_dt_entrega_3121.on_value_change(att_pts_3121)
+                            inp_dt_ent_3121.on("update:model-value", att_pts_3121)
+                            inp_dt_ini_3121.on("update:model-value", att_pts_3121)
 
                             def salvar_3121():
                                 pts = calc_pts_3121()
+                                ent_v = state_3121["dt_entrega"].strip()
+                                ini_v = state_3121["dt_inicio"].strip()
+                                composite = f"ENTREGA:{ent_v},INICIO:{ini_v}|LINK:{state_3121['link']}"
+
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="3.12.1",
-                                    valor=state_3121["dt_entrega"],
+                                    valor=ent_v,
                                     pontos=pts,
-                                    link=f"AULAS:{state_3121['dt_aulas']}",
+                                    link=composite,
                                     comentarios=d3121.get("comentarios", []),
                                     status=d3121.get("status", "Pendente"),
                                 )
