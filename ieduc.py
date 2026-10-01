@@ -8249,7 +8249,7 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("3.13", res_data, render_conteudo.refresh)
 
                         # =============================================================================
-                        # QUESITO 3.13.1 (Data da Última Entrega do Material Didático)
+                        # QUESITO 3.13.1 (Data da Última Entrega do Material Didático - Anos Iniciais)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -8258,35 +8258,47 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a data da última entrega na escola:"
+                                "Informe a data da última entrega e a data de início das aulas em 2025:"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "ℹ Fórmula: ≤ Início das Aulas (20,0 pts) | < Início + 15 dias (10,0 pts) | ≥ Início + 15 dias (4,0 pts)."
+                                "ℹ Cálculo: ≤ Início Aulas = 20.0 pts | < Início + 15 dias = 10.0 pts | ≥ Início + 15 dias = 4.0 pts."
                             ).classes("text-xs text-gray-400 mb-6")
 
-                            d3131 = res_data.get("3.131") or res_data.get("3.13.1") or {}
+                            d3131 = res_data.get("3.13.1") or res_data.get("3.131") or {}
                             raw_link_3131 = str(d3131.get("link") or "")
 
-                            dt_aulas_3131 = "2025-02-03"
-                            if "AULAS:" in raw_link_3131:
-                                dt_aulas_3131 = raw_link_3131.replace("AULAS:", "").strip()
+                            dt_entrega_3131, dt_inicio_3131 = "", "05/02/2025"
+                            evidencia_3131 = raw_link_3131
 
-                            dt_entrega_3131 = str(d3131.get("valor") or "2025-02-03")
+                            if "|LINK:" in raw_link_3131:
+                                partes_3131, evidencia_3131 = raw_link_3131.split("|LINK:", 1)
+                                m_ent = re.search(r"ENTREGA:([\d/]+)", partes_3131)
+                                m_ini = re.search(r"INICIO:([\d/]+)", partes_3131)
+                                dt_entrega_3131 = m_ent.group(1) if m_ent else ""
+                                dt_inicio_3131 = m_ini.group(1) if m_ini else "05/02/2025"
+                            elif "AULAS:" in raw_link_3131:
+                                # Compatibilidade com formato antigo caso exista
+                                dt_inicio_3131 = raw_link_3131.replace("AULAS:", "").strip()
+                                dt_entrega_3131 = str(d3131.get("valor") or "")
+                                evidencia_3131 = ""
+                            elif d3131.get("valor"):
+                                dt_entrega_3131 = str(d3131.get("valor"))
 
                             state_3131 = {
-                                "dt_aulas": dt_aulas_3131,
                                 "dt_entrega": dt_entrega_3131,
+                                "dt_inicio": dt_inicio_3131,
+                                "link": evidencia_3131,
                             }
 
                             def calc_pts_3131():
                                 try:
-                                    d_aulas = datetime.strptime(state_3131["dt_aulas"], "%Y-%m-%d")
-                                    d_ent = datetime.strptime(state_3131["dt_entrega"], "%Y-%m-%d")
-                                    d_limite = d_aulas + timedelta(days=15)
+                                    ent = datetime.strptime(state_3131["dt_entrega"].strip(), "%d/%m/%Y")
+                                    ini = datetime.strptime(state_3131["dt_inicio"].strip(), "%d/%m/%Y")
+                                    diff_dias = (ent - ini).days
 
-                                    if d_ent <= d_aulas:
+                                    if diff_dias <= 0:
                                         return 20.0
-                                    elif d_ent < d_limite:
+                                    elif diff_dias < 15:
                                         return 10.0
                                     else:
                                         return 4.0
@@ -8294,42 +8306,57 @@ def container_formulario_ieduc(ano=None):
                                     return 0.0
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                inp_dt_aulas_3131 = ui.input(
-                                    "Data de início das aulas:",
-                                    value=state_3131["dt_aulas"]
-                                ).props("type=date outlined color=blue").bind_value(state_3131, "dt_aulas")
+                                with ui.column().classes("w-full gap-3"):
+                                    inp_dt_ent_3131 = ui.input(
+                                        label="Data da última entrega (DD/MM/AAAA):",
+                                        value=dt_entrega_3131,
+                                        placeholder="Ex: 02/02/2025",
+                                    ).classes("w-full").props("outlined color=blue").bind_value(state_3131, "dt_entrega")
 
-                                inp_dt_entrega_3131 = ui.input(
-                                    "Data da última entrega do material didático:",
-                                    value=state_3131["dt_entrega"]
-                                ).props("type=date outlined color=blue").bind_value(state_3131, "dt_entrega")
+                                    inp_dt_ini_3131 = ui.input(
+                                        label="Data de início das aulas (DD/MM/AAAA):",
+                                        value=dt_inicio_3131,
+                                        placeholder="Ex: 05/02/2025",
+                                    ).classes("w-full").props("outlined color=blue").bind_value(state_3131, "dt_inicio")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Documento:",
+                                    value=evidencia_3131,
+                                    placeholder="Insira as guias de remessa do FNDE, termos de recebimento nas escolas...",
+                                ).classes("w-full").props("outlined rows=5").bind_value(
+                                    state_3131, "link"
+                                )
 
                             lbl_pts_3131 = ui.label(
-                                f"📊 Impacto Estimado na Pontuação: {calc_pts_3131():.1f} / 20.0 pontos"
+                                f"📊 Impacto de Pontuação no Quesito 3.13.1: {calc_pts_3131():.1f} / 20.0 pontos"
                             ).classes("text-sm font-bold text-green-600 my-4")
 
                             def att_pts_3131():
                                 lbl_pts_3131.set_text(
-                                    f"📊 Impacto Estimado na Pontuação: {calc_pts_3131():.1f} / 20.0 pontos"
+                                    f"📊 Impacto de Pontuação no Quesito 3.13.1: {calc_pts_3131():.1f} / 20.0 pontos"
                                 )
 
-                            inp_dt_aulas_3131.on("update:model-value", att_pts_3131)
-                            inp_dt_entrega_3131.on("update:model-value", att_pts_3131)
+                            inp_dt_ent_3131.on("update:model-value", att_pts_3131)
+                            inp_dt_ini_3131.on("update:model-value", att_pts_3131)
 
                             def salvar_3131():
                                 pts = calc_pts_3131()
+                                ent_v = state_3131["dt_entrega"].strip()
+                                ini_v = state_3131["dt_inicio"].strip()
+                                composite = f"ENTREGA:{ent_v},INICIO:{ini_v}|LINK:{state_3131['link']}"
+
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="3.13.1",
-                                    valor=state_3131["dt_entrega"],
+                                    valor=ent_v,
                                     pontos=pts,
-                                    link=f"AULAS:{state_3131['dt_aulas']}",
+                                    link=composite,
                                     comentarios=d3131.get("comentarios", []),
                                     status=d3131.get("status", "Pendente"),
                                 )
 
                                 ui.notify("Quesito 3.13.1 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 3.13.1", on_click=salvar_3131).classes(
