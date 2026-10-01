@@ -6641,7 +6641,7 @@ from nicegui import app, ui
 from fastapi import Response
 
 # -----------------------------------------------------------------------------
-# 1. MAPEAMENTOS E TETOS DE PONTUAÇÃO DO I-PLAN
+# 1. MAPEAMENTOS E TETOS DE PONTUAÇÃO DO I-Fiscal
 # -----------------------------------------------------------------------------
 PONTUACOES_MAX_Fiscal = {
     "1.1": 0.5,
@@ -7478,7 +7478,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(PageBreak())
 
     # -------------------------------------------------------------------------
-    # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU) - I-AMB
+    # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU) - I-Fiscal
     # -------------------------------------------------------------------------
     elements.append(
         Paragraph(
@@ -7770,7 +7770,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # 6. SÉRIE HISTÓRICA DO I-FISCAL
     # -------------------------------------------------------------------------
     elements.append(
-        Paragraph("<b>6. SÉRIE HISTÓRICA DO I-PLAN</b>", styles["Heading2"])
+        Paragraph("<b>6. SÉRIE HISTÓRICA DO I-Fiscal</b>", styles["Heading2"])
     )
     elements.append(Spacer(1, 6))
 
@@ -7896,7 +7896,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # 6. SÉRIE HISTÓRICA DO I-FISCAL
     # -------------------------------------------------------------------------
     elements.append(
-        Paragraph("<b>6. SÉRIE HISTÓRICA DO I-PLAN</b>", styles["Heading2"])
+        Paragraph("<b>6. SÉRIE HISTÓRICA DO I-Fiscal</b>", styles["Heading2"])
     )
     elements.append(Spacer(1, 6))
 
