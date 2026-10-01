@@ -7916,11 +7916,15 @@ def container_formulario_ieduc(ano=None):
 
                             def calc_pts_312():
                                 op = state_312["opcao"]
+                                
+                                # 1. Se for a opção de almoxarifado, gera 20.0 pontos diretos
                                 if op == "O kit escolar permanece no almoxarifado da escola e é retirado no momento do uso pelos alunos":
                                     return 20.0
+                                
+                                # 2. Se for "Sim", a pontuação é calculada de acordo com as datas de 3.12.1
                                 elif op == "Sim":
-                                    dt_entrega_str = str(d3121.get("valor") or "")
-                                    dt_link_str = str(d3121.get("link") or "")
+                                    dt_entrega_str = str(d3121.get("valor") or "").strip()
+                                    dt_link_str = str(d3121.get("link") or "").strip()
 
                                     dt_aulas_str = "2025-02-03"
                                     if "AULAS:" in dt_link_str:
@@ -7938,7 +7942,10 @@ def container_formulario_ieduc(ano=None):
                                         else:
                                             return 4.0
                                     except Exception:
-                                        return 20.0
+                                        # Em caso de erro/falta de preenchimento das datas no 3.12.1, retorna 0.0
+                                        return 0.0
+                                
+                                # 3. "Não" ou "Selecione..." pontuam 0.0
                                 return 0.0
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
@@ -7980,7 +7987,7 @@ def container_formulario_ieduc(ano=None):
                                 )
 
                                 ui.notify("Quesito 3.12 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 3.12", on_click=salvar_312).classes(
