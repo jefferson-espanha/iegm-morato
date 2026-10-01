@@ -7103,7 +7103,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(Spacer(1, 40))
 
     # Título limpo em linha única
-    elements.append(Paragraph("<b>Relatório I-PLAN</b>", styles["TitleCapa"]))
+    elements.append(Paragraph("<b>Relatório I-Fiscal</b>", styles["TitleCapa"]))
     elements.append(Spacer(1, 15))
 
     # Subtítulo com Ano de Referência
@@ -7138,7 +7138,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             Paragraph("Pág. 4", styles["PagDir"]),
         ],
         [
-            Paragraph("4. Diagnóstico de Reincidências de Fracasso", styles["ItemEsq"]),
+            Paragraph("4. Diagnóstico de Reincidências", styles["ItemEsq"]),
             Paragraph("Pág. 4", styles["PagDir"]),
         ],
         [
@@ -7149,7 +7149,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         ],
         [
             Paragraph(
-                "6. Evolução Temporal da Série Histórica (I-PLAN)", styles["ItemEsq"]
+                "6. Evolução Temporal da Série Histórica (I-FISCAL)", styles["ItemEsq"]
             ),
             Paragraph("Pág. 5", styles["PagDir"]),
         ],
@@ -8027,21 +8027,21 @@ renderizar_card_relatorio_ifiscal = renderizar_card_relatorio_ifiscal
 
 def _render_formulario_ifiscal(ano=2026):
     """
-    Renderiza os campos do formulário do I-PLAN na interface NiceGUI.
+    Renderiza os campos do formulário do I-FISCAL na interface NiceGUI.
     """
     with ui.column().classes("w-full p-4"):
         ui.label(f"Formulário do I-Fiscal - Exercício {ano}").classes(
             "text-2xl font-bold text-gray-800 mb-4"
         )
-        # Aqui devem ser inseridos os campos do checklist/formulário i-Plan
-        ui.label("Preencha os dados abaixo para calcular o I-PLAN:").classes(
+        # Aqui devem ser inseridos os campos do checklist/formulário i-FISCAL
+        ui.label("Preencha os dados abaixo para calcular o I-FISCAL:").classes(
             "text-gray-600 mb-2"
         )
 
 
-def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
+def container_formulario_(ano=None, res_data=None, ano_sel=2026):
     """
-    Ponto de entrada público do módulo I-PLAN no NiceGUI.
+    Ponto de entrada público do módulo I-FISCAL no NiceGUI.
     """
     ano_inicial = ano if ano is not None else ano_sel
     # Container principal centralizado
