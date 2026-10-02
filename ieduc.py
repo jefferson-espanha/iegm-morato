@@ -20049,9 +20049,12 @@ def container_formulario_ieduc(ano=None):
 
                             val_e5_raw = d_e5.get("resposta") if d_e5.get("resposta") is not None else d_e5.get("valor")
 
-                            # Dicionário padrão para fallback
+                            # Tenta herdar total de escolas dos Anos Iniciais de quesitos anteriores (E3.1/E3.4) caso não esteja salvo
+                            d_e34 = res_data.get("E3.4") or res_data.get("E34") or {}
+                            v_e34_tot = d_e34.get("total_escolas") or 0
+
                             e5_defaults = {
-                                "total_escolas": 0, "adaptadas": 0, "quadra_coberta": 0,
+                                "total_escolas": 0, "escolas_anos_iniciais": int(v_e34_tot), "adaptadas": 0, "quadra_coberta": 0,
                                 "biblioteca": 0, "sala_leitura": 0, "encerradas": 0,
                                 "suspensas": 0, "sem_agua": 0, "sem_esgoto": 0,
                                 "sem_lixo": 0, "sem_banheiro": 0, "climatizadas": 0
@@ -20059,19 +20062,20 @@ def container_formulario_ieduc(ano=None):
 
                             if isinstance(val_e5_raw, dict):
                                 for k in e5_defaults:
-                                    e5_defaults[k] = int(val_e5_raw.get(k, 0) or 0)
+                                    e5_defaults[k] = int(val_e5_raw.get(k, e5_defaults[k]) or 0)
                             elif isinstance(val_e5_raw, str):
                                 try:
                                     parsed = json.loads(val_e5_raw)
                                     if isinstance(parsed, dict):
                                         for k in e5_defaults:
-                                            e5_defaults[k] = int(parsed.get(k, 0) or 0)
+                                            e5_defaults[k] = int(parsed.get(k, e5_defaults[k]) or 0)
                                 except Exception:
                                     for k in e5_defaults:
-                                        e5_defaults[k] = int(d_e5.get(k, 0) or 0)
+                                        e5_defaults[k] = int(d_e5.get(k, e5_defaults[k]) or 0)
 
                             state_e5 = {
                                 "total_escolas": e5_defaults["total_escolas"],
+                                "escolas_anos_iniciais": e5_defaults["escolas_anos_iniciais"],
                                 "adaptadas": e5_defaults["adaptadas"],
                                 "quadra_coberta": e5_defaults["quadra_coberta"],
                                 "biblioteca": e5_defaults["biblioteca"],
@@ -20100,39 +20104,48 @@ def container_formulario_ieduc(ano=None):
                                 try: tot = int(state_e5["total_escolas"]) if state_e5["total_escolas"] is not None else 0
                                 except (ValueError, TypeError): tot = 0
 
+                                try: tot_ai = int(state_e5["escolas_anos_iniciais"]) if state_e5["escolas_anos_iniciais"] is not None else 0
+                                except (ValueError, TypeError): tot_ai = 0
+
                                 if tot > 0:
-                                    # 1. Adaptadas para PWD (Pmáx = 20)
+                                    # 1. Adaptadas para PWD (Pmáx = 20) -> Base: Total do Município
                                     v_adapt = int(state_e5["adaptadas"] or 0)
                                     p_adapt = min(v_adapt / tot, 1.0)
                                     pts_adapt = p_adapt * 20.0
 
-                                    # 2. Quadra Poliesportiva Coberta (Pmáx = 15)
+                                    # 2. Quadra Poliesportiva Coberta (Pmáx = 15) -> Base: Total Anos Iniciais
                                     v_quadra = int(state_e5["quadra_coberta"] or 0)
-                                    p_quadra = min(v_quadra / tot, 1.0)
-                                    pts_quadra = p_quadra * 15.0
+                                    if tot_ai > 0:
+                                        p_quadra = min(v_quadra / tot_ai, 1.0)
+                                        pts_quadra = p_quadra * 15.0
+                                    else:
+                                        pts_quadra = 0.0
 
-                                    # 3. Biblioteca ou Sala de Leitura (Pmáx = 35)
+                                    # 3. Biblioteca ou Sala de Leitura (Pmáx = 35) -> BASE: Total Anos Iniciais
                                     v_bib = int(state_e5["biblioteca"] or 0)
                                     v_leit = int(state_e5["sala_leitura"] or 0)
-                                    unicas_bib_leit = min(v_bib + v_leit, tot)
-                                    p_bib = unicas_bib_leit / tot
-                                    pts_bib = p_bib * 35.0
+                                    if tot_ai > 0:
+                                        unicas_bib_leit = min(v_bib + v_leit, tot_ai)
+                                        p_bib = unicas_bib_leit / tot_ai
+                                        pts_bib = p_bib * 35.0
+                                    else:
+                                        pts_bib = 0.0
 
                                     # 4. Atividades Definitivamente Encerradas (Perde 5 pontos se >= 1)
                                     v_enc = int(state_e5["encerradas"] or 0)
                                     pts_enc = -5.0 if v_enc >= 1 else 0.0
 
-                                    # 5. Atividades Temporariamente Suspensas (Pmáx = -25)
+                                    # 5. Atividades Temporariamente Suspensas (Pmáx = -25) -> Base: Total do Município
                                     v_susp = int(state_e5["suspensas"] or 0)
                                     p_susp = min(v_susp / tot, 1.0)
                                     pts_susp = -25.0 * p_susp
 
-                                    # 6. Sem Banheiros (Pmáx = -30)
+                                    # 6. Sem Banheiros (Pmáx = -30) -> Base: Total do Município
                                     v_banh = int(state_e5["sem_banheiro"] or 0)
                                     p_banh = min(v_banh / tot, 1.0)
                                     pts_banh = -30.0 * p_banh
 
-                                    # 7. Salas Climatizadas (Pmáx = 5)
+                                    # 7. Salas Climatizadas (Pmáx = 5) -> Base: Total do Município
                                     v_clim = int(state_e5["climatizadas"] or 0)
                                     p_clim = min(v_clim / tot, 1.0)
                                     pts_clim = p_clim * 5.0
@@ -20151,10 +20164,10 @@ def container_formulario_ieduc(ano=None):
                                 state_e5["total_pontos"] = total_pts
 
                                 lbl_pontos_e5.set_text(
-                                    f"📊 Detalhamento da Pontuação E5 (Total Escolas: {tot}):\n"
+                                    f"📊 Detalhamento da Pontuação E5 (Total Município: {tot} | Total Anos Iniciais: {tot_ai}):\n"
                                     f" • Adaptadas (PWD): {pts_adapt:.2f} / 20,00 pts\n"
-                                    f" • Quadra Coberta: {pts_quadra:.2f} / 15,00 pts\n"
-                                    f" • Biblioteca/Sala Leitura: {pts_bib:.2f} / 35,00 pts\n"
+                                    f" • Quadra Coberta (Anos Iniciais): {pts_quadra:.2f} / 15,00 pts\n"
+                                    f" • Biblioteca/Sala Leitura (Anos Iniciais): {pts_bib:.2f} / 35,00 pts\n"
                                     f" • Ativ. Encerradas: {pts_enc:.2f} pts\n"
                                     f" • Ativ. Suspensas: {pts_susp:.2f} pts\n"
                                     f" • Sem Banheiro: {pts_banh:.2f} pts\n"
@@ -20165,11 +20178,19 @@ def container_formulario_ieduc(ano=None):
                             # --- Inputs do Quesito ---
                             with ui.grid(columns=3).classes("w-full gap-4 items-start mb-4"):
                                 ui.number(
-                                    label="Total de Estabelecimentos:",
+                                    label="Total de Estabelecimentos do Município:",
                                     value=state_e5["total_escolas"],
                                     min=0,
                                     step=1,
                                     on_change=lambda e: [state_e5.update({"total_escolas": e.value}), calc_e5()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.number(
+                                    label="Total de Escolas com Anos Iniciais:",
+                                    value=state_e5["escolas_anos_iniciais"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e5.update({"escolas_anos_iniciais": e.value}), calc_e5()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -20189,7 +20210,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
-                                    label="Com Biblioteca:",
+                                    label="Com Biblioteca (Anos Iniciais):",
                                     value=state_e5["biblioteca"],
                                     min=0,
                                     step=1,
@@ -20197,7 +20218,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
-                                    label="Com Sala de Leitura:",
+                                    label="Com Sala de Leitura (Anos Iniciais):",
                                     value=state_e5["sala_leitura"],
                                     min=0,
                                     step=1,
@@ -20275,6 +20296,7 @@ def container_formulario_ieduc(ano=None):
                                 calc_e5()
                                 val_dict = {
                                     "total_escolas": int(state_e5["total_escolas"] or 0),
+                                    "escolas_anos_iniciais": int(state_e5["escolas_anos_iniciais"] or 0),
                                     "adaptadas": int(state_e5["adaptadas"] or 0),
                                     "quadra_coberta": int(state_e5["quadra_coberta"] or 0),
                                     "biblioteca": int(state_e5["biblioteca"] or 0),
