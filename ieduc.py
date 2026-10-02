@@ -16530,9 +16530,7 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E1.5", res_data, getattr(render_conteudo, "refresh", None))
 
-                        import json
-                        import re
-
+                       
                         # -----------------------------------------------------------------------------
                         # QUESITO E1.6 - Quantidade de Professores de Creche (Efetivos vs Temporários)
                         # -----------------------------------------------------------------------------
