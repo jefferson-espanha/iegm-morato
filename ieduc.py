@@ -15921,75 +15921,227 @@ def container_formulario_ieduc(ano=None):
 
                         # -----------------------------------------------------------------------------
                     if pagina_atual == 6:
-                        # QUESITO E1.1 - Estabelecimentos de Creche com Pátio Infantil (Censo Escolar)
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("E1.1 • Estabelecimentos de Creche com Pátio Infantil").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos estabelecimentos que oferecem Creche possuem Pátio Infantil (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                        # =============================================================================
+                        # QUESITO E1.1 (Estabelecimentos de Creche com Pátio Infantil - Censo Escolar)
+                        # =============================================================================
+                        d_e11 = res_data.get("E1.1") or res_data.get("E11") or {}
 
-                            d_e11 = res_data.get("E1.1") or res_data.get("E11") or {}
-                            val_e11_com = d_e11.get("com_patio") or 0
-                            val_e11_tot = d_e11.get("total") or 0
-                            link_e11 = str(d_e11.get("link") or "")
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label(
+                                "E1.1 • Estabelecimentos de Creche com Pátio Infantil"
+                            ).classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label(
+                                "Informe quantos estabelecimentos que oferecem Creche possuem Pátio Infantil (Dados Censo Escolar 2025):"
+                            ).classes("text-base font-bold text-black mb-2")
 
-                            state_e11 = {
-                                "com_patio": int(val_e11_com) if str(val_e11_com).isdigit() else 0,
-                                "total": int(val_e11_tot) if str(val_e11_tot).isdigit() else 0,
-                                "link": link_e11,
-                                "pontos": 0.0,
-                            }
+                            # Card da Calculadora Automática
+                            with ui.card().classes(
+                                "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                            ):
+                                ui.label(
+                                    "🧮 Calculadora Automática de Indicador (E1.1 / Total)"
+                                ).classes("font-bold text-blue-700 mb-2")
 
-                            def calc_e11():
-                                tot = state_e11["total"]
-                                com = state_e11["com_patio"]
-                                if tot > 0:
-                                    p = min(com / tot, 1.0)
-                                    state_e11["pontos"] = round(p * 2.0, 2)
-                                else:
-                                    state_e11["pontos"] = 0.0
-                                lbl_pontos_e11.set_text(f"📊 Pontuação Quesito E1.1: {state_e11['pontos']:.2f} ponto(s)".replace(".", ","))
+                                # Extração e Parsing seguro do campo armazenado no banco
+                                val_e11_raw = (
+                                    d_e11.get("resposta")
+                                    if d_e11.get("resposta") is not None
+                                    else d_e11.get("valor")
+                                )
 
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                ui.number(
-                                    label="Nº de Creches COM Pátio Infantil:",
-                                    value=state_e11["com_patio"],
-                                    min=0,
-                                    step=1,
-                                    on_change=lambda e: [state_e11.update({"com_patio": int(e.value or 0)}), calc_e11()],
-                                ).classes("w-full").props("outlined color=blue")
+                                e11_com_init, e11_tot_init = 0, 0
 
-                                ui.number(
-                                    label="Total de Estabelecimentos com Creche no Município:",
-                                    value=state_e11["total"],
-                                    min=0,
-                                    step=1,
-                                    on_change=lambda e: [state_e11.update({"total": int(e.value or 0)}), calc_e11()],
-                                ).classes("w-full").props("outlined color=blue")
+                                if isinstance(val_e11_raw, dict):
+                                    e11_com_init = int(
+                                        val_e11_raw.get(
+                                            "com_patio",
+                                            val_e11_raw.get("BPI", val_e11_raw.get("bpi", 0)),
+                                        )
+                                        or 0
+                                    )
+                                    e11_tot_init = int(
+                                        val_e11_raw.get(
+                                            "total", val_e11_raw.get("TOT", val_e11_raw.get("tot", 0))
+                                        )
+                                        or 0
+                                    )
+                                elif isinstance(val_e11_raw, str):
+                                    # Tenta fazer o parse de string JSON ou formato "X/Y"
+                                    try:
+                                        parsed = json.loads(val_e11_raw)
+                                        if isinstance(parsed, dict):
+                                            e11_com_init = int(
+                                                parsed.get(
+                                                    "com_patio",
+                                                    parsed.get("BPI", parsed.get("bpi", 0)),
+                                                )
+                                                or 0
+                                            )
+                                            e11_tot_init = int(
+                                                parsed.get(
+                                                    "total", parsed.get("TOT", parsed.get("tot", 0))
+                                                )
+                                                or 0
+                                            )
+                                    except Exception:
+                                        if "/" in val_e11_raw:
+                                            partes = val_e11_raw.split("/")
+                                            e11_com_init = (
+                                                int(partes[0].strip())
+                                                if partes[0].strip().isdigit()
+                                                else 0
+                                            )
+                                            e11_tot_init = (
+                                                int(partes[1].strip())
+                                                if partes[1].strip().isdigit()
+                                                else 0
+                                            )
 
-                            ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
-                                value=state_e11["link"],
-                                placeholder="Link do relatório ou extrato do Censo Escolar...",
-                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e11, "link")
+                                state_e11 = {
+                                    "val_com": e11_com_init,
+                                    "val_tot": e11_tot_init,
+                                    "link": str(d_e11.get("link") or ""),
+                                    "pts": float(d_e11.get("pontos", 0.0)),
+                                }
 
-                            lbl_pontos_e11 = ui.label("📊 Pontuação Quesito E1.1: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-                            calc_e11()
+                                lbl_prop_e11 = ui.label().classes(
+                                    "text-sm font-bold text-gray-800 mt-2"
+                                )
+                                lbl_pts_e11 = ui.label().classes(
+                                    "text-sm font-bold text-green-600 mt-1"
+                                )
+
+                                def calcular_e11():
+                                    try:
+                                        com = (
+                                            int(state_e11["val_com"])
+                                            if state_e11["val_com"] is not None
+                                            else 0
+                                        )
+                                    except (ValueError, TypeError):
+                                        com = 0
+
+                                    try:
+                                        tot = (
+                                            int(state_e11["val_tot"])
+                                            if state_e11["val_tot"] is not None
+                                            else 0
+                                        )
+                                    except (ValueError, TypeError):
+                                        tot = 0
+
+                                    if tot > 0 and com >= 0:
+                                        prop = min(com / tot, 1.0)
+                                        pts = prop * 2.0
+                                        state_e11["pts"] = pts
+                                        lbl_prop_e11.set_text(
+                                            f"Proporção de Atendimento: {prop * 100:.1f}% ({com} de {tot})"
+                                        )
+                                        lbl_pts_e11.set_text(
+                                            f"📊 Impacto de Pontuação Calculado: {pts:.2f} / 2.00 pontos".replace(
+                                                ".", ","
+                                            )
+                                        )
+                                    else:
+                                        state_e11["pts"] = 0.0
+                                        lbl_prop_e11.set_text(
+                                            "Proporção: Indefinida (O Total de estabelecimentos deve ser maior que 0)"
+                                        )
+                                        lbl_pts_e11.set_text(
+                                            "📊 Impacto de Pontuação Calculado: 0,00 / 2.00 pontos"
+                                        )
+
+                                with ui.grid(columns=2).classes("w-full gap-4"):
+                                    ui.number(
+                                        label="Nº de Creches COM Pátio Infantil",
+                                        value=state_e11["val_com"],
+                                        min=0,
+                                        step=1,
+                                        on_change=lambda e: [
+                                            state_e11.update({"val_com": e.value}),
+                                            calcular_e11(),
+                                        ],
+                                    ).classes("w-full").props("outlined bg-white")
+
+                                    ui.number(
+                                        label="Total de Estabelecimentos com Creche no Município",
+                                        value=state_e11["val_tot"],
+                                        min=0,
+                                        step=1,
+                                        on_change=lambda e: [
+                                            state_e11.update({"val_tot": e.value}),
+                                            calcular_e11(),
+                                        ],
+                                    ).classes("w-full").props("outlined bg-white")
+
+                                calcular_e11()
+
+                            input_link_e11 = (
+                                ui.textarea(
+                                    label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                    value=state_e11["link"],
+                                    placeholder="Link do relatório ou extrato do Censo Escolar...",
+                                )
+                                .classes("w-full mb-4")
+                                .props("outlined rows=3")
+                            )
 
                             def salvar_e11():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E1.1",
-                                    valor=f"{state_e11['com_patio']}/{state_e11['total']}",
-                                    pontos=state_e11["pontos"],
-                                    link=state_e11["link"],
-                                    comentarios=d_e11.get("comentarios", []),
-                                    status=d_e11.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E1.1 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                calcular_e11()
 
-                            ui.button("💾 SALVAR QUESITO E1.1", on_click=salvar_e11).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                                c_val = (
+                                    int(state_e11["val_com"]) if state_e11["val_com"] is not None else 0
+                                )
+                                t_val = (
+                                    int(state_e11["val_tot"]) if state_e11["val_tot"] is not None else 0
+                                )
+
+                                val_dict = {"com_patio": c_val, "total": t_val}
+                                str_resposta = json.dumps(val_dict)
+
+                                try:
+                                    # Grava no banco de dados
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E1.1",
+                                        valor=str_resposta,
+                                        pontos=state_e11["pts"],
+                                        link=input_link_e11.value,
+                                        comentarios=d_e11.get("comentarios", []),
+                                        status=d_e11.get("status", "Pendente"),
+                                    )
+
+                                    # Atualiza a estrutura local de dados em memória antes do refresh
+                                    novos_dados = {
+                                        "resposta": str_resposta,
+                                        "valor": str_resposta,
+                                        "pontos": state_e11["pts"],
+                                        "link": input_link_e11.value,
+                                        "comentarios": d_e11.get("comentarios", []),
+                                        "status": d_e11.get("status", "Pendente"),
+                                    }
+                                    res_data["E1.1"] = novos_dados
+                                    res_data["E11"] = novos_dados
+
+                                    ui.notify(
+                                        "Quesito E1.1 salvo com sucesso!",
+                                        type="positive",
+                                    )
+                                    if hasattr(render_conteudo, "refresh") and callable(
+                                        render_conteudo.refresh
+                                    ):
+                                        render_conteudo.refresh()
+                                except Exception as e:
+                                    ui.notify(
+                                        f"Erro ao salvar Quesito E1.1: {e}",
+                                        type="negative",
+                                    )
+
+                            ui.button("💾 SALVAR QUESITO E1.1", on_click=salvar_e11).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
                             ui.separator().classes("my-2")
                             bloco_comentarios("E1.1", res_data, render_conteudo.refresh)
 
