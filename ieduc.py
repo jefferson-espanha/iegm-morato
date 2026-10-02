@@ -10340,7 +10340,7 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("3.23", res_data, render_conteudo.refresh)
 
-                       # =============================================================================
+                        # =============================================================================
                         # QUESITO 3.23.1 (Ações Específicas Realizadas para Redução do Abandono)
                         # =============================================================================
                         with ui.card().classes(
