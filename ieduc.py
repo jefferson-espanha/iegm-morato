@@ -16530,6 +16530,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E1.5", res_data, getattr(render_conteudo, "refresh", None))
 
+                        import json
+                        import re
+
                         # -----------------------------------------------------------------------------
                         # QUESITO E1.6 - Quantidade de Professores de Creche (Efetivos vs Temporários)
                         # -----------------------------------------------------------------------------
@@ -16553,7 +16556,6 @@ def container_formulario_ieduc(ano=None):
                                         e16_temp_init = int(parsed.get("temporarios", 0) or 0)
                                 except Exception:
                                     if "Efetivos:" in val_e16_raw:
-                                        import re
                                         m_e = re.search(r"Efetivos:\s*(\d+)", val_e16_raw)
                                         m_t = re.search(r"Temporários:\s*(\d+)", val_e16_raw)
                                         if m_e: e16_efet_init = int(m_e.group(1))
@@ -16687,7 +16689,6 @@ def container_formulario_ieduc(ano=None):
                                         e17_apo_init = int(parsed.get("apoio", 0) or 0)
                                 except Exception:
                                     if "Regentes:" in val_e17_raw:
-                                        import re
                                         m_r = re.search(r"Regentes:\s*(\d+)", val_e17_raw)
                                         m_a = re.search(r"Apoio.*:\s*(\d+)", val_e17_raw)
                                         if m_r: e17_reg_init = int(m_r.group(1))
