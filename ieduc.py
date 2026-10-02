@@ -11038,15 +11038,34 @@ def container_formulario_ieduc(ano=None):
                             )
                             ui.label(
                                 "Assinale os requisitos contidos no Plano de Cargos e Salários dos professores:"
-                            ).classes("text-base font-bold text-black mb-6")
+                            ).classes("text-base font-bold text-black mb-1")
+                            ui.label("ℹ Quesito qualitativo de seleção múltipla.").classes(
+                                "text-xs text-gray-400 mb-6"
+                            )
 
                             d62 = res_data.get("6.2") or res_data.get("62") or {}
-                            raw_val_62 = str(d62.get("valor") or "")
                             raw_link_62 = str(d62.get("link") or "")
+                            val_62_bruto = d62.get("valor") or []
 
-                            itens_marcados_62 = [
-                                item.strip() for item in raw_val_62.split(";") if item.strip()
-                            ]
+                            # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
+                            if isinstance(val_62_bruto, str):
+                                try:
+                                    sel_62 = json.loads(val_62_bruto)
+                                except Exception:
+                                    sel_62 = [
+                                        item.strip()
+                                        for item in val_62_bruto.split(";")
+                                        if item.strip()
+                                    ]
+                            elif isinstance(val_62_bruto, list):
+                                sel_62 = val_62_bruto
+                            else:
+                                sel_62 = []
+
+                            state_62 = {
+                                "opcoes": sel_62,
+                                "link": raw_link_62,
+                            }
 
                             opcoes_62 = [
                                 "Remuneração condigna dos profissionais na educação básica da rede pública",
@@ -11057,32 +11076,29 @@ def container_formulario_ieduc(ano=None):
                                 "Nenhum dos anteriores",
                             ]
 
-                            state_62 = {
-                                "selecionados": itens_marcados_62,
-                                "link": raw_link_62,
-                            }
-
                             with ui.grid(columns=1).classes("w-full gap-2 mb-4"):
-                                for op in opcoes_62:
-                                    chk = ui.checkbox(
-                                        op,
-                                        value=(op in state_62["selecionados"])
-                                    ).props("color=blue")
-
-                                    def on_chk_62_change(e, option=op):
+                                def make_chk_62(opt_text):
+                                    def on_chk_change(e):
                                         if e.value:
-                                            if option == "Nenhum dos anteriores":
-                                                state_62["selecionados"] = ["Nenhum dos anteriores"]
+                                            if opt_text == "Nenhum dos anteriores":
+                                                state_62["opcoes"].clear()
+                                                state_62["opcoes"].append("Nenhum dos anteriores")
                                             else:
-                                                if "Nenhum dos anteriores" in state_62["selecionados"]:
-                                                    state_62["selecionados"].remove("Nenhum dos anteriores")
-                                                if option not in state_62["selecionados"]:
-                                                    state_62["selecionados"].append(option)
+                                                if "Nenhum dos anteriores" in state_62["opcoes"]:
+                                                    state_62["opcoes"].remove("Nenhum dos anteriores")
+                                                if opt_text not in state_62["opcoes"]:
+                                                    state_62["opcoes"].append(opt_text)
                                         else:
-                                            if option in state_62["selecionados"]:
-                                                state_62["selecionados"].remove(option)
+                                            if opt_text in state_62["opcoes"]:
+                                                state_62["opcoes"].remove(opt_text)
+                                    return on_chk_change
 
-                                    chk.on("update:model-value", on_chk_62_change)
+                                for opt in opcoes_62:
+                                    ui.checkbox(
+                                        text=opt,
+                                        value=(opt in state_62["opcoes"]),
+                                        on_change=make_chk_62(opt),
+                                    ).props("color=blue")
 
                             ui.textarea(
                                 label="Link de Evidência / Artigos da Lei do PCCS:",
@@ -11093,11 +11109,11 @@ def container_formulario_ieduc(ano=None):
                             )
 
                             def salvar_62():
-                                valor_str = " ; ".join(state_62["selecionados"])
+                                opts_sel = state_62["opcoes"]
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="6.2",
-                                    valor=valor_str,
+                                    valor=opts_sel,
                                     pontos=0.0,
                                     link=state_62["link"],
                                     comentarios=d62.get("comentarios", []),
@@ -11105,7 +11121,7 @@ def container_formulario_ieduc(ano=None):
                                 )
 
                                 ui.notify("Quesito 6.2 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 6.2", on_click=salvar_62).classes(
@@ -11113,8 +11129,7 @@ def container_formulario_ieduc(ano=None):
                             )
                             ui.separator().classes("my-2")
                             bloco_comentarios("6.2", res_data, render_conteudo.refresh)
-
-    # =============================================================================
+                        # =============================================================================
                         # QUESITO 7.0 (Programa de Inibição ao Absenteísmo de Professores)
                         # =============================================================================
                         with ui.card().classes(
