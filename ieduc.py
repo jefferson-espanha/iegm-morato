@@ -16145,8 +16145,7 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E1.1", res_data, render_conteudo.refresh)
 
-
-                        # -----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
                         # QUESITO E1.2 - Brinquedos e Materiais Pedagógicos na Creche (Censo Escolar)
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -16181,7 +16180,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e12["com_brinquedos"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e12.update({"com_brinquedos": int(e.value or 0)}), calc_e12()],
+                                    on_change=lambda e: [state_e12.update({"com_brinquedos": int(e.value) if e.value is not None else 0}), calc_e12()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -16189,7 +16188,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e12["total"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e12.update({"total": int(e.value or 0)}), calc_e12()],
+                                    on_change=lambda e: [state_e12.update({"total": int(e.value) if e.value is not None else 0}), calc_e12()],
                                 ).classes("w-full").props("outlined color=blue")
 
                             ui.textarea(
@@ -16242,7 +16241,8 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e13["matriculas"],
                                     min=0,
                                     step=1,
-                                ).classes("w-full").props("outlined color=blue").bind_value(state_e13, "matriculas")
+                                    on_change=lambda e: state_e13.update({"matriculas": int(e.value) if e.value is not None else 0}),
+                                ).classes("w-full").props("outlined color=blue")
 
                                 ui.textarea(
                                     label="Link de Evidência (Censo Escolar 2025):",
@@ -16320,7 +16320,8 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E1.4", res_data, render_conteudo.refresh)
 
-    # -----------------------------------------------------------------------------
+
+                        # -----------------------------------------------------------------------------
                         # QUESITO E1.5 - PPP Atualizado nos Estabelecimentos de Creche (Censo Escolar)
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -16355,7 +16356,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e15["com_ppp"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e15.update({"com_ppp": int(e.value or 0)}), calc_e15()],
+                                    on_change=lambda e: [state_e15.update({"com_ppp": int(e.value) if e.value is not None else 0}), calc_e15()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -16363,7 +16364,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e15["total"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e15.update({"total": int(e.value or 0)}), calc_e15()],
+                                    on_change=lambda e: [state_e15.update({"total": int(e.value) if e.value is not None else 0}), calc_e15()],
                                 ).classes("w-full").props("outlined color=blue")
 
                             ui.textarea(
@@ -16392,7 +16393,6 @@ def container_formulario_ieduc(ano=None):
                             ui.button("💾 SALVAR QUESITO E1.5", on_click=salvar_e15).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("E1.5", res_data, render_conteudo.refresh)
-
 
                         # -----------------------------------------------------------------------------
                         # QUESITO E1.6 - Quantidade de Professores de Creche (Efetivos vs Temporários)
