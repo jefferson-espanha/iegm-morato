@@ -10351,12 +10351,47 @@ def container_formulario_ieduc(ano=None):
                             )
                             ui.label(
                                 "Assinale as ações e medidas realizadas:"
-                            ).classes("text-base font-bold text-black mb-6")
+                            ).classes("text-base font-bold text-black mb-1")
+                            ui.label("ℹ Quesito qualitativo de seleção múltipla.").classes(
+                                "text-xs text-gray-400 mb-6"
+                            )
 
-                            # Tenta buscar por '3.23.1' primeiro (padrão de salvamento)
                             d3231 = res_data.get("3.23.1") or res_data.get("3.231") or {}
-                            raw_val_3231 = str(d3231.get("valor") or "")
                             raw_link_3231 = str(d3231.get("link") or "")
+                            val_3231_bruto = d3231.get("valor") or []
+
+                            # Tratamento do valor salvo (idêntico ao 1.7.2 com suporte a JSON / Lista)
+                            if isinstance(val_3231_bruto, str):
+                                try:
+                                    sel_3231 = json.loads(val_3231_bruto)
+                                except Exception:
+                                    # Fallback para caso venha formatado com ponto e vírgula de versoes antigas
+                                    sel_3231 = [
+                                        item.strip()
+                                        for item in val_3231_bruto.split(";")
+                                        if item.strip()
+                                    ]
+                            elif isinstance(val_3231_bruto, list):
+                                sel_3231 = val_3231_bruto
+                            else:
+                                sel_3231 = []
+
+                            # Recupera a descrição de "Outro" se gravado no formato "Outro: texto"
+                            outro_desc_salva = ""
+                            sel_3231_limpo = []
+                            for item in sel_3231:
+                                if isinstance(item, str) and item.startswith("Outro:"):
+                                    outro_desc_salva = item.replace("Outro:", "").strip()
+                                    if "Outro" not in sel_3231_limpo:
+                                        sel_3231_limpo.append("Outro")
+                                else:
+                                    sel_3231_limpo.append(item)
+
+                            state_3231 = {
+                                "opcoes": sel_3231_limpo,
+                                "outro_desc": outro_desc_salva,
+                                "link": raw_link_3231,
+                            }
 
                             opcoes_3231 = [
                                 "Ligação/mensagem para os responsáveis",
@@ -10370,50 +10405,28 @@ def container_formulario_ieduc(ano=None):
                                 "Outro",
                             ]
 
-                            # Parse dos itens salvos limpando espaços
-                            brutos_salvos = [
-                                item.strip() for item in raw_val_3231.split(";") if item.strip()
-                            ]
-
-                            itens_selecionados = []
-                            outro_texto = ""
-
-                            for item in brutos_salvos:
-                                if item.startswith("Outro:"):
-                                    outro_texto = item.replace("Outro:", "").strip()
-                                    if "Outro" not in itens_selecionados:
-                                        itens_selecionados.append("Outro")
-                                elif item in opcoes_3231:
-                                    if item not in itens_selecionados:
-                                        itens_selecionados.append(item)
-
-                            state_3231 = {
-                                "selecionados": itens_selecionados,
-                                "outro_desc": outro_texto,
-                                "link": raw_link_3231,
-                            }
-
                             with ui.grid(columns=1).classes("w-full gap-2 mb-4"):
-                                for op in opcoes_3231:
-                                    chk = ui.checkbox(
-                                        op,
-                                        value=(op in state_3231["selecionados"])
+                                def make_chk_3231(opt_text):
+                                    def on_chk_change(e):
+                                        if e.value and opt_text not in state_3231["opcoes"]:
+                                            state_3231["opcoes"].append(opt_text)
+                                        elif not e.value and opt_text in state_3231["opcoes"]:
+                                            state_3231["opcoes"].remove(opt_text)
+                                    return on_chk_change
+
+                                for opt in opcoes_3231:
+                                    ui.checkbox(
+                                        text=opt,
+                                        value=(opt in state_3231["opcoes"]),
+                                        on_change=make_chk_3231(opt),
                                     ).props("color=blue")
-
-                                    def on_chk_change(e, option=op):
-                                        if e.value:
-                                            if option not in state_3231["selecionados"]:
-                                                state_3231["selecionados"].append(option)
-                                        else:
-                                            if option in state_3231["selecionados"]:
-                                                state_3231["selecionados"].remove(option)
-
-                                    chk.on("update:model-value", on_chk_change)
 
                             ui.input(
                                 "Caso tenha marcado 'Outro', especifique:",
-                                value=state_3231["outro_desc"]
-                            ).classes("w-full mb-4").props("outlined color=blue").bind_value(state_3231, "outro_desc")
+                                value=state_3231["outro_desc"],
+                            ).classes("w-full mb-4").props("outlined color=blue").bind_value(
+                                state_3231, "outro_desc"
+                            )
 
                             ui.textarea(
                                 label="Link de Evidência / Relatórios de Atendimentos:",
@@ -10424,22 +10437,21 @@ def container_formulario_ieduc(ano=None):
                             )
 
                             def salvar_3231():
-                                final_list = []
-                                for op in state_3231["selecionados"]:
-                                    if op == "Outro":
-                                        desc = state_3231["outro_desc"].strip()
-                                        if desc:
-                                            final_list.append(f"Outro: {desc}")
-                                        else:
-                                            final_list.append("Outro")
-                                    else:
-                                        final_list.append(op)
+                                opts_sel = list(state_3231["opcoes"])
 
-                                valor_str = "; ".join(final_list)
+                                # Se "Outro" foi selecionado, anexa a descrição tratada
+                                if "Outro" in opts_sel:
+                                    opts_sel.remove("Outro")
+                                    desc = state_3231["outro_desc"].strip()
+                                    if desc:
+                                        opts_sel.append(f"Outro: {desc}")
+                                    else:
+                                        opts_sel.append("Outro")
+
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="3.23.1",
-                                    valor=valor_str,
+                                    valor=opts_sel,
                                     pontos=0.0,
                                     link=state_3231["link"],
                                     comentarios=d3231.get("comentarios", []),
