@@ -19945,11 +19945,8 @@ def container_formulario_ieduc(ano=None):
                                     if isinstance(parsed, dict):
                                         pres_init = int(parsed.get("presentes", 0) or 0)
                                         aus_init = int(parsed.get("ausentes", 0) or 0)
-                                except Exception: pass
-
-                            # Checa se possui indicador próprio (Q3.15 / E3.15)
-                            d_q315 = res_data.get("Q3.15") or res_data.get("Q315") or res_data.get("E3.15") or {}
-                            possui_ind_proprio = str(d_q315.get("resposta") or d_q315.get("valor") or "").lower() in ["sim", "true", "1"]
+                                except Exception:
+                                    pass
 
                             state_e3132 = {
                                 "presentes": pres_init,
@@ -19959,16 +19956,21 @@ def container_formulario_ieduc(ano=None):
                                 "pontos": float(d_e3132.get("pontos", 0.0)),
                             }
 
-                            lbl_pontos_e3132 = ui.label("📊 Porcentagem Avaliada: 0,0% | Pontuação Quesito E3.13.2: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                            lbl_pontos_e3132 = ui.label("📊 Avaliados: 0,0% | Pontuação Quesito E3.13.2: 0,00 ponto(s) (Máx: 18,0)").classes("text-sm font-bold text-green-600 mb-4")
 
                             def calc_e3132():
-                                pmax = 18.0 if possui_ind_proprio else 0.0
+                                # Pontuação Máxima fixa do quesito E3.13.2
+                                pmax = 18.0
 
-                                try: pres = int(state_e3132["presentes"]) if state_e3132["presentes"] is not None else 0
-                                except (ValueError, TypeError): pres = 0
+                                try:
+                                    pres = int(state_e3132["presentes"]) if state_e3132["presentes"] is not None else 0
+                                except (ValueError, TypeError):
+                                    pres = 0
 
-                                try: aus = int(state_e3132["ausentes"]) if state_e3132["ausentes"] is not None else 0
-                                except (ValueError, TypeError): aus = 0
+                                try:
+                                    aus = int(state_e3132["ausentes"]) if state_e3132["ausentes"] is not None else 0
+                                except (ValueError, TypeError):
+                                    aus = 0
 
                                 tot = pres + aus
                                 if tot > 0 and pres >= 0:
@@ -19982,7 +19984,7 @@ def container_formulario_ieduc(ano=None):
                                 state_e3132["pontos"] = round(pts, 2)
 
                                 str_pct = f"{pct:.1f}".replace(".", ",")
-                                str_pts = f"{pts:.2f}".replace(".", ",")
+                                str_pts = f"{pts:.1f}".replace(".", ",")
                                 str_pmax = f"{pmax:.1f}".replace(".", ",")
                                 lbl_pontos_e3132.set_text(f"📊 Avaliados: {str_pct}% | Pontuação Quesito E3.13.2: {str_pts} ponto(s) (Máx: {str_pmax})")
 
