@@ -1927,9 +1927,15 @@ def container_formulario_ieduc(ano=None):
                                 "link": evidencia_171,
                             }
 
+                            def get_safe_int(val):
+                                try:
+                                    return int(val) if val is not None else 0
+                                except (ValueError, TypeError):
+                                    return 0
+
                             def calc_pts_171():
-                                num = int(state_171["prof_cap"] or 0) + int(state_171["apoio_cap"] or 0) + int(state_171["gest_cap"] or 0)
-                                den = int(state_171["tot_prof"] or 0) + int(state_171["tot_apoio"] or 0) + int(state_171["tot_gest"] or 0)
+                                num = get_safe_int(state_171["prof_cap"]) + get_safe_int(state_171["apoio_cap"]) + get_safe_int(state_171["gest_cap"])
+                                den = get_safe_int(state_171["tot_prof"]) + get_safe_int(state_171["tot_apoio"]) + get_safe_int(state_171["tot_gest"])
 
                                 if den <= 0 or num <= 0:
                                     return 0.0
@@ -1977,8 +1983,12 @@ def container_formulario_ieduc(ano=None):
                                 inp.on("update:model-value", att_pts_171)
 
                             def salvar_171():
-                                p_cap, a_cap, g_cap = state_171["prof_cap"], state_171["apoio_cap"], state_171["gest_cap"]
-                                t_prof, t_apoi, t_gest = state_171["tot_prof"], state_171["tot_apoio"], state_171["tot_gest"]
+                                p_cap = get_safe_int(state_171["prof_cap"])
+                                a_cap = get_safe_int(state_171["apoio_cap"])
+                                g_cap = get_safe_int(state_171["gest_cap"])
+                                t_prof = get_safe_int(state_171["tot_prof"])
+                                t_apoi = get_safe_int(state_171["tot_apoio"])
+                                t_gest = get_safe_int(state_171["tot_gest"])
                                 pts_finais = calc_pts_171()
 
                                 composite = (
@@ -2021,6 +2031,7 @@ def container_formulario_ieduc(ano=None):
                             )
                             ui.separator().classes("my-2")
                             bloco_comentarios("1.7.1", res_data, getattr(render_conteudo, "refresh", None))
+
 
                         # =============================================================================
                         # QUESITO 1.7.2 (Formas de Capacitação Oferecidas)
@@ -2093,11 +2104,14 @@ def container_formulario_ieduc(ano=None):
                                 opts_sel = state_172["opcoes"]
                                 lnk = state_172["link"]
 
+                                # Serialização garantida para JSON String (evita incompatibilidade com DB)
+                                val_salvar = json.dumps(opts_sel, ensure_ascii=False)
+
                                 try:
                                     save_resposta(
                                         ano=ano_sel,
                                         qid="1.7.2",
-                                        valor=opts_sel,
+                                        valor=val_salvar,
                                         pontos=0.0,
                                         link=lnk,
                                         comentarios=d172.get("comentarios", []),
@@ -2106,7 +2120,7 @@ def container_formulario_ieduc(ano=None):
 
                                     novos_dados = {
                                         "resposta": opts_sel,
-                                        "valor": opts_sel,
+                                        "valor": val_salvar,
                                         "pontos": 0.0,
                                         "link": lnk,
                                         "comentarios": d172.get("comentarios", []),
@@ -2125,6 +2139,7 @@ def container_formulario_ieduc(ano=None):
                             )
                             ui.separator().classes("my-2")
                             bloco_comentarios("1.7.2", res_data, getattr(render_conteudo, "refresh", None))
+                            
         # =============================================================================
                         # QUESITO 1.8 (Rotatividade do Corpo Docente em Creches)
                         # =============================================================================
