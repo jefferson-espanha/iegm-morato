@@ -13856,6 +13856,28 @@ def container_formulario_ieduc(ano=None):
                             ).classes("text-base font-bold text-black mb-4")
 
                             d154 = res_data.get("15.4") or res_data.get("154") or {}
+                            raw_link_154 = str(d154.get("link") or "")
+                            val_154_bruto = d154.get("valor") or []
+
+                            # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
+                            if isinstance(val_154_bruto, str):
+                                try:
+                                    sel_154 = json.loads(val_154_bruto)
+                                except Exception:
+                                    sel_154 = [
+                                        item.strip()
+                                        for item in val_154_bruto.split(";")
+                                        if item.strip()
+                                    ]
+                            elif isinstance(val_154_bruto, list):
+                                sel_154 = val_154_bruto
+                            else:
+                                sel_154 = []
+
+                            state_154 = {
+                                "opcoes": sel_154,
+                                "link": raw_link_154,
+                            }
 
                             opcoes_154 = [
                                 "Maternidade responsável",
@@ -13867,32 +13889,22 @@ def container_formulario_ieduc(ano=None):
                                 "Outros",
                             ]
 
-                            raw_val_154 = str(d154.get("valor") or "")
-                            marcados_154 = [i.strip() for i in raw_val_154.split(";") if i.strip()]
-                            raw_link_154 = str(d154.get("link") or "")
-
-                            state_154 = {
-                                "selecionados": marcados_154,
-                                "link": raw_link_154,
-                            }
-
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 with ui.column().classes("w-full gap-1"):
+                                    def make_chk_154(opt_text):
+                                        def on_chk_change(e):
+                                            if e.value and opt_text not in state_154["opcoes"]:
+                                                state_154["opcoes"].append(opt_text)
+                                            elif not e.value and opt_text in state_154["opcoes"]:
+                                                state_154["opcoes"].remove(opt_text)
+                                        return on_chk_change
+
                                     for op_154 in opcoes_154:
-                                        chk_154 = ui.checkbox(
-                                            op_154,
-                                            value=(op_154 in state_154["selecionados"])
+                                        ui.checkbox(
+                                            text=op_154,
+                                            value=(op_154 in state_154["opcoes"]),
+                                            on_change=make_chk_154(op_154),
                                         ).props("color=blue")
-
-                                        def on_154_change(e, option=op_154):
-                                            if e.value:
-                                                if option not in state_154["selecionados"]:
-                                                    state_154["selecionados"].append(option)
-                                            else:
-                                                if option in state_154["selecionados"]:
-                                                    state_154["selecionados"].remove(option)
-
-                                        chk_154.on("update:model-value", on_154_change)
 
                                 ui.textarea(
                                     label="Link de Evidência (Quesito 15.4):",
@@ -13903,11 +13915,11 @@ def container_formulario_ieduc(ano=None):
                                 )
 
                             def salvar_154():
-                                str_154 = " ; ".join(state_154["selecionados"])
+                                opts_sel = state_154["opcoes"]
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="15.4",
-                                    valor=str_154,
+                                    valor=opts_sel,
                                     pontos=0.0,
                                     link=state_154["link"],
                                     comentarios=d154.get("comentarios", []),
@@ -13915,7 +13927,7 @@ def container_formulario_ieduc(ano=None):
                                 )
 
                                 ui.notify("Quesito 15.4 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 15.4", on_click=salvar_154).classes(
