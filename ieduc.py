@@ -12012,6 +12012,28 @@ def container_formulario_ieduc(ano=None):
                             ).classes("text-base font-bold text-black mb-4")
 
                             d111 = res_data.get("11.1") or res_data.get("111") or {}
+                            raw_link_111 = str(d111.get("link") or "")
+                            val_111_bruto = d111.get("valor") or []
+
+                            # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
+                            if isinstance(val_111_bruto, str):
+                                try:
+                                    sel_111 = json.loads(val_111_bruto)
+                                except Exception:
+                                    sel_111 = [
+                                        item.strip()
+                                        for item in val_111_bruto.split(";")
+                                        if item.strip()
+                                    ]
+                            elif isinstance(val_111_bruto, list):
+                                sel_111 = val_111_bruto
+                            else:
+                                sel_111 = []
+
+                            state_111 = {
+                                "opcoes": sel_111,
+                                "link": raw_link_111,
+                            }
 
                             opcoes_111 = [
                                 "Condições físicas e estruturais da cozinha",
@@ -12025,34 +12047,39 @@ def container_formulario_ieduc(ano=None):
                                 "Outras",
                             ]
 
-                            raw_val_111 = str(d111.get("valor") or "")
-                            marcados_111 = [i.strip() for i in raw_val_111.split(";") if i.strip()]
-                            raw_link_111 = str(d111.get("link") or "")
+                            lbl_pts_111 = ui.label("Nota do Quesito 11.1: 0.00 / 2.00 pontos").classes(
+                                "text-sm font-bold text-green-600 mb-4"
+                            )
 
-                            state_111 = {
-                                "selecionados": marcados_111,
-                                "link": raw_link_111,
-                            }
+                            def recalc_111():
+                                validos = [
+                                    item for item in state_111["opcoes"] if item != "Outras"
+                                ]
+                                pts = len(validos) * 0.25
+                                pts = min(pts, 2.0)
+                                lbl_pts_111.set_text(
+                                    f"📊 Nota do Quesito 11.1: {pts:.2f} / 2.00 pontos ({len(validos)} condições atestadas)"
+                                )
+                                return pts
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 with ui.column().classes("w-full gap-1"):
+                                    def make_chk_111(opt_text):
+                                        def on_chk_change(e):
+                                            if e.value and opt_text not in state_111["opcoes"]:
+                                                state_111["opcoes"].append(opt_text)
+                                            elif not e.value and opt_text in state_111["opcoes"]:
+                                                state_111["opcoes"].remove(opt_text)
+                                            recalc_111()
+                                        return on_chk_change
+
                                     for op_111 in opcoes_111:
                                         pts_txt = " (+0,25 pt)" if op_111 != "Outras" else " (0,00 pt)"
-                                        chk_111 = ui.checkbox(
-                                            f"{op_111}{pts_txt}",
-                                            value=(op_111 in state_111["selecionados"])
+                                        ui.checkbox(
+                                            text=f"{op_111}{pts_txt}",
+                                            value=(op_111 in state_111["opcoes"]),
+                                            on_change=make_chk_111(op_111),
                                         ).props("color=blue")
-
-                                        def on_111_change(e, option=op_111):
-                                            if e.value:
-                                                if option not in state_111["selecionados"]:
-                                                    state_111["selecionados"].append(option)
-                                            else:
-                                                if option in state_111["selecionados"]:
-                                                    state_111["selecionados"].remove(option)
-                                            recalc_111()
-
-                                        chk_111.on("update:model-value", on_111_change)
 
                                 ui.textarea(
                                     label="Link de Evidência (Quesito 11.1):",
@@ -12062,24 +12089,15 @@ def container_formulario_ieduc(ano=None):
                                     state_111, "link"
                                 )
 
-                            lbl_pts_111 = ui.label("Nota do Quesito 11.1: 0.00 / 2.00 pontos").classes("text-sm font-bold text-green-600 mb-4")
-
-                            def recalc_111():
-                                validos = [item for item in state_111["selecionados"] if item != "Outras"]
-                                pts = len(validos) * 0.25
-                                pts = min(pts, 2.0)
-                                lbl_pts_111.set_text(f"📊 Nota do Quesito 11.1: {pts:.2f} / 2.00 pontos ({len(validos)} condições atestadas)")
-                                return pts
-
                             recalc_111()
 
                             def salvar_111():
                                 pts_111 = recalc_111()
-                                str_111 = " ; ".join(state_111["selecionados"])
+                                opts_sel = state_111["opcoes"]
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="11.1",
-                                    valor=str_111,
+                                    valor=opts_sel,
                                     pontos=pts_111,
                                     link=state_111["link"],
                                     comentarios=d111.get("comentarios", []),
@@ -12087,7 +12105,7 @@ def container_formulario_ieduc(ano=None):
                                 )
 
                                 ui.notify("Quesito 11.1 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 11.1", on_click=salvar_111).classes(
