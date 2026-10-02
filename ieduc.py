@@ -19729,182 +19729,329 @@ def container_formulario_ieduc(ano=None):
 
 
                         # -----------------------------------------------------------------------------
-                        # QUESITO E3.13 / E3.13.1 / E3.13.2 - Prova Brasil, SAEB e IDEB
+                        # QUESITO E3.13 - Participação no SAEB / Prova Brasil
                         # -----------------------------------------------------------------------------
                         d_e313 = res_data.get("E3.13") or res_data.get("E313") or {}
-                        d_e3131 = res_data.get("E3.13.1") or res_data.get("E3131") or {}
-                        d_e3132 = res_data.get("E3.13.2") or res_data.get("E3132") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("E3.13 • Participação no SAEB/Prova Brasil e Desempenho do IDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("E3.13 • Participação no Prova Brasil / SAEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("O Município participou da última edição da Prova Brasil/SAEB? (Dados INEP):").classes("text-base font-bold text-black mb-4")
 
-                            # Parsing E3.13.1
+                            val_e313 = str(d_e313.get("resposta") or d_e313.get("valor") or "Sim")
+
+                            state_e313 = {
+                                "opcao": val_e313 if val_e313 in ["Sim", "Não"] else "Sim",
+                                "link": str(d_e313.get("link") or ""),
+                            }
+
+                            ui.radio(
+                                options=["Sim", "Não"],
+                                value=state_e313["opcao"],
+                            ).classes("mb-4").bind_value(state_e313, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência / Fonte dos Dados (INEP):",
+                                value=state_e313["link"],
+                                placeholder="Link da publicação do INEP referente ao SAEB...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e313, "link")
+
+                            ui.label("📊 Pontuação Quesito E3.13: Informativo").classes("text-sm font-bold text-gray-600 mb-4")
+
+                            def salvar_e313():
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E3.13",
+                                        valor=state_e313["opcao"],
+                                        pontos=0.0,
+                                        link=state_e313["link"],
+                                        comentarios=d_e313.get("comentarios", []),
+                                        status=d_e313.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": state_e313["opcao"],
+                                        "valor": state_e313["opcao"],
+                                        "pontos": 0.0,
+                                        "link": state_e313["link"],
+                                        "comentarios": d_e313.get("comentarios", []),
+                                        "status": d_e313.get("status", "Pendente"),
+                                    }
+                                    res_data["E3.13"] = novos_dados
+                                    res_data["E313"] = novos_dados
+
+                                    ui.notify("Quesito E3.13 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E3.13: {err}", type="negative")
+
+                            ui.button("💾 SALVAR QUESITO E3.13", on_click=salvar_e313).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("E3.13", res_data, getattr(render_conteudo, "refresh", None))
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO E3.13.1 - Metas e Resultados do IDEB
+                        # -----------------------------------------------------------------------------
+                        d_e3131 = res_data.get("E3.13.1") or res_data.get("E3131") or {}
+
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("E3.13.1 • Metas e Resultados do IDEB (5º Ano EF)").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe as metas e resultados do IDEB do Município em sua última edição (Dados INEP):").classes("text-base font-bold text-black mb-4")
+
                             val_131_raw = d_e3131.get("resposta") if d_e3131.get("resposta") is not None else d_e3131.get("valor")
-                            m_meta, m_res, m_ano = 0.0, 0.0, "2023"
+                            m_meta_init, m_res_init, m_ano_init = 0.0, 0.0, "2023"
+
                             if isinstance(val_131_raw, dict):
-                                m_meta = float(val_131_raw.get("meta", 0.0) or 0.0)
-                                m_res = float(val_131_raw.get("resultado", 0.0) or 0.0)
-                                m_ano = str(val_131_raw.get("ano_edicao") or "2023")
+                                m_meta_init = float(val_131_raw.get("meta", 0.0) or 0.0)
+                                m_res_init = float(val_131_raw.get("resultado", 0.0) or 0.0)
+                                m_ano_init = str(val_131_raw.get("ano_edicao") or "2023")
                             elif isinstance(val_131_raw, str):
                                 try:
                                     parsed = json.loads(val_131_raw)
                                     if isinstance(parsed, dict):
-                                        m_meta = float(parsed.get("meta", 0.0) or 0.0)
-                                        m_res = float(parsed.get("resultado", 0.0) or 0.0)
-                                        m_ano = str(parsed.get("ano_edicao") or "2023")
+                                        m_meta_init = float(parsed.get("meta", 0.0) or 0.0)
+                                        m_res_init = float(parsed.get("resultado", 0.0) or 0.0)
+                                        m_ano_init = str(parsed.get("ano_edicao") or "2023")
                                 except Exception: pass
 
-                            # Parsing E3.13.2
+                            # Checa indicador próprio (Q3.15 / E3.15)
+                            d_q315 = res_data.get("Q3.15") or res_data.get("Q315") or res_data.get("E3.15") or {}
+                            possui_ind_proprio = str(d_q315.get("resposta") or d_q315.get("valor") or "").lower() in ["sim", "true", "1"]
+
+                            state_e3131 = {
+                                "meta": m_meta_init,
+                                "resultado": m_res_init,
+                                "ano_edicao": m_ano_init,
+                                "link": str(d_e3131.get("link") or ""),
+                                "pontos": float(d_e3131.get("pontos", 0.0)),
+                            }
+
+                            lbl_pontos_e3131 = ui.label("📊 Pontuação Quesito E3.13.1: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def calc_e3131():
+                                pmax = 18.0 if possui_ind_proprio else 36.0
+                                try: res = float(state_e3131["resultado"]) if state_e3131["resultado"] is not None else 0.0
+                                except (ValueError, TypeError): res = 0.0
+
+                                try: meta = float(state_e3131["meta"]) if state_e3131["meta"] is not None else 0.0
+                                except (ValueError, TypeError): meta = 0.0
+
+                                pts = pmax if res >= meta and meta > 0 else 0.0
+                                state_e3131["pontos"] = pts
+
+                                str_pts = f"{pts:.1f}".replace(".", ",")
+                                str_pmax = f"{pmax:.1f}".replace(".", ",")
+                                lbl_pontos_e3131.set_text(f"📊 Pontuação Quesito E3.13.1: {str_pts} ponto(s) (Máx: {str_pmax})")
+
+                            with ui.grid(columns=3).classes("w-full gap-4 items-start mb-4"):
+                                ui.number(
+                                    label="5º Ano EF - Meta IDEB:",
+                                    value=state_e3131["meta"],
+                                    min=0.0,
+                                    max=10.0,
+                                    step=0.1,
+                                    format="%.1f",
+                                    on_change=lambda e: [state_e3131.update({"meta": e.value}), calc_e3131()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.number(
+                                    label="5º Ano EF - Resultado IDEB:",
+                                    value=state_e3131["resultado"],
+                                    min=0.0,
+                                    max=10.0,
+                                    step=0.1,
+                                    format="%.1f",
+                                    on_change=lambda e: [state_e3131.update({"resultado": e.value}), calc_e3131()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.input(
+                                    label="Ano da Última Edição:",
+                                    value=state_e3131["ano_edicao"],
+                                ).classes("w-full").props("outlined color=blue").bind_value(state_e3131, "ano_edicao")
+
+                            calc_e3131()
+
+                            ui.textarea(
+                                label="Link de Evidência / Fonte dos Dados (INEP):",
+                                value=state_e3131["link"],
+                                placeholder="Link do relatório do IDEB no INEP...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e3131, "link")
+
+                            def salvar_e3131():
+                                calc_e3131()
+                                meta_v = float(state_e3131["meta"] or 0.0)
+                                res_v = float(state_e3131["resultado"] or 0.0)
+                                ano_v = str(state_e3131["ano_edicao"] or "")
+
+                                val_dict = {"meta": meta_v, "resultado": res_v, "ano_edicao": ano_v}
+                                str_resposta = json.dumps(val_dict)
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E3.13.1",
+                                        valor=str_resposta,
+                                        pontos=state_e3131["pontos"],
+                                        link=state_e3131["link"],
+                                        comentarios=d_e3131.get("comentarios", []),
+                                        status=d_e3131.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": str_resposta,
+                                        "valor": str_resposta,
+                                        "meta": meta_v,
+                                        "resultado": res_v,
+                                        "ano_edicao": ano_v,
+                                        "pontos": state_e3131["pontos"],
+                                        "link": state_e3131["link"],
+                                        "comentarios": d_e3131.get("comentarios", []),
+                                        "status": d_e3131.get("status", "Pendente"),
+                                    }
+                                    res_data["E3.13.1"] = novos_dados
+                                    res_data["E3131"] = novos_dados
+
+                                    ui.notify("Quesito E3.13.1 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E3.13.1: {err}", type="negative")
+
+                            ui.button("💾 SALVAR QUESITO E3.13.1", on_click=salvar_e3131).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("E3.13.1", res_data, getattr(render_conteudo, "refresh", None))
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO E3.13.2 - Frequência de Alunos no SAEB / Prova Brasil
+                        # -----------------------------------------------------------------------------
+                        d_e3132 = res_data.get("E3.13.2") or res_data.get("E3132") or {}
+
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("E3.13.2 • Frequência de Alunos no Prova Brasil / SAEB (5º Ano EF)").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe o número de alunos presentes e ausentes do público-alvo da última edição (Dados INEP):").classes("text-base font-bold text-black mb-4")
+
                             val_132_raw = d_e3132.get("resposta") if d_e3132.get("resposta") is not None else d_e3132.get("valor")
-                            a_pres, a_aus = 0, 0
+                            pres_init, aus_init = 0, 0
+
                             if isinstance(val_132_raw, dict):
-                                a_pres = int(val_132_raw.get("presentes", 0) or 0)
-                                a_aus = int(val_132_raw.get("ausentes", 0) or 0)
+                                pres_init = int(val_132_raw.get("presentes", 0) or 0)
+                                aus_init = int(val_132_raw.get("ausentes", 0) or 0)
                             elif isinstance(val_132_raw, str):
                                 try:
                                     parsed = json.loads(val_132_raw)
                                     if isinstance(parsed, dict):
-                                        a_pres = int(parsed.get("presentes", 0) or 0)
-                                        a_aus = int(parsed.get("ausentes", 0) or 0)
+                                        pres_init = int(parsed.get("presentes", 0) or 0)
+                                        aus_init = int(parsed.get("ausentes", 0) or 0)
                                 except Exception: pass
 
                             # Checa se possui indicador próprio (Q3.15 / E3.15)
                             d_q315 = res_data.get("Q3.15") or res_data.get("Q315") or res_data.get("E3.15") or {}
                             possui_ind_proprio = str(d_q315.get("resposta") or d_q315.get("valor") or "").lower() in ["sim", "true", "1"]
 
-                            state_saeb = {
-                                "participou_saeb": str(d_e313.get("resposta") or d_e313.get("valor") or "Sim"),
-                                "link_e313": str(d_e313.get("link") or ""),
-                                "meta_ideb": m_meta,
-                                "res_ideb": m_res,
-                                "ano_ideb": m_ano,
-                                "link_e3131": str(d_e3131.get("link") or ""),
-                                "presentes": a_pres,
-                                "ausentes": a_aus,
-                                "link_e3132": str(d_e3132.get("link") or ""),
-                                "pts_e3131": float(d_e3131.get("pontos", 0.0)),
-                                "pts_e3132": float(d_e3132.get("pontos", 0.0)),
+                            state_e3132 = {
+                                "presentes": pres_init,
+                                "ausentes": aus_init,
+                                "link": str(d_e3132.get("link") or ""),
+                                "porcentagem": 0.0,
+                                "pontos": float(d_e3132.get("pontos", 0.0)),
                             }
 
-                            lbl_pts_saeb = ui.label("📊 Pontuações IDEB/SAEB: ").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
+                            lbl_pontos_e3132 = ui.label("📊 Porcentagem Avaliada: 0,0% | Pontuação Quesito E3.13.2: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
 
-                            def calc_saeb():
-                                pmax_131 = 18.0 if possui_ind_proprio else 36.0
-                                pmax_132 = 18.0 if possui_ind_proprio else 0.0
+                            def calc_e3132():
+                                pmax = 18.0 if possui_ind_proprio else 0.0
 
-                                # E3.13.1 - IDEB
-                                try: res = float(state_saeb["res_ideb"]) if state_saeb["res_ideb"] is not None else 0.0
-                                except (ValueError, TypeError): res = 0.0
-
-                                try: meta = float(state_saeb["meta_ideb"]) if state_saeb["meta_ideb"] is not None else 0.0
-                                except (ValueError, TypeError): meta = 0.0
-
-                                pts_131 = pmax_131 if res >= meta and meta > 0 else 0.0
-                                state_saeb["pts_e3131"] = pts_131
-
-                                # E3.13.2 - Percentual de Avaliados
-                                try: pres = int(state_saeb["presentes"]) if state_saeb["presentes"] is not None else 0
+                                try: pres = int(state_e3132["presentes"]) if state_e3132["presentes"] is not None else 0
                                 except (ValueError, TypeError): pres = 0
 
-                                try: aus = int(state_saeb["ausentes"]) if state_saeb["ausentes"] is not None else 0
+                                try: aus = int(state_e3132["ausentes"]) if state_e3132["ausentes"] is not None else 0
                                 except (ValueError, TypeError): aus = 0
 
                                 tot = pres + aus
-                                p1 = (pres / tot) if tot > 0 else 0.0
-                                pts_132 = pmax_132 * p1
-                                state_saeb["pts_e3132"] = pts_132
+                                if tot > 0 and pres >= 0:
+                                    p1 = pres / tot
+                                    pct = p1 * 100.0
+                                    pts = pmax * p1
+                                else:
+                                    p1, pct, pts = 0.0, 0.0, 0.0
 
-                                lbl_pts_saeb.set_text(
-                                    f"📊 Resumo dos Resultados:\n"
-                                    f" • E3.13.1 (IDEB Meta/Resultado): {pts_131:.1f} / {pmax_131:.1f} pts\n"
-                                    f" • E3.13.2 (Avaliados SAEB {p1*100:.1f}%): {pts_132:.2f} / {pmax_132:.1f} pts"
-                                )
+                                state_e3132["porcentagem"] = pct
+                                state_e3132["pontos"] = round(pts, 2)
 
-                            ui.label("O Município participou da última edição da Prova Brasil/SAEB?").classes("text-base font-bold text-black mb-2")
-                            ui.radio(["Sim", "Não"], value=state_saeb["participou_saeb"], on_change=lambda e: state_saeb.update({"participou_saeb": e.value})).props("inline color=blue")
-
-                            ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (E3.13):",
-                                value=state_saeb["link_e313"],
-                                placeholder="Link da publicação do INEP referente ao SAEB...",
-                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_saeb, "link_e313")
-
-                            ui.separator().classes("my-4")
-                            ui.label("E3.13.1 • Metas e Resultados do IDEB (5º Ano)").classes("text-lg font-semibold text-blue-500 mb-2")
-
-                            with ui.grid(columns=3).classes("w-full gap-4 items-start mb-4"):
-                                ui.number(
-                                    label="Meta IDEB (5º Ano):", value=state_saeb["meta_ideb"], step=0.1, format="%.1f",
-                                    on_change=lambda e: [state_saeb.update({"meta_ideb": e.value}), calc_saeb()],
-                                ).classes("w-full").props("outlined color=blue")
-
-                                ui.number(
-                                    label="Resultado IDEB (5º Ano):", value=state_saeb["res_ideb"], step=0.1, format="%.1f",
-                                    on_change=lambda e: [state_saeb.update({"res_ideb": e.value}), calc_saeb()],
-                                ).classes("w-full").props("outlined color=blue")
-
-                                ui.input(
-                                    label="Ano da Última Edição:", value=state_saeb["ano_ideb"],
-                                    on_change=lambda e: state_saeb.update({"ano_ideb": e.value}),
-                                ).classes("w-full").props("outlined color=blue")
-
-                            ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (E3.13.1):",
-                                value=state_saeb["link_e3131"],
-                                placeholder="Link do extrato do IDEB no INEP...",
-                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_saeb, "link_e3131")
-
-                            ui.separator().classes("my-4")
-                            ui.label("E3.13.2 • Frequência de Alunos no SAEB (5º Ano)").classes("text-lg font-semibold text-blue-500 mb-2")
+                                str_pct = f"{pct:.1f}".replace(".", ",")
+                                str_pts = f"{pts:.2f}".replace(".", ",")
+                                str_pmax = f"{pmax:.1f}".replace(".", ",")
+                                lbl_pontos_e3132.set_text(f"📊 Avaliados: {str_pct}% | Pontuação Quesito E3.13.2: {str_pts} ponto(s) (Máx: {str_pmax})")
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 ui.number(
-                                    label="Alunos Presentes:", value=state_saeb["presentes"], min=0, step=1,
-                                    on_change=lambda e: [state_saeb.update({"presentes": e.value}), calc_saeb()],
+                                    label="5º Ano EF - Alunos Presentes:",
+                                    value=state_e3132["presentes"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e3132.update({"presentes": e.value}), calc_e3132()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
-                                    label="Alunos Ausentes:", value=state_saeb["ausentes"], min=0, step=1,
-                                    on_change=lambda e: [state_saeb.update({"ausentes": e.value}), calc_saeb()],
+                                    label="5º Ano EF - Alunos Ausentes:",
+                                    value=state_e3132["ausentes"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e3132.update({"ausentes": e.value}), calc_e3132()],
                                 ).classes("w-full").props("outlined color=blue")
 
+                            calc_e3132()
+
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (E3.13.2):",
-                                value=state_saeb["link_e3132"],
-                                placeholder="Link do relatório de presença no SAEB...",
-                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_saeb, "link_e3132")
+                                label="Link de Evidência / Fonte dos Dados (INEP):",
+                                value=state_e3132["link"],
+                                placeholder="Link do relatório de participação do INEP...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e3132, "link")
 
-                            calc_saeb()
+                            def salvar_e3132():
+                                calc_e3132()
+                                pres_v = int(state_e3132["presentes"]) if state_e3132["presentes"] is not None else 0
+                                aus_v = int(state_e3132["ausentes"]) if state_e3132["ausentes"] is not None else 0
 
-                            def salvar_saeb_bloco():
-                                calc_saeb()
+                                val_dict = {"presentes": pres_v, "ausentes": aus_v}
+                                str_resposta = json.dumps(val_dict)
+
                                 try:
-                                    # E3.13
-                                    save_resposta(ano=ano_sel, qid="E3.13", valor=state_saeb["participou_saeb"], pontos=0.0, link=state_saeb["link_e313"], comentarios=d_e313.get("comentarios", []), status=d_e313.get("status", "Pendente"))
-                                    res_data["E3.13"] = {"resposta": state_saeb["participou_saeb"], "valor": state_saeb["participou_saeb"], "pontos": 0.0, "link": state_saeb["link_e313"], "comentarios": d_e313.get("comentarios", []), "status": d_e313.get("status", "Pendente")}
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E3.13.2",
+                                        valor=str_resposta,
+                                        pontos=state_e3132["pontos"],
+                                        link=state_e3132["link"],
+                                        comentarios=d_e3132.get("comentarios", []),
+                                        status=d_e3132.get("status", "Pendente"),
+                                    )
 
-                                    # E3.13.1
-                                    d131_dict = {"meta": float(state_saeb["meta_ideb"] or 0.0), "resultado": float(state_saeb["res_ideb"] or 0.0), "ano_edicao": str(state_saeb["ano_ideb"])}
-                                    str_131 = json.dumps(d131_dict)
-                                    save_resposta(ano=ano_sel, qid="E3.13.1", valor=str_131, pontos=state_saeb["pts_e3131"], link=state_saeb["link_e3131"], comentarios=d_e3131.get("comentarios", []), status=d_e3131.get("status", "Pendente"))
-                                    res_data["E3.13.1"] = {"resposta": str_131, "valor": str_131, **d131_dict, "pontos": state_saeb["pts_e3131"], "link": state_saeb["link_e3131"], "comentarios": d_e3131.get("comentarios", []), "status": d_e3131.get("status", "Pendente")}
+                                    novos_dados = {
+                                        "resposta": str_resposta,
+                                        "valor": str_resposta,
+                                        "presentes": pres_v,
+                                        "ausentes": aus_v,
+                                        "pontos": state_e3132["pontos"],
+                                        "link": state_e3132["link"],
+                                        "comentarios": d_e3132.get("comentarios", []),
+                                        "status": d_e3132.get("status", "Pendente"),
+                                    }
+                                    res_data["E3.13.2"] = novos_dados
+                                    res_data["E3132"] = novos_dados
 
-                                    # E3.13.2
-                                    d132_dict = {"presentes": int(state_saeb["presentes"] or 0), "ausentes": int(state_saeb["ausentes"] or 0)}
-                                    str_132 = json.dumps(d132_dict)
-                                    save_resposta(ano=ano_sel, qid="E3.13.2", valor=str_132, pontos=state_saeb["pts_e3132"], link=state_saeb["link_e3132"], comentarios=d_e3132.get("comentarios", []), status=d_e3132.get("status", "Pendente"))
-                                    res_data["E3.13.2"] = {"resposta": str_132, "valor": str_132, **d132_dict, "pontos": state_saeb["pts_e3132"], "link": state_saeb["link_e3132"], "comentarios": d_e3132.get("comentarios", []), "status": d_e3132.get("status", "Pendente")}
-
-                                    ui.notify("Quesitos E3.13, E3.13.1 e E3.13.2 salvos com sucesso!", type="positive")
+                                    ui.notify("Quesito E3.13.2 salvo com sucesso!", type="positive")
                                     if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
                                         render_conteudo.refresh()
                                 except Exception as err:
-                                    ui.notify(f"Erro ao salvar bloco E3.13: {err}", type="negative")
+                                    ui.notify(f"Erro ao salvar Quesito E3.13.2: {err}", type="negative")
 
-                            ui.button("💾 SALVAR QUESITOS E3.13, E3.13.1 E E3.13.2", on_click=salvar_saeb_bloco).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.button("💾 SALVAR QUESITO E3.13.2", on_click=salvar_e3132).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
-                            bloco_comentarios("E3.13", res_data, getattr(render_conteudo, "refresh", None))
-
+                            bloco_comentarios("E3.13.2", res_data, getattr(render_conteudo, "refresh", None))
 
                         # -----------------------------------------------------------------------------
                         # QUESITO E3.13.3 - Níveis de Desempenho no SAEB (LP e MAT - 5º Ano)
