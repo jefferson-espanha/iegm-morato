@@ -1876,33 +1876,44 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("1.7", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                       # =============================================================================
-                        # QUESITO 1.7.1 (Quantidade de Profissionais de Creche Capacitados)
+                        # =============================================================================
+                        # QUESITO 1.7.1 - Quantidade de Profissionais de Creche Capacitados
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
-                            ui.label("1.7.1 • Quantidade de Profissionais de Creche Capacitados").classes(
-                                "text-xl font-semibold text-blue-500 mb-3"
-                            )
+                            ui.label(
+                                "1.7.1 • Quantidade de Profissionais de Creche Capacitados"
+                            ).classes("text-xl font-semibold text-blue-500 mb-3")
+
                             ui.label(
                                 "Informe a quantidade de profissionais de Creche (Exercício 2025):"
                             ).classes("text-base font-bold text-black mb-1")
+
                             ui.label(
                                 "⚠️ Não contar o mesmo profissional mais de uma vez. "
                                 "Fórmula: PC = (Prof. Capacitados + Apoio Capacitados + Gestores Capacitados) / (Total Geral)\n"
-                                "ℹ PC ≥ 100%: 7,0 pts | 70% ≤ PC < 100%: 5,0 pts | 50% ≤ PC < 70%: 3,0 pts | PC < 50%: 0,0 pt"
+                                "ℹ PC ≥ 100%: 7,0 pts | 70% ≤ PC < 100%: 5,0 pts | "
+                                "50% ≤ PC < 70%: 3,0 pts | PC < 50%: 0,0 pt"
                             ).classes("text-xs text-gray-400 mb-6 whitespace-pre-line")
 
                             d171 = res_data.get("1.7.1") or res_data.get("1.71") or {}
+
                             raw_link_171 = str(d171.get("link") or "")
 
-                            prof_cap_i, apoio_cap_i, gest_cap_i = 0, 0, 0
-                            tot_prof_i, tot_apoio_i, tot_gest_i = 0, 0, 0
+                            prof_cap_i = 0
+                            apoio_cap_i = 0
+                            gest_cap_i = 0
+
+                            tot_prof_i = 0
+                            tot_apoio_i = 0
+                            tot_gest_i = 0
+
                             evidencia_171 = raw_link_171
 
                             if "|LINK:" in raw_link_171:
                                 partes_171, evidencia_171 = raw_link_171.split("|LINK:", 1)
+
                                 m_pcap = re.search(r"PCAP:(\d+)", partes_171)
                                 m_acap = re.search(r"ACAP:(\d+)", partes_171)
                                 m_gcap = re.search(r"GCAP:(\d+)", partes_171)
@@ -1913,6 +1924,7 @@ def container_formulario_ieduc(ano=None):
                                 prof_cap_i = int(m_pcap.group(1)) if m_pcap else 0
                                 apoio_cap_i = int(m_acap.group(1)) if m_acap else 0
                                 gest_cap_i = int(m_gcap.group(1)) if m_gcap else 0
+
                                 tot_prof_i = int(m_tprof.group(1)) if m_tprof else 0
                                 tot_apoio_i = int(m_tapoi.group(1)) if m_tapoi else 0
                                 tot_gest_i = int(m_tgest.group(1)) if m_tgest else 0
@@ -1929,20 +1941,22 @@ def container_formulario_ieduc(ano=None):
 
                             def calc_pts_171():
                                 num = (
-                                    int(state_171["prof_cap"] or 0)
-                                    + int(state_171["apoio_cap"] or 0)
-                                    + int(state_171["gest_cap"] or 0)
+                                    int(state_171.get("prof_cap") or 0)
+                                    + int(state_171.get("apoio_cap") or 0)
+                                    + int(state_171.get("gest_cap") or 0)
                                 )
+
                                 den = (
-                                    int(state_171["tot_prof"] or 0)
-                                    + int(state_171["tot_apoio"] or 0)
-                                    + int(state_171["tot_gest"] or 0)
+                                    int(state_171.get("tot_prof") or 0)
+                                    + int(state_171.get("tot_apoio") or 0)
+                                    + int(state_171.get("tot_gest") or 0)
                                 )
 
                                 if den <= 0 or num <= 0:
                                     return 0.0
 
                                 pc = num / den
+
                                 if pc >= 1.0:
                                     return 7.0
                                 elif pc >= 0.70:
@@ -1952,64 +1966,173 @@ def container_formulario_ieduc(ano=None):
                                 else:
                                     return 0.0
 
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("w-full gap-3"):
-                                    ui.label("PROFISSIONAIS CAPACITADOS EM 2025:").classes("font-bold text-xs text-blue-800 uppercase")
-                                    inp_pcap = ui.number("Professores regentes de Creche:", value=prof_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "prof_cap")
-                                    inp_acap = ui.number("Profissionais de apoio e supervisão:", value=apoio_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "apoio_cap")
-                                    inp_gcap = ui.number("Gestores escolares de Creche:", value=gest_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "gest_cap")
-
-                                    ui.label("QUADRO TOTAL (ETAPA CRECHE):").classes("font-bold text-xs text-blue-800 uppercase mt-2")
-                                    inp_tprof = ui.number("Total de professores regentes:", value=tot_prof_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_prof")
-                                    inp_tapoi = ui.number("Total de profissionais de apoio:", value=tot_apoio_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_apoio")
-                                    inp_tgest = ui.number("Total de gestores escolares:", value=tot_gest_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_gest")
-
-                                ui.textarea(
-                                    label="Link de Evidência / Documento:",
-                                    value=evidencia_171,
-                                    placeholder="Insira as listas de presença, certificados ou relatórios de capacitação...",
-                                ).classes("w-full").props("outlined rows=16").bind_value(
-                                    state_171, "link"
-                                )
-
                             lbl_pts_171 = ui.label(
-                                f"📊 Impacto de Pontuação no Quesito 1.7.1: {calc_pts_171():.1f} / 7.0 pontos"
+                                f"📊 Impacto de Pontuação no Quesito 1.7.1: "
+                                f"{calc_pts_171():.1f} / 7.0 pontos"
                             ).classes("text-sm font-bold text-green-600 my-4")
 
                             def att_pts_171():
                                 lbl_pts_171.set_text(
-                                    f"📊 Impacto de Pontuação no Quesito 1.7.1: {calc_pts_171():.1f} / 7.0 pontos"
+                                    f"📊 Impacto de Pontuação no Quesito 1.7.1: "
+                                    f"{calc_pts_171():.1f} / 7.0 pontos"
                                 )
 
-                            for inp in [inp_pcap, inp_acap, inp_gcap, inp_tprof, inp_tapoi, inp_tgest]:
-                                inp.on("update:model-value", att_pts_171)
+                            def atualizar_numero_171(chave):
+                                def handler(e):
+                                    try:
+                                        valor = int(e.value or 0)
+                                    except (TypeError, ValueError):
+                                        valor = 0
+
+                                    state_171[chave] = max(0, valor)
+                                    att_pts_171()
+
+                                return handler
+
+                            def atualizar_link_171(e):
+                                state_171["link"] = str(e.value or "")
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                with ui.column().classes("w-full gap-3"):
+                                    ui.label(
+                                        "PROFISSIONAIS CAPACITADOS EM 2025:"
+                                    ).classes("font-bold text-xs text-blue-800 uppercase")
+
+                                    inp_pcap = ui.number(
+                                        "Professores regentes de Creche:",
+                                        value=prof_cap_i,
+                                        min=0,
+                                        step=1,
+                                        on_value_change=atualizar_numero_171("prof_cap"),
+                                    ).classes("w-full").props("outlined color=blue")
+
+                                    inp_acap = ui.number(
+                                        "Profissionais de apoio e supervisão:",
+                                        value=apoio_cap_i,
+                                        min=0,
+                                        step=1,
+                                        on_value_change=atualizar_numero_171("apoio_cap"),
+                                    ).classes("w-full").props("outlined color=blue")
+
+                                    inp_gcap = ui.number(
+                                        "Gestores escolares de Creche:",
+                                        value=gest_cap_i,
+                                        min=0,
+                                        step=1,
+                                        on_value_change=atualizar_numero_171("gest_cap"),
+                                    ).classes("w-full").props("outlined color=blue")
+
+                                    ui.label(
+                                        "QUADRO TOTAL (ETAPA CRECHE):"
+                                    ).classes("font-bold text-xs text-blue-800 uppercase mt-2")
+
+                                    inp_tprof = ui.number(
+                                        "Total de professores regentes:",
+                                        value=tot_prof_i,
+                                        min=0,
+                                        step=1,
+                                        on_value_change=atualizar_numero_171("tot_prof"),
+                                    ).classes("w-full").props("outlined color=blue")
+
+                                    inp_tapoi = ui.number(
+                                        "Total de profissionais de apoio:",
+                                        value=tot_apoio_i,
+                                        min=0,
+                                        step=1,
+                                        on_value_change=atualizar_numero_171("tot_apoio"),
+                                    ).classes("w-full").props("outlined color=blue")
+
+                                    inp_tgest = ui.number(
+                                        "Total de gestores escolares:",
+                                        value=tot_gest_i,
+                                        min=0,
+                                        step=1,
+                                        on_value_change=atualizar_numero_171("tot_gest"),
+                                    ).classes("w-full").props("outlined color=blue")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Documento:",
+                                    value=evidencia_171,
+                                    placeholder=(
+                                        "Insira as listas de presença, certificados "
+                                        "ou relatórios de capacitação..."
+                                    ),
+                                    on_value_change=atualizar_link_171,
+                                ).classes("w-full").props("outlined rows=16")
 
                             def salvar_171():
-                                p_cap, a_cap, g_cap = int(state_171["prof_cap"] or 0), int(state_171["apoio_cap"] or 0), int(state_171["gest_cap"] or 0)
-                                t_prof, t_apoi, t_gest = int(state_171["tot_prof"] or 0), int(state_171["tot_apoio"] or 0), int(state_171["tot_gest"] or 0)
+                                try:
+                                    p_cap = int(state_171.get("prof_cap") or 0)
+                                    a_cap = int(state_171.get("apoio_cap") or 0)
+                                    g_cap = int(state_171.get("gest_cap") or 0)
+
+                                    t_prof = int(state_171.get("tot_prof") or 0)
+                                    t_apoi = int(state_171.get("tot_apoio") or 0)
+                                    t_gest = int(state_171.get("tot_gest") or 0)
+                                except (TypeError, ValueError):
+                                    ui.notify(
+                                        "Informe somente números inteiros válidos.",
+                                        type="negative",
+                                    )
+                                    return
+
                                 pts_finais = calc_pts_171()
 
-                                composite = f"PCAP:{p_cap},ACAP:{a_cap},GCAP:{g_cap},TPROF:{t_prof},TAPOI:{t_apoi},TGEST:{t_gest}|LINK:{state_171['link']}"
+                                composite = (
+                                    f"PCAP:{p_cap},"
+                                    f"ACAP:{a_cap},"
+                                    f"GCAP:{g_cap},"
+                                    f"TPROF:{t_prof},"
+                                    f"TAPOI:{t_apoi},"
+                                    f"TGEST:{t_gest}"
+                                    f"|LINK:{state_171.get('link') or ''}"
+                                )
+
+                                valor_171 = (
+                                    f"Capacitados: {p_cap + a_cap + g_cap} / "
+                                    f"Total: {t_prof + t_apoi + t_gest}"
+                                )
 
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="1.7.1",
-                                    valor=f"Capacitados: {p_cap + a_cap + g_cap} / Total: {t_prof + t_apoi + t_gest}",
+                                    valor=valor_171,
                                     pontos=pts_finais,
                                     link=composite,
                                     comentarios=d171.get("comentarios", []),
                                     status=d171.get("status", "Pendente"),
                                 )
-                                ui.notify("Quesito 1.7.1 salvo com sucesso!", type="positive")
+
+                                # Atualiza o cache usado pelo refresh()
+                                res_data["1.7.1"] = {
+                                    **d171,
+                                    "valor": valor_171,
+                                    "pontos": pts_finais,
+                                    "link": composite,
+                                }
+
+                                ui.notify(
+                                    "Quesito 1.7.1 salvo com sucesso!",
+                                    type="positive",
+                                )
+
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
 
-                            ui.button("💾 SALVAR QUESITO 1.7.1", on_click=salvar_171).classes(
+                            ui.button(
+                                "💾 SALVAR QUESITO 1.7.1",
+                                on_click=salvar_171,
+                            ).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("1.7.1", res_data, render_conteudo.refresh)
 
+                            ui.separator().classes("my-2")
+
+                            bloco_comentarios(
+                                "1.7.1",
+                                res_data,
+                                render_conteudo.refresh,
+                            )
 
                         # =============================================================================
                         # QUESITO 1.7.2 (Formas de Capacitação Oferecidas)
