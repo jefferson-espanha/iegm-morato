@@ -1876,8 +1876,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("1.7", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # =============================================================================
-                        # QUESITO 1.7.1 - Quantidade de Profissionais de Creche Capacitados
+                       # =============================================================================
+                        # QUESITO 1.7.1
+                        # Quantidade de Profissionais de Creche Capacitados
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -1955,13 +1956,13 @@ def container_formulario_ieduc(ano=None):
                                 if den <= 0 or num <= 0:
                                     return 0.0
 
-                                pc = num / den
+                                percentual = num / den
 
-                                if pc >= 1.0:
+                                if percentual >= 1.0:
                                     return 7.0
-                                elif pc >= 0.70:
+                                elif percentual >= 0.70:
                                     return 5.0
-                                elif pc >= 0.50:
+                                elif percentual >= 0.50:
                                     return 3.0
                                 else:
                                     return 0.0
@@ -2003,24 +2004,36 @@ def container_formulario_ieduc(ano=None):
                                         value=prof_cap_i,
                                         min=0,
                                         step=1,
-                                        on_value_change=atualizar_numero_171("prof_cap"),
                                     ).classes("w-full").props("outlined color=blue")
+
+                                    inp_pcap.on(
+                                        "update:model-value",
+                                        atualizar_numero_171("prof_cap"),
+                                    )
 
                                     inp_acap = ui.number(
                                         "Profissionais de apoio e supervisão:",
                                         value=apoio_cap_i,
                                         min=0,
                                         step=1,
-                                        on_value_change=atualizar_numero_171("apoio_cap"),
                                     ).classes("w-full").props("outlined color=blue")
+
+                                    inp_acap.on(
+                                        "update:model-value",
+                                        atualizar_numero_171("apoio_cap"),
+                                    )
 
                                     inp_gcap = ui.number(
                                         "Gestores escolares de Creche:",
                                         value=gest_cap_i,
                                         min=0,
                                         step=1,
-                                        on_value_change=atualizar_numero_171("gest_cap"),
                                     ).classes("w-full").props("outlined color=blue")
+
+                                    inp_gcap.on(
+                                        "update:model-value",
+                                        atualizar_numero_171("gest_cap"),
+                                    )
 
                                     ui.label(
                                         "QUADRO TOTAL (ETAPA CRECHE):"
@@ -2031,34 +2044,50 @@ def container_formulario_ieduc(ano=None):
                                         value=tot_prof_i,
                                         min=0,
                                         step=1,
-                                        on_value_change=atualizar_numero_171("tot_prof"),
                                     ).classes("w-full").props("outlined color=blue")
+
+                                    inp_tprof.on(
+                                        "update:model-value",
+                                        atualizar_numero_171("tot_prof"),
+                                    )
 
                                     inp_tapoi = ui.number(
                                         "Total de profissionais de apoio:",
                                         value=tot_apoio_i,
                                         min=0,
                                         step=1,
-                                        on_value_change=atualizar_numero_171("tot_apoio"),
                                     ).classes("w-full").props("outlined color=blue")
+
+                                    inp_tapoi.on(
+                                        "update:model-value",
+                                        atualizar_numero_171("tot_apoio"),
+                                    )
 
                                     inp_tgest = ui.number(
                                         "Total de gestores escolares:",
                                         value=tot_gest_i,
                                         min=0,
                                         step=1,
-                                        on_value_change=atualizar_numero_171("tot_gest"),
                                     ).classes("w-full").props("outlined color=blue")
 
-                                ui.textarea(
+                                    inp_tgest.on(
+                                        "update:model-value",
+                                        atualizar_numero_171("tot_gest"),
+                                    )
+
+                                txt_link_171 = ui.textarea(
                                     label="Link de Evidência / Documento:",
                                     value=evidencia_171,
                                     placeholder=(
                                         "Insira as listas de presença, certificados "
                                         "ou relatórios de capacitação..."
                                     ),
-                                    on_value_change=atualizar_link_171,
                                 ).classes("w-full").props("outlined rows=16")
+
+                                txt_link_171.on(
+                                    "update:model-value",
+                                    atualizar_link_171,
+                                )
 
                             def salvar_171():
                                 try:
@@ -2069,6 +2098,7 @@ def container_formulario_ieduc(ano=None):
                                     t_prof = int(state_171.get("tot_prof") or 0)
                                     t_apoi = int(state_171.get("tot_apoio") or 0)
                                     t_gest = int(state_171.get("tot_gest") or 0)
+
                                 except (TypeError, ValueError):
                                     ui.notify(
                                         "Informe somente números inteiros válidos.",
@@ -2103,7 +2133,7 @@ def container_formulario_ieduc(ano=None):
                                     status=d171.get("status", "Pendente"),
                                 )
 
-                                # Atualiza o cache usado pelo refresh()
+                                # Atualiza os dados em memória antes do refresh
                                 res_data["1.7.1"] = {
                                     **d171,
                                     "valor": valor_171,
@@ -2134,33 +2164,44 @@ def container_formulario_ieduc(ano=None):
                                 render_conteudo.refresh,
                             )
 
+
                         # =============================================================================
-                        # QUESITO 1.7.2 (Formas de Capacitação Oferecidas)
+                        # QUESITO 1.7.2
+                        # Formas de Capacitação Oferecidas
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
-                            ui.label("1.7.2 • Formas de Capacitação Oferecidas").classes(
-                                "text-xl font-semibold text-blue-500 mb-3"
-                            )
+                            ui.label(
+                                "1.7.2 • Formas de Capacitação Oferecidas"
+                            ).classes("text-xl font-semibold text-blue-500 mb-3")
+
                             ui.label(
                                 "Assinale as modalidades de capacitação adotadas:"
                             ).classes("text-base font-bold text-black mb-1")
-                            ui.label("ℹ Quesito qualitativo de seleção múltipla.").classes(
-                                "text-xs text-gray-400 mb-6"
-                            )
+
+                            ui.label(
+                                "ℹ Quesito qualitativo de seleção múltipla."
+                            ).classes("text-xs text-gray-400 mb-6")
 
                             d172 = res_data.get("1.7.2") or {}
+
                             raw_link_172 = str(d172.get("link") or "")
                             val_172_bruto = d172.get("valor") or []
 
                             if isinstance(val_172_bruto, str):
                                 try:
                                     sel_172 = json.loads(val_172_bruto)
+
+                                    if not isinstance(sel_172, list):
+                                        sel_172 = [str(sel_172)]
+
                                 except Exception:
                                     sel_172 = [val_172_bruto] if val_172_bruto else []
+
                             elif isinstance(val_172_bruto, list):
-                                sel_172 = val_172_bruto
+                                sel_172 = list(val_172_bruto)
+
                             else:
                                 sel_172 = []
 
@@ -2176,16 +2217,26 @@ def container_formulario_ieduc(ano=None):
                                 "Outros",
                             ]
 
+                            def make_chk_172(opt_text):
+                                def on_chk_change(e):
+                                    opcoes = list(state_172.get("opcoes") or [])
+                                    marcado = bool(e.value)
+
+                                    if marcado and opt_text not in opcoes:
+                                        opcoes.append(opt_text)
+
+                                    elif not marcado and opt_text in opcoes:
+                                        opcoes.remove(opt_text)
+
+                                    state_172["opcoes"] = opcoes
+
+                                return on_chk_change
+
+                            def atualizar_link_172(e):
+                                state_172["link"] = str(e.value or "")
+
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 with ui.column().classes("gap-2 w-full"):
-                                    def make_chk_172(opt_text):
-                                        def on_chk_change(e):
-                                            if e.value and opt_text not in state_172["opcoes"]:
-                                                state_172["opcoes"].append(opt_text)
-                                            elif not e.value and opt_text in state_172["opcoes"]:
-                                                state_172["opcoes"].remove(opt_text)
-                                        return on_chk_change
-
                                     for opt in opcoes_172:
                                         ui.checkbox(
                                             text=opt,
@@ -2193,35 +2244,69 @@ def container_formulario_ieduc(ano=None):
                                             on_change=make_chk_172(opt),
                                         ).props("color=blue")
 
-                                ui.textarea(
+                                txt_link_172 = ui.textarea(
                                     label="Link de Evidência / Documento:",
                                     value=raw_link_172,
-                                    placeholder="Insira o plano de formação, contratos das plataformas de EAD ou relatórios...",
-                                ).classes("w-full").props("outlined rows=6").bind_value(
-                                    state_172, "link"
+                                    placeholder=(
+                                        "Insira o plano de formação, contratos "
+                                        "das plataformas de EAD ou relatórios..."
+                                    ),
+                                ).classes("w-full").props("outlined rows=6")
+
+                                txt_link_172.on(
+                                    "update:model-value",
+                                    atualizar_link_172,
                                 )
 
                             def salvar_172():
-                                opts_sel = state_172["opcoes"]
+                                opts_sel = list(state_172.get("opcoes") or [])
+                                link_172 = str(state_172.get("link") or "")
+
+                                valor_172 = json.dumps(
+                                    opts_sel,
+                                    ensure_ascii=False,
+                                )
 
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="1.7.2",
-                                    valor=json.dumps(opts_sel, ensure_ascii=False) if isinstance(opts_sel, list) else opts_sel,
+                                    valor=valor_172,
                                     pontos=0.0,
-                                    link=state_172["link"],
+                                    link=link_172,
                                     comentarios=d172.get("comentarios", []),
                                     status=d172.get("status", "Pendente"),
                                 )
-                                ui.notify("Quesito 1.7.2 salvo com sucesso!", type="positive")
+
+                                # Atualiza os dados em memória antes do refresh
+                                res_data["1.7.2"] = {
+                                    **d172,
+                                    "valor": valor_172,
+                                    "pontos": 0.0,
+                                    "link": link_172,
+                                }
+
+                                ui.notify(
+                                    "Quesito 1.7.2 salvo com sucesso!",
+                                    type="positive",
+                                )
+
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
 
-                            ui.button("💾 SALVAR QUESITO 1.7.2", on_click=salvar_172).classes(
+                            ui.button(
+                                "💾 SALVAR QUESITO 1.7.2",
+                                on_click=salvar_172,
+                            ).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
+
                             ui.separator().classes("my-2")
-                            bloco_comentarios("1.7.2", res_data, render_conteudo.refresh)
+
+                            bloco_comentarios(
+                                "1.7.2",
+                                res_data,
+                                render_conteudo.refresh,
+                            )
                             
                         # =============================================================================
                         # QUESITO 1.8 (Rotatividade do Corpo Docente em Creches)
