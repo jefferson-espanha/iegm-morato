@@ -14715,7 +14715,7 @@ def container_formulario_ieduc(ano=None):
                                 if lk.upper() == "XYZ" or lk == "":
                                     state_172["pontos"] = 0.0
                                 else:
-                                    state_172["pontos"] = 1.0
+                                    state_172["pontos"] = 0.0
                                 lbl_pontos_172.set_text(f"📊 Pontuação Quesito 17.2: {state_172['pontos']:.1f} ponto(s)".replace(".", ","))
 
                             ui.textarea(
@@ -14796,7 +14796,281 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.3", res_data, render_conteudo.refresh)
 
-    # -----------------------------------------------------------------------------
+                        # -----------------------------------------------------------------------------
+                    # QUESITO 17.3.1 - Informações Disponibilizadas em Sítio na Internet
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.3.1 • Informações Disponibilizadas na Internet (CACS FUNDEB)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale quais informações foram disponibilizadas em sítio na internet:").classes("text-base font-bold text-black mb-6")
+
+                        d1731 = res_data.get("17.3.1") or res_data.get("1731") or {}
+                        val_1731_lista = list(d1731.get("valor")) if isinstance(d1731.get("valor"), list) else []
+                        raw_link_1731 = str(d1731.get("link") or "")
+
+                        info_1731 = [
+                            ("Nomes dos conselheiros e das entidades ou segmentos que representam", 0.4),
+                            ("Correio eletrônico ou outro canal de contato direto com o conselho", 0.4),
+                            ("Atas de reuniões", 0.4),
+                            ("Relatórios e pareceres", 0.4),
+                            ("Outros documentos produzidos pelo conselho", 0.4),
+                        ]
+
+                        state_1731 = {
+                            "selecionados": val_1731_lista,
+                            "link": raw_link_1731,
+                        }
+
+                        def calc_pts_1731():
+                            return sum(pt for item, pt in info_1731 if item in state_1731["selecionados"])
+
+                        lbl_pts_1731 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_1731():
+                            pts = calc_pts_1731()
+                            lbl_pts_1731.set_text(f"📊 Pontuação Quesito 17.3.1: {pts:.1f} pontos")
+
+                        att_pts_1731()
+
+                        def on_checkbox_change_1731(e, item):
+                            if e.value and item not in state_1731["selecionados"]:
+                                state_1731["selecionados"].append(item)
+                            elif not e.value and item in state_1731["selecionados"]:
+                                state_1731["selecionados"].remove(item)
+                            att_pts_1731()
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in info_1731:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)",
+                                        value=(item in state_1731["selecionados"]),
+                                        on_change=lambda e, it=item: on_checkbox_change_1731(e, it)
+                                    )
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.3.1):",
+                                value=raw_link_1731,
+                                placeholder="Link da página onde as informações estão publicadas...",
+                            ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_1731, "link")
+
+                        def salvar_1731():
+                            pts = calc_pts_1731()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.3.1",
+                                valor=state_1731["selecionados"],
+                                pontos=pts,
+                                link=state_1731["link"],
+                                comentarios=d1731.get("comentarios", []),
+                                status=d1731.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.3.1 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.3.1", on_click=salvar_1731).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.3.1", res_data, getattr(render_conteudo, "refresh", None))
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 17.3.2 - Página Eletrônica do Conselho
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.3.2 • Página Eletrônica do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) sobre a composição e funcionamento dos conselhos:").classes("text-base font-bold text-black mb-2")
+                        ui.label("⚠️ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto XYZ").classes("text-xs font-semibold text-amber-700 mb-6")
+
+                        d1732 = res_data.get("17.3.2") or res_data.get("1732") or {}
+                        raw_link_1732 = str(d1732.get("link") or d1732.get("valor") or "")
+
+                        state_1732 = {
+                            "link": raw_link_1732,
+                        }
+
+                        ui.textarea(
+                            label="Página eletrônica (link na internet):",
+                            value=raw_link_1732,
+                            placeholder="Insira a URL completa do site ou digite XYZ caso não esteja disponível...",
+                        ).classes("w-full mb-4").props("outlined rows=4 color=blue").bind_value(state_1732, "link")
+
+                        def salvar_1732():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.3.2",
+                                valor=state_1732["link"],
+                                pontos=0.0,
+                                link=state_1732["link"],
+                                comentarios=d1732.get("comentarios", []),
+                                status=d1732.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.3.2 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.3.2", on_click=salvar_1732).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.3.2", res_data, getattr(render_conteudo, "refresh", None))
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 17.4 - Recursos fornecidos ao CACS FUNDEB
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.4 • Recursos para Funcionamento do CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal ao CACS FUNDEB a fim de garantir infraestrutura e condições materiais adequadas à execução plena de suas competências:").classes("text-base font-bold text-black mb-6")
+
+                        d174 = res_data.get("17.4") or res_data.get("174") or {}
+                        val_174_lista = list(d174.get("valor")) if isinstance(d174.get("valor"), list) else []
+                        raw_link_174 = str(d174.get("link") or "")
+
+                        recursos_174 = [
+                            ("Recursos Humanos", 0.5),
+                            ("Recursos Tecnológicos", 0.5),
+                            ("Estrutura Física", 0.5),
+                            ("Recursos Orçamentários", 0.5),
+                            ("Recursos Materiais", 0.5),
+                            ("Outros", 0.5),
+                        ]
+
+                        state_174 = {
+                            "selecionados": val_174_lista,
+                            "link": raw_link_174,
+                        }
+
+                        def calc_pts_174():
+                            return sum(pt for item, pt in recursos_174 if item in state_174["selecionados"])
+
+                        lbl_pts_174 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_174():
+                            pts = calc_pts_174()
+                            lbl_pts_174.set_text(f"📊 Pontuação Quesito 17.4: {pts:.1f} pontos")
+
+                        att_pts_174()
+
+                        def on_checkbox_change_174(e, item):
+                            if e.value and item not in state_174["selecionados"]:
+                                state_174["selecionados"].append(item)
+                            elif not e.value and item in state_174["selecionados"]:
+                                state_174["selecionados"].remove(item)
+                            att_pts_174()
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in recursos_174:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)",
+                                        value=(item in state_174["selecionados"]),
+                                        on_change=lambda e, it=item: on_checkbox_change_174(e, it)
+                                    )
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.4):",
+                                value=raw_link_174,
+                                placeholder="Link do ato normativo, estrutura ou dotação orçamentária...",
+                            ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_174, "link")
+
+                        def salvar_174():
+                            pts = calc_pts_174()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.4",
+                                valor=state_174["selecionados"],
+                                pontos=pts,
+                                link=state_174["link"],
+                                comentarios=d174.get("comentarios", []),
+                                status=d174.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.4 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.4", on_click=salvar_174).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.4", res_data, getattr(render_conteudo, "refresh", None))
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 17.5 - Atividades Realizadas pelo CACS FUNDEB
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.5 • Atividades Realizadas no Ano pelo CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale as atividades que o CACS Fundeb realizou no ano:").classes("text-base font-bold text-black mb-6")
+
+                        d175 = res_data.get("17.5") or res_data.get("175") or {}
+                        val_175_lista = list(d175.get("valor")) if isinstance(d175.get("valor"), list) else []
+                        raw_link_175 = str(d175.get("link") or "")
+
+                        atividades_175 = [
+                            ("Elaboração do parecer das prestações de contas do FUNDEB", 1.5),
+                            ("Supervisão da elaboração da proposta orçamentária anual", 0.5),
+                            ("Apresentação de manifestação formal acerca dos registros contábeis e demonstrativos gerenciais do Fundo aos órgãos competentes", 0.5),
+                            ("Convocação dos responsáveis para prestação de esclarecimentos acerca do fluxo de recursos e da execução das despesas do Fundo", 0.5),
+                            ("Requisição ao Poder Executivo de cópia de documentos", 0.5),
+                            ("Visitas para verificações in loco", 1.0),
+                            ("Supervisão do censo escolar anual", 1.0),
+                            ("Acompanhar a aplicação dos recursos federais transferidos à conta do PNATE e do PEJA e analisar suas prestações de contas", 0.5),
+                        ]
+
+                        state_175 = {
+                            "selecionados": val_175_lista,
+                            "link": raw_link_175,
+                        }
+
+                        def calc_pts_175():
+                            return sum(pt for item, pt in atividades_175 if item in state_175["selecionados"])
+
+                        lbl_pts_175 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_175():
+                            pts = calc_pts_175()
+                            lbl_pts_175.set_text(f"📊 Pontuação Quesito 17.5: {pts:.1f} pontos")
+
+                        att_pts_175()
+
+                        def on_checkbox_change_175(e, item):
+                            if e.value and item not in state_175["selecionados"]:
+                                state_175["selecionados"].append(item)
+                            elif not e.value and item in state_175["selecionados"]:
+                                state_175["selecionados"].remove(item)
+                            att_pts_175()
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in atividades_175:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)",
+                                        value=(item in state_175["selecionados"]),
+                                        on_change=lambda e, it=item: on_checkbox_change_175(e, it)
+                                    )
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.5):",
+                                value=raw_link_175,
+                                placeholder="Link dos pareceres, relatórios de visita, atas...",
+                            ).classes("w-full").props("outlined rows=8 color=blue").bind_value(state_175, "link")
+
+                        def salvar_175():
+                            pts = calc_pts_175()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.5",
+                                valor=state_175["selecionados"],
+                                pontos=pts,
+                                link=state_175["link"],
+                                comentarios=d175.get("comentarios", []),
+                                status=d175.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.5 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.5", on_click=salvar_175).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.5", res_data, getattr(render_conteudo, "refresh", None))
+
+                        # -----------------------------------------------------------------------------
                         # QUESITO 17.6 - Parecer da Prestação de Contas CACS FUNDEB
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
