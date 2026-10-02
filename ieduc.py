@@ -1799,22 +1799,102 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("1.6", res_data, render_conteudo.refresh)
 
                         # =============================================================================
-                        # QUESITOS 1.7 e 1.7.1 (Capacitação de Profissionais da Creche em 2025)
+                        # QUESITO 1.7 (Participação em Cursos de Capacitação - Sim/Não)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
-                            ui.label("1.7 / 1.7.1 • Capacitação dos Profissionais de Creche").classes(
+                            ui.label("1.7 • Capacitação dos Profissionais de Creche").classes(
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe o número de profissionais capacitados e o total do quadro em 2025:"
+                                "Os profissionais de Creche da rede municipal participaram de cursos de capacitação durante o ano de 2025?"
+                            ).classes("text-base font-bold text-black mb-4")
+
+                            d17 = res_data.get("1.7") or {}
+                            opcoes_17 = ["Sim", "Não"]
+
+                            val_17 = str(d17.get("valor") or d17.get("resposta") or "").strip()
+                            val_17_valido = val_17 if val_17 in opcoes_17 else "Não"
+                            link_17 = str(d17.get("link") or "")
+
+                            state_17 = {
+                                "opcao": val_17_valido,
+                                "link": link_17,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                with ui.column().classes("w-full gap-3"):
+                                    rad_17 = ui.radio(
+                                        options=opcoes_17,
+                                        value=state_17["opcao"],
+                                    ).props("color=blue").bind_value(state_17, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Documento:",
+                                    value=link_17,
+                                    placeholder="Insira o link com comprovação das capacitações...",
+                                ).classes("w-full").props("outlined rows=4").bind_value(
+                                    state_17, "link"
+                                )
+
+                            def salvar_17():
+                                opt_sel = state_17["opcao"]
+                                lnk = state_17["link"]
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="1.7",
+                                        valor=opt_sel,
+                                        pontos=0.0,  # Quesito qualificativo / sem pontuação direta isolada
+                                        link=lnk,
+                                        comentarios=d17.get("comentarios", []),
+                                        status=d17.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": opt_sel,
+                                        "valor": opt_sel,
+                                        "pontos": 0.0,
+                                        "link": lnk,
+                                        "comentarios": d17.get("comentarios", []),
+                                        "status": d17.get("status", "Pendente"),
+                                    }
+                                    res_data["1.7"] = novos_dados
+
+                                    ui.notify("Quesito 1.7 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito 1.7: {err}", type="negative")
+
+                            ui.button("💾 SALVAR QUESITO 1.7", on_click=salvar_17).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("1.7", res_data, getattr(render_conteudo, "refresh", None))
+
+
+                        # =============================================================================
+                        # QUESITO 1.7.1 (Quantitativos e Cálculo de Percentual de Capacitados)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("1.7.1 • Quantidade de Profissionais de Creche Capacitados").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Informe a quantidade de profissionais de Creche (Exercício 2025):"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "ℹ Cálculo: PC = (Prof. Capacitados + Apoio Capacitados + Gestores Capacitados) / (Total Geral) | PC ≥ 100%: 7 pts | 70% ≤ PC < 100%: 5 pts | 50% ≤ PC < 70%: 3 pts"
-                            ).classes("text-xs text-gray-400 mb-6")
+                                "⚠️ Não contar o mesmo profissional mais de uma vez. "
+                                "Fórmula: PC = (Prof. Capacitados + Apoio Capacitados + Gestores Capacitados) / (Total Geral)\n"
+                                "ℹ PC ≥ 100%: 7,0 pts | 70% ≤ PC < 100%: 5,0 pts | 50% ≤ PC < 70%: 3,0 pts | PC < 50%: 0,0 pt"
+                            ).classes("text-xs text-gray-400 mb-6 whitespace-pre-line")
 
-                            d171 = res_data.get("1.7.1") or {}
+                            d171 = res_data.get("1.7.1") or res_data.get("1.71") or {}
                             raw_link_171 = str(d171.get("link") or "")
 
                             prof_cap_i, apoio_cap_i, gest_cap_i = 0, 0, 0
@@ -1866,21 +1946,21 @@ def container_formulario_ieduc(ano=None):
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 with ui.column().classes("w-full gap-3"):
-                                    ui.label("CAPACITADOS EM 2025:").classes("font-bold text-xs text-blue-800 uppercase")
-                                    inp_pcap = ui.number("Professores regentes capacitados:", value=prof_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "prof_cap")
-                                    inp_acap = ui.number("Profissionais de apoio/supervisão capacitados:", value=apoio_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "apoio_cap")
-                                    inp_gcap = ui.number("Gestores escolares capacitados:", value=gest_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "gest_cap")
+                                    ui.label("PROFISSIONAIS CAPACITADOS EM 2025:").classes("font-bold text-xs text-blue-800 uppercase")
+                                    inp_pcap = ui.number("Professores regentes de Creche:", value=prof_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "prof_cap")
+                                    inp_acap = ui.number("Profissionais de apoio e supervisão:", value=apoio_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "apoio_cap")
+                                    inp_gcap = ui.number("Gestores escolares de Creche:", value=gest_cap_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "gest_cap")
 
                                     ui.label("QUADRO TOTAL (ETAPA CRECHE):").classes("font-bold text-xs text-blue-800 uppercase mt-2")
-                                    inp_tprof = ui.number("TOTAL de professores regentes:", value=tot_prof_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_prof")
-                                    inp_tapoi = ui.number("TOTAL de profissionais de apoio/supervisão:", value=tot_apoio_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_apoio")
-                                    inp_tgest = ui.number("TOTAL de gestores escolares de creche:", value=tot_gest_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_gest")
+                                    inp_tprof = ui.number("Total de professores regentes:", value=tot_prof_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_prof")
+                                    inp_tapoi = ui.number("Total de profissionais de apoio:", value=tot_apoio_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_apoio")
+                                    inp_tgest = ui.number("Total de gestores escolares:", value=tot_gest_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_171, "tot_gest")
 
                                 ui.textarea(
                                     label="Link de Evidência / Documento:",
                                     value=evidencia_171,
                                     placeholder="Insira as listas de presença, certificados ou relatórios de capacitação...",
-                                ).classes("w-full").props("outlined rows=14").bind_value(
+                                ).classes("w-full").props("outlined rows=16").bind_value(
                                     state_171, "link"
                                 )
 
@@ -1906,24 +1986,41 @@ def container_formulario_ieduc(ano=None):
                                     f"TPROF:{t_prof},TAPOI:{t_apoi},TGEST:{t_gest}|LINK:{state_171['link']}"
                                 )
 
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="1.7.1",
-                                    valor=f"Capacitados: {p_cap + a_cap + g_cap} / Total: {t_prof + t_apoi + t_gest}",
-                                    pontos=pts_finais,
-                                    link=composite,
-                                    comentarios=d171.get("comentarios", []),
-                                    status=d171.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito 1.7.1 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                val_str = f"Capacitados: {p_cap + a_cap + g_cap} / Total: {t_prof + t_apoi + t_gest}"
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="1.7.1",
+                                        valor=val_str,
+                                        pontos=pts_finais,
+                                        link=composite,
+                                        comentarios=d171.get("comentarios", []),
+                                        status=d171.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": val_str,
+                                        "valor": val_str,
+                                        "pontos": pts_finais,
+                                        "link": composite,
+                                        "comentarios": d171.get("comentarios", []),
+                                        "status": d171.get("status", "Pendente"),
+                                    }
+                                    res_data["1.7.1"] = novos_dados
+                                    res_data["1.71"] = novos_dados
+
+                                    ui.notify("Quesito 1.7.1 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito 1.7.1: {err}", type="negative")
 
                             ui.button("💾 SALVAR QUESITO 1.7.1", on_click=salvar_171).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("1.7.1", res_data, render_conteudo.refresh)
+                            bloco_comentarios("1.7.1", res_data, getattr(render_conteudo, "refresh", None))
 
                         # =============================================================================
                         # QUESITO 1.7.2 (Formas de Capacitação Oferecidas)
@@ -1949,14 +2046,14 @@ def container_formulario_ieduc(ano=None):
                                 try:
                                     sel_172 = json.loads(val_172_bruto)
                                 except Exception:
-                                    sel_172 = [val_172_bruto]
+                                    sel_172 = [val_172_bruto] if val_172_bruto else []
                             elif isinstance(val_172_bruto, list):
                                 sel_172 = val_172_bruto
                             else:
                                 sel_172 = []
 
                             state_172 = {
-                                "opcoes": sel_172,
+                                "opcoes": list(sel_172),
                                 "link": raw_link_172,
                             }
 
@@ -1994,25 +2091,40 @@ def container_formulario_ieduc(ano=None):
 
                             def salvar_172():
                                 opts_sel = state_172["opcoes"]
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="1.7.2",
-                                    valor=opts_sel,
-                                    pontos=0.0,
-                                    link=state_172["link"],
-                                    comentarios=d172.get("comentarios", []),
-                                    status=d172.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito 1.7.2 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                lnk = state_172["link"]
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="1.7.2",
+                                        valor=opts_sel,
+                                        pontos=0.0,
+                                        link=lnk,
+                                        comentarios=d172.get("comentarios", []),
+                                        status=d172.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": opts_sel,
+                                        "valor": opts_sel,
+                                        "pontos": 0.0,
+                                        "link": lnk,
+                                        "comentarios": d172.get("comentarios", []),
+                                        "status": d172.get("status", "Pendente"),
+                                    }
+                                    res_data["1.7.2"] = novos_dados
+
+                                    ui.notify("Quesito 1.7.2 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito 1.7.2: {err}", type="negative")
 
                             ui.button("💾 SALVAR QUESITO 1.7.2", on_click=salvar_172).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("1.7.2", res_data, render_conteudo.refresh)
-
+                            bloco_comentarios("1.7.2", res_data, getattr(render_conteudo, "refresh", None))
         # =============================================================================
                         # QUESITO 1.8 (Rotatividade do Corpo Docente em Creches)
                         # =============================================================================
