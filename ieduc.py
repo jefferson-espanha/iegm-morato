@@ -20508,210 +20508,338 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E5", res_data, getattr(render_conteudo, "refresh", None))
 
-    # -----------------------------------------------------------------------------
-                        # QUESITO E6 - Compartilhamento de Espaços com a Comunidade
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("E6 • Compartilhamento de Espaços com a Comunidade").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("As escolas compartilham espaços com a comunidade? (Dados Censo Escolar 2025)").classes("text-base font-bold text-black mb-4")
+   # =============================================================================
+                        # QUESITO E6 (Compartilhamento de Espaços com a Comunidade)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("E6 • Compartilhamento de Espaços com a Comunidade").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "As escolas compartilham espaços com a comunidade? (Dados Censo Escolar 2025)"
+                            ).classes("text-base font-bold text-black mb-1")
+                            ui.label(
+                                "ℹ Indique o grau de compartilhamento de espaços físicos das unidades escolares com a comunidade local."
+                            ).classes("text-xs text-gray-400 mb-6")
 
                             d_e6 = res_data.get("E6") or res_data.get("E60") or {}
-                            val_e6 = str(d_e6.get("valor") or "As escolas não compartilham")
-                            link_e6 = str(d_e6.get("link") or "")
 
-                            opts_e6 = [
-                                "Todas as escolas compartilham",
-                                "A maior parte das escolas compartilham",
-                                "A menor parte das escolas compartilham",
-                                "As escolas não compartilham",
-                            ]
+                            opcoes_e6 = {
+                                "Selecione...": 0.0,
+                                "Todas as escolas compartilham (5,0 pontos)": 5.0,
+                                "A maior parte das escolas compartilham (3,0 pontos)": 3.0,
+                                "A menor parte das escolas compartilham (1,0 ponto)": 1.0,
+                                "As escolas não compartilham (0,0 pontos)": 0.0,
+                            }
+
+                            val_e6_bruto = str(d_e6.get("valor") or d_e6.get("resposta") or "")
+                            val_e6_valido = "Selecione..."
+                            if val_e6_bruto in opcoes_e6:
+                                val_e6_valido = val_e6_bruto
+                            else:
+                                for chave in opcoes_e6.keys():
+                                    if chave != "Selecione..." and chave.startswith(val_e6_bruto):
+                                        val_e6_valido = chave
+                                        break
+
+                            raw_link_e6 = str(d_e6.get("link") or "")
 
                             state_e6 = {
-                                "opcao": val_e6 if val_e6 in opts_e6 else "As escolas não compartilham",
-                                "link": link_e6,
-                                "pontos": 0.0,
+                                "opcao": val_e6_valido,
+                                "link": raw_link_e6,
                             }
 
-                            lbl_pontos_e6 = ui.label("📊 Pontuação Quesito E6: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-
-                            def calc_e6():
-                                pts_map = {
-                                    "Todas as escolas compartilham": 5.0,
-                                    "A maior parte das escolas compartilham": 3.0,
-                                    "A menor parte das escolas compartilham": 1.0,
-                                    "As escolas não compartilham": 0.0,
-                                }
-                                pts = pts_map.get(state_e6["opcao"], 0.0)
-                                state_e6["pontos"] = pts
-                                str_pts = f"{pts:.2f}".replace(".", ",")
-                                lbl_pontos_e6.set_text(f"📊 Pontuação Quesito E6: {str_pts} / 5,00 ponto(s)")
-
-                            with ui.grid(columns=1).classes("w-full gap-4 items-start mb-4"):
-                                ui.select(
-                                    options=opts_e6,
-                                    label="Grau de compartilhamento com a comunidade:",
-                                    value=state_e6["opcao"],
-                                    on_change=lambda e: [state_e6.update({"opcao": e.value}), calc_e6()],
-                                ).classes("w-full").props("outlined color=blue")
-
-                            ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
-                                value=state_e6["link"],
-                                placeholder="Link do relatório ou documento comprobatório...",
-                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e6, "link")
-
-                            calc_e6()
-
-                            def salvar_e6():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E6",
-                                    valor=state_e6["opcao"],
-                                    pontos=state_e6["pontos"],
-                                    link=state_e6["link"],
-                                    comentarios=d_e6.get("comentarios", []),
-                                    status=d_e6.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E6 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO E6", on_click=salvar_e6).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("E6", res_data, render_conteudo.refresh)
-
-
-                        # -----------------------------------------------------------------------------
-                        # QUESITO E7 - Utilização de Espaços do Entorno Escolar
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("E7 • Utilização do Entorno Escolar").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("As escolas utilizam espaços e equipamentos do entorno escolar? (Dados Censo Escolar 2025)").classes("text-base font-bold text-black mb-4")
-
-                            d_e7 = res_data.get("E7") or res_data.get("E70") or {}
-                            val_e7 = str(d_e7.get("valor") or "As escolas não utilizam")
-                            link_e7 = str(d_e7.get("link") or "")
-
-                            opts_e7 = [
-                                "Todas as escolas utilizam",
-                                "A maior parte das escolas utilizam",
-                                "A menor parte das escolas utilizam",
-                                "As escolas não utilizam",
-                            ]
-
-                            state_e7 = {
-                                "opcao": val_e7 if val_e7 in opts_e7 else "As escolas não utilizam",
-                                "link": link_e7,
-                                "pontos": 0.0,
-                            }
-
-                            lbl_pontos_e7 = ui.label("📊 Pontuação Quesito E7: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-
-                            def calc_e7():
-                                pts_map = {
-                                    "Todas as escolas utilizam": 5.0,
-                                    "A maior parte das escolas utilizam": 3.0,
-                                    "A menor parte das escolas utilizam": 1.0,
-                                    "As escolas não utilizam": 0.0,
-                                }
-                                pts = pts_map.get(state_e7["opcao"], 0.0)
-                                state_e7["pontos"] = pts
-                                str_pts = f"{pts:.2f}".replace(".", ",")
-                                lbl_pontos_e7.set_text(f"📊 Pontuação Quesito E7: {str_pts} / 5,00 ponto(s)")
-
-                            with ui.grid(columns=1).classes("w-full gap-4 items-start mb-4"):
-                                ui.select(
-                                    options=opts_e7,
-                                    label="Grau de utilização de espaços do entorno:",
-                                    value=state_e7["opcao"],
-                                    on_change=lambda e: [state_e7.update({"opcao": e.value}), calc_e7()],
-                                ).classes("w-full").props("outlined color=blue")
-
-                            ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
-                                value=state_e7["link"],
-                                placeholder="Link do relatório ou comprovação...",
-                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e7, "link")
-
-                            calc_e7()
-
-                            def salvar_e7():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E7",
-                                    valor=state_e7["opcao"],
-                                    pontos=state_e7["pontos"],
-                                    link=state_e7["link"],
-                                    comentarios=d_e7.get("comentarios", []),
-                                    status=d_e7.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E7 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO E7", on_click=salvar_e7).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("E7", res_data, render_conteudo.refresh)
-
-
-                        # -----------------------------------------------------------------------------
-                        # QUESITO E8 - Exame de Seleção para Ingresso de Alunos
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("E8 • Exame de Seleção para Ingresso de Alunos").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("A Prefeitura realiza Exame de Seleção para ingresso de alunos nas escolas municipais? (Dados Censo Escolar 2025)").classes("text-base font-bold text-black mb-4")
-
-                            d_e8 = res_data.get("E8") or res_data.get("E80") or {}
-                            val_e8 = str(d_e8.get("valor") or "Não")
-                            link_e8 = str(d_e8.get("link") or "")
-
-                            state_e8 = {
-                                "realiza_exame": val_e8 if val_e8 in ["Sim", "Não"] else "Não",
-                                "link": link_e8,
-                                "pontos": 0.0,
-                            }
-
-                            lbl_pontos_e8 = ui.label("📊 Pontuação Quesito E8: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-
-                            def calc_e8():
-                                pts = -10.0 if state_e8["realiza_exame"] == "Sim" else 0.0
-                                state_e8["pontos"] = pts
-                                str_pts = f"{pts:.2f}".replace(".", ",")
-                                lbl_pontos_e8.set_text(f"📊 Penalidade Quesito E8: {str_pts} ponto(s)")
+                            def calc_pts_e6():
+                                return float(opcoes_e6.get(state_e6["opcao"], 0.0))
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                ui.select(
-                                    options=["Sim", "Não"],
-                                    label="Realiza exame de seleção para alunos?",
-                                    value=state_e8["realiza_exame"],
-                                    on_change=lambda e: [state_e8.update({"realiza_exame": e.value}), calc_e8()],
-                                ).classes("w-full").props("outlined color=blue")
+                                with ui.column().classes("w-full gap-3"):
+                                    rad_e6 = ui.radio(
+                                        options=list(opcoes_e6.keys()),
+                                        value=state_e6["opcao"],
+                                    ).props("color=blue").bind_value(state_e6, "opcao")
 
-                            ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
-                                value=state_e8["link"],
-                                placeholder="Link referente às regras de ingresso escolar...",
-                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e8, "link")
+                                ui.textarea(
+                                    label="Link de Evidência / Documento:",
+                                    value=raw_link_e6,
+                                    placeholder="Insira o link com o relatório do Censo Escolar 2025 ou comprovante de compartilhamento...",
+                                ).classes("w-full").props("outlined rows=5").bind_value(
+                                    state_e6, "link"
+                                )
 
-                            calc_e8()
+                            lbl_pts_e6 = ui.label(
+                                f"📊 Impacto de Pontuação no Quesito E6: {calc_pts_e6():.1f} / 5.0 pontos"
+                            ).classes("text-sm font-bold text-green-600 my-4")
+
+                            def att_pts_e6():
+                                lbl_pts_e6.set_text(
+                                    f"📊 Impacto de Pontuação no Quesito E6: {calc_pts_e6():.1f} / 5.0 pontos"
+                                )
+
+                            rad_e6.on("update:model-value", att_pts_e6)
+
+                            def salvar_e6():
+                                pts = calc_pts_e6()
+                                opt_sel = state_e6["opcao"]
+                                lnk = state_e6["link"]
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E6",
+                                        valor=opt_sel,
+                                        pontos=pts,
+                                        link=lnk,
+                                        comentarios=d_e6.get("comentarios", []),
+                                        status=d_e6.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": opt_sel,
+                                        "valor": opt_sel,
+                                        "pontos": pts,
+                                        "link": lnk,
+                                        "comentarios": d_e6.get("comentarios", []),
+                                        "status": d_e6.get("status", "Pendente"),
+                                    }
+                                    res_data["E6"] = novos_dados
+                                    res_data["E60"] = novos_dados
+
+                                    ui.notify("Quesito E6 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E6: {err}", type="negative")
+
+                            ui.button("💾 SALVAR QUESITO E6", on_click=salvar_e6).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("E6", res_data, getattr(render_conteudo, "refresh", None))
+
+
+                        # =============================================================================
+                        # QUESITO E7 (Utilização do Entorno Escolar)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("E7 • Utilização do Entorno Escolar").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "As escolas utilizam espaços e equipamentos do entorno escolar? (Dados Censo Escolar 2025)"
+                            ).classes("text-base font-bold text-black mb-1")
+                            ui.label(
+                                "ℹ Indique a frequência ou abrangência de uso de praças, quadras, parques ou equipamentos públicos do entorno."
+                            ).classes("text-xs text-gray-400 mb-6")
+
+                            d_e7 = res_data.get("E7") or res_data.get("E70") or {}
+
+                            opcoes_e7 = {
+                                "Selecione...": 0.0,
+                                "Todas as escolas utilizam (5,0 pontos)": 5.0,
+                                "A maior parte das escolas utilizam (3,0 pontos)": 3.0,
+                                "A menor parte das escolas utilizam (1,0 ponto)": 1.0,
+                                "As escolas não utilizam (0,0 pontos)": 0.0,
+                            }
+
+                            val_e7_bruto = str(d_e7.get("valor") or d_e7.get("resposta") or "")
+                            val_e7_valido = "Selecione..."
+                            if val_e7_bruto in opcoes_e7:
+                                val_e7_valido = val_e7_bruto
+                            else:
+                                for chave in opcoes_e7.keys():
+                                    if chave != "Selecione..." and chave.startswith(val_e7_bruto):
+                                        val_e7_valido = chave
+                                        break
+
+                            raw_link_e7 = str(d_e7.get("link") or "")
+
+                            state_e7 = {
+                                "opcao": val_e7_valido,
+                                "link": raw_link_e7,
+                            }
+
+                            def calc_pts_e7():
+                                return float(opcoes_e7.get(state_e7["opcao"], 0.0))
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                with ui.column().classes("w-full gap-3"):
+                                    rad_e7 = ui.radio(
+                                        options=list(opcoes_e7.keys()),
+                                        value=state_e7["opcao"],
+                                    ).props("color=blue").bind_value(state_e7, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Documento:",
+                                    value=raw_link_e7,
+                                    placeholder="Insira o link com o relatório do Censo Escolar 2025 ou documento comprobatório...",
+                                ).classes("w-full").props("outlined rows=5").bind_value(
+                                    state_e7, "link"
+                                )
+
+                            lbl_pts_e7 = ui.label(
+                                f"📊 Impacto de Pontuação no Quesito E7: {calc_pts_e7():.1f} / 5.0 pontos"
+                            ).classes("text-sm font-bold text-green-600 my-4")
+
+                            def att_pts_e7():
+                                lbl_pts_e7.set_text(
+                                    f"📊 Impacto de Pontuação no Quesito E7: {calc_pts_e7():.1f} / 5.0 pontos"
+                                )
+
+                            rad_e7.on("update:model-value", att_pts_e7)
+
+                            def salvar_e7():
+                                pts = calc_pts_e7()
+                                opt_sel = state_e7["opcao"]
+                                lnk = state_e7["link"]
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E7",
+                                        valor=opt_sel,
+                                        pontos=pts,
+                                        link=lnk,
+                                        comentarios=d_e7.get("comentarios", []),
+                                        status=d_e7.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": opt_sel,
+                                        "valor": opt_sel,
+                                        "pontos": pts,
+                                        "link": lnk,
+                                        "comentarios": d_e7.get("comentarios", []),
+                                        "status": d_e7.get("status", "Pendente"),
+                                    }
+                                    res_data["E7"] = novos_dados
+                                    res_data["E70"] = novos_dados
+
+                                    ui.notify("Quesito E7 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E7: {err}", type="negative")
+
+                            ui.button("💾 SALVAR QUESITO E7", on_click=salvar_e7).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("E7", res_data, getattr(render_conteudo, "refresh", None))
+
+
+                        # =============================================================================
+                        # QUESITO E8 (Exame de Seleção para Ingresso de Alunos)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("E8 • Exame de Seleção para Ingresso de Alunos").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "A Prefeitura realiza Exame de Seleção para ingresso de alunos nas escolas municipais? (Dados Censo Escolar 2025)"
+                            ).classes("text-base font-bold text-black mb-1")
+                            ui.label(
+                                "⚠️ A realização de exame de seleção gera penalidade de 10,0 pontos na avaliação."
+                            ).classes("text-xs text-red-500 mb-6")
+
+                            d_e8 = res_data.get("E8") or res_data.get("E80") or {}
+
+                            opcoes_e8 = {
+                                "Selecione...": 0.0,
+                                "Não (0,0 pontos)": 0.0,
+                                "Sim (-10,0 pontos)": -10.0,
+                            }
+
+                            val_e8_bruto = str(d_e8.get("valor") or d_e8.get("resposta") or "")
+                            val_e8_valido = "Selecione..."
+                            if val_e8_bruto in opcoes_e8:
+                                val_e8_valido = val_e8_bruto
+                            else:
+                                for chave in opcoes_e8.keys():
+                                    if chave != "Selecione..." and chave.startswith(val_e8_bruto):
+                                        val_e8_valido = chave
+                                        break
+
+                            raw_link_e8 = str(d_e8.get("link") or "")
+
+                            state_e8 = {
+                                "opcao": val_e8_valido,
+                                "link": raw_link_e8,
+                            }
+
+                            def calc_pts_e8():
+                                return float(opcoes_e8.get(state_e8["opcao"], 0.0))
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                with ui.column().classes("w-full gap-3"):
+                                    rad_e8 = ui.radio(
+                                        options=list(opcoes_e8.keys()),
+                                        value=state_e8["opcao"],
+                                    ).props("color=blue").bind_value(state_e8, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Documento:",
+                                    value=raw_link_e8,
+                                    placeholder="Insira o link da norma de matrícula ou documento comprobatório...",
+                                ).classes("w-full").props("outlined rows=5").bind_value(
+                                    state_e8, "link"
+                                )
+
+                            lbl_pts_e8 = ui.label(
+                                f"📊 Impacto de Pontuação no Quesito E8: {calc_pts_e8():.1f} ponto(s)"
+                            ).classes("text-sm font-bold text-green-600 my-4")
+
+                            def att_pts_e8():
+                                lbl_pts_e8.set_text(
+                                    f"📊 Impacto de Pontuação no Quesito E8: {calc_pts_e8():.1f} ponto(s)"
+                                )
+
+                            rad_e8.on("update:model-value", att_pts_e8)
 
                             def salvar_e8():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E8",
-                                    valor=state_e8["realiza_exame"],
-                                    pontos=state_e8["pontos"],
-                                    link=state_e8["link"],
-                                    comentarios=d_e8.get("comentarios", []),
-                                    status=d_e8.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E8 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                pts = calc_pts_e8()
+                                opt_sel = state_e8["opcao"]
+                                lnk = state_e8["link"]
 
-                            ui.button("💾 SALVAR QUESITO E8", on_click=salvar_e8).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E8",
+                                        valor=opt_sel,
+                                        pontos=pts,
+                                        link=lnk,
+                                        comentarios=d_e8.get("comentarios", []),
+                                        status=d_e8.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": opt_sel,
+                                        "valor": opt_sel,
+                                        "pontos": pts,
+                                        "link": lnk,
+                                        "comentarios": d_e8.get("comentarios", []),
+                                        "status": d_e8.get("status", "Pendente"),
+                                    }
+                                    res_data["E8"] = novos_dados
+                                    res_data["E80"] = novos_dados
+
+                                    ui.notify("Quesito E8 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E8: {err}", type="negative")
+
+                            ui.button("💾 SALVAR QUESITO E8", on_click=salvar_e8).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("E8", res_data, render_conteudo.refresh)
+                            bloco_comentarios("E8", res_data, getattr(render_conteudo, "refresh", None))
 
 
                         # -----------------------------------------------------------------------------
