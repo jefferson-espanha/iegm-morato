@@ -20080,7 +20080,10 @@ def container_formulario_ieduc(ano=None):
                                         for i in range(11):
                                             def_lp[f"p{i}"] = float(parsed.get(f"p{i}", 0.0) or 0.0)
                                             def_mat[f"m{i}"] = float(parsed.get(f"m{i}", 0.0) or 0.0)
-                                except Exception: pass
+                                except Exception:
+                                    for i in range(11):
+                                        def_lp[f"p{i}"] = float(d_e3133.get(f"p{i}", 0.0) or 0.0)
+                                        def_mat[f"m{i}"] = float(d_e3133.get(f"m{i}", 0.0) or 0.0)
 
                             state_e3133 = {
                                 **def_lp,
@@ -20100,14 +20103,18 @@ def container_formulario_ieduc(ano=None):
                                 n1 = 0.0
                                 n2 = 0.0
 
-                                for i in range(10): # LP usa de p0 a p9 na regra do quesito
-                                    try: val_p = float(state_e3133[f"p{i}"]) if state_e3133[f"p{i}"] is not None else 0.0
-                                    except (ValueError, TypeError): val_p = 0.0
+                                for i in range(10):  # LP usa de p0 a p9 na regra do quesito
+                                    try:
+                                        val_p = float(state_e3133.get(f"p{i}", 0.0) or 0.0)
+                                    except (ValueError, TypeError):
+                                        val_p = 0.0
                                     n1 += (val_p / 100.0) * w_lp[i]
 
-                                for i in range(11): # MAT usa de m0 a m10
-                                    try: val_m = float(state_e3133[f"m{i}"]) if state_e3133[f"m{i}"] is not None else 0.0
-                                    except (ValueError, TypeError): val_m = 0.0
+                                for i in range(11):  # MAT usa de m0 a m10
+                                    try:
+                                        val_m = float(state_e3133.get(f"m{i}", 0.0) or 0.0)
+                                    except (ValueError, TypeError):
+                                        val_m = 0.0
                                     n2 += (val_m / 100.0) * w_mat[i]
 
                                 total_pts = min(n1 + n2, 38.0)
@@ -20124,18 +20131,26 @@ def container_formulario_ieduc(ano=None):
                             with ui.grid(columns=4).classes("w-full gap-3 items-start mb-4"):
                                 for i in range(11):
                                     ui.number(
-                                        label=f"Nível {i}:", value=state_e3133[f"p{i}"], min=0.0, max=100.0, step=0.1, format="%.2f",
-                                        on_change=lambda e, idx=i: [state_e3133.update({f"p{idx}": e.value}), calc_e3133()],
-                                    ).classes("w-full").props("outlined dense color=blue")
+                                        label=f"Nível {i}:",
+                                        min=0.0,
+                                        max=100.0,
+                                        step=0.1,
+                                        format="%.2f",
+                                        on_change=lambda e: calc_e3133(),
+                                    ).classes("w-full").props("outlined dense color=blue").bind_value(state_e3133, f"p{i}")
 
                             ui.separator().classes("my-3")
                             ui.label("📐 Matemática - Percentual por Nível (%)").classes("text-lg font-bold text-blue-600 mb-2")
                             with ui.grid(columns=4).classes("w-full gap-3 items-start mb-4"):
                                 for i in range(11):
                                     ui.number(
-                                        label=f"Nível {i}:", value=state_e3133[f"m{i}"], min=0.0, max=100.0, step=0.1, format="%.2f",
-                                        on_change=lambda e, idx=i: [state_e3133.update({f"m{idx}": e.value}), calc_e3133()],
-                                    ).classes("w-full").props("outlined dense color=blue")
+                                        label=f"Nível {i}:",
+                                        min=0.0,
+                                        max=100.0,
+                                        step=0.1,
+                                        format="%.2f",
+                                        on_change=lambda e: calc_e3133(),
+                                    ).classes("w-full").props("outlined dense color=blue").bind_value(state_e3133, f"m{i}")
 
                             ui.textarea(
                                 label="Link de Evidência / Fonte dos Dados (Censo / INEP):",
@@ -20149,8 +20164,8 @@ def container_formulario_ieduc(ano=None):
                                 calc_e3133()
                                 val_dict = {}
                                 for i in range(11):
-                                    val_dict[f"p{i}"] = float(state_e3133[f"p{i}"] or 0.0)
-                                    val_dict[f"m{i}"] = float(state_e3133[f"m{i}"] or 0.0)
+                                    val_dict[f"p{i}"] = float(state_e3133.get(f"p{i}", 0.0) or 0.0)
+                                    val_dict[f"m{i}"] = float(state_e3133.get(f"m{i}", 0.0) or 0.0)
 
                                 str_resposta = json.dumps(val_dict)
 
@@ -20185,7 +20200,7 @@ def container_formulario_ieduc(ano=None):
 
                             ui.button("💾 SALVAR QUESITO E3.13.3", on_click=salvar_e3133).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
-                            bloco_comentarios("E3.13.3", res_data, getattr(render_conteudo, "refresh", None))                       
+                            bloco_comentarios("E3.13.3", res_data, getattr(render_conteudo, "refresh", None))                  
 
                         # -----------------------------------------------------------------------------
                         # QUESITO E5 - Infraestrutura das Escolas da Rede Municipal
