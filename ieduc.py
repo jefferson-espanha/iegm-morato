@@ -12174,7 +12174,7 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("12.0", res_data, render_conteudo.refresh)
 
-    # =============================================================================
+   # =============================================================================
                         # QUESITO 12.1 (Tipos de Controles de Acondicionamento)
                         # =============================================================================
                         with ui.card().classes(
@@ -12188,6 +12188,28 @@ def container_formulario_ieduc(ano=None):
                             ).classes("text-base font-bold text-black mb-4")
 
                             d121 = res_data.get("12.1") or res_data.get("121") or {}
+                            raw_link_121 = str(d121.get("link") or "")
+                            val_121_bruto = d121.get("valor") or []
+
+                            # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
+                            if isinstance(val_121_bruto, str):
+                                try:
+                                    sel_121 = json.loads(val_121_bruto)
+                                except Exception:
+                                    sel_121 = [
+                                        item.strip()
+                                        for item in val_121_bruto.split(";")
+                                        if item.strip()
+                                    ]
+                            elif isinstance(val_121_bruto, list):
+                                sel_121 = val_121_bruto
+                            else:
+                                sel_121 = []
+
+                            state_121 = {
+                                "opcoes": sel_121,
+                                "link": raw_link_121,
+                            }
 
                             opcoes_121 = [
                                 ("Controle de Estoque com sistema PVPS - o primeiro que vence é o primeiro que sai", 0.375),
@@ -12210,34 +12232,36 @@ def container_formulario_ieduc(ano=None):
                                 ("Outro", 0.0),
                             ]
 
-                            raw_val_121 = str(d121.get("valor") or "")
-                            marcados_121 = [i.strip() for i in raw_val_121.split(";") if i.strip()]
-                            raw_link_121 = str(d121.get("link") or "")
+                            lbl_pts_121 = ui.label("Nota do Quesito 12.1: 0.000 pontos").classes(
+                                "text-sm font-bold text-green-600 mb-4"
+                            )
 
-                            state_121 = {
-                                "selecionados": marcados_121,
-                                "link": raw_link_121,
-                            }
+                            def recalc_121():
+                                dict_pts = dict(opcoes_121)
+                                total_pts = sum(dict_pts.get(item, 0.0) for item in state_121["opcoes"])
+                                lbl_pts_121.set_text(
+                                    f"📊 Nota do Quesito 12.1: {total_pts:.3f} pontos ({len(state_121['opcoes'])} controles selecionados)"
+                                )
+                                return total_pts
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 with ui.column().classes("w-full gap-1"):
+                                    def make_chk_121(opt_text):
+                                        def on_chk_change(e):
+                                            if e.value and opt_text not in state_121["opcoes"]:
+                                                state_121["opcoes"].append(opt_text)
+                                            elif not e.value and opt_text in state_121["opcoes"]:
+                                                state_121["opcoes"].remove(opt_text)
+                                            recalc_121()
+                                        return on_chk_change
+
                                     for op_txt, op_pts in opcoes_121:
                                         lbl_chk = f"{op_txt} (+{op_pts:.3f} pt)" if op_pts > 0 else f"{op_txt} (0,00 pt)"
-                                        chk_121 = ui.checkbox(
-                                            lbl_chk,
-                                            value=(op_txt in state_121["selecionados"])
+                                        ui.checkbox(
+                                            text=lbl_chk,
+                                            value=(op_txt in state_121["opcoes"]),
+                                            on_change=make_chk_121(op_txt),
                                         ).props("color=blue")
-
-                                        def on_121_change(e, option=op_txt):
-                                            if e.value:
-                                                if option not in state_121["selecionados"]:
-                                                    state_121["selecionados"].append(option)
-                                            else:
-                                                if option in state_121["selecionados"]:
-                                                    state_121["selecionados"].remove(option)
-                                            recalc_121()
-
-                                        chk_121.on("update:model-value", on_121_change)
 
                                 ui.textarea(
                                     label="Link de Evidência (Quesito 12.1):",
@@ -12247,23 +12271,15 @@ def container_formulario_ieduc(ano=None):
                                     state_121, "link"
                                 )
 
-                            lbl_pts_121 = ui.label("Nota do Quesito 12.1: 0.00 pontos").classes("text-sm font-bold text-green-600 mb-4")
-
-                            def recalc_121():
-                                dict_pts = dict(opcoes_121)
-                                total_pts = sum(dict_pts.get(item, 0.0) for item in state_121["selecionados"])
-                                lbl_pts_121.set_text(f"📊 Nota do Quesito 12.1: {total_pts:.3f} pontos ({len(state_121['selecionados'])} controles selecionados)")
-                                return total_pts
-
                             recalc_121()
 
                             def salvar_121():
                                 pts_121 = recalc_121()
-                                str_121 = " ; ".join(state_121["selecionados"])
+                                opts_sel = state_121["opcoes"]
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="12.1",
-                                    valor=str_121,
+                                    valor=opts_sel,
                                     pontos=pts_121,
                                     link=state_121["link"],
                                     comentarios=d121.get("comentarios", []),
@@ -12271,7 +12287,7 @@ def container_formulario_ieduc(ano=None):
                                 )
 
                                 ui.notify("Quesito 12.1 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if callable(getattr(render_conteudo, "refresh", None)):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 12.1", on_click=salvar_121).classes(
@@ -12279,7 +12295,6 @@ def container_formulario_ieduc(ano=None):
                             )
                             ui.separator().classes("my-2")
                             bloco_comentarios("12.1", res_data, render_conteudo.refresh)
-
                         # =============================================================================
                         # QUESITO 13.0 (Oferta de Transporte Escolar)
                         # =============================================================================
