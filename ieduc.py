@@ -8500,35 +8500,47 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a data da última entrega na escola:"
+                                "Informe a data da última entrega e a data de início das aulas em 2025:"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "ℹ Fórmula: ≤ Início das Aulas (20,0 pts) | < Início + 60 dias (10,0 pts) | ≥ Início + 60 dias (4,0 pts)."
+                                "ℹ Fórmula: ≤ Início Aulas (20,0 pts) | < Início + 60 dias (10,0 pts) | ≥ Início + 60 dias (4,0 pts)."
                             ).classes("text-xs text-gray-400 mb-6")
 
-                            d3141 = res_data.get("3.141") or res_data.get("3.14.1") or {}
+                            d3141 = res_data.get("3.14.1") or res_data.get("3.141") or {}
                             raw_link_3141 = str(d3141.get("link") or "")
 
-                            dt_aulas_3141 = "2025-02-03"
-                            if "AULAS:" in raw_link_3141:
-                                dt_aulas_3141 = raw_link_3141.replace("AULAS:", "").strip()
+                            dt_entrega_3141, dt_inicio_3141 = "", "05/02/2025"
+                            evidencia_3141 = raw_link_3141
 
-                            dt_entrega_3141 = str(d3141.get("valor") or "2025-02-03")
+                            if "|LINK:" in raw_link_3141:
+                                partes_3141, evidencia_3141 = raw_link_3141.split("|LINK:", 1)
+                                m_ent = re.search(r"ENTREGA:([\d/]+)", partes_3141)
+                                m_ini = re.search(r"INICIO:([\d/]+)", partes_3141)
+                                dt_entrega_3141 = m_ent.group(1) if m_ent else ""
+                                dt_inicio_3141 = m_ini.group(1) if m_ini else "05/02/2025"
+                            elif "AULAS:" in raw_link_3141:
+                                # Compatibilidade com formato antigo
+                                dt_inicio_3141 = raw_link_3141.replace("AULAS:", "").strip()
+                                dt_entrega_3141 = str(d3141.get("valor") or "")
+                                evidencia_3141 = ""
+                            elif d3141.get("valor"):
+                                dt_entrega_3141 = str(d3141.get("valor"))
 
                             state_3141 = {
-                                "dt_aulas": dt_aulas_3141,
                                 "dt_entrega": dt_entrega_3141,
+                                "dt_inicio": dt_inicio_3141,
+                                "link": evidencia_3141,
                             }
 
                             def calc_pts_3141():
                                 try:
-                                    d_aulas = datetime.strptime(state_3141["dt_aulas"], "%Y-%m-%d")
-                                    d_ent = datetime.strptime(state_3141["dt_entrega"], "%Y-%m-%d")
-                                    d_limite = d_aulas + timedelta(days=60)
+                                    ent = datetime.strptime(state_3141["dt_entrega"].strip(), "%d/%m/%Y")
+                                    ini = datetime.strptime(state_3141["dt_inicio"].strip(), "%d/%m/%Y")
+                                    diff_dias = (ent - ini).days
 
-                                    if d_ent <= d_aulas:
+                                    if diff_dias <= 0:
                                         return 20.0
-                                    elif d_ent < d_limite:
+                                    elif diff_dias < 60:
                                         return 10.0
                                     else:
                                         return 4.0
@@ -8536,49 +8548,78 @@ def container_formulario_ieduc(ano=None):
                                     return 0.0
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                inp_dt_aulas_3141 = ui.input(
-                                    "Data de início das aulas:",
-                                    value=state_3141["dt_aulas"]
-                                ).props("type=date outlined color=blue").bind_value(state_3141, "dt_aulas")
+                                with ui.column().classes("w-full gap-3"):
+                                    inp_dt_ent_3141 = ui.input(
+                                        label="Data da última entrega (DD/MM/AAAA):",
+                                        value=dt_entrega_3141,
+                                        placeholder="Ex: 02/02/2025",
+                                    ).classes("w-full").props("outlined color=blue").bind_value(state_3141, "dt_entrega")
 
-                                inp_dt_entrega_3141 = ui.input(
-                                    "Data da última entrega do uniforme:",
-                                    value=state_3141["dt_entrega"]
-                                ).props("type=date outlined color=blue").bind_value(state_3141, "dt_entrega")
+                                    inp_dt_ini_3141 = ui.input(
+                                        label="Data de início das aulas (DD/MM/AAAA):",
+                                        value=dt_inicio_3141,
+                                        placeholder="Ex: 05/02/2025",
+                                    ).classes("w-full").props("outlined color=blue").bind_value(state_3141, "dt_inicio")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Documento:",
+                                    value=evidencia_3141,
+                                    placeholder="Insira as notas de entrega, comprovantes de recebimento do uniforme nas escolas...",
+                                ).classes("w-full").props("outlined rows=5").bind_value(
+                                    state_3141, "link"
+                                )
 
                             lbl_pts_3141 = ui.label(
-                                f"📊 Impacto Estimado na Pontuação: {calc_pts_3141():.1f} / 20.0 pontos"
+                                f"📊 Impacto de Pontuação no Quesito 3.14.1: {calc_pts_3141():.1f} / 20.0 pontos"
                             ).classes("text-sm font-bold text-green-600 my-4")
 
                             def att_pts_3141():
                                 lbl_pts_3141.set_text(
-                                    f"📊 Impacto Estimado na Pontuação: {calc_pts_3141():.1f} / 20.0 pontos"
+                                    f"📊 Impacto de Pontuação no Quesito 3.14.1: {calc_pts_3141():.1f} / 20.0 pontos"
                                 )
 
-                            inp_dt_aulas_3141.on("update:model-value", att_pts_3141)
-                            inp_dt_entrega_3141.on("update:model-value", att_pts_3141)
+                            inp_dt_ent_3141.on("update:model-value", att_pts_3141)
+                            inp_dt_ini_3141.on("update:model-value", att_pts_3141)
 
                             def salvar_3141():
                                 pts = calc_pts_3141()
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="3.14.1",
-                                    valor=state_3141["dt_entrega"],
-                                    pontos=pts,
-                                    link=f"AULAS:{state_3141['dt_aulas']}",
-                                    comentarios=d3141.get("comentarios", []),
-                                    status=d3141.get("status", "Pendente"),
-                                )
+                                ent_v = state_3141["dt_entrega"].strip()
+                                ini_v = state_3141["dt_inicio"].strip()
+                                composite = f"ENTREGA:{ent_v},INICIO:{ini_v}|LINK:{state_3141['link']}"
 
-                                ui.notify("Quesito 3.14.1 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="3.14.1",
+                                        valor=ent_v,
+                                        pontos=pts,
+                                        link=composite,
+                                        comentarios=d3141.get("comentarios", []),
+                                        status=d3141.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": ent_v,
+                                        "valor": ent_v,
+                                        "pontos": pts,
+                                        "link": composite,
+                                        "comentarios": d3141.get("comentarios", []),
+                                        "status": d3141.get("status", "Pendente"),
+                                    }
+                                    res_data["3.14.1"] = novos_dados
+                                    res_data["3.141"] = novos_dados
+
+                                    ui.notify("Quesito 3.14.1 salvo com sucesso!", type="positive")
+                                    if callable(getattr(render_conteudo, "refresh", None)):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito 3.14.1: {err}", type="negative")
 
                             ui.button("💾 SALVAR QUESITO 3.14.1", on_click=salvar_3141).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("3.14.1", res_data, render_conteudo.refresh)
+                            bloco_comentarios("3.14.1", res_data, getattr(render_conteudo, "refresh", None))
 
                         # =============================================================================
                         # QUESITO 3.14.2 (Motivo da Não Entrega do Uniforme Escolar)
