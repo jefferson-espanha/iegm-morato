@@ -1876,8 +1876,8 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("1.7", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # =============================================================================
-                        # QUESITO 1.7.1 (Quantitativos e Cálculo de Percentual de Capacitados)
+                       # =============================================================================
+                        # QUESITO 1.7.1 (Quantidade de Profissionais de Creche Capacitados)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -1927,15 +1927,17 @@ def container_formulario_ieduc(ano=None):
                                 "link": evidencia_171,
                             }
 
-                            def get_safe_int(val):
-                                try:
-                                    return int(val) if val is not None else 0
-                                except (ValueError, TypeError):
-                                    return 0
-
                             def calc_pts_171():
-                                num = get_safe_int(state_171["prof_cap"]) + get_safe_int(state_171["apoio_cap"]) + get_safe_int(state_171["gest_cap"])
-                                den = get_safe_int(state_171["tot_prof"]) + get_safe_int(state_171["tot_apoio"]) + get_safe_int(state_171["tot_gest"])
+                                num = (
+                                    int(state_171["prof_cap"] or 0)
+                                    + int(state_171["apoio_cap"] or 0)
+                                    + int(state_171["gest_cap"] or 0)
+                                )
+                                den = (
+                                    int(state_171["tot_prof"] or 0)
+                                    + int(state_171["tot_apoio"] or 0)
+                                    + int(state_171["tot_gest"] or 0)
+                                )
 
                                 if den <= 0 or num <= 0:
                                     return 0.0
@@ -1983,54 +1985,30 @@ def container_formulario_ieduc(ano=None):
                                 inp.on("update:model-value", att_pts_171)
 
                             def salvar_171():
-                                p_cap = get_safe_int(state_171["prof_cap"])
-                                a_cap = get_safe_int(state_171["apoio_cap"])
-                                g_cap = get_safe_int(state_171["gest_cap"])
-                                t_prof = get_safe_int(state_171["tot_prof"])
-                                t_apoi = get_safe_int(state_171["tot_apoio"])
-                                t_gest = get_safe_int(state_171["tot_gest"])
+                                p_cap, a_cap, g_cap = int(state_171["prof_cap"] or 0), int(state_171["apoio_cap"] or 0), int(state_171["gest_cap"] or 0)
+                                t_prof, t_apoi, t_gest = int(state_171["tot_prof"] or 0), int(state_171["tot_apoio"] or 0), int(state_171["tot_gest"] or 0)
                                 pts_finais = calc_pts_171()
 
-                                composite = (
-                                    f"PCAP:{p_cap},ACAP:{a_cap},GCAP:{g_cap},"
-                                    f"TPROF:{t_prof},TAPOI:{t_apoi},TGEST:{t_gest}|LINK:{state_171['link']}"
+                                composite = f"PCAP:{p_cap},ACAP:{a_cap},GCAP:{g_cap},TPROF:{t_prof},TAPOI:{t_apoi},TGEST:{t_gest}|LINK:{state_171['link']}"
+
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="1.7.1",
+                                    valor=f"Capacitados: {p_cap + a_cap + g_cap} / Total: {t_prof + t_apoi + t_gest}",
+                                    pontos=pts_finais,
+                                    link=composite,
+                                    comentarios=d171.get("comentarios", []),
+                                    status=d171.get("status", "Pendente"),
                                 )
-
-                                val_str = f"Capacitados: {p_cap + a_cap + g_cap} / Total: {t_prof + t_apoi + t_gest}"
-
-                                try:
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="1.7.1",
-                                        valor=val_str,
-                                        pontos=pts_finais,
-                                        link=composite,
-                                        comentarios=d171.get("comentarios", []),
-                                        status=d171.get("status", "Pendente"),
-                                    )
-
-                                    novos_dados = {
-                                        "resposta": val_str,
-                                        "valor": val_str,
-                                        "pontos": pts_finais,
-                                        "link": composite,
-                                        "comentarios": d171.get("comentarios", []),
-                                        "status": d171.get("status", "Pendente"),
-                                    }
-                                    res_data["1.7.1"] = novos_dados
-                                    res_data["1.71"] = novos_dados
-
-                                    ui.notify("Quesito 1.7.1 salvo com sucesso!", type="positive")
-                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
-                                        render_conteudo.refresh()
-                                except Exception as err:
-                                    ui.notify(f"Erro ao salvar Quesito 1.7.1: {err}", type="negative")
+                                ui.notify("Quesito 1.7.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 1.7.1", on_click=salvar_171).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("1.7.1", res_data, getattr(render_conteudo, "refresh", None))
+                            bloco_comentarios("1.7.1", res_data, render_conteudo.refresh)
 
 
                         # =============================================================================
@@ -2102,45 +2080,27 @@ def container_formulario_ieduc(ano=None):
 
                             def salvar_172():
                                 opts_sel = state_172["opcoes"]
-                                lnk = state_172["link"]
 
-                                # Serialização garantida para JSON String (evita incompatibilidade com DB)
-                                val_salvar = json.dumps(opts_sel, ensure_ascii=False)
-
-                                try:
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="1.7.2",
-                                        valor=val_salvar,
-                                        pontos=0.0,
-                                        link=lnk,
-                                        comentarios=d172.get("comentarios", []),
-                                        status=d172.get("status", "Pendente"),
-                                    )
-
-                                    novos_dados = {
-                                        "resposta": opts_sel,
-                                        "valor": val_salvar,
-                                        "pontos": 0.0,
-                                        "link": lnk,
-                                        "comentarios": d172.get("comentarios", []),
-                                        "status": d172.get("status", "Pendente"),
-                                    }
-                                    res_data["1.7.2"] = novos_dados
-
-                                    ui.notify("Quesito 1.7.2 salvo com sucesso!", type="positive")
-                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
-                                        render_conteudo.refresh()
-                                except Exception as err:
-                                    ui.notify(f"Erro ao salvar Quesito 1.7.2: {err}", type="negative")
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="1.7.2",
+                                    valor=json.dumps(opts_sel, ensure_ascii=False) if isinstance(opts_sel, list) else opts_sel,
+                                    pontos=0.0,
+                                    link=state_172["link"],
+                                    comentarios=d172.get("comentarios", []),
+                                    status=d172.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 1.7.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 1.7.2", on_click=salvar_172).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("1.7.2", res_data, getattr(render_conteudo, "refresh", None))
+                            bloco_comentarios("1.7.2", res_data, render_conteudo.refresh)
                             
-        # =============================================================================
+                        # =============================================================================
                         # QUESITO 1.8 (Rotatividade do Corpo Docente em Creches)
                         # =============================================================================
                         with ui.card().classes(
