@@ -19570,25 +19570,48 @@ def container_formulario_ieduc(ano=None):
                         # -----------------------------------------------------------------------------
                         # QUESITO E5 - Infraestrutura das Escolas da Rede Municipal
                         # -----------------------------------------------------------------------------
+                        d_e5 = res_data.get("E5") or res_data.get("E50") or {}
+
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E5 • Infraestrutura das Escolas da Rede Municipal").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Informe a quantidade de estabelecimentos de ensino da rede municipal (Creche, Pré-escola e Anos Iniciais do Ensino Fundamental) e suas condições de infraestrutura (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
 
-                            d_e5 = res_data.get("E5") or res_data.get("E50") or {}
+                            val_e5_raw = d_e5.get("resposta") if d_e5.get("resposta") is not None else d_e5.get("valor")
+
+                            # Dicionário padrão para fallback
+                            e5_defaults = {
+                                "total_escolas": 0, "adaptadas": 0, "quadra_coberta": 0,
+                                "biblioteca": 0, "sala_leitura": 0, "encerradas": 0,
+                                "suspensas": 0, "sem_agua": 0, "sem_esgoto": 0,
+                                "sem_lixo": 0, "sem_banheiro": 0, "climatizadas": 0
+                            }
+
+                            if isinstance(val_e5_raw, dict):
+                                for k in e5_defaults:
+                                    e5_defaults[k] = int(val_e5_raw.get(k, 0) or 0)
+                            elif isinstance(val_e5_raw, str):
+                                try:
+                                    parsed = json.loads(val_e5_raw)
+                                    if isinstance(parsed, dict):
+                                        for k in e5_defaults:
+                                            e5_defaults[k] = int(parsed.get(k, 0) or 0)
+                                except Exception:
+                                    for k in e5_defaults:
+                                        e5_defaults[k] = int(d_e5.get(k, 0) or 0)
 
                             state_e5 = {
-                                "total_escolas": int(d_e5.get("total_escolas") or 0),
-                                "adaptadas": int(d_e5.get("adaptadas") or 0),
-                                "quadra_coberta": int(d_e5.get("quadra_coberta") or 0),
-                                "biblioteca": int(d_e5.get("biblioteca") or 0),
-                                "sala_leitura": int(d_e5.get("sala_leitura") or 0),
-                                "encerradas": int(d_e5.get("encerradas") or 0),
-                                "suspensas": int(d_e5.get("suspensas") or 0),
-                                "sem_agua": int(d_e5.get("sem_agua") or 0),
-                                "sem_esgoto": int(d_e5.get("sem_esgoto") or 0),
-                                "sem_lixo": int(d_e5.get("sem_lixo") or 0),
-                                "sem_banheiro": int(d_e5.get("sem_banheiro") or 0),
-                                "climatizadas": int(d_e5.get("climatizadas") or 0),
+                                "total_escolas": e5_defaults["total_escolas"],
+                                "adaptadas": e5_defaults["adaptadas"],
+                                "quadra_coberta": e5_defaults["quadra_coberta"],
+                                "biblioteca": e5_defaults["biblioteca"],
+                                "sala_leitura": e5_defaults["sala_leitura"],
+                                "encerradas": e5_defaults["encerradas"],
+                                "suspensas": e5_defaults["suspensas"],
+                                "sem_agua": e5_defaults["sem_agua"],
+                                "sem_esgoto": e5_defaults["sem_esgoto"],
+                                "sem_lixo": e5_defaults["sem_lixo"],
+                                "sem_banheiro": e5_defaults["sem_banheiro"],
+                                "climatizadas": e5_defaults["climatizadas"],
                                 "link": str(d_e5.get("link") or ""),
                                 "pts_adaptadas": 0.0,
                                 "pts_quadra": 0.0,
@@ -19597,42 +19620,50 @@ def container_formulario_ieduc(ano=None):
                                 "pts_suspensas": 0.0,
                                 "pts_banheiro": 0.0,
                                 "pts_climatizadas": 0.0,
-                                "total_pontos": 0.0,
+                                "total_pontos": float(d_e5.get("pontos", 0.0)),
                             }
 
                             lbl_pontos_e5 = ui.label("📊 Pontuação Quesito E5: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
 
                             def calc_e5():
-                                tot = state_e5["total_escolas"]
-                            
+                                try: tot = int(state_e5["total_escolas"]) if state_e5["total_escolas"] is not None else 0
+                                except (ValueError, TypeError): tot = 0
+
                                 if tot > 0:
                                     # 1. Adaptadas para PWD (Pmáx = 20)
-                                    p_adapt = min(state_e5["adaptadas"] / tot, 1.0)
+                                    v_adapt = int(state_e5["adaptadas"] or 0)
+                                    p_adapt = min(v_adapt / tot, 1.0)
                                     pts_adapt = p_adapt * 20.0
 
                                     # 2. Quadra Poliesportiva Coberta (Pmáx = 15)
-                                    p_quadra = min(state_e5["quadra_coberta"] / tot, 1.0)
+                                    v_quadra = int(state_e5["quadra_coberta"] or 0)
+                                    p_quadra = min(v_quadra / tot, 1.0)
                                     pts_quadra = p_quadra * 15.0
 
                                     # 3. Biblioteca ou Sala de Leitura (Pmáx = 35)
-                                    # Considera escolas que possuem biblioteca OU sala de leitura (máximo limitado ao total)
-                                    unicas_bib_leit = min(state_e5["biblioteca"] + state_e5["sala_leitura"], tot)
+                                    v_bib = int(state_e5["biblioteca"] or 0)
+                                    v_leit = int(state_e5["sala_leitura"] or 0)
+                                    unicas_bib_leit = min(v_bib + v_leit, tot)
                                     p_bib = unicas_bib_leit / tot
                                     pts_bib = p_bib * 35.0
 
                                     # 4. Atividades Definitivamente Encerradas (Perde 5 pontos se >= 1)
-                                    pts_enc = -5.0 if state_e5["encerradas"] >= 1 else 0.0
+                                    v_enc = int(state_e5["encerradas"] or 0)
+                                    pts_enc = -5.0 if v_enc >= 1 else 0.0
 
                                     # 5. Atividades Temporariamente Suspensas (Pmáx = -25)
-                                    p_susp = min(state_e5["suspensas"] / tot, 1.0)
+                                    v_susp = int(state_e5["suspensas"] or 0)
+                                    p_susp = min(v_susp / tot, 1.0)
                                     pts_susp = -25.0 * p_susp
 
                                     # 6. Sem Banheiros (Pmáx = -30)
-                                    p_banh = min(state_e5["sem_banheiro"] / tot, 1.0)
+                                    v_banh = int(state_e5["sem_banheiro"] or 0)
+                                    p_banh = min(v_banh / tot, 1.0)
                                     pts_banh = -30.0 * p_banh
 
                                     # 7. Salas Climatizadas (Pmáx = 5)
-                                    p_clim = min(state_e5["climatizadas"] / tot, 1.0)
+                                    v_clim = int(state_e5["climatizadas"] or 0)
+                                    p_clim = min(v_clim / tot, 1.0)
                                     pts_clim = p_clim * 5.0
                                 else:
                                     pts_adapt = pts_quadra = pts_bib = pts_enc = pts_susp = pts_banh = pts_clim = 0.0
@@ -19667,7 +19698,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["total_escolas"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e5.update({"total_escolas": int(e.value or 0)}), calc_e5()],
+                                    on_change=lambda e: [state_e5.update({"total_escolas": e.value}), calc_e5()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -19675,7 +19706,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["adaptadas"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e3.update({"adaptadas": int(e.value or 0)}) if 'state_e3' in locals() else state_e5.update({"adaptadas": int(e.value or 0)}), calc_e5()],
+                                    on_change=lambda e: [state_e5.update({"adaptadas": e.value}), calc_e5()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -19683,7 +19714,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["quadra_coberta"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e5.update({"quadra_coberta": int(e.value or 0)}), calc_e5()],
+                                    on_change=lambda e: [state_e5.update({"quadra_coberta": e.value}), calc_e5()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -19691,7 +19722,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["biblioteca"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e5.update({"biblioteca": int(e.value or 0)}), calc_e5()],
+                                    on_change=lambda e: [state_e5.update({"biblioteca": e.value}), calc_e5()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -19699,7 +19730,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["sala_leitura"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e5.update({"sala_leitura": int(e.value or 0)}), calc_e5()],
+                                    on_change=lambda e: [state_e5.update({"sala_leitura": e.value}), calc_e5()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -19707,18 +19738,18 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["climatizadas"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e5.update({"climatizadas": int(e.value or 0)}), calc_e5()],
+                                    on_change=lambda e: [state_e5.update({"climatizadas": e.value}), calc_e5()],
                                 ).classes("w-full").props("outlined color=blue")
 
                             ui.label("⚠️ Indicadores Informativos / Penalidades").classes("text-md font-bold text-red-700 mt-2 mb-2")
-                        
+
                             with ui.grid(columns=4).classes("w-full gap-4 items-start mb-4"):
                                 ui.number(
                                     label="Atividades Encerradas:",
                                     value=state_e5["encerradas"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e5.update({"encerradas": int(e.value or 0)}), calc_e5()],
+                                    on_change=lambda e: [state_e5.update({"encerradas": e.value}), calc_e5()],
                                 ).classes("w-full").props("outlined color=red")
 
                                 ui.number(
@@ -19726,7 +19757,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["suspensas"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e5.update({"suspensas": int(e.value or 0)}), calc_e5()],
+                                    on_change=lambda e: [state_e5.update({"suspensas": e.value}), calc_e5()],
                                 ).classes("w-full").props("outlined color=red")
 
                                 ui.number(
@@ -19734,7 +19765,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["sem_banheiro"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e5.update({"sem_banheiro": int(e.value or 0)}), calc_e5()],
+                                    on_change=lambda e: [state_e5.update({"sem_banheiro": e.value}), calc_e5()],
                                 ).classes("w-full").props("outlined color=red")
 
                                 ui.number(
@@ -19742,7 +19773,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["sem_agua"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: state_e5.update({"sem_agua": int(e.value or 0)}),
+                                    on_change=lambda e: state_e5.update({"sem_agua": e.value}),
                                 ).classes("w-full").props("outlined color=gray")
 
                                 ui.number(
@@ -19750,7 +19781,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["sem_esgoto"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: state_e5.update({"sem_esgoto": int(e.value or 0)}),
+                                    on_change=lambda e: state_e5.update({"sem_esgoto": e.value}),
                                 ).classes("w-full").props("outlined color=gray")
 
                                 ui.number(
@@ -19758,7 +19789,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e5["sem_lixo"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: state_e5.update({"sem_lixo": int(e.value or 0)}),
+                                    on_change=lambda e: state_e5.update({"sem_lixo": e.value}),
                                 ).classes("w-full").props("outlined color=gray")
 
                             ui.textarea(
@@ -19770,22 +19801,55 @@ def container_formulario_ieduc(ano=None):
                             calc_e5()
 
                             def salvar_e5():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E5",
-                                    valor=state_e5,
-                                    pontos=state_e5["total_pontos"],
-                                    link=state_e5["link"],
-                                    comentarios=d_e5.get("comentarios", []),
-                                    status=d_e5.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E5 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                calc_e5()
+                                val_dict = {
+                                    "total_escolas": int(state_e5["total_escolas"] or 0),
+                                    "adaptadas": int(state_e5["adaptadas"] or 0),
+                                    "quadra_coberta": int(state_e5["quadra_coberta"] or 0),
+                                    "biblioteca": int(state_e5["biblioteca"] or 0),
+                                    "sala_leitura": int(state_e5["sala_leitura"] or 0),
+                                    "encerradas": int(state_e5["encerradas"] or 0),
+                                    "suspensas": int(state_e5["suspensas"] or 0),
+                                    "sem_agua": int(state_e5["sem_agua"] or 0),
+                                    "sem_esgoto": int(state_e5["sem_esgoto"] or 0),
+                                    "sem_lixo": int(state_e5["sem_lixo"] or 0),
+                                    "sem_banheiro": int(state_e5["sem_banheiro"] or 0),
+                                    "climatizadas": int(state_e5["climatizadas"] or 0),
+                                }
+                                str_resposta = json.dumps(val_dict)
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E5",
+                                        valor=str_resposta,
+                                        pontos=state_e5["total_pontos"],
+                                        link=state_e5["link"],
+                                        comentarios=d_e5.get("comentarios", []),
+                                        status=d_e5.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": str_resposta,
+                                        "valor": str_resposta,
+                                        **val_dict,
+                                        "pontos": state_e5["total_pontos"],
+                                        "link": state_e5["link"],
+                                        "comentarios": d_e5.get("comentarios", []),
+                                        "status": d_e5.get("status", "Pendente"),
+                                    }
+                                    res_data["E5"] = novos_dados
+                                    res_data["E50"] = novos_dados
+
+                                    ui.notify("Quesito E5 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E5: {err}", type="negative")
 
                             ui.button("💾 SALVAR QUESITO E5", on_click=salvar_e5).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
-                            bloco_comentarios("E5", res_data, render_conteudo.refresh)
+                            bloco_comentarios("E5", res_data, getattr(render_conteudo, "refresh", None))
 
     # -----------------------------------------------------------------------------
                         # QUESITO E6 - Compartilhamento de Espaços com a Comunidade
