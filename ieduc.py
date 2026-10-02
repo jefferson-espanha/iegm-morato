@@ -18563,6 +18563,233 @@ def container_formulario_ieduc(ano=None):
                             ui.button("💾 SALVAR QUESITO E3.3", on_click=salvar_e33).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("E3.3", res_data, getattr(render_conteudo, "refresh", None))
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO E3.4 - Infraestrutura Tecnológica nos Anos Iniciais
+                        # -----------------------------------------------------------------------------
+                        d_e34 = res_data.get("E3.4") or res_data.get("E34") or {}
+
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("E3.4 • Infraestrutura de Ensino com Apoio da Tecnologia (Anos Iniciais)").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe os dados sobre a infraestrutura tecnológica das escolas com Anos Iniciais (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+
+                            val_e34_raw = d_e34.get("resposta") if d_e34.get("resposta") is not None else d_e34.get("valor")
+
+                            e34_tot_init = 0
+                            e34_lab_init = 0
+                            e34_net_init = 0
+                            e34_banda_init = 0
+                            e34_pc_init = 0
+                            e34_alu_init = 0
+
+                            if isinstance(val_e34_raw, dict):
+                                e34_tot_init = int(val_e34_raw.get("total_escolas", 0) or 0)
+                                e34_lab_init = int(val_e34_raw.get("com_lab", 0) or 0)
+                                e34_net_init = int(val_e34_raw.get("com_internet", 0) or 0)
+                                e34_banda_init = int(val_e34_raw.get("com_bandalarga", 0) or 0)
+                                e34_pc_init = int(val_e34_raw.get("total_pcs", 0) or 0)
+                                e34_alu_init = int(val_e34_raw.get("total_alunos", 0) or 0)
+                            elif isinstance(val_e34_raw, str):
+                                try:
+                                    parsed = json.loads(val_e34_raw)
+                                    if isinstance(parsed, dict):
+                                        e34_tot_init = int(parsed.get("total_escolas", 0) or 0)
+                                        e34_lab_init = int(parsed.get("com_lab", 0) or 0)
+                                        e34_net_init = int(parsed.get("com_internet", 0) or 0)
+                                        e34_banda_init = int(parsed.get("com_bandalarga", 0) or 0)
+                                        e34_pc_init = int(parsed.get("total_pcs", 0) or 0)
+                                        e34_alu_init = int(parsed.get("total_alunos", 0) or 0)
+                                except Exception:
+                                    pass
+
+                            # Tenta buscar total de alunos do quesito E3.1 caso não tenha no E3.4
+                            if e34_alu_init == 0:
+                                d_e31 = res_data.get("E3.1") or res_data.get("E31") or {}
+                                v_e31 = d_e31.get("valor") or d_e31.get("resposta")
+                                try:
+                                    e34_alu_init = int(float(v_e31)) if v_e31 is not None and str(v_e31).strip() != "" else 0
+                                except Exception:
+                                    e34_alu_init = 0
+
+                            state_e34 = {
+                                "total_escolas": e34_tot_init,
+                                "com_lab": e34_lab_init,
+                                "com_internet": e34_net_init,
+                                "com_bandalarga": e34_banda_init,
+                                "total_pcs": e34_pc_init,
+                                "total_alunos": e34_alu_init,
+                                "link": str(d_e34.get("link") or ""),
+                                "pontos": float(d_e34.get("pontos", 0.0)),
+                            }
+
+                            lbl_pontos_e34 = ui.label("📊 Pontuação Quesito E3.4: 0,00 ponto(s) (Máx: 12,0)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def calc_e34():
+                                try:
+                                    tot = int(state_e34["total_escolas"]) if state_e34["total_escolas"] is not None else 0
+                                except (ValueError, TypeError):
+                                    tot = 0
+
+                                try:
+                                    lab = int(state_e34["com_lab"]) if state_e34["com_lab"] is not None else 0
+                                except (ValueError, TypeError):
+                                    lab = 0
+
+                                try:
+                                    banda = int(state_e34["com_bandalarga"]) if state_e34["com_bandalarga"] is not None else 0
+                                except (ValueError, TypeError):
+                                    banda = 0
+
+                                try:
+                                    pcs = int(state_e34["total_pcs"]) if state_e34["total_pcs"] is not None else 0
+                                except (ValueError, TypeError):
+                                    pcs = 0
+
+                                try:
+                                    alunos = int(state_e34["total_alunos"]) if state_e34["total_alunos"] is not None else 0
+                                except (ValueError, TypeError):
+                                    alunos = 0
+
+                                pmax = 12.0
+                                p1, p2 = 0.0, 0.0
+
+                                if tot > 0:
+                                    p1 = (min(lab, tot) / tot) * pmax
+                                    p2 = (min(banda, tot) / tot) * pmax
+
+                                # Média ou soma ponderada de componentes P1 e P2 até o limite máximo de 12
+                                pts_base = min((p1 + p2) / 2.0, pmax)
+
+                                # Penalidade: se a relação alunos por computador for maior que 10
+                                penalidade = 0.0
+                                if pcs > 0 and alunos > 0:
+                                    alunos_por_pc = alunos / pcs
+                                    if alunos_por_pc > 10.0:
+                                        penalidade = -1.0
+                                elif pcs == 0 and alunos > 0:
+                                    penalidade = -1.0
+
+                                pts_finais = max(0.0, round(pts_base + penalidade, 2))
+                                state_e34["pontos"] = pts_finais
+
+                                txt_penalidade = " | Penalidade de -1,0 aplicada (>10 alunos/PC)" if penalidade < 0 else ""
+                                lbl_pontos_e34.set_text(
+                                    f"📊 Pontuação Quesito E3.4: {pts_finais:.2f} ponto(s) (P1: {p1:.1f}, P2: {p2:.1f}){txt_penalidade}".replace(".", ",")
+                                )
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.number(
+                                    label="Total de Escolas com Anos Iniciais:",
+                                    value=state_e34["total_escolas"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e34.update({"total_escolas": e.value}), calc_e34()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.number(
+                                    label="Escolas com Laboratório de Informática:",
+                                    value=state_e34["com_lab"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e34.update({"com_lab": e.value}), calc_e34()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.number(
+                                    label="Escolas com Acesso à Internet:",
+                                    value=state_e34["com_internet"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e34.update({"com_internet": e.value}), calc_e34()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.number(
+                                    label="Escolas com Banda Larga para uso dos Alunos:",
+                                    value=state_e34["com_bandalarga"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e34.update({"com_bandalarga": e.value}), calc_e34()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.number(
+                                    label="Nº Total de Computadores/Tablets em Uso pelos Alunos:",
+                                    value=state_e34["total_pcs"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e34.update({"total_pcs": e.value}), calc_e34()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.number(
+                                    label="Total de Alunos dos Anos Iniciais (para cálculo de Densidade):",
+                                    value=state_e34["total_alunos"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_e34.update({"total_alunos": e.value}), calc_e34()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                            calc_e34()
+
+                            ui.textarea(
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                value=state_e34["link"],
+                                placeholder="Link do relatório de infraestrutura tecnológica...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e34, "link")
+
+                            def salvar_e34():
+                                calc_e34()
+                                tot_v = int(state_e34["total_escolas"]) if state_e34["total_escolas"] is not None else 0
+                                lab_v = int(state_e34["com_lab"]) if state_e34["com_lab"] is not None else 0
+                                net_v = int(state_e34["com_internet"]) if state_e34["com_internet"] is not None else 0
+                                banda_v = int(state_e34["com_bandalarga"]) if state_e34["com_bandalarga"] is not None else 0
+                                pcs_v = int(state_e34["total_pcs"]) if state_e34["total_pcs"] is not None else 0
+                                alu_v = int(state_e34["total_alunos"]) if state_e34["total_alunos"] is not None else 0
+
+                                val_dict = {
+                                    "total_escolas": tot_v,
+                                    "com_lab": lab_v,
+                                    "com_internet": net_v,
+                                    "com_bandalarga": banda_v,
+                                    "total_pcs": pcs_v,
+                                    "total_alunos": alu_v,
+                                }
+                                str_resposta = json.dumps(val_dict)
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E3.4",
+                                        valor=str_resposta,
+                                        pontos=state_e34["pontos"],
+                                        link=state_e34["link"],
+                                        comentarios=d_e34.get("comentarios", []),
+                                        status=d_e34.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": str_resposta,
+                                        "valor": str_resposta,
+                                        "total_escolas": tot_v,
+                                        "com_lab": lab_v,
+                                        "com_internet": net_v,
+                                        "com_bandalarga": banda_v,
+                                        "total_pcs": pcs_v,
+                                        "total_alunos": alu_v,
+                                        "pontos": state_e34["pontos"],
+                                        "link": state_e34["link"],
+                                        "comentarios": d_e34.get("comentarios", []),
+                                        "status": d_e34.get("status", "Pendente"),
+                                    }
+                                    res_data["E3.4"] = novos_dados
+                                    res_data["E34"] = novos_dados
+
+                                    ui.notify("Quesito E3.4 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E3.4: {err}", type="negative")
+
+                            ui.button("💾 SALVAR QUESITO E3.4", on_click=salvar_e34).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("E3.4", res_data, getattr(render_conteudo, "refresh", None))
                             
                         # -----------------------------------------------------------------------------
                         # QUESITO E3.5 - Professores dos Anos Iniciais (Efetivos vs Temporários)
