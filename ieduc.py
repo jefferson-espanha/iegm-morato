@@ -17156,33 +17156,59 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E1.10.1", res_data, render_conteudo.refresh)
 
 
-                        # -----------------------------------------------------------------------------
+                       # -----------------------------------------------------------------------------
                         # QUESITO E2.1 - Estabelecimentos de Pré-escola com Pátio Infantil
                         # -----------------------------------------------------------------------------
+                        d_e21 = res_data.get("E2.1") or res_data.get("E21") or {}
+
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.1 • Estabelecimentos de Pré-escola com Pátio Infantil").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Informe quantos estabelecimentos que oferecem Pré-escola possuem Pátio Infantil (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
 
-                            d_e21 = res_data.get("E2.1") or res_data.get("E21") or {}
-                            val_e21_com = d_e21.get("com_patio") or 0
-                            val_e21_tot = d_e21.get("total") or 0
-                            link_e21 = str(d_e21.get("link") or "")
+                            val_e21_raw = d_e21.get("resposta") if d_e21.get("resposta") is not None else d_e21.get("valor")
+                            e21_com_init, e21_tot_init = 0, 0
+
+                            if isinstance(val_e21_raw, dict):
+                                e21_com_init = int(val_e21_raw.get("com_patio", 0) or 0)
+                                e21_tot_init = int(val_e21_raw.get("total", 0) or 0)
+                            elif isinstance(val_e21_raw, str):
+                                try:
+                                    parsed = json.loads(val_e21_raw)
+                                    if isinstance(parsed, dict):
+                                        e21_com_init = int(parsed.get("com_patio", 0) or 0)
+                                        e21_tot_init = int(parsed.get("total", 0) or 0)
+                                except Exception:
+                                    if "/" in val_e21_raw:
+                                        partes = val_e21_raw.split("/")
+                                        e21_com_init = int(partes[0].strip()) if partes[0].strip().isdigit() else 0
+                                        e21_tot_init = int(partes[1].strip()) if partes[1].strip().isdigit() else 0
 
                             state_e21 = {
-                                "com_patio": int(val_e21_com) if str(val_e21_com).isdigit() else 0,
-                                "total": int(val_e21_tot) if str(val_e21_tot).isdigit() else 0,
-                                "link": link_e21,
-                                "pontos": 0.0,
+                                "com_patio": e21_com_init,
+                                "total": e21_tot_init,
+                                "link": str(d_e21.get("link") or ""),
+                                "pontos": float(d_e21.get("pontos", 0.0)),
                             }
 
+                            lbl_pontos_e21 = ui.label("📊 Pontuação Quesito E2.1: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+
                             def calc_e21():
-                                tot = state_e21["total"]
-                                com = state_e21["com_patio"]
-                                if tot > 0:
+                                try:
+                                    com = int(state_e21["com_patio"]) if state_e21["com_patio"] is not None else 0
+                                except (ValueError, TypeError):
+                                    com = 0
+
+                                try:
+                                    tot = int(state_e21["total"]) if state_e21["total"] is not None else 0
+                                except (ValueError, TypeError):
+                                    tot = 0
+
+                                if tot > 0 and com >= 0:
                                     p = min(com / tot, 1.0)
                                     state_e21["pontos"] = round(p * 2.0, 2)
                                 else:
                                     state_e21["pontos"] = 0.0
+
                                 lbl_pontos_e21.set_text(f"📊 Pontuação Quesito E2.1: {state_e21['pontos']:.2f} ponto(s)".replace(".", ","))
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
@@ -17191,7 +17217,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e21["com_patio"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e21.update({"com_patio": int(e.value or 0)}), calc_e21()],
+                                    on_change=lambda e: [state_e21.update({"com_patio": e.value}), calc_e21()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -17199,8 +17225,10 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e21["total"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e21.update({"total": int(e.value or 0)}), calc_e21()],
+                                    on_change=lambda e: [state_e21.update({"total": e.value}), calc_e21()],
                                 ).classes("w-full").props("outlined color=blue")
+
+                            calc_e21()
 
                             ui.textarea(
                                 label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
@@ -17208,55 +17236,102 @@ def container_formulario_ieduc(ano=None):
                                 placeholder="Link do relatório ou extrato do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e21, "link")
 
-                            lbl_pontos_e21 = ui.label("📊 Pontuação Quesito E2.1: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-                            calc_e21()
-
                             def salvar_e21():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E2.1",
-                                    valor=f"{state_e21['com_patio']}/{state_e21['total']}",
-                                    pontos=state_e21["pontos"],
-                                    link=state_e21["link"],
-                                    comentarios=d_e21.get("comentarios", []),
-                                    status=d_e21.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E2.1 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                calc_e21()
+                                c_val = int(state_e21["com_patio"]) if state_e21["com_patio"] is not None else 0
+                                t_val = int(state_e21["total"]) if state_e21["total"] is not None else 0
+
+                                val_dict = {"com_patio": c_val, "total": t_val}
+                                str_resposta = json.dumps(val_dict)
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E2.1",
+                                        valor=str_resposta,
+                                        pontos=state_e21["pontos"],
+                                        link=state_e21["link"],
+                                        comentarios=d_e21.get("comentarios", []),
+                                        status=d_e21.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": str_resposta,
+                                        "valor": str_resposta,
+                                        "com_patio": c_val,
+                                        "total": t_val,
+                                        "pontos": state_e21["pontos"],
+                                        "link": state_e21["link"],
+                                        "comentarios": d_e21.get("comentarios", []),
+                                        "status": d_e21.get("status", "Pendente"),
+                                    }
+                                    res_data["E2.1"] = novos_dados
+                                    res_data["E21"] = novos_dados
+
+                                    ui.notify("Quesito E2.1 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E2.1: {err}", type="negative")
 
                             ui.button("💾 SALVAR QUESITO E2.1", on_click=salvar_e21).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
-                            bloco_comentarios("E2.1", res_data, render_conteudo.refresh)
+                            bloco_comentarios("E2.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
                         # -----------------------------------------------------------------------------
                         # QUESITO E2.2 - Brinquedos e Materiais Pedagógicos na Pré-escola
                         # -----------------------------------------------------------------------------
+                        d_e22 = res_data.get("E2.2") or res_data.get("E22") or {}
+
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.2 • Disponibilidade de Brinquedos/Materiais Pedagógicos (Pré-escola)").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Informe quantos estabelecimentos que oferecem Pré-escola disponibilizam brinquedos/materiais pedagógicos (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
 
-                            d_e22 = res_data.get("E2.2") or res_data.get("E22") or {}
-                            val_e22_com = d_e22.get("com_brinquedos") or 0
-                            val_e22_tot = d_e22.get("total") or 0
-                            link_e22 = str(d_e22.get("link") or "")
+                            val_e22_raw = d_e22.get("resposta") if d_e22.get("resposta") is not None else d_e22.get("valor")
+                            e22_com_init, e22_tot_init = 0, 0
+
+                            if isinstance(val_e22_raw, dict):
+                                e22_com_init = int(val_e22_raw.get("com_brinquedos", 0) or 0)
+                                e22_tot_init = int(val_e22_raw.get("total", 0) or 0)
+                            elif isinstance(val_e22_raw, str):
+                                try:
+                                    parsed = json.loads(val_e22_raw)
+                                    if isinstance(parsed, dict):
+                                        e22_com_init = int(parsed.get("com_brinquedos", 0) or 0)
+                                        e22_tot_init = int(parsed.get("total", 0) or 0)
+                                except Exception:
+                                    if "/" in val_e22_raw:
+                                        partes = val_e22_raw.split("/")
+                                        e22_com_init = int(partes[0].strip()) if partes[0].strip().isdigit() else 0
+                                        e22_tot_init = int(partes[1].strip()) if partes[1].strip().isdigit() else 0
 
                             state_e22 = {
-                                "com_brinquedos": int(val_e22_com) if str(val_e22_com).isdigit() else 0,
-                                "total": int(val_e22_tot) if str(val_e22_tot).isdigit() else 0,
-                                "link": link_e22,
-                                "pontos": 0.0,
+                                "com_brinquedos": e22_com_init,
+                                "total": e22_tot_init,
+                                "link": str(d_e22.get("link") or ""),
+                                "pontos": float(d_e22.get("pontos", 0.0)),
                             }
 
+                            lbl_pontos_e22 = ui.label("📊 Pontuação Quesito E2.2: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+
                             def calc_e22():
-                                te = state_e22["total"]
-                                bp = state_e22["com_brinquedos"]
-                                if te > 0:
+                                try:
+                                    bp = int(state_e22["com_brinquedos"]) if state_e22["com_brinquedos"] is not None else 0
+                                except (ValueError, TypeError):
+                                    bp = 0
+
+                                try:
+                                    te = int(state_e22["total"]) if state_e22["total"] is not None else 0
+                                except (ValueError, TypeError):
+                                    te = 0
+
+                                if te > 0 and bp >= 0:
                                     p = min(bp / te, 1.0)
                                     state_e22["pontos"] = round(p * 4.0, 2)
                                 else:
                                     state_e22["pontos"] = 0.0
+
                                 lbl_pontos_e22.set_text(f"📊 Pontuação Quesito E2.2: {state_e22['pontos']:.2f} ponto(s)".replace(".", ","))
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
@@ -17265,7 +17340,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e22["com_brinquedos"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e22.update({"com_brinquedos": int(e.value or 0)}), calc_e22()],
+                                    on_change=lambda e: [state_e22.update({"com_brinquedos": e.value}), calc_e22()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -17273,8 +17348,10 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e22["total"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e22.update({"total": int(e.value or 0)}), calc_e22()],
+                                    on_change=lambda e: [state_e22.update({"total": e.value}), calc_e22()],
                                 ).classes("w-full").props("outlined color=blue")
+
+                            calc_e22()
 
                             ui.textarea(
                                 label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
@@ -17282,42 +17359,67 @@ def container_formulario_ieduc(ano=None):
                                 placeholder="Link do relatório ou extrato do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e22, "link")
 
-                            lbl_pontos_e22 = ui.label("📊 Pontuação Quesito E2.2: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-                            calc_e22()
-
                             def salvar_e22():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E2.2",
-                                    valor=f"{state_e22['com_brinquedos']}/{state_e22['total']}",
-                                    pontos=state_e22["pontos"],
-                                    link=state_e22["link"],
-                                    comentarios=d_e22.get("comentarios", []),
-                                    status=d_e22.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E2.2 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                calc_e22()
+                                c_val = int(state_e22["com_brinquedos"]) if state_e22["com_brinquedos"] is not None else 0
+                                t_val = int(state_e22["total"]) if state_e22["total"] is not None else 0
+
+                                val_dict = {"com_brinquedos": c_val, "total": t_val}
+                                str_resposta = json.dumps(val_dict)
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E2.2",
+                                        valor=str_resposta,
+                                        pontos=state_e22["pontos"],
+                                        link=state_e22["link"],
+                                        comentarios=d_e22.get("comentarios", []),
+                                        status=d_e22.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": str_resposta,
+                                        "valor": str_resposta,
+                                        "com_brinquedos": c_val,
+                                        "total": t_val,
+                                        "pontos": state_e22["pontos"],
+                                        "link": state_e22["link"],
+                                        "comentarios": d_e22.get("comentarios", []),
+                                        "status": d_e22.get("status", "Pendente"),
+                                    }
+                                    res_data["E2.2"] = novos_dados
+                                    res_data["E22"] = novos_dados
+
+                                    ui.notify("Quesito E2.2 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E2.2: {err}", type="negative")
 
                             ui.button("💾 SALVAR QUESITO E2.2", on_click=salvar_e22).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
-                            bloco_comentarios("E2.2", res_data, render_conteudo.refresh)
+                            bloco_comentarios("E2.2", res_data, getattr(render_conteudo, "refresh", None))
 
 
                         # -----------------------------------------------------------------------------
                         # QUESITO E2.3 - Crianças Matriculadas na Pré-escola
                         # -----------------------------------------------------------------------------
+                        d_e23 = res_data.get("E2.3") or res_data.get("E23") or {}
+
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.3 • Número de Crianças Matriculadas na Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Informe o número de crianças matriculadas na pré-escola (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
 
-                            d_e23 = res_data.get("E2.3") or res_data.get("E23") or {}
-                            val_e23 = str(d_e23.get("valor") or "0")
-                            link_e23 = str(d_e23.get("link") or "")
+                            raw_val_e23 = d_e23.get("valor") if d_e23.get("valor") is not None else d_e23.get("resposta")
+                            try:
+                                val_e23_num = int(float(raw_val_e23)) if raw_val_e23 is not None and str(raw_val_e23).strip() != "" else 0
+                            except (ValueError, TypeError):
+                                val_e23_num = 0
 
                             state_e23 = {
-                                "matriculas": int(val_e23) if val_e23.isdigit() else 0,
-                                "link": link_e23,
+                                "matriculas": val_e23_num,
+                                "link": str(d_e23.get("link") or ""),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
@@ -17337,38 +17439,56 @@ def container_formulario_ieduc(ano=None):
                             ui.label("📊 Pontuação Quesito E2.3: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
 
                             def salvar_e23():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E2.3",
-                                    valor=str(state_e23["matriculas"]),
-                                    pontos=0.0,
-                                    link=state_e23["link"],
-                                    comentarios=d_e23.get("comentarios", []),
-                                    status=d_e23.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E2.3 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                try:
+                                    val_final = int(state_e23["matriculas"]) if state_e23["matriculas"] is not None else 0
+                                except (ValueError, TypeError):
+                                    val_final = 0
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E2.3",
+                                        valor=val_final,
+                                        pontos=0.0,
+                                        link=state_e23["link"],
+                                        comentarios=d_e23.get("comentarios", []),
+                                        status=d_e23.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": val_final,
+                                        "valor": val_final,
+                                        "pontos": 0.0,
+                                        "link": state_e23["link"],
+                                        "comentarios": d_e23.get("comentarios", []),
+                                        "status": d_e23.get("status", "Pendente"),
+                                    }
+                                    res_data["E2.3"] = novos_dados
+                                    res_data["E23"] = novos_dados
+
+                                    ui.notify("Quesito E2.3 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E2.3: {err}", type="negative")
 
                             ui.button("💾 SALVAR QUESITO E2.3", on_click=salvar_e23).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
-                            bloco_comentarios("E2.3", res_data, render_conteudo.refresh)
+                            bloco_comentarios("E2.3", res_data, getattr(render_conteudo, "refresh", None))
 
 
                         # -----------------------------------------------------------------------------
                         # QUESITO E2.4 - Data de Início do Ano Letivo para a Pré-escola
                         # -----------------------------------------------------------------------------
+                        d_e24 = res_data.get("E2.4") or res_data.get("E24") or {}
+
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.4 • Data de Início do Ano Letivo para a Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Informe a data de início do ano letivo para a pré-escola (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
 
-                            d_e24 = res_data.get("E2.4") or res_data.get("E24") or {}
-                            val_e24 = str(d_e24.get("valor") or "")
-                            link_e24 = str(d_e24.get("link") or "")
-
                             state_e24 = {
-                                "data_inicio": val_e24,
-                                "link": link_e24,
+                                "data_inicio": str(d_e24.get("valor") or d_e24.get("resposta") or ""),
+                                "link": str(d_e24.get("link") or ""),
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
@@ -17387,50 +17507,92 @@ def container_formulario_ieduc(ano=None):
                             ui.label("📊 Pontuação Quesito E2.4: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
 
                             def salvar_e24():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E2.4",
-                                    valor=state_e24["data_inicio"],
-                                    pontos=0.0,
-                                    link=state_e24["link"],
-                                    comentarios=d_e24.get("comentarios", []),
-                                    status=d_e24.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E2.4 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E2.4",
+                                        valor=state_e24["data_inicio"],
+                                        pontos=0.0,
+                                        link=state_e24["link"],
+                                        comentarios=d_e24.get("comentarios", []),
+                                        status=d_e24.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": state_e24["data_inicio"],
+                                        "valor": state_e24["data_inicio"],
+                                        "pontos": 0.0,
+                                        "link": state_e24["link"],
+                                        "comentarios": d_e24.get("comentarios", []),
+                                        "status": d_e24.get("status", "Pendente"),
+                                    }
+                                    res_data["E2.4"] = novos_dados
+                                    res_data["E24"] = novos_dados
+
+                                    ui.notify("Quesito E2.4 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E2.4: {err}", type="negative")
 
                             ui.button("💾 SALVAR QUESITO E2.4", on_click=salvar_e24).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
-                            bloco_comentarios("E2.4", res_data, render_conteudo.refresh)
+                            bloco_comentarios("E2.4", res_data, getattr(render_conteudo, "refresh", None))
+
 
                         # -----------------------------------------------------------------------------
                         # QUESITO E2.5 - PPP Atualizado nos Estabelecimentos de Pré-escola
                         # -----------------------------------------------------------------------------
+                        d_e25 = res_data.get("E2.5") or res_data.get("E25") or {}
+
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.5 • PPP Atualizado nos Estabelecimentos de Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Informe a quantidade de estabelecimentos que oferecem Pré-escola na rede municipal de ensino (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
 
-                            d_e25 = res_data.get("E2.5") or res_data.get("E25") or {}
-                            val_e25_ppp = d_e25.get("com_ppp") or 0
-                            val_e25_tot = d_e25.get("total") or 0
-                            link_e25 = str(d_e25.get("link") or "")
+                            val_e25_raw = d_e25.get("resposta") if d_e25.get("resposta") is not None else d_e25.get("valor")
+                            e25_com_init, e25_tot_init = 0, 0
+
+                            if isinstance(val_e25_raw, dict):
+                                e25_com_init = int(val_e25_raw.get("com_ppp", 0) or 0)
+                                e25_tot_init = int(val_e25_raw.get("total", 0) or 0)
+                            elif isinstance(val_e25_raw, str):
+                                try:
+                                    parsed = json.loads(val_e25_raw)
+                                    if isinstance(parsed, dict):
+                                        e25_com_init = int(parsed.get("com_ppp", 0) or 0)
+                                        e25_tot_init = int(parsed.get("total", 0) or 0)
+                                except Exception:
+                                    if "/" in val_e25_raw:
+                                        partes = val_e25_raw.split("/")
+                                        e25_com_init = int(partes[0].strip()) if partes[0].strip().isdigit() else 0
+                                        e25_tot_init = int(partes[1].strip()) if partes[1].strip().isdigit() else 0
 
                             state_e25 = {
-                                "com_ppp": int(val_e25_ppp) if str(val_e25_ppp).isdigit() else 0,
-                                "total": int(val_e25_tot) if str(val_e25_tot).isdigit() else 0,
-                                "link": link_e25,
-                                "pontos": 0.0,
+                                "com_ppp": e25_com_init,
+                                "total": e25_tot_init,
+                                "link": str(d_e25.get("link") or ""),
+                                "pontos": float(d_e25.get("pontos", 0.0)),
                             }
 
+                            lbl_pontos_e25 = ui.label("📊 Pontuação Quesito E2.5: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+
                             def calc_e25():
-                                tot = state_e25["total"]
-                                com = state_e25["com_ppp"]
-                                if tot > 0:
+                                try:
+                                    com = int(state_e25["com_ppp"]) if state_e25["com_ppp"] is not None else 0
+                                except (ValueError, TypeError):
+                                    com = 0
+
+                                try:
+                                    tot = int(state_e25["total"]) if state_e25["total"] is not None else 0
+                                except (ValueError, TypeError):
+                                    tot = 0
+
+                                if tot > 0 and com >= 0:
                                     p = min(com / tot, 1.0)
                                     state_e25["pontos"] = round(p * 6.0, 2)
                                 else:
                                     state_e25["pontos"] = 0.0
+
                                 lbl_pontos_e25.set_text(f"📊 Pontuação Quesito E2.5: {state_e25['pontos']:.2f} ponto(s)".replace(".", ","))
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
@@ -17439,7 +17601,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e25["com_ppp"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e25.update({"com_ppp": int(e.value or 0)}), calc_e25()],
+                                    on_change=lambda e: [state_e25.update({"com_ppp": e.value}), calc_e25()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -17447,8 +17609,10 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e25["total"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda e: [state_e25.update({"total": int(e.value or 0)}), calc_e25()],
+                                    on_change=lambda e: [state_e25.update({"total": e.value}), calc_e25()],
                                 ).classes("w-full").props("outlined color=blue")
+
+                            calc_e25()
 
                             ui.textarea(
                                 label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
@@ -17456,51 +17620,98 @@ def container_formulario_ieduc(ano=None):
                                 placeholder="Link do relatório ou extrato do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e25, "link")
 
-                            lbl_pontos_e25 = ui.label("📊 Pontuação Quesito E2.5: 0,00 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-                            calc_e25()
-
                             def salvar_e25():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E2.5",
-                                    valor=f"{state_e25['com_ppp']}/{state_e25['total']}",
-                                    pontos=state_e25["pontos"],
-                                    link=state_e25["link"],
-                                    comentarios=d_e25.get("comentarios", []),
-                                    status=d_e25.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E2.5 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                calc_e25()
+                                c_val = int(state_e25["com_ppp"]) if state_e25["com_ppp"] is not None else 0
+                                t_val = int(state_e25["total"]) if state_e25["total"] is not None else 0
+
+                                val_dict = {"com_ppp": c_val, "total": t_val}
+                                str_resposta = json.dumps(val_dict)
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E2.5",
+                                        valor=str_resposta,
+                                        pontos=state_e25["pontos"],
+                                        link=state_e25["link"],
+                                        comentarios=d_e25.get("comentarios", []),
+                                        status=d_e25.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": str_resposta,
+                                        "valor": str_resposta,
+                                        "com_ppp": c_val,
+                                        "total": t_val,
+                                        "pontos": state_e25["pontos"],
+                                        "link": state_e25["link"],
+                                        "comentarios": d_e25.get("comentarios", []),
+                                        "status": d_e25.get("status", "Pendente"),
+                                    }
+                                    res_data["E2.5"] = novos_dados
+                                    res_data["E25"] = novos_dados
+
+                                    ui.notify("Quesito E2.5 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E2.5: {err}", type="negative")
 
                             ui.button("💾 SALVAR QUESITO E2.5", on_click=salvar_e25).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
-                            bloco_comentarios("E2.5", res_data, render_conteudo.refresh)
+                            bloco_comentarios("E2.5", res_data, getattr(render_conteudo, "refresh", None))
 
 
                         # -----------------------------------------------------------------------------
                         # QUESITO E2.6 - Professores de Pré-escola (Efetivos vs Temporários)
                         # -----------------------------------------------------------------------------
+                        d_e26 = res_data.get("E2.6") or res_data.get("E26") or {}
+
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.6 • Proporção de Professores Temporários na Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Informe a quantidade de professores de Pré-escola (Efetivos e Temporários - Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
 
-                            d_e26 = res_data.get("E2.6") or res_data.get("E26") or {}
-                            val_e26_e = d_e26.get("efetivos") or 0
-                            val_e26_t = d_e26.get("temporarios") or 0
-                            link_e26 = str(d_e26.get("link") or "")
+                            val_e26_raw = d_e26.get("resposta") if d_e26.get("resposta") is not None else d_e26.get("valor")
+                            e26_efet_init, e26_temp_init = 0, 0
+
+                            if isinstance(val_e26_raw, dict):
+                                e26_efet_init = int(val_e26_raw.get("efetivos", 0) or 0)
+                                e26_temp_init = int(val_e26_raw.get("temporarios", 0) or 0)
+                            elif isinstance(val_e26_raw, str):
+                                try:
+                                    parsed = json.loads(val_e26_raw)
+                                    if isinstance(parsed, dict):
+                                        e26_efet_init = int(parsed.get("efetivos", 0) or 0)
+                                        e26_temp_init = int(parsed.get("temporarios", 0) or 0)
+                                except Exception:
+                                    if "Efetivos:" in val_e26_raw:
+                                        m_e = re.search(r"Efetivos:\s*(\d+)", val_e26_raw)
+                                        m_t = re.search(r"Temporários:\s*(\d+)", val_e26_raw)
+                                        if m_e: e26_efet_init = int(m_e.group(1))
+                                        if m_t: e26_temp_init = int(m_t.group(1))
 
                             state_e26 = {
-                                "efetivos": int(val_e26_e) if str(val_e26_e).isdigit() else 0,
-                                "temporarios": int(val_e26_t) if str(val_e26_t).isdigit() else 0,
-                                "link": link_e26,
-                                "pontos": 0.0,
+                                "efetivos": e26_efet_init,
+                                "temporarios": e26_temp_init,
+                                "link": str(d_e26.get("link") or ""),
+                                "pontos": float(d_e26.get("pontos", 0.0)),
                                 "porcentagem": 0.0,
                             }
 
+                            lbl_pontos_e26 = ui.label("📊 Porcentagem de Temporários: 0,0% | Pontuação Quesito E2.6: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+
                             def calc_e26():
-                                e = state_e26["efetivos"]
-                                t = state_e26["temporarios"]
+                                try:
+                                    e = int(state_e26["efetivos"]) if state_e26["efetivos"] is not None else 0
+                                except (ValueError, TypeError):
+                                    e = 0
+
+                                try:
+                                    t = int(state_e26["temporarios"]) if state_e26["temporarios"] is not None else 0
+                                except (ValueError, TypeError):
+                                    t = 0
+
                                 total = e + t
                                 if total > 0:
                                     p = (t / total) * 100.0
@@ -17523,7 +17734,7 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e26["efetivos"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda ev: [state_e26.update({"efetivos": int(ev.value or 0)}), calc_e26()],
+                                    on_change=lambda ev: [state_e26.update({"efetivos": ev.value}), calc_e26()],
                                 ).classes("w-full").props("outlined color=blue")
 
                                 ui.number(
@@ -17531,8 +17742,10 @@ def container_formulario_ieduc(ano=None):
                                     value=state_e26["temporarios"],
                                     min=0,
                                     step=1,
-                                    on_change=lambda ev: [state_e26.update({"temporarios": int(ev.value or 0)}), calc_e26()],
+                                    on_change=lambda ev: [state_e26.update({"temporarios": ev.value}), calc_e26()],
                                 ).classes("w-full").props("outlined color=blue")
+
+                            calc_e26()
 
                             ui.textarea(
                                 label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
@@ -17540,26 +17753,47 @@ def container_formulario_ieduc(ano=None):
                                 placeholder="Link do extrato de docentes do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e26, "link")
 
-                            lbl_pontos_e26 = ui.label("📊 Porcentagem de Temporários: 0,0% | Pontuação Quesito E2.6: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-                            calc_e26()
-
                             def salvar_e26():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="E2.6",
-                                    valor=f"Efetivos: {state_e26['efetivos']}, Temporários: {state_e26['temporarios']}",
-                                    pontos=state_e26["pontos"],
-                                    link=state_e26["link"],
-                                    comentarios=d_e26.get("comentarios", []),
-                                    status=d_e26.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito E2.6 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
+                                calc_e26()
+                                e_val = int(state_e26["efetivos"]) if state_e26["efetivos"] is not None else 0
+                                t_val = int(state_e26["temporarios"]) if state_e26["temporarios"] is not None else 0
+
+                                val_dict = {"efetivos": e_val, "temporarios": t_val}
+                                str_resposta = json.dumps(val_dict)
+
+                                try:
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="E2.6",
+                                        valor=str_resposta,
+                                        pontos=state_e26["pontos"],
+                                        link=state_e26["link"],
+                                        comentarios=d_e26.get("comentarios", []),
+                                        status=d_e26.get("status", "Pendente"),
+                                    )
+
+                                    novos_dados = {
+                                        "resposta": str_resposta,
+                                        "valor": str_resposta,
+                                        "efetivos": e_val,
+                                        "temporarios": t_val,
+                                        "pontos": state_e26["pontos"],
+                                        "link": state_e26["link"],
+                                        "comentarios": d_e26.get("comentarios", []),
+                                        "status": d_e26.get("status", "Pendente"),
+                                    }
+                                    res_data["E2.6"] = novos_dados
+                                    res_data["E26"] = novos_dados
+
+                                    ui.notify("Quesito E2.6 salvo com sucesso!", type="positive")
+                                    if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
+                                        render_conteudo.refresh()
+                                except Exception as err:
+                                    ui.notify(f"Erro ao salvar Quesito E2.6: {err}", type="negative")
 
                             ui.button("💾 SALVAR QUESITO E2.6", on_click=salvar_e26).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
-                            bloco_comentarios("E2.6", res_data, render_conteudo.refresh)
+                            bloco_comentarios("E2.6", res_data, getattr(render_conteudo, "refresh", None))
 
 
                         # -----------------------------------------------------------------------------
