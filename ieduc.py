@@ -22503,7 +22503,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # -------------------------------------------------------------------------
     # 📊 8. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 1.6)
     # -------------------------------------------------------------------------
-    import re
+    import re  # Importado localmente para garantir acesso direto no escopo
 
     elements.append(
         Paragraph(
@@ -22553,7 +22553,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             "OUT": ["OUT", "OUTROS", "AFASTAMENTO"],
         }
 
-        # Extração por Regex considerando a sintaxe salva no formulário (ex: INJ:10,JUS:5...)
+        # Extração por Regex considerando a sintaxe salva no formulário
         if texto_completo:
             for chk, alias_list in mapa_chaves.items():
                 for alias in alias_list:
@@ -22607,10 +22607,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         if var_pct == 0:
             aval = "<font color='#6c757d'><b>Estável</b></font>"
         elif var_pct < 0:
-            # Variação negativa em ausências = Redução (Melhora)
             aval = "<font color='#28a745'><b>Redução<br/>(Melhora)</b></font>"
         else:
-            # Variação positiva em ausências = Aumento (Atenção)
             aval = "<font color='#dc3545'><b>Aumento<br/>(Atenção)</b></font>"
 
         if id_a == "TOTAL":
