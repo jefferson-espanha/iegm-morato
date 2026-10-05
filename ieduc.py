@@ -1,6 +1,7 @@
 import asyncio
 import base64
 import logging
+from io import BytesIO
 from datetime import datetime
 import json
 import os
@@ -12,6 +13,20 @@ from psycopg2.pool import ThreadedConnectionPool
 from psycopg2.extras import RealDictCursor
 from fastapi.responses import Response
 from nicegui import app, ui
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    PageBreak,
+    Image,
+)
+from reportlab.graphics.shapes import Drawing, String
+from reportlab.graphics.charts.barcharts import VerticalBarChart
 
 # =============================================================================
 # BANCO DE DADOS (NEON - ESTRUTURA REAL RESPOSTAS_IEDUC)
@@ -21625,48 +21640,3597 @@ def get_all_years_data():
     return dados
 
 
-def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
-    """Gera um PDF simples e válido com o resumo do i-Educ."""
-    from io import BytesIO
-    from reportlab.lib.pagesizes import A4
-    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-    from reportlab.lib.enums import TA_CENTER
-    from reportlab.lib.units import cm
-    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
-    from reportlab.lib import colors
-
+def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     buffer = BytesIO()
+
     doc = SimpleDocTemplate(
-        buffer, pagesize=A4, rightMargin=1.5 * cm, leftMargin=1.5 * cm,
-        topMargin=1.5 * cm, bottomMargin=1.5 * cm,
+        buffer, 
+        pagesize=A4, 
+        rightMargin=30, 
+        leftMargin=30, 
+        topMargin=30, 
+        bottomMargin=50
     )
+    elements = []
     styles = getSampleStyleSheet()
-    styles.add(ParagraphStyle(name="TituloIeduc", parent=styles["Title"], alignment=TA_CENTER, textColor=colors.HexColor("#123b68")))
-    story = [
-        Paragraph("Relatório Analítico — i-Educ", styles["TituloIeduc"]),
-        Paragraph(f"Ano de referência: {int(ano)}", styles["Normal"]),
-        Spacer(1, 12),
+
+    style_titulo_capa = ParagraphStyle(
+        'TituloCapa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=24, leading=28, textColor=colors.HexColor("#1b4f72"), alignment=1
+    )
+
+    # -------------------------------------------------------------------------
+    # FOLHA 1: CAPA
+    # -------------------------------------------------------------------------
+    elements.append(Spacer(1, 100))
+
+    # O logotipo é opcional: não deixar a ausência de iegm.png interromper o PDF.
+    if os.path.exists("iegm.png"):
+        logo = Image("iegm.png", width=380, height=180)
+        logo.hAlign = 'CENTER'
+        elements.append(logo)
+    else:
+        elements.append(Paragraph("Relatório de acompanhamento educacional", styles["Title"]))
+
+    elements.append(Spacer(1, 50))
+    elements.append(Paragraph("Relatório i-Educ", style_titulo_capa))
+    elements.append(Spacer(1, 15))
+
+    style_ano_capa = ParagraphStyle(
+        'AnoCapa', parent=styles['Normal'], fontName='Helvetica', fontSize=16, textColor=colors.HexColor("#7f8c8d"), alignment=1
+    )
+    elements.append(Paragraph(f"Exercício: {ano}", style_ano_capa))
+    
+    # 🔴 QUEBRA DE PÁGINA OBRIGATÓRIA APÓS A CAPA
+    elements.append(PageBreak())
+
+# -------------------------------------------------------------------------
+    # FOLHA 2: SUMÁRIO
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
+    elements.append(Spacer(1, 4))
+
+    style_item_esquerda = ParagraphStyle(
+        'ItemEsq', 
+        parent=styles['Normal'], 
+        fontName='Helvetica-Bold', 
+        fontSize=6.5,
+        leading=7.6,
+        textColor=colors.HexColor("#2c3e50")
+    )
+    style_pag_direita = ParagraphStyle(
+        'PagDir', 
+        parent=styles['Normal'], 
+        fontName='Helvetica-Bold', 
+        fontSize=6.5, 
+        leading=7.6, 
+        textColor=colors.HexColor("#1b4f72"), 
+        alignment=2
+    )
+
+    dados_sumario = [
+        [Paragraph("1. Resumo Executivo (Análise Comparativa de Gestão Educacional)", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
+        [Paragraph("2. Análise de Desempenho e Conformidade por Quesito", style_item_esquerda), Paragraph("Pág. 3", style_pag_direita)],
+        [Paragraph("3. Análise de Impacto e Penalidades (Eficiência Preventiva)", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
+        [Paragraph("4. Alinhamento com a Agenda 2030 (ODS)", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
+        [Paragraph("5. Série Histórica do Desempenho i-EDUC", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
+        [Paragraph("6. Análise de Indicadores Educacionais", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
+        [Paragraph("7. Espaço por Aluno em Turmas de Creche (Quesito 1.3)", style_item_esquerda), Paragraph("Pág. 6", style_pag_direita)],
+        [Paragraph("8. Quantidade Total de Ausências dos Professores - Creche (Quesito 1.6)", style_item_esquerda), Paragraph("Pág. 6", style_pag_direita)],
+        [Paragraph("9. Regularidade e Rotatividade do Corpo Docente - Creche (Quesito 1.8)", style_item_esquerda), Paragraph("Pág. 7", style_pag_direita)],
+        [Paragraph("10. Regularidade de Gestores - Creche (Quesito 1.9)", style_item_esquerda), Paragraph("Pág. 7", style_pag_direita)],
+        [Paragraph("11. Demanda por Vagas em Creche", style_item_esquerda), Paragraph("Pág. 8", style_pag_direita)],
+        [Paragraph("12. Quantidade de Turmas de Creche por Faixa (Quesito 1.15)", style_item_esquerda), Paragraph("Pág. 8", style_pag_direita)],
+        [Paragraph("13. Manutenção de Brinquedos no Pátio da Pré-Escola (Quesito 2.1.2)", style_item_esquerda), Paragraph("Pág. 9", style_pag_direita)],
+        [Paragraph("14. Espaço por Aluno em Sala de Aula - Pré-Escola (Quesito 2.3)", style_item_esquerda), Paragraph("Pág. 9", style_pag_direita)],
+        [Paragraph("15. Quantidade Total de Ausências dos Professores - Pré-Escola (Quesito 2.6)", style_item_esquerda), Paragraph("Pág. 10", style_pag_direita)],
+        [Paragraph("16. Regularidade e Rotatividade do Corpo Docente - Pré-Escola (Quesito 2.8)", style_item_esquerda), Paragraph("Pág. 10", style_pag_direita)],
+        [Paragraph("17. Regularidade e Permanência de Gestores - Ensino Fundamental (Quesito 2.9)", style_item_esquerda), Paragraph("Pág. 11", style_pag_direita)],
+        [Paragraph("18. Quantidade de Turmas de Pré-Escola por Faixa (Quesito 2.15)", style_item_esquerda), Paragraph("Pág. 11", style_pag_direita)],
+        [Paragraph("19. Espaço por Aluno em Sala de Aula - Anos Iniciais (Quesito 3.1)", style_item_esquerda), Paragraph("Pág. 12", style_pag_direita)],
+        [Paragraph("20. Quantidade Total de Ausências dos Professores - Anos Iniciais (Quesito 3.4)", style_item_esquerda), Paragraph("Pág. 12", style_pag_direita)],
+        [Paragraph("21. Regularidade e Rotatividade do Corpo Docente - Anos Iniciais (Quesito 3.6)", style_item_esquerda), Paragraph("Pág. 13", style_pag_direita)],
+        [Paragraph("22. Regularidade e Permanência de Gestores - Anos Iniciais (Quesito 3.7)", style_item_esquerda), Paragraph("Pág. 13", style_pag_direita)],
+        [Paragraph("23. Quantidade de Turmas dos Anos Iniciais por Faixa (Quesito 3.19)", style_item_esquerda), Paragraph("Pág. 14", style_pag_direita)],
+        [Paragraph("24. Infraestrutura e Segurança Escolar (Quesito 5.0)", style_item_esquerda), Paragraph("Pág. 14", style_pag_direita)],
+        [Paragraph("25. Limites Constitucionais e Legais (Indicadores E9, E10 e E11)", style_item_esquerda), Paragraph("Pág. 15", style_pag_direita)],
+        [Paragraph("26. Quesitos sem Pontuação Direta (Conformidade Operacional)", style_item_esquerda), Paragraph("Pág. 15", style_pag_direita)],
     ]
-    resumo = [
-        ["Indicador", "Resultado"],
-        ["Pontuação total", f"{float(total):.2f} pontos"],
-        ["Faixa", str(faixa)],
-        ["Quesitos registrados", str(sum(1 for value in (dados or {}).values() if isinstance(value, dict)))],
-    ]
-    tabela = Table(resumo, colWidths=[8 * cm, 8 * cm])
-    tabela.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#dbeafe")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#123b68")),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#9ca3af")),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("PADDING", (0, 0), (-1, -1), 8),
+
+    tabela_sumario = Table(dados_sumario, colWidths=[380, 90])
+    tabela_sumario.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 0.2),
+        ('TOPPADDING', (0, 0), (-1, -1), 0.2),
+        ('LINEBELOW', (0, 0), (-1, -1), 0.5, colors.HexColor("#e0e0e0")),
     ]))
-    story.extend([tabela, Spacer(1, 18), Paragraph("Este documento foi gerado pelo sistema de acompanhamento i-Educ.", styles["Normal"])])
-    doc.build(story)
+
+    elements.append(tabela_sumario)
+    elements.append(PageBreak())
+    # -------------------------------------------------------------------------
+    # FOLHA 3+: CONTEÚDO
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph(f"RELATÓRIO DE VALIDAÇÃO E AUDITORIA i-EDUC - {ano}", styles["Title"]))
+    elements.append(Spacer(1, 12))
+
+    elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+
+    nota_atual = float(total)
+    ano_atual = int(str(ano).strip()[:4])
+    ano_ant = ano_atual - 1
+
+    def converter_pontos_em_faixa_iegm(pontos):
+        pts = float(pontos)
+        if pts <= 500:       return "C"
+        elif pts <= 599:     return "C+"
+        elif pts <= 749:     return "B"
+        elif pts <= 899:     return "B+"
+        else:                return "A"
+
+    if all_data is None:
+        all_data = {}
+
+    dados_ano_ant = all_data.get(ano_ant, {})
+    dados_ano_atual = all_data.get(ano_atual, {})
+    nota_anterior = 0.0
+
+    if dados_ano_ant and isinstance(dados_ano_ant, dict):
+        if "total" in dados_ano_ant:
+            nota_anterior = float(dados_ano_ant["total"])
+        else:
+            for qid_ant, info_ant in dados_ano_ant.items():
+                if qid_ant.startswith("COM_"): 
+                    continue
+                try:
+                    if isinstance(info_ant, dict):
+                        nota_anterior += float(info_ant.get("pontos", 0))
+                    else:
+                        nota_anterior += float(info_ant)
+                except (ValueError, TypeError):
+                    continue
+    elif isinstance(dados_ano_ant, (int, float)):
+        nota_anterior = float(dados_ano_ant)
+
+    faixa_anterior = converter_pontos_em_faixa_iegm(nota_anterior)
+    faixa_real_atual = faixa if faixa else converter_pontos_em_faixa_iegm(nota_atual)
+
+    variacao_pontos = nota_atual - nota_anterior
+    if nota_anterior > 0:
+        variacao_percentual = (variacao_pontos / nota_anterior) * 100
+        texto_percentual = f"{variacao_percentual:+.2f}%"
+    elif nota_anterior == 0 and nota_atual > 0:
+        variacao_percentual = (nota_atual / 1000) * 100
+        texto_percentual = f"{variacao_percentual:+.2f}%"
+    else:
+        texto_percentual = "0.00%"
+
+    if variacao_pontos > 0:
+        cor_variacao = colors.HexColor("#28a745")
+        seta_tendencia = "▲"
+    elif variacao_pontos < 0:
+        cor_variacao = colors.HexColor("#dc3545")
+        seta_tendencia = "▼"
+    else:
+        cor_variacao = colors.HexColor("#6c757d")
+        seta_tendencia = "■"
+
+    style_th = ParagraphStyle('Th', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.whitesmoke, alignment=1)
+    style_td_ano = ParagraphStyle('TdAno', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2c3e50"), alignment=1)
+    style_td_pts = ParagraphStyle('TdPts', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, alignment=1)
+    style_td_faixa = ParagraphStyle('TdFaixa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, textColor=colors.HexColor("#1b4f72"), alignment=1)
+    style_td_var = ParagraphStyle('TdVar', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, textColor=cor_variacao, alignment=1)
+
+    dados_comparativos = [
+        [Paragraph("Exercício", style_th), Paragraph("Pontuação Obtida (i-Educ)", style_th), Paragraph("Faixa / Conceito", style_th), Paragraph("Variação Nominal", style_th), Paragraph("Variação Percentual", style_th)],
+        [Paragraph(str(ano_ant), style_td_ano), Paragraph(f"{nota_anterior:.1f} pts", style_td_pts), Paragraph(str(faixa_anterior), style_td_faixa), Paragraph("-", style_td_var), Paragraph("-", style_td_var)],
+        [Paragraph(str(ano_atual), style_td_ano), Paragraph(f"{nota_atual:.1f} pts", style_td_pts), Paragraph(str(faixa_real_atual), style_td_faixa), Paragraph(f"{seta_tendencia} {variacao_pontos:+.1f} pts", style_td_var), Paragraph(f"{seta_tendencia} {texto_percentual}", style_td_var)]
+    ]
+
+    tabela_comp = Table(dados_comparativos, colWidths=[80, 115, 90, 105, 100])
+    tabela_comp.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")), 
+        ("TOPPADDING", (0, 0), (-1, -1), 8),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
+        ("BACKGROUND", (0, 1), (-1, 1), colors.HexColor("#f8f9fa")),
+        ("BACKGROUND", (0, 2), (-1, 2), colors.whitesmoke),                     
+    ]))
+    elements.append(tabela_comp)
+    elements.append(Spacer(1, 12))
+
+    style_analise = ParagraphStyle('Analise', parent=styles['Normal'], fontSize=10, leading=14)
+    if nota_anterior == 0:
+        texto_analise = f"<b>Análise de Tendência Educacional:</b> Não foram localizados dados consolidados do exercício de {ano_ant} no banco de dados local para gerar a análise comparativa de evolução."
+    elif variacao_pontos > 0:
+        texto_analise = f"<b>Análise de Tendência Educacional:</b> O município registrou evolução de desempenho na infraestrutura e pedagógico com incremento de <b>{texto_percentual}</b> na sua pontuação global frente aos indicadores do i-Educ do exercício de {ano_ant}."
+    elif variacao_pontos < 0:
+        texto_analise = f"<b>Análise de Tendência Educacional:</b> <font color='#dc3545'><b>Alerta de Retrocesso:</b></font> Foi identificada uma redução de <b>{texto_percentual}</b> na eficiência e conformidade dos índices educacionais e administrativos em relação a {ano_ant}."
+    else:
+        texto_analise = f"<b>Análise de Tendência Educacional:</b> O município manteve estabilidade absoluta (0.00%) em suas métricas de validação educacional."
+
+    elements.append(Paragraph(texto_analise, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 2. ANÁLISE DE DESEMPENHO POR QUESITO
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO E CONFORMIDADE POR QUESITO</b>", styles["h2"]))
+    elements.append(Spacer(1, 6))
+
+    lista_pontos_fortes = []
+    lista_pontos_fracos = []
+
+    for qid, info in dados.items():
+        if qid.startswith("COM_") or not isinstance(info, dict): 
+            continue
+        pts_obtidos = float(info.get("pontos", 0))
+        valor_resposta = info.get("valor", "")
+        link_evidencia = info.get("link", "")
+
+        pts_maximo = float(PONTUACOES_MAX.get(qid, 0)) if 'PONTUACOES_MAX' in globals() else 10.0
+
+        if pts_maximo > 0:
+            eficiencia = (pts_obtidos / pts_maximo) * 100
+            item_data = {
+                "qid": qid, 
+                "pts_obtidos": pts_obtidos, 
+                "pts_maximo": pts_maximo, 
+                "eficiencia": eficiencia, 
+                "valor": valor_resposta, 
+                "link": link_evidencia
+            }
+
+            if eficiencia >= 70.0: 
+                lista_pontos_fortes.append(item_data)
+            else:
+                lista_pontos_fracos.append(item_data)
+
+    if lista_pontos_fortes:
+        elements.append(Paragraph("<b>✅ Indicadores em Conformidade Alta ou Máxima (≥ 70%):</b>", styles["h3"]))
+        data_fortes = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Link de Evidência"]]
+        for item in sorted(lista_pontos_fortes, key=lambda x: x["eficiencia"], reverse=True):
+            evidencia = f"<b>{item['valor']}</b><br/>{item['link']}"
+            data_fortes.append([item['qid'], f"{item['pts_obtidos']:.1f} / {item['pts_maximo']:.1f}", f"{item['eficiencia']:.1f}%", Paragraph(evidencia, styles["Normal"])])
+        tabela_fortes = Table(data_fortes, colWidths=[65, 75, 65, 285])
+        tabela_fortes.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#28a745")), 
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
+            ("ALIGN", (0, 0), (2, -1), "CENTER"), 
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#28a745")), 
+            ("FONTSIZE", (0, 0), (-1, -1), 9), 
+            ("VALIGN", (0, 0), (-1, -1), "TOP")
+        ]))
+        elements.append(tabela_fortes)
+        elements.append(Spacer(1, 12))
+
+    if lista_pontos_fracos:
+        elements.append(Paragraph("<b>⚠️ Oportunidades de Melhoria e Inconformidades (< 70%):</b>", styles["h3"]))
+        data_fracos = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Link de Evidência"]]
+        for item in sorted(lista_pontos_fracos, key=lambda x: x["eficiencia"]):
+            evidencia = f"<b>{item['valor']}</b><br/>{item['link']}"
+            data_fracos.append([item['qid'], f"{item['pts_obtidos']:.1f} / {item['pts_maximo']:.1f}", f"{item['eficiencia']:.1f}%", Paragraph(evidencia, styles["Normal"])])
+        tabela_fracos = Table(data_fracos, colWidths=[65, 75, 65, 285])
+        tabela_fracos.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e67e22")), 
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
+            ("ALIGN", (0, 0), (2, -1), "CENTER"), 
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#e67e22")), 
+            ("FONTSIZE", (0, 0), (-1, -1), 9), 
+            ("VALIGN", (0, 0), (-1, -1), "TOP")
+        ]))
+        elements.append(tabela_fracos)
+        elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
+    elements.append(Spacer(1, 6))
+
+    PENALIDADES_MAX = {
+        "1.5": -20.0, "1.14": -50.0, "2.5": -20.0, "2.14": -50.0, 
+        "3.3": -20.0, "3.9": -50.0, "3.17": -20.0, "3.22.2": -10.0, 
+        "3.22.2.1": -10.0, "6.0": -10.0, "13.1.1": -5.0, "13.1.2": -5.0, 
+        "13.1.3": -5.0, "13.1.4": -5.0, "13.1.5": -3.0, "13.1.6": -3.0, 
+        "14.0": -50.0, "15.3": -5.0, "15.3.1": -10.0, "15.3.2": -5.0, 
+        "16.4": -50.0, "17.6": -50.0, "E1.10.1": -10.0, "E2.10.1": -10.0, 
+        "E3.8": -10.0, "E3.12.1": -10.0, "E.8": -10.0
+    }
+
+    lista_penalidades = []
+
+    for qid, pen_max in PENALIDADES_MAX.items():
+        info = dados.get(qid, None)
+        if info is not None:
+            if isinstance(info, dict):
+                nota_real = float(info.get("pontos", 0.0))
+            else:
+                nota_real = float(info)
+        else:
+            nota_real = 0.0
+
+        nota_risco = nota_real if nota_real <= 0.0 else 0.0
+
+        if pen_max != 0:
+            eficiencia_preventiva = (1.0 - (nota_risco / pen_max)) * 100.0
+        else:
+            eficiencia_preventiva = 100.0
+
+        eficiencia_preventiva = max(0.0, min(eficiencia_preventiva, 100.0))
+
+        lista_penalidades.append({
+            "qid": qid, 
+            "nota_real": nota_real, 
+            "pen_max": pen_max, 
+            "eficiencia": eficiencia_preventiva
+        })
+
+    if lista_penalidades:
+        style_tabela_centro = ParagraphStyle('TabCentro', parent=styles['Normal'], fontSize=9, alignment=1)
+        style_tabela_padrao = ParagraphStyle('TabPadrao', parent=styles['Normal'], fontSize=9, alignment=0)
+
+        data_penalidades = [[
+            Paragraph("Quesito", style_th), 
+            Paragraph("Penalidade Aplicada", style_th), 
+            Paragraph("Pior Cenário", style_th), 
+            Paragraph("Eficiência Preventiva", style_th), 
+            Paragraph("Status de Risco", style_th)
+        ]]
+
+        def ordenar_quesitos(x):
+            limpo = ''.join(c for c in str(x["qid"]).split('_')[0] if c.isdigit() or c == '.')
+            partes = [int(i) for i in limpo.split('.') if i.isdigit()]
+            prefixo = ''.join(c for c in str(x["qid"]) if c.isalpha())
+            return (prefixo, partes if partes else [999])
+
+        for item in sorted(lista_penalidades, key=ordenar_quesitos):
+            nota_txt = f"{item['nota_real']:.1f} pts"
+            teto_txt = f"{item['pen_max']:.1f} pts"
+            ef_txt = f"{item['eficiencia']:.1f}%"
+
+            if item['eficiencia'] >= 100.0: 
+                status = "<font color='#2e7d32'><b>Risco Mitigado</b></font>"
+            elif item['eficiencia'] <= 0.0: 
+                status = "<font color='#c0392b'><b>Impacto Máximo</b></font>"
+            else: 
+                status = "<font color='#d35400'><b>Impacto Parcial</b></font>"
+
+            data_penalidades.append([
+                Paragraph(item['qid'], style_tabela_centro), 
+                Paragraph(nota_txt, style_tabela_centro), 
+                Paragraph(teto_txt, style_tabela_centro), 
+                Paragraph(ef_txt, style_tabela_centro), 
+                Paragraph(status, style_tabela_padrao)
+            ])
+
+        tabela_pen = Table(data_penalidades, colWidths=[70, 110, 80, 115, 125])
+        tabela_pen.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1b4f72")), 
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#1b4f72")), 
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("TOPPADDING", (0, 0), (-1, -1), 6), 
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ]))
+        elements.append(tabela_pen)
+        elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 4. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>4. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
+    elements.append(Spacer(1, 6))
+
+    def calcular_percentual_checklist(resposta_bruta, total_itens):
+        if not resposta_bruta: return 0.0
+        itens = [i.strip().lower() for i in str(resposta_bruta).split(",") if i.strip()]
+        itens_validos = [i for i in itens if "outros" not in i]
+        return min((len(itens_validos) / total_itens) * 100.0, 100.0) if total_itens > 0 else 0.0
+
+    analise_ods = []
+    for qid, info in dados.items():
+        if qid.startswith("COM_") or not isinstance(info, dict): 
+            continue
+        resp = str(info.get("valor", "")).strip()
+        resp_l = resp.lower()
+        metas = ""
+        status = ""
+
+        # --- EIXO 1 ---
+        if qid in ["1.0", "1.1", "1.2", "1.2.1", "1.2.2", "1.7", "1.11", "1.12", "1.13"]:
+            metas = "4.2"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "1.2.1.1":
+            metas = "4.2, 4A"
+            status = "Atendido" if "diária – 05" in resp_l or "diaria" in resp_l else "Não Atendido"
+        elif qid == "1.7.2":
+            metas = "4C, 4.2"
+            status = "Atendido" if any(x in resp_l for x in ["presencialmente", "distância", "distancia", "remotamente", "multiplicadores"]) else "Não Atendido"
+        elif qid == "1.10":
+            metas = "4.2"
+            status = "Atendido" if "planejamento e desempenho da criança – 02" in resp_l or "planejamento" in resp_l else "Não Atendido"
+        elif qid == "1.10.1":
+            metas = "4.2"
+            status = "Atendido" if any(x in resp_l for x in ["mensal", "bimestral", "trimestral", "quadrimestral", "semestral", "anual"]) else "Não Atendido"
+
+        # --- EIXO 2 ---
+        elif qid in ["2.0", "2.1", "2.2", "2.2.1", "2.2.2", "2.7", "2.11", "2.12", "2.13"]:
+            metas = "4.2"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "2.2.1.1":
+            metas = "4.2, 4A"
+            status = "Atendido" if "diária – 05" in resp_l or "diaria" in resp_l else "Não Atendido"
+        elif qid == "2.7.2":
+            metas = "4C, 4.2"
+            status = "Atendido" if any(x in resp_l for x in ["presencialmente", "distância", "distancia", "remotamente", "multiplicadores"]) else "Não Atendido"
+        elif qid == "2.10":
+            metas = "4.2"
+            status = "Atendido" if "planejamento e desempenho da criança – 02" in resp_l or "planejamento" in resp_l else "Não Atendido"
+        elif qid == "2.10.1":
+            metas = "4.2"
+            status = "Atendido" if any(x in resp_l for x in ["mensal", "bimestral", "trimestral", "quadrimestral", "semestral", "anual"]) else "Não Atendido"
+
+        # --- EIXO 3 ---
+        elif qid in ["3.0", "3.5", "3.10", "3.12", "3.13", "3.14", "3.15", "3.15.2", "3.15.4", "3.16", "3.22", "3.22.2", "3.23"]:
+            metas = "4.1"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "3.5.2":
+            metas = "4.1, 4C"
+            status = "Atendido" if any(x in resp_l for x in ["presencialmente", "distância", "distancia", "remotamente", "multiplicadores"]) else "Não Atendido"
+        elif qid == "3.8":
+            metas = "4.1"
+            status = "Atendido" if (any(x in resp_l for x in ["mensal", "bimestral", "trimestral", "quadrimestral", "semestral", "anual"]) or "planejamento" in resp_l) else "Não Atendido"
+        elif qid == "3.11":
+            metas = "4.7, 5.1"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "3.15.3":
+            metas = "4.6, 4.1"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "3.20":
+            metas = "4.1"
+            status = "Atendido" if "metodologia desenvolvida exclusivamente pelos profissionais" in resp_l or "exclusivamente" in resp_l else "Não Atendido"
+        elif qid == "3.22.2.1":
+            metas = "4.1"
+            status = "Atendido" if "todas as metas foram atingidas" in resp_l else "Não Atendido"
+        elif qid == "3.23.1":
+            metas = "4.1"
+            status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
+
+        # --- DEMAIS EIXOS ---
+        elif qid == "4.0":
+            metas = "4.1"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid in ["6.0", "7.0"]:
+            metas = "4C"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "6.2":
+            metas = "4C"
+            status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
+        elif qid in ["8.0", "8.2", "12.0"]:
+            metas = "2.1"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "9.0":
+            metas = "2.1, 4.2"
+            status = "Atendido" if "secretaria de educação e em todas as escolas" in resp_l else "Não Atendido"
+        elif qid == "10.0":
+            metas = "2.1, 4.2"
+            status = "Atendido" if "em todas as escolas" in resp_l else "Não Atendido"
+        elif qid == "11.0":
+            metas = "2.1, 4.2"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "11.1":
+            metas = "2.1, 4.2"
+            status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
+        elif qid == "12.1":
+            metas = "2.1, 4A"
+            status = f"{calcular_percentual_checklist(resp, 17):.1f}% Atendido"
+        elif qid == "13.0":
+            metas = "4.0"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "13.1":
+            metas = "11.2"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid in ["13.1.2", "13.1.5"]:
+            metas = "11.2"
+            status = "Atendido" if "não" in resp_l else "Não Atendido"
+        elif qid in ["13.1.3", "13.1.4", "13.1.6"]:
+            metas = "11.2"
+            status = "Atendido" if "todos os veículos" in resp_l or "todos os condutores" in resp_l or "00" in resp_l else "Não Atendido"
+        elif qid in ["14.0", "14.3"]:
+            metas = "4.0"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "14.3.1":
+            metas = "4.0"
+            status = "Atendido" if "todas as metas foram atingidas dentro do prazo" in resp_l else "Não Atendido"
+        elif qid in ["15.0", "15.3", "15.3.1", "15.3.2"]:
+            metas = "4.2"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "16.0":
+            metas = "16.6"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "16.1":
+            metas = "4.0, 16.6"
+            status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
+        elif qid == "16.2":
+            metas = "4.0, 16.6"
+            status = f"{calcular_percentual_checklist(resp, 6):.1f}% Atendido"
+        elif qid == "16.3":
+            metas = "4.0, 16.6"
+            status = f"{calcular_percentual_checklist(resp, 11):.1f}% Atendido"
+        elif qid == "17.0":
+            metas = "4.0, 16.6"
+            status = "Atendido" if "estrutura independente" in resp_l else "Não Atendido"
+        elif qid in ["17.3.1", "17.4"]:
+            metas = "4.0, 16.6"
+            status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
+        elif qid == "17.5":
+            metas = "4.0, 16.6"
+            status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
+        elif qid == "17.6":
+            metas = "4.0, 16.6"
+            status = "Atendido" if "aprovado sem ressalva" in resp_l or "00" in resp_l else "Não Atendido"
+        elif qid in ["18.0", "18.2", "19.0"]:
+            metas = "4.0, 16.6" if "18" in qid else "4.0"
+            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "18.1":
+            metas = "2.1, 4.0, 16.6"
+            status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
+        elif qid == "18.3.1":
+            metas = "4.0, 16.6"
+            status = f"{calcular_percentual_checklist(resp, 9):.1f}% Atendido"
+        elif qid == "19.1":
+            metas = "4.0"
+            status = f"{calcular_percentual_checklist(resp, 4):.1f}% Atendido"
+        elif qid == "19.3":
+            metas = "4.0"
+            status = "Atendido" if "em todas as escolas" in resp_l else "Não Atendido"
+
+        if metas: 
+            analise_ods.append({"qid": qid, "status": status, "metas": metas, "resp": resp[:50]})
+
+    if analise_ods:
+        data_ods = [["Quesito", "Resposta Informada", "Vínculo Metas ODS", "Status de Cumprimento"]]
+        style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
+
+        def extrair_chave_hierarquica(x):
+            return [float(i) if i.replace('.', '', 1).isdigit() else 999 for i in x['qid'].split('.')]
+
+        for item in sorted(analise_ods, key=extrair_chave_hierarquica):
+            st_txt = item["status"]
+            if "Não Atendido" in st_txt: 
+                st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
+            elif "Atendido" in st_txt and "%" not in st_txt: 
+                st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
+            else: 
+                st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
+
+            data_ods.append([item["qid"], Paragraph(item["resp"], styles["Normal"]), item["metas"], st_p])
+
+        tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
+        tabela_ods.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")), 
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
+            ("ALIGN", (0, 0), (0, -1), "CENTER"), 
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")), 
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
+        ]))
+        elements.append(tabela_ods)
+        elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 5. SÉRIE HISTÓRICA DO I-EDUC (CONSOLIDADO FINAL)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>5. SÉRIE HISTÓRICA DO DESEMPENHO i-EDUC</b>", styles["h2"]))
+    elements.append(Spacer(1, 10))
+
+    anos_serie = [2023, 2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    valores_serie = []
+
+    for a in anos_serie:
+        if a == ano_atual: 
+            valores_serie.append(float(total))
+        elif a in all_data:
+            dados_ano = all_data[a]
+            if isinstance(dados_ano, dict) and "total" in dados_ano:
+                valores_serie.append(float(dados_ano["total"]))
+            elif isinstance(dados_ano, (int, float)):
+                valores_serie.append(float(dados_ano))
+            else:
+                valores_serie.append(float(sum(info_h.get("pontos", 0) for qid_h, info_h in dados_ano.items() if isinstance(info_h, dict) and not qid_h.startswith("COM_"))))
+        else: 
+            valores_serie.append(0.0)
+
+    desenho_grafico = Drawing(480, 165)
+    bc = VerticalBarChart()
+    bc.x = 45; bc.y = 25; bc.height = 110; bc.width = 410
+    bc.data = [valores_serie]
+    bc.categoryAxis.categoryNames = [str(a) for a in anos_serie]
+    bc.categoryAxis.labels.fontSize = 9; bc.categoryAxis.labels.fontName = 'Helvetica-Bold'; bc.categoryAxis.labels.dy = -10
+
+    bc.valueAxis.valueMin = 0; bc.valueAxis.valueMax = 1000; bc.valueAxis.valueStep = 200; bc.valueAxis.labels.fontSize = 8
+
+    bc.barLabels.nudge = 8
+    bc.barLabels.fontSize = 8
+    bc.barLabels.fontName = 'Helvetica-Bold'
+    bc.barLabelFormat = '%.1f'
+
+    bc.bars[0].fillColor = colors.HexColor("#0f9d58")
+    bc.bars[0].strokeColor = colors.HexColor("#27ae60")
+    bc.bars[0].strokeWidth = 0.5
+
+    desenho_grafico.add(String(240, 150, "Série Histórica do i-EDUC", textAnchor='middle', fontName='Helvetica-Bold', fontSize=12, fillColor=colors.HexColor("#2c3e50")))
+    desenho_grafico.add(bc)
+
+    elements.append(desenho_grafico)
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 6. ANÁLISE DE INDICADORES EDUCACIONAIS (COMPARATIVO)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>6. ANÁLISE DE INDICADORES EDUCACIONAIS</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>1.1.2 Cronograma de Manutenção Preventiva de Brinquedos</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_valor_cron(texto):
+        if not texto or not isinstance(texto, str):
+            return 0
+        match = re.search(r'\bCRON:(\d+)', texto)
+        return int(match.group(1)) if match else 0
+
+    texto_atual_112 = dados_ano_atual.get("1.1.2", {}).get("valor", "") if isinstance(dados_ano_atual, dict) else ""
+    texto_ant_112 = dados_ano_ant.get("1.1.2", {}).get("valor", "") if isinstance(dados_ano_ant, dict) else ""
+
+    cron_atual = extrair_valor_cron(texto_atual_112)
+    cron_anterior = extrair_valor_cron(texto_ant_112)
+
+    if cron_anterior > 0:
+        variacao_112 = ((cron_atual - cron_anterior) / cron_anterior) * 100
+        texto_variacao_112 = f"{variacao_112:+.1f}%"
+        avaliacao_txt = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>" if variacao_112 > 0 else "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    elif cron_atual > 0:
+        texto_variacao_112 = "+100.0%"
+        avaliacao_txt = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    else:
+        texto_variacao_112 = "0.0%"
+        avaliacao_txt = "<font color='#6c757d'><b>Estável</b></font>"
+
+    style_td_aval = ParagraphStyle('TdAval', parent=styles['Normal'], fontSize=9, alignment=1)
+
+    data_ind_6 = [
+        [Paragraph("Indicador / Exercício", style_th), Paragraph(f"Exercício {ano_ant}", style_th), Paragraph(f"Exercício {ano_atual}", style_th), Paragraph("Variação (%)", style_th), Paragraph("Avaliação", style_th)],
+        [Paragraph("Equipamentos em Cronograma (CRON)", style_item_esquerda), Paragraph(str(cron_anterior), style_td_ano), Paragraph(str(cron_atual), style_td_ano), Paragraph(texto_variacao_112, style_td_var), Paragraph(avaliacao_txt, style_td_aval)]
+    ]
+
+    tabela_ind_6 = Table(data_ind_6, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_6.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 6),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+    ]))
+    elements.append(tabela_ind_6)
+    elements.append(Spacer(1, 15))
+
+  # -------------------------------------------------------------------------
+    # 📊 7. ESPAÇO POR ALUNO EM TURMAS DE CRECHE (PARECER CNE/CEB Nº 8/2010 - QUESITO 1.3)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>7. ESPAÇO POR ALUNO EM TURMAS DE CRECHE (PARECER CNE/CEB Nº 8/2010 - QUESITO 1.3)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>1.3 Análise Comparativa de Metragem por Aluno (Faixas F1 a F4)</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_faixas_q13(dado_ano):
+        """Suporta Dicionário ou String ("F1:10,F2:5...")"""
+        faixas = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return faixas
+
+        info_q = dado_ano.get("1.3", {})
+        
+        # Caso 1: O dado já é um dicionário estruturado
+        if isinstance(info_q, dict):
+            faixas["pontos"] = float(info_q.get("pontos", 0.0))
+            # Se as chaves já existirem direto no dict:
+            for k in ["F1", "F2", "F3", "F4"]:
+                if k in info_q:
+                    try: faixas[k] = int(info_q[k])
+                    except: pass
+            
+            val_str = str(info_q.get("valor", ""))
+        else:
+            val_str = str(info_q)
+
+        # Caso 2: Parse por String Regex (ex: "F1: 12, F2: 5")
+        if val_str:
+            for k in ["F1", "F2", "F3", "F4"]:
+                match = re.search(rf'{k}\s*:\s*(\d+)', val_str, re.IGNORECASE)
+                if match:
+                    faixas[k] = int(match.group(1))
+
+        faixas["TOTAL"] = faixas["F1"] + faixas["F2"] + faixas["F3"] + faixas["F4"]
+        return faixas
+
+    faixas_ant_13 = extrair_faixas_q13(dados_ano_ant)
+    faixas_atual_13 = extrair_faixas_q13(dados_ano_atual)
+
+    faixas_config_13 = [
+        ("F1", "Superior ou igual a 2,30 m² (F1 - Excelência)", True),
+        ("F2", "De 2,00 m² a 2,29 m² (F2 - Adequado)", True),
+        ("F3", "De 1,50 m² a 1,99 m² (F3 - Atenção)", False),
+        ("F4", "Inferior a 1,50 m² (F4 - Crítico)", False),
+        ("TOTAL", "TOTAL DE SALAS AVALIADAS", None)
+    ]
+
+    data_ind_7 = [
+        [
+            Paragraph("Faixa de Metragem / Métrica", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in faixas_config_13:
+        v_ant = faixas_ant_13.get(id_f, 0)
+        v_at = faixas_atual_13.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            txt_var = "+100.0%"
+            var_pct = 100.0
+        else:
+            txt_var = "0.0%"
+            var_pct = 0.0
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_7.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_13 = faixas_ant_13.get("pontos", 0.0)
+    pts_at_13 = faixas_atual_13.get("pontos", 0.0)
+
+    txt_var_pts_13 = f"{((pts_at_13 - pts_ant_13) / pts_ant_13) * 100:+.1f}%" if pts_ant_13 > 0 else ("+100.0%" if pts_at_13 > 0 else "0.0%")
+    aval_pts_13 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>" if pts_at_13 > pts_ant_13 else ("<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>" if pts_at_13 < pts_ant_13 else "<font color='#6c757d'><b>Estável</b></font>")
+
+    data_ind_7.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 20,0 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_13:.1f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_13:.1f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_13}</b>", style_td_var),
+        Paragraph(aval_pts_13, style_td_aval)
+    ])
+
+    tabela_ind_7 = Table(data_ind_7, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_7.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_7)
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 8. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 1.6)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>8. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 1.6)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>1.6 Detalhamento das Ausências e Afastamentos dos Professores Regentes (Creche)</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_ausencias_q16(dado_ano):
+        """Mapeia abreviações do banco (INJ, JUST, MED, MAT, ABO, OUT) para os rótulos do relatório."""
+        chaves = ["FI", "FJ", "LM", "LP", "AB", "OUT"]
+        dados_a = {k: 0 for k in chaves}
+        dados_a["TOTAL"] = 0
+
+        if not isinstance(dado_ano, dict):
+            return dados_a
+
+        info_q = dado_ano.get("1.6", {})
+
+        mapa_chaves = {
+            "FI": ["INJ", "FI", "INJUSTIFICADA", "INJUSTIFICADAS"],
+            "FJ": ["JUST", "FJ", "JUSTIFICADA", "JUSTIFICADAS"],
+            "LM": ["MED", "LM", "MEDICA", "LICENCA MEDICA", "SAUDE"],
+            "LP": ["MAT", "LP", "MATERNIDADE", "PATERNIDADE"],
+            "AB": ["ABO", "AB", "ABONADA", "ABONADAS", "ABONO"],
+            "OUT": ["OUT", "OUTROS", "AFASTAMENTO"]
+        }
+
+        # 1. Se for dicionário direto
+        if isinstance(info_q, dict):
+            for chk, alias_list in mapa_chaves.items():
+                for alias in alias_list:
+                    val_encontrado = next((v for k, v in info_q.items() if str(k).strip().upper() == alias), None)
+                    if val_encontrado is not None:
+                        try:
+                            dados_a[chk] = int(val_encontrado)
+                            break
+                        except Exception:
+                            pass
+            val_str = str(info_q.get("valor", ""))
+        else:
+            val_str = str(info_q)
+
+        # 2. Se for string formatada (ex: "INJ:10,JUST:5,MED:0...")
+        if val_str:
+            for chk, alias_list in mapa_chaves.items():
+                if dados_a[chk] == 0:
+                    for alias in alias_list:
+                        match = re.search(rf'{alias}\s*:\s*(\d+)', val_str, re.IGNORECASE)
+                        if match:
+                            dados_a[chk] = int(match.group(1))
+                            break
+
+        dados_a["TOTAL"] = sum(dados_a[k] for k in chaves)
+        return dados_a
+
+    q16_ant = extrair_ausencias_q16(dados_ano_ant)
+    q16_atual = extrair_ausencias_q16(dados_ano_atual)
+
+    # Para ausências de professores, REDUZIR dias é o objetivo desejado (positivo_se_crescer = False para todos)
+    tipos_ausencias = [
+        ("FI", "Faltas Injustificadas (dias)", False),
+        ("FJ", "Faltas Justificadas (dias)", False),
+        ("LM", "Licença Médica / Tratamento Saúde (dias)", False),
+        ("LP", "Licença Maternidade / Paternidade (dias)", False),
+        ("AB", "Abonos / Faltas Abonadas (dias)", False),
+        ("OUT", "Outros Afastamentos (dias)", False),
+        ("TOTAL", "TOTAL ACUMULADO DE AUSÊNCIAS (QTA)", False)
+    ]
+
+    data_ind_8 = [
+        [
+            Paragraph("Tipo de Ausência / Afastamento", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_a, rotulo, positivo_se_crescer in tipos_ausencias:
+        v_ant = q16_ant.get(id_a, 0)
+        v_at = q16_atual.get(id_a, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            txt_var = "+100.0%"
+            var_pct = 100.0
+        else:
+            txt_var = "0.0%"
+            var_pct = 0.0
+
+        # Lógica de Avaliação Corrigida
+        if var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif var_pct < 0:
+            # Variação negativa em ausências = Redução/Melhora
+            aval = "<font color='#28a745'><b>Redução<br/>(Melhora)</b></font>"
+        else:
+            # Variação positiva em ausências = Aumento/Atenção
+            aval = "<font color='#dc3545'><b>Aumento<br/>(Atenção)</b></font>"
+
+        if id_a == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_8.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    tabela_ind_8 = Table(data_ind_8, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_8.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f2f4f4")),
+    ]))
+    elements.append(tabela_ind_8)
+    elements.append(Spacer(1, 10))
+
+    tot_ant = q16_ant.get("TOTAL", 0)
+    tot_at = q16_atual.get("TOTAL", 0)
+    diff_dias = tot_at - tot_ant
+    status_dias = f"<font color='#dc3545'><b>aumento de {abs(diff_dias)} dias</b></font>" if diff_dias > 0 else f"<font color='#28a745'><b>redução de {abs(diff_dias)} dias</b></font>"
+
+    style_analise = styles.get('AnaliseText', ParagraphStyle('AnaliseText', parent=styles['Normal'], fontSize=9, leading=12))
+
+    texto_desc_16 = (
+        f"O acompanhamento da Quantidade Total de Ausências (QTA) no quesito <b>1.6</b> registrou um {status_dias} "
+        f"de afastamento em relação ao ano anterior (de <b>{tot_ant} dias</b> em {ano_ant} para <b>{tot_at} dias</b> em {ano_atual}). "
+        f"A gestão da assiduidade docente é elemento-chave para mitigar a rotatividade e assegurar a continuidade pedagógica nas turmas de Creche."
+    )
+    elements.append(Paragraph(texto_desc_16, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 9. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE (QUESITO 1.8)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>9. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE (QUESITO 1.8)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>1.8 Análise da Distribuição de Escolas por Faixa de Rotatividade Docente</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_q18(dado_ano):
+        dados_f = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+        
+        info_q = dado_ano.get("1.8", {})
+        if isinstance(info_q, dict):
+            val_str = info_q.get("valor", "")
+            dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+        else:
+            val_str = str(info_q)
+
+        try:
+            partes = val_str.split(",")
+            for p in partes:
+                if ":" in p:
+                    k, v = p.split(":")
+                    k = k.strip().upper()
+                    if k in dados_f:
+                        match = re.search(r'\d+', v)
+                        if match:
+                            dados_f[k] = int(match.group())
+        except Exception:
+            pass
+
+        calc_tot = dados_f["F1"] + dados_f["F2"] + dados_f["F3"] + dados_f["F4"]
+        if dados_f["TOTAL"] == 0 and calc_tot > 0:
+            dados_f["TOTAL"] = calc_tot
+
+        return dados_f
+
+    q18_ant = extrair_dados_q18(dados_ano_ant)
+    q18_atual = extrair_dados_q18(dados_ano_atual)
+
+    faixas_q18 = [
+        ("F1", "Rotatividade < 20% (F1 - Excelência)", True),
+        ("F2", "Rotatividade ≥ 20% e < 30% (F2 - Adequado)", True),
+        ("F3", "Rotatividade ≥ 30% e < 40% (F3 - Atenção)", False),
+        ("F4", "Rotatividade ≥ 40% (F4 - Crítico)", False),
+        ("TOTAL", "TOTAL DE ESCOLAS AVALIADAS", None)
+    ]
+
+    data_ind_18 = [
+        [
+            Paragraph("Faixa de Rotatividade / Métrica", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in faixas_q18:
+        v_ant = q18_ant.get(id_f, 0)
+        v_at = q18_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            var_pct = 100.0
+            txt_var = "+100.0%"
+        else:
+            var_pct = 0.0
+            txt_var = "0.0%"
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_18.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_18 = q18_ant.get("pontos", 0.0)
+    pts_at_18 = q18_atual.get("pontos", 0.0)
+
+    if pts_ant_18 > 0:
+        var_pts_18 = ((pts_at_18 - pts_ant_18) / pts_ant_18) * 100.0
+        txt_var_pts_18 = f"{var_pts_18:+.1f}%"
+    elif pts_at_18 > 0:
+        txt_var_pts_18 = "+100.0%"
+    else:
+        txt_var_pts_18 = "0.0%"
+
+    if pts_at_18 > pts_ant_18:
+        aval_pts_18 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_18 < pts_ant_18:
+        aval_pts_18 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_18 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_18.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 3,0 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_18:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_18:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_18}</b>", style_td_var),
+        Paragraph(aval_pts_18, style_td_aval)
+    ])
+
+    tabela_ind_18 = Table(data_ind_18, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_18.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_18)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_18 = (
+        f"A avaliação da rotatividade docente no quesito <b>1.8</b> reflete a estabilidade da equipe escolar nas unidades de Creche. "
+        f"A pontuação do indicador evoluiu de <b>{pts_ant_18:.2f} pontos</b> no exercício {ano_ant} para <b>{pts_at_18:.2f} pontos</b> no exercício {ano_atual}. "
+        f"A manutenção dos professores nas mesmas unidades de ensino fortalece o vínculo afetivo com os bebês e crianças pequenas, "
+        f"impactando diretamente na qualidade do desenvolvimento infantil e no planejamento pedagógico contínuo."
+    )
+    elements.append(Paragraph(texto_desc_18, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 10. REGULARIDADE DE GESTORES (QUESITO 1.9)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>10. REGULARIDADE DE GESTORES (QUESITO 1.9)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>1.9 Permanência dos Diretores/Gestores nas Unidades de Creche</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    # Função dedicada e segura para extrair os dados do Quesito 1.9 (F1 a F6)
+    def extrair_dados_q19(dado_ano):
+        dados_f = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "F5": 0, "F6": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+        
+        info_q = dado_ano.get("1.9", {})
+        if isinstance(info_q, dict):
+            val_str = info_q.get("valor", "")
+            dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+        else:
+            val_str = str(info_q)
+
+        try:
+            partes = val_str.split(",")
+            for p in partes:
+                if ":" in p:
+                    k, v = p.split(":")
+                    k = k.strip().upper()
+                    if k in dados_f:
+                        match = re.search(r'\d+', v)
+                        if match:
+                            dados_f[k] = int(match.group())
+        except Exception:
+            pass
+
+        calc_tot = sum(dados_f[f] for f in ["F1", "F2", "F3", "F4", "F5", "F6"])
+        if dados_f["TOTAL"] == 0 and calc_tot > 0:
+            dados_f["TOTAL"] = calc_tot
+
+        return dados_f
+
+    q19_ant = extrair_dados_q19(dados_ano_ant)
+    q19_atual = extrair_dados_q19(dados_ano_atual)
+
+    faixas_gestores = [
+        ("F1", "Menor que 1 ano (< 1 ano)"),
+        ("F2", "Entre 1 e 3 anos (≥ 1 e < 3 anos)"),
+        ("F3", "Entre 3 e 5 anos (≥ 3 e < 5 anos)"),
+        ("F4", "Entre 5 e 10 anos (≥ 5 e < 10 anos)"),
+        ("F5", "Entre 10 e 15 anos (≥ 10 e < 15 anos)"),
+        ("F6", "15 anos ou mais (≥ 15 anos)"),
+        ("TOTAL", "TOTAL DE ESCOLAS AVALIADAS")
+    ]
+
+    data_ind_10 = [
+        [
+            Paragraph("Tempo de Permanência do Gestor", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo in faixas_gestores:
+        v_ant = q19_ant.get(id_f, 0)
+        v_at = q19_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            txt_var = "+100.0%"
+            var_pct = 100.0
+        else:
+            txt_var = "0.0%"
+            var_pct = 0.0
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif var_pct > 0:
+            aval = "<font color='#28a745'><b>Aumento</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Redução</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_10.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_19 = q19_ant.get("pontos", 0.0)
+    pts_at_19 = q19_atual.get("pontos", 0.0)
+
+    if pts_ant_19 > 0:
+        var_pts_19 = ((pts_at_19 - pts_ant_19) / pts_ant_19) * 100.0
+        txt_var_pts_19 = f"{var_pts_19:+.1f}%"
+    elif pts_at_19 > 0:
+        txt_var_pts_19 = "+100.0%"
+    else:
+        txt_var_pts_19 = "0.0%"
+
+    if pts_at_19 > pts_ant_19:
+        aval_pts_19 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_19 < pts_ant_19:
+        aval_pts_19 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_19 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_10.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 2,0 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_19:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_19:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_19}</b>", style_td_var),
+        Paragraph(aval_pts_19, style_td_aval)
+    ])
+
+    tabela_ind_10 = Table(data_ind_10, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_10.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_10)
+    elements.append(Spacer(1, 10))
+
+    texto_desc_19 = (
+        f"A avaliação da regularidade dos gestores (quesito <b>1.9</b>) obteve uma pontuação de "
+        f"<b>{pts_ant_19:.2f} pontos</b> em {ano_ant} e <b>{pts_at_19:.2f} pontos</b> em {ano_atual} (máximo de 2,00 pontos). "
+        f"A estabilidade da gestão nas unidades escolares favorece a continuidade das diretrizes pedagógicas e fortalece o vínculo com a comunidade escolar."
+    )
+    elements.append(Paragraph(texto_desc_19, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 11. DEMANDA POR VAGAS EM CRECHE (QUESITO 1.14)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>11. DEMANDA POR VAGAS EM CRECHE (QUESITO 1.14)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>1.14 Equilíbrio entre Oferta e Demanda por Vagas em Creche</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    # Função dedicada e segura para extrair os dados do Quesito 1.14 (Demanda e Oferta)
+    def extrair_dados_q114(dado_ano):
+        dados_d = {"demanda": 0, "oferta": 0, "deficit": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_d
+
+        info_q = dado_ano.get("1.14", {})
+        if isinstance(info_q, dict):
+            val_str = info_q.get("valor", "0;0")
+            dados_d["pontos"] = float(info_q.get("pontos", 0.0))
+        else:
+            val_str = str(info_q)
+
+        try:
+            if ";" in val_str:
+                dem, of = map(int, val_str.split(";"))
+                dados_d["demanda"] = dem
+                dados_d["oferta"] = of
+            elif "," in val_str:
+                dem, of = map(int, val_str.split(","))
+                dados_d["demanda"] = dem
+                dados_d["oferta"] = of
+        except Exception:
+            pass
+
+        # Déficit = Demanda - Oferta (se Demanda > Oferta)
+        dados_d["deficit"] = max(0, dados_d["demanda"] - dados_d["oferta"])
+        return dados_d
+
+    q114_ant = extrair_dados_q114(dados_ano_ant)
+    q114_atual = extrair_dados_q114(dados_ano_atual)
+
+    indicadores_creche = [
+        ("demanda", "Crianças que solicitaram vaga (Demanda)"),
+        ("oferta", "Vagas de creche ofertadas (Oferta)"),
+        ("deficit", "Déficit de Vagas (Fila de Espera)")
+    ]
+
+    data_ind_11 = [
+        [
+            Paragraph("Indicador de Atendimento", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_d, rotulo in indicadores_creche:
+        v_ant = q114_ant.get(id_d, 0)
+        v_at = q114_atual.get(id_d, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            txt_var = "+100.0%"
+            var_pct = 100.0
+        else:
+            txt_var = "0.0%"
+            var_pct = 0.0
+
+        # Lógica de Avaliação Qualitativa
+        if var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif id_d == "oferta":
+            # Oferta subiu = Melhora / Oferta caiu = Piora
+            aval = "<font color='#28a745'><b>Aumento (Melhora)</b></font>" if var_pct > 0 else "<font color='#dc3545'><b>Redução (Piora)</b></font>"
+        else:
+            # Demanda ou Déficit subiu = Piora / Demanda ou Déficit caiu = Melhora
+            aval = "<font color='#dc3545'><b>Aumento (Piora)</b></font>" if var_pct > 0 else "<font color='#28a745'><b>Redução (Melhora)</b></font>"
+
+        p_rotulo = Paragraph(rotulo, style_item_esquerda)
+        p_ant = Paragraph(str(v_ant), style_td_ano)
+        p_at = Paragraph(str(v_at), style_td_ano)
+        p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_11.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_14 = q114_ant.get("pontos", 0.0)
+    pts_at_14 = q114_atual.get("pontos", 0.0)
+
+    if pts_ant_14 != 0:
+        var_pts_14 = ((pts_at_14 - pts_ant_14) / abs(pts_ant_14)) * 100.0
+        txt_var_pts_14 = f"{var_pts_14:+.1f}%"
+    elif pts_at_14 != 0:
+        txt_var_pts_14 = "+100.0%" if pts_at_14 > 0 else "-100.0%"
+    else:
+        txt_var_pts_14 = "0.0%"
+
+    if pts_at_14 > pts_ant_14:
+        aval_pts_14 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_14 < pts_ant_14:
+        aval_pts_14 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_14 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_11.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Penalidade/Sem perda)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_14:.1f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_14:.1f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_14}</b>", style_td_var),
+        Paragraph(aval_pts_14, style_td_aval)
+    ])
+
+    tabela_ind_11 = Table(data_ind_11, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_11.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_11)
+    elements.append(Spacer(1, 10))
+
+    # Diagnóstico e Resumo Textual Automático
+    dem_at = q114_atual["demanda"]
+    of_at = q114_atual["oferta"]
+    def_at = q114_atual["deficit"]
+    
+    if dem_at > of_at:
+        status_vagas_txt = f"há um <b>déficit de {def_at} vagas</b> (demanda de {dem_at} para {of_at} vagas ofertadas), gerando a aplicação de penalidade (-50,0 pts)."
+    else:
+        status_vagas_txt = f"a oferta de vagas ({of_at}) atendeu plenamente à demanda solicitada ({dem_at}), sem aplicação de penalidades (0,0 pts)."
+
+    texto_desc_14 = (
+        f"A análise do equilíbrio de oferta e demanda por vagas em creche (quesito <b>1.14</b>) no exercício {ano_atual} indica que "
+        f"{status_vagas_txt} A garantia de vagas em creche é fundamental para o cumprimento da Meta 1 do Plano Nacional de Educação (PNE) e para o desenvolvimento infantil."
+    )
+    elements.append(Paragraph(texto_desc_14, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 12. QUANTIDADE DE TURMAS DE CRECHE POR FAIXA (QUESITO 1.15)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>12. QUANTIDADE DE TURMAS DE CRECHE POR FAIXA (QUESITO 1.15)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>1.15 Distribuição de Alunos por Turma de Creche</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    # Função dedicada e segura para extrair os dados do Quesito 1.15 (F1 a F4)
+    def extrair_dados_q115(dado_ano):
+        dados_f = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        info_q = dado_ano.get("1.15", {})
+        if isinstance(info_q, dict):
+            val_str = info_q.get("valor", "")
+            dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+        else:
+            val_str = str(info_q)
+
+        try:
+            partes = val_str.split(",")
+            for p in partes:
+                if ":" in p:
+                    k, v = p.split(":")
+                    k = k.strip().upper()
+                    if k in dados_f:
+                        match = re.search(r'\d+', v)
+                        if match:
+                            dados_f[k] = int(match.group())
+        except Exception:
+            pass
+
+        calc_tot = sum(dados_f[f] for f in ["F1", "F2", "F3", "F4"])
+        if dados_f["TOTAL"] == 0 and calc_tot > 0:
+            dados_f["TOTAL"] = calc_tot
+
+        return dados_f
+
+    q115_ant = extrair_dados_q115(dados_ano_ant)
+    q115_atual = extrair_dados_q115(dados_ano_atual)
+
+    faixas_turmas = [
+        ("F1", "Até 13 alunos (Faixa Ideal)"),
+        ("F2", "De 14 a 20 alunos"),
+        ("F3", "De 21 a 25 alunos"),
+        ("F4", "Acima de 25 alunos (Superlotação)"),
+        ("TOTAL", "TOTAL DE TURMAS DE CRECHE")
+    ]
+
+    data_ind_12 = [
+        [
+            Paragraph("Faixa de Alunos por Turma", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo in faixas_turmas:
+        v_ant = q115_ant.get(id_f, 0)
+        v_at = q115_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            txt_var = "+100.0%"
+            var_pct = 100.0
+        else:
+            txt_var = "0.0%"
+            var_pct = 0.0
+
+        # Lógica de Avaliação Qualitativa
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif id_f == "F4":
+            # Turmas superlotadas (>25 alunos): aumento é Piora
+            aval = "<font color='#dc3545'><b>Aumento (Piora)</b></font>" if var_pct > 0 else "<font color='#28a745'><b>Redução (Melhora)</b></font>"
+        else:
+            # Turmas menores (F1, F2, F3): aumento é Melhora
+            aval = "<font color='#28a745'><b>Aumento (Melhora)</b></font>" if var_pct > 0 else "<font color='#dc3545'><b>Redução (Piora)</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_12.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_15 = q115_ant.get("pontos", 0.0)
+    pts_at_15 = q115_atual.get("pontos", 0.0)
+
+    if pts_ant_15 > 0:
+        var_pts_15 = ((pts_at_15 - pts_ant_15) / pts_ant_15) * 100.0
+        txt_var_pts_15 = f"{var_pts_15:+.1f}%"
+    elif pts_at_15 > 0:
+        txt_var_pts_15 = "+100.0%"
+    else:
+        txt_var_pts_15 = "0.0%"
+
+    if pts_at_15 > pts_ant_15:
+        aval_pts_15 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_15 < pts_ant_15:
+        aval_pts_15 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_15 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_12.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 10,0 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_15:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_15:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_15}</b>", style_td_var),
+        Paragraph(aval_pts_15, style_td_aval)
+    ])
+
+    tabela_ind_12 = Table(data_ind_12, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_12.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_12)
+    elements.append(Spacer(1, 10))
+
+    texto_desc_15 = (
+        f"A distribuição de alunos por turma de creche (quesito <b>1.15</b>) registrou pontuação de "
+        f"<b>{pts_ant_15:.2f} pontos</b> em {ano_ant} e <b>{pts_at_15:.2f} pontos</b> em {ano_atual} (máximo de 10,00 pontos). "
+        f"Manter turmas em faixas menores de atendimento assegura condições pedagógicas adequadas, maior atenção individualizada às crianças e conformidade com os parâmetros de qualidade."
+    )
+    elements.append(Paragraph(texto_desc_15, style_analise))
+    elements.append(Spacer(1, 15))
+    # -------------------------------------------------------------------------
+    # 📊 13. MANUTENÇÃO DE BRINQUEDOS NO PÁTIO DA PRÉ-ESCOLA (QUESITO 2.1.2)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>13. MANUTENÇÃO DE BRINQUEDOS NO PÁTIO DA PRÉ-ESCOLA (QUESITO 2.1.2)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>2.1.2 Cronograma de Manutenção Preventiva de Brinquedos (Pré-Escola)</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    # Função dedicada para extrair com segurança os quantitativos e pontuação do Quesito 2.1.2
+    def extrair_dados_q212(dado_ano):
+        dados_f = {"CRON": 0, "NCRON": 0, "SOLIC": 0, "NMANU": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        info_q = dado_ano.get("2.1.2", {})
+        if isinstance(info_q, dict):
+            val_str = info_q.get("valor", "")
+            dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+        else:
+            val_str = str(info_q)
+
+        try:
+            partes = val_str.split(",")
+            for p in partes:
+                if ":" in p:
+                    k, v = p.split(":")
+                    k = k.strip().upper()
+                    if k in dados_f:
+                        match = re.search(r'\d+', v)
+                        if match:
+                            dados_f[k] = int(match.group())
+        except Exception:
+            pass
+
+        calc_tot = sum(dados_f[f] for f in ["CRON", "NCRON", "SOLIC", "NMANU"])
+        if dados_f["TOTAL"] == 0 and calc_tot > 0:
+            dados_f["TOTAL"] = calc_tot
+
+        return dados_f
+
+    q212_ant = extrair_dados_q212(dados_ano_ant)
+    q212_atual = extrair_dados_q212(dados_ano_atual)
+
+    categorias_manutencao_pre = [
+        ("CRON", "Cumprem o Cronograma de Manutenção (CRON)"),
+        ("NCRON", "Possuem mas Não Cumprem o Cronograma (NCRON)"),
+        ("SOLIC", "Manutenção Apenas por Solicitação (SOLIC)"),
+        ("NMANU", "Não Realizam Manutenção/Troca (NMANU)"),
+        ("TOTAL", "TOTAL DE PRÉ-ESCOLAS AVALIADAS")
+    ]
+
+    data_ind_13 = [
+        [
+            Paragraph("Situação de Manutenção / Exercício", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_c, rotulo in categorias_manutencao_pre:
+        v_ant = q212_ant.get(id_c, 0)
+        v_at = q212_atual.get(id_c, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            txt_var = "+100.0%"
+            var_pct = 100.0
+        else:
+            txt_var = "0.0%"
+            var_pct = 0.0
+
+        # Lógica de Avaliação Qualitativa por Categoria
+        if id_c == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif id_c == "CRON":
+            # Para escolas que cumprem cronograma: Aumento é Melhora
+            aval = "<font color='#28a745'><b>Aumento (Melhora)</b></font>" if var_pct > 0 else "<font color='#dc3545'><b>Redução (Piora)</b></font>"
+        else:
+            # Para descumprimento, atendimento apenas por solicitação ou ausência de manutenção: Aumento é Piora
+            aval = "<font color='#dc3545'><b>Aumento (Piora)</b></font>" if var_pct > 0 else "<font color='#28a745'><b>Redução (Melhora)</b></font>"
+
+        if id_c == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_13.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_212 = q212_ant.get("pontos", 0.0)
+    pts_at_212 = q212_atual.get("pontos", 0.0)
+
+    if pts_ant_212 != 0:
+        var_pts_212 = ((pts_at_212 - pts_ant_212) / abs(pts_ant_212)) * 100.0
+        txt_var_pts_212 = f"{var_pts_212:+.1f}%"
+    elif pts_at_212 != 0:
+        txt_var_pts_212 = "+100.0%"
+    else:
+        txt_var_pts_212 = "0.0%"
+
+    if pts_at_212 > pts_ant_212:
+        aval_pts_212 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_212 < pts_ant_212:
+        aval_pts_212 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_212 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_13.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Nota Ponderada)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_212:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_212:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_212}</b>", style_td_var),
+        Paragraph(aval_pts_212, style_td_aval)
+    ])
+
+    tabela_ind_13 = Table(data_ind_13, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_13.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_13)
+    elements.append(Spacer(1, 10))
+
+    texto_desc_212 = (
+        f"A gestão de manutenção preventiva de equipamentos e brinquedos nos pátios da Pré-Escola (quesito <b>2.1.2</b>) "
+        f"registrou pontuação de <b>{pts_ant_212:.2f} pontos</b> em {ano_ant} e <b>{pts_at_212:.2f} pontos</b> em {ano_atual}. "
+        f"A implementação e o cumprimento rigoroso de um cronograma periódico de manutenção previnem acidentes, garantem a segurança das crianças e evitam penalidades nos indicadores i-EDUC."
+    )
+    elements.append(Paragraph(texto_desc_212, style_analise))
+    elements.append(Spacer(1, 15))
+    # -------------------------------------------------------------------------
+    # 📊 14. ESPAÇO POR ALUNO EM SALA DE AULA - PRÉ-ESCOLA (PARECER CNE/CEB Nº 8/2010 - QUESITO 2.3)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>14. ESPAÇO POR ALUNO EM SALA DE AULA - PRÉ-ESCOLA (PARECER CNE/CEB Nº 8/2010 - QUESITO 2.3)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>2.3 Análise Comparativa de Metragem por Aluno (Faixas F1 a F4)</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_faixas_q23(dado_ano):
+        """Suporta Dicionário ou String ("F1:10,F2:5...") referente ao Quesito 2.3"""
+        faixas = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return faixas
+
+        info_q = dado_ano.get("2.3", {})
+        
+        # Caso 1: O dado já é um dicionário estruturado
+        if isinstance(info_q, dict):
+            faixas["pontos"] = float(info_q.get("pontos", 0.0))
+            # Se as chaves já existirem direto no dict:
+            for k in ["F1", "F2", "F3", "F4"]:
+                if k in info_q:
+                    try: faixas[k] = int(info_q[k])
+                    except: pass
+            
+            val_str = str(info_q.get("valor", ""))
+        else:
+            val_str = str(info_q)
+
+        # Caso 2: Parse por String Regex (ex: "F1: 12, F2: 5")
+        if val_str:
+            for k in ["F1", "F2", "F3", "F4"]:
+                match = re.search(rf'{k}\s*:\s*(\d+)', val_str, re.IGNORECASE)
+                if match:
+                    faixas[k] = int(match.group(1))
+
+        faixas["TOTAL"] = faixas["F1"] + faixas["F2"] + faixas["F3"] + faixas["F4"]
+        return faixas
+
+    faixas_ant_23 = extrair_faixas_q23(dados_ano_ant)
+    faixas_atual_23 = extrair_faixas_q23(dados_ano_atual)
+
+    # Parâmetros específicos do Quesito 2.3 (Pré-Escola)
+    faixas_config_23 = [
+        ("F1", "Superior ou igual a 1,36 m² (F1 - Excelência)", True),
+        ("F2", "De 1,10 m² a 1,35 m² (F2 - Adequado)", True),
+        ("F3", "De 0,90 m² a 1,09 m² (F3 - Atenção)", False),
+        ("F4", "Inferior a 0,90 m² (F4 - Crítico)", False),
+        ("TOTAL", "TOTAL DE SALAS AVALIADAS", None)
+    ]
+
+    data_ind_14 = [
+        [
+            Paragraph("Faixa de Metragem / Métrica", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in faixas_config_23:
+        v_ant = faixas_ant_23.get(id_f, 0)
+        v_at = faixas_atual_23.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            txt_var = "+100.0%"
+            var_pct = 100.0
+        else:
+            txt_var = "0.0%"
+            var_pct = 0.0
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_14.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_23 = faixas_ant_23.get("pontos", 0.0)
+    pts_at_23 = faixas_atual_23.get("pontos", 0.0)
+
+    txt_var_pts_23 = f"{((pts_at_23 - pts_ant_23) / pts_ant_23) * 100:+.1f}%" if pts_ant_23 > 0 else ("+100.0%" if pts_at_23 > 0 else "0.0%")
+    aval_pts_23 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>" if pts_at_23 > pts_ant_23 else ("<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>" if pts_at_23 < pts_ant_23 else "<font color='#6c757d'><b>Estável</b></font>")
+
+    data_ind_14.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 10,0 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_23:.1f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_23:.1f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_23}</b>", style_td_var),
+        Paragraph(aval_pts_23, style_td_aval)
+    ])
+
+    tabela_ind_14 = Table(data_ind_14, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_14.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_14)
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 15. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 2.6)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>15. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 2.6)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>2.6 Detalhamento das Ausências e Afastamentos dos Professores Regentes (Pré-Escola)</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_ausencias_q26(dado_ano):
+        """
+        Extrai os dados de ausências da Questão 2.6 suportando tanto
+        dicionário quanto string formatada ('INJUST:0,JUST:0,MEDIC:0,MATERN:0,ABONO:0,OUTROS:0').
+        """
+        chaves = ["FI", "FJ", "LM", "LP", "AB", "OUT"]
+        dados_a = {k: 0 for k in chaves}
+        dados_a["TOTAL"] = 0
+
+        if not dado_ano:
+            return dados_a
+
+        info_q = dado_ano.get("2.6", {})
+
+        # Mapeamento completo dos aliases
+        mapa_chaves = {
+            "FI": ["INJUST", "INJ", "FI", "INJUSTIFICADA", "INJUSTIFICADAS"],
+            "FJ": ["JUST", "FJ", "JUSTIFICADA", "JUSTIFICADAS"],
+            "LM": ["MEDIC", "MED", "LM", "MEDICA", "LICENCA MEDICA", "SAUDE"],
+            "LP": ["MATERN", "MAT", "LP", "MATERNIDADE", "PATERNIDADE"],
+            "AB": ["ABONO", "ABO", "AB", "ABONADA", "ABONADAS"],
+            "OUT": ["OUTROS", "OUT", "AFASTAMENTO"]
+        }
+
+        val_str = ""
+        # 1. Se info_q for um dicionário
+        if isinstance(info_q, dict):
+            for chk, alias_list in mapa_chaves.items():
+                for alias in alias_list:
+                    val_encontrado = next((v for k, v in info_q.items() if str(k).strip().upper() == alias), None)
+                    if val_encontrado is not None:
+                        try:
+                            dados_a[chk] = int(val_encontrado)
+                            break
+                        except Exception:
+                            pass
+            val_str = str(info_q.get("valor", ""))
+        else:
+            val_str = str(info_q)
+
+        # 2. Se for string formatada (ex: INJUST:10,JUST:5,MEDIC:0,MATERN:2,ABONO:1,OUTROS:0)
+        if val_str:
+            for chk, alias_list in mapa_chaves.items():
+                if dados_a[chk] == 0:
+                    for alias in alias_list:
+                        # O \b garante a busca pela palavra exata evitando que INJUST seja confundido com JUST
+                        match = re.search(rf'\b{alias}\b\s*:\s*(\d+)', val_str, re.IGNORECASE)
+                        if match:
+                            dados_a[chk] = int(match.group(1))
+                            break
+
+        dados_a["TOTAL"] = sum(dados_a[k] for k in chaves)
+        return dados_a
+
+    q26_ant = extrair_ausencias_q26(dados_ano_ant)
+    q26_atual = extrair_ausencias_q26(dados_ano_atual)
+
+    # Para ausências de professores, REDUZIR dias é o objetivo desejado (positivo_se_crescer = False)
+    tipos_ausencias_26 = [
+        ("FI", "Faltas Injustificadas (dias)", False),
+        ("FJ", "Faltas Justificadas (dias)", False),
+        ("LM", "Licença Médica / Tratamento Saúde (dias)", False),
+        ("LP", "Licença Maternidade / Paternidade (dias)", False),
+        ("AB", "Abonos / Faltas Abonadas (dias)", False),
+        ("OUT", "Outros Afastamentos (dias)", False),
+        ("TOTAL", "TOTAL ACUMULADO DE AUSÊNCIAS (QTA)", False)
+    ]
+
+    data_ind_15 = [
+        [
+            Paragraph("Tipo de Ausência / Afastamento", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_a, rotulo, positivo_se_crescer in tipos_ausencias_26:
+        v_ant = q26_ant.get(id_a, 0)
+        v_at = q26_atual.get(id_a, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            txt_var = "+100.0%"
+            var_pct = 100.0
+        else:
+            txt_var = "0.0%"
+            var_pct = 0.0
+
+        if var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif var_pct < 0:
+            aval = "<font color='#28a745'><b>Redução<br/>(Melhora)</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Aumento<br/>(Atenção)</b></font>"
+
+        if id_a == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_15.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    tabela_ind_15 = Table(data_ind_15, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_15.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f2f4f4")),
+    ]))
+    elements.append(tabela_ind_15)
+    elements.append(Spacer(1, 10))
+
+    tot_ant_26 = q26_ant.get("TOTAL", 0)
+    tot_at_26 = q26_atual.get("TOTAL", 0)
+    diff_dias_26 = tot_at_26 - tot_ant_26
+    status_dias_26 = f"<font color='#dc3545'><b>aumento de {abs(diff_dias_26)} dias</b></font>" if diff_dias_26 > 0 else f"<font color='#28a745'><b>redução de {abs(diff_dias_26)} dias</b></font>"
+
+    style_analise = styles.get('AnaliseText', ParagraphStyle('AnaliseText', parent=styles['Normal'], fontSize=9, leading=12))
+
+    texto_desc_26 = (
+        f"O acompanhamento da Quantidade Total de Ausências (QTA) no quesito <b>2.6</b> registrou um {status_dias_26} "
+        f"de afastamento em relação ao ano anterior (de <b>{tot_ant_26} dias</b> em {ano_ant} para <b>{tot_at_26} dias</b> em {ano_atual}). "
+        f"A gestão da assiduidade docente na Pré-Escola é fundamental para assegurar o cumprimento dos dias letivos "
+        f"e garantir a continuidade do processo de aprendizagem."
+    )
+    elements.append(Paragraph(texto_desc_26, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 16. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE - PRÉ-ESCOLA (QUESITO 2.8)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>16. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE - PRÉ-ESCOLA (QUESITO 2.8)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>2.8 Análise da Distribuição de Escolas por Faixa de Rotatividade Docente (Pré-Escola)</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_q28(dado_ano):
+        dados_f = {"R1": 0, "R2": 0, "R3": 0, "R4": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        # Busca a chave "2.8" tratando espaços extras na chave do dicionário
+        info_q = {}
+        for k, v in dado_ano.items():
+            if str(k).strip() == "2.8":
+                info_q = v
+                break
+
+        val_str = ""
+        if isinstance(info_q, dict):
+            # Obtém a pontuação gravada no banco
+            try:
+                dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+            except Exception:
+                dados_f["pontos"] = 0.0
+
+            val_str = str(info_q.get("valor", ""))
+        else:
+            val_str = str(info_q)
+
+        # Extrai os pares R1:X, R2:Y, R3:Z, R4:W da string 'valor'
+        if val_str:
+            # Captura qualquer chave (R1, R2, F1, Q1, etc) e o valor numérico após os dois pontos
+            matches = re.findall(r'([RQF]\d+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
+            for chave, val in matches:
+                chave_norm = chave.upper().replace("Q", "R").replace("F", "R")
+                if chave_norm in dados_f:
+                    dados_f[chave_norm] = int(val)
+
+        calc_tot = dados_f["R1"] + dados_f["R2"] + dados_f["R3"] + dados_f["R4"]
+        dados_f["TOTAL"] = calc_tot
+
+        # Recalcula a pontuação caso esteja zerada no banco mas haja escolas
+        if dados_f["pontos"] == 0.0 and calc_tot > 0:
+            q1 = dados_f["R1"] / calc_tot
+            q2 = dados_f["R2"] / calc_tot
+            q3 = dados_f["R3"] / calc_tot
+            dados_f["pontos"] = round(float(3.0 * q1 + 2.0 * q2 + 1.0 * q3), 2)
+
+        return dados_f
+
+    q28_ant = extrair_dados_q28(dados_ano_ant)
+    q28_atual = extrair_dados_q28(dados_ano_atual)
+
+    faixas_q28 = [
+        ("R1", "Rotatividade < 20% (Q1 - Excelência)", True),
+        ("R2", "Rotatividade ≥ 20% e < 30% (Q2 - Adequado)", True),
+        ("R3", "Rotatividade ≥ 30% e < 40% (Q3 - Atenção)", False),
+        ("R4", "Rotatividade ≥ 40% (Q4 - Crítico)", False),
+        ("TOTAL", "TOTAL DE ESCOLAS AVALIADAS", None)
+    ]
+
+    data_ind_28 = [
+        [
+            Paragraph("Faixa de Rotatividade / Métrica", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in faixas_q28:
+        v_ant = q28_ant.get(id_f, 0)
+        v_at = q28_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            var_pct = 100.0
+            txt_var = "+100.0%"
+        else:
+            var_pct = 0.0
+            txt_var = "0.0%"
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_28.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_28 = q28_ant.get("pontos", 0.0)
+    pts_at_28 = q28_atual.get("pontos", 0.0)
+
+    if pts_ant_28 > 0:
+        var_pts_28 = ((pts_at_28 - pts_ant_28) / pts_ant_28) * 100.0
+        txt_var_pts_28 = f"{var_pts_28:+.1f}%"
+    elif pts_at_28 > 0:
+        txt_var_pts_28 = "+100.0%"
+    else:
+        txt_var_pts_28 = "0.0%"
+
+    if pts_at_28 > pts_ant_28:
+        aval_pts_28 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_28 < pts_ant_28:
+        aval_pts_28 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_28 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_28.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 3,0 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_28:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_28:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_28}</b>", style_td_var),
+        Paragraph(aval_pts_28, style_td_aval)
+    ])
+
+    tabela_ind_28 = Table(data_ind_28, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_28.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_28)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_28 = (
+        f"A avaliação da rotatividade docente no quesito <b>2.8</b> reflete a estabilidade da equipe escolar nas unidades de Pré-Escola. "
+        f"A pontuação do indicador evoluiu de <b>{pts_ant_28:.2f} pontos</b> no exercício {ano_ant} para <b>{pts_at_28:.2f} pontos</b> no exercício {ano_atual}. "
+        f"A menor rotatividade dos professores nas turmas de Pré-Escola assegura a continuidade do processo pedagógico e o alinhamento das ações docentes, "
+        f"impactando positivamente na consolidação da aprendizagem e na transição para o Ensino Fundamental."
+    )
+    elements.append(Paragraph(texto_desc_28, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 17. REGULARIDADE E PERMANÊNCIA DE GESTORES - ENSINO FUNDAMENTAL (QUESITO 2.9)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>17. REGULARIDADE E PERMANÊNCIA DE GESTORES (QUESITO 2.9)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>2.9 Análise do Tempo de Permanência dos Diretores/Gestores nas Unidades Escolares</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_q29(dado_ano):
+        dados_f = {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0, "G6": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        # Localiza o quesito 2.9 no dicionário
+        info_q = {}
+        for k, v in dado_ano.items():
+            if str(k).strip() == "2.9":
+                info_q = v
+                break
+
+        val_str = ""
+        if isinstance(info_q, dict):
+            try:
+                dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+            except Exception:
+                dados_f["pontos"] = 0.0
+
+            val_str = str(info_q.get("valor", ""))
+        else:
+            val_str = str(info_q)
+
+        # Captura os padrões G1:X, G2:Y... ou Q1:X... na string de valor
+        if val_str:
+            matches = re.findall(r'([GQ]\d+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
+            for chave, val in matches:
+                chave_norm = chave.upper().replace("Q", "G")
+                if chave_norm in dados_f:
+                    dados_f[chave_norm] = int(val)
+
+        calc_tot = (dados_f["G1"] + dados_f["G2"] + dados_f["G3"] + 
+                    dados_f["G4"] + dados_f["G5"] + dados_f["G6"])
+        dados_f["TOTAL"] = calc_tot
+
+        # Recalculo preventivo segundo as réguas de ponderação do IEGM caso esteja 0
+        if dados_f["pontos"] == 0.0 and calc_tot > 0:
+            q1 = dados_f["G1"] / calc_tot
+            q2 = dados_f["G2"] / calc_tot
+            q3 = dados_f["G3"] / calc_tot
+            q4 = dados_f["G4"] / calc_tot
+            q5 = dados_f["G5"] / calc_tot
+            q6 = dados_f["G6"] / calc_tot
+            
+            n1 = 0.0 * q1
+            n2 = 0.5 * q2
+            n3 = 1.0 * q3
+            n4 = 1.5 * q4
+            n5 = 1.75 * q5
+            n6 = 2.0 * q6
+            dados_f["pontos"] = round(float(n1 + n2 + n3 + n4 + n5 + n6), 2)
+
+        return dados_f
+
+    q29_ant = extrair_dados_q29(dados_ano_ant)
+    q29_atual = extrair_dados_q29(dados_ano_atual)
+
+    faixas_q29 = [
+        ("G1", "Permanência < 1 ano (G1 - Crítico)", False),
+        ("G2", "Permanência ≥ 1 ano e < 3 anos (G2 - Atenção)", True),
+        ("G3", "Permanência ≥ 3 anos e < 5 anos (G3 - Regular)", True),
+        ("G4", "Permanência ≥ 5 anos e < 10 anos (G4 - Bom)", True),
+        ("G5", "Permanência ≥ 10 anos e < 15 anos (G5 - Ótimo)", True),
+        ("G6", "Permanência ≥ 15 anos (G6 - Excelência)", True),
+        ("TOTAL", "TOTAL DE DIRETORES MAPEADOS", None)
+    ]
+
+    data_ind_29 = [
+        [
+            Paragraph("Tempo de Permanência / Métrica", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in faixas_q29:
+        v_ant = q29_ant.get(id_f, 0)
+        v_at = q29_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            var_pct = 100.0
+            txt_var = "+100.0%"
+        else:
+            var_pct = 0.0
+            txt_var = "0.0%"
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_29.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_29 = q29_ant.get("pontos", 0.0)
+    pts_at_29 = q29_atual.get("pontos", 0.0)
+
+    if pts_ant_29 > 0:
+        var_pts_29 = ((pts_at_29 - pts_ant_29) / pts_ant_29) * 100.0
+        txt_var_pts_29 = f"{var_pts_29:+.1f}%"
+    elif pts_at_29 > 0:
+        txt_var_pts_29 = "+100.0%"
+    else:
+        txt_var_pts_29 = "0.0%"
+
+    if pts_at_29 > pts_ant_29:
+        aval_pts_29 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_29 < pts_ant_29:
+        aval_pts_29 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_29 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_29.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 2,0 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_29:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_29:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_29}</b>", style_td_var),
+        Paragraph(aval_pts_29, style_td_aval)
+    ])
+
+    tabela_ind_29 = Table(data_ind_29, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_29.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_29)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_29 = (
+        f"A permanência dos diretores escolares nas unidades de ensino constitui fator relevante para a continuidade da gestão "
+        f"pedagógica e administrativa. No quesito <b>2.9</b>, a pontuação obtida variou de <b>{pts_ant_29:.2f} pontos</b> "
+        f"em {ano_ant} para <b>{pts_at_29:.2f} pontos</b> no exercício {ano_atual} (limite de 2,00 pontos). "
+        f"A maior tempo de permanência da equipe gestora fortalece a liderança comunitária e a implementação contínua do projeto político-pedagógico."
+    )
+    elements.append(Paragraph(texto_desc_29, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 18. QUANTIDADE DE TURMAS DE PRÉ-ESCOLA POR FAIXA (QUESITO 2.15)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>18. QUANTIDADE DE TURMAS DE PRÉ-ESCOLA POR FAIXA (QUESITO 2.15)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>2.15 Análise da Distribuição das Turmas de Pré-Escola por Faixa de Alunos</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_q215(dado_ano):
+        dados_f = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        # Localiza a chave "2.15" ignorando possíveis espaços extras
+        info_q = {}
+        for k, v in dado_ano.items():
+            if str(k).strip() == "2.15":
+                info_q = v
+                break
+
+        val_str = ""
+        if isinstance(info_q, dict):
+            try:
+                dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+            except Exception:
+                dados_f["pontos"] = 0.0
+
+            val_str = str(info_q.get("valor", ""))
+        else:
+            val_str = str(info_q)
+
+        # Extrai os pares F1:X, F2:Y, F3:Z, F4:W
+        if val_str:
+            matches = re.findall(r'([FQ]\d+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
+            for chave, val in matches:
+                chave_norm = chave.upper().replace("Q", "F")
+                if chave_norm in dados_f:
+                    dados_f[chave_norm] = int(val)
+
+        calc_tot = dados_f["F1"] + dados_f["F2"] + dados_f["F3"] + dados_f["F4"]
+        dados_f["TOTAL"] = calc_tot
+
+        # Recalculo preventivo da nota do quesito (escala de 0 a 10 pts)
+        if dados_f["pontos"] == 0.0 and calc_tot > 0:
+            p1 = dados_f["F1"] / calc_tot
+            p2 = dados_f["F2"] / calc_tot
+            p3 = dados_f["F3"] / calc_tot
+            p4 = dados_f["F4"] / calc_tot
+            
+            dados_f["pontos"] = round(10.0 * ((1.0 * p1) + (0.5 * p2) + (0.25 * p3) + (0.0 * p4)), 2)
+
+        return dados_f
+
+    q215_ant = extrair_dados_q215(dados_ano_ant)
+    q215_atual = extrair_dados_q215(dados_ano_atual)
+
+    faixas_q215 = [
+        ("F1", "Até 22 alunos (F1 - Peso 1.0 - Ideal)", True),
+        ("F2", "De 23 a 25 alunos (F2 - Peso 0.5 - Moderado)", True),
+        ("F3", "De 26 a 30 alunos (F3 - Peso 0.25 - Alerta)", False),
+        ("F4", "Acima de 30 alunos (F4 - Peso 0.0 - Excessivo)", False),
+        ("TOTAL", "TOTAL DE TURMAS ANALISADAS", None)
+    ]
+
+    data_ind_215 = [
+        [
+            Paragraph("Faixa de Alunos por Turma / Métrica", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in faixas_q215:
+        v_ant = q215_ant.get(id_f, 0)
+        v_at = q215_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            var_pct = 100.0
+            txt_var = "+100.0%"
+        else:
+            var_pct = 0.0
+            txt_var = "0.0%"
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_215.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_215 = q215_ant.get("pontos", 0.0)
+    pts_at_215 = q215_atual.get("pontos", 0.0)
+
+    if pts_ant_215 > 0:
+        var_pts_215 = ((pts_at_215 - pts_ant_215) / pts_ant_215) * 100.0
+        txt_var_pts_215 = f"{var_pts_215:+.1f}%"
+    elif pts_at_215 > 0:
+        txt_var_pts_215 = "+100.0%"
+    else:
+        txt_var_pts_215 = "0.0%"
+
+    if pts_at_215 > pts_ant_215:
+        aval_pts_215 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_215 < pts_ant_215:
+        aval_pts_215 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_215 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_215.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 10,0 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_215:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_215:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_215}</b>", style_td_var),
+        Paragraph(aval_pts_215, style_td_aval)
+    ])
+
+    tabela_ind_215 = Table(data_ind_215, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_215.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_215)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_215 = (
+        f"A distribuição de alunos por turma na Pré-Escola (quesito <b>2.15</b>) é decisiva para garantir o acompanhamento individualizado e o desenvolvimento infantil. "
+        f"A pontuação do indicador variou de <b>{pts_ant_215:.2f} pontos</b> em {ano_ant} para <b>{pts_at_215:.2f} pontos</b> no exercício {ano_atual} (escala até 10,00 pts). "
+        f"A manutenção das turmas dentro dos limites recomendados de ocupação (até 22 alunos) evita a sobrecarga docente e assegura a qualidade das interações pedagógicas nesta etapa do ensino."
+    )
+    elements.append(Paragraph(texto_desc_215, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 19. ESPAÇO POR ALUNO EM SALA DE AULA - ANOS INICIAIS (QUESITO 3.1)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>19. ESPAÇO POR ALUNO EM SALA DE AULA - ANOS INICIAIS (QUESITO 3.1)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>3.1 Análise da Adequação do Espaço Físico por Aluno nas Salas de Aula dos Anos Iniciais</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_q31(dado_ano):
+        dados_f = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        # Busca flexível pela chave "3.1"
+        info_q = {}
+        for k, v in dado_ano.items():
+            if str(k).strip() == "3.1":
+                info_q = v
+                break
+
+        val_obj = None
+        if isinstance(info_q, dict):
+            try:
+                dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+            except Exception:
+                dados_f["pontos"] = 0.0
+
+            val_obj = info_q.get("valor", "")
+        else:
+            val_obj = info_q
+
+        # Tratamento de legados onde 'valor' era armazenado como dicionário
+        if isinstance(val_obj, dict):
+            dados_f["F1"] = int(val_obj.get("t1", val_obj.get("F1", 0)))
+            dados_f["F2"] = int(val_obj.get("t2", val_obj.get("F2", 0)))
+            dados_f["F3"] = int(val_obj.get("t3", val_obj.get("F3", 0)))
+            dados_f["F4"] = int(val_obj.get("t4", val_obj.get("F4", 0)))
+        else:
+            val_str = str(val_obj)
+            if val_str:
+                matches = re.findall(r'([FQ]\d+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
+                for chave, val in matches:
+                    chave_norm = chave.upper().replace("Q", "F")
+                    if chave_norm in dados_f:
+                        dados_f[chave_norm] = int(val)
+
+        calc_tot = dados_f["F1"] + dados_f["F2"] + dados_f["F3"] + dados_f["F4"]
+        dados_f["TOTAL"] = calc_tot
+
+        # Recalculo preventivo da nota ponderada (escala de 0 a 10 pts)
+        if dados_f["pontos"] == 0.0 and calc_tot > 0:
+            p1 = dados_f["F1"] / calc_tot
+            p2 = dados_f["F2"] / calc_tot
+            p3 = dados_f["F3"] / calc_tot
+            p4 = dados_f["F4"] / calc_tot
+            
+            dados_f["pontos"] = round((10.0 * p1) + (5.0 * p2) + (2.5 * p3) + (0.0 * p4), 2)
+
+        return dados_f
+
+    q31_ant = extrair_dados_q31(dados_dados_ant if 'dados_dados_ant' in locals() else dados_ano_ant)
+    q31_atual = extrair_dados_q31(dados_ano_atual)
+
+    faixas_q31 = [
+        ("F1", "≥ 1,875 m² por aluno (F1 - Ideal / Excelente)", True),
+        ("F2", "≥ 1,20 m² e < 1,875 m² (F2 - Adequado)", True),
+        ("F3", "≥ 1,00 m² e < 1,20 m² (F3 - Limite de Alerta)", False),
+        ("F4", "< 1,00 m² por aluno (F4 - Inadequado / Crítico)", False),
+        ("TOTAL", "TOTAL DE TURMAS MAPEADAS", None)
+    ]
+
+    data_ind_31 = [
+        [
+            Paragraph("Faixa de Área Útil por Aluno / Métrica", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in faixas_q31:
+        v_ant = q31_ant.get(id_f, 0)
+        v_at = q31_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            var_pct = 100.0
+            txt_var = "+100.0%"
+        else:
+            var_pct = 0.0
+            txt_var = "0.0%"
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_31.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_31 = q31_ant.get("pontos", 0.0)
+    pts_at_31 = q31_atual.get("pontos", 0.0)
+
+    if pts_ant_31 > 0:
+        var_pts_31 = ((pts_at_31 - pts_ant_31) / pts_ant_31) * 100.0
+        txt_var_pts_31 = f"{var_pts_31:+.1f}%"
+    elif pts_at_31 > 0:
+        txt_var_pts_31 = "+100.0%"
+    else:
+        txt_var_pts_31 = "0.0%"
+
+    if pts_at_31 > pts_ant_31:
+        aval_pts_31 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_31 < pts_ant_31:
+        aval_pts_31 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_31 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_31.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 10,0 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_31:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_31:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_31}</b>", style_td_var),
+        Paragraph(aval_pts_31, style_td_aval)
+    ])
+
+    tabela_ind_31 = Table(data_ind_31, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_31.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_31)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_31 = (
+        f"O dimensionamento do espaço físico em sala de aula nos Anos Iniciais do Ensino Fundamental impacta diretamente o conforto, "
+        f"a mobilidade pedagógica e a insolação/ventilação adequada. No quesito <b>3.1</b>, a pontuação alcançada evoluiu de "
+        f"<b>{pts_ant_31:.2f} pontos</b> em {ano_ant} para <b>{pts_at_31:.2f} pontos</b> no exercício {ano_atual} (em uma escala de 0 a 10,00 pts). "
+        f"A priorização de ambientes com metragem superior a 1,20 m² por aluno atende aos parâmetros nacionais de qualidade em infraestrutura escolar."
+    )
+    elements.append(Paragraph(texto_desc_31, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 20. AUSÊNCIAS DE PROFESSORES - ANOS INICIAIS (QUESITO 3.4)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>20. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES - ANOS INICIAIS (QUESITO 3.4)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>3.4 Análise e Distribuição dos Motivos de Ausência Docente nos Anos Iniciais</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_q34(dado_ano):
+        dados_f = {"FI": 0, "FJ": 0, "LM": 0, "LMP": 0, "AB": 0, "OU": 0, "TOTAL": 0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        info_q = {}
+        for k, v in dado_ano.items():
+            if str(k).strip() == "3.4":
+                info_q = v
+                break
+
+        val_obj = info_q.get("valor", "") if isinstance(info_q, dict) else info_q
+
+        if isinstance(val_obj, dict):
+            for k_motive in dados_f.keys():
+                if k_motive != "TOTAL":
+                    dados_f[k_motive] = int(val_obj.get(k_motive, 0))
+        else:
+            val_str = str(val_obj)
+            if val_str:
+                matches = re.findall(r'([A-Z]+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
+                for chave, val in matches:
+                    chave_norm = chave.upper()
+                    if chave_norm in dados_f:
+                        dados_f[chave_norm] = int(val)
+
+        dados_f["TOTAL"] = sum(dados_f[k] for k in ["FI", "FJ", "LM", "LMP", "AB", "OU"])
+        return dados_f
+
+    q34_ant = extrair_dados_q34(dados_dados_ant if 'dados_dados_ant' in locals() else dados_ano_ant)
+    q34_atual = extrair_dados_q34(dados_ano_atual)
+
+    categorias_q34 = [
+        ("FI", "Faltas Injustificadas", False),
+        ("FJ", "Faltas Justificadas", False),
+        ("LM", "Licença Médica", False),
+        ("LMP", "Licença Maternidade/Paternidade", False),
+        ("AB", "Abonos", False),
+        ("OU", "Outros (Amparadas por Lei)", False),
+        ("TOTAL", "TOTAL GERAL DE AUSÊNCIAS (DIAS)", False)
+    ]
+
+    data_ind_34 = [
+        [
+            Paragraph("Tipologia de Ausência / Afastamento", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in categorias_q34:
+        v_ant = q34_ant.get(id_f, 0)
+        v_at = q34_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            var_pct = 100.0
+            txt_var = "+100.0%"
+        else:
+            var_pct = 0.0
+            txt_var = "0.0%"
+
+        if var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_34.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    tabela_ind_34 = Table(data_ind_34, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_34.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f2f4f4")),
+    ]))
+    elements.append(tabela_ind_34)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_34 = (
+        f"A continuidade do trabalho docente nos Anos Iniciais é um fator determinante para a consolidação da alfabetização e o fluxo de aprendizagem. "
+        f"O acompanhamento do quesito <b>3.4</b> registrou um acumulado de <b>{q34_ant['TOTAL']} dias</b> de ausência em {ano_ant} "
+        f"frente a <b>{q34_atual['TOTAL']} dias</b> no exercício {ano_atual}. A gestão eficiente de substituições temporárias e o monitoramento das licenças "
+        f"são imprescindíveis para evitar o prejuízo direto ao cumprimento dos 200 dias letivos e das 800 horas de trabalho escolar efetivo."
+    )
+    elements.append(Paragraph(texto_desc_34, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 21. ROTATIVIDADE DOCENTE - ANOS INICIAIS (QUESITO 3.6)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>21. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE - ANOS INICIAIS (QUESITO 3.6)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>3.6 Distribuição das Escolas dos Anos Iniciais por Faixa de Rotatividade de Professores</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_q36(dado_ano):
+        dados_f = {"E1": 0, "E2": 0, "E3": 0, "E4": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        info_q = {}
+        for k, v in dado_ano.items():
+            if str(k).strip() == "3.6":
+                info_q = v
+                break
+
+        val_obj = None
+        if isinstance(info_q, dict):
+            try:
+                dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+            except Exception:
+                dados_f["pontos"] = 0.0
+            val_obj = info_q.get("valor", "")
+        else:
+            val_obj = info_q
+
+        if isinstance(val_obj, dict):
+            dados_f["E1"] = int(val_obj.get("E1", 0))
+            dados_f["E2"] = int(val_obj.get("E2", 0))
+            dados_f["E3"] = int(val_obj.get("E3", 0))
+            dados_f["E4"] = int(val_obj.get("E4", 0))
+        else:
+            val_str = str(val_obj)
+            if val_str:
+                matches = re.findall(r'([EQ]\d+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
+                for chave, val in matches:
+                    chave_norm = chave.upper().replace("Q", "E")
+                    if chave_norm in dados_f:
+                        dados_f[chave_norm] = int(val)
+
+        calc_tot = dados_f["E1"] + dados_f["E2"] + dados_f["E3"] + dados_f["E4"]
+        dados_f["TOTAL"] = calc_tot
+
+        # Recálculo preventivo da nota ponderada (escala de 0 a 3,00 pts)
+        if dados_f["pontos"] == 0.0 and calc_tot > 0:
+            q1 = dados_f["E1"] / calc_tot
+            q2 = dados_f["E2"] / calc_tot
+            q3 = dados_f["E3"] / calc_tot
+            dados_f["pontos"] = round((3.0 * q1) + (2.0 * q2) + (1.0 * q3), 2)
+
+        return dados_f
+
+    q36_ant = extrair_dados_q36(dados_dados_ant if 'dados_dados_ant' in locals() else dados_ano_ant)
+    q36_atual = extrair_dados_q36(dados_ano_atual)
+
+    faixas_q36 = [
+        ("E1", "Rotatividade < 20% (E1 - Baixa Rotatividade)", True),
+        ("E2", "Rotatividade entre 20% e 30% (E2 - Média-Baixa)", True),
+        ("E3", "Rotatividade entre 30% e 40% (E3 - Média-Alta)", False),
+        ("E4", "Rotatividade ≥ 40% (E4 - Alta Rotatividade)", False),
+        ("TOTAL", "TOTAL DE ESCOLAS MAPEADAS", None)
+    ]
+
+    data_ind_36 = [
+        [
+            Paragraph("Faixa de Rotatividade Docente / Métrica", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in faixas_q36:
+        v_ant = q36_ant.get(id_f, 0)
+        v_at = q36_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            var_pct = 100.0
+            txt_var = "+100.0%"
+        else:
+            var_pct = 0.0
+            txt_var = "0.0%"
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_36.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_36 = q36_ant.get("pontos", 0.0)
+    pts_at_36 = q36_atual.get("pontos", 0.0)
+
+    if pts_ant_36 > 0:
+        var_pts_36 = ((pts_at_36 - pts_ant_36) / pts_ant_36) * 100.0
+        txt_var_pts_36 = f"{var_pts_36:+.1f}%"
+    elif pts_at_36 > 0:
+        txt_var_pts_36 = "+100.0%"
+    else:
+        txt_var_pts_36 = "0.0%"
+
+    if pts_at_36 > pts_ant_36:
+        aval_pts_36 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_36 < pts_ant_36:
+        aval_pts_36 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_36 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_36.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 3,00 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_36:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_36:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_36}</b>", style_td_var),
+        Paragraph(aval_pts_36, style_td_aval)
+    ])
+
+    tabela_ind_36 = Table(data_ind_36, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_36.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_36)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_36 = (
+        f"A estabilidade do corpo docente nas unidades de Anos Iniciais contribui diretamente para o fortalecimento do vínculo pedagógico "
+        f"e o acompanhamento contínuo dos estudantes. No quesito <b>3.6</b>, a nota obtida alterou-se de "
+        f"<b>{pts_ant_36:.2f} pontos</b> em {ano_ant} para <b>{pts_at_36:.2f} pontos</b> em {ano_atual} (máximo de 3,00 pontos). "
+        f"A alocação continuada de professores e a redução da rotatividade nas faixas elevadas (E3 e E4) consolidam Projetos Político-Pedagógicos mais eficientes."
+    )
+    elements.append(Paragraph(texto_desc_36, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 22. REGULARIDADE DE GESTORES - ANOS INICIAIS (QUESITO 3.7)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>22. REGULARIDADE E PERMANÊNCIA DE GESTORES - ANOS INICIAIS (QUESITO 3.7)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>3.7 Distribuição do Tempo de Permanência dos Gestores Escolares à Frente da Mesma Unidade</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_q37(dado_ano):
+        dados_f = {"G1": 0, "G2": 0, "G3": 0, "G4": 0, "G5": 0, "G6": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        info_q = {}
+        for k, v in dado_ano.items():
+            if str(k).strip() == "3.7":
+                info_q = v
+                break
+
+        val_obj = None
+        if isinstance(info_q, dict):
+            try:
+                dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+            except Exception:
+                dados_f["pontos"] = 0.0
+            val_obj = info_q.get("valor", "")
+        else:
+            val_obj = info_q
+
+        if isinstance(val_obj, dict):
+            for i in range(1, 7):
+                k_g = f"G{i}"
+                dados_f[k_g] = int(val_obj.get(k_g, val_obj.get(f"g{i}", 0)))
+        else:
+            val_str = str(val_obj)
+            if val_str:
+                matches = re.findall(r'([GQ]\d+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
+                for chave, val in matches:
+                    chave_norm = chave.upper().replace("Q", "G")
+                    if chave_norm in dados_f:
+                        dados_f[chave_norm] = int(val)
+
+        calc_tot = sum(dados_f[f"G{i}"] for i in range(1, 7))
+        dados_f["TOTAL"] = calc_tot
+
+        # Recálculo preventivo da pontuação (escala de 0 a 2,00 pts)
+        # Formula IEGM: (0.0*Q1) + (0.5*Q2) + (1.0*Q3) + (1.5*Q4) + (1.75*Q5) + (2.0*Q6)
+        if dados_f["pontos"] == 0.0 and calc_tot > 0:
+            q2 = dados_f["G2"] / calc_tot
+            q3 = dados_f["G3"] / calc_tot
+            q4 = dados_f["G4"] / calc_tot
+            q5 = dados_f["G5"] / calc_tot
+            q6 = dados_f["G6"] / calc_tot
+            dados_f["pontos"] = round((0.5 * q2) + (1.0 * q3) + (1.5 * q4) + (1.75 * q5) + (2.0 * q6), 2)
+
+        return dados_f
+
+    q37_ant = extrair_dados_q37(dados_dados_ant if 'dados_dados_ant' in locals() else dados_ano_ant)
+    q37_atual = extrair_dados_q37(dados_ano_atual)
+
+    faixas_q37 = [
+        ("G1", "< 1 ano (G1 - Baixa Permanência)", False),
+        ("G2", "≥ 1 ano e < 3 anos (G2 - Permanência Inicial)", False),
+        ("G3", "≥ 3 anos e < 5 anos (G3 - Permanência Intermediária)", True),
+        ("G4", "≥ 5 anos e < 10 anos (G4 - Permanência Consolidada)", True),
+        ("G5", "≥ 10 anos e < 15 anos (G5 - Alta Permanência)", True),
+        ("G6", "≥ 15 anos (G6 - Longa Trajetória)", True),
+        ("TOTAL", "TOTAL DE GESTORES / ESCOLAS MAPEADAS", None)
+    ]
+
+    data_ind_37 = [
+        [
+            Paragraph("Tempo de Permanência do Gestor na Unidade", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in faixas_q37:
+        v_ant = q37_ant.get(id_f, 0)
+        v_at = q37_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            var_pct = 100.0
+            txt_var = "+100.0%"
+        else:
+            var_pct = 0.0
+            txt_var = "0.0%"
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_37.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_37 = q37_ant.get("pontos", 0.0)
+    pts_at_37 = q37_atual.get("pontos", 0.0)
+
+    if pts_ant_37 > 0:
+        var_pts_37 = ((pts_at_37 - pts_ant_37) / pts_ant_37) * 100.0
+        txt_var_pts_37 = f"{var_pts_37:+.1f}%"
+    elif pts_at_37 > 0:
+        txt_var_pts_37 = "+100.0%"
+    else:
+        txt_var_pts_37 = "0.0%"
+
+    if pts_at_37 > pts_ant_37:
+        aval_pts_37 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_37 < pts_ant_37:
+        aval_pts_37 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_37 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_37.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 2,00 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_37:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_37:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_37}</b>", style_td_var),
+        Paragraph(aval_pts_37, style_td_aval)
+    ])
+
+    tabela_ind_37 = Table(data_ind_37, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_37.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_37)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_37 = (
+        f"A estabilidade da gestão escolar nos Anos Iniciais assegura a continuidade das políticas pedagógicas e o alinhamento com a equipe docente. "
+        f"No quesito <b>3.7</b>, a nota obtida evoluiu de <b>{pts_ant_37:.2f} pontos</b> no exercício {ano_ant} "
+        f"para <b>{pts_at_37:.2f} pontos</b> no exercício {ano_atual} (em uma escala de 0 a 2,00 pts). "
+        f"A manutenção prolongada de diretores à frente da mesma unidade contribui para a consolidação de projetos educacionais de longo prazo e melhor clima organizacional."
+    )
+    elements.append(Paragraph(texto_desc_37, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 23. QUANTIDADE DE TURMAS DOS ANOS INICIAIS POR FAIXA (QUESITO 3.19)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>23. DENSIDADE DE ALUNOS POR TURMA - ANOS INICIAIS (QUESITO 3.19)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>3.19 Distribuição das Turmas dos Anos Iniciais por Faixa de Densidade de Alunos</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_q319(dado_ano):
+        dados_f = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        info_q = {}
+        for k, v in dado_ano.items():
+            if str(k).strip() == "3.19":
+                info_q = v
+                break
+
+        val_obj = None
+        if isinstance(info_q, dict):
+            try:
+                dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+            except Exception:
+                dados_f["pontos"] = 0.0
+            val_obj = info_q.get("valor", "")
+        else:
+            val_obj = info_q
+
+        if isinstance(val_obj, dict):
+            for i in range(1, 5):
+                k_f = f"F{i}"
+                dados_f[k_f] = int(val_obj.get(k_f, val_obj.get(f"f{i}", 0)))
+        else:
+            val_str = str(val_obj)
+            if val_str:
+                matches = re.findall(r'([FQ]\d+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
+                for chave, val in matches:
+                    chave_norm = chave.upper().replace("Q", "F")
+                    if chave_norm in dados_f:
+                        dados_f[chave_norm] = int(val)
+
+        calc_tot = sum(dados_f[f"F{i}"] for i in range(1, 5))
+        dados_f["TOTAL"] = calc_tot
+
+        # Recálculo preventivo da nota ponderada (escala de 0 a 10,00 pts)
+        # Fórmula IEGM: NF = min(10.0, (10*P1) + (7*P2) + (3*P3) + (0*P4))
+        if dados_f["pontos"] == 0.0 and calc_tot > 0:
+            p1 = dados_f["F1"] / calc_tot
+            p2 = dados_f["F2"] / calc_tot
+            p3 = dados_f["F3"] / calc_tot
+            dados_f["pontos"] = min(10.0, round((10.0 * p1) + (7.0 * p2) + (3.0 * p3), 2))
+
+        return dados_f
+
+    q319_ant = extrair_dados_q319(dados_dados_ant if 'dados_dados_ant' in locals() else dados_ano_ant)
+    q319_atual = extrair_dados_q319(dados_ano_atual)
+
+    faixas_q319 = [
+        ("F1", "Até 24 alunos (Faixa Ideal - Pontuação Máxima)", True),
+        ("F2", "De 25 a 30 alunos (Faixa Adequada)", True),
+        ("F3", "De 31 a 33 alunos (Faixa de Alerta)", False),
+        ("F4", "Acima de 33 alunos (Superlotação / Crítico)", False),
+        ("TOTAL", "TOTAL DE TURMAS APURADAS", None)
+    ]
+
+    data_ind_319 = [
+        [
+            Paragraph("Faixa de Densidade de Alunos / Turma", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer in faixas_q319:
+        v_ant = q319_ant.get(id_f, 0)
+        v_at = q319_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            var_pct = 100.0
+            txt_var = "+100.0%"
+        else:
+            var_pct = 0.0
+            txt_var = "0.0%"
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_319.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_319 = q319_ant.get("pontos", 0.0)
+    pts_at_319 = q319_atual.get("pontos", 0.0)
+
+    if pts_ant_319 > 0:
+        var_pts_319 = ((pts_at_319 - pts_ant_319) / pts_ant_319) * 100.0
+        txt_var_pts_319 = f"{var_pts_319:+.1f}%"
+    elif pts_at_319 > 0:
+        txt_var_pts_319 = "+100.0%"
+    else:
+        txt_var_pts_319 = "0.0%"
+
+    if pts_at_319 > pts_ant_319:
+        aval_pts_319 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_319 < pts_ant_319:
+        aval_pts_319 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_319 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_319.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 10,00 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_319:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_319:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_319}</b>", style_td_var),
+        Paragraph(aval_pts_319, style_td_aval)
+    ])
+
+    tabela_ind_319 = Table(data_ind_319, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_319.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_319)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_319 = (
+        f"A distribuição do número de estudantes por turma nos Anos Iniciais do Ensino Fundamental impacta diretamente o processo de alfabetização "
+        f"e a qualidade do atendimento pedagógico. No quesito <b>3.19</b>, a pontuação do município variou de <b>{pts_ant_319:.2f} pontos</b> em {ano_ant} "
+        f"para <b>{pts_at_319:.2f} pontos</b> em {ano_atual} (escala de 0 a 10,00 pontos). "
+        f"O dimensionamento correto e a redução de turmas na faixa F4 (acima de 33 alunos) favorecem o acompanhamento individualizado e previnem a sobrecarga docente."
+    )
+    elements.append(Paragraph(texto_desc_319, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 24. INFRAESTRUTURA E SEGURANÇA ESCOLAR (QUESITO 5.0)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>24. INFRAESTRUTURA E SEGURANÇA ESCOLAR (QUESITO 5.0)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>5.0 Diagnóstico de Auto de Vistoria do Corpo de Bombeiros (AVCB), Necessidade de Reparos e Capacitação em Primeiros Socorros</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_q50(dado_ano):
+        dados_f = {"TOTAL": 0, "AVCB": 0, "REPARO": 0, "SOCORRO": 0, "pts_avcb": 0.0, "pts_reparo": 0.0, "pontos": 0.0}
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        info_q = {}
+        for k, v in dado_ano.items():
+            if str(k).strip() == "5.0":
+                info_q = v
+                break
+
+        val_obj = None
+        if isinstance(info_q, dict):
+            try:
+                dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+            except Exception:
+                dados_f["pontos"] = 0.0
+            val_obj = info_q.get("valor", "")
+        else:
+            val_obj = info_q
+
+        if isinstance(val_obj, dict):
+            dados_f["TOTAL"] = int(val_obj.get("TOTAL", 0))
+            dados_f["AVCB"] = int(val_obj.get("AVCB", 0))
+            dados_f["REPARO"] = int(val_obj.get("REPARO", 0))
+            dados_f["SOCORRO"] = int(val_obj.get("SOCORRO", 0))
+        else:
+            val_str = str(val_obj)
+            if val_str:
+                matches = re.findall(r'([A-Z]+)\s*:\s*([0-9\-]+)', val_str, re.IGNORECASE)
+                for chave, val in matches:
+                    ch_u = chave.upper()
+                    if ch_u in dados_f and val != "-":
+                        try:
+                            dados_f[ch_u] = int(val)
+                        except ValueError:
+                            pass
+
+        tot_escolas = dados_f["TOTAL"]
+        if tot_escolas > 0:
+            p_avcb = min(dados_f["AVCB"] / tot_escolas, 1.0)
+            p_reparo = min(dados_f["REPARO"] / tot_escolas, 1.0)
+            
+            dados_f["pts_avcb"] = round(p_avcb * 50.0, 2)
+            dados_f["pts_reparo"] = round((1.0 - p_reparo) * 25.0, 2)
+            
+            # Recálculo preventivo se nota global não estiver armazenada
+            if dados_f["pontos"] == 0.0:
+                dados_f["pontos"] = round(dados_f["pts_avcb"] + dados_f["pts_reparo"], 2)
+
+        return dados_f
+
+    q50_ant = extrair_dados_q50(dados_dados_ant if 'dados_dados_ant' in locals() else dados_ano_ant)
+    q50_atual = extrair_dados_q50(dados_ano_atual)
+
+    faixas_q50 = [
+        ("TOTAL", "Total de Estabelecimentos Sob Gestão Municipal", None, "escolas"),
+        ("AVCB", "Escolas com Auto de Vistoria do Corpo de Bombeiros (AVCB) Vigente", True, "escolas"),
+        ("REPARO", "Escolas com Necessidade de Reparos Estruturais", False, "escolas"),
+        ("SOCORRO", "Escolas com Capacitação em Primeiros Socorros (Lei Lucas)", True, "escolas"),
+    ]
+
+    data_ind_50 = [
+        [
+            Paragraph("Indicador de Infraestrutura / Segurança", style_th), 
+            Paragraph(f"Exercício {ano_ant}", style_th), 
+            Paragraph(f"Exercício {ano_atual}", style_th), 
+            Paragraph("Variação (%)", style_th), 
+            Paragraph("Avaliação", style_th)
+        ]
+    ]
+
+    for id_f, rotulo, positivo_se_crescer, unidade in faixas_q50:
+        v_ant = q50_ant.get(id_f, 0)
+        v_at = q50_atual.get(id_f, 0)
+
+        if v_ant > 0:
+            var_pct = ((v_at - v_ant) / v_ant) * 100.0
+            txt_var = f"{var_pct:+.1f}%"
+        elif v_at > 0:
+            var_pct = 100.0
+            txt_var = "+100.0%"
+        else:
+            var_pct = 0.0
+            txt_var = "0.0%"
+
+        if id_f == "TOTAL":
+            aval = "<font color='#6c757d'><b>Informativo</b></font>"
+        elif var_pct == 0:
+            aval = "<font color='#6c757d'><b>Estável</b></font>"
+        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+            aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        else:
+            aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+
+        if id_f == "TOTAL":
+            p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
+            p_ant = Paragraph(f"<b>{v_ant}</b>", style_td_ano)
+            p_at = Paragraph(f"<b>{v_at}</b>", style_td_ano)
+            p_var = Paragraph(f"<b>{txt_var}</b>", style_td_var)
+        else:
+            p_rotulo = Paragraph(rotulo, style_item_esquerda)
+            p_ant = Paragraph(str(v_ant), style_td_ano)
+            p_at = Paragraph(str(v_at), style_td_ano)
+            p_var = Paragraph(txt_var, style_td_var)
+
+        data_ind_50.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+
+    pts_ant_50 = q50_ant.get("pontos", 0.0)
+    pts_at_50 = q50_atual.get("pontos", 0.0)
+
+    if pts_ant_50 > 0:
+        var_pts_50 = ((pts_at_50 - pts_ant_50) / pts_ant_50) * 100.0
+        txt_var_pts_50 = f"{var_pts_50:+.1f}%"
+    elif pts_at_50 > 0:
+        txt_var_pts_50 = "+100.0%"
+    else:
+        txt_var_pts_50 = "0.0%"
+
+    if pts_at_50 > pts_ant_50:
+        aval_pts_50 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+    elif pts_at_50 < pts_ant_50:
+        aval_pts_50 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+    else:
+        aval_pts_50 = "<font color='#6c757d'><b>Estável</b></font>"
+
+    data_ind_50.append([
+        Paragraph("<b>PONTUAÇÃO RESULTANTE GERAL (Máx: 75,00 pts)</b>", style_item_esquerda),
+        Paragraph(f"<b>{pts_ant_50:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{pts_at_50:.2f}</b>", style_td_ano),
+        Paragraph(f"<b>{txt_var_pts_50}</b>", style_td_var),
+        Paragraph(aval_pts_50, style_td_aval)
+    ])
+
+    tabela_ind_50 = Table(data_ind_50, colWidths=[180, 75, 75, 75, 80])
+    tabela_ind_50.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+        ("BACKGROUND", (0, 1), (-1, 1), colors.HexColor("#f8f9fa")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+    ]))
+    elements.append(tabela_ind_50)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_50 = (
+        f"A conformidade dos prédios escolares com as normas de segurança física e prevenção contra incêndio é fator determinante para a proteção da comunidade escolar. "
+        f"No quesito <b>5.0</b>, a nota global do município alterou-se de <b>{pts_ant_50:.2f} pontos</b> em {ano_ant} para <b>{pts_at_50:.2f} pontos</b> em {ano_atual} "
+        f"(máximo de 75,00 pontos, compostos pela regularização de AVCB [máx 50 pts] e ausência de reparos estruturais pendentes [máx 25 pts]). "
+        f"A ampliação da cobertura do AVCB e a manutenção preventiva contínua reduzem riscos operacionais e sanções junto aos órgãos fiscalizadores."
+    )
+    elements.append(Paragraph(texto_desc_50, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 25. LIMITES CONSTITUCIONAIS E LEGAIS (INDICADORES E9, E10 E E11)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>25. LIMITES CONSTITUCIONAIS E LEGAIS (E9, E10 E E11)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>Aplicação de Recursos do FUNDEB e Mínimo Constitucional em Educação (Dados AUDESP)</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_limites(dado_ano):
+        dados_f = {
+            "E9": {"val": 0.0, "status": "Sem Dados"},
+            "E10": {"val": 0.0, "status": "Sem Dados"},
+            "E11": {"val": 0.0, "desp": 0.0, "rec": 0.0, "status": "Sem Dados"}
+        }
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        # Processamento E9 (Aplicação Total FUNDEB >= 90%)
+        d_e9 = dado_ano.get("E9", {})
+        v_e9 = d_e9.get("valor", "0") if isinstance(d_e9, dict) else str(d_e9)
+        try:
+            val_e9 = float(str(v_e9).replace(",", "."))
+            dados_f["E9"]["val"] = val_e9
+            dados_f["E9"]["status"] = "Regular" if val_e9 >= 90.0 else "Rebaixamento (Abaixo de 90%)"
+        except (ValueError, TypeError):
+            pass
+
+        # Processamento E10 (Valorização dos Profissionais FUNDEB >= 70%)
+        d_e10 = dado_ano.get("E10", {})
+        v_e10 = d_e10.get("valor", "0") if isinstance(d_e10, dict) else str(d_e10)
+        try:
+            val_e10 = float(str(v_e10).replace(",", "."))
+            dados_f["E10"]["val"] = val_e10
+            dados_f["E10"]["status"] = "Regular" if val_e10 >= 70.0 else "Rebaixamento (Abaixo de 70%)"
+        except (ValueError, TypeError):
+            pass
+
+        # Processamento E11 (Mínimo Constitucional 25% - DESP/REC)
+        d_e11 = dado_ano.get("E11", {})
+        v_e11 = d_e11.get("valor", "0/1") if isinstance(d_e11, dict) else str(d_e11)
+        try:
+            if "/" in str(v_e11):
+                parts = str(v_e11).split("/")
+                desp = float(parts[0])
+                rec = float(parts[1])
+                pe = (desp / max(rec, 0.01)) * 100.0
+            else:
+                pe = float(str(v_e11).replace(",", "."))
+                desp, rec = 0.0, 0.0
+
+            dados_f["E11"]["val"] = round(pe, 2)
+            dados_f["E11"]["desp"] = desp
+            dados_f["E11"]["rec"] = rec
+            dados_f["E11"]["status"] = "Regular" if pe >= 25.0 else "Descumprimento (Abaixo de 25%)"
+        except (ValueError, TypeError):
+            pass
+
+        return dados_f
+
+    lim_ant = extrair_dados_limites(dados_dados_ant if 'dados_dados_ant' in locals() else dados_ano_ant)
+    lim_atual = extrair_dados_limites(dados_ano_atual)
+
+    data_limites = [
+        [
+            Paragraph("Indicador Constitucional / Legal", style_th), 
+            Paragraph(f"Exer. {ano_ant}", style_th), 
+            Paragraph(f"Exer. {ano_atual}", style_th), 
+            Paragraph("Meta Legal", style_th), 
+            Paragraph("Situação no Exer. Atual", style_th)
+        ]
+    ]
+
+    # Linha E9
+    val_e9_ant = f"{lim_ant['E9']['val']:.2f}%" if lim_ant['E9']['val'] > 0 else "-"
+    val_e9_at = f"{lim_atual['E9']['val']:.2f}%" if lim_atual['E9']['val'] > 0 else "-"
+    st_e9 = "<font color='#28a745'><b>✅ Cumpriu Limite</b></font>" if lim_atual['E9']['val'] >= 90.0 else "<font color='#dc3545'><b>🚨 Rebaixamento</b></font>"
+    data_limites.append([
+        Paragraph("<b>E9</b> - Aplicação Total do FUNDEB", style_item_esquerda),
+        Paragraph(val_e9_ant, style_td_ano),
+        Paragraph(val_e9_at, style_td_ano),
+        Paragraph("≥ 90,00%", style_td_ano),
+        Paragraph(st_e9, style_td_aval)
+    ])
+
+    # Linha E10
+    val_e10_ant = f"{lim_ant['E10']['val']:.2f}%" if lim_ant['E10']['val'] > 0 else "-"
+    val_e10_at = f"{lim_atual['E10']['val']:.2f}%" if lim_atual['E10']['val'] > 0 else "-"
+    st_e10 = "<font color='#28a745'><b>✅ Cumpriu Limite</b></font>" if lim_atual['E10']['val'] >= 70.0 else "<font color='#dc3545'><b>🚨 Rebaixamento</b></font>"
+    data_limites.append([
+        Paragraph("<b>E10</b> - Valorização dos Profissionais (FUNDEB)", style_item_esquerda),
+        Paragraph(val_e10_ant, style_td_ano),
+        Paragraph(val_e10_at, style_td_ano),
+        Paragraph("≥ 70,00%", style_td_ano),
+        Paragraph(st_e10, style_td_aval)
+    ])
+
+    # Linha E11
+    val_e11_ant = f"{lim_ant['E11']['val']:.2f}%" if lim_ant['E11']['val'] > 0 else "-"
+    val_e11_at = f"{lim_atual['E11']['val']:.2f}%" if lim_atual['E11']['val'] > 0 else "-"
+    st_e11 = "<font color='#28a745'><b>✅ Cumpriu Mínimo</b></font>" if lim_atual['E11']['val'] >= 25.0 else "<font color='#dc3545'><b>🚨 Descumprimento CF</b></font>"
+    data_limites.append([
+        Paragraph("<b>E11</b> - Mínimo Constitucional em Educação (Art. 212)", style_item_esquerda),
+        Paragraph(val_e11_ant, style_td_ano),
+        Paragraph(val_e11_at, style_td_ano),
+        Paragraph("≥ 25,00%", style_td_ano),
+        Paragraph(st_e11, style_td_aval)
+    ])
+
+    tabela_limites = Table(data_limites, colWidths=[185, 70, 70, 75, 85])
+    tabela_limites.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ffffff")),
+    ]))
+    elements.append(tabela_limites)
+    elements.append(Spacer(1, 8))
+
+    texto_desc_limites = (
+        f"A observância dos limites constitucionais e legais representa a trava de conformidade fiscal e jurídica do município. "
+        f"No exercício de <b>{ano_atual}</b>, o município registrou <b>{lim_atual['E9']['val']:.2f}%</b> na aplicação total do FUNDEB (Indicador E9), "
+        f"<b>{lim_atual['E10']['val']:.2f}%</b> no pagamento dos profissionais da educação (Indicador E10) e <b>{lim_atual['E11']['val']:.2f}%</b> "
+        f"na aplicação de receitas próprias de impostos na manutenção e desenvolvimento do ensino (Art. 212 da CF). "
+        f"O descumprimento de qualquer um destes indicadores acarreta penalidades críticas de rebaixamento de faixa de classificação no índice i-Educ."
+    )
+    elements.append(Paragraph(texto_desc_limites, style_analise))
+    elements.append(Spacer(1, 15))
+
+    # -------------------------------------------------------------------------
+    # 📊 26. QUESITOS SEM PONTUAÇÃO DIRETA (EXERCÍCIO ATUAL)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>26. QUESITOS SEM PONTUAÇÃO DIRETA (CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
+    elements.append(Spacer(1, 6))
+
+    # Lista dos quesitos a serem auditados dinamicamente
+    lista_alvo_sp = [
+        "1.0", "1.1", "1.2", "1.7", "1.12", "1.13", 
+        "2.0", "2.2", "2.7", 
+        "3.0", "3.5", "3.13", "3.14", "3.15", "3.15.3", "3.15.4", "3.20.1", "3.22", 
+        "8.0", "11.0", "12.0", "13.0", "13.1", 
+        "15.0", "15.3.1", "15.4", "16.0", "17.3", "18.0", "18.3", "19.0"
+    ]
+
+    analise_sp = []
+    
+    # Processa os dados extraídos dinamicamente do dicionário do exercício atual
+    for qid in lista_alvo_sp:
+        info = dados_ano_atual.get(qid) or dados_ano_atual.get(f"Q_{qid}") or {}
+        
+        if isinstance(info, dict):
+            resp = str(info.get("valor", "")).strip()
+        else:
+            resp = str(info).strip()
+
+        resp_l = resp.lower()
+        
+        # Regra de adequação: se a resposta informada contiver 'sim', '1', 's' ou 'adequado'
+        if any(x == resp_l or x in resp_l for x in ["sim", "1", "s", "true", "adequado"]):
+            status_txt = "Adequado"
+        else:
+            status_txt = "Inadequado"
+
+        analise_sp.append({
+            "qid": qid,
+            "resp": resp if resp else "Não Informado",
+            "status": status_txt
+        })
+
+    if analise_sp:
+        style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
+        
+        data_sp = [[
+            Paragraph("Quesito", style_th), 
+            Paragraph("Resposta Informada no Sistema", style_th), 
+            Paragraph("Situação / Conformidade", style_th)
+        ]]
+
+        total_adequados = 0
+        for item in analise_sp:
+            if item["status"] == "Adequado":
+                total_adequados += 1
+                st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>", style_td_sp)
+            else:
+                st_p = Paragraph("<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
+
+            data_sp.append([
+                Paragraph(f"<b>{item['qid']}</b>", style_td_sp),
+                Paragraph(item["resp"], styles["Normal"]),
+                st_p
+            ])
+
+        tabela_sp = Table(data_sp, colWidths=[70, 280, 135])
+        tabela_sp.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ffffff")),
+        ]))
+        elements.append(tabela_sp)
+        elements.append(Spacer(1, 8))
+
+        pct_sp = (total_adequados / len(analise_sp)) * 100.0
+        texto_sp = (
+            f"A análise dinâmica dos quesitos sem pontuação direta no exercício de <b>{ano_atual}</b> apontou "
+            f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
+            f"O acompanhamento dessas respostas garante o cumprimento contínuo das exigências operacionais da rede pública de ensino."
+        )
+        elements.append(Paragraph(texto_sp, style_analise))
+        elements.append(Spacer(1, 15))
+     
+    # -------------------------------------------------------------------------
+    # CONSTRUÇÃO FINAL DO DOCUMENTO PDF
+    # -------------------------------------------------------------------------
+    doc.build(elements)
+    buffer.seek(0)
     return buffer.getvalue()
-
-
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
 # -----------------------------------------------------------------------------
@@ -21713,7 +25277,7 @@ def renderizar_card_relatorio_ieduc(res_data=None, ano_sel=2026):
                     ano=ano_alvo,
                     total=total_pts,
                     faixa=faixa,
-                    todos_dados=historico_todos_anos,
+                    all_data=historico_todos_anos,
                 )
 
                 rota_pdf = f"/relatorio_ieduc_temp_{ano_alvo}.pdf"
@@ -21749,5 +25313,3 @@ def renderizar_card_relatorio_ieduc(res_data=None, ano_sel=2026):
         ).classes(
             "bg-blue-600 text-white font-bold px-4 py-2 rounded-md shadow-sm my-2"
         ).props("no-caps")
-
-
