@@ -1562,7 +1562,7 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("1.4", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+                        # =============================================================================
                         # QUESITO 1.5 (Piso Salarial Mensal dos Professores de Creche)
                         # =============================================================================
                         with ui.card().classes(
@@ -1593,97 +1593,131 @@ def container_formulario_ieduc(ano=None):
                                 sal_min_i = float(m_smin.group(1)) if m_smin else 1412.0
                             elif d15.get("valor"):
                                 try:
-                                    piso_i = float(d15.get("valor"))
+                                    val_str = str(d15.get("valor")).replace("R$", "").strip()
+                                    val_clean = val_str.replace(".", "").replace(",", ".")
+                                    piso_i = float(val_clean)
                                 except (ValueError, TypeError):
                                     piso_i = 0.0
 
-                            state_15 = {
-                                "piso": piso_i,
-                                "smin": sal_min_i,
-                                "link": evidencia_15,
-                            }
-
-                            def calc_pts_15():
-                                piso = float(state_15["piso"] or 0.0)
-                                smin = float(state_15["smin"] or 0.0)
-                                if piso <= 0:
+                            def parse_float_ptbr(val_str):
+                                if not val_str:
                                     return 0.0
-                                return -20.0 if piso < smin else 0.0
+                                if isinstance(val_str, (int, float)):
+                                    return float(val_str)
+                                s = str(val_str).replace("R$", "").strip()
+                                if "," in s:
+                                    s = s.replace(".", "").replace(",", ".")
+                                return float(s) if s else 0.0
+
+                            def fmt_br(val):
+                                return f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+                            def calc_pts_15(piso_val, smin_val):
+                                if piso_val <= 0:
+                                    return 0.0
+                                return -20.0 if piso_val < smin_val else 0.0
+
+                            lbl_pts_15 = ui.label(
+                                f"📊 Impacto de Pontuação no Quesito 1.5: {calc_pts_15(piso_i, sal_min_i):.1f} pontos"
+                            ).classes("text-sm font-bold text-green-600 my-4")
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 with ui.column().classes("w-full gap-3"):
                                     inp_piso = (
-                                        ui.number(
+                                        ui.input(
                                             "Piso Salarial do Professor (40h) - R$:",
-                                            value=piso_i,
-                                            min=0,
-                                            step=0.01,
+                                            value=fmt_br(piso_i) if piso_i > 0 else "",
+                                            placeholder="0,00",
                                         )
                                         .classes("w-full")
                                         .props("outlined color=blue prefix=R$")
-                                        .bind_value(state_15, "piso")
                                     )
 
                                     inp_smin = (
-                                        ui.number(
+                                        ui.input(
                                             "Salário Mínimo Nacional de Referência - R$:",
-                                            value=sal_min_i,
-                                            min=0,
-                                            step=0.01,
+                                            value=fmt_br(sal_min_i),
+                                            placeholder="1.412,00",
                                         )
                                         .classes("w-full")
                                         .props("outlined color=blue prefix=R$")
-                                        .bind_value(state_15, "smin")
                                     )
 
-                                ui.textarea(
-                                    label="Link de Evidência / Documento:",
-                                    value=evidencia_15,
-                                    placeholder="Insira a Lei Municipal, Plano de Cargos e Salários ou Holerite modelo...",
-                                ).classes("w-full").props("outlined rows=5").bind_value(
-                                    state_15, "link"
+                                txt_link_15 = (
+                                    ui.textarea(
+                                        label="Link de Evidência / Documento:",
+                                        value=evidencia_15,
+                                        placeholder="Insira a Lei Municipal, Plano de Cargos e Salários ou Holerite modelo...",
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined rows=5")
                                 )
 
-                            lbl_pts_15 = ui.label(
-                                f"📊 Impacto de Pontuação no Quesito 1.5: {calc_pts_15():.1f} pontos"
-                            ).classes("text-sm font-bold text-green-600 my-4")
-
                             def att_pts_15():
-                                pts = calc_pts_15()
+                                try:
+                                    p_val = parse_float_ptbr(inp_piso.value)
+                                    sm_val = parse_float_ptbr(inp_smin.value)
+                                except (ValueError, TypeError):
+                                    p_val, sm_val = 0.0, 0.0
+
+                                pts = calc_pts_15(p_val, sm_val)
                                 cor = "text-red-600" if pts < 0 else "text-green-600"
                                 lbl_pts_15.classes(remove="text-red-600 text-green-600", add=cor)
                                 lbl_pts_15.set_text(
                                     f"📊 Impacto de Pontuação no Quesito 1.5: {pts:.1f} pontos"
                                 )
 
-                            inp_piso.on("update:model-value", att_pts_15)
-                            inp_smin.on("update:model-value", att_pts_15)
+                            inp_piso.on("update:model-value", lambda: att_pts_15())
+                            inp_smin.on("update:model-value", lambda: att_pts_15())
+
+                            att_pts_15()
 
                             def salvar_15():
-                                p_val = float(state_15["piso"] or 0.0)
-                                sm_val = float(state_15["smin"] or 0.0)
-                                pts_finais = calc_pts_15()
-                                composite = f"PISO:{p_val},SMIN:{sm_val}|LINK:{state_15['link']}"
+                                try:
+                                    p_val = parse_float_ptbr(inp_piso.value)
+                                    sm_val = parse_float_ptbr(inp_smin.value)
+                                except (TypeError, ValueError):
+                                    ui.notify(
+                                        "Informe um valor numérico válido (ex: 4.015,75).",
+                                        type="negative",
+                                    )
+                                    return
+
+                                link_texto = str(txt_link_15.value or "")
+                                pts_finais = calc_pts_15(p_val, sm_val)
+                                composite = f"PISO:{p_val:.2f},SMIN:{sm_val:.2f}|LINK:{link_texto}"
+                                valor_exibicao = f"R$ {fmt_br(p_val)}"
 
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="1.5",
-                                    valor=f"R$ {p_val:.2f}",
+                                    valor=valor_exibicao,
                                     pontos=pts_finais,
                                     link=composite,
                                     comentarios=d15.get("comentarios", []),
                                     status=d15.get("status", "Pendente"),
                                 )
+
+                                res_data["1.5"] = {
+                                    **d15,
+                                    "valor": valor_exibicao,
+                                    "pontos": pts_finais,
+                                    "link": composite,
+                                }
+
                                 ui.notify("Quesito 1.5 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if hasattr(render_conteudo, "refresh"):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 1.5", on_click=salvar_15).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("1.5", res_data, render_conteudo.refresh)
-
+                            bloco_comentarios(
+                                "1.5",
+                                res_data,
+                                getattr(render_conteudo, "refresh", None),
+                            )
                         # =============================================================================
                         # QUESITO 1.6 (Quantidade Total de Dias de Ausência dos Professores - QTA)
                         # =============================================================================
