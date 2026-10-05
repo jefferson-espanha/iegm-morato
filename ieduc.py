@@ -699,6 +699,9 @@ def container_formulario_ieduc(ano=None):
                         )
 
                     # ==========================================
+                    ui.separator().classes("my-6")
+                    ui.label("QUESITOS 1.0 A 1.15 — CRECHE").classes("w-full text-2xl font-black text-blue-900 bg-blue-50 border-l-4 border-blue-700 px-4 py-3 rounded-md uppercase")
+                    ui.label("Preencha os quesitos abaixo na ordem numérica.").classes("w-full text-sm text-gray-500 mb-3")
                     # QUESITO 1.0
                     # ==========================================
                     opcoes_1_0 = {
@@ -3659,6 +3662,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("1.15", res_data, render_conteudo.refresh)
 
                         # =============================================================================
+                    ui.separator().classes("my-6")
+                    ui.label("QUESITOS 2.0 A 2.15 — PRÉ-ESCOLA").classes("w-full text-2xl font-black text-blue-900 bg-blue-50 border-l-4 border-blue-700 px-4 py-3 rounded-md uppercase")
+                    ui.label("Preencha os quesitos abaixo na ordem numérica.").classes("w-full text-sm text-gray-500 mb-3")
                     # QUESITO 2.0 (Ofertamento de Pré-escola)
                     # =============================================================================
                     with ui.card().classes(
@@ -6558,6 +6564,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("2.15", res_data, render_conteudo.refresh)
 
         # =============================================================================
+                    ui.separator().classes("my-6")
+                    ui.label("QUESITOS 3.0 A 3.15 — ANOS INICIAIS").classes("w-full text-2xl font-black text-blue-900 bg-blue-50 border-l-4 border-blue-700 px-4 py-3 rounded-md uppercase")
+                    ui.label("Preencha os quesitos abaixo na ordem numérica.").classes("w-full text-sm text-gray-500 mb-3")
                     # QUESITO 3.0 (Oferta dos Anos Iniciais do Ensino Fundamental)
                     # =============================================================================
                     with ui.card().classes(
@@ -11014,6 +11023,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("3.23.2", res_data, render_conteudo.refresh)
 
                         # =============================================================================
+                    ui.separator().classes("my-6")
+                    ui.label("QUESITOS 4.0 A 4.15 — ANOS FINAIS").classes("w-full text-2xl font-black text-blue-900 bg-blue-50 border-l-4 border-blue-700 px-4 py-3 rounded-md uppercase")
+                    ui.label("Preencha os quesitos abaixo na ordem numérica.").classes("w-full text-sm text-gray-500 mb-3")
                     # QUESITO 4.0 (Oferta dos Anos Finais do Ensino Fundamental)
                     # =============================================================================
                     with ui.card().classes(
@@ -11082,6 +11094,9 @@ def container_formulario_ieduc(ano=None):
                         bloco_comentarios("4.0", res_data, render_conteudo.refresh)
 
                     # =============================================================================
+                    ui.separator().classes("my-6")
+                    ui.label("QUESITOS 5.0 EM DIANTE — REQUISITOS GERAIS").classes("w-full text-2xl font-black text-blue-900 bg-blue-50 border-l-4 border-blue-700 px-4 py-3 rounded-md uppercase")
+                    ui.label("Preencha os quesitos abaixo na ordem numérica.").classes("w-full text-sm text-gray-500 mb-3")
                     # QUESITO 5.0 (Infraestrutura, Segurança e Capacitação - Creche, Pré e Anos Iniciais)
                     # =============================================================================
                     with ui.card().classes(
@@ -16360,6 +16375,9 @@ def container_formulario_ieduc(ano=None):
 
                         # -----------------------------------------------------------------------------
                     # =============================================================================
+                    ui.separator().classes("my-6")
+                    ui.label("DADOS DO CENSO ESCOLAR — CRECHE, PRÉ-ESCOLA E ANOS INICIAIS").classes("w-full text-2xl font-black text-blue-900 bg-blue-50 border-l-4 border-blue-700 px-4 py-3 rounded-md uppercase")
+                    ui.label("Preencha os quesitos abaixo na ordem numérica.").classes("w-full text-sm text-gray-500 mb-3")
                     # QUESITO E1.1 (Estabelecimentos de Creche com Pátio Infantil - Censo Escolar)
                     # =============================================================================
                     d_e11 = res_data.get("E1.1") or res_data.get("E11") or {}
