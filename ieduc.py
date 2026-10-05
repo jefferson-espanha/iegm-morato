@@ -1911,7 +1911,6 @@ def container_formulario_ieduc(ano=None):
 
                             evidencia_171 = raw_link_171
 
-                            # Extrai os dados salvos previamente na string do link
                             if "|LINK:" in raw_link_171:
                                 partes_171, evidencia_171 = raw_link_171.split("|LINK:", 1)
 
@@ -1930,28 +1929,13 @@ def container_formulario_ieduc(ano=None):
                                 tot_apoio_i = int(m_tapoi.group(1)) if m_tapoi else 0
                                 tot_gest_i = int(m_tgest.group(1)) if m_tgest else 0
 
-                            state_171 = {
-                                "prof_cap": prof_cap_i,
-                                "apoio_cap": apoio_cap_i,
-                                "gest_cap": gest_cap_i,
-                                "tot_prof": tot_prof_i,
-                                "tot_apoio": tot_apoio_i,
-                                "tot_gest": tot_gest_i,
-                                "link": evidencia_171,
-                            }
+                            lbl_pts_171 = ui.label(
+                                "📊 Impacto de Pontuação no Quesito 1.7.1: 0.0 / 7.0 pontos"
+                            ).classes("text-sm font-bold text-green-600 my-4")
 
-                            def calc_pts_171():
-                                num = (
-                                    int(state_171.get("prof_cap") or 0)
-                                    + int(state_171.get("apoio_cap") or 0)
-                                    + int(state_171.get("gest_cap") or 0)
-                                )
-
-                                den = (
-                                    int(state_171.get("tot_prof") or 0)
-                                    + int(state_171.get("tot_apoio") or 0)
-                                    + int(state_171.get("tot_gest") or 0)
-                                )
+                            def calc_pts_valores(p_cap, a_cap, g_cap, t_prof, t_apoi, t_gest):
+                                num = p_cap + a_cap + g_cap
+                                den = t_prof + t_apoi + t_gest
 
                                 if den <= 0 or num <= 0:
                                     return 0.0
@@ -1967,31 +1951,21 @@ def container_formulario_ieduc(ano=None):
                                 else:
                                     return 0.0
 
-                            lbl_pts_171 = ui.label(
-                                f"📊 Impacto de Pontuação no Quesito 1.7.1: "
-                                f"{calc_pts_171():.1f} / 7.0 pontos"
-                            ).classes("text-sm font-bold text-green-600 my-4")
-
                             def att_pts_171():
+                                try:
+                                    p_cap = int(inp_pcap.value or 0)
+                                    a_cap = int(inp_acap.value or 0)
+                                    g_cap = int(inp_gcap.value or 0)
+                                    t_prof = int(inp_tprof.value or 0)
+                                    t_apoi = int(inp_tapoi.value or 0)
+                                    t_gest = int(inp_tgest.value or 0)
+                                except (ValueError, TypeError):
+                                    p_cap = a_cap = g_cap = t_prof = t_apoi = t_gest = 0
+
+                                pts = calc_pts_valores(p_cap, a_cap, g_cap, t_prof, t_apoi, t_gest)
                                 lbl_pts_171.set_text(
-                                    f"📊 Impacto de Pontuação no Quesito 1.7.1: "
-                                    f"{calc_pts_171():.1f} / 7.0 pontos"
+                                    f"📊 Impacto de Pontuação no Quesito 1.7.1: {pts:.1f} / 7.0 pontos"
                                 )
-
-                            def atualizar_numero_171(chave):
-                                def handler(e):
-                                    try:
-                                        valor = int(e.value or 0)
-                                    except (TypeError, ValueError):
-                                        valor = 0
-
-                                    state_171[chave] = max(0, valor)
-                                    att_pts_171()
-
-                                return handler
-
-                            def atualizar_link_171(e):
-                                state_171["link"] = str(e.value or "")
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 with ui.column().classes("w-full gap-3"):
@@ -2005,11 +1979,7 @@ def container_formulario_ieduc(ano=None):
                                         min=0,
                                         step=1,
                                     ).classes("w-full").props("outlined color=blue")
-
-                                    inp_pcap.on(
-                                        "update:model-value",
-                                        atualizar_numero_171("prof_cap"),
-                                    )
+                                    inp_pcap.on("update:model-value", lambda: att_pts_171())
 
                                     inp_acap = ui.number(
                                         "Profissionais de apoio e supervisão:",
@@ -2017,11 +1987,7 @@ def container_formulario_ieduc(ano=None):
                                         min=0,
                                         step=1,
                                     ).classes("w-full").props("outlined color=blue")
-
-                                    inp_acap.on(
-                                        "update:model-value",
-                                        atualizar_numero_171("apoio_cap"),
-                                    )
+                                    inp_acap.on("update:model-value", lambda: att_pts_171())
 
                                     inp_gcap = ui.number(
                                         "Gestores escolares de Creche:",
@@ -2029,11 +1995,7 @@ def container_formulario_ieduc(ano=None):
                                         min=0,
                                         step=1,
                                     ).classes("w-full").props("outlined color=blue")
-
-                                    inp_gcap.on(
-                                        "update:model-value",
-                                        atualizar_numero_171("gest_cap"),
-                                    )
+                                    inp_gcap.on("update:model-value", lambda: att_pts_171())
 
                                     ui.label(
                                         "QUADRO TOTAL (ETAPA CRECHE):"
@@ -2045,11 +2007,7 @@ def container_formulario_ieduc(ano=None):
                                         min=0,
                                         step=1,
                                     ).classes("w-full").props("outlined color=blue")
-
-                                    inp_tprof.on(
-                                        "update:model-value",
-                                        atualizar_numero_171("tot_prof"),
-                                    )
+                                    inp_tprof.on("update:model-value", lambda: att_pts_171())
 
                                     inp_tapoi = ui.number(
                                         "Total de profissionais de apoio:",
@@ -2057,11 +2015,7 @@ def container_formulario_ieduc(ano=None):
                                         min=0,
                                         step=1,
                                     ).classes("w-full").props("outlined color=blue")
-
-                                    inp_tapoi.on(
-                                        "update:model-value",
-                                        atualizar_numero_171("tot_apoio"),
-                                    )
+                                    inp_tapoi.on("update:model-value", lambda: att_pts_171())
 
                                     inp_tgest = ui.number(
                                         "Total de gestores escolares:",
@@ -2069,11 +2023,7 @@ def container_formulario_ieduc(ano=None):
                                         min=0,
                                         step=1,
                                     ).classes("w-full").props("outlined color=blue")
-
-                                    inp_tgest.on(
-                                        "update:model-value",
-                                        atualizar_numero_171("tot_gest"),
-                                    )
+                                    inp_tgest.on("update:model-value", lambda: att_pts_171())
 
                                 txt_link_171 = ui.textarea(
                                     label="Link de Evidência / Documento:",
@@ -2084,21 +2034,19 @@ def container_formulario_ieduc(ano=None):
                                     ),
                                 ).classes("w-full").props("outlined rows=16")
 
-                                txt_link_171.on(
-                                    "update:model-value",
-                                    atualizar_link_171,
-                                )
+                            # Atualiza a etiqueta de pontos inicial com os dados carregados
+                            att_pts_171()
 
                             def salvar_171():
                                 try:
-                                    p_cap = int(state_171.get("prof_cap") or 0)
-                                    a_cap = int(state_171.get("apoio_cap") or 0)
-                                    g_cap = int(state_171.get("gest_cap") or 0)
+                                    # Lê DIRETO dos componentes de entrada na hora de salvar
+                                    p_cap = int(inp_pcap.value or 0)
+                                    a_cap = int(inp_acap.value or 0)
+                                    g_cap = int(inp_gcap.value or 0)
 
-                                    t_prof = int(state_171.get("tot_prof") or 0)
-                                    t_apoi = int(state_171.get("tot_apoio") or 0)
-                                    t_gest = int(state_171.get("tot_gest") or 0)
-
+                                    t_prof = int(inp_tprof.value or 0)
+                                    t_apoi = int(inp_tapoi.value or 0)
+                                    t_gest = int(inp_tgest.value or 0)
                                 except (TypeError, ValueError):
                                     ui.notify(
                                         "Informe somente números inteiros válidos.",
@@ -2106,7 +2054,8 @@ def container_formulario_ieduc(ano=None):
                                     )
                                     return
 
-                                pts_finais = calc_pts_171()
+                                link_texto = str(txt_link_171.value or "")
+                                pts_finais = calc_pts_valores(p_cap, a_cap, g_cap, t_prof, t_apoi, t_gest)
 
                                 composite = (
                                     f"PCAP:{p_cap},"
@@ -2115,7 +2064,7 @@ def container_formulario_ieduc(ano=None):
                                     f"TPROF:{t_prof},"
                                     f"TAPOI:{t_apoi},"
                                     f"TGEST:{t_gest},"
-                                    f"|LINK:{state_171.get('link') or ''}"
+                                    f"|LINK:{link_texto}"
                                 )
 
                                 valor_171 = (
@@ -2133,7 +2082,6 @@ def container_formulario_ieduc(ano=None):
                                     status=d171.get("status", "Pendente"),
                                 )
 
-                                # Atualiza os dados em memória antes do refresh
                                 res_data["1.7.1"] = {
                                     **d171,
                                     "valor": valor_171,
@@ -2163,7 +2111,6 @@ def container_formulario_ieduc(ano=None):
                                 res_data,
                                 getattr(render_conteudo, "refresh", None),
                             )
-
                         # =============================================================================
                         # QUESITO 1.7.2
                         # Formas de Capacitação Oferecidas
