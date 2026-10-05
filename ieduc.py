@@ -21572,3 +21572,104 @@ def container_formulario_ieduc(ano=None):
     render_conteudo()
     return main_container
 
+    # O card do relatório pertence ao mesmo fluxo do formulário.
+    # Ele é chamado depois da renderização inicial, como no módulo-modelo.
+    try:
+        ano_relatorio = int(
+            app.storage.user.get("ano_referencia_global", ano or 2026)
+        )
+        dados_relatorio = load_respostas(ano_relatorio)
+    except Exception as err:
+        print(f"⚠️ Aviso ao carregar respostas para o relatório: {err}")
+        ano_relatorio = int(ano or 2026)
+        dados_relatorio = {}
+
+    renderizar_card_relatorio_ifiscal(
+        res_data=dados_relatorio,
+        ano_sel=ano_relatorio,
+    )
+
+# -----------------------------------------------------------------------------
+# 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
+# -----------------------------------------------------------------------------
+def renderizar_card_relatorio_ifiscal(res_data=None, ano_sel=2026):
+    """
+    Componente NiceGUI para renderizar o Card de Emissão do PDF do I-Fiscal.
+    """
+    res_data = res_data or {}
+
+    with ui.card().classes(
+        "w-full p-5 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50"
+    ).style(
+        "background-color: #eff8ff; border-color: #c7e2f5;"
+    ):
+        ui.label("📄 Emissão de Relatório Analítico - I-Fiscal").classes(
+            "text-xl font-bold text-blue-900 mb-2"
+        )
+        ui.label(
+            "Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030."
+        ).classes("text-sm text-gray-700 mb-5")
+
+        async def baixar_pdf():
+            n = ui.notify("Gerando PDF do I-Fiscal, aguarde...", type="info", timeout=0)
+
+            try:
+                await asyncio.sleep(0.3)
+
+                dados_locais = res_data or {}
+                ano_alvo = int(ano_sel)
+
+                total_pts = float(
+                    sum(
+                        v.get("pontos", 0)
+                        for k, v in dados_locais.items()
+                        if isinstance(v, dict) and not str(k).startswith("COM_")
+                    )
+                )
+
+                faixa = converter_pontos_em_faixa_iegm(total_pts)
+                historico_todos_anos = get_all_years_data() or {}
+
+                pdf_bytes = gerar_relatorio_pdf(
+                    dados=dados_locais,
+                    ano=ano_alvo,
+                    total=total_pts,
+                    faixa=faixa,
+                    todos_dados=historico_todos_anos,
+                )
+
+                rota_pdf = f"/relatorio_ifiscal_temp_{ano_alvo}.pdf"
+
+                try:
+                    @app.get(rota_pdf)
+                    def relatorio_endpoint():
+                        return Response(content=pdf_bytes, media_type="application/pdf")
+                except Exception:
+                    pass
+
+                ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
+                ui.notify("Relatório I-Fiscal aberto com sucesso!", type="positive")
+
+            except Exception as e:
+                print(f"ERRO CRÍTICO AO GERAR PDF I-FISCAL: {e}")
+                logging.exception("Erro no PDF I-Fiscal:")
+                ui.notify(
+                    f"Erro ao gerar o PDF: {e}", type="negative", close_button=True
+                )
+
+            finally:
+                if n is not None:
+                    try:
+                        n.dismiss()
+                    except Exception:
+                        pass
+
+        # ✅ CORREÇÃO: Alinhado no escopo do 'with ui.card()', fora da função baixar_pdf
+        ui.button(
+            "📥 GERAR E ABRIR RELATÓRIO PDF (I-FISCAL)",
+            on_click=baixar_pdf,
+        ).classes(
+            "bg-blue-600 text-white font-bold px-4 py-2 rounded-md shadow-sm my-2"
+        ).props("no-caps")
+
+
