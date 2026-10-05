@@ -22503,13 +22503,26 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # -------------------------------------------------------------------------
     # 📊 8. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 1.6)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>8. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 1.6)</b>", styles["h2"]))
+    import re
+
+    elements.append(
+        Paragraph(
+            "<b>8. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 1.6)</b>",
+            styles["h2"],
+        )
+    )
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph("<b><i>1.6 Detalhamento das Ausências e Afastamentos dos Professores Regentes (Creche)</i></b>", styles["Normal"]))
+    elements.append(
+        Paragraph(
+            "<b><i>1.6 Detalhamento das Ausências e Afastamentos dos Professores"
+            " Regentes (Creche)</i></b>",
+            styles["Normal"],
+        )
+    )
     elements.append(Spacer(1, 6))
 
     def extrair_ausencias_q16(dado_ano):
-        """Mapeia abreviações do banco (INJ, JUST, MED, MAT, ABO, OUT) para os rótulos do relatório."""
+        """Mapeia abreviações do banco (INJ, JUS, MED, MAT, ABO, OUT) para os rótulos do relatório."""
         chaves = ["FI", "FJ", "LM", "LP", "AB", "OUT"]
         dados_a = {k: 0 for k in chaves}
         dados_a["TOTAL"] = 0
@@ -22518,40 +22531,38 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             return dados_a
 
         info_q = dado_ano.get("1.6", {})
+        if not isinstance(info_q, dict):
+            return dados_a
+
+        # Junta todas as possíveis fontes do texto (link, resposta, valor)
+        textos_para_analise = [
+            str(info_q.get("link", "")),
+            str(info_q.get("resposta", "")),
+            str(info_q.get("valor", "")),
+        ]
+        texto_completo = " ".join(
+            [t for t in textos_para_analise if t and t != "None"]
+        )
 
         mapa_chaves = {
             "FI": ["INJ", "FI", "INJUSTIFICADA", "INJUSTIFICADAS"],
-            "FJ": ["JUST", "FJ", "JUSTIFICADA", "JUSTIFICADAS"],
+            "FJ": ["JUS", "JUST", "FJ", "JUSTIFICADA", "JUSTIFICADAS"],
             "LM": ["MED", "LM", "MEDICA", "LICENCA MEDICA", "SAUDE"],
             "LP": ["MAT", "LP", "MATERNIDADE", "PATERNIDADE"],
             "AB": ["ABO", "AB", "ABONADA", "ABONADAS", "ABONO"],
-            "OUT": ["OUT", "OUTROS", "AFASTAMENTO"]
+            "OUT": ["OUT", "OUTROS", "AFASTAMENTO"],
         }
 
-        # 1. Se for dicionário direto
-        if isinstance(info_q, dict):
+        # Extração por Regex considerando a sintaxe salva no formulário (ex: INJ:10,JUS:5...)
+        if texto_completo:
             for chk, alias_list in mapa_chaves.items():
                 for alias in alias_list:
-                    val_encontrado = next((v for k, v in info_q.items() if str(k).strip().upper() == alias), None)
-                    if val_encontrado is not None:
-                        try:
-                            dados_a[chk] = int(val_encontrado)
-                            break
-                        except Exception:
-                            pass
-            val_str = str(info_q.get("valor", ""))
-        else:
-            val_str = str(info_q)
-
-        # 2. Se for string formatada (ex: "INJ:10,JUST:5,MED:0...")
-        if val_str:
-            for chk, alias_list in mapa_chaves.items():
-                if dados_a[chk] == 0:
-                    for alias in alias_list:
-                        match = re.search(rf'{alias}\s*:\s*(\d+)', val_str, re.IGNORECASE)
-                        if match:
-                            dados_a[chk] = int(match.group(1))
-                            break
+                    match = re.search(
+                        rf"\b{alias}\s*:\s*(\d+)", texto_completo, re.IGNORECASE
+                    )
+                    if match:
+                        dados_a[chk] = int(match.group(1))
+                        break
 
         dados_a["TOTAL"] = sum(dados_a[k] for k in chaves)
         return dados_a
@@ -22559,7 +22570,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     q16_ant = extrair_ausencias_q16(dados_ano_ant)
     q16_atual = extrair_ausencias_q16(dados_ano_atual)
 
-    # Para ausências de professores, REDUZIR dias é o objetivo desejado (positivo_se_crescer = False para todos)
+    # Para ausências de professores, REDUZIR dias é o objetivo desejado
     tipos_ausencias = [
         ("FI", "Faltas Injustificadas (dias)", False),
         ("FJ", "Faltas Justificadas (dias)", False),
@@ -22567,18 +22578,16 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         ("LP", "Licença Maternidade / Paternidade (dias)", False),
         ("AB", "Abonos / Faltas Abonadas (dias)", False),
         ("OUT", "Outros Afastamentos (dias)", False),
-        ("TOTAL", "TOTAL ACUMULADO DE AUSÊNCIAS (QTA)", False)
+        ("TOTAL", "TOTAL ACUMULADO DE AUSÊNCIAS (QTA)", False),
     ]
 
-    data_ind_8 = [
-        [
-            Paragraph("Tipo de Ausência / Afastamento", style_th), 
-            Paragraph(f"Exercício {ano_ant}", style_th), 
-            Paragraph(f"Exercício {ano_atual}", style_th), 
-            Paragraph("Variação (%)", style_th), 
-            Paragraph("Avaliação", style_th)
-        ]
-    ]
+    data_ind_8 = [[
+        Paragraph("Tipo de Ausência / Afastamento", style_th),
+        Paragraph(f"Exercício {ano_ant}", style_th),
+        Paragraph(f"Exercício {ano_atual}", style_th),
+        Paragraph("Variação (%)", style_th),
+        Paragraph("Avaliação", style_th),
+    ]]
 
     for id_a, rotulo, positivo_se_crescer in tipos_ausencias:
         v_ant = q16_ant.get(id_a, 0)
@@ -22594,14 +22603,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             txt_var = "0.0%"
             var_pct = 0.0
 
-        # Lógica de Avaliação Corrigida
+        # Lógica de Avaliação
         if var_pct == 0:
             aval = "<font color='#6c757d'><b>Estável</b></font>"
         elif var_pct < 0:
-            # Variação negativa em ausências = Redução/Melhora
+            # Variação negativa em ausências = Redução (Melhora)
             aval = "<font color='#28a745'><b>Redução<br/>(Melhora)</b></font>"
         else:
-            # Variação positiva em ausências = Aumento/Atenção
+            # Variação positiva em ausências = Aumento (Atenção)
             aval = "<font color='#dc3545'><b>Aumento<br/>(Atenção)</b></font>"
 
         if id_a == "TOTAL":
@@ -22615,32 +22624,51 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             p_at = Paragraph(str(v_at), style_td_ano)
             p_var = Paragraph(txt_var, style_td_var)
 
-        data_ind_8.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+        data_ind_8.append(
+            [p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)]
+        )
 
     tabela_ind_8 = Table(data_ind_8, colWidths=[180, 75, 75, 75, 80])
-    tabela_ind_8.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f2f4f4")),
-    ]))
+    tabela_ind_8.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f2f4f4")),
+        ])
+    )
     elements.append(tabela_ind_8)
     elements.append(Spacer(1, 10))
 
     tot_ant = q16_ant.get("TOTAL", 0)
     tot_at = q16_atual.get("TOTAL", 0)
     diff_dias = tot_at - tot_ant
-    status_dias = f"<font color='#dc3545'><b>aumento de {abs(diff_dias)} dias</b></font>" if diff_dias > 0 else f"<font color='#28a745'><b>redução de {abs(diff_dias)} dias</b></font>"
+    status_dias = (
+        f"<font color='#dc3545'><b>aumento de {abs(diff_dias)} dias</b></font>"
+        if diff_dias > 0
+        else (
+            f"<font color='#28a745'><b>redução de {abs(diff_dias)}"
+            " dias</b></font>"
+        )
+    )
 
-    style_analise = styles.get('AnaliseText', ParagraphStyle('AnaliseText', parent=styles['Normal'], fontSize=9, leading=12))
+    style_analise = styles.get(
+        "AnaliseText",
+        ParagraphStyle(
+            "AnaliseText", parent=styles["Normal"], fontSize=9, leading=12
+        ),
+    )
 
     texto_desc_16 = (
-        f"O acompanhamento da Quantidade Total de Ausências (QTA) no quesito <b>1.6</b> registrou um {status_dias} "
-        f"de afastamento em relação ao ano anterior (de <b>{tot_ant} dias</b> em {ano_ant} para <b>{tot_at} dias</b> em {ano_atual}). "
-        f"A gestão da assiduidade docente é elemento-chave para mitigar a rotatividade e assegurar a continuidade pedagógica nas turmas de Creche."
+        f"O acompanhamento da Quantidade Total de Ausências (QTA) no quesito"
+        f" <b>1.6</b> registrou um {status_dias} de afastamento em relação ao"
+        f" ano anterior (de <b>{tot_ant} dias</b> em {ano_ant} para"
+        f" <b>{tot_at} dias</b> em {ano_atual}). A gestão da assiduidade"
+        " docente é elemento-chave para mitigar a rotatividade e assegurar a"
+        " continuidade pedagógica nas turmas de Creche."
     )
     elements.append(Paragraph(texto_desc_16, style_analise))
     elements.append(Spacer(1, 15))
