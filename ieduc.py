@@ -23059,38 +23059,89 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # -------------------------------------------------------------------------
     # 📊 11. DEMANDA POR VAGAS EM CRECHE (QUESITO 1.14)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>11. DEMANDA POR VAGAS EM CRECHE (QUESITO 1.14)</b>", styles["h2"]))
+    elements.append(
+        Paragraph(
+            "<b>11. DEMANDA POR VAGAS EM CRECHE (QUESITO 1.14)</b>",
+            styles["h2"],
+        )
+    )
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph("<b><i>1.14 Equilíbrio entre Oferta e Demanda por Vagas em Creche</i></b>", styles["Normal"]))
+    elements.append(
+        Paragraph(
+            "<b><i>1.14 Equilíbrio entre Oferta e Demanda por Vagas em"
+            " Creche</i></b>",
+            styles["Normal"],
+        )
+    )
     elements.append(Spacer(1, 6))
 
-    # Função dedicada e segura para extrair os dados do Quesito 1.14 (Demanda e Oferta)
     def extrair_dados_q114(dado_ano):
+        """Extrai demanda e oferta do quesito 1.14 suportando múltiplos formatos do banco."""
+        import re as re_mod
+
         dados_d = {"demanda": 0, "oferta": 0, "deficit": 0, "pontos": 0.0}
         if not isinstance(dado_ano, dict):
             return dados_d
 
         info_q = dado_ano.get("1.14", {})
-        if isinstance(info_q, dict):
-            val_str = info_q.get("valor", "0;0")
-            dados_d["pontos"] = float(info_q.get("pontos", 0.0))
-        else:
-            val_str = str(info_q)
+        if not isinstance(info_q, dict):
+            return dados_d
 
-        try:
-            if ";" in val_str:
-                dem, of = map(int, val_str.split(";"))
-                dados_d["demanda"] = dem
-                dados_d["oferta"] = of
-            elif "," in val_str:
-                dem, of = map(int, val_str.split(","))
-                dados_d["demanda"] = dem
-                dados_d["oferta"] = of
-        except Exception:
-            pass
+        dados_d["pontos"] = float(info_q.get("pontos", 0.0))
 
-        # Déficit = Demanda - Oferta (se Demanda > Oferta)
-        dados_d["deficit"] = max(0, dados_d["demanda"] - dados_d["oferta"])
+        # Junta todas as colunas do banco onde as informações de demanda e oferta podem estar
+        textos_para_analise = [
+            str(info_q.get("link", "")),
+            str(info_q.get("resposta", "")),
+            str(info_q.get("valor", "")),
+        ]
+        texto_completo = " ".join(
+            [t for t in textos_para_analise if t and t != "None"]
+        )
+
+        demanda, oferta = 0, 0
+
+        # Pattern 1: DEMANDA:123,OFERTA:456
+        m_dem = re_mod.search(
+            r"DEMANDA\s*:\s*(\d+)", texto_completo, re_mod.IGNORECASE
+        )
+        m_ofe = re_mod.search(
+            r"OFERTA\s*:\s*(\d+)", texto_completo, re_mod.IGNORECASE
+        )
+
+        # Pattern 2: Solicitadas: 123 / Ofertadas: 456
+        if not m_dem:
+            m_dem = re_mod.search(
+                r"Solicitadas\s*:\s*(\d+)", texto_completo, re_mod.IGNORECASE
+            )
+        if not m_ofe:
+            m_ofe = re_mod.search(
+                r"Ofertadas\s*:\s*(\d+)", texto_completo, re_mod.IGNORECASE
+            )
+
+        if m_dem:
+            demanda = int(m_dem.group(1))
+        if m_ofe:
+            oferta = int(m_ofe.group(1))
+
+        # Pattern 3: Formato simples separado por ponto e vírgula ou vírgula (ex: "123;456")
+        if not m_dem and not m_ofe and texto_completo:
+            try:
+                if ";" in texto_completo:
+                    dem, of = map(int, texto_completo.split(";")[:2])
+                    demanda, oferta = dem, of
+                elif "," in texto_completo and not (
+                    "DEMANDA" in texto_completo.upper()
+                ):
+                    dem, of = map(int, texto_completo.split(",")[:2])
+                    demanda, oferta = dem, of
+            except Exception:
+                pass
+
+        dados_d["demanda"] = demanda
+        dados_d["oferta"] = oferta
+        dados_d["deficit"] = max(0, demanda - oferta)
+
         return dados_d
 
     q114_ant = extrair_dados_q114(dados_ano_ant)
@@ -23099,18 +23150,16 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     indicadores_creche = [
         ("demanda", "Crianças que solicitaram vaga (Demanda)"),
         ("oferta", "Vagas de creche ofertadas (Oferta)"),
-        ("deficit", "Déficit de Vagas (Fila de Espera)")
+        ("deficit", "Déficit de Vagas (Fila de Espera)"),
     ]
 
-    data_ind_11 = [
-        [
-            Paragraph("Indicador de Atendimento", style_th), 
-            Paragraph(f"Exercício {ano_ant}", style_th), 
-            Paragraph(f"Exercício {ano_atual}", style_th), 
-            Paragraph("Variação (%)", style_th), 
-            Paragraph("Avaliação", style_th)
-        ]
-    ]
+    data_ind_11 = [[
+        Paragraph("Indicador de Atendimento", style_th),
+        Paragraph(f"Exercício {ano_ant}", style_th),
+        Paragraph(f"Exercício {ano_atual}", style_th),
+        Paragraph("Variação (%)", style_th),
+        Paragraph("Avaliação", style_th),
+    ]]
 
     for id_d, rotulo in indicadores_creche:
         v_ant = q114_ant.get(id_d, 0)
@@ -23131,17 +23180,27 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             aval = "<font color='#6c757d'><b>Estável</b></font>"
         elif id_d == "oferta":
             # Oferta subiu = Melhora / Oferta caiu = Piora
-            aval = "<font color='#28a745'><b>Aumento (Melhora)</b></font>" if var_pct > 0 else "<font color='#dc3545'><b>Redução (Piora)</b></font>"
+            aval = (
+                "<font color='#28a745'><b>Aumento (Melhora)</b></font>"
+                if var_pct > 0
+                else "<font color='#dc3545'><b>Redução (Piora)</b></font>"
+            )
         else:
             # Demanda ou Déficit subiu = Piora / Demanda ou Déficit caiu = Melhora
-            aval = "<font color='#dc3545'><b>Aumento (Piora)</b></font>" if var_pct > 0 else "<font color='#28a745'><b>Redução (Melhora)</b></font>"
+            aval = (
+                "<font color='#dc3545'><b>Aumento (Piora)</b></font>"
+                if var_pct > 0
+                else "<font color='#28a745'><b>Redução (Melhora)</b></font>"
+            )
 
         p_rotulo = Paragraph(rotulo, style_item_esquerda)
         p_ant = Paragraph(str(v_ant), style_td_ano)
         p_at = Paragraph(str(v_at), style_td_ano)
         p_var = Paragraph(txt_var, style_td_var)
 
-        data_ind_11.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+        data_ind_11.append(
+            [p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)]
+        )
 
     pts_ant_14 = q114_ant.get("pontos", 0.0)
     pts_at_14 = q114_atual.get("pontos", 0.0)
@@ -23155,31 +23214,40 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         txt_var_pts_14 = "0.0%"
 
     if pts_at_14 > pts_ant_14:
-        aval_pts_14 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        aval_pts_14 = (
+            "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        )
     elif pts_at_14 < pts_ant_14:
-        aval_pts_14 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+        aval_pts_14 = (
+            "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+        )
     else:
         aval_pts_14 = "<font color='#6c757d'><b>Estável</b></font>"
 
     data_ind_11.append([
-        Paragraph("<b>PONTUAÇÃO RESULTANTE (Penalidade/Sem perda)</b>", style_item_esquerda),
+        Paragraph(
+            "<b>PONTUAÇÃO RESULTANTE (Penalidade/Sem perda)</b>",
+            style_item_esquerda,
+        ),
         Paragraph(f"<b>{pts_ant_14:.1f}</b>", style_td_ano),
         Paragraph(f"<b>{pts_at_14:.1f}</b>", style_td_ano),
         Paragraph(f"<b>{txt_var_pts_14}</b>", style_td_var),
-        Paragraph(aval_pts_14, style_td_aval)
+        Paragraph(aval_pts_14, style_td_aval),
     ])
 
     tabela_ind_11 = Table(data_ind_11, colWidths=[180, 75, 75, 75, 80])
-    tabela_ind_11.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
-        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
-    ]))
+    tabela_ind_11.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+        ])
+    )
     elements.append(tabela_ind_11)
     elements.append(Spacer(1, 10))
 
@@ -23187,15 +23255,25 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     dem_at = q114_atual["demanda"]
     of_at = q114_atual["oferta"]
     def_at = q114_atual["deficit"]
-    
+
     if dem_at > of_at:
-        status_vagas_txt = f"há um <b>déficit de {def_at} vagas</b> (demanda de {dem_at} para {of_at} vagas ofertadas), gerando a aplicação de penalidade (-50,0 pts)."
+        status_vagas_txt = (
+            f"há um <b>déficit de {def_at} vagas</b> (demanda de {dem_at} para"
+            f" {of_at} vagas ofertadas), gerando a aplicação de penalidade"
+            " (-50,0 pts)."
+        )
     else:
-        status_vagas_txt = f"a oferta de vagas ({of_at}) atendeu plenamente à demanda solicitada ({dem_at}), sem aplicação de penalidades (0,0 pts)."
+        status_vagas_txt = (
+            f"a oferta de vagas ({of_at}) atendeu plenamente à demanda"
+            f" solicitada ({dem_at}), sem aplicação de penalidades (0,0 pts)."
+        )
 
     texto_desc_14 = (
-        f"A análise do equilíbrio de oferta e demanda por vagas em creche (quesito <b>1.14</b>) no exercício {ano_atual} indica que "
-        f"{status_vagas_txt} A garantia de vagas em creche é fundamental para o cumprimento da Meta 1 do Plano Nacional de Educação (PNE) e para o desenvolvimento infantil."
+        "A análise do equilíbrio de oferta e demanda por vagas em creche"
+        f" (quesito <b>1.14</b>) no exercício {ano_atual} indica que"
+        f" {status_vagas_txt} A garantia de vagas em creche é fundamental para"
+        " o cumprimento da Meta 1 do Plano Nacional de Educação (PNE) e para"
+        " o desenvolvimento infantil."
     )
     elements.append(Paragraph(texto_desc_14, style_analise))
     elements.append(Spacer(1, 15))
