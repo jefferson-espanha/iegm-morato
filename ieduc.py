@@ -22268,19 +22268,56 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # -------------------------------------------------------------------------
     # 📊 6. ANÁLISE DE INDICADORES EDUCACIONAIS (COMPARATIVO)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>6. ANÁLISE DE INDICADORES EDUCACIONAIS</b>", styles["h2"]))
+    import json
+
+    elements.append(
+        Paragraph("<b>6. ANÁLISE DE INDICADORES EDUCACIONAIS</b>", styles["h2"])
+    )
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph("<b><i>1.1.2 Cronograma de Manutenção Preventiva de Brinquedos</i></b>", styles["Normal"]))
+    elements.append(
+        Paragraph(
+            "<b><i>1.1.2 Cronograma de Manutenção Preventiva de"
+            " Brinquedos</i></b>",
+            styles["Normal"],
+        )
+    )
     elements.append(Spacer(1, 6))
 
-    def extrair_valor_cron(texto):
-        if not texto or not isinstance(texto, str):
+    def extrair_valor_cron(dado):
+        if not dado:
             return 0
-        match = re.search(r'\bCRON:(\d+)', texto)
-        return int(match.group(1)) if match else 0
 
-    texto_atual_112 = dados_ano_atual.get("1.1.2", {}).get("valor", "") if isinstance(dados_ano_atual, dict) else ""
-    texto_ant_112 = dados_ano_ant.get("1.1.2", {}).get("valor", "") if isinstance(dados_ano_ant, dict) else ""
+        # Se já for dicionário Python
+        if isinstance(dado, dict):
+            return int(dado.get("CRON", 0))
+
+        # Se for string (JSON ou formato texto)
+        if isinstance(dado, str):
+            try:
+                dados_json = json.loads(dado)
+                if isinstance(dados_json, dict):
+                    return int(dados_json.get("CRON", 0))
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+            # Regex flexível para capturar "CRON": 23, 'CRON':23 ou CRON:23
+            match = re.search(r'["\']?CRON["\']?\s*:\s*(\d+)', dado)
+            return int(match.group(1)) if match else 0
+
+        return 0
+
+    # Busca o campo 'resposta' (ou 'valor' como fallback) do dicionário
+    item_atual = (
+        dados_ano_atual.get("1.1.2", {})
+        if isinstance(dados_ano_atual, dict)
+        else {}
+    )
+    item_ant = (
+        dados_ano_ant.get("1.1.2", {}) if isinstance(dados_ano_ant, dict) else {}
+    )
+
+    texto_atual_112 = item_atual.get("resposta") or item_atual.get("valor", "")
+    texto_ant_112 = item_ant.get("resposta") or item_ant.get("valor", "")
 
     cron_atual = extrair_valor_cron(texto_atual_112)
     cron_anterior = extrair_valor_cron(texto_ant_112)
@@ -22288,30 +22325,54 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     if cron_anterior > 0:
         variacao_112 = ((cron_atual - cron_anterior) / cron_anterior) * 100
         texto_variacao_112 = f"{variacao_112:+.1f}%"
-        avaliacao_txt = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>" if variacao_112 > 0 else "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+        avaliacao_txt = (
+            "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+            if variacao_112 > 0
+            else "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+        )
     elif cron_atual > 0:
         texto_variacao_112 = "+100.0%"
-        avaliacao_txt = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        avaliacao_txt = (
+            "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        )
     else:
         texto_variacao_112 = "0.0%"
         avaliacao_txt = "<font color='#6c757d'><b>Estável</b></font>"
 
-    style_td_aval = ParagraphStyle('TdAval', parent=styles['Normal'], fontSize=9, alignment=1)
+    style_td_aval = ParagraphStyle(
+        "TdAval", parent=styles["Normal"], fontSize=9, alignment=1
+    )
 
     data_ind_6 = [
-        [Paragraph("Indicador / Exercício", style_th), Paragraph(f"Exercício {ano_ant}", style_th), Paragraph(f"Exercício {ano_atual}", style_th), Paragraph("Variação (%)", style_th), Paragraph("Avaliação", style_th)],
-        [Paragraph("Equipamentos em Cronograma (CRON)", style_item_esquerda), Paragraph(str(cron_anterior), style_td_ano), Paragraph(str(cron_atual), style_td_ano), Paragraph(texto_variacao_112, style_td_var), Paragraph(avaliacao_txt, style_td_aval)]
+        [
+            Paragraph("Indicador / Exercício", style_th),
+            Paragraph(f"Exercício {ano_ant}", style_th),
+            Paragraph(f"Exercício {ano_atual}", style_th),
+            Paragraph("Variação (%)", style_th),
+            Paragraph("Avaliação", style_th),
+        ],
+        [
+            Paragraph(
+                "Equipamentos em Cronograma (CRON)", style_item_esquerda
+            ),
+            Paragraph(str(cron_anterior), style_td_ano),
+            Paragraph(str(cron_atual), style_td_ano),
+            Paragraph(texto_variacao_112, style_td_var),
+            Paragraph(avaliacao_txt, style_td_aval),
+        ],
     ]
 
     tabela_ind_6 = Table(data_ind_6, colWidths=[180, 75, 75, 75, 80])
-    tabela_ind_6.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-        ("TOPPADDING", (0, 0), (-1, -1), 6),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
-    ]))
+    tabela_ind_6.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+        ])
+    )
     elements.append(tabela_ind_6)
     elements.append(Spacer(1, 15))
 
