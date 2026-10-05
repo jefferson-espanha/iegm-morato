@@ -21584,7 +21584,7 @@ def container_formulario_ieduc(ano=None):
         ano_relatorio = int(ano or 2026)
         dados_relatorio = {}
 
-    renderizar_card_relatorio_ifiscal(
+    renderizar_card_relatorio_ieduc(
         res_data=dados_relatorio,
         ano_sel=ano_relatorio,
     )
@@ -21592,7 +21592,7 @@ def container_formulario_ieduc(ano=None):
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
 # -----------------------------------------------------------------------------
-def renderizar_card_relatorio_ifiscal(res_data=None, ano_sel=2026):
+def renderizar_card_relatorio_ieduc(res_data=None, ano_sel=2026):
     """
     Componente NiceGUI para renderizar o Card de Emissão do PDF do I-Fiscal.
     """
@@ -21603,7 +21603,7 @@ def renderizar_card_relatorio_ifiscal(res_data=None, ano_sel=2026):
     ).style(
         "background-color: #eff8ff; border-color: #c7e2f5;"
     ):
-        ui.label("📄 Emissão de Relatório Analítico - I-Fiscal").classes(
+        ui.label("📄 Emissão de Relatório Analítico - I-Educ").classes(
             "text-xl font-bold text-blue-900 mb-2"
         )
         ui.label(
@@ -21611,7 +21611,7 @@ def renderizar_card_relatorio_ifiscal(res_data=None, ano_sel=2026):
         ).classes("text-sm text-gray-700 mb-5")
 
         async def baixar_pdf():
-            n = ui.notify("Gerando PDF do I-Fiscal, aguarde...", type="info", timeout=0)
+            n = ui.notify("Gerando PDF do I-Educ, aguarde...", type="info", timeout=0)
 
             try:
                 await asyncio.sleep(0.3)
@@ -21638,7 +21638,7 @@ def renderizar_card_relatorio_ifiscal(res_data=None, ano_sel=2026):
                     todos_dados=historico_todos_anos,
                 )
 
-                rota_pdf = f"/relatorio_ifiscal_temp_{ano_alvo}.pdf"
+                rota_pdf = f"/relatorio_ieduc_temp_{ano_alvo}.pdf"
 
                 try:
                     @app.get(rota_pdf)
@@ -21648,11 +21648,11 @@ def renderizar_card_relatorio_ifiscal(res_data=None, ano_sel=2026):
                     pass
 
                 ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
-                ui.notify("Relatório I-Fiscal aberto com sucesso!", type="positive")
+                ui.notify("Relatório I-Educ aberto com sucesso!", type="positive")
 
             except Exception as e:
-                print(f"ERRO CRÍTICO AO GERAR PDF I-FISCAL: {e}")
-                logging.exception("Erro no PDF I-Fiscal:")
+                print(f"ERRO CRÍTICO AO GERAR PDF I-EDUC: {e}")
+                logging.exception("Erro no PDF I-Educ:")
                 ui.notify(
                     f"Erro ao gerar o PDF: {e}", type="negative", close_button=True
                 )
@@ -21666,7 +21666,7 @@ def renderizar_card_relatorio_ifiscal(res_data=None, ano_sel=2026):
 
         # ✅ CORREÇÃO: Alinhado no escopo do 'with ui.card()', fora da função baixar_pdf
         ui.button(
-            "📥 GERAR E ABRIR RELATÓRIO PDF (I-FISCAL)",
+            "📥 GERAR E ABRIR RELATÓRIO PDF (I-EDUC)",
             on_click=baixar_pdf,
         ).classes(
             "bg-blue-600 text-white font-bold px-4 py-2 rounded-md shadow-sm my-2"
