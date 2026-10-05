@@ -1,4 +1,6 @@
+import asyncio
 import base64
+import logging
 from datetime import datetime
 import json
 import os
@@ -8,6 +10,7 @@ from contextlib import contextmanager
 import psycopg2
 from psycopg2.pool import ThreadedConnectionPool
 from psycopg2.extras import RealDictCursor
+from fastapi.responses import Response
 from nicegui import app, ui
 
 # =============================================================================
@@ -21570,10 +21573,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E11", res_data, render_conteudo.refresh)
 
     render_conteudo()
-    return main_container
 
-    # O card do relatório pertence ao mesmo fluxo do formulário.
-    # Ele é chamado depois da renderização inicial, como no módulo-modelo.
+    # O card precisa ser criado antes do return; depois do return o código fica
+    # inalcançável e o botão nunca é enviado ao navegador.
     try:
         ano_relatorio = int(
             app.storage.user.get("ano_referencia_global", ano or 2026)
@@ -21588,6 +21590,82 @@ def container_formulario_ieduc(ano=None):
         res_data=dados_relatorio,
         ano_sel=ano_relatorio,
     )
+
+    return main_container
+
+# -----------------------------------------------------------------------------
+# Suportes do relatório PDF
+# -----------------------------------------------------------------------------
+def converter_pontos_em_faixa_iegm(total_pts):
+    """Converte a pontuação total para a faixa exibida no painel."""
+    total = float(total_pts or 0)
+    if total <= 500:
+        return "C"
+    if total <= 599:
+        return "C+"
+    if total <= 749:
+        return "B"
+    if total <= 899:
+        return "B+"
+    return "A"
+
+
+def get_all_years_data():
+    """Carrega as respostas de todos os anos disponíveis para o relatório."""
+    dados = {}
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT DISTINCT ano FROM respostas_ieduc ORDER BY ano")
+                anos = [int(row["ano"]) for row in cur.fetchall()]
+        for ano_item in anos:
+            dados[ano_item] = load_respostas(ano_item)
+    except Exception as err:
+        logging.exception("Erro ao carregar histórico do relatório: %s", err)
+    return dados
+
+
+def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
+    """Gera um PDF simples e válido com o resumo do i-Educ."""
+    from io import BytesIO
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+    from reportlab.lib.enums import TA_CENTER
+    from reportlab.lib.units import cm
+    from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+    from reportlab.lib import colors
+
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer, pagesize=A4, rightMargin=1.5 * cm, leftMargin=1.5 * cm,
+        topMargin=1.5 * cm, bottomMargin=1.5 * cm,
+    )
+    styles = getSampleStyleSheet()
+    styles.add(ParagraphStyle(name="TituloIeduc", parent=styles["Title"], alignment=TA_CENTER, textColor=colors.HexColor("#123b68")))
+    story = [
+        Paragraph("Relatório Analítico — i-Educ", styles["TituloIeduc"]),
+        Paragraph(f"Ano de referência: {int(ano)}", styles["Normal"]),
+        Spacer(1, 12),
+    ]
+    resumo = [
+        ["Indicador", "Resultado"],
+        ["Pontuação total", f"{float(total):.2f} pontos"],
+        ["Faixa", str(faixa)],
+        ["Quesitos registrados", str(sum(1 for value in (dados or {}).values() if isinstance(value, dict)))],
+    ]
+    tabela = Table(resumo, colWidths=[8 * cm, 8 * cm])
+    tabela.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#dbeafe")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#123b68")),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#9ca3af")),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("PADDING", (0, 0), (-1, -1), 8),
+    ]))
+    story.extend([tabela, Spacer(1, 18), Paragraph("Este documento foi gerado pelo sistema de acompanhamento i-Educ.", styles["Normal"])])
+    doc.build(story)
+    return buffer.getvalue()
+
 
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
