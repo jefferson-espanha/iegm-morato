@@ -1876,7 +1876,7 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("1.7", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                       # =============================================================================
+                        # =============================================================================
                         # QUESITO 1.7.1
                         # Quantidade de Profissionais de Creche Capacitados
                         # =============================================================================
@@ -1899,7 +1899,6 @@ def container_formulario_ieduc(ano=None):
                             ).classes("text-xs text-gray-400 mb-6 whitespace-pre-line")
 
                             d171 = res_data.get("1.7.1") or res_data.get("1.71") or {}
-
                             raw_link_171 = str(d171.get("link") or "")
 
                             prof_cap_i = 0
@@ -1912,6 +1911,7 @@ def container_formulario_ieduc(ano=None):
 
                             evidencia_171 = raw_link_171
 
+                            # Extrai os dados salvos previamente na string do link
                             if "|LINK:" in raw_link_171:
                                 partes_171, evidencia_171 = raw_link_171.split("|LINK:", 1)
 
@@ -2114,7 +2114,7 @@ def container_formulario_ieduc(ano=None):
                                     f"GCAP:{g_cap},"
                                     f"TPROF:{t_prof},"
                                     f"TAPOI:{t_apoi},"
-                                    f"TGEST:{t_gest}"
+                                    f"TGEST:{t_gest},"
                                     f"|LINK:{state_171.get('link') or ''}"
                                 )
 
@@ -2146,7 +2146,7 @@ def container_formulario_ieduc(ano=None):
                                     type="positive",
                                 )
 
-                                if render_conteudo.refresh:
+                                if hasattr(render_conteudo, "refresh"):
                                     render_conteudo.refresh()
 
                             ui.button(
@@ -2161,9 +2161,8 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios(
                                 "1.7.1",
                                 res_data,
-                                render_conteudo.refresh,
+                                getattr(render_conteudo, "refresh", None),
                             )
-
 
                         # =============================================================================
                         # QUESITO 1.7.2
