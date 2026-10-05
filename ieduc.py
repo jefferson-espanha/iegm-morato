@@ -6786,11 +6786,13 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe o total de professores regentes dos Anos Iniciais e a quantidade com Licenciatura e Pós-graduação:"
+                                "Informe a quantidade de professores regentes dos Anos Iniciais (efetivos e temporários - Dados Censo Escolar 2025) e a quantidade com Licenciatura e Pós-graduação:"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "ℹ Graduação (Grad): 100%=12pts | 90-99%=7pts | 80-89%=3pts | 70-79%=1pt | <70%=0pt.\n"
-                                "ℹ Pós-Graduação (Pgrad): ≥50%=7pts | 40-49%=5pts | 20-39%=3pts | <20%=0pt. Pmáx = 19.0 pontos."
+                                "ℹ Regras:\n"
+                                "• Graduação (G = GRAD / Total): G=100% → N1=12 | 90%≤G<100% → N1=7 | 80%≤G<90% → N1=3 | 70%≤G<80% → N1=1 | G<70% → N1=0\n"
+                                "• Pós-Graduação (P = PGRAD / Total): P≥50% → N2=7 | 40%≤P<50% → N2=5 | 20%≤P<40% → N2=3 | P<20% → N2=0\n"
+                                "• Nota Final (NF = N1 + N2): Pmáx = 19.0 pontos."
                             ).classes("text-xs text-gray-400 mb-6 whitespace-pre-line")
 
                             d32 = res_data.get("3.2") or {}
@@ -6808,20 +6810,18 @@ def container_formulario_ieduc(ano=None):
                                 grad_32_i = int(m_grad.group(1)) if m_grad else 0
                                 pgrad_32_i = int(m_pgrad.group(1)) if m_pgrad else 0
 
-                            state_32 = {
-                                "tot_prof": tot_prof_32_i,
-                                "grad": grad_32_i,
-                                "pgrad": pgrad_32_i,
-                                "link": evidencia_32,
-                            }
+                            def parse_int(val):
+                                if not val:
+                                    return 0
+                                try:
+                                    clean_val = re.sub(r"\D", "", str(val))
+                                    return int(clean_val) if clean_val else 0
+                                except (ValueError, TypeError):
+                                    return 0
 
-                            def calc_pts_32():
-                                tot = int(state_32["tot_prof"] or 0)
-                                grd = int(state_32["grad"] or 0)
-                                pgrd = int(state_32["pgrad"] or 0)
-
+                            def calc_pts_32(tot, grd, pgrd):
                                 if tot <= 0:
-                                    return 0.0
+                                    return 0.0, 0.0, 0.0, 0.0, 0.0
 
                                 g_pct = (grd / tot) * 100.0
                                 p_pct = (pgrd / tot) * 100.0
@@ -6848,59 +6848,122 @@ def container_formulario_ieduc(ano=None):
                                 else:
                                     n2 = 0.0
 
-                                return min(n1 + n2, 19.0)
+                                nf = min(n1 + n2, 19.0)
+                                return nf, n1, n2, g_pct, p_pct
+
+                            lbl_pts_32 = ui.label("").classes("text-sm font-bold text-green-600 my-4")
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 with ui.column().classes("w-full gap-3"):
-                                    inp_tot_32 = ui.number("Total de professores regentes:", value=tot_prof_32_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_32, "tot_prof")
-                                    inp_grad_32 = ui.number("Professores com Licenciatura (GRAD):", value=grad_32_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_32, "grad")
-                                    inp_pgrad_32 = ui.number("Professores com Pós-Graduação (PGRAD):", value=pgrad_32_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_32, "pgrad")
+                                    inp_tot_32 = (
+                                        ui.input(
+                                            "Total de professores regentes (efetivos e temporários):",
+                                            value=str(tot_prof_32_i) if tot_prof_32_i > 0 else "",
+                                            placeholder="0",
+                                        )
+                                        .classes("w-full")
+                                        .props("outlined color=blue")
+                                    )
 
-                                ui.textarea(
-                                    label="Link de Evidência / Documento:",
-                                    value=evidencia_32,
-                                    placeholder="Insira os relatórios do Censo Escolar 2025, diplomas ou dados do RH...",
-                                ).classes("w-full").props("outlined rows=8").bind_value(
-                                    state_32, "link"
+                                    inp_grad_32 = (
+                                        ui.input(
+                                            "Possuem curso de Licenciatura (GRAD):",
+                                            value=str(grad_32_i) if grad_32_i > 0 else "",
+                                            placeholder="0",
+                                        )
+                                        .classes("w-full")
+                                        .props("outlined color=blue")
+                                    )
+
+                                    inp_pgrad_32 = (
+                                        ui.input(
+                                            "Possuem Pós-Graduação (PGRAD):",
+                                            value=str(pgrad_32_i) if pgrad_32_i > 0 else "",
+                                            placeholder="0",
+                                        )
+                                        .classes("w-full")
+                                        .props("outlined color=blue")
+                                    )
+
+                                txt_link_32 = (
+                                    ui.textarea(
+                                        label="Link de Evidência / Documento:",
+                                        value=evidencia_32,
+                                        placeholder="Insira os relatórios do Censo Escolar 2025, diplomas ou dados do RH...",
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined rows=8")
                                 )
-
-                            lbl_pts_32 = ui.label(
-                                f"📊 Impacto de Pontuação no Quesito 3.2: {calc_pts_32():.1f} / 19.0 pontos"
-                            ).classes("text-sm font-bold text-green-600 my-4")
 
                             def att_pts_32():
-                                lbl_pts_32.set_text(
-                                    f"📊 Impacto de Pontuação no Quesito 3.2: {calc_pts_32():.1f} / 19.0 pontos"
-                                )
+                                tot = parse_int(inp_tot_32.value)
+                                grd = parse_int(inp_grad_32.value)
+                                pgrd = parse_int(inp_pgrad_32.value)
 
-                            inp_tot_32.on("update:model-value", att_pts_32)
-                            inp_grad_32.on("update:model-value", att_pts_32)
-                            inp_pgrad_32.on("update:model-value", att_pts_32)
+                                nf, n1, n2, g_pct, p_pct = calc_pts_32(tot, grd, pgrd)
+                                cor = "text-green-600" if nf > 0 else "text-gray-600"
+                                lbl_pts_32.classes(remove="text-green-600 text-gray-600", add=cor)
+
+                                if tot > 0:
+                                    lbl_pts_32.set_text(
+                                        f"📊 Impacto de Pontuação no Quesito 3.2: {nf:.1f} / 19.0 pontos "
+                                        f"(GRAD: {g_pct:.1f}% → {n1:.0f} pts | PGRAD: {p_pct:.1f}% → {n2:.0f} pts)"
+                                    )
+                                else:
+                                    lbl_pts_32.set_text("📊 Impacto de Pontuação no Quesito 3.2: 0.0 / 19.0 pontos")
+
+                            inp_tot_32.on("update:model-value", lambda: att_pts_32())
+                            inp_grad_32.on("update:model-value", lambda: att_pts_32())
+                            inp_pgrad_32.on("update:model-value", lambda: att_pts_32())
+
+                            att_pts_32()
 
                             def salvar_32():
-                                tot, grd, pgrd = state_32["tot_prof"], state_32["grad"], state_32["pgrad"]
-                                pts = calc_pts_32()
-                                composite = f"TOT:{tot},GRAD:{grd},PGRAD:{pgrd}|LINK:{state_32['link']}"
+                                tot = parse_int(inp_tot_32.value)
+                                grd = parse_int(inp_grad_32.value)
+                                pgrd = parse_int(inp_pgrad_32.value)
+
+                                if grd > tot or pgrd > tot:
+                                    ui.notify(
+                                        "O número de professores graduados ou pós-graduados não pode exceder o total de professores.",
+                                        type="warning",
+                                    )
+
+                                link_texto = str(txt_link_32.value or "")
+                                nf, _, _, _, _ = calc_pts_32(tot, grd, pgrd)
+                                composite = f"TOT:{tot},GRAD:{grd},PGRAD:{pgrd}|LINK:{link_texto}"
+                                valor_exibicao = f"Total: {tot} | GRAD: {grd} | PGRAD: {pgrd}"
 
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="3.2",
-                                    valor=f"Total: {tot} | GRAD: {grd} | PGRAD: {pgrd}",
-                                    pontos=pts,
+                                    valor=valor_exibicao,
+                                    pontos=nf,
                                     link=composite,
                                     comentarios=d32.get("comentarios", []),
                                     status=d32.get("status", "Pendente"),
                                 )
 
+                                res_data["3.2"] = {
+                                    **d32,
+                                    "valor": valor_exibicao,
+                                    "pontos": nf,
+                                    "link": composite,
+                                }
+
                                 ui.notify("Quesito 3.2 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if hasattr(render_conteudo, "refresh"):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 3.2", on_click=salvar_32).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("3.2", res_data, render_conteudo.refresh)
+                            bloco_comentarios(
+                                "3.2",
+                                res_data,
+                                getattr(render_conteudo, "refresh", None),
+                            )
 
                         # =============================================================================
                         # QUESITO 3.3 (Piso Salarial dos Professores - Anos Iniciais)
