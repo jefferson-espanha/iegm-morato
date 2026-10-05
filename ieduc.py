@@ -22667,42 +22667,66 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_16, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   # -------------------------------------------------------------------------
     # 📊 9. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE (QUESITO 1.8)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>9. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE (QUESITO 1.8)</b>", styles["h2"]))
+    elements.append(
+        Paragraph(
+            "<b>9. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE (QUESITO 1.8)</b>",
+            styles["h2"],
+        )
+    )
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph("<b><i>1.8 Análise da Distribuição de Escolas por Faixa de Rotatividade Docente</i></b>", styles["Normal"]))
+    elements.append(
+        Paragraph(
+            "<b><i>1.8 Análise da Distribuição de Escolas por Faixa de Rotatividade Docente</i></b>",
+            styles["Normal"],
+        )
+    )
     elements.append(Spacer(1, 6))
 
     def extrair_dados_q18(dado_ano):
+        """Extrai dados do quesito 1.8 contornando chaves Q1..Q4 ou F1..F4 no banco."""
+        import re as re_mod
+
         dados_f = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
         if not isinstance(dado_ano, dict):
             return dados_f
-        
-        info_q = dado_ano.get("1.8", {})
-        if isinstance(info_q, dict):
-            val_str = info_q.get("valor", "")
-            dados_f["pontos"] = float(info_q.get("pontos", 0.0))
-        else:
-            val_str = str(info_q)
 
-        try:
-            partes = val_str.split(",")
-            for p in partes:
-                if ":" in p:
-                    k, v = p.split(":")
-                    k = k.strip().upper()
-                    if k in dados_f:
-                        match = re.search(r'\d+', v)
-                        if match:
-                            dados_f[k] = int(match.group())
-        except Exception:
-            pass
+        info_q = dado_ano.get("1.8", {})
+        if not isinstance(info_q, dict):
+            return dados_f
+
+        dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+
+        # Agrupa os textos de todas as colunas possíveis
+        textos_para_analise = [
+            str(info_q.get("resposta", "")),
+            str(info_q.get("link", "")),
+            str(info_q.get("valor", "")),
+        ]
+        texto_completo = " ".join([t for t in textos_para_analise if t and t != "None"])
+
+        # Mapeamento do banco (Q1..Q4 ou F1..F4) para o dicionario interno (F1..F4)
+        mapa_chaves = {
+            "F1": ["Q1", "F1"],
+            "F2": ["Q2", "F2"],
+            "F3": ["Q3", "F3"],
+            "F4": ["Q4", "F4"],
+        }
+
+        if texto_completo:
+            for chave_dest, aliases in mapa_chaves.items():
+                for alias in aliases:
+                    match = re_mod.search(
+                        rf"\b{alias}\s*:\s*(\d+)", texto_completo, re_mod.IGNORECASE
+                    )
+                    if match:
+                        dados_f[chave_dest] = int(match.group(1))
+                        break
 
         calc_tot = dados_f["F1"] + dados_f["F2"] + dados_f["F3"] + dados_f["F4"]
-        if dados_f["TOTAL"] == 0 and calc_tot > 0:
-            dados_f["TOTAL"] = calc_tot
+        dados_f["TOTAL"] = calc_tot
 
         return dados_f
 
@@ -22714,18 +22738,16 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         ("F2", "Rotatividade ≥ 20% e < 30% (F2 - Adequado)", True),
         ("F3", "Rotatividade ≥ 30% e < 40% (F3 - Atenção)", False),
         ("F4", "Rotatividade ≥ 40% (F4 - Crítico)", False),
-        ("TOTAL", "TOTAL DE ESCOLAS AVALIADAS", None)
+        ("TOTAL", "TOTAL DE ESCOLAS AVALIADAS", None),
     ]
 
-    data_ind_18 = [
-        [
-            Paragraph("Faixa de Rotatividade / Métrica", style_th), 
-            Paragraph(f"Exercício {ano_ant}", style_th), 
-            Paragraph(f"Exercício {ano_atual}", style_th), 
-            Paragraph("Variação (%)", style_th), 
-            Paragraph("Avaliação", style_th)
-        ]
-    ]
+    data_ind_18 = [[
+        Paragraph("Faixa de Rotatividade / Métrica", style_th),
+        Paragraph(f"Exercício {ano_ant}", style_th),
+        Paragraph(f"Exercício {ano_atual}", style_th),
+        Paragraph("Variação (%)", style_th),
+        Paragraph("Avaliação", style_th),
+    ]]
 
     for id_f, rotulo, positivo_se_crescer in faixas_q18:
         v_ant = q18_ant.get(id_f, 0)
@@ -22745,7 +22767,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             aval = "<font color='#6c757d'><b>Informativo</b></font>"
         elif var_pct == 0:
             aval = "<font color='#6c757d'><b>Estável</b></font>"
-        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+        elif (var_pct > 0 and positivo_se_crescer) or (
+            var_pct < 0 and not positivo_se_crescer
+        ):
             aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
         else:
             aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
@@ -22761,7 +22785,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             p_at = Paragraph(str(v_at), style_td_ano)
             p_var = Paragraph(txt_var, style_td_var)
 
-        data_ind_18.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+        data_ind_18.append(
+            [p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)]
+        )
 
     pts_ant_18 = q18_ant.get("pontos", 0.0)
     pts_at_18 = q18_atual.get("pontos", 0.0)
@@ -22786,28 +22812,41 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         Paragraph(f"<b>{pts_ant_18:.2f}</b>", style_td_ano),
         Paragraph(f"<b>{pts_at_18:.2f}</b>", style_td_ano),
         Paragraph(f"<b>{txt_var_pts_18}</b>", style_td_var),
-        Paragraph(aval_pts_18, style_td_aval)
+        Paragraph(aval_pts_18, style_td_aval),
     ])
 
     tabela_ind_18 = Table(data_ind_18, colWidths=[180, 75, 75, 75, 80])
-    tabela_ind_18.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
-        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
-    ]))
+    tabela_ind_18.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+        ])
+    )
     elements.append(tabela_ind_18)
     elements.append(Spacer(1, 8))
 
+    style_analise = styles.get(
+        "AnaliseText",
+        ParagraphStyle(
+            "AnaliseText", parent=styles["Normal"], fontSize=9, leading=12
+        ),
+    )
+
     texto_desc_18 = (
-        f"A avaliação da rotatividade docente no quesito <b>1.8</b> reflete a estabilidade da equipe escolar nas unidades de Creche. "
-        f"A pontuação do indicador evoluiu de <b>{pts_ant_18:.2f} pontos</b> no exercício {ano_ant} para <b>{pts_at_18:.2f} pontos</b> no exercício {ano_atual}. "
-        f"A manutenção dos professores nas mesmas unidades de ensino fortalece o vínculo afetivo com os bebês e crianças pequenas, "
-        f"impactando diretamente na qualidade do desenvolvimento infantil e no planejamento pedagógico contínuo."
+        f"A avaliação da rotatividade docente no quesito <b>1.8</b> reflete a"
+        f" estabilidade da equipe escolar nas unidades de Creche. A pontuação"
+        f" do indicador evoluiu de <b>{pts_ant_18:.2f} pontos</b> no exercício"
+        f" {ano_ant} para <b>{pts_at_18:.2f} pontos</b> no exercício"
+        f" {ano_atual}. A manutenção dos professores nas mesmas unidades de"
+        " ensino fortalece o vínculo afetivo com os bebês e crianças pequenas,"
+        " impactando diretamente na qualidade do desenvolvimento infantil e no"
+        " planejamento pedagógico contínuo."
     )
     elements.append(Paragraph(texto_desc_18, style_analise))
     elements.append(Spacer(1, 15))
