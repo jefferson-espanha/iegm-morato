@@ -22500,11 +22500,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(tabela_ind_7)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   # -------------------------------------------------------------------------
     # 📊 8. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 1.6)
     # -------------------------------------------------------------------------
-    import re  # Importado localmente para garantir acesso direto no escopo
-
     elements.append(
         Paragraph(
             "<b>8. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 1.6)</b>",
@@ -22523,6 +22521,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
     def extrair_ausencias_q16(dado_ano):
         """Mapeia abreviações do banco (INJ, JUS, MED, MAT, ABO, OUT) para os rótulos do relatório."""
+        import re as re_mod  # Import com alias exclusivo para ignorar conflitos de escopo
+
         chaves = ["FI", "FJ", "LM", "LP", "AB", "OUT"]
         dados_a = {k: 0 for k in chaves}
         dados_a["TOTAL"] = 0
@@ -22534,7 +22534,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         if not isinstance(info_q, dict):
             return dados_a
 
-        # Junta todas as possíveis fontes do texto (link, resposta, valor)
         textos_para_analise = [
             str(info_q.get("link", "")),
             str(info_q.get("resposta", "")),
@@ -22553,12 +22552,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             "OUT": ["OUT", "OUTROS", "AFASTAMENTO"],
         }
 
-        # Extração por Regex considerando a sintaxe salva no formulário
         if texto_completo:
             for chk, alias_list in mapa_chaves.items():
                 for alias in alias_list:
-                    match = re.search(
-                        rf"\b{alias}\s*:\s*(\d+)", texto_completo, re.IGNORECASE
+                    match = re_mod.search(
+                        rf"\b{alias}\s*:\s*(\d+)", texto_completo, re_mod.IGNORECASE
                     )
                     if match:
                         dados_a[chk] = int(match.group(1))
@@ -22570,7 +22568,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     q16_ant = extrair_ausencias_q16(dados_ano_ant)
     q16_atual = extrair_ausencias_q16(dados_ano_atual)
 
-    # Para ausências de professores, REDUZIR dias é o objetivo desejado
     tipos_ausencias = [
         ("FI", "Faltas Injustificadas (dias)", False),
         ("FJ", "Faltas Justificadas (dias)", False),
@@ -22603,7 +22600,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             txt_var = "0.0%"
             var_pct = 0.0
 
-        # Lógica de Avaliação
         if var_pct == 0:
             aval = "<font color='#6c757d'><b>Estável</b></font>"
         elif var_pct < 0:
