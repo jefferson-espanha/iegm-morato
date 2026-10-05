@@ -6930,73 +6930,133 @@ def container_formulario_ieduc(ano=None):
                                 m_sm = re.search(r"SM:([\d\.]+)", partes_33)
                                 piso_33_i = float(m_piso.group(1)) if m_piso else 0.0
                                 sm_33_i = float(m_sm.group(1)) if m_sm else 1518.00
+                            elif d33.get("valor"):
+                                try:
+                                    val_str = str(d33.get("valor")).split("(")[0].replace("Piso:", "").replace("R$", "").strip()
+                                    val_clean = val_str.replace(".", "").replace(",", ".")
+                                    piso_33_i = float(val_clean)
+                                except (ValueError, TypeError):
+                                    piso_33_i = 0.0
 
-                            state_33 = {
-                                "piso": piso_33_i,
-                                "sm": sm_33_i,
-                                "link": evidencia_33,
-                            }
+                            def parse_float_ptbr(val_str):
+                                if not val_str:
+                                    return 0.0
+                                if isinstance(val_str, (int, float)):
+                                    return float(val_str)
+                                s = str(val_str).replace("R$", "").strip()
+                                if "," in s:
+                                    s = s.replace(".", "").replace(",", ".")
+                                return float(s) if s else 0.0
 
-                            def calc_pts_33():
-                                piso_v = float(state_33["piso"] or 0.0)
-                                sm_v = float(state_33["sm"] or 0.0)
+                            def fmt_br(val):
+                                return f"{val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+                            def calc_pts_33(piso_v, sm_v):
                                 if piso_v <= 0:
                                     return 0.0
                                 return -20.0 if piso_v < sm_v else 0.0
 
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("w-full gap-3"):
-                                    inp_piso_33 = ui.number("Piso Salarial (40h) R$:", value=piso_33_i, min=0.0, step=50.0, format="%.2f").classes("w-full").props("outlined color=blue").bind_value(state_33, "piso")
-                                    inp_sm_33 = ui.number("Salário Mínimo de Referência R$:", value=sm_33_i, min=0.0, step=10.0, format="%.2f").classes("w-full").props("outlined color=blue").bind_value(state_33, "sm")
-
-                                ui.textarea(
-                                    label="Link de Evidência / Documento:",
-                                    value=evidencia_33,
-                                    placeholder="Insira a lei municipal do plano de cargos e carreiras, holerite modelo ou tabela salarial...",
-                                ).classes("w-full").props("outlined rows=6").bind_value(
-                                    state_33, "link"
-                                )
-
                             lbl_pts_33 = ui.label(
-                                f"📊 Impacto de Pontuação no Quesito 3.3: {calc_pts_33():.1f} pontos"
+                                f"📊 Impacto de Pontuação no Quesito 3.3: {calc_pts_33(piso_33_i, sm_33_i):.1f} pontos"
                             ).classes("text-sm font-bold text-green-600 my-4")
 
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                with ui.column().classes("w-full gap-3"):
+                                    inp_piso_33 = (
+                                        ui.input(
+                                            "Piso Salarial (40h) R$:",
+                                            value=fmt_br(piso_33_i) if piso_33_i > 0 else "",
+                                            placeholder="0,00",
+                                        )
+                                        .classes("w-full")
+                                        .props("outlined color=blue prefix=R$")
+                                    )
+
+                                    inp_sm_33 = (
+                                        ui.input(
+                                            "Salário Mínimo de Referência R$:",
+                                            value=fmt_br(sm_33_i),
+                                            placeholder="1.518,00",
+                                        )
+                                        .classes("w-full")
+                                        .props("outlined color=blue prefix=R$")
+                                    )
+
+                                txt_link_33 = (
+                                    ui.textarea(
+                                        label="Link de Evidência / Documento:",
+                                        value=evidencia_33,
+                                        placeholder="Insira a lei municipal do plano de cargos e carreiras, holerite modelo ou tabela salarial...",
+                                    )
+                                    .classes("w-full")
+                                    .props("outlined rows=6")
+                                )
+
                             def att_pts_33():
-                                pts = calc_pts_33()
+                                try:
+                                    p_v = parse_float_ptbr(inp_piso_33.value)
+                                    sm_v = parse_float_ptbr(inp_sm_33.value)
+                                except (ValueError, TypeError):
+                                    p_v, sm_v = 0.0, 0.0
+
+                                pts = calc_pts_33(p_v, sm_v)
                                 cor = "text-red-600" if pts < 0 else "text-green-600"
                                 lbl_pts_33.classes(remove="text-red-600 text-green-600", add=cor)
                                 lbl_pts_33.set_text(
                                     f"📊 Impacto de Pontuação no Quesito 3.3: {pts:.1f} pontos"
                                 )
 
-                            inp_piso_33.on("update:model-value", att_pts_33)
-                            inp_sm_33.on("update:model-value", att_pts_33)
+                            inp_piso_33.on("update:model-value", lambda: att_pts_33())
+                            inp_sm_33.on("update:model-value", lambda: att_pts_33())
+
+                            att_pts_33()
 
                             def salvar_33():
-                                p_v = float(state_33["piso"] or 0.0)
-                                sm_v = float(state_33["sm"] or 0.0)
-                                pts = calc_pts_33()
-                                composite = f"PISO:{p_v:.2f},SM:{sm_v:.2f}|LINK:{state_33['link']}"
+                                try:
+                                    p_v = parse_float_ptbr(inp_piso_33.value)
+                                    sm_v = parse_float_ptbr(inp_sm_33.value)
+                                except (TypeError, ValueError):
+                                    ui.notify(
+                                        "Informe um valor numérico válido (ex: 4.015,75).",
+                                        type="negative",
+                                    )
+                                    return
+
+                                link_texto = str(txt_link_33.value or "")
+                                pts_finais = calc_pts_33(p_v, sm_v)
+                                composite = f"PISO:{p_v:.2f},SM:{sm_v:.2f}|LINK:{link_texto}"
+                                valor_exibicao = f"Piso: R$ {fmt_br(p_v)} (SM: R$ {fmt_br(sm_v)})"
 
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="3.3",
-                                    valor=f"Piso: R$ {p_v:.2f} (SM: R$ {sm_v:.2f})",
-                                    pontos=pts,
+                                    valor=valor_exibicao,
+                                    pontos=pts_finais,
                                     link=composite,
                                     comentarios=d33.get("comentarios", []),
                                     status=d33.get("status", "Pendente"),
                                 )
 
+                                res_data["3.3"] = {
+                                    **d33,
+                                    "valor": valor_exibicao,
+                                    "pontos": pts_finais,
+                                    "link": composite,
+                                }
+
                                 ui.notify("Quesito 3.3 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
+                                if hasattr(render_conteudo, "refresh"):
                                     render_conteudo.refresh()
 
                             ui.button("💾 SALVAR QUESITO 3.3", on_click=salvar_33).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("3.3", res_data, render_conteudo.refresh)
+                            bloco_comentarios(
+                                "3.3",
+                                res_data,
+                                getattr(render_conteudo, "refresh", None),
+                            )
 
                         # =============================================================================
                         # QUESITO 3.4 (Ausência de Professores - Anos Iniciais - QTA)
