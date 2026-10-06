@@ -33,6 +33,16 @@ def parse_num(val):
         except (ValueError, TypeError):
             return None
 
+
+def safe_float(val, default=0.0):
+    """Converte números vindos do JSON/Banco sem deixar a tela quebrar."""
+    try:
+        if val is None or val == "":
+            return float(default)
+        return float(val)
+    except (TypeError, ValueError):
+        return float(default)
+
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
@@ -13046,42 +13056,33 @@ def container_formulario_saude(ano=None):
                                 "Informe o número de mulheres (25 a 64 anos) com exame citopatológico realizado nos últimos 36 meses na APS "
                                 "e o total de mulheres dessa faixa etária cadastradas no município para os 3 quadrimestres de 2025 (SISAB):"
                             ).classes("text-sm text-gray-700 mb-4")
-
+    
                             ds17 = res_data.get("S17") or {}
                             val_s17 = ds17.get("valor") if isinstance(ds17.get("valor"), dict) else {}
-
+    
                             state_s17 = {
-                                "cit1q": float(val_s17.get("cit1q", 0.0)),
-                                "cit2q": float(val_s17.get("cit2q", 0.0)),
-                                "cit3q": float(val_s17.get("cit3q", 0.0)),
-                                "tm1q": float(val_s17.get("tm1q", 0.0)),
-                                "tm2q": float(val_s17.get("tm2q", 0.0)),
-                                "tm3q": float(val_s17.get("tm3q", 0.0)),
+                                "cit1q": safe_float(val_s17.get("cit1q", 0.0)),
+                                "cit2q": safe_float(val_s17.get("cit2q", 0.0)),
+                                "cit3q": safe_float(val_s17.get("cit3q", 0.0)),
+                                "tm1q": safe_float(val_s17.get("tm1q", 0.0)),
+                                "tm2q": safe_float(val_s17.get("tm2q", 0.0)),
+                                "tm3q": safe_float(val_s17.get("tm3q", 0.0)),
                                 "link": str(ds17.get("link") or "")
                             }
-
+    
                             lbl_pct_s17 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
                             lbl_pontos_s17 = ui.label("").classes("text-base font-bold mb-4")
-
+    
                             def calc_s17(c1, c2, c3, t1, t2, t3):
-                                # No SISAB/Previne Brasil, para o quadrimestre mais recente/acumulado:
-                                # Usa-se a soma dos exames dividida pela média do público cadastrado nos quadrimestres informados
                                 soma_cit = c1 + c2 + c3
-                                t_validos = [t for t in [t1, t2, t3] if t > 0]
-                                
-                                if not t_validos:
+                                soma_tm = t1 + t2 + t3
+    
+                                if soma_tm <= 0:
                                     return 0.0, 0.0
-
-                                # Média do público-alvo nos quadrimestres informados
-                                media_tm = sum(t_validos) / len(t_validos)
-                                
-                                if media_tm <= 0:
-                                    return 0.0, 0.0
-
-                                # Caso o indicador use a média dos exames por quadrimestre ou soma acumulada:
-                                prop = soma_cit / media_tm
+    
+                                prop = soma_cit / soma_tm
                                 pct = prop * 100.0
-
+    
                                 if pct >= 100.0:
                                     pts = 25.0
                                 elif pct >= 80.0:
@@ -13094,24 +13095,25 @@ def container_formulario_saude(ano=None):
                                     pts = 5.0
                                 else:
                                     pts = 0.0
-
+    
                                 return prop, pts
-
+    
                             def atualizar_calculo_s17():
-                                c1 = float(state_s17["cit1q"] or 0)
-                                c2 = float(state_s17["cit2q"] or 0)
-                                c3 = float(state_s17["cit3q"] or 0)
-                                t1 = float(state_s17["tm1q"] or 0)
-                                t2 = float(state_s17["tm2q"] or 0)
-                                t3 = float(state_s17["tm3q"] or 0)
-
+                                c1 = float(inp_c1.value or 0)
+                                c2 = float(inp_c2.value or 0)
+                                c3 = float(inp_c3.value or 0)
+                                t1 = float(inp_t1.value or 0)
+                                t2 = float(inp_t2.value or 0)
+                                t3 = float(inp_t3.value or 0)
+    
                                 prop, pts = calc_s17(c1, c2, c3, t1, t2, t3)
                                 pct = prop * 100.0
-
-                                if t1 > 0 or t2 > 0 or t3 > 0:
+                                soma_tm = t1 + t2 + t3
+    
+                                if soma_tm > 0:
                                     lbl_pct_s17.set_text(f"• Percentual Acumulado (P): {pct:.2f}%")
                                     lbl_pontos_s17.set_text(f"Pontuação Calculada: {pts:.1f} / 25.0 pontos")
-
+                                    
                                     if pts >= 20.0:
                                         lbl_pontos_s17.classes(remove="text-red-600 text-yellow-600", add="text-green-600")
                                     elif pts >= 10.0:
@@ -13121,42 +13123,43 @@ def container_formulario_saude(ano=None):
                                 else:
                                     lbl_pct_s17.set_text("• Percentual Acumulado (P): Informe o Total de Mulheres (TM)")
                                     lbl_pontos_s17.set_text("")
-
+    
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                inp_c1 = ui.number(label="Exames 1º Quadrimestre (CIT1Q):", min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "cit1q")
-                                inp_c2 = ui.number(label="Exames 2º Quadrimestre (CIT2Q):", min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "cit2q")
-                                inp_c3 = ui.number(label="Exames 3º Quadrimestre (CIT3Q):", min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "cit3q")
-
-                                inp_t1 = ui.number(label="Total Mulheres 1º Q. (TM1Q):", min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "tm1q")
-                                inp_t2 = ui.number(label="Total Mulheres 2º Q. (TM2Q):", min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "tm2q")
-                                inp_t3 = ui.number(label="Total Mulheres 3º Q. (TM3Q):", min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "tm3q")
-
+                                inp_c1 = ui.number(label="Exames 1º Quadrimestre (CIT1Q):", value=state_s17["cit1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_c2 = ui.number(label="Exames 2º Quadrimestre (CIT2Q):", value=state_s17["cit2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_c3 = ui.number(label="Exames 3º Quadrimestre (CIT3Q):", value=state_s17["cit3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+    
+                                inp_t1 = ui.number(label="Total Mulheres 1º Q. (TM1Q):", value=state_s17["tm1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_t2 = ui.number(label="Total Mulheres 2º Q. (TM2Q):", value=state_s17["tm2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_t3 = ui.number(label="Total Mulheres 3º Q. (TM3Q):", value=state_s17["tm3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+    
                             for inp in [inp_c1, inp_c2, inp_c3, inp_t1, inp_t2, inp_t3]:
-                                inp.on_change(atualizar_calculo_s17)
-
+                                inp.on("update:model-value", lambda: atualizar_calculo_s17())
+    
                             ui.textarea(
                                 label="Link / Comprovação dos dados do SISAB:",
+                                value=state_s17["link"]
                             ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s17, "link")
-
+    
                             atualizar_calculo_s17()
-
+    
                             def salvar_s17():
-                                c1 = float(state_s17["cit1q"] or 0)
-                                c2 = float(state_s17["cit2q"] or 0)
-                                c3 = float(state_s17["cit3q"] or 0)
-                                t1 = float(state_s17["tm1q"] or 0)
-                                t2 = float(state_s17["tm2q"] or 0)
-                                t3 = float(state_s17["tm3q"] or 0)
-
+                                c1 = float(inp_c1.value or 0)
+                                c2 = float(inp_c2.value or 0)
+                                c3 = float(inp_c3.value or 0)
+                                t1 = float(inp_t1.value or 0)
+                                t2 = float(inp_t2.value or 0)
+                                t3 = float(inp_t3.value or 0)
+    
                                 prop, pts = calc_s17(c1, c2, c3, t1, t2, t3)
-
+    
                                 dados_finais = {
                                     "cit1q": c1, "cit2q": c2, "cit3q": c3,
                                     "tm1q": t1, "tm2q": t2, "tm3q": t3,
                                     "proporcao": round(prop, 4),
                                     "percentual": round(prop * 100.0, 2)
                                 }
-
+    
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="S17",
@@ -13169,7 +13172,7 @@ def container_formulario_saude(ano=None):
                                 ui.notify("Quesito S17 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-
+    
                             ui.button("💾 SALVAR QUESITO S17", on_click=salvar_s17).classes("bg-blue-600 text-white font-bold my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("S17", res_data, render_conteudo.refresh)
@@ -13192,12 +13195,12 @@ def container_formulario_saude(ano=None):
                             val_s18 = ds18.get("valor") if isinstance(ds18.get("valor"), dict) else {}
     
                             state_s18 = {
-                                "hpa1q": float(val_s18.get("hpa1q", 0.0)),
-                                "hpa2q": float(val_s18.get("hpa2q", 0.0)),
-                                "hpa3q": float(val_s18.get("hpa3q", 0.0)),
-                                "th1q": float(val_s18.get("th1q", 0.0)),
-                                "th2q": float(val_s18.get("th2q", 0.0)),
-                                "th3q": float(val_s18.get("th3q", 0.0)),
+                                "hpa1q": safe_float(val_s18.get("hpa1q", 0.0)),
+                                "hpa2q": safe_float(val_s18.get("hpa2q", 0.0)),
+                                "hpa3q": safe_float(val_s18.get("hpa3q", 0.0)),
+                                "th1q": safe_float(val_s18.get("th1q", 0.0)),
+                                "th2q": safe_float(val_s18.get("th2q", 0.0)),
+                                "th3q": safe_float(val_s18.get("th3q", 0.0)),
                                 "link": str(ds18.get("link") or "")
                             }
     
@@ -13324,12 +13327,12 @@ def container_formulario_saude(ano=None):
                             val_s19 = ds19.get("valor") if isinstance(ds19.get("valor"), dict) else {}
     
                             state_s19 = {
-                                "dhg1q": float(val_s19.get("dhg1q", 0.0)),
-                                "dhg2q": float(val_s19.get("dhg2q", 0.0)),
-                                "dhg3q": float(val_s19.get("dhg3q", 0.0)),
-                                "td1q": float(val_s19.get("td1q", 0.0)),
-                                "td2q": float(val_s19.get("td2q", 0.0)),
-                                "td3q": float(val_s19.get("td3q", 0.0)),
+                                "dhg1q": safe_float(val_s19.get("dhg1q", 0.0)),
+                                "dhg2q": safe_float(val_s19.get("dhg2q", 0.0)),
+                                "dhg3q": safe_float(val_s19.get("dhg3q", 0.0)),
+                                "td1q": safe_float(val_s19.get("td1q", 0.0)),
+                                "td2q": safe_float(val_s19.get("td2q", 0.0)),
+                                "td3q": safe_float(val_s19.get("td3q", 0.0)),
                                 "link": str(ds19.get("link") or "")
                             }
     
@@ -13465,12 +13468,12 @@ def container_formulario_saude(ano=None):
                             tg3q_s3 = float(val_s3.get("tg3q", 0.0))
     
                             state_s20 = {
-                                "gpao1q": float(val_s20.get("gpao1q", 0.0)),
-                                "gpao2q": float(val_s20.get("gpao2q", 0.0)),
-                                "gpao3q": float(val_s20.get("gpao3q", 0.0)),
-                                "tg1q": float(val_s20.get("tg1q", tg1q_s3)),
-                                "tg2q": float(val_s20.get("tg2q", tg2q_s3)),
-                                "tg3q": float(val_s20.get("tg3q", tg3q_s3)),
+                                "gpao1q": safe_float(val_s20.get("gpao1q", 0.0)),
+                                "gpao2q": safe_float(val_s20.get("gpao2q", 0.0)),
+                                "gpao3q": safe_float(val_s20.get("gpao3q", 0.0)),
+                                "tg1q": safe_float(val_s20.get("tg1q", tg1q_s3)),
+                                "tg2q": safe_float(val_s20.get("tg2q", tg2q_s3)),
+                                "tg3q": safe_float(val_s20.get("tg3q", tg3q_s3)),
                                 "link": str(ds20.get("link") or "")
                             }
     
