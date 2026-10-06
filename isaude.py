@@ -6582,7 +6582,7 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       # =============================================================================
                         # QUESITO 18.2.1 (Formas de Integração dos Órgãos)
                         # =============================================================================
                         with ui.card().classes(
@@ -6594,19 +6594,19 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Assinale as formas de integração estabelecidas entre os órgãos:"
                             ).classes("text-base font-bold text-black mb-4")
-    
+
                             d1821 = res_data.get("18.2.1") or {}
                             raw_val_1821 = d1821.get("valor") or []
                             if not isinstance(raw_val_1821, list):
                                 raw_val_1821 = []
-    
+
                             raw_link_1821 = str(d1821.get("link") or "")
-    
+
                             state_1821 = {
-                                "opcoes": raw_val_1821,
+                                "opcoes": raw_val_1821.copy(),
                                 "link": raw_link_1821,
                             }
-    
+
                             chk_options = [
                                 ("acoes_estabelecidas", "Ações estabelecidas"),
                                 ("papeis_definidos", "Papéis definidos"),
@@ -6615,27 +6615,24 @@ def container_formulario_saude(ano=None):
                                 ("normas_complementares", "Normas complementares firmadas entre órgãos"),
                                 ("outros", "Outros"),
                             ]
-    
+
+                            def on_chk_change_1821(k, is_checked):
+                                if is_checked and k not in state_1821["opcoes"]:
+                                    state_1821["opcoes"].append(k)
+                                elif not is_checked and k in state_1821["opcoes"]:
+                                    state_1821["opcoes"].remove(k)
+
                             for key, label_text in chk_options:
-                                chk = ui.checkbox(
+                                ui.checkbox(
                                     text=label_text,
-                                    value=(key in state_1821["opcoes"])
+                                    value=(key in state_1821["opcoes"]),
+                                    on_change=lambda e, k=key: on_chk_change_1821(k, e.value)
                                 ).classes("mb-1")
-    
-                                def make_on_change(k=key):
-                                    def on_change(e):
-                                        if e.value and k not in state_1821["opcoes"]:
-                                            state_1821["opcoes"].append(k)
-                                        elif not e.value and k in state_1821["opcoes"]:
-                                            state_1821["opcoes"].remove(k)
-                                    return on_change
-    
-                                chk.on("update:model-value", make_on_change(key))
-    
+
                             ui.label("Nota 18.2.1: Informativo (0.0 pontos)").classes(
                                 "text-sm font-bold text-green-600 my-4"
                             )
-    
+
                             ui.textarea(
                                 label="Link de Evidência / Documentação Regimental:",
                                 value=raw_link_1821,
@@ -6643,7 +6640,7 @@ def container_formulario_saude(ano=None):
                             ).classes("w-full mb-4").props("outlined rows=2").bind_value(
                                 state_1821, "link"
                             )
-    
+
                             def salvar_1821():
                                 pts = 0.0
                                 save_resposta(
@@ -6658,7 +6655,7 @@ def container_formulario_saude(ano=None):
                                 ui.notify("Quesito 18.2.1 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO 18.2.1", on_click=salvar_1821).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
