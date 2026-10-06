@@ -21859,7 +21859,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO E CONFORMIDADE POR QUESITO</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
-    # Dicionário de Pontuações Máximas
+    # Dicionário de Pontuações Máximas Oficiais
     PONTUACOES_MAX_IEDUC = {
         # 1.0 Creche
         "1.1.1": 2, "1.1.2": 3, "1.2.1.1": 5, "1.2.2": 5, "1.3": 10, "1.4": 18, "1.7.1": 7, "1.8": 3, 
@@ -21894,7 +21894,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     lista_pontos_fracos = []
 
     for qid, info in dados.items():
-        # Ignora comentários globais ou registros que não sejam dicionários
         if qid.startswith("COM_") or not isinstance(info, dict): 
             continue
             
@@ -21902,25 +21901,26 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         valor_resposta = info.get("valor", "")
         link_evidencia = info.get("link", "")
 
-        # Busca o teto máximo na estrutura PONTUACOES_MAX_IEDUC
-        # Caso o qid não exista no mapeamento, faz fallback para 10.0
-        pts_maximo = float(PONTUACOES_MAX_IEDUC.get(qid, 10.0))
+        # FILTRO PRINCIPAL: Só processa quesitos que constam explicitamente no dicionário
+        if qid in PONTUACOES_MAX_IEDUC:
+            pts_maximo = float(PONTUACOES_MAX_IEDUC[qid])
 
-        if pts_maximo > 0:
-            eficiencia = (pts_obtidos / pts_maximo) * 100
-            item_data = {
-                "qid": qid, 
-                "pts_obtidos": pts_obtidos, 
-                "pts_maximo": pts_maximo, 
-                "eficiencia": eficiencia, 
-                "valor": valor_resposta, 
-                "link": link_evidencia
-            }
+            if pts_maximo > 0:
+                eficiencia = (pts_obtidos / pts_maximo) * 100
+                item_data = {
+                    "qid": qid, 
+                    "pts_obtidos": pts_obtidos, 
+                    "pts_maximo": pts_maximo, 
+                    "eficiencia": eficiencia, 
+                    "valor": valor_resposta, 
+                    "link": link_evidencia
+                }
 
-            if eficiencia >= 70.0: 
-                lista_pontos_fortes.append(item_data)
-            else:
-                lista_pontos_fracos.append(item_data)
+                if eficiencia >= 70.0: 
+                    lista_pontos_fortes.append(item_data)
+                else:
+                    # Inclui tudo que estiver abaixo de 70%, inclusive notas 0.0
+                    lista_pontos_fracos.append(item_data)
 
     # Tabela de Pontos Fortes (Conformidade Alta/Máxima)
     if lista_pontos_fortes:
