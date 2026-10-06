@@ -24696,16 +24696,34 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_31, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   # -------------------------------------------------------------------------
     # 📊 20. AUSÊNCIAS DE PROFESSORES - ANOS INICIAIS (QUESITO 3.4)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>20. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES - ANOS INICIAIS (QUESITO 3.4)</b>", styles["h2"]))
+    elements.append(
+        Paragraph(
+            "<b>20. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES - ANOS"
+            " INICIAIS (QUESITO 3.4)</b>",
+            styles["h2"],
+        )
+    )
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph("<b><i>3.4 Análise e Distribuição dos Motivos de Ausência Docente nos Anos Iniciais</i></b>", styles["Normal"]))
+    elements.append(
+        Paragraph(
+            "<b><i>3.4 Análise e Distribuição dos Motivos de Ausência Docente"
+            " nos Anos Iniciais</i></b>",
+            styles["Normal"],
+        )
+    )
     elements.append(Spacer(1, 6))
 
     def extrair_dados_q34(dado_ano):
-        dados_f = {"FI": 0, "FJ": 0, "LM": 0, "LMP": 0, "AB": 0, "OU": 0, "TOTAL": 0}
+        """Extrai os dados de ausências da Questão 3.4 buscando nas colunas resposta/link/valor."""
+        import re as re_mod
+
+        chaves = ["FI", "FJ", "LM", "LMP", "AB", "OU"]
+        dados_f = {k: 0 for k in chaves}
+        dados_f["TOTAL"] = 0
+
         if not isinstance(dado_ano, dict):
             return dados_f
 
@@ -24715,25 +24733,68 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                 info_q = v
                 break
 
-        val_obj = info_q.get("valor", "") if isinstance(info_q, dict) else info_q
+        if not isinstance(info_q, dict):
+            return dados_f
 
+        # Mapeamento de aliases por tipo de ausência
+        mapa_chaves = {
+            "FI": ["INJUSTIFICADAS", "INJUST", "INJ", "FI"],
+            "FJ": ["JUSTIFICADAS", "JUST", "JUS", "FJ"],
+            "LM": ["MEDICA", "MED", "LM", "LICENCA MEDICA", "SAUDE"],
+            "LMP": [
+                "MATERNIDADE",
+                "MAT",
+                "LMP",
+                "PATERNIDADE",
+                "LICENCA MATERNIDADE",
+            ],
+            "AB": ["ABONOS", "ABON", "ABO", "AB"],
+            "OU": ["OUTROS", "OUT", "OU", "AFASTAMENTO"],
+        }
+
+        # 1. Tenta extrair diretamente se for chave em info_q ou info_q.get("valor")
+        val_obj = info_q.get("valor", {})
         if isinstance(val_obj, dict):
-            for k_motive in dados_f.keys():
-                if k_motive != "TOTAL":
-                    dados_f[k_motive] = int(val_obj.get(k_motive, 0))
-        else:
-            val_str = str(val_obj)
-            if val_str:
-                matches = re.findall(r'([A-Z]+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
-                for chave, val in matches:
-                    chave_norm = chave.upper()
-                    if chave_norm in dados_f:
-                        dados_f[chave_norm] = int(val)
+            for k_motive, v_val in val_obj.items():
+                k_upper = str(k_motive).strip().upper()
+                for chk, alias_list in mapa_chaves.items():
+                    if k_upper in alias_list:
+                        try:
+                            dados_f[chk] = int(v_val)
+                        except Exception:
+                            pass
 
-        dados_f["TOTAL"] = sum(dados_f[k] for k in ["FI", "FJ", "LM", "LMP", "AB", "OU"])
+        # 2. Varre textos das colunas (resposta, link, valor) via Regex para pares CHAVE:VALOR
+        textos_para_analise = [
+            str(info_q.get("resposta", "")),
+            str(info_q.get("link", "")),
+            str(info_q.get("valor", "")),
+        ]
+        texto_completo = " ".join(
+            [t for t in textos_para_analise if t and t != "None"]
+        )
+
+        if texto_completo:
+            for chk, alias_list in mapa_chaves.items():
+                if dados_f[chk] == 0:
+                    for alias in alias_list:
+                        match = re_mod.search(
+                            rf"\b{alias}\b\s*:\s*(\d+)",
+                            texto_completo,
+                            re_mod.IGNORECASE,
+                        )
+                        if match:
+                            dados_f[chk] = int(match.group(1))
+                            break
+
+        dados_f["TOTAL"] = sum(dados_f[k] for k in chaves)
         return dados_f
 
-    q34_ant = extrair_dados_q34(dados_dados_ant if 'dados_dados_ant' in locals() else dados_ano_ant)
+    q34_ant = extrair_dados_q34(
+        dados_dados_ant
+        if "dados_dados_ant" in locals()
+        else dados_ano_ant
+    )
     q34_atual = extrair_dados_q34(dados_ano_atual)
 
     categorias_q34 = [
@@ -24743,18 +24804,16 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         ("LMP", "Licença Maternidade/Paternidade", False),
         ("AB", "Abonos", False),
         ("OU", "Outros (Amparadas por Lei)", False),
-        ("TOTAL", "TOTAL GERAL DE AUSÊNCIAS (DIAS)", False)
+        ("TOTAL", "TOTAL GERAL DE AUSÊNCIAS (DIAS)", False),
     ]
 
-    data_ind_34 = [
-        [
-            Paragraph("Tipologia de Ausência / Afastamento", style_th), 
-            Paragraph(f"Exercício {ano_ant}", style_th), 
-            Paragraph(f"Exercício {ano_atual}", style_th), 
-            Paragraph("Variação (%)", style_th), 
-            Paragraph("Avaliação", style_th)
-        ]
-    ]
+    data_ind_34 = [[
+        Paragraph("Tipologia de Ausência / Afastamento", style_th),
+        Paragraph(f"Exercício {ano_ant}", style_th),
+        Paragraph(f"Exercício {ano_atual}", style_th),
+        Paragraph("Variação (%)", style_th),
+        Paragraph("Avaliação", style_th),
+    ]]
 
     for id_f, rotulo, positivo_se_crescer in categorias_q34:
         v_ant = q34_ant.get(id_f, 0)
@@ -24772,7 +24831,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
         if var_pct == 0:
             aval = "<font color='#6c757d'><b>Estável</b></font>"
-        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+        elif (var_pct > 0 and positivo_se_crescer) or (
+            var_pct < 0 and not positivo_se_crescer
+        ):
             aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
         else:
             aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
@@ -24788,30 +24849,38 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             p_at = Paragraph(str(v_at), style_td_ano)
             p_var = Paragraph(txt_var, style_td_var)
 
-        data_ind_34.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+        data_ind_34.append(
+            [p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)]
+        )
 
     tabela_ind_34 = Table(data_ind_34, colWidths=[180, 75, 75, 75, 80])
-    tabela_ind_34.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f2f4f4")),
-    ]))
+    tabela_ind_34.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f2f4f4")),
+        ])
+    )
     elements.append(tabela_ind_34)
     elements.append(Spacer(1, 8))
 
     texto_desc_34 = (
-        f"A continuidade do trabalho docente nos Anos Iniciais é um fator determinante para a consolidação da alfabetização e o fluxo de aprendizagem. "
-        f"O acompanhamento do quesito <b>3.4</b> registrou um acumulado de <b>{q34_ant['TOTAL']} dias</b> de ausência em {ano_ant} "
-        f"frente a <b>{q34_atual['TOTAL']} dias</b> no exercício {ano_atual}. A gestão eficiente de substituições temporárias e o monitoramento das licenças "
-        f"são imprescindíveis para evitar o prejuízo direto ao cumprimento dos 200 dias letivos e das 800 horas de trabalho escolar efetivo."
+        "A continuidade do trabalho docente nos Anos Iniciais é um fator"
+        " determinante para a consolidação da alfabetização e o fluxo de"
+        " aprendizagem. O acompanhamento do quesito <b>3.4</b> registrou um"
+        f" acumulado de <b>{q34_ant['TOTAL']} dias</b> de ausência em {ano_ant}"
+        f" frente a <b>{q34_atual['TOTAL']} dias</b> no exercício {ano_atual}. A"
+        " gestão eficiente de substituições temporárias e o monitoramento das"
+        " licenças são imprescindíveis para evitar o prejuízo direto ao"
+        " cumprimento dos 200 dias letivos e das 800 horas de trabalho escolar"
+        " efetivo."
     )
     elements.append(Paragraph(texto_desc_34, style_analise))
     elements.append(Spacer(1, 15))
-
     # -------------------------------------------------------------------------
     # 📊 21. ROTATIVIDADE DOCENTE - ANOS INICIAIS (QUESITO 3.6)
     # -------------------------------------------------------------------------
