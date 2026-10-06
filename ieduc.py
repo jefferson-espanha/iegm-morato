@@ -23278,43 +23278,71 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_14, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   # -------------------------------------------------------------------------
     # 📊 12. QUANTIDADE DE TURMAS DE CRECHE POR FAIXA (QUESITO 1.15)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>12. QUANTIDADE DE TURMAS DE CRECHE POR FAIXA (QUESITO 1.15)</b>", styles["h2"]))
+    elements.append(
+        Paragraph(
+            "<b>12. QUANTIDADE DE TURMAS DE CRECHE POR FAIXA (QUESITO"
+            " 1.15)</b>",
+            styles["h2"],
+        )
+    )
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph("<b><i>1.15 Distribuição de Alunos por Turma de Creche</i></b>", styles["Normal"]))
+    elements.append(
+        Paragraph(
+            "<b><i>1.15 Distribuição de Alunos por Turma de Creche</i></b>",
+            styles["Normal"],
+        )
+    )
     elements.append(Spacer(1, 6))
 
-    # Função dedicada e segura para extrair os dados do Quesito 1.15 (F1 a F4)
     def extrair_dados_q115(dado_ano):
+        """Extrai dados do quesito 1.15 contornando chaves T1..T4 ou F1..F4 no banco."""
+        import re as re_mod
+
         dados_f = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
         if not isinstance(dado_ano, dict):
             return dados_f
 
         info_q = dado_ano.get("1.15", {})
-        if isinstance(info_q, dict):
-            val_str = info_q.get("valor", "")
-            dados_f["pontos"] = float(info_q.get("pontos", 0.0))
-        else:
-            val_str = str(info_q)
+        if not isinstance(info_q, dict):
+            return dados_f
 
-        try:
-            partes = val_str.split(",")
-            for p in partes:
-                if ":" in p:
-                    k, v = p.split(":")
-                    k = k.strip().upper()
-                    if k in dados_f:
-                        match = re.search(r'\d+', v)
-                        if match:
-                            dados_f[k] = int(match.group())
-        except Exception:
-            pass
+        dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+
+        # Agrupa os textos de todas as colunas possíveis (resposta, link, valor)
+        textos_para_analise = [
+            str(info_q.get("resposta", "")),
+            str(info_q.get("link", "")),
+            str(info_q.get("valor", "")),
+        ]
+        texto_completo = " ".join(
+            [t for t in textos_para_analise if t and t != "None"]
+        )
+
+        # Mapeamento do banco (T1..T4 ou F1..F4) para o dicionario interno (F1..F4)
+        mapa_chaves = {
+            "F1": ["T1", "F1"],
+            "F2": ["T2", "F2"],
+            "F3": ["T3", "F3"],
+            "F4": ["T4", "F4"],
+        }
+
+        if texto_completo:
+            for chave_dest, aliases in mapa_chaves.items():
+                for alias in aliases:
+                    match = re_mod.search(
+                        rf"\b{alias}\s*:\s*(\d+)",
+                        texto_completo,
+                        re_mod.IGNORECASE,
+                    )
+                    if match:
+                        dados_f[chave_dest] = int(match.group(1))
+                        break
 
         calc_tot = sum(dados_f[f] for f in ["F1", "F2", "F3", "F4"])
-        if dados_f["TOTAL"] == 0 and calc_tot > 0:
-            dados_f["TOTAL"] = calc_tot
+        dados_f["TOTAL"] = calc_tot
 
         return dados_f
 
@@ -23326,18 +23354,16 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         ("F2", "De 14 a 20 alunos"),
         ("F3", "De 21 a 25 alunos"),
         ("F4", "Acima de 25 alunos (Superlotação)"),
-        ("TOTAL", "TOTAL DE TURMAS DE CRECHE")
+        ("TOTAL", "TOTAL DE TURMAS DE CRECHE"),
     ]
 
-    data_ind_12 = [
-        [
-            Paragraph("Faixa de Alunos por Turma", style_th), 
-            Paragraph(f"Exercício {ano_ant}", style_th), 
-            Paragraph(f"Exercício {ano_atual}", style_th), 
-            Paragraph("Variação (%)", style_th), 
-            Paragraph("Avaliação", style_th)
-        ]
-    ]
+    data_ind_12 = [[
+        Paragraph("Faixa de Alunos por Turma", style_th),
+        Paragraph(f"Exercício {ano_ant}", style_th),
+        Paragraph(f"Exercício {ano_atual}", style_th),
+        Paragraph("Variação (%)", style_th),
+        Paragraph("Avaliação", style_th),
+    ]]
 
     for id_f, rotulo in faixas_turmas:
         v_ant = q115_ant.get(id_f, 0)
@@ -23360,10 +23386,18 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             aval = "<font color='#6c757d'><b>Estável</b></font>"
         elif id_f == "F4":
             # Turmas superlotadas (>25 alunos): aumento é Piora
-            aval = "<font color='#dc3545'><b>Aumento (Piora)</b></font>" if var_pct > 0 else "<font color='#28a745'><b>Redução (Melhora)</b></font>"
+            aval = (
+                "<font color='#dc3545'><b>Aumento (Piora)</b></font>"
+                if var_pct > 0
+                else "<font color='#28a745'><b>Redução (Melhora)</b></font>"
+            )
         else:
             # Turmas menores (F1, F2, F3): aumento é Melhora
-            aval = "<font color='#28a745'><b>Aumento (Melhora)</b></font>" if var_pct > 0 else "<font color='#dc3545'><b>Redução (Piora)</b></font>"
+            aval = (
+                "<font color='#28a745'><b>Aumento (Melhora)</b></font>"
+                if var_pct > 0
+                else "<font color='#dc3545'><b>Redução (Piora)</b></font>"
+            )
 
         if id_f == "TOTAL":
             p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
@@ -23376,7 +23410,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             p_at = Paragraph(str(v_at), style_td_ano)
             p_var = Paragraph(txt_var, style_td_var)
 
-        data_ind_12.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+        data_ind_12.append(
+            [p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)]
+        )
 
     pts_ant_15 = q115_ant.get("pontos", 0.0)
     pts_at_15 = q115_atual.get("pontos", 0.0)
@@ -23390,38 +23426,56 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         txt_var_pts_15 = "0.0%"
 
     if pts_at_15 > pts_ant_15:
-        aval_pts_15 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        aval_pts_15 = (
+            "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        )
     elif pts_at_15 < pts_ant_15:
-        aval_pts_15 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+        aval_pts_15 = (
+            "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+        )
     else:
         aval_pts_15 = "<font color='#6c757d'><b>Estável</b></font>"
 
     data_ind_12.append([
-        Paragraph("<b>PONTUAÇÃO RESULTANTE (Máx: 10,0 pts)</b>", style_item_esquerda),
+        Paragraph(
+            "<b>PONTUAÇÃO RESULTANTE (Máx: 10,0 pts)</b>", style_item_esquerda
+        ),
         Paragraph(f"<b>{pts_ant_15:.2f}</b>", style_td_ano),
         Paragraph(f"<b>{pts_at_15:.2f}</b>", style_td_ano),
         Paragraph(f"<b>{txt_var_pts_15}</b>", style_td_var),
-        Paragraph(aval_pts_15, style_td_aval)
+        Paragraph(aval_pts_15, style_td_aval),
     ])
 
     tabela_ind_12 = Table(data_ind_12, colWidths=[180, 75, 75, 75, 80])
-    tabela_ind_12.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
-        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
-    ]))
+    tabela_ind_12.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+        ])
+    )
     elements.append(tabela_ind_12)
     elements.append(Spacer(1, 10))
 
+    style_analise = styles.get(
+        "AnaliseText",
+        ParagraphStyle(
+            "AnaliseText", parent=styles["Normal"], fontSize=9, leading=12
+        ),
+    )
+
     texto_desc_15 = (
-        f"A distribuição de alunos por turma de creche (quesito <b>1.15</b>) registrou pontuação de "
-        f"<b>{pts_ant_15:.2f} pontos</b> em {ano_ant} e <b>{pts_at_15:.2f} pontos</b> em {ano_atual} (máximo de 10,00 pontos). "
-        f"Manter turmas em faixas menores de atendimento assegura condições pedagógicas adequadas, maior atenção individualizada às crianças e conformidade com os parâmetros de qualidade."
+        "A distribuição de alunos por turma de creche (quesito <b>1.15</b>)"
+        f" registrou pontuação de <b>{pts_ant_15:.2f} pontos</b> em {ano_ant} e"
+        f" <b>{pts_at_15:.2f} pontos</b> em {ano_atual} (máximo de 10,00"
+        " pontos). Manter turmas em faixas menores de atendimento assegura"
+        " condições pedagógicas adequadas, maior atenção individualizada às"
+        " crianças e conformidade com os parâmetros de qualidade."
     )
     elements.append(Paragraph(texto_desc_15, style_analise))
     elements.append(Spacer(1, 15))
