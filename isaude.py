@@ -13099,13 +13099,14 @@ def container_formulario_saude(ano=None):
                                 return prop, pts
     
                             def atualizar_calculo_s17():
-                                c1 = float(inp_c1.value or 0)
-                                c2 = float(inp_c2.value or 0)
-                                c3 = float(inp_c3.value or 0)
-                                t1 = float(inp_t1.value or 0)
-                                t2 = float(inp_t2.value or 0)
-                                t3 = float(inp_t3.value or 0)
-    
+                                # Usa o estado do próprio S17, sem referências aos inputs reutilizados.
+                                c1 = safe_float(state_s17["cit1q"])
+                                c2 = safe_float(state_s17["cit2q"])
+                                c3 = safe_float(state_s17["cit3q"])
+                                t1 = safe_float(state_s17["tm1q"])
+                                t2 = safe_float(state_s17["tm2q"])
+                                t3 = safe_float(state_s17["tm3q"])
+
                                 prop, pts = calc_s17(c1, c2, c3, t1, t2, t3)
                                 pct = prop * 100.0
                                 soma_tm = t1 + t2 + t3
@@ -13125,13 +13126,13 @@ def container_formulario_saude(ano=None):
                                     lbl_pontos_s17.set_text("")
     
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                inp_c1 = ui.number(label="Exames 1º Quadrimestre (CIT1Q):", value=state_s17["cit1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_c2 = ui.number(label="Exames 2º Quadrimestre (CIT2Q):", value=state_s17["cit2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_c3 = ui.number(label="Exames 3º Quadrimestre (CIT3Q):", value=state_s17["cit3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_c1 = ui.number(label="Exames 1º Quadrimestre (CIT1Q):", value=state_s17["cit1q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "cit1q")
+                                inp_c2 = ui.number(label="Exames 2º Quadrimestre (CIT2Q):", value=state_s17["cit2q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "cit2q")
+                                inp_c3 = ui.number(label="Exames 3º Quadrimestre (CIT3Q):", value=state_s17["cit3q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "cit3q")
     
-                                inp_t1 = ui.number(label="Total Mulheres 1º Q. (TM1Q):", value=state_s17["tm1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_t2 = ui.number(label="Total Mulheres 2º Q. (TM2Q):", value=state_s17["tm2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_t3 = ui.number(label="Total Mulheres 3º Q. (TM3Q):", value=state_s17["tm3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_t1 = ui.number(label="Total Mulheres 1º Q. (TM1Q):", value=state_s17["tm1q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "tm1q")
+                                inp_t2 = ui.number(label="Total Mulheres 2º Q. (TM2Q):", value=state_s17["tm2q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "tm2q")
+                                inp_t3 = ui.number(label="Total Mulheres 3º Q. (TM3Q):", value=state_s17["tm3q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s17, "tm3q")
     
                             for inp in [inp_c1, inp_c2, inp_c3, inp_t1, inp_t2, inp_t3]:
                                 inp.on("update:model-value", lambda: atualizar_calculo_s17())
@@ -13144,13 +13145,14 @@ def container_formulario_saude(ano=None):
                             atualizar_calculo_s17()
     
                             def salvar_s17():
-                                c1 = float(inp_c1.value or 0)
-                                c2 = float(inp_c2.value or 0)
-                                c3 = float(inp_c3.value or 0)
-                                t1 = float(inp_t1.value or 0)
-                                t2 = float(inp_t2.value or 0)
-                                t3 = float(inp_t3.value or 0)
-    
+                                # Salva os valores do estado do S17, nunca os inputs de S18/S19.
+                                c1 = safe_float(state_s17["cit1q"])
+                                c2 = safe_float(state_s17["cit2q"])
+                                c3 = safe_float(state_s17["cit3q"])
+                                t1 = safe_float(state_s17["tm1q"])
+                                t2 = safe_float(state_s17["tm2q"])
+                                t3 = safe_float(state_s17["tm3q"])
+
                                 prop, pts = calc_s17(c1, c2, c3, t1, t2, t3)
     
                                 dados_finais = {
@@ -13231,13 +13233,13 @@ def container_formulario_saude(ano=None):
                                 return prop, pts
     
                             def atualizar_calculo_s18():
-                                h1 = float(inp_h1.value or 0)
-                                h2 = float(inp_h2.value or 0)
-                                h3 = float(inp_h3.value or 0)
-                                t1 = float(inp_t1.value or 0)
-                                t2 = float(inp_t2.value or 0)
-                                t3 = float(inp_t3.value or 0)
-    
+                                h1 = safe_float(state_s18["hpa1q"])
+                                h2 = safe_float(state_s18["hpa2q"])
+                                h3 = safe_float(state_s18["hpa3q"])
+                                t1 = safe_float(state_s18["th1q"])
+                                t2 = safe_float(state_s18["th2q"])
+                                t3 = safe_float(state_s18["th3q"])
+
                                 prop, pts = calc_s18(h1, h2, h3, t1, t2, t3)
                                 pct = prop * 100.0
                                 soma_th = t1 + t2 + t3
@@ -13257,13 +13259,13 @@ def container_formulario_saude(ano=None):
                                     lbl_pontos_s18.set_text("")
     
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                inp_h1 = ui.number(label="Hipertensos Acompanhados 1º Q. (HPA1Q):", value=state_s18["hpa1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_h2 = ui.number(label="Hipertensos Acompanhados 2º Q. (HPA2Q):", value=state_s18["hpa2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_h3 = ui.number(label="Hipertensos Acompanhados 3º Q. (HPA3Q):", value=state_s18["hpa3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_h1 = ui.number(label="Hipertensos Acompanhados 1º Q. (HPA1Q):", value=state_s18["hpa1q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s18, "hpa1q")
+                                inp_h2 = ui.number(label="Hipertensos Acompanhados 2º Q. (HPA2Q):", value=state_s18["hpa2q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s18, "hpa2q")
+                                inp_h3 = ui.number(label="Hipertensos Acompanhados 3º Q. (HPA3Q):", value=state_s18["hpa3q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s18, "hpa3q")
     
-                                inp_t1 = ui.number(label="Total Hipertensos 1º Q. (TH1Q):", value=state_s18["th1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_t2 = ui.number(label="Total Hipertensos 2º Q. (TH2Q):", value=state_s18["th2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_t3 = ui.number(label="Total Hipertensos 3º Q. (TH3Q):", value=state_s18["th3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_t1 = ui.number(label="Total Hipertensos 1º Q. (TH1Q):", value=state_s18["th1q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s18, "th1q")
+                                inp_t2 = ui.number(label="Total Hipertensos 2º Q. (TH2Q):", value=state_s18["th2q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s18, "th2q")
+                                inp_t3 = ui.number(label="Total Hipertensos 3º Q. (TH3Q):", value=state_s18["th3q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s18, "th3q")
     
                             for inp in [inp_h1, inp_h2, inp_h3, inp_t1, inp_t2, inp_t3]:
                                 inp.on("update:model-value", lambda: atualizar_calculo_s18())
@@ -13276,13 +13278,13 @@ def container_formulario_saude(ano=None):
                             atualizar_calculo_s18()
     
                             def salvar_s18():
-                                h1 = float(inp_h1.value or 0)
-                                h2 = float(inp_h2.value or 0)
-                                h3 = float(inp_h3.value or 0)
-                                t1 = float(inp_t1.value or 0)
-                                t2 = float(inp_t2.value or 0)
-                                t3 = float(inp_t3.value or 0)
-    
+                                h1 = safe_float(state_s18["hpa1q"])
+                                h2 = safe_float(state_s18["hpa2q"])
+                                h3 = safe_float(state_s18["hpa3q"])
+                                t1 = safe_float(state_s18["th1q"])
+                                t2 = safe_float(state_s18["th2q"])
+                                t3 = safe_float(state_s18["th3q"])
+
                                 prop, pts = calc_s18(h1, h2, h3, t1, t2, t3)
     
                                 dados_finais = {
@@ -13363,13 +13365,13 @@ def container_formulario_saude(ano=None):
                                 return prop, pts
     
                             def atualizar_calculo_s19():
-                                d1 = float(inp_d1.value or 0)
-                                d2 = float(inp_d2.value or 0)
-                                d3 = float(inp_d3.value or 0)
-                                t1 = float(inp_t1.value or 0)
-                                t2 = float(inp_t2.value or 0)
-                                t3 = float(inp_t3.value or 0)
-    
+                                d1 = safe_float(state_s19["dhg1q"])
+                                d2 = safe_float(state_s19["dhg2q"])
+                                d3 = safe_float(state_s19["dhg3q"])
+                                t1 = safe_float(state_s19["td1q"])
+                                t2 = safe_float(state_s19["td2q"])
+                                t3 = safe_float(state_s19["td3q"])
+
                                 prop, pts = calc_s19(d1, d2, d3, t1, t2, t3)
                                 pct = prop * 100.0
                                 soma_td = t1 + t2 + t3
@@ -13389,13 +13391,13 @@ def container_formulario_saude(ano=None):
                                     lbl_pontos_s19.set_text("")
     
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                inp_d1 = ui.number(label="Diabéticos Acompanhados 1º Q. (DHG1Q):", value=state_s19["dhg1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_d2 = ui.number(label="Diabéticos Acompanhados 2º Q. (DHG2Q):", value=state_s19["dhg2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_d3 = ui.number(label="Diabéticos Acompanhados 3º Q. (DHG3Q):", value=state_s19["dhg3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_d1 = ui.number(label="Diabéticos Acompanhados 1º Q. (DHG1Q):", value=state_s19["dhg1q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s19, "dhg1q")
+                                inp_d2 = ui.number(label="Diabéticos Acompanhados 2º Q. (DHG2Q):", value=state_s19["dhg2q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s19, "dhg2q")
+                                inp_d3 = ui.number(label="Diabéticos Acompanhados 3º Q. (DHG3Q):", value=state_s19["dhg3q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s19, "dhg3q")
     
-                                inp_t1 = ui.number(label="Total Diabéticos 1º Q. (TD1Q):", value=state_s19["td1q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_t2 = ui.number(label="Total Diabéticos 2º Q. (TD2Q):", value=state_s19["td2q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_t3 = ui.number(label="Total Diabéticos 3º Q. (TD3Q):", value=state_s19["td3q"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_t1 = ui.number(label="Total Diabéticos 1º Q. (TD1Q):", value=state_s19["td1q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s19, "td1q")
+                                inp_t2 = ui.number(label="Total Diabéticos 2º Q. (TD2Q):", value=state_s19["td2q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s19, "td2q")
+                                inp_t3 = ui.number(label="Total Diabéticos 3º Q. (TD3Q):", value=state_s19["td3q"], min=0, format="%.0f").classes("w-full").props("outlined dense").bind_value(state_s19, "td3q")
     
                             for inp in [inp_d1, inp_d2, inp_d3, inp_t1, inp_t2, inp_t3]:
                                 inp.on("update:model-value", lambda: atualizar_calculo_s19())
@@ -13408,13 +13410,13 @@ def container_formulario_saude(ano=None):
                             atualizar_calculo_s19()
     
                             def salvar_s19():
-                                d1 = float(inp_d1.value or 0)
-                                d2 = float(inp_d2.value or 0)
-                                d3 = float(inp_d3.value or 0)
-                                t1 = float(inp_t1.value or 0)
-                                t2 = float(inp_t2.value or 0)
-                                t3 = float(inp_t3.value or 0)
-    
+                                d1 = safe_float(state_s19["dhg1q"])
+                                d2 = safe_float(state_s19["dhg2q"])
+                                d3 = safe_float(state_s19["dhg3q"])
+                                t1 = safe_float(state_s19["td1q"])
+                                t2 = safe_float(state_s19["td2q"])
+                                t3 = safe_float(state_s19["td3q"])
+
                                 prop, pts = calc_s19(d1, d2, d3, t1, t2, t3)
     
                                 dados_finais = {
