@@ -21859,17 +21859,52 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO E CONFORMIDADE POR QUESITO</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
+    # Dicionário de Pontuações Máximas
+    PONTUACOES_MAX_IEDUC = {
+        # 1.0 Creche
+        "1.1.1": 2, "1.1.2": 3, "1.2.1.1": 5, "1.2.2": 5, "1.3": 10, "1.4": 18, "1.7.1": 7, "1.8": 3, 
+        "1.9": 2, "1.10": 2, "1.11": 18, "1.11.1": 18, "1.12": 18, "1.12.1": 18, "1.13": 50, "1.15": 10,
+        
+        # 2.0 Pré-escola
+        "2.1.1": 2, "2.1.2": 3, "2.2.1.1": 5, "2.2.2": 5, "2.3": 10, "2.4": 18, "2.7.1": 7, "2.8": 3, 
+        "2.9": 2, "2.10": 2, "2.11": 18, "2.11.1": 18, "2.12": 18, "2.12.1": 18, "2.13": 50, "2.15": 10,
+        
+        # 3.0 Ensino Fundamental
+        "3.1": 10, "3.2": 19, "3.5.1": 7, "3.6": 3, "3.7": 2, "3.8": 2, "3.10": 12, "3.11": 2, 
+        "3.12": 20, "3.12.1": 20, "3.13.1": 20, "3.14.1": 20, "3.15.3.1": 18, "3.15.4.1": 18, "3.16": 20, 
+        "3.19": 10, "3.20": 2.5, "3.23": 25,
+        
+        # 5.0 a 12.0 Infraestrutura, Gestão e Merenda
+        "5.0": 75, "7.0": 5, "8.1": 12, "9.0": 2, "11.1": 2, "12.1": 6,
+        
+        # 14.0 a 19.0 Planos, Conselhos e Operação
+        "14.3": 20, "14.3.1": 30, "16.1": 3, "16.2": 3, "16.3": 6, "16.5": 3, "17.3.1": 2, 
+        "17.4": 3, "17.5": 6, "17.7": 3, "18.1": 3, "18.2": 6, "18.3.1": 6, "19.3": 2,
+        
+        # Bloco Especial E1 e E2
+        "E1.1": 2, "E1.2": 4, "E1.5": 6, "E1.6": 2, "E1.8": 12.5, "E1.9": 12.5,
+        "E2.1": 2, "E2.2": 4, "E2.5": 6, "E2.6": 2, "E2.8": 12.5, "E2.9": 12.5,
+        
+        # Bloco Especial E3, E5, E6, E7 e E13
+        "E3.3": 6, "E3.4": 12, "E3.5": 2, "E3.9": 12.5, "E3.10": 12.5,
+        "E13.1": 18, "E.13.2": 18, "E13.3": 38, "E5": 75, "E6": 5, "E7": 5
+    }
+
     lista_pontos_fortes = []
     lista_pontos_fracos = []
 
     for qid, info in dados.items():
+        # Ignora comentários globais ou registros que não sejam dicionários
         if qid.startswith("COM_") or not isinstance(info, dict): 
             continue
+            
         pts_obtidos = float(info.get("pontos", 0))
         valor_resposta = info.get("valor", "")
         link_evidencia = info.get("link", "")
 
-        pts_maximo = float(PONTUACOES_MAX.get(qid, 0)) if 'PONTUACOES_MAX' in globals() else 10.0
+        # Busca o teto máximo na estrutura PONTUACOES_MAX_IEDUC
+        # Caso o qid não exista no mapeamento, faz fallback para 10.0
+        pts_maximo = float(PONTUACOES_MAX_IEDUC.get(qid, 10.0))
 
         if pts_maximo > 0:
             eficiencia = (pts_obtidos / pts_maximo) * 100
@@ -21887,12 +21922,20 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             else:
                 lista_pontos_fracos.append(item_data)
 
+    # Tabela de Pontos Fortes (Conformidade Alta/Máxima)
     if lista_pontos_fortes:
         elements.append(Paragraph("<b>✅ Indicadores em Conformidade Alta ou Máxima (≥ 70%):</b>", styles["h3"]))
         data_fortes = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Link de Evidência"]]
+        
         for item in sorted(lista_pontos_fortes, key=lambda x: x["eficiencia"], reverse=True):
             evidencia = f"<b>{item['valor']}</b><br/>{item['link']}"
-            data_fortes.append([item['qid'], f"{item['pts_obtidos']:.1f} / {item['pts_maximo']:.1f}", f"{item['eficiencia']:.1f}%", Paragraph(evidencia, styles["Normal"])])
+            data_fortes.append([
+                item['qid'], 
+                f"{item['pts_obtidos']:.1f} / {item['pts_maximo']:.1f}", 
+                f"{item['eficiencia']:.1f}%", 
+                Paragraph(evidencia, styles["Normal"])
+            ])
+            
         tabela_fortes = Table(data_fortes, colWidths=[65, 75, 65, 285])
         tabela_fortes.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#28a745")), 
@@ -21905,12 +21948,20 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(tabela_fortes)
         elements.append(Spacer(1, 12))
 
+    # Tabela de Pontos Fracos (Oportunidades de Melhoria)
     if lista_pontos_fracos:
         elements.append(Paragraph("<b>⚠️ Oportunidades de Melhoria e Inconformidades (< 70%):</b>", styles["h3"]))
         data_fracos = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Link de Evidência"]]
+        
         for item in sorted(lista_pontos_fracos, key=lambda x: x["eficiencia"]):
             evidencia = f"<b>{item['valor']}</b><br/>{item['link']}"
-            data_fracos.append([item['qid'], f"{item['pts_obtidos']:.1f} / {item['pts_maximo']:.1f}", f"{item['eficiencia']:.1f}%", Paragraph(evidencia, styles["Normal"])])
+            data_fracos.append([
+                item['qid'], 
+                f"{item['pts_obtidos']:.1f} / {item['pts_maximo']:.1f}", 
+                f"{item['eficiencia']:.1f}%", 
+                Paragraph(evidencia, styles["Normal"])
+            ])
+            
         tabela_fracos = Table(data_fracos, colWidths=[65, 75, 65, 285])
         tabela_fracos.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#e67e22")), 
