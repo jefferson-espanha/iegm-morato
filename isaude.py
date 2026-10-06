@@ -1524,61 +1524,67 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Sim – 10 pontos | Não – 00 pontos"
                             ).classes("text-xs font-semibold text-amber-600 mb-6")
-    
+
                             d120 = res_data.get("12.0") or res_data.get("12") or {}
                             raw_val_120 = d120.get("valor") or {}
-    
+
                             if isinstance(raw_val_120, dict):
                                 val_esf = str(raw_val_120.get("adotou_esf", "Não"))
                             else:
                                 val_esf = str(raw_val_120) if raw_val_120 else "Não"
-    
+
                             raw_link_120 = str(d120.get("link") or "")
-    
+
                             state_120 = {
                                 "adotou_esf": val_esf if val_esf in ["Sim", "Não"] else "Não",
                                 "link": raw_link_120,
                             }
-    
+
                             opt_esf = ui.radio(
                                 options=["Sim", "Não"],
                                 value=state_120["adotou_esf"]
                             ).props("inline color=blue").classes("mb-2")
                             opt_esf.bind_value(state_120, "adotou_esf")
-    
+
                             lbl_pts_120 = ui.label("Nota Quesito 12.0: 0.0 / 10.0 pontos").classes(
                                 "text-sm font-bold text-green-600 mb-6"
                             )
-    
+
                             def recalc_pontos_120():
-                                pts = 10.0 if state_120["adotou_esf"] == "Sim" else 0.0
+                                pts = 10.0 if opt_esf.value == "Sim" else 0.0
                                 lbl_pts_120.set_text(f"📊 Nota Quesito 12.0: {pts:.2f} / 10.0 pontos")
                                 return pts
-    
+
                             opt_esf.on("update:model-value", recalc_pontos_120)
                             ui.timer(0.1, recalc_pontos_120, once=True)
-    
-                            ui.textarea(
+
+                            txt_link = ui.textarea(
                                 label="Link de Evidência / Plano Municipal de Saúde / Portarias ESF:",
                                 value=raw_link_120,
                                 placeholder="Insira o link para verificação da adoção da ESF...",
-                            ).classes("w-full mb-4").props("outlined rows=2").bind_value(state_120, "link")
-    
-                            def salvar_120():
+                            ).classes("w-full mb-4").props("outlined rows=2")
+                            txt_link.bind_value(state_120, "link")
+
+                            async def salvar_120():
                                 pts_totais = recalc_pontos_120()
-                                save_resposta(
+                                val_opcao = opt_esf.value
+                                val_link = txt_link.value
+
+                                res = save_resposta(
                                     ano=ano_sel,
                                     qid="12.0",
-                                    valor={"adotou_esf": state_120["adotou_esf"]},
+                                    valor={"adotou_esf": val_opcao},
                                     pontos=pts_totais,
-                                    link=state_120["link"],
+                                    link=val_link,
                                     comentarios=d120.get("comentarios", []),
                                     status=d120.get("status", "Pendente"),
                                 )
+
                                 ui.notify(f"Quesito 12.0 salvo com sucesso! (Nota: {pts_totais:.2f} pts)", type="positive")
+
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO 12.0", on_click=salvar_120).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
@@ -1586,7 +1592,7 @@ def container_formulario_saude(ano=None):
                             bloco_comentarios("12.0", res_data, render_conteudo.refresh)
     
         # =============================================================================
-                        # QUESITO 12.0 (Equipes de Saúde da Família e Atenção Primária)
+                        # QUESITO 12.1 (Equipes de Saúde da Família e Atenção Primária)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
