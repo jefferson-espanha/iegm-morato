@@ -9414,7 +9414,7 @@ def container_formulario_saude(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("28.2.7", res_data, render_conteudo.refresh)
 
-    # =============================================================================
+                    # =============================================================================
                     # MÓDULO DE CADASTRO, REGULAÇÃO E ATENÇÃO PRÉ-HOSPITALAR - QUESITOS 29 A 31
                     # =============================================================================
 
@@ -9425,18 +9425,24 @@ def container_formulario_saude(ano=None):
                         ui.label("29.0 • Atualização do CNES").classes("text-xl font-semibold text-blue-600 mb-2")
                         ui.label("O município mantém atualizado o Cadastro de Estabelecimentos e Profissionais de Saúde (CNES)?").classes("text-sm text-gray-700 mb-4")
 
-                        d290 = res_data.get("29.0") or {}
-                        state_290 = {
-                            "opcao": d290.get("valor") if isinstance(d290.get("valor"), str) else "Não",
-                            "link": str(d290.get("link") or "")
-                        }
-
                         opts_290 = [
                             "SIM, os cadastros de estabelecimentos e de profissionais estão atualizados",
                             "Sim, somente o cadastro de estabelecimentos está atualizado",
                             "Sim, somente o cadastro de profissionais está atualizado",
                             "Não"
                         ]
+
+                        d290 = res_data.get("29.0") or {}
+                        val_salvo = str(d290.get("valor") or "")
+
+                        # Tratamento para remover sufixos de pontuação caso existam no banco
+                        val_limpo = val_salvo.split(" – ")[0].split(" - ")[0].strip()
+                        opcao_inicial = val_limpo if val_limpo in opts_290 else (val_salvo if val_salvo in opts_290 else "Não")
+
+                        state_290 = {
+                            "opcao": opcao_inicial,
+                            "link": str(d290.get("link") or "")
+                        }
 
                         lbl_pontos_290 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
 
@@ -9476,7 +9482,7 @@ def container_formulario_saude(ano=None):
                         ui.button("💾 SALVAR QUESITO 29.0", on_click=salvar_290).classes("bg-blue-600 text-white font-bold my-2")
                         ui.separator().classes("my-2")
                         bloco_comentarios("29.0", res_data, render_conteudo.refresh)
-
+                        
                     # -----------------------------------------------------------------------------
                     # QUESITO 30.0 (Complexo Regulador Municipal)
                     # -----------------------------------------------------------------------------
