@@ -9140,18 +9140,6 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.2", res_data, render_conteudo.refresh)
     
-                        # Helper para conversão segura de número sem quebrar com string vazia
-                        def parse_num(val):
-                            if val is None or val == "":
-                                return None
-                            try:
-                                return int(val)
-                            except (ValueError, TypeError):
-                                try:
-                                    return float(val)
-                                except (ValueError, TypeError):
-                                    return None
-    
                         # -----------------------------------------------------------------------------
                         # QUESITO 28.2.1 (Consultas Médicas com Maior Tempo de Espera) - CORRIGIDO
                         # -----------------------------------------------------------------------------
