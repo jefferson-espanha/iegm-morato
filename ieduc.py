@@ -23482,40 +23482,65 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # -------------------------------------------------------------------------
     # 📊 13. MANUTENÇÃO DE BRINQUEDOS NO PÁTIO DA PRÉ-ESCOLA (QUESITO 2.1.2)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>13. MANUTENÇÃO DE BRINQUEDOS NO PÁTIO DA PRÉ-ESCOLA (QUESITO 2.1.2)</b>", styles["h2"]))
+    elements.append(
+        Paragraph(
+            "<b>13. MANUTENÇÃO DE BRINQUEDOS NO PÁTIO DA PRÉ-ESCOLA (QUESITO"
+            " 2.1.2)</b>",
+            styles["h2"],
+        )
+    )
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph("<b><i>2.1.2 Cronograma de Manutenção Preventiva de Brinquedos (Pré-Escola)</i></b>", styles["Normal"]))
+    elements.append(
+        Paragraph(
+            "<b><i>2.1.2 Cronograma de Manutenção Preventiva de Brinquedos"
+            " (Pré-Escola)</i></b>",
+            styles["Normal"],
+        )
+    )
     elements.append(Spacer(1, 6))
 
     # Função dedicada para extrair com segurança os quantitativos e pontuação do Quesito 2.1.2
     def extrair_dados_q212(dado_ano):
-        dados_f = {"CRON": 0, "NCRON": 0, "SOLIC": 0, "NMANU": 0, "TOTAL": 0, "pontos": 0.0}
+        """Extrai a situação de manutenção (2.1.2) buscando nas colunas resposta/link/valor."""
+        import re as re_mod
+
+        dados_f = {
+            "CRON": 0,
+            "NCRON": 0,
+            "SOLIC": 0,
+            "NMANU": 0,
+            "TOTAL": 0,
+            "pontos": 0.0,
+        }
         if not isinstance(dado_ano, dict):
             return dados_f
 
         info_q = dado_ano.get("2.1.2", {})
-        if isinstance(info_q, dict):
-            val_str = info_q.get("valor", "")
-            dados_f["pontos"] = float(info_q.get("pontos", 0.0))
-        else:
-            val_str = str(info_q)
+        if not isinstance(info_q, dict):
+            return dados_f
 
-        try:
-            partes = val_str.split(",")
-            for p in partes:
-                if ":" in p:
-                    k, v = p.split(":")
-                    k = k.strip().upper()
-                    if k in dados_f:
-                        match = re.search(r'\d+', v)
-                        if match:
-                            dados_f[k] = int(match.group())
-        except Exception:
-            pass
+        dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+
+        # Reúne os textos das colunas onde os pares CRON, NCRON, etc. podem estar salvos
+        textos_para_analise = [
+            str(info_q.get("resposta", "")),
+            str(info_q.get("link", "")),
+            str(info_q.get("valor", "")),
+        ]
+        texto_completo = " ".join(
+            [t for t in textos_para_analise if t and t != "None"]
+        )
+
+        if texto_completo:
+            for k in ["CRON", "NCRON", "SOLIC", "NMANU"]:
+                match = re_mod.search(
+                    rf"\b{k}\s*:\s*(\d+)", texto_completo, re_mod.IGNORECASE
+                )
+                if match:
+                    dados_f[k] = int(match.group(1))
 
         calc_tot = sum(dados_f[f] for f in ["CRON", "NCRON", "SOLIC", "NMANU"])
-        if dados_f["TOTAL"] == 0 and calc_tot > 0:
-            dados_f["TOTAL"] = calc_tot
+        dados_f["TOTAL"] = calc_tot
 
         return dados_f
 
@@ -23527,18 +23552,16 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         ("NCRON", "Possuem mas Não Cumprem o Cronograma (NCRON)"),
         ("SOLIC", "Manutenção Apenas por Solicitação (SOLIC)"),
         ("NMANU", "Não Realizam Manutenção/Troca (NMANU)"),
-        ("TOTAL", "TOTAL DE PRÉ-ESCOLAS AVALIADAS")
+        ("TOTAL", "TOTAL DE PRÉ-ESCOLAS AVALIADAS"),
     ]
 
-    data_ind_13 = [
-        [
-            Paragraph("Situação de Manutenção / Exercício", style_th), 
-            Paragraph(f"Exercício {ano_ant}", style_th), 
-            Paragraph(f"Exercício {ano_atual}", style_th), 
-            Paragraph("Variação (%)", style_th), 
-            Paragraph("Avaliação", style_th)
-        ]
-    ]
+    data_ind_13 = [[
+        Paragraph("Situação de Manutenção / Exercício", style_th),
+        Paragraph(f"Exercício {ano_ant}", style_th),
+        Paragraph(f"Exercício {ano_atual}", style_th),
+        Paragraph("Variação (%)", style_th),
+        Paragraph("Avaliação", style_th),
+    ]]
 
     for id_c, rotulo in categorias_manutencao_pre:
         v_ant = q212_ant.get(id_c, 0)
@@ -23561,10 +23584,18 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             aval = "<font color='#6c757d'><b>Estável</b></font>"
         elif id_c == "CRON":
             # Para escolas que cumprem cronograma: Aumento é Melhora
-            aval = "<font color='#28a745'><b>Aumento (Melhora)</b></font>" if var_pct > 0 else "<font color='#dc3545'><b>Redução (Piora)</b></font>"
+            aval = (
+                "<font color='#28a745'><b>Aumento (Melhora)</b></font>"
+                if var_pct > 0
+                else "<font color='#dc3545'><b>Redução (Piora)</b></font>"
+            )
         else:
             # Para descumprimento, atendimento apenas por solicitação ou ausência de manutenção: Aumento é Piora
-            aval = "<font color='#dc3545'><b>Aumento (Piora)</b></font>" if var_pct > 0 else "<font color='#28a745'><b>Redução (Melhora)</b></font>"
+            aval = (
+                "<font color='#dc3545'><b>Aumento (Piora)</b></font>"
+                if var_pct > 0
+                else "<font color='#28a745'><b>Redução (Melhora)</b></font>"
+            )
 
         if id_c == "TOTAL":
             p_rotulo = Paragraph(f"<b>{rotulo}</b>", style_item_esquerda)
@@ -23577,7 +23608,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             p_at = Paragraph(str(v_at), style_td_ano)
             p_var = Paragraph(txt_var, style_td_var)
 
-        data_ind_13.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+        data_ind_13.append(
+            [p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)]
+        )
 
     pts_ant_212 = q212_ant.get("pontos", 0.0)
     pts_at_212 = q212_atual.get("pontos", 0.0)
@@ -23591,38 +23624,57 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         txt_var_pts_212 = "0.0%"
 
     if pts_at_212 > pts_ant_212:
-        aval_pts_212 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        aval_pts_212 = (
+            "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        )
     elif pts_at_212 < pts_ant_212:
-        aval_pts_212 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+        aval_pts_212 = (
+            "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
+        )
     else:
         aval_pts_212 = "<font color='#6c757d'><b>Estável</b></font>"
 
     data_ind_13.append([
-        Paragraph("<b>PONTUAÇÃO RESULTANTE (Nota Ponderada)</b>", style_item_esquerda),
+        Paragraph(
+            "<b>PONTUAÇÃO RESULTANTE (Nota Ponderada)</b>", style_item_esquerda
+        ),
         Paragraph(f"<b>{pts_ant_212:.2f}</b>", style_td_ano),
         Paragraph(f"<b>{pts_at_212:.2f}</b>", style_td_ano),
         Paragraph(f"<b>{txt_var_pts_212}</b>", style_td_var),
-        Paragraph(aval_pts_212, style_td_aval)
+        Paragraph(aval_pts_212, style_td_aval),
     ])
 
     tabela_ind_13 = Table(data_ind_13, colWidths=[180, 75, 75, 75, 80])
-    tabela_ind_13.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-        ("TOPPADDING", (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-        ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
-        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
-    ]))
+    tabela_ind_13.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+            ("BACKGROUND", (0, -2), (-1, -2), colors.HexColor("#f2f4f4")),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+        ])
+    )
     elements.append(tabela_ind_13)
     elements.append(Spacer(1, 10))
 
+    style_analise = styles.get(
+        "AnaliseText",
+        ParagraphStyle(
+            "AnaliseText", parent=styles["Normal"], fontSize=9, leading=12
+        ),
+    )
+
     texto_desc_212 = (
-        f"A gestão de manutenção preventiva de equipamentos e brinquedos nos pátios da Pré-Escola (quesito <b>2.1.2</b>) "
-        f"registrou pontuação de <b>{pts_ant_212:.2f} pontos</b> em {ano_ant} e <b>{pts_at_212:.2f} pontos</b> em {ano_atual}. "
-        f"A implementação e o cumprimento rigoroso de um cronograma periódico de manutenção previnem acidentes, garantem a segurança das crianças e evitam penalidades nos indicadores i-EDUC."
+        "A gestão de manutenção preventiva de equipamentos e brinquedos nos"
+        " pátios da Pré-Escola (quesito <b>2.1.2</b>) registrou pontuação de"
+        f" <b>{pts_ant_212:.2f} pontos</b> em {ano_ant} e"
+        f" <b>{pts_at_212:.2f} pontos</b> em {ano_atual}. A implementação e o"
+        " cumprimento rigoroso de um cronograma periódico de manutenção"
+        " previnem acidentes, garantem a segurança das crianças e evitam"
+        " penalidades nos indicadores i-EDUC."
     )
     elements.append(Paragraph(texto_desc_212, style_analise))
     elements.append(Spacer(1, 15))
