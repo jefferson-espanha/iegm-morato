@@ -25371,82 +25371,175 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # -------------------------------------------------------------------------
     # 📊 24. INFRAESTRUTURA E SEGURANÇA ESCOLAR (QUESITO 5.0)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>24. INFRAESTRUTURA E SEGURANÇA ESCOLAR (QUESITO 5.0)</b>", styles["h2"]))
+    elements.append(
+        Paragraph(
+            "<b>24. INFRAESTRUTURA E SEGURANÇA ESCOLAR (QUESITO 5.0)</b>",
+            styles["h2"],
+        )
+    )
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph("<b><i>5.0 Diagnóstico de Auto de Vistoria do Corpo de Bombeiros (AVCB), Necessidade de Reparos e Capacitação em Primeiros Socorros</i></b>", styles["Normal"]))
+    elements.append(
+        Paragraph(
+            "<b><i>5.0 Diagnóstico de Auto de Vistoria do Corpo de Bombeiros"
+            " (AVCB), Necessidade de Reparos e Capacitação em Primeiros"
+            " Socorros</i></b>",
+            styles["Normal"],
+        )
+    )
     elements.append(Spacer(1, 6))
 
     def extrair_dados_q50(dado_ano):
-        dados_f = {"TOTAL": 0, "AVCB": 0, "REPARO": 0, "SOCORRO": 0, "pts_avcb": 0.0, "pts_reparo": 0.0, "pontos": 0.0}
+        """Extrai os dados de Infraestrutura e Segurança (Quesito 5.0).
+
+        Suporta tanto os nomes de chaves antigos (TOTAL, AVCB, REPARO, SOCORRO)
+        quanto os novos gravados pelo formulário (total_escolas, qtd_avcb,
+        qtd_reparos, qtd_socorros).
+        """
+        import re as re_mod
+
+        dados_f = {
+            "TOTAL": 0,
+            "AVCB": 0,
+            "REPARO": 0,
+            "SOCORRO": 0,
+            "pts_avcb": 0.0,
+            "pts_reparo": 0.0,
+            "pontos": 0.0,
+        }
         if not isinstance(dado_ano, dict):
             return dados_f
 
         info_q = {}
         for k, v in dado_ano.items():
-            if str(k).strip() == "5.0":
+            if str(k).strip() in ["5.0", "5"]:
                 info_q = v
                 break
 
-        val_obj = None
-        if isinstance(info_q, dict):
-            try:
-                dados_f["pontos"] = float(info_q.get("pontos", 0.0))
-            except Exception:
-                dados_f["pontos"] = 0.0
-            val_obj = info_q.get("valor", "")
-        else:
-            val_obj = info_q
+        if not isinstance(info_q, dict):
+            return dados_f
 
+        # Tenta obter a pontuação direta do quesito
+        try:
+            dados_f["pontos"] = float(info_q.get("pontos", 0.0))
+        except Exception:
+            dados_f["pontos"] = 0.0
+
+        val_obj = info_q.get("valor", {})
+
+        # Mapeamento de chaves para compatibilidade entre versões
         if isinstance(val_obj, dict):
-            dados_f["TOTAL"] = int(val_obj.get("TOTAL", 0))
-            dados_f["AVCB"] = int(val_obj.get("AVCB", 0))
-            dados_f["REPARO"] = int(val_obj.get("REPARO", 0))
-            dados_f["SOCORRO"] = int(val_obj.get("SOCORRO", 0))
+            dados_f["TOTAL"] = int(
+                val_obj.get("total_escolas")
+                or val_obj.get("TOTAL")
+                or val_obj.get("total")
+                or 0
+            )
+            dados_f["AVCB"] = int(
+                val_obj.get("qtd_avcb")
+                or val_obj.get("AVCB")
+                or val_obj.get("avcb")
+                or 0
+            )
+            dados_f["REPARO"] = int(
+                val_obj.get("qtd_reparos")
+                or val_obj.get("REPARO")
+                or val_obj.get("reparo")
+                or 0
+            )
+            dados_f["SOCORRO"] = int(
+                val_obj.get("qtd_socorros")
+                or val_obj.get("SOCORRO")
+                or val_obj.get("socorro")
+                or 0
+            )
         else:
-            val_str = str(val_obj)
-            if val_str:
-                matches = re.findall(r'([A-Z]+)\s*:\s*([0-9\-]+)', val_str, re.IGNORECASE)
-                for chave, val in matches:
-                    ch_u = chave.upper()
-                    if ch_u in dados_f and val != "-":
-                        try:
-                            dados_f[ch_u] = int(val)
-                        except ValueError:
-                            pass
+            # Varredura via Regex em strings sanitizadas
+            textos_para_analise = [
+                str(info_q.get("resposta", "")),
+                str(info_q.get("link", "")),
+                str(info_q.get("valor", "")),
+            ]
+            texto_completo = " ".join(
+                [t for t in textos_para_analise if t and t != "None"]
+            )
 
+            if texto_completo:
+                mapa_regex = {
+                    "TOTAL": [r"TOTAL", r"TOTAL_ESCOLAS", r"ESCOLAS"],
+                    "AVCB": [r"AVCB", r"QTD_AVCB"],
+                    "REPARO": [r"REPARO", r"REPAROS", r"QTD_REPAROS"],
+                    "SOCORRO": [r"SOCORRO", r"SOCORROS", r"QTD_SOCORROS"],
+                }
+                for chk, padroes in mapa_regex.items():
+                    for padrao in padroes:
+                        match = re_mod.search(
+                            rf"\b{padrao}\b\s*:\s*(\d+)",
+                            texto_completo,
+                            re_mod.IGNORECASE,
+                        )
+                        if match:
+                            dados_f[chk] = int(match.group(1))
+                            break
+
+        # Cálculo das notas proporcionais
         tot_escolas = dados_f["TOTAL"]
         if tot_escolas > 0:
-            p_avcb = min(dados_f["AVCB"] / tot_escolas, 1.0)
-            p_reparo = min(dados_f["REPARO"] / tot_escolas, 1.0)
-            
+            p_avcb = min(max(dados_f["AVCB"] / tot_escolas, 0.0), 1.0)
+            p_reparo = min(max(dados_f["REPARO"] / tot_escolas, 0.0), 1.0)
+
             dados_f["pts_avcb"] = round(p_avcb * 50.0, 2)
             dados_f["pts_reparo"] = round((1.0 - p_reparo) * 25.0, 2)
-            
-            # Recálculo preventivo se nota global não estiver armazenada
+
+            # Recálculo preventivo da pontuação se ela vier zerada do BD
             if dados_f["pontos"] == 0.0:
-                dados_f["pontos"] = round(dados_f["pts_avcb"] + dados_f["pts_reparo"], 2)
+                dados_f["pontos"] = round(
+                    dados_f["pts_avcb"] + dados_f["pts_reparo"], 2
+                )
 
         return dados_f
 
-    q50_ant = extrair_dados_q50(dados_dados_ant if 'dados_dados_ant' in locals() else dados_ano_ant)
+    q50_ant = extrair_dados_q50(
+        dados_dados_ant
+        if "dados_dados_ant" in locals()
+        else dados_ano_ant
+    )
     q50_atual = extrair_dados_q50(dados_ano_atual)
 
     faixas_q50 = [
-        ("TOTAL", "Total de Estabelecimentos Sob Gestão Municipal", None, "escolas"),
-        ("AVCB", "Escolas com Auto de Vistoria do Corpo de Bombeiros (AVCB) Vigente", True, "escolas"),
-        ("REPARO", "Escolas com Necessidade de Reparos Estruturais", False, "escolas"),
-        ("SOCORRO", "Escolas com Capacitação em Primeiros Socorros (Lei Lucas)", True, "escolas"),
+        (
+            "TOTAL",
+            "Total de Estabelecimentos Sob Gestão Municipal",
+            None,
+            "escolas",
+        ),
+        (
+            "AVCB",
+            "Escolas com Auto de Vistoria do Corpo de Bombeiros (AVCB)"
+            " Vigente",
+            True,
+            "escolas",
+        ),
+        (
+            "REPARO",
+            "Escolas com Necessidade de Reparos Estruturais",
+            False,
+            "escolas",
+        ),
+        (
+            "SOCORRO",
+            "Escolas com Capacitação em Primeiros Socorros (Lei Lucas)",
+            True,
+            "escolas",
+        ),
     ]
 
-    data_ind_50 = [
-        [
-            Paragraph("Indicador de Infraestrutura / Segurança", style_th), 
-            Paragraph(f"Exercício {ano_ant}", style_th), 
-            Paragraph(f"Exercício {ano_atual}", style_th), 
-            Paragraph("Variação (%)", style_th), 
-            Paragraph("Avaliação", style_th)
-        ]
-    ]
+    data_ind_50 = [[
+        Paragraph("Indicador de Infraestrutura / Segurança", style_th),
+        Paragraph(f"Exercício {ano_ant}", style_th),
+        Paragraph(f"Exercício {ano_atual}", style_th),
+        Paragraph("Variação (%)", style_th),
+        Paragraph("Avaliação", style_th),
+    ]]
 
     for id_f, rotulo, positivo_se_crescer, unidade in faixas_q50:
         v_ant = q50_ant.get(id_f, 0)
@@ -25466,7 +25559,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             aval = "<font color='#6c757d'><b>Informativo</b></font>"
         elif var_pct == 0:
             aval = "<font color='#6c757d'><b>Estável</b></font>"
-        elif (var_pct > 0 and positivo_se_crescer) or (var_pct < 0 and not positivo_se_crescer):
+        elif (var_pct > 0 and positivo_se_crescer) or (
+            var_pct < 0 and not positivo_se_crescer
+        ):
             aval = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
         else:
             aval = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
@@ -25482,7 +25577,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             p_at = Paragraph(str(v_at), style_td_ano)
             p_var = Paragraph(txt_var, style_td_var)
 
-        data_ind_50.append([p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)])
+        data_ind_50.append(
+            [p_rotulo, p_ant, p_at, p_var, Paragraph(aval, style_td_aval)]
+        )
 
     pts_ant_50 = q50_ant.get("pontos", 0.0)
     pts_at_50 = q50_atual.get("pontos", 0.0)
@@ -25496,39 +25593,51 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         txt_var_pts_50 = "0.0%"
 
     if pts_at_50 > pts_ant_50:
-        aval_pts_50 = "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        aval_pts_50 = (
+            "<font color='#28a745'><b>Apresentou<br/>Melhora</b></font>"
+        )
     elif pts_at_50 < pts_ant_50:
         aval_pts_50 = "<font color='#dc3545'><b>Apresentou<br/>Piora</b></font>"
     else:
         aval_pts_50 = "<font color='#6c757d'><b>Estável</b></font>"
 
     data_ind_50.append([
-        Paragraph("<b>PONTUAÇÃO RESULTANTE GERAL (Máx: 75,00 pts)</b>", style_item_esquerda),
+        Paragraph(
+            "<b>PONTUAÇÃO RESULTANTE GERAL (Máx: 75,00 pts)</b>",
+            style_item_esquerda,
+        ),
         Paragraph(f"<b>{pts_ant_50:.2f}</b>", style_td_ano),
         Paragraph(f"<b>{pts_at_50:.2f}</b>", style_td_ano),
         Paragraph(f"<b>{txt_var_pts_50}</b>", style_td_var),
-        Paragraph(aval_pts_50, style_td_aval)
+        Paragraph(aval_pts_50, style_td_aval),
     ])
 
     tabela_ind_50 = Table(data_ind_50, colWidths=[180, 75, 75, 75, 80])
-    tabela_ind_50.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
-        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
-        ("TOPPADDING", (0, 0), (-1, -1), 3),
-        ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
-        ("BACKGROUND", (0, 1), (-1, 1), colors.HexColor("#f8f9fa")),
-        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
-    ]))
+    tabela_ind_50.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ("BACKGROUND", (0, 1), (-1, 1), colors.HexColor("#f8f9fa")),
+            ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#e8f8f5")),
+        ])
+    )
     elements.append(tabela_ind_50)
     elements.append(Spacer(1, 8))
 
     texto_desc_50 = (
-        f"A conformidade dos prédios escolares com as normas de segurança física e prevenção contra incêndio é fator determinante para a proteção da comunidade escolar. "
-        f"No quesito <b>5.0</b>, a nota global do município alterou-se de <b>{pts_ant_50:.2f} pontos</b> em {ano_ant} para <b>{pts_at_50:.2f} pontos</b> em {ano_atual} "
-        f"(máximo de 75,00 pontos, compostos pela regularização de AVCB [máx 50 pts] e ausência de reparos estruturais pendentes [máx 25 pts]). "
-        f"A ampliação da cobertura do AVCB e a manutenção preventiva contínua reduzem riscos operacionais e sanções junto aos órgãos fiscalizadores."
+        "A conformidade dos prédios escolares com as normas de segurança física"
+        " e prevenção contra incêndio é fator determinante para a proteção da"
+        " comunidade escolar. No quesito <b>5.0</b>, a nota global do município"
+        f" alterou-se de <b>{pts_ant_50:.2f} pontos</b> em {ano_ant} para"
+        f" <b>{pts_at_50:.2f} pontos</b> em {ano_atual} (máximo de 75,00"
+        " pontos, compostos pela regularização de AVCB [máx 50 pts] e ausência"
+        " de reparos estruturais pendentes [máx 25 pts]). A ampliação da"
+        " cobertura do AVCB e a manutenção preventiva contínua reduzem riscos"
+        " operacionais e sanções junto aos órgãos fiscalizadores."
     )
     elements.append(Paragraph(texto_desc_50, style_analise))
     elements.append(Spacer(1, 15))
