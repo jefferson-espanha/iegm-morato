@@ -6896,7 +6896,7 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.4", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       # =============================================================================
                         # QUESITO 18.4.1 (Tipos de Indicadores da Atenção Psicossocial)
                         # =============================================================================
                         with ui.card().classes(
@@ -6908,19 +6908,19 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Assinale os tipos de indicadores da Atenção Psicossocial:"
                             ).classes("text-base font-bold text-black mb-4")
-    
+
                             d1841 = res_data.get("18.4.1") or {}
                             raw_val_1841 = d1841.get("valor") or []
                             if not isinstance(raw_val_1841, list):
                                 raw_val_1841 = []
-    
+
                             raw_link_1841 = str(d1841.get("link") or "")
-    
+
                             state_1841 = {
-                                "opcoes": raw_val_1841,
+                                "opcoes": raw_val_1841.copy(),
                                 "link": raw_link_1841,
                             }
-    
+
                             chk_options_1841 = [
                                 ("drogas", "Para Drogas (transtornos mentais incluindo aqueles relacionados ao uso de substâncias psicoativas)"),
                                 ("saude_mental", "Para Saúde Mental (transtornos mentais graves e persistentes)"),
@@ -6928,27 +6928,24 @@ def container_formulario_saude(ano=None):
                                 ("infantil", "Para Drogas e/ou Saúde Mental para crianças em específico"),
                                 ("outros", "Outros"),
                             ]
-    
+
+                            def on_chk_change(k, is_checked):
+                                if is_checked and k not in state_1841["opcoes"]:
+                                    state_1841["opcoes"].append(k)
+                                elif not is_checked and k in state_1841["opcoes"]:
+                                    state_1841["opcoes"].remove(k)
+
                             for key, label_text in chk_options_1841:
-                                chk = ui.checkbox(
+                                ui.checkbox(
                                     text=label_text,
-                                    value=(key in state_1841["opcoes"])
+                                    value=(key in state_1841["opcoes"]),
+                                    on_change=lambda e, k=key: on_chk_change(k, e.value)
                                 ).classes("mb-1")
-    
-                                def make_on_change(k=key):
-                                    def on_change(e):
-                                        if e.value and k not in state_1841["opcoes"]:
-                                            state_1841["opcoes"].append(k)
-                                        elif not e.value and k in state_1841["opcoes"]:
-                                            state_1841["opcoes"].remove(k)
-                                    return on_change
-    
-                                chk.on("update:model-value", make_on_change(key))
-    
+
                             ui.label("Nota 18.4.1: Informativo (0.0 pontos)").classes(
                                 "text-sm font-bold text-green-600 my-4"
                             )
-    
+
                             ui.textarea(
                                 label="Link de Evidência / Fichas Técnicas dos Indicadores:",
                                 value=raw_link_1841,
@@ -6956,7 +6953,7 @@ def container_formulario_saude(ano=None):
                             ).classes("w-full mb-4").props("outlined rows=2").bind_value(
                                 state_1841, "link"
                             )
-    
+
                             def salvar_1841():
                                 pts = 0.0
                                 save_resposta(
@@ -6971,7 +6968,7 @@ def container_formulario_saude(ano=None):
                                 ui.notify("Quesito 18.4.1 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO 18.4.1", on_click=salvar_1841).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
