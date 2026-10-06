@@ -752,20 +752,20 @@ def container_formulario_saude(ano=None):
                     )
 
                 # Coluna 2: Formulário Principal (9/12)
-                    with ui.element("div").classes("md:col-span-8 lg:col-span-9 flex flex-col gap-4"):
-                        etapa_atual = int(app.storage.user.get("isaude_etapa", 1))
-                        if etapa_atual not in range(1, 5):
-                            etapa_atual = 1
+                with ui.element("div").classes("md:col-span-8 lg:col-span-9 flex flex-col gap-4"):
+                    etapa_atual = int(app.storage.user.get("isaude_etapa", 1))
+                    if etapa_atual not in range(1, 5):
+                        etapa_atual = 1
 
-                        def mudar_etapa(nova_etapa):
-                            app.storage.user["isaude_etapa"] = int(nova_etapa)
-                            render_conteudo.refresh()
+                    def mudar_etapa(nova_etapa):
+                        app.storage.user["isaude_etapa"] = int(nova_etapa)
+                        render_conteudo.refresh()
 
-                        with ui.row().classes("w-full items-center gap-4 mb-4 px-1"):
-                            ui.label("Etapa:").classes("font-bold text-gray-700")
-                            for numero in range(1, 5):
-                                estilo = "text-green-900 font-black underline" if numero == etapa_atual else "text-green-700 underline"
-                                ui.button(str(numero), on_click=lambda n=numero: mudar_etapa(n)).props("flat dense no-caps").classes(f"{estilo} min-w-0 px-1 text-base")
+                    with ui.row().classes("w-full items-center gap-4 mb-4 px-1"):
+                        ui.label("Etapa:").classes("font-bold text-gray-700")
+                        for numero in range(1, 5):
+                            estilo = "text-green-900 font-black underline" if numero == etapa_atual else "text-green-700 underline"
+                            ui.button(str(numero), on_click=lambda n=numero: mudar_etapa(n)).props("flat dense no-caps").classes(f"{estilo} min-w-0 px-1 text-base")
                     with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
                         ui.label(f"📋 Módulo i-Saúde — Ano {ano_sel}").classes(
                             "text-xl font-bold text-slate-800 border-b pb-2 mb-4"
