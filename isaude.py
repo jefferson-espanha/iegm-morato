@@ -14908,12 +14908,22 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # TRATAMENTO DO ANO SELECIONADO (ATUAL)
     dS6_atual = dados.get("S6", {}) if isinstance(dados, dict) else {}
     if not isinstance(dS6_atual, dict): dS6_atual = {}
-    valores_atual_lista = dS6_atual.get("valor", "0/0/0/0/0/0/0/0/0/0/0").split("/")
-    
-    if len(valores_atual_lista) != 11:
-        valores_atual_lista = [0.0] * 11
+    valor_s6 = dS6_atual.get("valor", "")
+    if isinstance(valor_s6, dict):
+        # O formulário atual salva S6 como JSON/dict, não como string separada
+        # por barras. Mantemos compatibilidade com os dois formatos.
+        valores_atual_lista = [
+            safe_float(valor_s6.get(chave, 0.0))
+            for chave in lista_chaves_ordenadas
+        ]
     else:
-        valores_atual_lista = [float(v) if v.strip() else 0.0 for v in valores_atual_lista]
+        valores_atual_lista = str(
+            valor_s6 or "0/0/0/0/0/0/0/0/0/0/0"
+        ).split("/")
+        if len(valores_atual_lista) != len(lista_chaves_ordenadas):
+            valores_atual_lista = [0.0] * len(lista_chaves_ordenadas)
+        else:
+            valores_atual_lista = [safe_float(v) for v in valores_atual_lista]
 
     # Monta as linhas da tabela associando o índice correto de cada vacina
     for idx, chave in enumerate(lista_chaves_ordenadas):
