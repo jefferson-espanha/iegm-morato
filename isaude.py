@@ -733,25 +733,15 @@ def renderizar_card_relatorio_isaude(res_data=None, ano_sel=2026):
                 historico = get_all_years_data()
                 faixa_atual = converter_pontos_em_faixa_iegm(total_pts)
 
-                # Usa o relatório analítico inserido no módulo. O relatório
-                # resumido permanece como fallback para bases antigas ou
-                # registros incompletos, evitando que o botão deixe de abrir.
-                try:
-                    pdf_bytes = gerar_relatorio_pdf(
-                        dados=dados_locais,
-                        ano=ano_alvo,
-                        total=total_pts,
-                        faixa=faixa_atual,
-                        all_data=historico,
-                    )
-                except Exception:
-                    logging.exception("Relatório analítico indisponível; usando versão resumida")
-                    pdf_bytes = gerar_relatorio_pdf_isaude(
-                        dados=dados_locais,
-                        ano=ano_alvo,
-                        total=total_pts,
-                        todos_dados=historico,
-                    )
+                # O card usa exclusivamente o relatório detalhado inserido
+                # no módulo, que contém capa, sumário e série histórica.
+                pdf_bytes = gerar_relatorio_pdf(
+                    dados=dados_locais,
+                    ano=ano_alvo,
+                    total=total_pts,
+                    faixa=faixa_atual,
+                    all_data=historico,
+                )
                 rota = f"/relatorio_isaude_temp_{ano_alvo}.pdf"
 
                 @app.get(rota)
