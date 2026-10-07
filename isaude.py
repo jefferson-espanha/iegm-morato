@@ -13,7 +13,18 @@ from nicegui import app, ui
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Paragraph,
+    Spacer,
+    Table,
+    TableStyle,
+    PageBreak,
+    Image,
+)
+from reportlab.graphics.charts.barcharts import VerticalBarChart
+from reportlab.graphics.shapes import Drawing, String
+import reportlab.lib.colors as rl_colors
 
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
@@ -13695,7 +13706,10 @@ def get_all_years_data():
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute("SELECT DISTINCT ano FROM respostas_ieduc ORDER BY ano")
+                # O módulo atual persiste as respostas nesta tabela.
+                # A referência antiga a respostas_ieduc fazia o relatório
+                # detalhado falhar antes mesmo de montar o PDF.
+                cur.execute("SELECT DISTINCT ano FROM respostas_isaude ORDER BY ano")
                 anos = [int(row["ano"]) for row in cur.fetchall()]
         for ano_item in anos:
             dados[ano_item] = load_respostas(ano_item)
