@@ -730,12 +730,28 @@ def renderizar_card_relatorio_isaude(res_data=None, ano_sel=2026):
                     for qid, info in dados_locais.items()
                     if isinstance(info, dict) and not str(qid).startswith("COM_")
                 )
-                pdf_bytes = gerar_relatorio_pdf_isaude(
-                    dados=dados_locais,
-                    ano=ano_alvo,
-                    total=total_pts,
-                    todos_dados=get_all_years_data_isaude(),
-                )
+                historico = get_all_years_data()
+                faixa_atual = converter_pontos_em_faixa_iegm(total_pts)
+
+                # Usa o relatório analítico inserido no módulo. O relatório
+                # resumido permanece como fallback para bases antigas ou
+                # registros incompletos, evitando que o botão deixe de abrir.
+                try:
+                    pdf_bytes = gerar_relatorio_pdf(
+                        dados=dados_locais,
+                        ano=ano_alvo,
+                        total=total_pts,
+                        faixa=faixa_atual,
+                        all_data=historico,
+                    )
+                except Exception:
+                    logging.exception("Relatório analítico indisponível; usando versão resumida")
+                    pdf_bytes = gerar_relatorio_pdf_isaude(
+                        dados=dados_locais,
+                        ano=ano_alvo,
+                        total=total_pts,
+                        todos_dados=historico,
+                    )
                 rota = f"/relatorio_isaude_temp_{ano_alvo}.pdf"
 
                 @app.get(rota)
@@ -13731,6 +13747,53 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     )
     elements = []
     styles = getSampleStyleSheet()
+
+    # Contexto que a rotina detalhada utilizava no código original, mas que
+    # não estava sendo inicializado quando ela foi anexada a este módulo.
+    ano_atual = int(ano)
+    ano_ant = ano_atual - 1
+    all_data = all_data if isinstance(all_data, dict) else {}
+    dados_ano_anterior = all_data.get(ano_ant, all_data.get(str(ano_ant), {}))
+    if not isinstance(dados_ano_anterior, dict):
+        dados_ano_anterior = {}
+
+    style_tabela_padrao = ParagraphStyle(
+        "TabelaPadrao",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=8.5,
+        leading=10.5,
+    )
+    style_tabela_centro = ParagraphStyle(
+        "TabelaCentro",
+        parent=style_tabela_padrao,
+        alignment=1,
+    )
+
+    def limpar_xml(valor):
+        """Limpa texto de resposta antes de inseri-lo em Paragraph do ReportLab."""
+        texto = "" if valor is None else str(valor)
+        return (
+            texto.replace("&", "&amp;")
+            .replace("<", "&lt;")
+            .replace(">", "&gt;")
+        )
+
+    # Limite aproximado por quesito quando o mapa original não veio junto.
+    # O relatório continua gerando e usa a pontuação registrada como teto
+    # mínimo, em vez de falhar com NameError.
+    PONTUACOES_MAX_ISAUDE = {}
+    for qid, info in (dados or {}).items():
+        if isinstance(info, dict) and not str(qid).startswith("COM_"):
+            try:
+                PONTUACOES_MAX_ISAUDE[str(qid)] = max(float(info.get("pontos", 0) or 0), 1.0)
+            except (TypeError, ValueError):
+                PONTUACOES_MAX_ISAUDE[str(qid)] = 1.0
+
+    # Esses dados são opcionais no módulo principal. Listas vazias preservam
+    # a seção sem inventar reincidências ou subquestões.
+    subquestoes_saude_local = []
+    resposta_condicional_na_local = False
 
     style_titulo_capa = ParagraphStyle(
         'TituloCapa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=24, leading=28, textColor=colors.HexColor("#1b4f72"), alignment=1
