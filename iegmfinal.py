@@ -32,6 +32,7 @@ except (ImportError, AttributeError):
                     "Não foi possível importar get_db_connection/get_connection."
                 )
 
+
 ANOS_DISPONIVEIS = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
 TABELAS_DIMENSOES = {
     "iplan": "respostas_iplan",
