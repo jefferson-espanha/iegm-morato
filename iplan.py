@@ -61,15 +61,23 @@ def load_respostas(ano):
                 rows = cur.fetchall()
                 for row in rows:
                     val_bruto = row["valor"] or ""
-                    
-                    # Se for uma lista salva como JSON string, converte de volta para Python
-                    if val_bruto.startswith("[") and val_bruto.endswith("]"):
-                        try:
-                            val_final = json.loads(val_bruto)
-                        except Exception:
+
+                    # O campo é TEXT no banco, portanto listas de checkbox
+                    # chegam como JSON string. O strip trata espaços e quebras
+                    # de linha antes da conversão.
+                    if isinstance(val_bruto, (list, dict)):
+                        val_final = val_bruto
+                    elif isinstance(val_bruto, str):
+                        valor_limpo = val_bruto.strip()
+                        if valor_limpo.startswith(("[", "{")):
+                            try:
+                                val_final = json.loads(valor_limpo)
+                            except (TypeError, ValueError, json.JSONDecodeError):
+                                val_final = val_bruto
+                        else:
                             val_final = val_bruto
                     else:
-                        val_final = val_bruto
+                        val_final = str(val_bruto)
 
                     respostas[row["qid"]] = {
                         "valor": val_final,
@@ -104,9 +112,12 @@ def save_resposta(
 
     link_final = link.strip() if link else ""
 
-    # Trata lista (Checkboxes) convertendo para JSON em texto
+    # Trata listas de checkbox convertendo para JSON em texto estável.
+    # A cópia evita que um refresh altere o valor depois do salvamento.
     if isinstance(valor, list):
-        valor_str = json.dumps(valor)
+        valor_str = json.dumps(list(valor), ensure_ascii=False)
+    elif isinstance(valor, dict):
+        valor_str = json.dumps(dict(valor), ensure_ascii=False)
     else:
         valor_str = str(valor) if valor is not None else ""
 
@@ -158,6 +169,25 @@ def _obter_lista_comentarios(dados_q):
     coms = dados_q.get("comentarios", [])
     return coms if isinstance(coms, list) else []
 
+
+def _normalizar_lista_checkbox(valor):
+    """Retorna sempre uma lista independente para os checkboxes do iPlan."""
+    if isinstance(valor, list):
+        return list(valor)
+    if isinstance(valor, str):
+        texto = valor.strip()
+        if texto.startswith("["):
+            try:
+                convertido = json.loads(texto)
+                return list(convertido) if isinstance(convertido, list) else []
+            except (TypeError, ValueError, json.JSONDecodeError):
+                try:
+                    convertido = ast.literal_eval(texto)
+                    return list(convertido) if isinstance(convertido, list) else []
+                except (ValueError, SyntaxError):
+                    return []
+    return []
+
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
 # =============================================================================
@@ -181,12 +211,9 @@ def render_quesito(
     # Trata valor inicial conforme o tipo de input
     if tipo_input == "checkbox":
         valor_bruto = dados_q.get("valor", [])
-        if isinstance(valor_bruto, list):
-            valor_atual = valor_bruto
-        elif valor_bruto in opcoes:
+        valor_atual = _normalizar_lista_checkbox(valor_bruto)
+        if not valor_atual and isinstance(valor_bruto, str) and valor_bruto in opcoes:
             valor_atual = [valor_bruto]
-        else:
-            valor_atual = []
     elif tipo_input in ["number", "float"]:
         valor_bruto = dados_q.get("valor", 0.0)
         try:
@@ -225,10 +252,12 @@ def render_quesito(
 
                     def make_on_change(opt):
                         def on_change(e):
-                            if e.value and opt not in state["opcao"]:
-                                state["opcao"].append(opt)
-                            elif not e.value and opt in state["opcao"]:
-                                state["opcao"].remove(opt)
+                            selecionados = list(state["opcao"])
+                            if bool(e.value) and opt not in selecionados:
+                                selecionados.append(opt)
+                            elif not bool(e.value) and opt in selecionados:
+                                selecionados.remove(opt)
+                            state["opcao"] = selecionados
                             atualizar_impacto()
                         return on_change
 
@@ -317,7 +346,11 @@ def render_quesito(
 
         # Botão Salvar
         def salvar_acao():
-            opcao_sel = state["opcao"]
+            opcao_sel = (
+                list(state["opcao"])
+                if tipo_input == "checkbox"
+                else state["opcao"]
+            )
             pts = calcular_pontos(opcao_sel)
             lnk = state["link"]
 
@@ -2048,24 +2081,10 @@ def container_formulario_plan(ano=None):
                     import json
                     import ast
 
-                    raw_1451 = res_data.get("14.5.1") or res_data.get(14.51) or {}
+                    raw_1451 = res_data.get("14.5.1") or res_data.get("14.51") or {}
                     q1451_data = raw_1451 if isinstance(raw_1451, dict) else {}
 
-                    # Trata o valor recuperado do banco (pode vir como lista ou string)
-                    raw_val_1451 = q1451_data.get("valor", [])
-                    
-                    if isinstance(raw_val_1451, str) and raw_val_1451.strip():
-                        try:
-                            marcados_salvos = json.loads(raw_val_1451)
-                        except Exception:
-                            try:
-                                marcados_salvos = ast.literal_eval(raw_val_1451)
-                            except Exception:
-                                marcados_salvos = []
-                    elif isinstance(raw_val_1451, list):
-                        marcados_salvos = raw_val_1451
-                    else:
-                        marcados_salvos = []
+                    marcados_salvos = _normalizar_lista_checkbox(q1451_data.get("valor", []))
 
                     lista_opcoes_1451 = [
                         "Receitas",
@@ -2323,24 +2342,11 @@ def container_formulario_plan(ano=None):
                     import json
                     import ast
 
-                    raw_155 = res_data.get("15.5") or res_data.get(15.5) or {}
+                    raw_155 = res_data.get("15.5") or res_data.get("15.5") or {}
                     q155_data = raw_155 if isinstance(raw_155, dict) else {}
 
                     # Recupera itens salvos do banco
-                    raw_val_155 = q155_data.get("valor", [])
-                    
-                    if isinstance(raw_val_155, str) and raw_val_155.strip():
-                        try:
-                            marcados_salvos = json.loads(raw_val_155)
-                        except Exception:
-                            try:
-                                marcados_salvos = ast.literal_eval(raw_val_155)
-                            except Exception:
-                                marcados_salvos = []
-                    elif isinstance(raw_val_155, list):
-                        marcados_salvos = raw_val_155
-                    else:
-                        marcados_salvos = []
+                    marcados_salvos = _normalizar_lista_checkbox(q155_data.get("valor", []))
 
                     # Apenas estes 2 itens geram penalidade (-0.5 cada) se NÃO estiverem marcados
                     itens_com_penalidade_155 = [
