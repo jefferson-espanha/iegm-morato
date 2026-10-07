@@ -14614,13 +14614,50 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
     for qid in quesitos_alvo:
         conteudo = dados[qid]
-        
-        # Extrai a resposta textual
-        resposta_str = ""
+
+        valor_bruto = ""
         if isinstance(conteudo, dict):
-            resposta_str = str(conteudo.get("resposta") or conteudo.get("valor") or "")
+            valor_bruto = conteudo.get("resposta") or conteudo.get("valor") or ""
         elif isinstance(conteudo, str):
-            resposta_str = conteudo
+            valor_bruto = conteudo
+
+        # Os quesitos detalhados são salvos como JSONB, por exemplo:
+        # {"esp_1": "Pneumologia", "tempo_1": 1650.0, ...}.
+        # Antes o dict era convertido para string e nenhum par era encontrado.
+        if isinstance(valor_bruto, dict):
+            for chave_tempo, valor_tempo in valor_bruto.items():
+                chave_tempo_str = str(chave_tempo)
+                if not chave_tempo_str.startswith("tempo_"):
+                    continue
+
+                sufixo = chave_tempo_str[len("tempo_"):]
+                dias_val = extrair_dias_numericos(valor_tempo)
+                if dias_val is None:
+                    continue
+
+                # Localiza o campo textual correspondente: esp_1, exame_1,
+                # terapia_1, opm_1, cirurgia_1, consulta_1 etc.
+                chave_label = next(
+                    (
+                        str(k)
+                        for k in valor_bruto
+                        if str(k).endswith(f"_{sufixo}")
+                        and not str(k).startswith("tempo_")
+                    ),
+                    None,
+                )
+                label = valor_bruto.get(chave_label, "") if chave_label else ""
+                if label is None or not str(label).strip():
+                    continue
+
+                lista_processada.append({
+                    "label": str(label).strip(),
+                    "qid": str(qid),
+                    "dias": dias_val,
+                })
+            continue
+
+        resposta_str = str(valor_bruto).strip()
 
         if not resposta_str or not resposta_str.strip():
             continue
