@@ -1,19 +1,50 @@
 import logging
+from typing import Any
+
 import pandas as pd
 import plotly.express as px
 from nicegui import app, ui
 
-# Importa a conexão do icidade_completo.py
+# Compatível com os dois padrões de conexão usados no projeto:
+# get_db_connection() nos módulos iPlan/i-Saúde e get_connection()
+# no módulo i-Cidade legado.
 try:
-    from icidade_completo import get_connection
-except ImportError:
+    from main import get_db_connection as get_connection
+except (ImportError, AttributeError):
     try:
-        from icidade import get_connection
-    except ImportError as e:
-        logging.error(f"Erro ao importar get_connection: {e}")
+        from icidade_completo import get_connection
+    except (ImportError, AttributeError):
+        try:
+            from icidade import get_connection
+        except (ImportError, AttributeError) as e:
+            logging.error(f"Erro ao importar uma conexão do banco: {e}")
 
-        def get_connection():
-            raise ImportError("Não foi possível importar 'get_connection'.")
+            def get_connection():
+                raise ImportError(
+                    "Não foi possível importar get_db_connection/get_connection."
+                )
+
+
+ANOS_DISPONIVEIS = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+TABELAS_DIMENSOES = {
+    "iplan": "respostas_iplan",
+    "ieduc": "respostas_ieduc",
+    "isaude": "respostas_isaude",
+    "igov": "respostas_igov",
+    "iamb": "respostas_iamb",
+}
+
+
+def _valor_primeira_coluna(row: Any) -> Any:
+    """Aceita retorno de cursor comum (tupla) ou RealDictCursor (dict)."""
+    if row is None:
+        return None
+    if isinstance(row, dict):
+        return next(iter(row.values()), None)
+    try:
+        return row[0]
+    except (IndexError, KeyError, TypeError):
+        return None
 
 
 # =============================================================================
@@ -22,6 +53,9 @@ except ImportError:
 
 
 def buscar_pontuacao_dimensao(tabela: str, ano: int) -> float:
+    if tabela not in set(TABELAS_DIMENSOES.values()):
+        logging.warning("Tabela de dimensão não autorizada: %s", tabela)
+        return 0.0
     try:
         with get_connection() as conn:
             with conn.cursor() as cursor:
@@ -29,8 +63,9 @@ def buscar_pontuacao_dimensao(tabela: str, ano: int) -> float:
                 cursor.execute(sql, (int(ano),))
                 res = cursor.fetchone()
 
-                if res and res[0] is not None:
-                    return float(res[0])
+                valor = _valor_primeira_coluna(res)
+                if valor is not None:
+                    return float(valor)
     except Exception as e:
         logging.warning(
             f"[IEG-M Final] Erro ao ler tabela '{tabela}' para ano {ano}: {e}"
@@ -54,7 +89,11 @@ def puxar_nota_ifiscal(ano: int) -> float:
                 if not rows:
                     return 0.0
 
-                pontos_lista = [float(r[0]) for r in rows if r[0] is not None]
+                pontos_lista = []
+                for row in rows:
+                    valor = _valor_primeira_coluna(row)
+                    if valor is not None:
+                        pontos_lista.append(float(valor))
 
                 if any(p <= -100.0 for p in pontos_lista):
                     return 0.0
@@ -86,8 +125,9 @@ def puxar_nota_iamb(ano: int) -> float:
                 cursor.execute(sql, (int(ano),))
                 res = cursor.fetchone()
 
-                if res and res[0] is not None:
-                    total_pontos = float(res[0])
+                valor = _valor_primeira_coluna(res)
+                if valor is not None:
+                    total_pontos = float(valor)
                     return float(max(0.0, round(total_pontos, 1)))
 
     except Exception as e:
@@ -106,15 +146,17 @@ def puxar_nota_icidade(ano: int) -> float:
                 cursor.execute(sql_respostas, (int(ano),))
                 res = cursor.fetchone()
 
-                if res and res[0] is not None and float(res[0]) > 0:
-                    return float(res[0])
+                valor = _valor_primeira_coluna(res)
+                if valor is not None and float(valor) > 0:
+                    return float(valor)
 
                 sql_icidade = "SELECT COALESCE(SUM(pontos), 0) FROM respostas_icidade WHERE ano = %s;"
                 cursor.execute(sql_icidade, (int(ano),))
                 res_fallback = cursor.fetchone()
 
-                if res_fallback and res_fallback[0] is not None:
-                    return float(res_fallback[0])
+                valor_fallback = _valor_primeira_coluna(res_fallback)
+                if valor_fallback is not None:
+                    return float(valor_fallback)
     except Exception as e:
         logging.warning(
             f"[i-Cidade] Erro ao consultar pontos para o ano {ano}: {e}"
@@ -179,7 +221,7 @@ def mostrar_painel_iegm_final(ano_sel=None):
     if ano_sel is None:
         ano_sel = app.storage.user.get("ano_referencia_global", 2026)
 
-    anos_disponiveis = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    anos_disponiveis = ANOS_DISPONIVEIS
     ano_estado = {"ano": int(ano_sel) if int(ano_sel) in anos_disponiveis else 2026}
 
     ui.label("Pontuação do IEG-M - Prévia").classes(
@@ -208,15 +250,22 @@ def mostrar_painel_iegm_final(ano_sel=None):
             # COLUNA DA ESQUERDA: Seletor de Ano + Tabela
             # -----------------------------------------------------------------
             with ui.column().classes("col-span-12 md:col-span-4 w-full gap-2"):
+                def alterar_ano(e):
+                    try:
+                        novo_ano = int(e.value)
+                    except (TypeError, ValueError):
+                        novo_ano = ano_atual
+                    if novo_ano not in anos_disponiveis:
+                        return
+                    ano_estado["ano"] = novo_ano
+                    app.storage.user["ano_referencia_global"] = novo_ano
+                    render_conteudo.refresh()
+
                 ui.select(
                     label="Exercício:",
                     options=anos_disponiveis,
                     value=ano_atual,
-                    on_change=lambda e: (
-                        ano_estado.update({"ano": e.value}),
-                        app.storage.user.update({"ano_referencia_global": e.value}),
-                        render_conteudo.refresh(),
-                    ),
+                    on_change=alterar_ano,
                 ).classes("w-full").props("outlined dense")
 
                 # Cabeçalho da Lista Textual
