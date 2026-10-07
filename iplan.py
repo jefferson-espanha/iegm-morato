@@ -604,20 +604,27 @@ def container_formulario_plan(ano=None):
                     # QUESITO 1.1 (Peças Orçamentárias - Checkbox)
                     # ==========================================
                     opcoes_11 = {
-                        "Selecione...": 0.0,
-                        "PPA inicial 2026-2029 – 01 pt": 1.0,
-                        "LDO 2026 – 01 pt": 1.0,
-                        "LOA 2026 – 01 pt": 1.0,
+                        f"PPA inicial 2026-2029 – 01 pt": 1.0,
+                        f"LDO {ano_sel} – 01 pt": 1.0,
+                        f"LOA {ano_sel} – 01 pt": 1.0,
                     }
+
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
                         qid="1.1",
                         titulo="Peças Orçamentárias com Audiência Pública",
-                        pergunta="Assinale para quais peças orçamentárias foram realizadas as audiências públicas (Considerar as audiências públicas da LOA e LDO realizadas no exercício avaliado e o último PPA elaborado):",
+                        pergunta=(
+                            "Assinale para quais peças orçamentárias foram realizadas as audiências"
+                            " públicas (Considerar as audiências públicas da LOA e LDO realizadas"
+                            " no exercício avaliado e o último PPA elaborado):"
+                        ),
                         tipo_input="checkbox",
                         opcoes=opcoes_11,
-                        placeholder_link="Insira o link de comprovação das audiências (ex: ata, edital, transmissão)...",
+                        placeholder_link=(
+                            "Insira o link de comprovação das audiências (ex: ata, edital,"
+                            " transmissão)..."
+                        ),
                         on_save_callback=render_conteudo.refresh,
                     )
 
