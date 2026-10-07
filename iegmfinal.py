@@ -1,37 +1,18 @@
+"""Painel IEG-M final para integração com o main.py NiceGUI.
+
+A API pública esperada pelo carregador é:
+    container_painel_iegm_final(ano)
+    mostrar_painel_iegm_final(ano)
+"""
+
 import logging
-from typing import Any
-
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
-
-try:
-    import plotly.express as px
-except ImportError:
-    px = None
+import os
+from typing import Any, Callable, Optional
 
 from nicegui import app, ui
 
-# Compatível com os dois padrões de conexão usados no projeto:
-# get_db_connection() nos módulos iPlan/i-Saúde e get_connection()
-# no módulo i-Cidade legado.
-try:
-    from main import get_db_connection as get_connection
-except (ImportError, AttributeError):
-    try:
-        from icidade_completo import get_connection
-    except (ImportError, AttributeError):
-        try:
-            from icidade import get_connection
-        except (ImportError, AttributeError) as e:
-            logging.error(f"Erro ao importar uma conexão do banco: {e}")
-
-            def get_connection():
-                raise ImportError(
-                    "Não foi possível importar get_db_connection/get_connection."
-                )
-
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 ANOS_DISPONIVEIS = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
 TABELAS_DIMENSOES = {
@@ -42,9 +23,45 @@ TABELAS_DIMENSOES = {
     "iamb": "respostas_iamb",
 }
 
+# Primeiro tenta o conector já usado pelo módulo i-Cidade; em seguida,
+# utiliza psycopg2 diretamente com DATABASE_URL/NEON_DATABASE_URL.
+_conector_externo: Optional[Callable] = None
+try:
+    from icidade_completo import get_connection as _conector_externo
+except (ImportError, AttributeError):
+    try:
+        from icidade import get_connection as _conector_externo
+    except (ImportError, AttributeError):
+        _conector_externo = None
+
+
+def _abrir_conexao():
+    if _conector_externo is not None:
+        try:
+            return _conector_externo()
+        except Exception as exc:
+            logger.warning("Conector existente falhou; tentando conexão direta: %s", exc)
+
+    try:
+        import psycopg2
+    except ImportError as exc:
+        raise RuntimeError("psycopg2 não está instalado") from exc
+
+    database_url = os.getenv("DATABASE_URL") or os.getenv("NEON_DATABASE_URL")
+    if not database_url:
+        # O main normalmente expõe NEON_URL. A leitura é feita somente em
+        # tempo de execução para evitar import circular durante o carregamento.
+        try:
+            import main
+            database_url = getattr(main, "NEON_URL", None)
+        except Exception:
+            database_url = None
+    if not database_url:
+        raise RuntimeError("DATABASE_URL/NEON_DATABASE_URL não configurada")
+    return psycopg2.connect(database_url)
+
 
 def _valor_primeira_coluna(row: Any) -> Any:
-    """Aceita retorno de cursor comum (tupla) ou RealDictCursor (dict)."""
     if row is None:
         return None
     if isinstance(row, dict):
@@ -55,352 +72,198 @@ def _valor_primeira_coluna(row: Any) -> Any:
         return None
 
 
-# =============================================================================
-# FUNÇÕES DE CONSULTA E BANCO DE DADOS
-# =============================================================================
-
-
-def buscar_pontuacao_dimensao(tabela: str, ano: int) -> float:
-    if tabela not in set(TABELAS_DIMENSOES.values()):
-        logging.warning("Tabela de dimensão não autorizada: %s", tabela)
-        return 0.0
+def _numero(valor: Any) -> float:
     try:
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
-                sql = f"SELECT COALESCE(SUM(pontos), 0) FROM {tabela} WHERE ano = %s;"
-                cursor.execute(sql, (int(ano),))
-                res = cursor.fetchone()
+        return float(valor or 0)
+    except (TypeError, ValueError):
+        return 0.0
 
-                valor = _valor_primeira_coluna(res)
-                if valor is not None:
-                    return float(valor)
-    except Exception as e:
-        logging.warning(
-            f"[IEG-M Final] Erro ao ler tabela '{tabela}' para ano {ano}: {e}"
-        )
 
-    return 0.0
+def _soma_tabela(tabela: str, ano: int) -> float:
+    if tabela not in set(TABELAS_DIMENSOES.values()):
+        return 0.0
+    with _abrir_conexao() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                f"SELECT COALESCE(SUM(pontos), 0) AS total "
+                f"FROM {tabela} WHERE ano = %s",
+                (int(ano),),
+            )
+            return _numero(_valor_primeira_coluna(cur.fetchone()))
 
 
 def puxar_nota_iplan(ano: int) -> float:
-    return buscar_pontuacao_dimensao("respostas_iplan", ano)
-
-
-def puxar_nota_ifiscal(ano: int) -> float:
-    try:
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
-                sql = "SELECT pontos FROM respostas_ifiscal WHERE ano = %s;"
-                cursor.execute(sql, (int(ano),))
-                rows = cursor.fetchall()
-
-                if not rows:
-                    return 0.0
-
-                pontos_lista = []
-                for row in rows:
-                    valor = _valor_primeira_coluna(row)
-                    if valor is not None:
-                        pontos_lista.append(float(valor))
-
-                if any(p <= -100.0 for p in pontos_lista):
-                    return 0.0
-
-                total = sum(p for p in pontos_lista if p > -100.0)
-                return float(total)
-    except Exception as e:
-        logging.warning(f"[i-Fiscal] Falha ao ler ano {ano}: {e}")
-        return 0.0
+    return _soma_tabela("respostas_iplan", ano)
 
 
 def puxar_nota_ieduc(ano: int) -> float:
-    return buscar_pontuacao_dimensao("respostas_ieduc", ano)
+    return _soma_tabela("respostas_ieduc", ano)
 
 
 def puxar_nota_isaude(ano: int) -> float:
-    return buscar_pontuacao_dimensao("respostas_isaude", ano)
-
-
-def puxar_nota_iamb(ano: int) -> float:
-    try:
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
-                sql = """
-                    SELECT COALESCE(SUM(pontos), 0.0) 
-                    FROM respostas_iamb 
-                    WHERE ano = %s;
-                """
-                cursor.execute(sql, (int(ano),))
-                res = cursor.fetchone()
-
-                valor = _valor_primeira_coluna(res)
-                if valor is not None:
-                    total_pontos = float(valor)
-                    return float(max(0.0, round(total_pontos, 1)))
-
-    except Exception as e:
-        logging.warning(
-            f"[i-Amb] Erro ao ler tabela respostas_iamb para o ano {ano}: {e}"
-        )
-
-    return 0.0
-
-
-def puxar_nota_icidade(ano: int) -> float:
-    try:
-        with get_connection() as conn:
-            with conn.cursor() as cursor:
-                sql_respostas = "SELECT COALESCE(SUM(pontos), 0) FROM respostas WHERE dimensao = 'icidade' AND ano = %s;"
-                cursor.execute(sql_respostas, (int(ano),))
-                res = cursor.fetchone()
-
-                valor = _valor_primeira_coluna(res)
-                if valor is not None and float(valor) > 0:
-                    return float(valor)
-
-                sql_icidade = "SELECT COALESCE(SUM(pontos), 0) FROM respostas_icidade WHERE ano = %s;"
-                cursor.execute(sql_icidade, (int(ano),))
-                res_fallback = cursor.fetchone()
-
-                valor_fallback = _valor_primeira_coluna(res_fallback)
-                if valor_fallback is not None:
-                    return float(valor_fallback)
-    except Exception as e:
-        logging.warning(
-            f"[i-Cidade] Erro ao consultar pontos para o ano {ano}: {e}"
-        )
-
-    return 0.0
+    return _soma_tabela("respostas_isaude", ano)
 
 
 def puxar_nota_igov(ano: int) -> float:
-    return buscar_pontuacao_dimensao("respostas_igov", ano)
+    return _soma_tabela("respostas_igov", ano)
 
 
-# =============================================================================
-# CÁLCULOS OFICIAIS TCESP
-# =============================================================================
+def puxar_nota_iamb(ano: int) -> float:
+    return max(0.0, round(_soma_tabela("respostas_iamb", ano), 1))
 
 
-def calcular_nota_final(
-    plan: float,
-    fiscal: float,
-    educ: float,
-    saude: float,
-    amb: float,
-    cidade: float,
-    gov: float,
-) -> float:
-    try:
-        soma = (
-            (float(plan) * 0.20)
-            + (float(fiscal) * 0.20)
-            + (float(educ) * 0.20)
-            + (float(saude) * 0.20)
-            + (float(amb) * 0.10)
-            + (float(cidade) * 0.05)
-            + (float(gov) * 0.05)
-        )
-        return round(soma, 1)
-    except Exception:
+def puxar_nota_ifiscal(ano: int) -> float:
+    with _abrir_conexao() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT pontos FROM respostas_ifiscal WHERE ano = %s",
+                (int(ano),),
+            )
+            valores = [_numero(_valor_primeira_coluna(row)) for row in cur.fetchall()]
+    if not valores or any(valor <= -100.0 for valor in valores):
         return 0.0
+    return sum(valor for valor in valores if valor > -100.0)
+
+
+def puxar_nota_icidade(ano: int) -> float:
+    with _abrir_conexao() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT COALESCE(SUM(pontos), 0) FROM respostas "
+                "WHERE dimensao = 'icidade' AND ano = %s",
+                (int(ano),),
+            )
+            valor = _numero(_valor_primeira_coluna(cur.fetchone()))
+            if valor > 0:
+                return valor
+            cur.execute(
+                "SELECT COALESCE(SUM(pontos), 0) FROM respostas_icidade WHERE ano = %s",
+                (int(ano),),
+            )
+            return _numero(_valor_primeira_coluna(cur.fetchone()))
+
+
+def carregar_pontuacoes(ano: int) -> dict[str, float]:
+    """Carrega todas as dimensões sem derrubar a página se uma tabela faltar."""
+    consultas = {
+        "I-CIDADE": puxar_nota_icidade,
+        "I-GOV TI": puxar_nota_igov,
+        "I-PLAN": puxar_nota_iplan,
+        "I-FISCAL": puxar_nota_ifiscal,
+        "I-AMB": puxar_nota_iamb,
+        "I-EDUC": puxar_nota_ieduc,
+        "I-SAÚDE": puxar_nota_isaude,
+    }
+    resultado = {}
+    for nome, consulta in consultas.items():
+        try:
+            resultado[nome] = round(float(consulta(ano)), 1)
+        except Exception as exc:
+            logger.exception("Falha ao carregar %s/%s: %s", nome, ano, exc)
+            resultado[nome] = 0.0
+    return resultado
+
+
+def calcular_nota_final(plan: float, fiscal: float, educ: float, saude: float,
+                        amb: float, cidade: float, gov: float) -> float:
+    return round(
+        float(plan) * 0.20 + float(fiscal) * 0.20 + float(educ) * 0.20
+        + float(saude) * 0.20 + float(amb) * 0.10
+        + float(cidade) * 0.05 + float(gov) * 0.05,
+        1,
+    )
 
 
 def obter_faixa_classificacao(nota: float):
     if nota >= 900:
-        return "A (Altamente Efetiva)", "#10B981"
-    elif nota >= 750:
-        return "B+ (Muito Efetiva)", "#3B82F6"
-    elif nota >= 600:
-        return "B (Efetiva)", "#F59E0B"
-    elif nota >= 500:
-        return "C+ (Em Fase de Adequação)", "#F97316"
-    else:
-        return "C (Baixo Nível de Adequação)", "#EF4444"
+        return "A", "#10B981", "Altamente Efetiva"
+    if nota >= 750:
+        return "B+", "#3B82F6", "Muito Efetiva"
+    if nota >= 600:
+        return "B", "#F59E0B", "Efetiva"
+    if nota >= 500:
+        return "C+", "#F97316", "Em Fase de Adequação"
+    return "C", "#EF4444", "Baixo Nível de Adequação"
 
 
-# =============================================================================
-# PAINEL PRINCIPAL NICEGUI (COMPATÍVEL COM O MAIN.PY)
-# =============================================================================
+def _opcoes_grafico(pontuacoes: dict[str, float], final: float) -> dict:
+    nomes = list(pontuacoes) + ["IEG-M FINAL"]
+    valores = list(pontuacoes.values()) + [final]
+    return {
+        "animation": True,
+        "tooltip": {"trigger": "axis", "axisPointer": {"type": "shadow"}},
+        "grid": {"left": 45, "right": 25, "top": 45, "bottom": 65},
+        "xAxis": {"type": "category", "data": nomes, "axisLabel": {"rotate": 25}},
+        "yAxis": {"type": "value", "min": 0, "max": 1100, "interval": 250},
+        "series": [{
+            "name": "Pontuação",
+            "type": "bar",
+            "data": valores,
+            "barMaxWidth": 55,
+            "label": {"show": True, "position": "top", "formatter": "{c}"},
+            "itemStyle": {"color": "#2563eb"},
+        }],
+    }
 
 
 def mostrar_painel_iegm_final(ano_sel=None):
-    """Função compatível com a chamada dinâmica do main.py."""
-    if ano_sel is None:
-        ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+    try:
+        ano_inicial = int(ano_sel if ano_sel is not None else
+                          app.storage.user.get("ano_referencia_global", 2026))
+    except (TypeError, ValueError):
+        ano_inicial = 2026
+    if ano_inicial not in ANOS_DISPONIVEIS:
+        ano_inicial = 2026
 
-    anos_disponiveis = ANOS_DISPONIVEIS
-    ano_estado = {"ano": int(ano_sel) if int(ano_sel) in anos_disponiveis else 2026}
-
+    estado = {"ano": ano_inicial}
     ui.label("Pontuação do IEG-M - Prévia").classes(
         "w-full text-center text-2xl font-bold italic mb-6 text-blue-900"
     )
 
     @ui.refreshable
     def render_conteudo():
-        ano_atual = ano_estado["ano"]
-
-        # Busca dados do banco de dados para o ano selecionado
-        plan = puxar_nota_iplan(ano_atual)
-        fiscal = puxar_nota_ifiscal(ano_atual)
-        educ = puxar_nota_ieduc(ano_atual)
-        saude = puxar_nota_isaude(ano_atual)
-        amb = puxar_nota_iamb(ano_atual)
-        cidade = puxar_nota_icidade(ano_atual)
-        gov = puxar_nota_igov(ano_atual)
-
-        nota_final = calcular_nota_final(
-            plan, fiscal, educ, saude, amb, cidade, gov
+        ano = estado["ano"]
+        pontos = carregar_pontuacoes(ano)
+        final = calcular_nota_final(
+            pontos["I-PLAN"], pontos["I-FISCAL"], pontos["I-EDUC"],
+            pontos["I-SAÚDE"], pontos["I-AMB"], pontos["I-CIDADE"],
+            pontos["I-GOV TI"],
         )
+        faixa, cor, descricao = obter_faixa_classificacao(final)
 
-        with ui.grid(columns=12).classes("w-full gap-6 items-start"):
-            # -----------------------------------------------------------------
-            # COLUNA DA ESQUERDA: Seletor de Ano + Tabela
-            # -----------------------------------------------------------------
-            with ui.column().classes("col-span-12 md:col-span-4 w-full gap-2"):
-                def alterar_ano(e):
-                    try:
-                        novo_ano = int(e.value)
-                    except (TypeError, ValueError):
-                        novo_ano = ano_atual
-                    if novo_ano not in anos_disponiveis:
-                        return
-                    ano_estado["ano"] = novo_ano
-                    app.storage.user["ano_referencia_global"] = novo_ano
+        with ui.row().classes("w-full justify-end"):
+            def mudar_ano(e):
+                try:
+                    novo = int(e.value)
+                except (TypeError, ValueError):
+                    return
+                if novo in ANOS_DISPONIVEIS:
+                    estado["ano"] = novo
+                    app.storage.user["ano_referencia_global"] = novo
                     render_conteudo.refresh()
 
-                ui.select(
-                    label="Exercício:",
-                    options=anos_disponiveis,
-                    value=ano_atual,
-                    on_change=alterar_ano,
-                ).classes("w-full").props("outlined dense")
+            ui.select(ANOS_DISPONIVEIS, value=ano, label="Exercício",
+                      on_change=mudar_ano).props("outlined dense")
 
-                # Cabeçalho da Lista Textual
-                with ui.row().classes(
-                    "w-full justify-between font-bold italic border-b-2 border-gray-700 pb-1 mt-4 text-sm"
-                ):
-                    ui.label("Dimensão/IEG-M").classes("w-1/2")
-                    ui.label("Pontuação").classes("w-1/4 text-center")
-                    ui.label("Nota").classes("w-1/4 text-right")
+        with ui.grid(columns=12).classes("w-full gap-6 items-start"):
+            with ui.column().classes("col-span-12 md:col-span-4 w-full"):
+                with ui.card().classes("w-full border-2").style(f"border-color: {cor}"):
+                    ui.label(f"IEG-M FINAL — {ano}").classes("text-lg font-bold")
+                    ui.label(f"{final:.1f} pontos").classes("text-4xl font-black")
+                    ui.label(f"Faixa {faixa} — {descricao}").style(f"color: {cor}; font-weight: bold")
+                with ui.card().classes("w-full"):
+                    ui.label("Pontuações por dimensão").classes("font-bold border-b pb-2")
+                    for nome, valor in pontos.items():
+                        faixa_dim, cor_dim, _ = obter_faixa_classificacao(valor)
+                        with ui.row().classes("w-full justify-between py-1"):
+                            ui.label(nome)
+                            ui.label(f"{valor:.1f} — {faixa_dim}").style(f"color: {cor_dim}; font-weight: bold")
 
-                dimensoes = [
-                    ("I-CIDADE", cidade),
-                    ("I-GOV TI", gov),
-                    ("I-PLAN", plan),
-                    ("I-FISCAL", fiscal),
-                    ("I-AMB", amb),
-                    ("I-EDUC", educ),
-                    ("I-SAÚDE", saude),
-                ]
-
-                # Linhas das Dimensões
-                for nome, valor in dimensoes:
-                    faixa_str, _ = obter_faixa_classificacao(valor)
-                    sigla_faixa = faixa_str.split(" ")[0]
-
-                    with ui.row().classes(
-                        "w-full justify-between items-center py-1 text-sm font-bold text-gray-800"
-                    ):
-                        ui.label(nome).classes("w-1/2 italic")
-                        ui.label(f"{round(valor)}").classes("w-1/4 text-center")
-                        ui.label(sigla_faixa).classes("w-1/4 text-right")
-
-                # Linha de Nota Final
-                faixa_final_str, _ = obter_faixa_classificacao(nota_final)
-                sigla_final = faixa_final_str.split(" ")[0]
-
-                with ui.row().classes(
-                    "w-full justify-between items-center pt-2 mt-2 border-t-2 border-gray-800 text-base font-bold text-gray-900"
-                ):
-                    ui.label("IEG-M FINAL").classes("w-1/2 italic")
-                    ui.label(f"{round(nota_final)}").classes("w-1/4 text-center")
-                    ui.label(sigla_final).classes("w-1/4 text-right")
-
-            # -----------------------------------------------------------------
-            # COLUNA DA DIREITA: Gráfico Plotly
-            # -----------------------------------------------------------------
             with ui.column().classes("col-span-12 md:col-span-8 w-full"):
-                if pd is None or px is None:
-                    ui.label(
-                        "Gráfico indisponível: instale pandas e plotly para habilitá-lo."
-                    ).classes("text-amber-700 font-bold")
-                    with ui.card().classes("w-full mt-4"):
-                        ui.label("Resumo das pontuações").classes("font-bold")
-                        for nome, valor in dimensoes + [("IEG-M FINAL", nota_final)]:
-                            ui.label(f"{nome}: {valor:.1f} pontos")
-                    return
-
-                labels_topo = []
-                for v in [cidade, gov, plan, fiscal, amb, educ, saude, nota_final]:
-                    fx, _ = obter_faixa_classificacao(v)
-                    sigla = fx.split(" ")[0]
-                    labels_topo.append(f"{round(v)}<br><b>{sigla}</b>")
-
-                df_grafico = pd.DataFrame(
-                    {
-                        "Dimensão": [
-                            "I-cidade",
-                            "I-gov TI",
-                            "I-Plan",
-                            "I-fiscal",
-                            "I-Amb",
-                            "I-educ",
-                            "i-saude",
-                            "IEG-M final",
-                        ],
-                        "Pontuação": [
-                            round(cidade),
-                            round(gov),
-                            round(plan),
-                            round(fiscal),
-                            round(amb),
-                            round(educ),
-                            round(saude),
-                            round(nota_final),
-                        ],
-                        "LabelTopo": labels_topo,
-                    }
-                )
-
-                fig = px.bar(
-                    df_grafico,
-                    x="Dimensão",
-                    y="Pontuação",
-                    text="LabelTopo",
-                    range_y=[0, 1100],
-                )
-
-                fig.update_traces(
-                    marker_color="#2563eb",
-                    textposition="outside",
-                    textfont=dict(size=12, family="Arial", color="#1e293b"),
-                    cliponaxis=False,
-                )
-
-                fig.update_layout(
-                    paper_bgcolor="rgba(0,0,0,0)",
-                    plot_bgcolor="rgba(0,0,0,0)",
-                    xaxis=dict(
-                        title="",
-                        tickfont=dict(size=12, family="Arial"),
-                        showgrid=False,
-                    ),
-                    yaxis=dict(
-                        title="",
-                        tickfont=dict(size=11),
-                        tickvals=[0, 250, 500, 750, 1000],
-                        showgrid=True,
-                        gridcolor="#f0f0f0",
-                    ),
-                    height=460,
-                    margin=dict(l=10, r=10, t=30, b=10),
-                )
-
-                ui.plotly(fig).classes("w-full h-full")
+                ui.label("Pontuações do IEG-M").classes("text-lg font-bold")
+                ui.echart(_opcoes_grafico(pontos, final)).classes("w-full").style("height: 500px")
 
     render_conteudo()
 
 
-# Alias para garantir compatibilidade com qualquer função procurada pelo _executar_modulo
 container_painel_iegm_final = mostrar_painel_iegm_final
