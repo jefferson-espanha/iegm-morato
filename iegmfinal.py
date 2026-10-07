@@ -1,8 +1,16 @@
 import logging
 from typing import Any
 
-import pandas as pd
-import plotly.express as px
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
+
+try:
+    import plotly.express as px
+except ImportError:
+    px = None
+
 from nicegui import app, ui
 
 # Compatível com os dois padrões de conexão usados no projeto:
@@ -313,6 +321,16 @@ def mostrar_painel_iegm_final(ano_sel=None):
             # COLUNA DA DIREITA: Gráfico Plotly
             # -----------------------------------------------------------------
             with ui.column().classes("col-span-12 md:col-span-8 w-full"):
+                if pd is None or px is None:
+                    ui.label(
+                        "Gráfico indisponível: instale pandas e plotly para habilitá-lo."
+                    ).classes("text-amber-700 font-bold")
+                    with ui.card().classes("w-full mt-4"):
+                        ui.label("Resumo das pontuações").classes("font-bold")
+                        for nome, valor in dimensoes + [("IEG-M FINAL", nota_final)]:
+                            ui.label(f"{nome}: {valor:.1f} pontos")
+                    return
+
                 labels_topo = []
                 for v in [cidade, gov, plan, fiscal, amb, educ, saude, nota_final]:
                     fx, _ = obter_faixa_classificacao(v)
