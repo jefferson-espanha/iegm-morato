@@ -13769,16 +13769,18 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             .replace(">", "&gt;")
         )
 
-    # Limite aproximado por quesito quando o mapa original não veio junto.
-    # O relatório continua gerando e usa a pontuação registrada como teto
-    # mínimo, em vez de falhar com NameError.
-    PONTUACOES_MAX_ISAUDE = {}
-    for qid, info in (dados or {}).items():
-        if isinstance(info, dict) and not str(qid).startswith("COM_"):
-            try:
-                PONTUACOES_MAX_ISAUDE[str(qid)] = max(float(info.get("pontos", 0) or 0), 1.0)
-            except (TypeError, ValueError):
-                PONTUACOES_MAX_ISAUDE[str(qid)] = 1.0
+    # Somente estes quesitos possuem pontuação oficial no i-Saúde.
+    # Não derivar o teto a partir dos dados salvos: isso fazia quesitos
+    # informativos ou sem pontuação entrarem indevidamente como fragilidades.
+    PONTUACOES_MAX_ISAUDE = {
+        "1": 5, "2": 10, "3": 10, "3.1": 4, "3.2": 4, "4": 6, "5": 4, "6": 5, "7": 3, "8": 2,
+        "9.0": 18, "9.2": 5, "10": 100, "11": 10, "11.2": 2, "12.0": 10, "12.1": 50, "12.2": 40,
+        "13": 5, "13.1": 15, "14": 1, "14.1": 10, "14.2": 2, "14.2.1": 10, "15": 2, "15.1": 7,
+        "16": 10, "16.1": 5, "21": 10, "22": 30, "23.1": 30, "24.1": 10, "25": 5, "26": 10,
+        "27": 5, "28": 5, "28.1": 5, "29": 15, "30.1.1": 9, "32.1": 45, "33.1": 10, "34.0": 5,
+        "35.1": 15, "35.2": 10, "36": 40, "36.1": 40, "37": 90, "S2": 20, "S3": 25, "S4": 10,
+        "S5": 10, "S6": 100, "S7": 20, "S17": 25, "S18": 25, "S19": 25, "S20": 25,
+    }
 
     # Esses dados são opcionais no módulo principal. Listas vazias preservam
     # a seção sem inventar reincidências ou subquestões.
