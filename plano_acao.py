@@ -22,12 +22,47 @@ from reportlab.pdfgen import canvas
 from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 logger = logging.getLogger(__name__)
+ULTIMO_ERRO_BANCO = ""
+
+
+def _normalizar_dados_acao(dados: dict) -> dict:
+    """Converte campos vazios e datas para os tipos aceitos pelo schema."""
+    global ULTIMO_ERRO_BANCO
+    resultado = {chave: (valor.strip() if isinstance(valor, str) else valor)
+                 for chave, valor in dados.items()}
+    for chave in ("data_inicio", "data_conclusao"):
+        valor = resultado.get(chave)
+        if valor in ("", None):
+            resultado[chave] = None
+        elif isinstance(valor, str):
+            try:
+                resultado[chave] = datetime.strptime(valor[:10], "%Y-%m-%d").date()
+            except ValueError as exc:
+                ULTIMO_ERRO_BANCO = f"Data inválida em {chave}: {valor}"
+                raise ValueError(ULTIMO_ERRO_BANCO) from exc
+    obrigatorios = {
+        "dimensao": "Dimensão",
+        "acao": "Título da ação",
+        "responsavel": "Responsável",
+        "status": "Status",
+    }
+    faltantes = [rotulo for chave, rotulo in obrigatorios.items()
+                 if not str(resultado.get(chave) or "").strip()]
+    if faltantes:
+        ULTIMO_ERRO_BANCO = "Preencha os campos obrigatórios: " + ", ".join(faltantes)
+        raise ValueError(ULTIMO_ERRO_BANCO)
+    return resultado
+
+
+def obter_ultimo_erro_banco() -> str:
+    return ULTIMO_ERRO_BANCO
 
 # ==========================================
 # GESTÃO DE CONEXÃO COM O NEON POSTGRESQL
 # ==========================================
 def obter_conexao():
     """Obtém o conector do projeto ou conecta diretamente ao PostgreSQL."""
+    global ULTIMO_ERRO_BANCO
     try:
         try:
             from icidade_completo import get_connection
@@ -39,6 +74,7 @@ def obter_conexao():
             except (ImportError, AttributeError):
                 pass
         if psycopg2 is None:
+            ULTIMO_ERRO_BANCO = "psycopg2 não está instalado e não há conector do projeto."
             logger.error("psycopg2 não está instalado e não há conector do projeto")
             return None
         database_url = os.getenv("DATABASE_URL") or os.getenv("NEON_DATABASE_URL")
@@ -49,10 +85,12 @@ def obter_conexao():
             except Exception:
                 database_url = None
         if not database_url:
+            ULTIMO_ERRO_BANCO = "DATABASE_URL/NEON_URL não configurada."
             logger.error("DATABASE_URL/NEON_URL não configurada")
             return None
         return psycopg2.connect(database_url)
     except Exception as exc:
+        ULTIMO_ERRO_BANCO = f"Erro de conexão com o banco: {exc}"
         logger.exception("Erro ao conectar ao banco: %s", exc)
         return None
 
@@ -95,8 +133,14 @@ def carregar_dados_banco() -> List[dict]:
 
 def inserir_acao_banco(dados: dict) -> bool:
     """Insere uma nova ação no Neon PostgreSQL."""
+    global ULTIMO_ERRO_BANCO
+    try:
+        dados = _normalizar_dados_acao(dados)
+    except ValueError:
+        return False
     conn = obter_conexao()
     if not conn:
+        ULTIMO_ERRO_BANCO = "Não foi possível abrir conexão com o banco de dados."
         return False
 
     query = """
@@ -121,6 +165,7 @@ def inserir_acao_banco(dados: dict) -> bool:
         return True
     except Exception as e:
         conn.rollback()
+        ULTIMO_ERRO_BANCO = f"Erro ao inserir no PostgreSQL: {e}"
         logger.error(f"Erro ao inserir registro no Neon PostgreSQL: {e}")
         return False
     finally:
@@ -129,8 +174,14 @@ def inserir_acao_banco(dados: dict) -> bool:
 
 def atualizar_acao_banco(registro_id: int, dados: dict) -> bool:
     """Atualiza um registro existente no Neon PostgreSQL pelo ID."""
+    global ULTIMO_ERRO_BANCO
+    try:
+        dados = _normalizar_dados_acao(dados)
+    except ValueError:
+        return False
     conn = obter_conexao()
     if not conn:
+        ULTIMO_ERRO_BANCO = "Não foi possível abrir conexão com o banco de dados."
         return False
 
     dados["id"] = registro_id
@@ -163,6 +214,7 @@ def atualizar_acao_banco(registro_id: int, dados: dict) -> bool:
         return True
     except Exception as e:
         conn.rollback()
+        ULTIMO_ERRO_BANCO = f"Erro ao atualizar no PostgreSQL: {e}"
         logger.error(f"Erro ao atualizar registro no Neon PostgreSQL: {e}")
         return False
     finally:
@@ -557,7 +609,8 @@ def _formulario_acao(on_save, registro=None):
                         ui.notify("Ação salva com sucesso.", type="positive")
                         on_save()
                     else:
-                        _notificar_erro("Não foi possível salvar a ação.")
+                        detalhe = obter_ultimo_erro_banco()
+                        _notificar_erro(detalhe or "Não foi possível salvar a ação.")
                 ui.button("Salvar", on_click=salvar).classes("bg-blue-700 text-white")
     dialog.open()
 
