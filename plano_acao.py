@@ -3,6 +3,7 @@ from datetime import date, datetime
 import io
 import logging
 import os
+import re
 from typing import List, Optional
 
 import pandas as pd
@@ -680,6 +681,19 @@ def _texto(v):
     return str(v)
 
 
+def _titulo_meta_estrategica(registro):
+    """Exibe a meta estratégica cadastrada, sem usar o id ou inventar título."""
+    meta = _texto(registro.get("meta_estrategica")).strip()
+    if not meta:
+        return "Meta estratégica não informada"
+    correspondencia = re.match(r"^\s*(\d+(?:\.\d+)*)\s*[-–.):]?\s*(.*)$", meta)
+    if correspondencia:
+        numero, titulo = correspondencia.groups()
+        titulo = titulo.strip() or meta
+        return f"#{numero} — {titulo}"
+    return meta
+
+
 def _data(v):
     if isinstance(v, (date, datetime)):
         return v.strftime("%Y-%m-%d")
@@ -838,7 +852,7 @@ def mostrar_formulario_plano_acao(ano_sel=None):
         for registro in filtrados:
             with ui.card().classes("w-full mt-3 border"):
                 with ui.row().classes("w-full justify-between items-start"):
-                    ui.label(f"#{registro.get('id')} — {_texto(registro.get('acao')) or 'Ação sem título'}").classes("text-lg font-bold text-blue-900")
+                    ui.label(_titulo_meta_estrategica(registro)).classes("text-lg font-bold text-blue-900")
                     ui.badge(
                         _texto(registro.get("status")) or "Sem status"
                     ).style(
