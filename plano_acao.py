@@ -18,6 +18,8 @@ except ImportError:
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.graphics.charts.piecharts import Pie
+from reportlab.graphics.shapes import Drawing, String
 from reportlab.pdfgen import canvas
 from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
@@ -393,6 +395,36 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
         "TxtNorm", parent=styles["Normal"], fontSize=8.5, leading=11
     )
 
+    def grafico_pizza_status(df):
+        """Cria um gráfico de pizza vetorial para o relatório PDF."""
+        contagem = df["status"].fillna("Sem status").astype(str).value_counts()
+        desenho = Drawing(500, 230)
+        if contagem.empty:
+            desenho.add(String(180, 110, "Sem dados de status", fontSize=12))
+            return desenho
+        pizza = Pie()
+        pizza.x = 20
+        pizza.y = 20
+        pizza.width = 185
+        pizza.height = 185
+        pizza.data = list(contagem.values)
+        pizza.labels = [str(indice) for indice in contagem.index]
+        pizza.slices.strokeWidth = 0.8
+        cores_pizza = ["#2563EB", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#64748B"]
+        for indice in range(len(pizza.data)):
+            pizza.slices[indice].fillColor = colors.HexColor(
+                cores_pizza[indice % len(cores_pizza)]
+            )
+            pizza.slices[indice].strokeColor = colors.white
+        desenho.add(pizza)
+        desenho.add(String(250, 195, "Distribuição por status", fontName="Helvetica-Bold", fontSize=12, fillColor=colors.HexColor("#1A365D")))
+        for indice, (status, quantidade) in enumerate(contagem.items()):
+            y = 165 - (indice * 24)
+            cor = colors.HexColor(cores_pizza[indice % len(cores_pizza)])
+            desenho.add(String(250, y, "■", fontSize=14, fillColor=cor))
+            desenho.add(String(268, y + 1, f"{status}: {quantidade} ação(ões)", fontSize=9, fillColor=colors.HexColor("#2D3748")))
+        return desenho
+
     # 1. CAPA
     story.append(Spacer(1, 20))
     if os.path.exists("iegm.png"):
@@ -460,7 +492,32 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
 
     story.append(PageBreak())
 
-    # 3. DADOS DAS MATRIZES
+    # 3. PAINEL EXECUTIVO
+    story.append(Paragraph("PAINEL EXECUTIVO", style_h1))
+    total_acoes = len(df_dados)
+    total_dimensoes = len(dimensoes_presentes)
+    total_concluidas = int((df_dados["status"].astype(str).str.lower() == "concluída").sum())
+    total_pendentes = total_acoes - total_concluidas
+    metricas = [
+        [Paragraph("<b>AÇÕES</b>", style_texto_bold), Paragraph("<b>DIMENSÕES</b>", style_texto_bold), Paragraph("<b>CONCLUÍDAS</b>", style_texto_bold), Paragraph("<b>EM ACOMPANHAMENTO</b>", style_texto_bold)],
+        [Paragraph(f"<font size=20 color='#2563EB'><b>{total_acoes}</b></font>", style_texto_normal), Paragraph(f"<font size=20 color='#8B5CF6'><b>{total_dimensoes}</b></font>", style_texto_normal), Paragraph(f"<font size=20 color='#10B981'><b>{total_concluidas}</b></font>", style_texto_normal), Paragraph(f"<font size=20 color='#F59E0B'><b>{total_pendentes}</b></font>", style_texto_normal)],
+    ]
+    tabela_metricas = Table(metricas, colWidths=[125, 125, 125, 125])
+    tabela_metricas.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#F7FAFC")),
+        ("BOX", (0, 0), (-1, -1), 1, colors.HexColor("#CBD5E0")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#E2E8F0")),
+        ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("TOPPADDING", (0, 0), (-1, -1), 10),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+    ]))
+    story.append(tabela_metricas)
+    story.append(Spacer(1, 18))
+    story.append(grafico_pizza_status(df_dados))
+    story.append(PageBreak())
+
+    # 4. DADOS DAS MATRIZES
     for dim in dimensoes_presentes:
         story.append(Paragraph(f"🏛️ DIMENSÃO: {str(dim).upper()}", style_dimensao))
 
@@ -591,6 +648,30 @@ def _gerar_baixar_pdf(registros, ano):
     ui.notify("Relatório PDF gerado.", type="positive")
 
 
+def _opcoes_pizza_status(registros):
+    contagem = {}
+    for registro in registros:
+        status = _texto(registro.get("status")) or "Sem status"
+        contagem[status] = contagem.get(status, 0) + 1
+    cores_status = ["#2563EB", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#64748B"]
+    return {
+        "tooltip": {"trigger": "item"},
+        "legend": {"bottom": 0},
+        "series": [{
+            "name": "Ações",
+            "type": "pie",
+            "radius": ["35%", "70%"],
+            "avoidLabelOverlap": True,
+            "label": {"show": True, "formatter": "{b}: {c}"},
+            "data": [
+                {"value": quantidade, "name": status,
+                 "itemStyle": {"color": cores_status[indice % len(cores_status)]}}
+                for indice, (status, quantidade) in enumerate(contagem.items())
+            ],
+        }],
+    }
+
+
 def _formulario_acao(on_save, registro=None):
     registro = registro or {}
     with ui.dialog() as dialog, ui.card().classes("w-full max-w-5xl"):
@@ -655,6 +736,19 @@ def mostrar_formulario_plano_acao(ano_sel=None):
         filtrados = [r for r in dados if (estado["dim"] == "Todas" or r.get("dimensao") == estado["dim"])
                      and (estado["status"] == "Todos" or r.get("status") == estado["status"])
                      and (estado["ano"] == "Todos" or str(_data(r.get("data_conclusao")))[:4] == str(estado["ano"]))]
+        concluidas = sum(1 for r in filtrados if _texto(r.get("status")).lower() == "concluída")
+        atrasadas = sum(1 for r in filtrados if _texto(r.get("status")).lower() == "atrasada")
+        em_andamento = sum(1 for r in filtrados if _texto(r.get("status")).lower() == "em andamento")
+        with ui.grid(columns=4).classes("w-full gap-3 mt-2"):
+            for titulo, valor, cor in [
+                ("Total de ações", len(filtrados), "#2563EB"),
+                ("Concluídas", concluidas, "#10B981"),
+                ("Em andamento", em_andamento, "#F59E0B"),
+                ("Atrasadas", atrasadas, "#EF4444"),
+            ]:
+                with ui.card().classes("p-4 border-l-4 shadow-sm").style(f"border-left-color: {cor}"):
+                    ui.label(titulo).classes("text-sm text-gray-500")
+                    ui.label(str(valor)).classes("text-3xl font-black").style(f"color: {cor}")
         with ui.row().classes("w-full justify-between items-center"):
             ui.label(f"{len(filtrados)} ação(ões) encontrada(s)").classes("font-bold")
             with ui.row().classes("gap-2"):
@@ -667,6 +761,9 @@ def mostrar_formulario_plano_acao(ano_sel=None):
         if not filtrados:
             ui.label("Nenhuma ação localizada para os filtros selecionados.").classes("text-gray-600 mt-6")
             return
+        with ui.card().classes("w-full mt-4 border shadow-sm"):
+            ui.label("Distribuição das ações por status").classes("text-lg font-bold text-blue-900")
+            ui.echart(_opcoes_pizza_status(filtrados)).classes("w-full").style("height: 300px")
         for registro in filtrados:
             with ui.card().classes("w-full mt-3 border"):
                 with ui.row().classes("w-full justify-between items-start"):
