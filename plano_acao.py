@@ -39,7 +39,6 @@ def _normalizar_dados_acao(dados: dict) -> dict:
     # que uma descrição longa impeça o salvamento dos demais dados.
     limites_varchar = {
         "dimensao": 50,
-        "integracao_planejamento_municipal": 100,
         "periodo_report": 50,
         "responsavel": 150,
         "status": 50,
@@ -119,11 +118,15 @@ def obter_conexao():
 
 
 def garantir_schema_plano_acao(conn) -> None:
-    """Garante a coluna nova sem apagar dados ou colunas legadas."""
+    """Garante as colunas e amplia o texto de integração sem apagar dados."""
     with conn.cursor() as cur:
         cur.execute(
             "ALTER TABLE plano_acao_iegm "
             "ADD COLUMN IF NOT EXISTS metas_mensuraveis TEXT;"
+        )
+        cur.execute(
+            "ALTER TABLE plano_acao_iegm "
+            "ALTER COLUMN integracao_planejamento_municipal TYPE TEXT;"
         )
     conn.commit()
 
@@ -775,7 +778,8 @@ def _formulario_acao(on_save, registro=None):
                 campos["integracao_planejamento_municipal"] = campo(
                     "integracao_planejamento_municipal",
                     "Integração das ações aos instrumentos de planejamento municipal (PPA, LDO e LOA);",
-                ).props("maxlength=100")
+                    area=True,
+                ).props("rows=4")
                 campos["alinhamento_ods"] = campo(
                     "alinhamento_ods",
                     "Alinhamento com os Objetivos de Desenvolvimento Sustentável da Agenda 2030,",
