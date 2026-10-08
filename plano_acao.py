@@ -805,19 +805,20 @@ def mostrar_formulario_plano_acao(ano_sel=None):
         filtrados = [r for r in dados if (estado["dim"] == "Todas" or r.get("dimensao") == estado["dim"])
                      and (estado["status"] == "Todos" or r.get("status") == estado["status"])
                      and (estado["ano"] == "Todos" or str(_data(r.get("data_conclusao")))[:4] == str(estado["ano"]))]
-        concluidas = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("verde"))
-        atrasadas = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("vermelho"))
-        em_andamento = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("amarelo"))
+        atendidas = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("verde"))
+        pendentes = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("vermelho"))
+        em_analise = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("amarelo"))
         with ui.grid(columns=4).classes("w-full gap-3 mt-2"):
             for titulo, valor, cor in [
                 ("Total de ações", len(filtrados), "#2563EB"),
-                ("Concluídas", concluidas, "#10B981"),
-                ("Em andamento", em_andamento, "#F59E0B"),
-                ("Atrasadas", atrasadas, "#EF4444"),
+                ("Atendido", atendidas, "#10B981"),
+                ("Em análise", em_analise, "#FACC15"),
+                ("Pendente", pendentes, "#EF4444"),
             ]:
                 with ui.card().classes("p-4 border-l-4 shadow-sm").style(f"border-left-color: {cor}"):
                     ui.label(titulo).classes("text-sm text-gray-500")
-                    ui.label(str(valor)).classes("text-3xl font-black").style(f"color: {cor}")
+                    texto_cor = "#713F12" if cor == "#FACC15" else cor
+                    ui.label(str(valor)).classes("text-3xl font-black").style(f"color: {texto_cor}")
         with ui.row().classes("w-full justify-between items-center"):
             ui.label(f"{len(filtrados)} ação(ões) encontrada(s)").classes("font-bold")
             with ui.row().classes("gap-2"):
