@@ -30,6 +30,26 @@ def _normalizar_dados_acao(dados: dict) -> dict:
     global ULTIMO_ERRO_BANCO
     resultado = {chave: (valor.strip() if isinstance(valor, str) else valor)
                  for chave, valor in dados.items()}
+
+    # Limites definidos no schema plano_acao_iegm. O banco rejeita a operação
+    # quando um texto ultrapassa VARCHAR(n); cortar somente esses campos evita
+    # que uma descrição longa impeça o salvamento dos demais dados.
+    limites_varchar = {
+        "dimensao": 50,
+        "integracao_planejamento_municipal": 100,
+        "periodo_report": 50,
+        "responsavel": 150,
+        "status": 50,
+    }
+    for chave, limite in limites_varchar.items():
+        valor = resultado.get(chave)
+        if isinstance(valor, str) and len(valor) > limite:
+            logger.warning(
+                "Campo %s excedeu VARCHAR(%s) e foi reduzido de %s para %s caracteres.",
+                chave, limite, len(valor), limite,
+            )
+            resultado[chave] = valor[:limite]
+
     for chave in ("data_inicio", "data_conclusao"):
         valor = resultado.get(chave)
         if valor in ("", None):
@@ -588,12 +608,15 @@ def _formulario_acao(on_save, registro=None):
                 campos["acao"] = campo("acao", "Título da ação")
                 campos["meta"] = campo("meta", "Meta alvo")
                 campos["resultados_esperados"] = campo("resultados_esperados", "Resultados esperados")
-                campos["responsavel"] = campo("responsavel", "Responsável")
+                campos["responsavel"] = campo("responsavel", "Responsável").props("maxlength=150")
                 campos["periodo_report"] = ui.select(PERIODOS, value=registro.get("periodo_report") or PERIODOS[0], label="Período de reporte").classes("w-full")
                 campos["data_inicio"] = ui.input("Data de início", value=_data(registro.get("data_inicio"))).props("type=date").classes("w-full")
                 campos["data_conclusao"] = ui.input("Data de conclusão", value=_data(registro.get("data_conclusao"))).props("type=date").classes("w-full")
                 campos["alinhamento_ods"] = campo("alinhamento_ods", "Alinhamento ODS")
-                campos["integracao_planejamento_municipal"] = campo("integracao_planejamento_municipal", "Integração ao planejamento municipal")
+                campos["integracao_planejamento_municipal"] = campo(
+                    "integracao_planejamento_municipal",
+                    "Integração ao planejamento municipal",
+                ).props("maxlength=100")
                 campos["forma_execucao"] = campo("forma_execucao", "Forma de execução")
                 campos["evidencias"] = campo("evidencias", "Evidências")
                 campos["links_evidencias"] = campo("links_evidencias", "Links das evidências")
