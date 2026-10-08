@@ -117,6 +117,16 @@ def obter_conexao():
         return None
 
 
+def garantir_schema_plano_acao(conn) -> None:
+    """Garante a coluna nova sem apagar dados ou colunas legadas."""
+    with conn.cursor() as cur:
+        cur.execute(
+            "ALTER TABLE plano_acao_iegm "
+            "ADD COLUMN IF NOT EXISTS metas_mensuraveis TEXT;"
+        )
+    conn.commit()
+
+
 def carregar_dados_banco() -> List[dict]:
     """Carrega todos os registros do banco Neon PostgreSQL."""
     conn = obter_conexao()
@@ -124,6 +134,7 @@ def carregar_dados_banco() -> List[dict]:
         return []
 
     try:
+        garantir_schema_plano_acao(conn)
         if RealDictCursor is not None:
             try:
                 cur_context = conn.cursor(cursor_factory=RealDictCursor)
@@ -133,19 +144,25 @@ def carregar_dados_banco() -> List[dict]:
             cur_context = conn.cursor()
         with cur_context as cur:
             cur.execute("""
-                SELECT id, dimensao, meta_estrategica, indicador_desempenho, acao,
-                       descricao_acao, fragilidades, meta, resultados_esperados,
+                SELECT id, dimensao, meta_estrategica, indicador_desempenho,
+                       metas_mensuraveis, acao, descricao_acao, meta, resultados_esperados,
                        integracao_planejamento_municipal, alinhamento_ods,
-                       data_inicio, data_conclusao, periodo_report, responsavel,
-                       forma_execucao, evidencias, links_evidencias, status
+                       data_inicio, data_conclusao, responsavel,
+                       forma_execucao, evidencias, status
                 FROM plano_acao_iegm
                 ORDER BY id DESC;
             """)
             rows = cur.fetchall()
             if rows and isinstance(rows[0], dict):
-                return [dict(row) for row in rows]
+                dados = [dict(row) for row in rows]
+                for registro in dados:
+                    registro["status"] = _normalizar_status(registro.get("status"))
+                return dados
             colunas = [desc[0] for desc in (cur.description or [])]
-            return [dict(zip(colunas, row)) for row in rows]
+            dados = [dict(zip(colunas, row)) for row in rows]
+            for registro in dados:
+                registro["status"] = _normalizar_status(registro.get("status"))
+            return dados
     except Exception as e:
         logger.error(f"Erro ao carregar dados do Neon PostgreSQL: {e}")
         return []
@@ -165,19 +182,26 @@ def inserir_acao_banco(dados: dict) -> bool:
         ULTIMO_ERRO_BANCO = "Não foi possível abrir conexão com o banco de dados."
         return False
 
+    try:
+        garantir_schema_plano_acao(conn)
+    except Exception as exc:
+        conn.close()
+        ULTIMO_ERRO_BANCO = f"Não foi possível atualizar a estrutura da tabela: {exc}"
+        return False
+
     query = """
         INSERT INTO plano_acao_iegm (
             dimensao, meta_estrategica, indicador_desempenho, acao,
-            descricao_acao, fragilidades, meta, resultados_esperados,
+            metas_mensuraveis, descricao_acao, meta, resultados_esperados,
             integracao_planejamento_municipal, alinhamento_ods,
-            data_inicio, data_conclusao, periodo_report, responsavel,
-            forma_execucao, evidencias, links_evidencias, status
+            data_inicio, data_conclusao, responsavel, forma_execucao,
+            evidencias, status
         ) VALUES (
             %(dimensao)s, %(meta_estrategica)s, %(indicador_desempenho)s, %(acao)s,
-            %(descricao_acao)s, %(fragilidades)s, %(meta)s, %(resultados_esperados)s,
+            %(metas_mensuraveis)s, %(descricao_acao)s, %(meta)s, %(resultados_esperados)s,
             %(integracao_planejamento_municipal)s, %(alinhamento_ods)s,
-            %(data_inicio)s, %(data_conclusao)s, %(periodo_report)s, %(responsavel)s,
-            %(forma_execucao)s, %(evidencias)s, %(links_evidencias)s, %(status)s
+            %(data_inicio)s, %(data_conclusao)s, %(responsavel)s,
+            %(forma_execucao)s, %(evidencias)s, %(status)s
         );
     """
     try:
@@ -206,26 +230,31 @@ def atualizar_acao_banco(registro_id: int, dados: dict) -> bool:
         ULTIMO_ERRO_BANCO = "Não foi possível abrir conexão com o banco de dados."
         return False
 
+    try:
+        garantir_schema_plano_acao(conn)
+    except Exception as exc:
+        conn.close()
+        ULTIMO_ERRO_BANCO = f"Não foi possível atualizar a estrutura da tabela: {exc}"
+        return False
+
     dados["id"] = registro_id
     query = """
         UPDATE plano_acao_iegm SET
             dimensao = %(dimensao)s,
             meta_estrategica = %(meta_estrategica)s,
             indicador_desempenho = %(indicador_desempenho)s,
+            metas_mensuraveis = %(metas_mensuraveis)s,
             acao = %(acao)s,
             descricao_acao = %(descricao_acao)s,
-            fragilidades = %(fragilidades)s,
             meta = %(meta)s,
             resultados_esperados = %(resultados_esperados)s,
             integracao_planejamento_municipal = %(integracao_planejamento_municipal)s,
             alinhamento_ods = %(alinhamento_ods)s,
             data_inicio = %(data_inicio)s,
             data_conclusao = %(data_conclusao)s,
-            periodo_report = %(periodo_report)s,
             responsavel = %(responsavel)s,
             forma_execucao = %(forma_execucao)s,
             evidencias = %(evidencias)s,
-            links_evidencias = %(links_evidencias)s,
             status = %(status)s
         WHERE id = %(id)s;
     """
@@ -410,17 +439,18 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
         pizza.data = list(contagem.values)
         pizza.labels = [str(indice) for indice in contagem.index]
         pizza.slices.strokeWidth = 0.8
-        cores_pizza = ["#2563EB", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#64748B"]
+        cores_pizza = ["#10B981", "#F59E0B", "#EF4444", "#2563EB", "#8B5CF6", "#64748B"]
         for indice in range(len(pizza.data)):
-            pizza.slices[indice].fillColor = colors.HexColor(
-                cores_pizza[indice % len(cores_pizza)]
-            )
+            status = str(contagem.index[indice]).lower()
+            cor_status = "#10B981" if status.startswith("verde") else "#F59E0B" if status.startswith("amarelo") else "#EF4444" if status.startswith("vermelho") else cores_pizza[indice % len(cores_pizza)]
+            pizza.slices[indice].fillColor = colors.HexColor(cor_status)
             pizza.slices[indice].strokeColor = colors.white
         desenho.add(pizza)
         desenho.add(String(250, 195, "Distribuição por status", fontName="Helvetica-Bold", fontSize=12, fillColor=colors.HexColor("#1A365D")))
         for indice, (status, quantidade) in enumerate(contagem.items()):
             y = 165 - (indice * 24)
-            cor = colors.HexColor(cores_pizza[indice % len(cores_pizza)])
+            status = str(status).lower()
+            cor = colors.HexColor("#10B981" if status.startswith("verde") else "#F59E0B" if status.startswith("amarelo") else "#EF4444" if status.startswith("vermelho") else cores_pizza[indice % len(cores_pizza)])
             desenho.add(String(250, y, "■", fontSize=14, fillColor=cor))
             desenho.add(String(268, y + 1, f"{status}: {quantidade} ação(ões)", fontSize=9, fillColor=colors.HexColor("#2D3748")))
         return desenho
@@ -496,7 +526,7 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
     story.append(Paragraph("PAINEL EXECUTIVO", style_h1))
     total_acoes = len(df_dados)
     total_dimensoes = len(dimensoes_presentes)
-    total_concluidas = int((df_dados["status"].astype(str).str.lower() == "concluída").sum())
+    total_concluidas = int(df_dados["status"].astype(str).str.lower().str.startswith("verde").sum())
     total_pendentes = total_acoes - total_concluidas
     metricas = [
         [Paragraph("<b>AÇÕES</b>", style_texto_bold), Paragraph("<b>DIMENSÕES</b>", style_texto_bold), Paragraph("<b>CONCLUÍDAS</b>", style_texto_bold), Paragraph("<b>EM ACOMPANHAMENTO</b>", style_texto_bold)],
@@ -551,12 +581,22 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
                     Paragraph(dt_conc, style_texto_normal),
                 ],
                 [
-                    Paragraph("Fragilidades Mapeadas:", style_texto_bold),
-                    Paragraph(str(row["fragilidades"]), style_texto_normal),
+                    Paragraph("Indicadores de Desempenho:", style_texto_bold),
+                    Paragraph(str(row.get("indicador_desempenho", "")), style_texto_normal),
+                    Paragraph("Metas Mensuráveis:", style_texto_bold),
+                    Paragraph(str(row.get("metas_mensuraveis", "")), style_texto_normal),
+                ],
+                [
                     Paragraph("Resultados Esperados:", style_texto_bold),
-                    Paragraph(
-                        str(row["resultados_esperados"]), style_texto_normal
-                    ),
+                    Paragraph(str(row.get("resultados_esperados", "")), style_texto_normal),
+                    Paragraph("Integração PPA/LDO/LOA:", style_texto_bold),
+                    Paragraph(str(row.get("integracao_planejamento_municipal", "")), style_texto_normal),
+                ],
+                [
+                    Paragraph("Alinhamento ODS:", style_texto_bold),
+                    Paragraph(str(row.get("alinhamento_ods", "")), style_texto_normal),
+                    Paragraph("Forma de execução:", style_texto_bold),
+                    Paragraph(str(row.get("forma_execucao", "")), style_texto_normal),
                 ],
             ]
 
@@ -599,15 +639,35 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
 # PAINEL NICEGUI — PLANO DE AÇÃO
 # ==========================================
 COLUNAS = [
-    "id", "dimensao", "meta_estrategica", "indicador_desempenho", "acao",
-    "descricao_acao", "fragilidades", "meta", "resultados_esperados",
+    "id", "dimensao", "meta_estrategica", "indicador_desempenho",
+    "metas_mensuraveis", "acao", "descricao_acao", "meta", "resultados_esperados",
     "integracao_planejamento_municipal", "alinhamento_ods", "data_inicio",
-    "data_conclusao", "periodo_report", "responsavel", "forma_execucao",
-    "evidencias", "links_evidencias", "status",
+    "data_conclusao", "responsavel", "forma_execucao", "evidencias", "status",
 ]
 DIMENSOES = ["i-Gov TI", "i-Educ", "i-Saúde", "i-Plan", "i-Amb", "i-Cidade", "i-Fiscal"]
-STATUS = ["Planejada", "Em andamento", "Concluída", "Atrasada", "Cancelada"]
-PERIODOS = ["Mensal", "Bimestral", "Trimestral", "Semestral", "Anual"]
+STATUS = ["Verde - atendido", "Amarelo - em análise", "Vermelho - pendente"]
+
+
+def _cor_status(status):
+    valor = _texto(status).lower()
+    if valor.startswith("verde"):
+        return "#16A34A"
+    if valor.startswith("amarelo"):
+        return "#D97706"
+    if valor.startswith("vermelho"):
+        return "#DC2626"
+    return "#64748B"
+
+
+def _normalizar_status(status):
+    valor = _texto(status).strip().lower()
+    if valor in {"concluída", "concluida", "atendido", "verde - atendido"}:
+        return "Verde - atendido"
+    if valor in {"atrasada", "cancelada", "pendente", "vermelho - pendente"}:
+        return "Vermelho - pendente"
+    if valor in {"planejada", "em andamento", "em análise", "amarelo - em análise"}:
+        return "Amarelo - em análise"
+    return status or "Amarelo - em análise"
 
 
 def _texto(v):
@@ -665,7 +725,7 @@ def _opcoes_pizza_status(registros):
             "label": {"show": True, "formatter": "{b}: {c}"},
             "data": [
                 {"value": quantidade, "name": status,
-                 "itemStyle": {"color": cores_status[indice % len(cores_status)]}}
+                 "itemStyle": {"color": _cor_status(status) if _cor_status(status) != "#64748B" else cores_status[indice % len(cores_status)]}}
                 for indice, (status, quantidade) in enumerate(contagem.items())
             ],
         }],
@@ -685,24 +745,22 @@ def _formulario_acao(on_save, registro=None):
                 campos["dimensao"] = ui.select(DIMENSOES, value=registro.get("dimensao") or DIMENSOES[0], label="Dimensão").classes("w-full")
                 campos["status"] = ui.select(STATUS, value=registro.get("status") or STATUS[0], label="Status").classes("w-full")
                 campos["meta_estrategica"] = campo("meta_estrategica", "Meta estratégica")
-                campos["indicador_desempenho"] = campo("indicador_desempenho", "Indicador de desempenho")
+                campos["indicador_desempenho"] = campo("indicador_desempenho", "Indicadores de desempenho")
+                campos["metas_mensuraveis"] = campo("metas_mensuraveis", "Metas mensuráveis", area=True)
                 campos["acao"] = campo("acao", "Título da ação")
                 campos["meta"] = campo("meta", "Meta alvo")
                 campos["resultados_esperados"] = campo("resultados_esperados", "Resultados esperados")
                 campos["responsavel"] = campo("responsavel", "Responsável").props("maxlength=150")
-                campos["periodo_report"] = ui.select(PERIODOS, value=registro.get("periodo_report") or PERIODOS[0], label="Período de reporte").classes("w-full")
                 campos["data_inicio"] = ui.input("Data de início", value=_data(registro.get("data_inicio"))).props("type=date").classes("w-full")
                 campos["data_conclusao"] = ui.input("Data de conclusão", value=_data(registro.get("data_conclusao"))).props("type=date").classes("w-full")
                 campos["alinhamento_ods"] = campo("alinhamento_ods", "Alinhamento ODS")
                 campos["integracao_planejamento_municipal"] = campo(
                     "integracao_planejamento_municipal",
-                    "Integração ao planejamento municipal",
+                    "Integração das ações ao PPA, LDO e LOA",
                 ).props("maxlength=100")
                 campos["forma_execucao"] = campo("forma_execucao", "Forma de execução")
                 campos["evidencias"] = campo("evidencias", "Evidências")
-                campos["links_evidencias"] = campo("links_evidencias", "Links das evidências")
                 campos["descricao_acao"] = campo("descricao_acao", "Descrição detalhada", area=True)
-                campos["fragilidades"] = campo("fragilidades", "Fragilidades / riscos", area=True)
             with ui.row().classes("w-full justify-end gap-2 mt-4"):
                 ui.button("Cancelar", on_click=dialog.close).props("flat")
                 def salvar():
@@ -736,9 +794,9 @@ def mostrar_formulario_plano_acao(ano_sel=None):
         filtrados = [r for r in dados if (estado["dim"] == "Todas" or r.get("dimensao") == estado["dim"])
                      and (estado["status"] == "Todos" or r.get("status") == estado["status"])
                      and (estado["ano"] == "Todos" or str(_data(r.get("data_conclusao")))[:4] == str(estado["ano"]))]
-        concluidas = sum(1 for r in filtrados if _texto(r.get("status")).lower() == "concluída")
-        atrasadas = sum(1 for r in filtrados if _texto(r.get("status")).lower() == "atrasada")
-        em_andamento = sum(1 for r in filtrados if _texto(r.get("status")).lower() == "em andamento")
+        concluidas = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("verde"))
+        atrasadas = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("vermelho"))
+        em_andamento = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("amarelo"))
         with ui.grid(columns=4).classes("w-full gap-3 mt-2"):
             for titulo, valor, cor in [
                 ("Total de ações", len(filtrados), "#2563EB"),
@@ -768,7 +826,11 @@ def mostrar_formulario_plano_acao(ano_sel=None):
             with ui.card().classes("w-full mt-3 border"):
                 with ui.row().classes("w-full justify-between items-start"):
                     ui.label(f"#{registro.get('id')} — {_texto(registro.get('acao')) or 'Ação sem título'}").classes("text-lg font-bold text-blue-900")
-                    ui.badge(_texto(registro.get("status")) or "Sem status")
+                    ui.badge(
+                        _texto(registro.get("status")) or "Sem status"
+                    ).style(
+                        f"background-color: {_cor_status(registro.get('status'))}; color: white;"
+                    )
                 with ui.grid(columns=2).classes("w-full gap-2 mt-2"):
                     ui.label(f"Dimensão: {_texto(registro.get('dimensao'))}")
                     ui.label(f"Responsável: {_texto(registro.get('responsavel')) or 'Não definido'}")
