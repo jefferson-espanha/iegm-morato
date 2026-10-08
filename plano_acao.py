@@ -446,7 +446,7 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
         cores_pizza = ["#10B981", "#FACC15", "#EF4444", "#2563EB", "#8B5CF6", "#64748B"]
         for indice in range(len(pizza.data)):
             status = str(contagem.index[indice]).lower()
-            cor_status = "#10B981" if status.startswith("verde") else "#FACC15" if status.startswith("amarelo") else "#EF4444" if status.startswith("vermelho") else cores_pizza[indice % len(cores_pizza)]
+            cor_status = _cor_status(status)
             pizza.slices[indice].fillColor = colors.HexColor(cor_status)
             pizza.slices[indice].strokeColor = colors.white
         desenho.add(pizza)
@@ -454,7 +454,7 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
         for indice, (status, quantidade) in enumerate(contagem.items()):
             y = 165 - (indice * 24)
             status = str(status).lower()
-            cor = colors.HexColor("#10B981" if status.startswith("verde") else "#FACC15" if status.startswith("amarelo") else "#EF4444" if status.startswith("vermelho") else cores_pizza[indice % len(cores_pizza)])
+            cor = colors.HexColor(_cor_status(status))
             desenho.add(String(250, y, "■", fontSize=14, fillColor=cor))
             desenho.add(String(268, y + 1, f"{status}: {quantidade} ação(ões)", fontSize=9, fillColor=colors.HexColor("#2D3748")))
         return desenho
@@ -649,7 +649,13 @@ COLUNAS = [
     "data_conclusao", "responsavel", "forma_execucao", "evidencias", "status",
 ]
 DIMENSOES = ["i-Gov TI", "i-Educ", "i-Saúde", "i-Plan", "i-Amb", "i-Cidade", "i-Fiscal"]
-STATUS = ["Verde - atendido", "Amarelo - em análise", "Vermelho - pendente"]
+STATUS = [
+    "Verde - atendido",
+    "Amarelo - em análise",
+    "Vermelho - pendente",
+    "Em andamento",
+    "Sem previsão Técnica",
+]
 
 
 def _cor_status(status):
@@ -660,11 +666,18 @@ def _cor_status(status):
         return "#FACC15"
     if valor.startswith("vermelho"):
         return "#DC2626"
+    if valor.startswith("em andamento"):
+        return "#2563EB"
+    if valor.startswith("sem previsão técnica") or valor.startswith("sem previsao tecnica"):
+        return "#6B7280"
     return "#64748B"
 
 
 def _cor_texto_status(status):
-    return "#713F12" if _texto(status).lower().startswith("amarelo") else "#FFFFFF"
+    valor = _texto(status).lower()
+    if valor.startswith("amarelo"):
+        return "#713F12"
+    return "#FFFFFF"
 
 
 def _normalizar_status(status):
@@ -673,8 +686,12 @@ def _normalizar_status(status):
         return "Verde - atendido"
     if valor in {"atrasada", "cancelada", "pendente", "vermelho - pendente"}:
         return "Vermelho - pendente"
-    if valor in {"planejada", "em andamento", "em análise", "amarelo - em análise"}:
+    if valor in {"planejada", "em análise", "amarelo - em análise"}:
         return "Amarelo - em análise"
+    if valor in {"em andamento", "em andamento - azul"}:
+        return "Em andamento"
+    if valor in {"sem previsão técnica", "sem previsao tecnica"}:
+        return "Sem previsão Técnica"
     return status or "Amarelo - em análise"
 
 
