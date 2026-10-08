@@ -741,34 +741,41 @@ def _formulario_acao(on_save, registro=None):
     with ui.dialog() as dialog, ui.card().classes("w-full max-w-5xl"):
         ui.label("Editar ação" if registro else "Nova ação").classes("text-xl font-bold text-blue-900")
         with ui.scroll_area().classes("w-full").style("max-height: 70vh"):
-            with ui.grid(columns=2).classes("w-full gap-3"):
+            with ui.column().classes("w-full gap-3"):
                 campos = {}
                 def campo(chave, rotulo, area=False):
                     comp = ui.textarea(rotulo, value=_texto(registro.get(chave))) if area else ui.input(rotulo, value=_texto(registro.get(chave)))
                     return comp.classes("w-full")
-                campos["dimensao"] = ui.select(DIMENSOES, value=registro.get("dimensao") or DIMENSOES[0], label="Dimensão").classes("w-full")
-                campos["status"] = ui.select(STATUS, value=registro.get("status") or STATUS[0], label="Status").classes("w-full")
-                campos["meta_estrategica"] = campo("meta_estrategica", "Meta estratégica")
-                campos["indicador_desempenho"] = campo("indicador_desempenho", "Indicadores de desempenho")
-                campos["metas_mensuraveis"] = campo("metas_mensuraveis", "Metas mensuráveis", area=True)
+                # A dimensão permanece somente como classificação interna,
+                # pois a coluna continua NOT NULL no banco.
+                dimensao_interna = registro.get("dimensao") or DIMENSOES[0]
+                campos["meta_estrategica"] = campo("meta_estrategica", "Meta Estratégicas")
+                campos["indicador_desempenho"] = campo("indicador_desempenho", "Indicadores de Desempenho")
+                campos["metas_mensuraveis"] = campo("metas_mensuraveis", "Metas Mensuráveis", area=True)
                 campos["acao"] = campo("acao", "Ação")
-                campos["meta"] = campo("meta", "Meta alvo")
+                campos["descricao_acao"] = campo("descricao_acao", "Descrição da ação", area=True)
+                campos["meta"] = campo("meta", "Meta")
                 campos["resultados_esperados"] = campo("resultados_esperados", "Resultados esperados")
-                campos["responsavel"] = campo("responsavel", "Responsável").props("maxlength=150")
-                campos["data_inicio"] = ui.input("Data de início", value=_data(registro.get("data_inicio"))).props("type=date").classes("w-full")
-                campos["data_conclusao"] = ui.input("Data de conclusão", value=_data(registro.get("data_conclusao"))).props("type=date").classes("w-full")
-                campos["alinhamento_ods"] = campo("alinhamento_ods", "Alinhamento ODS")
                 campos["integracao_planejamento_municipal"] = campo(
                     "integracao_planejamento_municipal",
-                    "Integração das ações ao PPA, LDO e LOA",
+                    "Integração das ações aos instrumentos de planejamento municipal (PPA, LDO e LOA);",
                 ).props("maxlength=100")
+                campos["alinhamento_ods"] = campo(
+                    "alinhamento_ods",
+                    "Alinhamento com os Objetivos de Desenvolvimento Sustentável da Agenda 2030,",
+                )
+                campos["data_inicio"] = ui.input("Data de inicio", value=_data(registro.get("data_inicio"))).props("type=date").classes("w-full")
+                campos["data_conclusao"] = ui.input("Data para conclusão", value=_data(registro.get("data_conclusao"))).props("type=date").classes("w-full")
+                campos["responsavel"] = campo("responsavel", "Responsável").props("maxlength=150")
                 campos["forma_execucao"] = campo("forma_execucao", "Forma de execução")
                 campos["evidencias"] = campo("evidencias", "Evidências")
-                campos["descricao_acao"] = campo("descricao_acao", "Descrição da ação", area=True)
+                campos["status"] = ui.select(STATUS, value=_normalizar_status(registro.get("status")) if registro else STATUS[0], label="Status").classes("w-full")
+                ui.label("Verde - atendido | Amarelo - em análise | Vermelho - pendente").classes("text-sm text-gray-600")
             with ui.row().classes("w-full justify-end gap-2 mt-4"):
                 ui.button("Cancelar", on_click=dialog.close).props("flat")
                 def salvar():
                     dados = _dados_formulario(campos)
+                    dados["dimensao"] = dimensao_interna
                     ok = atualizar_acao_banco(registro["id"], dados) if registro else inserir_acao_banco(dados)
                     if ok:
                         dialog.close()
