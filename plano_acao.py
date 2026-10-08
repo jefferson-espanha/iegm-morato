@@ -439,10 +439,10 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
         pizza.data = list(contagem.values)
         pizza.labels = [str(indice) for indice in contagem.index]
         pizza.slices.strokeWidth = 0.8
-        cores_pizza = ["#10B981", "#F59E0B", "#EF4444", "#2563EB", "#8B5CF6", "#64748B"]
+        cores_pizza = ["#10B981", "#FACC15", "#EF4444", "#2563EB", "#8B5CF6", "#64748B"]
         for indice in range(len(pizza.data)):
             status = str(contagem.index[indice]).lower()
-            cor_status = "#10B981" if status.startswith("verde") else "#F59E0B" if status.startswith("amarelo") else "#EF4444" if status.startswith("vermelho") else cores_pizza[indice % len(cores_pizza)]
+            cor_status = "#10B981" if status.startswith("verde") else "#FACC15" if status.startswith("amarelo") else "#EF4444" if status.startswith("vermelho") else cores_pizza[indice % len(cores_pizza)]
             pizza.slices[indice].fillColor = colors.HexColor(cor_status)
             pizza.slices[indice].strokeColor = colors.white
         desenho.add(pizza)
@@ -450,7 +450,7 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
         for indice, (status, quantidade) in enumerate(contagem.items()):
             y = 165 - (indice * 24)
             status = str(status).lower()
-            cor = colors.HexColor("#10B981" if status.startswith("verde") else "#F59E0B" if status.startswith("amarelo") else "#EF4444" if status.startswith("vermelho") else cores_pizza[indice % len(cores_pizza)])
+            cor = colors.HexColor("#10B981" if status.startswith("verde") else "#FACC15" if status.startswith("amarelo") else "#EF4444" if status.startswith("vermelho") else cores_pizza[indice % len(cores_pizza)])
             desenho.add(String(250, y, "■", fontSize=14, fillColor=cor))
             desenho.add(String(268, y + 1, f"{status}: {quantidade} ação(ões)", fontSize=9, fillColor=colors.HexColor("#2D3748")))
         return desenho
@@ -653,10 +653,14 @@ def _cor_status(status):
     if valor.startswith("verde"):
         return "#16A34A"
     if valor.startswith("amarelo"):
-        return "#D97706"
+        return "#FACC15"
     if valor.startswith("vermelho"):
         return "#DC2626"
     return "#64748B"
+
+
+def _cor_texto_status(status):
+    return "#713F12" if _texto(status).lower().startswith("amarelo") else "#FFFFFF"
 
 
 def _normalizar_status(status):
@@ -713,7 +717,7 @@ def _opcoes_pizza_status(registros):
     for registro in registros:
         status = _texto(registro.get("status")) or "Sem status"
         contagem[status] = contagem.get(status, 0) + 1
-    cores_status = ["#2563EB", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#64748B"]
+    cores_status = ["#2563EB", "#10B981", "#FACC15", "#EF4444", "#8B5CF6", "#64748B"]
     return {
         "tooltip": {"trigger": "item"},
         "legend": {"bottom": 0},
@@ -747,7 +751,7 @@ def _formulario_acao(on_save, registro=None):
                 campos["meta_estrategica"] = campo("meta_estrategica", "Meta estratégica")
                 campos["indicador_desempenho"] = campo("indicador_desempenho", "Indicadores de desempenho")
                 campos["metas_mensuraveis"] = campo("metas_mensuraveis", "Metas mensuráveis", area=True)
-                campos["acao"] = campo("acao", "Título da ação")
+                campos["acao"] = campo("acao", "Ação")
                 campos["meta"] = campo("meta", "Meta alvo")
                 campos["resultados_esperados"] = campo("resultados_esperados", "Resultados esperados")
                 campos["responsavel"] = campo("responsavel", "Responsável").props("maxlength=150")
@@ -760,7 +764,7 @@ def _formulario_acao(on_save, registro=None):
                 ).props("maxlength=100")
                 campos["forma_execucao"] = campo("forma_execucao", "Forma de execução")
                 campos["evidencias"] = campo("evidencias", "Evidências")
-                campos["descricao_acao"] = campo("descricao_acao", "Descrição detalhada", area=True)
+                campos["descricao_acao"] = campo("descricao_acao", "Descrição da ação", area=True)
             with ui.row().classes("w-full justify-end gap-2 mt-4"):
                 ui.button("Cancelar", on_click=dialog.close).props("flat")
                 def salvar():
@@ -829,7 +833,8 @@ def mostrar_formulario_plano_acao(ano_sel=None):
                     ui.badge(
                         _texto(registro.get("status")) or "Sem status"
                     ).style(
-                        f"background-color: {_cor_status(registro.get('status'))}; color: white;"
+                        f"background-color: {_cor_status(registro.get('status'))}; "
+                        f"color: {_cor_texto_status(registro.get('status'))};"
                     )
                 with ui.grid(columns=2).classes("w-full gap-2 mt-2"):
                     ui.label(f"Dimensão: {_texto(registro.get('dimensao'))}")
