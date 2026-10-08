@@ -364,6 +364,21 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
     story = []
 
     styles = getSampleStyleSheet()
+    paleta_dimensoes = [
+        "#1D4ED8", "#047857", "#7C3AED", "#B45309",
+        "#BE123C", "#0F766E", "#475569", "#9333EA",
+    ]
+
+    def cor_dimensao(dimensao):
+        nome = str(dimensao)
+        return colors.HexColor(paleta_dimensoes[sum(ord(c) for c in nome) % len(paleta_dimensoes)])
+
+    def cor_clara(cor):
+        return colors.Color(
+            min(cor.red + 0.82, 1),
+            min(cor.green + 0.82, 1),
+            min(cor.blue + 0.82, 1),
+        )
 
     style_capa_titulo = ParagraphStyle(
         "CapaTitulo",
@@ -427,6 +442,16 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
     style_texto_normal = ParagraphStyle(
         "TxtNorm", parent=styles["Normal"], fontSize=8.5, leading=11
     )
+    style_dim_header = ParagraphStyle(
+        "DimHeader", parent=styles["Normal"], fontSize=12, leading=15,
+        textColor=colors.white, fontName="Helvetica-Bold", alignment=0,
+    )
+    style_dim_white_bold = ParagraphStyle(
+        "DimWhiteBold", parent=style_texto_bold, textColor=colors.white,
+    )
+    style_dim_white = ParagraphStyle(
+        "DimWhite", parent=style_texto_normal, textColor=colors.white,
+    )
 
     def grafico_pizza_status(df):
         """Cria um gráfico de pizza vetorial para o relatório PDF."""
@@ -485,13 +510,13 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
     titulo_capa_dinamico = (
         f"Plano de Ação — {ano_selecionado}"
         if ano_selecionado != "Todos"
-        else "Plano de Ação — Comissão de IEG-M"
+        else "Plano de Ação — Plurianual"
     )
 
     story.append(Paragraph(titulo_capa_dinamico, style_capa_titulo))
     story.append(
         Paragraph(
-            "Relatório das ações para melhoria das fragilidades do ieg-m",
+            "Relatório Estratégico de Consolidação de Metas e Auditoria IEG-M",
             style_capa_sub,
         )
     )
@@ -516,13 +541,34 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
     story.append(Spacer(1, 15))
 
     dimensoes_presentes = sorted(df_dados["dimensao"].dropna().unique())
+    sumario = [[
+        Paragraph("DIMENSÃO", style_texto_bold),
+        Paragraph("QUANTIDADE DE METAS", style_texto_bold),
+        Paragraph("CONTEÚDO", style_texto_bold),
+    ]]
     for d_item in dimensoes_presentes:
-        texto_sumario = (
-            f"• Dimensão Temática: <b>{str(d_item).upper()}</b>"
-            " ............................................................................................................"
-            " Ver Seção Detalhada"
-        )
-        story.append(Paragraph(texto_sumario, style_sumario_item))
+        quantidade = len(df_dados[df_dados["dimensao"] == d_item])
+        cor = cor_dimensao(d_item)
+        sumario.append([
+            Paragraph(f"<font color='{cor.hexval()}'><b>{str(d_item).upper()}</b></font>", style_sumario_item),
+            Paragraph(f"{quantidade} meta(s)", style_sumario_item),
+            Paragraph("Metas e ações estratégicas", style_sumario_item),
+        ])
+    tabela_sumario = Table(sumario, colWidths=[150, 145, 255], repeatRows=1)
+    estilo_sumario = [
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1A365D")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("ALIGN", (1, 1), (1, -1), "CENTER"),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#CBD5E0")),
+        ("INNERGRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#E2E8F0")),
+        ("TOPPADDING", (0, 0), (-1, -1), 9),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+    ]
+    for indice, d_item in enumerate(dimensoes_presentes, start=1):
+        estilo_sumario.append(("BACKGROUND", (0, indice), (-1, indice), cor_clara(cor_dimensao(d_item))))
+    tabela_sumario.setStyle(TableStyle(estilo_sumario))
+    story.append(tabela_sumario)
 
     story.append(PageBreak())
 
@@ -553,9 +599,24 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
 
     # 4. DADOS DAS MATRIZES
     for dim in dimensoes_presentes:
-        story.append(Paragraph(f"🏛️ DIMENSÃO: {str(dim).upper()}", style_dimensao))
-
         df_dim = df_dados[df_dados["dimensao"] == dim]
+        cor_dim = cor_dimensao(dim)
+        story.append(Table(
+            [[Paragraph(f"DIMENSÃO: {str(dim).upper()}", style_dim_header)]],
+            colWidths=[550],
+            style=TableStyle([
+                ("BACKGROUND", (0, 0), (-1, -1), cor_dim),
+                ("BOX", (0, 0), (-1, -1), 0.8, cor_dim),
+                ("LEFTPADDING", (0, 0), (-1, -1), 12),
+                ("RIGHTPADDING", (0, 0), (-1, -1), 12),
+                ("TOPPADDING", (0, 0), (-1, -1), 9),
+                ("BOTTOMPADDING", (0, 0), (-1, -1), 9),
+            ]),
+        ))
+        story.append(Paragraph(
+            f"{len(df_dim)} meta(s) estratégica(s) nesta dimensão",
+            ParagraphStyle("DimCount", parent=style_sumario_item, textColor=cor_dim),
+        ))
         for _, row in df_dim.iterrows():
             dt_conc = (
                 row["data_conclusao"].strftime("%d/%m/%Y")
@@ -565,10 +626,10 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
 
             dados_tabela = [
                 [
-                    Paragraph("Ação Prática:", style_texto_bold),
-                    Paragraph(str(row["acao"]), style_texto_bold),
-                    Paragraph("Status:", style_texto_bold),
-                    Paragraph(str(row["status"]), style_texto_normal),
+                    Paragraph("Ação:", style_dim_white_bold),
+                    Paragraph(str(row["acao"]), style_dim_white),
+                    Paragraph("Status:", style_dim_white_bold),
+                    Paragraph(str(row["status"]), style_dim_white),
                 ],
                 [
                     Paragraph("Meta Estratégica:", style_texto_bold),
@@ -607,22 +668,18 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
             t = Table(dados_tabela, colWidths=[110, 170, 80, 190])
             t.setStyle(
                 TableStyle([
-                    (
-                        "BACKGROUND",
-                        (0, 0),
-                        (-1, -1),
-                        colors.HexColor("#F7FAFC"),
-                    ),
+                    ("BACKGROUND", (0, 0), (-1, 0), cor_dim),
+                    ("BACKGROUND", (0, 1), (-1, -1), cor_clara(cor_dim)),
                     ("ALIGN", (0, 0), (-1, -1), "LEFT"),
                     ("VALIGN", (0, 0), (-1, -1), "TOP"),
                     ("TEXTCOLOR", (0, 0), (-1, -1), colors.black),
-                    ("BOX", (0, 0), (-1, -1), 0.5, colors.HexColor("#CBD5E0")),
+                    ("BOX", (0, 0), (-1, -1), 1, cor_dim),
                     (
                         "INNERGRID",
                         (0, 0),
                         (-1, -1),
                         0.5,
-                        colors.HexColor("#E2E8F0"),
+                        cor_dim,
                     ),
                     ("TOPPADDING", (0, 0), (-1, -1), 5),
                     ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
