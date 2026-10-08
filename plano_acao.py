@@ -746,9 +746,11 @@ def _formulario_acao(on_save, registro=None):
                 def campo(chave, rotulo, area=False):
                     comp = ui.textarea(rotulo, value=_texto(registro.get(chave))) if area else ui.input(rotulo, value=_texto(registro.get(chave)))
                     return comp.classes("w-full")
-                # A dimensão permanece somente como classificação interna,
-                # pois a coluna continua NOT NULL no banco.
-                dimensao_interna = registro.get("dimensao") or DIMENSOES[0]
+                campos["dimensao"] = ui.select(
+                    DIMENSOES,
+                    value=registro.get("dimensao") or DIMENSOES[0],
+                    label="Dimensão do IEG-M",
+                ).classes("w-full")
                 campos["meta_estrategica"] = campo("meta_estrategica", "Meta Estratégicas")
                 campos["indicador_desempenho"] = campo("indicador_desempenho", "Indicadores de Desempenho")
                 campos["metas_mensuraveis"] = campo("metas_mensuraveis", "Metas Mensuráveis", area=True)
@@ -775,7 +777,6 @@ def _formulario_acao(on_save, registro=None):
                 ui.button("Cancelar", on_click=dialog.close).props("flat")
                 def salvar():
                     dados = _dados_formulario(campos)
-                    dados["dimensao"] = dimensao_interna
                     ok = atualizar_acao_banco(registro["id"], dados) if registro else inserir_acao_banco(dados)
                     if ok:
                         dialog.close()
