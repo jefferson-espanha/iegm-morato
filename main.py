@@ -454,8 +454,8 @@ def login_page():
 
         ui.html('<div style="background: #001A4D; border: 2px solid #001A4D; border-radius: 4px; padding: 12px 20px; text-align: center; color: #FFFFFF; font-size: 16px; font-weight: bold; width: 100%;">Sistema de Preenchimento do IEG-M</div>').classes('w-full mb-4')
 
-        username_input = ui.input('👤 Usuário', placeholder='jefferson.espanha').classes('w-full')
-        password_input = ui.input('🔐 Senha', password=True, placeholder='••••••••').classes('w-full')
+        username_input = ui.input('👤 Usuário', placeholder='nome.sobrenome').classes('w-full')
+        password_input = ui.input('🔐 Senha', password=True, password_toggle_button=True, placeholder='senha de 8 caracteres').classes('w-full')
 
         def tentar_login():
             u_val = username_input.value.strip().lower() if username_input.value else ""
@@ -480,8 +480,8 @@ def login_page():
         with ui.expansion('🔑 Redefinir senha').classes('w-full mt-2'):
             ui.label('Informe seu usuário e escolha uma nova senha.').classes('text-sm text-gray-600')
             reset_user = ui.input('👤 Usuário').classes('w-full')
-            reset_password = ui.input('🔐 Nova senha', password=True).classes('w-full')
-            reset_confirm = ui.input('🔐 Confirmar nova senha', password=True).classes('w-full')
+            reset_password = ui.input('🔐 Nova senha', password=True, password_toggle_button=True).classes('w-full')
+            reset_confirm = ui.input('🔐 Confirmar nova senha', password=True, password_toggle_button=True).classes('w-full')
 
             def redefinir_senha():
                 username = reset_user.value.strip().lower() if reset_user.value else ""
