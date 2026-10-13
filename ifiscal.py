@@ -390,7 +390,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.separator().classes("my-2")
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
-        # Função de atualização equivalente ao F5
+        # Atualização da página via F5
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
@@ -442,7 +442,6 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
                 <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
             </div>
         """).classes("w-full")
-
 
 # =============================================================================
 # BLOCO DE COMENTÁRIOS INTERNOS
