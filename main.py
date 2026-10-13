@@ -112,6 +112,20 @@ def update_password(username, new_password):
             )
             return cur.rowcount > 0
 
+
+def create_user(username, password="pmfm1234"):
+    """Cadastra um usuário comum com a senha inicial padrão."""
+    username = username.strip().lower()
+    if not username:
+        raise ValueError("Informe o nome de usuário")
+    with db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO app_users
+                   (username, password_hash, role, must_change_password)
+                   VALUES (%s, %s, 'user', TRUE)""",
+                (username, _hash_password(password)),
+            )
 # --- CARREGAMENTO OTIMIZADO DE MÓDULOS ---
 def import_local_module(module_name):
     try:
@@ -522,7 +536,10 @@ def dashboard_page():
     with ui.column().classes('w-full max-w-7xl mx-auto p-6 gap-6'):
         with ui.row().classes('w-full justify-between items-center'):
             ui.html(f'<div style="text-align: center;"><h1 style="color: #001A4D; font-size: 28px; font-weight: bold; margin:0;">IEG-M Francisco Morato</h1><p style="color: #003D99; font-weight: bold; margin:0;">Bem-vindo, {username}!</p></div>')
-            ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
+            with ui.row().classes('items-center gap-2'):
+                if username.strip().lower() == 'jefferson.espanha':
+                    ui.button('👤 Cadastrar usuário', on_click=lambda: ui.navigate.to('/cadastro-usuario')).classes('bg-green-700 text-white')
+                ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
 
         ui.label('📊 Sistema de Preenchimento').classes('text-xl font-bold text-gray-800 border-b w-full pb-2')
         
@@ -542,6 +559,53 @@ def dashboard_page():
 
                     ui.button('Acessar', on_click=abrir_dimensao).classes('w-full bg-blue-800 text-white')
 
+
+@ui.page('/cadastro-usuario')
+def cadastro_usuario_page():
+    if not app.storage.user.get('authenticated', False):
+        ui.navigate.to('/')
+        return
+    if app.storage.user.get('username', '').strip().lower() != 'jefferson.espanha':
+        ui.notify('❌ Apenas jefferson.espanha pode cadastrar usuários.', type='negative')
+        ui.navigate.to('/dashboard')
+        return
+
+    with ui.column().classes('w-full max-w-xl mx-auto p-6 gap-4'):
+        with ui.row().classes('w-full justify-between items-center border-b pb-4'):
+            ui.button('⬅️ Voltar', on_click=lambda: ui.navigate.to('/dashboard')).classes('bg-gray-600 text-white')
+            ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
+
+        ui.label('👤 Cadastro de usuário').classes('text-2xl font-bold text-blue-900')
+        ui.label('Somente o perfil jefferson.espanha pode acessar esta tela.').classes('text-gray-600')
+        ui.label('A senha inicial de todo novo usuário será: pmfm1234').classes('font-bold text-green-700')
+
+        novo_usuario = ui.input('Nome de usuário', placeholder='ex.: maria.silva').classes('w-full')
+        confirmar = ui.input('Digite novamente o usuário', placeholder='confirme o nome de usuário').classes('w-full')
+
+        def cadastrar():
+            username = novo_usuario.value.strip().lower() if novo_usuario.value else ''
+            confirmation = confirmar.value.strip().lower() if confirmar.value else ''
+            if not username or not confirmation:
+                ui.notify('⚠️ Preencha os dois campos de usuário.', type='warning')
+                return
+            if username != confirmation:
+                ui.notify('⚠️ Os nomes de usuário não conferem.', type='warning')
+                return
+            if len(username) < 3:
+                ui.notify('⚠️ O usuário deve ter pelo menos 3 caracteres.', type='warning')
+                return
+            try:
+                create_user(username)
+                ui.notify(f'✅ Usuário {username} cadastrado. Senha inicial: pmfm1234', type='positive')
+                novo_usuario.value = ''
+                confirmar.value = ''
+            except Exception as exc:
+                if 'unique' in str(exc).lower() or 'duplicate' in str(exc).lower():
+                    ui.notify('❌ Esse usuário já está cadastrado.', type='negative')
+                else:
+                    ui.notify(f'❌ Não foi possível cadastrar o usuário: {exc}', type='negative')
+
+        ui.button('Cadastrar usuário', on_click=cadastrar).classes('w-full bg-green-700 text-white font-bold py-2')
 
 @ui.page('/dimension')
 def dimension_page():
