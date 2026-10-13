@@ -398,7 +398,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     with ui.card().classes(
         "w-full bg-slate-100 p-4 border rounded-lg shadow-sm"
     ):
-        ui.label("🛠️ Painel de Controle (iGov-TI)").classes(
+        ui.label("🛠️ Painel de Controle (i-Plan)").classes(
             "text-lg font-bold mb-2 text-blue-900"
         )
 
