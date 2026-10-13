@@ -394,7 +394,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
                 <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
             </div>
         """).classes("w-full")
-
+        
 # =============================================================================
 # BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
