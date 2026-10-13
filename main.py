@@ -455,7 +455,7 @@ def login_page():
         ui.html('<div style="background: #001A4D; border: 2px solid #001A4D; border-radius: 4px; padding: 12px 20px; text-align: center; color: #FFFFFF; font-size: 16px; font-weight: bold; width: 100%;">Sistema de Preenchimento do IEG-M</div>').classes('w-full mb-4')
 
         username_input = ui.input('👤 Usuário', placeholder='nome.sobrenome').classes('w-full')
-        password_input = ui.input('🔐 Senha', password=True, password_toggle_button=True, placeholder='senha de 8 caracteres').classes('w-full')
+        password_input = ui.input('🔐 Senha', password=True, password_toggle_button=True, placeholder='senha de no mínimo 8 caracteres').classes('w-full')
 
         def tentar_login():
             u_val = username_input.value.strip().lower() if username_input.value else ""
