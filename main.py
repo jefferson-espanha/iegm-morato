@@ -580,16 +580,11 @@ def cadastro_usuario_page():
         ui.label('A senha inicial de todo novo usuário será: pmfm1234').classes('font-bold text-green-700')
 
         novo_usuario = ui.input('Nome de usuário', placeholder='ex.: maria.silva').classes('w-full')
-        confirmar = ui.input('Digite novamente o usuário', placeholder='confirme o nome de usuário').classes('w-full')
 
         def cadastrar():
             username = novo_usuario.value.strip().lower() if novo_usuario.value else ''
-            confirmation = confirmar.value.strip().lower() if confirmar.value else ''
-            if not username or not confirmation:
-                ui.notify('⚠️ Preencha os dois campos de usuário.', type='warning')
-                return
-            if username != confirmation:
-                ui.notify('⚠️ Os nomes de usuário não conferem.', type='warning')
+            if not username:
+                ui.notify('⚠️ Informe o nome de usuário.', type='warning')
                 return
             if len(username) < 3:
                 ui.notify('⚠️ O usuário deve ter pelo menos 3 caracteres.', type='warning')
@@ -598,7 +593,6 @@ def cadastro_usuario_page():
                 create_user(username)
                 ui.notify(f'✅ Usuário {username} cadastrado. Senha inicial: pmfm1234', type='positive')
                 novo_usuario.value = ''
-                confirmar.value = ''
             except Exception as exc:
                 if 'unique' in str(exc).lower() or 'duplicate' in str(exc).lower():
                     ui.notify('❌ Esse usuário já está cadastrado.', type='negative')
