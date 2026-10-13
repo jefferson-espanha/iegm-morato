@@ -510,13 +510,13 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
     titulo_capa_dinamico = (
         f"Plano de Ação — {ano_selecionado}"
         if ano_selecionado != "Todos"
-        else "Plano de Ação — Plurianual"
+        else "Plano de Ação — Comissão de IEG-M"
     )
 
     story.append(Paragraph(titulo_capa_dinamico, style_capa_titulo))
     story.append(
         Paragraph(
-            "Relatório Estratégico de Consolidação de Metas e Auditoria IEG-M",
+            "Relatório das metas para os quesitos fragilizados do IEG-M",
             style_capa_sub,
         )
     )
