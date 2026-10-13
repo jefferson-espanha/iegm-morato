@@ -496,10 +496,8 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     else:
         faixa, cor = "A", "text-green-700"
 
-    with ui.card().classes(
-        "w-full bg-slate-100 p-4 border rounded-lg shadow-sm"
-    ):
-        ui.label("🛠️ Painel de Controle (iEduc)").classes(
+    with ui.card().classes("w-full bg-slate-100 p-4 border rounded-lg shadow-sm"):
+        ui.label("🛠️ Painel de Controle (iFiscal)").classes(
             "text-lg font-bold mb-2 text-blue-900"
         )
 
@@ -521,18 +519,50 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
                 ui.label("Faixa:").classes("font-bold text-sm")
                 ui.label(faixa).classes(f"text-xl font-bold {cor}")
 
-        def zerar_acao():
-            zerar_questionario_db(ano_atual)
-            ui.notify(
-                f"✅ Questionário de {ano_atual} zerado!", type="positive"
-            )
-            on_refresh()
+        ui.separator().classes("my-2")
+        ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
-        ui.button("🔄 ATUALIZAR UI", on_click=on_refresh).classes(
-            "w-full bg-blue-600 text-white font-bold mb-2"
+        # Atualização da página via F5
+        def atualizar_dados():
+            ui.run_javascript("window.location.reload();")
+
+        ui.button("🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados).classes(
+            "w-full bg-blue-700 text-white font-bold mb-2"
         )
-        ui.button("🗑️ ZERAR ANO", on_click=zerar_acao).classes(
-            "w-full bg-red-600 text-white font-bold"
+
+        # Modal de confirmação com senha para zerar
+        with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
+            ui.label("🔒 Confirmação de Segurança").classes(
+                "text-lg font-bold text-red-600"
+            )
+            ui.label(
+                f"Você está prestes a apagar todas as respostas de {ano_atual}. Esta ação é irreversível!"
+            ).classes("text-sm my-2")
+
+            input_senha = ui.input(
+                "Digite a senha de administrador:", password=True
+            ).classes("w-full mb-4")
+
+            def executar_zerar():
+                if input_senha.value == "fidelios":
+                    zerar_questionario_db(ano_atual)
+                    ui.notify(
+                        f"✅ Questionário de {ano_atual} foi zerado!",
+                        type="positive",
+                    )
+                    dialog_zerar.close()
+                    on_refresh()
+                else:
+                    ui.notify("❌ Senha incorreta!", type="negative")
+
+            with ui.row().classes("w-full justify-end gap-2"):
+                ui.button("Cancelar", on_click=dialog_zerar.close).props("flat")
+                ui.button(
+                    "Confirmar e Zerar", on_click=executar_zerar
+                ).classes("bg-red-600 text-white")
+
+        ui.button("🗑️ ZERAR ANO", on_click=dialog_zerar.open).classes(
+            "w-full bg-red-700 text-white font-bold"
         )
 
         ui.separator().classes("my-4")
