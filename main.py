@@ -3,6 +3,10 @@ from datetime import datetime, date
 import json
 import os
 import sys
+import hashlib
+import hmac
+import secrets
+from contextlib import contextmanager
 from nicegui import app, ui
 
 # =============================================================================
@@ -25,6 +29,89 @@ def get_secret(key, default=None):
         return os.environ.get("DATABASE_URL", NEON_URL)
     return default
 
+# =============================================================================
+# AUTENTICAÇÃO PERSISTENTE NO NEON
+# =============================================================================
+# Defina DATABASE_URL no ambiente de produção. O valor abaixo existe apenas como
+# compatibilidade com a configuração anterior; não é necessário alterá-lo no código.
+
+@contextmanager
+def db_connection():
+    """Abre uma conexão PostgreSQL usando psycopg 3 ou psycopg2."""
+    database_url = get_secret("DATABASE_URL")
+    if not database_url:
+        raise RuntimeError("DATABASE_URL não configurada")
+    try:
+        import psycopg
+        conn = psycopg.connect(database_url)
+    except ImportError:
+        try:
+            import psycopg2
+            conn = psycopg2.connect(database_url)
+        except ImportError as exc:
+            raise RuntimeError("Instale psycopg[binary] para conectar ao Neon") from exc
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+def _hash_password(password, salt=None):
+    salt = salt or secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac(
+        "sha256", password.encode("utf-8"), salt.encode("utf-8"), 310_000
+    ).hex()
+    return f"pbkdf2_sha256$310000${salt}${digest}"
+
+
+def _verify_password(password, encoded):
+    try:
+        algorithm, rounds, salt, expected = encoded.split("$", 3)
+        if algorithm != "pbkdf2_sha256":
+            return False
+        actual = hashlib.pbkdf2_hmac(
+            "sha256", password.encode("utf-8"), salt.encode("utf-8"), int(rounds)
+        ).hex()
+        return hmac.compare_digest(actual, expected)
+    except (AttributeError, ValueError):
+        return False
+
+
+def find_user(username):
+    with db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT username, password_hash, role, must_change_password
+                   FROM app_users WHERE lower(username) = lower(%s) AND active = TRUE""",
+                (username,),
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            return {
+                "usuario": row[0],
+                "password_hash": row[1],
+                "role": row[2],
+                "primeiro_acesso": row[3],
+            }
+
+
+def update_password(username, new_password):
+    with db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """UPDATE app_users
+                   SET password_hash = %s, must_change_password = FALSE,
+                       updated_at = CURRENT_TIMESTAMP
+                   WHERE lower(username) = lower(%s) AND active = TRUE""",
+                (_hash_password(new_password), username),
+            )
+            return cur.rowcount > 0
+
 # --- CARREGAMENTO OTIMIZADO DE MÓDULOS ---
 def import_local_module(module_name):
     try:
@@ -43,7 +130,6 @@ isaude = import_local_module("isaude")
 iegm_final = import_local_module("iegmfinal")
 
 bib_core = import_local_module("biblioteca")
-admin_core = import_local_module("administrador")
 atividade = import_local_module("atividade")
 plano_acao = import_local_module("plano_acao")
 hal_core = import_local_module("hal")
@@ -224,13 +310,6 @@ DIMENSIONS_DATA = {
     "Consulta Rápida": {"img": "hal9000.png", "desc": "Consulte quesitos"},
 }
 
-ADMIN_DATA = {
-    "Administrador": {
-        "img": "administrador.png",
-        "desc": "Painel de Administração e Configurações do Sistema.",
-    }
-}
-
 # =============================================================================
 # COMPONENTES DE INTERFACE DE QUESITO E COMENTÁRIOS
 # =============================================================================
@@ -369,53 +448,67 @@ def login_page():
         return
 
     ui.query('.q-page').classes('bg-white')
-    
+
     with ui.column().classes('absolute-center w-full max-w-md p-4 items-center'):
         logo_b64 = get_image_base64("iegm.png")
         if logo_b64:
             ui.html(f'<div style="text-align:center; margin-bottom:20px;"><img src="{logo_b64}" style="max-width:100%; height:auto;"></div>').classes('w-full')
 
         ui.html('<div style="background: #001A4D; border: 2px solid #001A4D; border-radius: 4px; padding: 12px 20px; text-align: center; color: #FFFFFF; font-size: 16px; font-weight: bold; width: 100%;">Sistema de Preenchimento do IEG-M</div>').classes('w-full mb-4')
-        
+
         username_input = ui.input('👤 Usuário', placeholder='jefferson.espanha').classes('w-full')
-        password_input = ui.input('🔐 Senha', password=True, placeholder='••••••••').classes('w-full mb-4')
+        password_input = ui.input('🔐 Senha', password=True, placeholder='••••••••').classes('w-full')
 
         def tentar_login():
             u_val = username_input.value.strip().lower() if username_input.value else ""
             p_val = password_input.value.strip() if password_input.value else ""
-
             if not u_val or not p_val:
                 ui.notify("⚠️ Preencha todos os campos!", type="warning")
                 return
-
-            if u_val == "jefferson.espanha" and p_val == "fodasse":
-                app.storage.user['authenticated'] = True
-                app.storage.user['username'] = "jefferson.espanha"
-                app.storage.user['role'] = "admin"
-                app.storage.user['needs_password_change'] = True
-                ui.navigate.to('/dashboard')
-                return
-
-            lista_usuarios = app.storage.user.get("usuarios", [])
-            if not lista_usuarios and os.path.exists("usuarios.json"):
-                try:
-                    with open("usuarios.json", "r", encoding="utf-8") as f:
-                        lista_usuarios = json.load(f).get("usuarios", [])
-                except Exception:
-                    pass
-
-            user_found = next((u for u in lista_usuarios if str(u.get("usuario", "")).strip().lower() == u_val), None)
-
-            if user_found and str(user_found.get("senha", "")).strip() == p_val:
-                app.storage.user['authenticated'] = True
-                app.storage.user['username'] = user_found.get("usuario")
-                app.storage.user['role'] = "admin" if user_found.get("perfil") == "Administrador" else "user"
-                app.storage.user['needs_password_change'] = user_found.get("primeiro_acesso", True)
-                ui.navigate.to('/dashboard')
-            else:
-                ui.notify("❌ Usuário ou senha incorretos.", type="negative")
+            try:
+                user_found = find_user(u_val)
+                if user_found and _verify_password(p_val, user_found["password_hash"]):
+                    app.storage.user['authenticated'] = True
+                    app.storage.user['username'] = user_found['usuario']
+                    app.storage.user['role'] = user_found['role']
+                    app.storage.user['needs_password_change'] = user_found['primeiro_acesso']
+                    ui.navigate.to('/dashboard')
+                else:
+                    ui.notify("❌ Usuário ou senha incorretos.", type="negative")
+            except Exception as exc:
+                ui.notify(f"❌ Não foi possível acessar o Neon: {exc}", type="negative")
 
         ui.button('🔓 ENTRAR NO SISTEMA', on_click=tentar_login).classes('w-full bg-blue-900 text-white font-bold py-2')
+
+        with ui.expansion('🔑 Redefinir senha').classes('w-full mt-2'):
+            ui.label('Informe seu usuário e escolha uma nova senha.').classes('text-sm text-gray-600')
+            reset_user = ui.input('👤 Usuário').classes('w-full')
+            reset_password = ui.input('🔐 Nova senha', password=True).classes('w-full')
+            reset_confirm = ui.input('🔐 Confirmar nova senha', password=True).classes('w-full')
+
+            def redefinir_senha():
+                username = reset_user.value.strip().lower() if reset_user.value else ""
+                new_password = reset_password.value.strip() if reset_password.value else ""
+                confirmation = reset_confirm.value.strip() if reset_confirm.value else ""
+                if not username or not new_password or not confirmation:
+                    ui.notify("⚠️ Preencha usuário, nova senha e confirmação.", type="warning")
+                elif len(new_password) < 8:
+                    ui.notify("⚠️ A nova senha deve ter pelo menos 8 caracteres.", type="warning")
+                elif new_password != confirmation:
+                    ui.notify("⚠️ As senhas não conferem.", type="warning")
+                else:
+                    try:
+                        if update_password(username, new_password):
+                            ui.notify("✅ Senha redefinida com sucesso.", type="positive")
+                            reset_password.value = ''
+                            reset_confirm.value = ''
+                        else:
+                            ui.notify("❌ Usuário não encontrado.", type="negative")
+                    except Exception as exc:
+                        ui.notify(f"❌ Não foi possível atualizar a senha: {exc}", type="negative")
+
+            ui.button('Atualizar senha', on_click=redefinir_senha).classes('w-full bg-gray-700 text-white mt-2')
+
         render_rodape()
 
 @ui.page('/dashboard')
@@ -449,23 +542,6 @@ def dashboard_page():
 
                     ui.button('Acessar', on_click=abrir_dimensao).classes('w-full bg-blue-800 text-white')
 
-        ui.label('⚙️ Gestão e Administração').classes('text-xl font-bold text-gray-800 border-b w-full pb-2 mt-6')
-        
-        with ui.grid(columns=4).classes('w-full gap-4'):
-            for admin_name, admin_info in ADMIN_DATA.items():
-                img_b64 = get_image_base64(admin_info["img"])
-                img_html = f'<img src="{img_b64}" style="max-height:85px; max-width:100%; object-fit:contain;" />' if img_b64 else '<div style="font-size:42px;">⚙️</div>'
-                
-                with ui.card().classes('flex flex-col items-center text-center p-4 cursor-pointer hover:shadow-lg transition-all border-b-4 border-red-700 rounded-lg h-64 justify-between'):
-                    ui.html(img_html)
-                    ui.label(admin_name).classes('text-blue-900 font-bold text-base')
-                    ui.label(admin_info["desc"]).classes('text-gray-500 text-xs')
-                    
-                    def abrir_admin(nome=admin_name):
-                        app.storage.user['selected_dimension'] = nome
-                        ui.navigate.to('/dimension')
-
-                    ui.button('Acessar', on_click=abrir_admin).classes('w-full bg-red-700 text-white')
 
 @ui.page('/dimension')
 def dimension_page():
@@ -483,9 +559,7 @@ def dimension_page():
             ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
 
         # ROTEAMENTO CENTRAL DAS SUBPÁGINAS
-        if dimension == "Administrador":
-            _executar_modulo(admin_core, ["mostrar_painel_admin", "container_painel_admin", "main"], year)
-        elif dimension == "Biblioteca":
+        if dimension == "Biblioteca":
             ui.label("📚 Biblioteca de Documentos").classes('text-xl font-bold')
             ui.label("Acesse o acervo documental completo e referências diretamente no Google Drive.")
             ui.link("🔗 Acessar Biblioteca no Google Drive", "https://drive.google.com/drive/folders/1iwiuHHbQYZ-p6aEMB9oSjugDEvdB8GVK?usp=drive_link", new_tab=True).classes('bg-blue-600 text-white p-3 rounded text-center w-full block')
