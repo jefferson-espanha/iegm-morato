@@ -234,9 +234,7 @@ def render_painel_controle(on_refresh_callback=None):
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
         def atualizar_dados():
-            ui.notify("Questionário atualizado!", type="positive", icon="refresh")
-            if on_refresh_callback:
-                on_refresh_callback()
+            ui.run_javascript("window.location.reload();")
 
         ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
             "w-full bg-blue-700 text-white mb-2"
