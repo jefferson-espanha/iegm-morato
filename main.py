@@ -61,32 +61,19 @@ def db_connection():
 
 
 def _hash_password(password, salt=None):
-    salt = salt or secrets.token_hex(16)
-    digest = hashlib.pbkdf2_hmac(
-        "sha256", password.encode("utf-8"), salt.encode("utf-8"), 310_000
-    ).hex()
-    return f"pbkdf2_sha256$310000${salt}${digest}"
+    """Mantém compatibilidade com o cadastro; a senha é armazenada diretamente."""
+    return password
 
 
-def _verify_password(password, encoded):
-    try:
-        algorithm, rounds, salt, expected = encoded.split("$", 3)
-        if algorithm != "pbkdf2_sha256":
-            return False
-        actual = hashlib.pbkdf2_hmac(
-            "sha256", password.encode("utf-8"), salt.encode("utf-8"), int(rounds)
-        ).hex()
-        return hmac.compare_digest(actual, expected)
-    except (AttributeError, ValueError):
-        return False
-
+def _verify_password(password, stored_password):
+    return hmac.compare_digest(password, str(stored_password or ""))
 
 def find_user(username):
     with db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                """SELECT username, password_hash, role, must_change_password
-                   FROM app_users WHERE lower(username) = lower(%s) AND active = TRUE""",
+                """SELECT usuario, senha
+                   FROM app_users WHERE lower(usuario) = lower(%s)""",
                 (username,),
             )
             row = cur.fetchone()
@@ -95,8 +82,6 @@ def find_user(username):
             return {
                 "usuario": row[0],
                 "password_hash": row[1],
-                "role": row[2],
-                "primeiro_acesso": row[3],
             }
 
 
@@ -105,9 +90,8 @@ def update_password(username, new_password):
         with conn.cursor() as cur:
             cur.execute(
                 """UPDATE app_users
-                   SET password_hash = %s, must_change_password = FALSE,
-                       updated_at = CURRENT_TIMESTAMP
-                   WHERE lower(username) = lower(%s) AND active = TRUE""",
+                   SET senha = %s
+                   WHERE lower(usuario) = lower(%s)""",
                 (_hash_password(new_password), username),
             )
             return cur.rowcount > 0
@@ -122,8 +106,8 @@ def create_user(username, password="pmfm1234"):
         with conn.cursor() as cur:
             cur.execute(
                 """INSERT INTO app_users
-                   (username, password_hash, role, must_change_password)
-                   VALUES (%s, %s, 'user', TRUE)""",
+                   (usuario, senha)
+                   VALUES (%s, %s)""",
                 (username, _hash_password(password)),
             )
 # --- CARREGAMENTO OTIMIZADO DE MÓDULOS ---
@@ -484,8 +468,7 @@ def login_page():
                 if user_found and _verify_password(p_val, user_found["password_hash"]):
                     app.storage.user['authenticated'] = True
                     app.storage.user['username'] = user_found['usuario']
-                    app.storage.user['role'] = user_found['role']
-                    app.storage.user['needs_password_change'] = user_found['primeiro_acesso']
+                    app.storage.user['role'] = 'user'
                     ui.navigate.to('/dashboard')
                 else:
                     ui.notify("❌ Usuário ou senha incorretos.", type="negative")
