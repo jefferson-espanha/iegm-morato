@@ -5207,9 +5207,9 @@ def _render_formulario_iamb(ano=None):
                     # =============================================================================
                     opcoes_A6 = {
                         "Selecione...": 0.0,
-                        "Sim": 5.0,
-                        "Não": 0.0,
-                        "Não foi informado": 0.0,
+                        "Sim": 5.0,: 5,0,
+                        "Não": 0.0,: 5,0,
+                        "Não foi informado": 0.0,: 0,0,
                     }
                     render_quesito(
                         ano=ano_sel,
@@ -5246,7 +5246,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 # 1. MAPEAMENTOS E TETOS DE PONTUAÇÃO DO I-AMB
 # -----------------------------------------------------------------------------
 PONTUACOES_MAX_IAMB = {
-    "1.1.2": 20.0, "1.1.3": 5.0, "1.2": 20.0, "2.0": 10.0, "2.1": 50.0,
+    "1.1.2": 20.0, "1.1.3": 10.0, "1.2": 20.0, "2.0": 10.0, "2.1": 50.0,
     "3.0": 10.0, "3.1": 20.0, "4.0": 20.0, "5.2.1": 20.0, "6.0": 20.0,
     "6.1": 50.0, "6.2": 25.0, "7.2": 2.0, "7.3": 10.0, "7.3.1": 20.0,
     "7.4": 10.0, "7.4.1": 20.0, "7.5": 30.0, "7.7": 30.0, "7.8": 20.0,
@@ -5525,8 +5525,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         [Paragraph("3. Quadro de Penalidades e Impactos Negativos", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
         [Paragraph("4. Diagnóstico de Reincidências de Fracasso", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
         [Paragraph("5. Alinhamento com a Agenda 2030 (Metas ODS)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
-        [Paragraph("6. Evolução Temporal da Série Histórica (I-AMB)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
-        [Paragraph("7. Quesitos de Conformidade Operacional (Sem Pontuação Direta)", styles['ItemEsq']), Paragraph("Pág. 6", styles['PagDir'])],
+        [Paragraph("6. Série Histórica (I-AMB)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
+        [Paragraph("7. Quesitos Sem Pontuação Direta", styles['ItemEsq']), Paragraph("Pág. 6", styles['PagDir'])],
     ]
 
     tabela_sumario = Table(itens_sumario, colWidths=[380, 100])
@@ -5836,7 +5836,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-AMB - CONFORMIDADE OPERACIONAL)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-AMB - CONFORMIDADE OPERACIONAL)</b>", styles["Heading2"]))
+    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-AMB)</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
     data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
