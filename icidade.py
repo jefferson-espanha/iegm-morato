@@ -1316,7 +1316,7 @@ def container_formulario_icidade(ano=None):
                     res_data=res_data,
                     qid="9.0",
                     titulo="Avaliação Estrutural de Escolas e Unidades de Saúde",
-                    pergunta="O Município realizou um estudo de avaliação da estrutura de todas as escolas e unidades de saúde para garantir abrigo/atendimento em caso de desastre? (Atualizado: até 5 anos, entre 2021 e 2025):",
+                    pergunta="O Município realizou um estudo de avaliação da estrutura de todas as escolas e unidades de saúde para garantir abrigo/atendimento em caso de desastre? (Atualizado: até 5 anos, entre 2022 e 2027):",
                     opcoes=opcoes_90,
                     placeholder_link="Insira o link do relatório de engenharia ou laudo de vistoria...",
                     on_save_callback=render_conteudo.refresh,
@@ -1432,8 +1432,8 @@ def container_formulario_icidade(ano=None):
                     ano=ano_sel,
                     res_data=res_data,
                     qid="11.2",
-                    titulo="Pesquisa de Satisfação dos Usuários (2025)",
-                    pergunta="Foi realizada pesquisa de satisfação dos usuários do transporte público coletivo em 2025?",
+                    titulo="Pesquisa de Satisfação dos Usuários (2026)",
+                    pergunta="Foi realizada pesquisa de satisfação dos usuários do transporte público coletivo em 2026?",
                     opcoes=opcoes_112,
                     placeholder_link="Insira o link do relatório da pesquisa realizada...",
                     on_save_callback=render_conteudo.refresh,
@@ -1459,7 +1459,7 @@ def container_formulario_icidade(ano=None):
                 )
 
                 # ==========================================
-                # QUESITO 11.3 (Resultado Tarifário 2025)
+                # QUESITO 11.3 (Resultado Tarifário 2026)
                 # ==========================================
                 opcoes_113 = {
                     "Selecione...": 0.0,
@@ -1471,8 +1471,8 @@ def container_formulario_icidade(ano=None):
                     ano=ano_sel,
                     res_data=res_data,
                     qid="11.3",
-                    titulo="Equilíbrio / Resultado Tarifário em 2025",
-                    pergunta="Quanto ao custo do transporte público (tarifa de remuneração) e o preço de passagem (tarifa pública), informe qual o resultado no ano de 2025:",
+                    titulo="Equilíbrio / Resultado Tarifário em 2026",
+                    pergunta="Quanto ao custo do transporte público (tarifa de remuneração) e o preço de passagem (tarifa pública), informe qual o resultado no ano de 2026:",
                     opcoes=opcoes_113,
                     placeholder_link="Insira o link do balanço financeiro ou estudo tarifário...",
                     on_save_callback=render_conteudo.refresh,
@@ -1610,10 +1610,10 @@ def container_formulario_icidade(ano=None):
                     ano=ano_sel,
                     res_data=res_data,
                     qid="13.0",
-                    titulo="Incentivo ao Transporte Não Motorizado em 2025",
+                    titulo="Incentivo ao Transporte Não Motorizado em 2026",
                     pergunta="Foram realizadas ações para estimular a adoção/uso dos meios de transporte não motorizados em 2025?",
                     opcoes=opcoes_130,
-                    placeholder_link="Insira o link comprovando campanhas, ciclovias ou eventos promovidos em 2025...",
+                    placeholder_link="Insira o link comprovando campanhas, ciclovias ou eventos promovidos em 2026...",
                     on_save_callback=render_conteudo.refresh,
                 )
 
@@ -1630,7 +1630,7 @@ def container_formulario_icidade(ano=None):
                     ano=ano_sel,
                     res_data=res_data,
                     qid="13.1",
-                    titulo="Ações Realizadas para Transporte Não Motorizado em 2025",
+                    titulo="Ações Realizadas para Transporte Não Motorizado em 2026",
                     pergunta="Assinale as ações realizadas para estimular a adoção/uso dos meios de transporte não motorizados em 2025:",
                     tipo_input="checkbox",
                     opcoes=opcoes_131,
