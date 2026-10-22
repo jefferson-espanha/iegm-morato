@@ -567,1252 +567,1268 @@ def container_formulario_icidade(ano=None):
                 )
 
                 # ==========================================
-                # QUESITO 1.0 (Seleção com Pontuação)
-                # ==========================================
-                opcoes_10 = {
-                    "Selecione...": 0.0,
-                    "Sim (40.0 pts)": 40.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.0",
-                    titulo="Criação da COMPDEC ou Órgão Similar",
-                    pergunta="Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil - COMPDEC ou órgão similar responsável pela execução, coordenação e mobilização de todas as ações de defesa civil no município?",
-                    opcoes=opcoes_10,
-                    placeholder_link="Insira o link para a comprovação...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                etapa_atual = int(app.storage.user.get("icidade_etapa", 1))
+                if etapa_atual not in (1, 2):
+                    etapa_atual = 1
 
-                # ==========================================
-                # QUESITO 1.1 (Campo de Texto / Normativo)
-                # ==========================================
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.1",
-                    titulo="Instrumento Normativo de Criação da COMPDEC",
-                    pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
-                    tipo_input="texto",
-                    placeholder_texto="Ex: Lei Municipal nº 1.234, de 10 de janeiro de 2020",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                def mudar_etapa(nova_etapa):
+                    app.storage.user["icidade_etapa"] = int(nova_etapa)
+                    render_conteudo.refresh()
 
-                # ==========================================
-                # QUESITO 1.2 (Link / Página Eletrônica)
-                # ==========================================
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.2",
-                    titulo="Link do Instrumento Normativo",
-                    pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
-                    tipo_input="link",
-                    placeholder_link="https://... ou digite XYZ",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                with ui.row().classes("w-full items-center gap-4 mb-2"):
+                    ui.label("Etapa:").classes("font-bold text-gray-700")
+                    for numero in (1, 2):
+                        estilo = "text-blue-900 font-black underline" if numero == etapa_atual else "text-blue-700 underline"
+                        ui.button(str(numero), on_click=lambda n=numero: mudar_etapa(n)).props("flat dense no-caps").classes(f"min-w-0 px-2 text-base {estilo}")
 
-                # ==========================================
-                # QUESITO 1.3 (Seleção com Pontuação)
-                # ==========================================
-                opcoes_13 = {
-                    "Selecione...": 0.0,
-                    "Gabinete do Prefeito (5.0 pts)": 5.0,
-                    "Secretaria Municipal de Segurança Pública (0.0 pts)": 0.0,
-                    "Controladoria (0.0 pts)": 0.0,
-                    "Outra (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.3",
-                    titulo="Vinculação Subordinativa da COMPDEC",
-                    pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
-                    opcoes=opcoes_13,
-                    placeholder_link="Insira o link do organograma ou norma que comprove a vinculação...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                if etapa_atual == 1:
+                    # QUESITO 1.0 (Seleção com Pontuação)
+                    # ==========================================
+                    opcoes_10 = {
+                        "Selecione...": 0.0,
+                        "Sim (40.0 pts)": 40.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.0",
+                        titulo="Criação da COMPDEC ou Órgão Similar",
+                        pergunta="Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil - COMPDEC ou órgão similar responsável pela execução, coordenação e mobilização de todas as ações de defesa civil no município?",
+                        opcoes=opcoes_10,
+                        placeholder_link="Insira o link para a comprovação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 1.4 (Seleção com Pontuação)
-                # ==========================================
-                opcoes_14 = {
-                    "Selecione...": 0.0,
-                    "Sim, inclusive com a participação de entidades privadas e da comunidade (50.0 pts)": 50.0,
-                    "Sim, com participação de entidades privadas (20.0 pts)": 20.0,
-                    "Sim, com participação da comunidade (20.0 pts)": 20.0,
-                    "Sim, apenas com participação dos representantes da administração municipal (10.0 pts)": 10.0,
-                    "Não atuam de forma sistêmica (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.4",
-                    titulo="Atuação Sistêmica e Articulada",
-                    pergunta="Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta e recuperação de acordo com a PNPDEC?",
-                    opcoes=opcoes_14,
-                    placeholder_link="Insira o link do documento, ata ou norma comprovatória...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 1.1 (Campo de Texto / Normativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.1",
+                        titulo="Instrumento Normativo de Criação da COMPDEC",
+                        pergunta="Informe o Instrumento normativo, Número e Data da publicação da criação da COMPDEC ou órgão similar:",
+                        tipo_input="texto",
+                        placeholder_texto="Ex: Lei Municipal nº 1.234, de 10 de janeiro de 2020",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 1.5 (Campo de Texto / Motivo)
-                # ==========================================
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="1.5",
-                    titulo="Motivo da Não Instituição da COMPDEC",
-                    pergunta="Informe o motivo de a COMPDEC ou órgão similar ainda não ter sido instituída (Ex: Instrumento normativo em elaboração, enviado para aprovação, falta de estrutura, outros):",
-                    tipo_input="texto",
-                    placeholder_texto="Detalhe o motivo da não instituição...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 1.2 (Link / Página Eletrônica)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.2",
+                        titulo="Link do Instrumento Normativo",
+                        pergunta="Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
+                        tipo_input="link",
+                        placeholder_link="https://... ou digite XYZ",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 2.0 (Capacitação de Agentes)
-                # ==========================================
-                opcoes_20 = {
-                    "Selecione...": 0.0,
-                    "Sim (20.0 pts)": 20.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="2.0",
-                    titulo="Capacitação de Agentes Municipais",
-                    pergunta="Sobre treinamento e capacitação sobre Proteção e Defesa Civil, a Prefeitura capacita seus agentes para ações municipais de Defesa Civil?",
-                    opcoes=opcoes_20,
-                    placeholder_link="Insira o link do certificado, lista de presença ou registro...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 1.3 (Seleção com Pontuação)
+                    # ==========================================
+                    opcoes_13 = {
+                        "Selecione...": 0.0,
+                        "Gabinete do Prefeito (5.0 pts)": 5.0,
+                        "Secretaria Municipal de Segurança Pública (0.0 pts)": 0.0,
+                        "Controladoria (0.0 pts)": 0.0,
+                        "Outra (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.3",
+                        titulo="Vinculação Subordinativa da COMPDEC",
+                        pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
+                        opcoes=opcoes_13,
+                        placeholder_link="Insira o link do organograma ou norma que comprove a vinculação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 2.1 (Data da Última Capacitação)
-                # ==========================================
-                opcoes_21 = {
-                    "Selecione...": 0.0,
-                    "Após 31/12/2023 [Até 2026] (30.0 pts)": 30.0,
-                    "Até 31/12/2023 ou Sem Capacitação (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="2.1",
-                    titulo="Data da Última Capacitação dos Agentes",
-                    pergunta="Qual a data da última capacitação dos agentes municipais para ações de Defesa Civil? (Atenção: Não considerar capacitações do ano corrente de 2027):",
-                    opcoes=opcoes_21,
-                    placeholder_link="Informe a data no formato DD/MM/AAAA e insira o link da evidência...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 1.4 (Seleção com Pontuação)
+                    # ==========================================
+                    opcoes_14 = {
+                        "Selecione...": 0.0,
+                        "Sim, inclusive com a participação de entidades privadas e da comunidade (50.0 pts)": 50.0,
+                        "Sim, com participação de entidades privadas (20.0 pts)": 20.0,
+                        "Sim, com participação da comunidade (20.0 pts)": 20.0,
+                        "Sim, apenas com participação dos representantes da administração municipal (10.0 pts)": 10.0,
+                        "Não atuam de forma sistêmica (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.4",
+                        titulo="Atuação Sistêmica e Articulada",
+                        pergunta="Os órgãos e entidades da administração pública municipal atuam de forma sistêmica, articulados com a COMPDEC, nas ações de prevenção, mitigação, preparação, resposta e recuperação de acordo com a PNPDEC?",
+                        opcoes=opcoes_14,
+                        placeholder_link="Insira o link do documento, ata ou norma comprovatória...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 2.2 (Público-Alvo dos Treinamentos)
-                # ==========================================
-                opcoes_22 = {
-                    "Selecione...": 0.0,
-                    "Para escolas (5.0 pts)": 5.0,
-                    "Para outras secretarias / entidades municipais (3.0 pts)": 3.0,
-                    "Para munícipes ou empresas (2.0 pts)": 2.0,
-                    "Não ofereceu nenhum curso/treinamento no ano (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="2.2",
-                    titulo="Público Alvo dos Cursos e Treinamentos",
-                    pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
-                    opcoes=opcoes_22,
-                    placeholder_link="Insira o link das evidências dos treinamentos oferecidos...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 1.5 (Campo de Texto / Motivo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="1.5",
+                        titulo="Motivo da Não Instituição da COMPDEC",
+                        pergunta="Informe o motivo de a COMPDEC ou órgão similar ainda não ter sido instituída (Ex: Instrumento normativo em elaboração, enviado para aprovação, falta de estrutura, outros):",
+                        tipo_input="texto",
+                        placeholder_texto="Detalhe o motivo da não instituição...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 3.0 (Estímulo à Participação)
-                # ==========================================
-                opcoes_30 = {
-                    "Selecione...": 0.0,
-                    "Sim (10.0 pts)": 10.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="3.0",
-                    titulo="Estímulo à Participação da Sociedade Civil",
-                    pergunta="O Município realiza ações para estimular a participação de entidades privadas, associações de voluntários, clubes de serviços, organizações não governamentais e associações de classe e comunitárias nas ações de proteção e defesa civil?",
-                    opcoes=opcoes_30,
-                    placeholder_link="Insira o link para a comprovação das ações...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 2.0 (Capacitação de Agentes)
+                    # ==========================================
+                    opcoes_20 = {
+                        "Selecione...": 0.0,
+                        "Sim (20.0 pts)": 20.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="2.0",
+                        titulo="Capacitação de Agentes Municipais",
+                        pergunta="Sobre treinamento e capacitação sobre Proteção e Defesa Civil, a Prefeitura capacita seus agentes para ações municipais de Defesa Civil?",
+                        opcoes=opcoes_20,
+                        placeholder_link="Insira o link do certificado, lista de presença ou registro...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 3.1 (Ações Realizadas - Checkbox)
-                # ==========================================
-                opcoes_31 = {
-                    "Workshop / Palestra": 0.0,
-                    "Reunião": 0.0,
-                    "Conferência": 0.0,
-                    "Congresso": 0.0,
-                    "Discussão na Câmara Municipal": 0.0,
-                    "Treinamentos": 0.0,
-                    "Outros": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="3.1",
-                    titulo="Ações Realizadas com a Sociedade Civil",
-                    pergunta="Assinale quais ações foram realizadas:",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_31,
-                    placeholder_link="Insira o link das atas, fotos ou comprovações das ações...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 2.1 (Data da Última Capacitação)
+                    # ==========================================
+                    opcoes_21 = {
+                        "Selecione...": 0.0,
+                        "Após 31/12/2023 [Até 2026] (30.0 pts)": 30.0,
+                        "Até 31/12/2023 ou Sem Capacitação (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="2.1",
+                        titulo="Data da Última Capacitação dos Agentes",
+                        pergunta="Qual a data da última capacitação dos agentes municipais para ações de Defesa Civil? (Atenção: Não considerar capacitações do ano corrente de 2027):",
+                        opcoes=opcoes_21,
+                        placeholder_link="Informe a data no formato DD/MM/AAAA e insira o link da evidência...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 3.1.1 (Data do Último Treinamento)
-                # ==========================================
-                opcoes_311 = {
-                    "Selecione...": 0.0,
-                    "Após 31/12/2023 [Até 2026] (10.0 pts)": 10.0,
-                    "Até 31/12/2023 ou Sem Treinamento (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="3.1.1",
-                    titulo="Data do Último Treinamento de Voluntários",
-                    pergunta="Qual a data do último treinamento de associações de voluntários? (Atenção: Não considerar os treinamentos realizados em 2027):",
-                    opcoes=opcoes_311,
-                    placeholder_link="Informe a data (DD/MM/AAAA) e insira o link do certificado ou ata...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 2.2 (Público-Alvo dos Treinamentos)
+                    # ==========================================
+                    opcoes_22 = {
+                        "Selecione...": 0.0,
+                        "Para escolas (5.0 pts)": 5.0,
+                        "Para outras secretarias / entidades municipais (3.0 pts)": 3.0,
+                        "Para munícipes ou empresas (2.0 pts)": 2.0,
+                        "Não ofereceu nenhum curso/treinamento no ano (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="2.2",
+                        titulo="Público Alvo dos Cursos e Treinamentos",
+                        pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
+                        opcoes=opcoes_22,
+                        placeholder_link="Insira o link das evidências dos treinamentos oferecidos...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 4.0 (Carta Geotécnica)
-                # ==========================================
-                opcoes_40 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="4.0",
-                    titulo="Carta Geotécnica de Suscetibilidade",
-                    pergunta="O Município recebeu a Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco? (Disponível em: http://www.defesacivil.sp.gov.br/instrumentos-de-identificacao-de-riscos/):",
-                    opcoes=opcoes_40,
-                    placeholder_link="Insira o link para a publicação ou recebimento do documento...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 3.0 (Estímulo à Participação)
+                    # ==========================================
+                    opcoes_30 = {
+                        "Selecione...": 0.0,
+                        "Sim (10.0 pts)": 10.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.0",
+                        titulo="Estímulo à Participação da Sociedade Civil",
+                        pergunta="O Município realiza ações para estimular a participação de entidades privadas, associações de voluntários, clubes de serviços, organizações não governamentais e associações de classe e comunitárias nas ações de proteção e defesa civil?",
+                        opcoes=opcoes_30,
+                        placeholder_link="Insira o link para a comprovação das ações...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 4.1 (Ameaças Potenciais - Checkbox)
-                # ==========================================
-                opcoes_41 = {
-                    "Riscos Geológicos": 0.0,
-                    "Riscos Hidrológicos": 0.0,
-                    "Riscos Meteorológicos": 0.0,
-                    "Riscos Climatológicos": 0.0,
-                    "Riscos Biológicos": 0.0,
-                    "Riscos Tecnológicos": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="4.1",
-                    titulo="Ameaças Potenciais Identificadas na Carta Geotécnica",
-                    pergunta="Assinale quais os tipos de ameaças potenciais identificadas na Carta Geotécnica (Classificação COBRADE):",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_41,
-                    placeholder_link="Insira o link para a documentação ou trecho da Carta Geotécnica...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 3.1 (Ações Realizadas - Checkbox)
+                    # ==========================================
+                    opcoes_31 = {
+                        "Workshop / Palestra": 0.0,
+                        "Reunião": 0.0,
+                        "Conferência": 0.0,
+                        "Congresso": 0.0,
+                        "Discussão na Câmara Municipal": 0.0,
+                        "Treinamentos": 0.0,
+                        "Outros": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.1",
+                        titulo="Ações Realizadas com a Sociedade Civil",
+                        pergunta="Assinale quais ações foram realizadas:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_31,
+                        placeholder_link="Insira o link das atas, fotos ou comprovações das ações...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 4.2 (Carta no Plano Diretor)
-                # ==========================================
-                opcoes_42 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (-50.0 pts)": -50.0,
-                    "Não se aplica o Plano Diretor para o município (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="4.2",
-                    titulo="Carta Geotécnica no Plano Diretor",
-                    pergunta="A Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco consta no Plano Diretor? (Art. 42-A, §1º, §2º e §3º, da Lei Federal nº 10.257/2001):",
-                    opcoes=opcoes_42,
-                    placeholder_link="Insira o link da Lei do Plano Diretor ou comprovação...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 3.1.1 (Data do Último Treinamento)
+                    # ==========================================
+                    opcoes_311 = {
+                        "Selecione...": 0.0,
+                        "Após 31/12/2023 [Até 2026] (10.0 pts)": 10.0,
+                        "Até 31/12/2023 ou Sem Treinamento (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="3.1.1",
+                        titulo="Data do Último Treinamento de Voluntários",
+                        pergunta="Qual a data do último treinamento de associações de voluntários? (Atenção: Não considerar os treinamentos realizados em 2027):",
+                        opcoes=opcoes_311,
+                        placeholder_link="Informe a data (DD/MM/AAAA) e insira o link do certificado ou ata...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 5.0 (Mapeamento Próprio de Ameaças)
-                # ==========================================
-                opcoes_50 = {
-                    "Selecione...": 0.0,
-                    "Sim (200.0 pts)": 200.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.0",
-                    titulo="Mapeamento e Identificação Própria de Ameaças",
-                    pergunta="O Município realizou, por conta própria, o mapeamento e identificação das principais ameaças existentes em seu território?",
-                    opcoes=opcoes_50,
-                    placeholder_link="Insira o link do estudo, relatório ou mapa de ameaças...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 4.0 (Carta Geotécnica)
+                    # ==========================================
+                    opcoes_40 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.0",
+                        titulo="Carta Geotécnica de Suscetibilidade",
+                        pergunta="O Município recebeu a Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco? (Disponível em: http://www.defesacivil.sp.gov.br/instrumentos-de-identificacao-de-riscos/):",
+                        opcoes=opcoes_40,
+                        placeholder_link="Insira o link para a publicação ou recebimento do documento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 5.1 (Principais Ameaças - Checkbox)
-                # ==========================================
-                opcoes_51 = {
-                    "Epidemias": 0.0,
-                    "Estiagem": 0.0,
-                    "Incêndios (urbanos e florestais)": 0.0,
-                    "Ondas de calor ou ondas de frio": 0.0,
-                    "Inundações": 0.0,
-                    "Infestações e Pragas": 0.0,
-                    "Ameaças radioativas": 0.0,
-                    "Deslizamentos": 0.0,
-                    "Outros": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1",
-                    titulo="Principais Ameaças Identificadas",
-                    pergunta="Assinale as principais ameaças identificadas no território municipal:",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_51,
-                    placeholder_link="Insira o link para a comprovação ou mapeamento do risco...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 4.1 (Ameaças Potenciais - Checkbox)
+                    # ==========================================
+                    opcoes_41 = {
+                        "Riscos Geológicos": 0.0,
+                        "Riscos Hidrológicos": 0.0,
+                        "Riscos Meteorológicos": 0.0,
+                        "Riscos Climatológicos": 0.0,
+                        "Riscos Biológicos": 0.0,
+                        "Riscos Tecnológicos": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.1",
+                        titulo="Ameaças Potenciais Identificadas na Carta Geotécnica",
+                        pergunta="Assinale quais os tipos de ameaças potenciais identificadas na Carta Geotécnica (Classificação COBRADE):",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_41,
+                        placeholder_link="Insira o link para a documentação ou trecho da Carta Geotécnica...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 5.1.1 (Fiscalização das Áreas de Risco)
-                # ==========================================
-                opcoes_511 = {
-                    "Selecione...": 0.0,
-                    "Sim, integralmente (0.0 pts)": 0.0,
-                    "Sim, parcialmente (0.0 pts)": 0.0,
-                    "Não houve fiscalização (-100.0 pts)": -100.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1.1",
-                    titulo="Fiscalização das Áreas de Risco",
-                    pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
-                    opcoes=opcoes_511,
-                    placeholder_link="Insira o link dos relatórios de fiscalização...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 4.2 (Carta no Plano Diretor)
+                    # ==========================================
+                    opcoes_42 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (-50.0 pts)": -50.0,
+                        "Não se aplica o Plano Diretor para o município (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="4.2",
+                        titulo="Carta Geotécnica no Plano Diretor",
+                        pergunta="A Carta Geotécnica de Suscetibilidade, Aptidão à Urbanização e Risco consta no Plano Diretor? (Art. 42-A, §1º, §2º e §3º, da Lei Federal nº 10.257/2001):",
+                        opcoes=opcoes_42,
+                        placeholder_link="Insira o link da Lei do Plano Diretor ou comprovação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 5.1.2 (Possibilidade de Ocupação/Invasão)
-                # ==========================================
-                opcoes_512 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1.2",
-                    titulo="Possibilidade de Ocupação ou Invasão em Áreas de Risco",
-                    pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
-                    opcoes=opcoes_512,
-                    placeholder_link="Insira o link da documentação de monitoramento ou parecer...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 5.0 (Mapeamento Próprio de Ameaças)
+                    # ==========================================
+                    opcoes_50 = {
+                        "Selecione...": 0.0,
+                        "Sim (200.0 pts)": 200.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.0",
+                        titulo="Mapeamento e Identificação Própria de Ameaças",
+                        pergunta="O Município realizou, por conta própria, o mapeamento e identificação das principais ameaças existentes em seu território?",
+                        opcoes=opcoes_50,
+                        placeholder_link="Insira o link do estudo, relatório ou mapa de ameaças...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 5.1.2.1 (Mecanismos de Vedação - Checkbox)
-                # ==========================================
-                opcoes_5121 = {
-                    "Aplicação de sanções monetárias (multas)": 0.0,
-                    "Monitoramento (fiscalização)": 0.0,
-                    "Notificação dos infratores": 0.0,
-                    "Interdição do local e remoção das famílias": 0.0,
-                    "Demolição das ocupações": 0.0,
-                    "Outros": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1.2.1",
-                    titulo="Mecanismos para Vedar Novas Ocupações",
-                    pergunta="Assinale os mecanismos para vedar novas ocupações nas áreas de riscos:",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_5121,
-                    placeholder_link="Insira o link para a comprovação das ações de fiscalização/coibição...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 5.1 (Principais Ameaças - Checkbox)
+                    # ==========================================
+                    opcoes_51 = {
+                        "Epidemias": 0.0,
+                        "Estiagem": 0.0,
+                        "Incêndios (urbanos e florestais)": 0.0,
+                        "Ondas de calor ou ondas de frio": 0.0,
+                        "Inundações": 0.0,
+                        "Infestações e Pragas": 0.0,
+                        "Ameaças radioativas": 0.0,
+                        "Deslizamentos": 0.0,
+                        "Outros": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.1",
+                        titulo="Principais Ameaças Identificadas",
+                        pergunta="Assinale as principais ameaças identificadas no território municipal:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_51,
+                        placeholder_link="Insira o link para a comprovação ou mapeamento do risco...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 5.2 (Informação à População)
-                # ==========================================
-                opcoes_52 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Parcialmente (0.0 pts)": 0.0,
-                    "Não (-50.0 pts)": -50.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.2",
-                    titulo="Informação da População sobre Ameaças",
-                    pergunta="A população foi informada sobre todas as ameaças identificadas pelo município?",
-                    opcoes=opcoes_52,
-                    placeholder_link="Insira o link das campanhas, boletins ou publicações...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 5.1.1 (Fiscalização das Áreas de Risco)
+                    # ==========================================
+                    opcoes_511 = {
+                        "Selecione...": 0.0,
+                        "Sim, integralmente (0.0 pts)": 0.0,
+                        "Sim, parcialmente (0.0 pts)": 0.0,
+                        "Não houve fiscalização (-100.0 pts)": -100.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.1.1",
+                        titulo="Fiscalização das Áreas de Risco",
+                        pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
+                        opcoes=opcoes_511,
+                        placeholder_link="Insira o link dos relatórios de fiscalização...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 6.0 (Vistoria em Edificações)
-                # ==========================================
-                opcoes_60 = {
-                    "Selecione...": 0.0,
-                    "Sim, de acordo com um cronograma preestabelecido (0.0 pts)": 0.0,
-                    "Sim, de acordo com a demanda (0.0 pts)": 0.0,
-                    "Não foram vistoriadas (-50.0 pts)": -50.0,
-                    "Não houve casos de edificações vulneráveis no Município (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="6.0",
-                    titulo="Vistorias em Edificações Vulneráveis",
-                    pergunta="A Secretaria responsável realizou vistorias em edificações vulneráveis com o objetivo de identificar a necessidade de intervenção preventiva nos imóveis?",
-                    opcoes=opcoes_60,
-                    placeholder_link="Insira o link do cronograma, ordens de serviço ou relatórios...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 5.1.2 (Possibilidade de Ocupação/Invasão)
+                    # ==========================================
+                    opcoes_512 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.1.2",
+                        titulo="Possibilidade de Ocupação ou Invasão em Áreas de Risco",
+                        pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
+                        opcoes=opcoes_512,
+                        placeholder_link="Insira o link da documentação de monitoramento ou parecer...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-    # ==========================================
-                # QUESITO 7.0 (Plano de Contingência - PLANCON)
-                # ==========================================
-                opcoes_70 = {
-                    "Selecione...": 0.0,
-                    "Sim (50.0 pts)": 50.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.0",
-                    titulo="Plano de Contingência Municipal (PLANCON)",
-                    pergunta="O Município possui Plano de Contingência Municipal – PLANCON de Defesa Civil?",
-                    opcoes=opcoes_70,
-                    placeholder_link="Insira o link da publicação do PLANCON...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 5.1.2.1 (Mecanismos de Vedação - Checkbox)
+                    # ==========================================
+                    opcoes_5121 = {
+                        "Aplicação de sanções monetárias (multas)": 0.0,
+                        "Monitoramento (fiscalização)": 0.0,
+                        "Notificação dos infratores": 0.0,
+                        "Interdição do local e remoção das famílias": 0.0,
+                        "Demolição das ocupações": 0.0,
+                        "Outros": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.1.2.1",
+                        titulo="Mecanismos para Vedar Novas Ocupações",
+                        pergunta="Assinale os mecanismos para vedar novas ocupações nas áreas de riscos:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_5121,
+                        placeholder_link="Insira o link para a comprovação das ações de fiscalização/coibição...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 7.1 (PLANCON por Ameaça Especificada)
-                # ==========================================
-                opcoes_71 = {
-                    "Selecione...": 0.0,
-                    "Sim, cada ameaça mapeada possui um PLANCON diferente (5.0 pts)": 5.0,
-                    "Sim, parte das ameaças possuem PLANCON diferentes (3.0 pts)": 3.0,
-                    "Existe apenas um PLANCON que abrange todas as ameaças (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.1",
-                    titulo="PLANCON Específico por Ameaça",
-                    pergunta="Foi elaborado um PLANCON específico para cada ameaça identificada?",
-                    opcoes=opcoes_71,
-                    placeholder_link="Insira o link para os planos específicos...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 5.2 (Informação à População)
+                    # ==========================================
+                    opcoes_52 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Parcialmente (0.0 pts)": 0.0,
+                        "Não (-50.0 pts)": -50.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="5.2",
+                        titulo="Informação da População sobre Ameaças",
+                        pergunta="A população foi informada sobre todas as ameaças identificadas pelo município?",
+                        opcoes=opcoes_52,
+                        placeholder_link="Insira o link das campanhas, boletins ou publicações...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 7.2 (Exercícios Simulados)
-                # ==========================================
-                opcoes_72 = {
-                    "Selecione...": 0.0,
-                    "Sim (80.0 pts)": 80.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.2",
-                    titulo="Exercícios Simulados do PLANCON",
-                    pergunta="São realizados regularmente exercícios simulados para as contingências previstas no PLANCON?",
-                    opcoes=opcoes_72,
-                    placeholder_link="Insira o link de relatórios, fotos ou atas dos simulados...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 6.0 (Vistoria em Edificações)
+                    # ==========================================
+                    opcoes_60 = {
+                        "Selecione...": 0.0,
+                        "Sim, de acordo com um cronograma preestabelecido (0.0 pts)": 0.0,
+                        "Sim, de acordo com a demanda (0.0 pts)": 0.0,
+                        "Não foram vistoriadas (-50.0 pts)": -50.0,
+                        "Não houve casos de edificações vulneráveis no Município (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="6.0",
+                        titulo="Vistorias em Edificações Vulneráveis",
+                        pergunta="A Secretaria responsável realizou vistorias em edificações vulneráveis com o objetivo de identificar a necessidade de intervenção preventiva nos imóveis?",
+                        opcoes=opcoes_60,
+                        placeholder_link="Insira o link do cronograma, ordens de serviço ou relatórios...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 7.3 (Sistema de Alerta)
-                # ==========================================
-                opcoes_73 = {
-                    "Selecione...": 0.0,
-                    "Sim (50.0 pts)": 50.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.3",
-                    titulo="Sistema de Alerta de Desastres",
-                    pergunta="O Município possui sistema de alerta para desastres? (Objetivo: avisar a população vulnerável antes de ocorrer o evento):",
-                    opcoes=opcoes_73,
-                    placeholder_link="Insira o link do documento ou norma que regulamenta o alerta...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+        # ==========================================
+                    # QUESITO 7.0 (Plano de Contingência - PLANCON)
+                    # ==========================================
+                    opcoes_70 = {
+                        "Selecione...": 0.0,
+                        "Sim (50.0 pts)": 50.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.0",
+                        titulo="Plano de Contingência Municipal (PLANCON)",
+                        pergunta="O Município possui Plano de Contingência Municipal – PLANCON de Defesa Civil?",
+                        opcoes=opcoes_70,
+                        placeholder_link="Insira o link da publicação do PLANCON...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 7.3.1 (Tipos de Sistema de Alerta - Checkbox)
-                # ==========================================
-                opcoes_731 = {
-                    "Alerta via SMS": 0.0,
-                    "Anúncio por rádio/Televisão": 0.0,
-                    "Placas de identificação de área de risco": 0.0,
-                    "Aviso à comunidade por telefone / Aplicativo de mensagens": 0.0,
-                    "Aviso à comunidade por email": 0.0,
-                    "Aviso aos membros do Nupdec": 0.0,
-                    "Outro": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.3.1",
-                    titulo="Tipos de Sistemas de Alerta Utilizados",
-                    pergunta="Assinale os tipos de sistemas de alerta utilizados pelo Município (Objetivo: avisar a população vulnerável antes de ocorrer o evento):",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_731,
-                    placeholder_link="Insira o link com fotos, comprovantes de envio ou registros dos alertas...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 7.1 (PLANCON por Ameaça Especificada)
+                    # ==========================================
+                    opcoes_71 = {
+                        "Selecione...": 0.0,
+                        "Sim, cada ameaça mapeada possui um PLANCON diferente (5.0 pts)": 5.0,
+                        "Sim, parte das ameaças possuem PLANCON diferentes (3.0 pts)": 3.0,
+                        "Existe apenas um PLANCON que abrange todas as ameaças (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.1",
+                        titulo="PLANCON Específico por Ameaça",
+                        pergunta="Foi elaborado um PLANCON específico para cada ameaça identificada?",
+                        opcoes=opcoes_71,
+                        placeholder_link="Insira o link para os planos específicos...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 7.4 (Sistema de Alarme)
-                # ==========================================
-                opcoes_74 = {
-                    "Selecione...": 0.0,
-                    "Sim (50.0 pts)": 50.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.4",
-                    titulo="Sistema de Alarme para Desastres",
-                    pergunta="O Município dispõe de sinal, dispositivo ou sistema de alarme para desastres? (Objetivo: avisar a população sobre o evento que está ocorrendo):",
-                    opcoes=opcoes_74,
-                    placeholder_link="Insira o link da norma, contrato ou registro do sistema de alarme...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 7.2 (Exercícios Simulados)
+                    # ==========================================
+                    opcoes_72 = {
+                        "Selecione...": 0.0,
+                        "Sim (80.0 pts)": 80.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.2",
+                        titulo="Exercícios Simulados do PLANCON",
+                        pergunta="São realizados regularmente exercícios simulados para as contingências previstas no PLANCON?",
+                        opcoes=opcoes_72,
+                        placeholder_link="Insira o link de relatórios, fotos ou atas dos simulados...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 7.4.1 (Tipos de Sistema de Alarme - Checkbox)
-                # ==========================================
-                opcoes_741 = {
-                    "Sinal sonoro (sirene)": 0.0,
-                    "Sinal luminoso": 0.0,
-                    "Carros de emergência equipados de sirenes": 0.0,
-                    "Carros de emergência com alto-falantes": 0.0,
-                    "Aviso aos membros do Nupdec": 0.0,
-                    "Aviso à comunidade por telefone / Aplicativo de mensagens": 0.0,
-                    "Uso da imprensa (TV, rádio, internet)": 0.0,
-                    "Outro": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.4.1",
-                    titulo="Tipos de Sinal, Dispositivo ou Sistema de Alarme",
-                    pergunta="Assinale os tipos de sinal, dispositivo ou sistema de alarme utilizado pelo Município:",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_741,
-                    placeholder_link="Insira o link das evidências dos dispositivos e alarmes acionados...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 7.3 (Sistema de Alerta)
+                    # ==========================================
+                    opcoes_73 = {
+                        "Selecione...": 0.0,
+                        "Sim (50.0 pts)": 50.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.3",
+                        titulo="Sistema de Alerta de Desastres",
+                        pergunta="O Município possui sistema de alerta para desastres? (Objetivo: avisar a população vulnerável antes de ocorrer o evento):",
+                        opcoes=opcoes_73,
+                        placeholder_link="Insira o link do documento ou norma que regulamenta o alerta...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 7.5 (Cadastro de Abrigos na CEPDEC)
-                # ==========================================
-                opcoes_75 = {
-                    "Selecione...": 0.0,
-                    "Sim, atualizado (10.0 pts)": 10.0,
-                    "Sim, mas não está atualizado (3.0 pts)": 3.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.5",
-                    titulo="Cadastro de Locais para Abrigo na CEPDEC",
-                    pergunta="Possui cadastro dos locais para abrigo à população em situação de desastre junto à Coordenadoria Estadual de Proteção e Defesa Civil (CEPDEC)?",
-                    opcoes=opcoes_75,
-                    placeholder_link="Insira o link da comprovação de cadastro/atualização junto à CEPDEC...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 7.3.1 (Tipos de Sistema de Alerta - Checkbox)
+                    # ==========================================
+                    opcoes_731 = {
+                        "Alerta via SMS": 0.0,
+                        "Anúncio por rádio/Televisão": 0.0,
+                        "Placas de identificação de área de risco": 0.0,
+                        "Aviso à comunidade por telefone / Aplicativo de mensagens": 0.0,
+                        "Aviso à comunidade por email": 0.0,
+                        "Aviso aos membros do Nupdec": 0.0,
+                        "Outro": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.3.1",
+                        titulo="Tipos de Sistemas de Alerta Utilizados",
+                        pergunta="Assinale os tipos de sistemas de alerta utilizados pelo Município (Objetivo: avisar a população vulnerável antes de ocorrer o evento):",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_731,
+                        placeholder_link="Insira o link com fotos, comprovantes de envio ou registros dos alertas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 7.6 (Fornecedores de Ajuda Humanitária)
-                # ==========================================
-                opcoes_76 = {
-                    "Selecione...": 0.0,
-                    "Sim, atualizado (10.0 pts)": 10.0,
-                    "Sim, mas não está atualizado (3.0 pts)": 3.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.6",
-                    titulo="Lista de Fornecedores de Ajuda Humanitária",
-                    pergunta="O Município possui cadastro da lista de fornecedores para coleta e distribuição de suprimentos de ajuda humanitária para o caso de desastre?",
-                    opcoes=opcoes_76,
-                    placeholder_link="Insira o link da relação de fornecedores cadastrados...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 7.4 (Sistema de Alarme)
+                    # ==========================================
+                    opcoes_74 = {
+                        "Selecione...": 0.0,
+                        "Sim (50.0 pts)": 50.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.4",
+                        titulo="Sistema de Alarme para Desastres",
+                        pergunta="O Município dispõe de sinal, dispositivo ou sistema de alarme para desastres? (Objetivo: avisar a população sobre o evento que está ocorrendo):",
+                        opcoes=opcoes_74,
+                        placeholder_link="Insira o link da norma, contrato ou registro do sistema de alarme...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 7.7 (Data da Última Atualização do PLANCON)
-                # ==========================================
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="7.7",
-                    titulo="Data da Última Atualização do PLANCON",
-                    pergunta="Qual a data da última atualização do PLANCON? (Se não houve atualização, informar a data do início da vigência do PLANCON):",
-                    tipo_input="texto",
-                    placeholder_texto="Informe a data (DD/MM/AAAA) e observações...",
-                    placeholder_link="Insira o link do documento indicando a data de vigência/atualização...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 7.4.1 (Tipos de Sistema de Alarme - Checkbox)
+                    # ==========================================
+                    opcoes_741 = {
+                        "Sinal sonoro (sirene)": 0.0,
+                        "Sinal luminoso": 0.0,
+                        "Carros de emergência equipados de sirenes": 0.0,
+                        "Carros de emergência com alto-falantes": 0.0,
+                        "Aviso aos membros do Nupdec": 0.0,
+                        "Aviso à comunidade por telefone / Aplicativo de mensagens": 0.0,
+                        "Uso da imprensa (TV, rádio, internet)": 0.0,
+                        "Outro": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.4.1",
+                        titulo="Tipos de Sinal, Dispositivo ou Sistema de Alarme",
+                        pergunta="Assinale os tipos de sinal, dispositivo ou sistema de alarme utilizado pelo Município:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_741,
+                        placeholder_link="Insira o link das evidências dos dispositivos e alarmes acionados...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 8.0 (Canal de Atendimento de Emergência)
-                # ==========================================
-                opcoes_80 = {
-                    "Selecione...": 0.0,
-                    "Sim (50.0 pts)": 50.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="8.0",
-                    titulo="Canal de Atendimento de Emergência",
-                    pergunta="O Município possui um canal de atendimento de emergência à população para registro de ocorrências de desastres?",
-                    opcoes=opcoes_80,
-                    placeholder_link="Insira o link comprovando a disponibilização do canal de atendimento...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 7.5 (Cadastro de Abrigos na CEPDEC)
+                    # ==========================================
+                    opcoes_75 = {
+                        "Selecione...": 0.0,
+                        "Sim, atualizado (10.0 pts)": 10.0,
+                        "Sim, mas não está atualizado (3.0 pts)": 3.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.5",
+                        titulo="Cadastro de Locais para Abrigo na CEPDEC",
+                        pergunta="Possui cadastro dos locais para abrigo à população em situação de desastre junto à Coordenadoria Estadual de Proteção e Defesa Civil (CEPDEC)?",
+                        opcoes=opcoes_75,
+                        placeholder_link="Insira o link da comprovação de cadastro/atualização junto à CEPDEC...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 8.1 (Canais Utilizados - Checkbox)
-                # ==========================================
-                opcoes_81 = {
-                    "Telefone de emergências": 0.0,
-                    "Aplicativo de mensagens": 0.0,
-                    "Correio eletrônico (e-mail)": 0.0,
-                    "Aplicativo da Prefeitura": 0.0,
-                    "Site da Prefeitura": 0.0,
-                    "Redes sociais": 0.0,
-                    "Outros": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="8.1",
-                    titulo="Canais de Contato para Emergências",
-                    pergunta="Assinale os canais que possui (Como a população entra em contato com o Município em caso de desastre):",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_81,
-                    placeholder_link="Insira o link ou divulgação dos canais de atendimento...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 7.6 (Fornecedores de Ajuda Humanitária)
+                    # ==========================================
+                    opcoes_76 = {
+                        "Selecione...": 0.0,
+                        "Sim, atualizado (10.0 pts)": 10.0,
+                        "Sim, mas não está atualizado (3.0 pts)": 3.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.6",
+                        titulo="Lista de Fornecedores de Ajuda Humanitária",
+                        pergunta="O Município possui cadastro da lista de fornecedores para coleta e distribuição de suprimentos de ajuda humanitária para o caso de desastre?",
+                        opcoes=opcoes_76,
+                        placeholder_link="Insira o link da relação de fornecedores cadastrados...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 8.1.1 (Utilização do Número 199)
-                # ==========================================
-                opcoes_811 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="8.1.1",
-                    titulo="Uso do Número 199 da Defesa Civil",
-                    pergunta="Sobre o número de telefone de emergência, utiliza o número 199 da Defesa Civil?",
-                    opcoes=opcoes_811,
-                    placeholder_link="Insira o link para a linha ou ato normativo do telefone 199...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 7.7 (Data da Última Atualização do PLANCON)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="7.7",
+                        titulo="Data da Última Atualização do PLANCON",
+                        pergunta="Qual a data da última atualização do PLANCON? (Se não houve atualização, informar a data do início da vigência do PLANCON):",
+                        tipo_input="texto",
+                        placeholder_texto="Informe a data (DD/MM/AAAA) e observações...",
+                        placeholder_link="Insira o link do documento indicando a data de vigência/atualização...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-    # ==========================================
-                # QUESITO 8.1.1.1 (Atendimento 24h do Telefone 199)
-                # ==========================================
-                opcoes_8111 = {
-                    "Selecione...": 0.0,
-                    "Sim (20.0 pts)": 20.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="8.1.1.1",
-                    titulo="Atendimento 24 Horas do Telefone 199",
-                    pergunta="O telefone 199 tem atendimento 24 horas por dia?",
-                    opcoes=opcoes_8111,
-                    placeholder_link="Insira o link da escala de plantão, decreto ou documento comprobatório...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 8.0 (Canal de Atendimento de Emergência)
+                    # ==========================================
+                    opcoes_80 = {
+                        "Selecione...": 0.0,
+                        "Sim (50.0 pts)": 50.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.0",
+                        titulo="Canal de Atendimento de Emergência",
+                        pergunta="O Município possui um canal de atendimento de emergência à população para registro de ocorrências de desastres?",
+                        opcoes=opcoes_80,
+                        placeholder_link="Insira o link comprovando a disponibilização do canal de atendimento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 8.2 (Registro Eletrônico de Ocorrências)
-                # ==========================================
-                opcoes_82 = {
-                    "Selecione...": 0.0,
-                    "Sim (50.0 pts)": 50.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="8.2",
-                    titulo="Registro Eletrônico de Ocorrências",
-                    pergunta="O Município registra as ocorrências de Defesa Civil de forma eletrônica? (Registro eletrônico refere-se ao sistema auditável sem alteração/exclusão sem log de usuário e data/hora):",
-                    opcoes=opcoes_82,
-                    placeholder_link="Insira o link do sistema, tela do software ou termo de uso...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 8.1 (Canais Utilizados - Checkbox)
+                    # ==========================================
+                    opcoes_81 = {
+                        "Telefone de emergências": 0.0,
+                        "Aplicativo de mensagens": 0.0,
+                        "Correio eletrônico (e-mail)": 0.0,
+                        "Aplicativo da Prefeitura": 0.0,
+                        "Site da Prefeitura": 0.0,
+                        "Redes sociais": 0.0,
+                        "Outros": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.1",
+                        titulo="Canais de Contato para Emergências",
+                        pergunta="Assinale os canais que possui (Como a população entra em contato com o Município em caso de desastre):",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_81,
+                        placeholder_link="Insira o link ou divulgação dos canais de atendimento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 9.0 (Estudo de Estrutura de Escolas/Saúde)
-                # ==========================================
-                opcoes_90 = {
-                    "Selecione...": 0.0,
-                    "Sim, em todas as escolas e centros de saúde (100.0 pts)": 100.0,
-                    "Sim, na maior parte das escolas e centros de saúde (50.0 pts)": 50.0,
-                    "Sim, na menor parte das escolas e centros de saúde (20.0 pts)": 20.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="9.0",
-                    titulo="Avaliação Estrutural de Escolas e Unidades de Saúde",
-                    pergunta="O Município realizou um estudo de avaliação da estrutura de todas as escolas e unidades de saúde para garantir abrigo/atendimento em caso de desastre? (Atualizado: até 5 anos, entre 2022 e 2027):",
-                    opcoes=opcoes_90,
-                    placeholder_link="Insira o link do relatório de engenharia ou laudo de vistoria...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 8.1.1 (Utilização do Número 199)
+                    # ==========================================
+                    opcoes_811 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.1.1",
+                        titulo="Uso do Número 199 da Defesa Civil",
+                        pergunta="Sobre o número de telefone de emergência, utiliza o número 199 da Defesa Civil?",
+                        opcoes=opcoes_811,
+                        placeholder_link="Insira o link para a linha ou ato normativo do telefone 199...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 10.0 (Plano de Mobilidade Urbana)
-                # ==========================================
-                opcoes_100 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (-100.0 pts)": -100.0,
-                    "Não se aplica (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="10.0",
-                    titulo="Plano de Mobilidade Urbana",
-                    pergunta="O Município elaborou seu Plano de Mobilidade Urbana?",
-                    opcoes=opcoes_100,
-                    placeholder_link="Insira o link da Lei do Plano de Mobilidade Urbana...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+        # ==========================================
+                    # QUESITO 8.1.1.1 (Atendimento 24h do Telefone 199)
+                    # ==========================================
+                    opcoes_8111 = {
+                        "Selecione...": 0.0,
+                        "Sim (20.0 pts)": 20.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.1.1.1",
+                        titulo="Atendimento 24 Horas do Telefone 199",
+                        pergunta="O telefone 199 tem atendimento 24 horas por dia?",
+                        opcoes=opcoes_8111,
+                        placeholder_link="Insira o link da escala de plantão, decreto ou documento comprobatório...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 11.0 (Transporte Público Coletivo)
-                # ==========================================
-                opcoes_110 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="11.0",
-                    titulo="Existência de Transporte Público Coletivo",
-                    pergunta="No Município existe transporte público coletivo? (Atenção: Não considerar transporte intermunicipal, interestadual ou internacional):",
-                    opcoes=opcoes_110,
-                    placeholder_link="Insira o link do contrato de concessão, linhas urbanas ou decreto...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 8.2 (Registro Eletrônico de Ocorrências)
+                    # ==========================================
+                    opcoes_82 = {
+                        "Selecione...": 0.0,
+                        "Sim (50.0 pts)": 50.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="8.2",
+                        titulo="Registro Eletrônico de Ocorrências",
+                        pergunta="O Município registra as ocorrências de Defesa Civil de forma eletrônica? (Registro eletrônico refere-se ao sistema auditável sem alteração/exclusão sem log de usuário e data/hora):",
+                        opcoes=opcoes_82,
+                        placeholder_link="Insira o link do sistema, tela do software ou termo de uso...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-    # ==========================================
-                # QUESITO 11.1 (Metas de Qualidade do Transporte)
-                # ==========================================
-                opcoes_111 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (-20.0 pts)": -20.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="11.1",
-                    titulo="Metas de Qualidade e Desempenho do Transporte Público",
-                    pergunta="Foram estabelecidas metas de qualidade e desempenho para o transporte público coletivo municipal?",
-                    opcoes=opcoes_111,
-                    placeholder_link="Insira o link do contrato, decreto ou edital com as metas...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                elif etapa_atual == 2:
+                    # QUESITO 9.0 (Estudo de Estrutura de Escolas/Saúde)
+                    # ==========================================
+                    opcoes_90 = {
+                        "Selecione...": 0.0,
+                        "Sim, em todas as escolas e centros de saúde (100.0 pts)": 100.0,
+                        "Sim, na maior parte das escolas e centros de saúde (50.0 pts)": 50.0,
+                        "Sim, na menor parte das escolas e centros de saúde (20.0 pts)": 20.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="9.0",
+                        titulo="Avaliação Estrutural de Escolas e Unidades de Saúde",
+                        pergunta="O Município realizou um estudo de avaliação da estrutura de todas as escolas e unidades de saúde para garantir abrigo/atendimento em caso de desastre? (Atualizado: até 5 anos, entre 2022 e 2027):",
+                        opcoes=opcoes_90,
+                        placeholder_link="Insira o link do relatório de engenharia ou laudo de vistoria...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 11.1.1 (Cumprimento das Metas)
-                # ==========================================
-                opcoes_1111 = {
-                    "Selecione...": 0.0,
-                    "Todas as metas foram atingidas (0.0 pts)": 0.0,
-                    "A maior parte das metas foram atingidas (-5.0 pts)": -5.0,
-                    "A menor parte das metas foram atingidas (-10.0 pts)": -10.0,
-                    "As metas não foram atingidas (-20.0 pts)": -20.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="11.1.1",
-                    titulo="Atingimento das Metas de Qualidade e Desempenho",
-                    pergunta="As metas de qualidade e desempenho do transporte público coletivo estão sendo atingidas?",
-                    opcoes=opcoes_1111,
-                    placeholder_link="Insira o link do relatório de fiscalização ou monitoramento...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 10.0 (Plano de Mobilidade Urbana)
+                    # ==========================================
+                    opcoes_100 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (-100.0 pts)": -100.0,
+                        "Não se aplica (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="10.0",
+                        titulo="Plano de Mobilidade Urbana",
+                        pergunta="O Município elaborou seu Plano de Mobilidade Urbana?",
+                        opcoes=opcoes_100,
+                        placeholder_link="Insira o link da Lei do Plano de Mobilidade Urbana...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 11.1.1.1 (Aplicação de Penalidades)
-                # ==========================================
-                opcoes_11111 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (-50.0 pts)": -50.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="11.1.1.1",
-                    titulo="Aplicação de Penalidade por Meta Não Cumprida",
-                    pergunta="Foi aplicada penalidade pela meta não cumprida?",
-                    opcoes=opcoes_11111,
-                    placeholder_link="Insira o link do processo administrativo ou auto de infração...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 11.0 (Transporte Público Coletivo)
+                    # ==========================================
+                    opcoes_110 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.0",
+                        titulo="Existência de Transporte Público Coletivo",
+                        pergunta="No Município existe transporte público coletivo? (Atenção: Não considerar transporte intermunicipal, interestadual ou internacional):",
+                        opcoes=opcoes_110,
+                        placeholder_link="Insira o link do contrato de concessão, linhas urbanas ou decreto...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 11.2 (Pesquisa de Satisfação)
-                # ==========================================
-                opcoes_112 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (-20.0 pts)": -20.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="11.2",
-                    titulo="Pesquisa de Satisfação dos Usuários (2026)",
-                    pergunta="Foi realizada pesquisa de satisfação dos usuários do transporte público coletivo em 2026?",
-                    opcoes=opcoes_112,
-                    placeholder_link="Insira o link do relatório da pesquisa realizada...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+        # ==========================================
+                    # QUESITO 11.1 (Metas de Qualidade do Transporte)
+                    # ==========================================
+                    opcoes_111 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (-20.0 pts)": -20.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.1",
+                        titulo="Metas de Qualidade e Desempenho do Transporte Público",
+                        pergunta="Foram estabelecidas metas de qualidade e desempenho para o transporte público coletivo municipal?",
+                        opcoes=opcoes_111,
+                        placeholder_link="Insira o link do contrato, decreto ou edital com as metas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 11.2.1 (Ações Decorrentes da Pesquisa)
-                # ==========================================
-                opcoes_1121 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (-20.0 pts)": -20.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="11.2.1",
-                    titulo="Ações com Base na Pesquisa de Satisfação",
-                    pergunta="Foram realizadas ações com base nesta pesquisa?",
-                    opcoes=opcoes_1121,
-                    placeholder_link="Insira o link do plano de ação ou melhorias implementadas...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 11.1.1 (Cumprimento das Metas)
+                    # ==========================================
+                    opcoes_1111 = {
+                        "Selecione...": 0.0,
+                        "Todas as metas foram atingidas (0.0 pts)": 0.0,
+                        "A maior parte das metas foram atingidas (-5.0 pts)": -5.0,
+                        "A menor parte das metas foram atingidas (-10.0 pts)": -10.0,
+                        "As metas não foram atingidas (-20.0 pts)": -20.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.1.1",
+                        titulo="Atingimento das Metas de Qualidade e Desempenho",
+                        pergunta="As metas de qualidade e desempenho do transporte público coletivo estão sendo atingidas?",
+                        opcoes=opcoes_1111,
+                        placeholder_link="Insira o link do relatório de fiscalização ou monitoramento...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 11.3 (Resultado Tarifário 2026)
-                # ==========================================
-                opcoes_113 = {
-                    "Selecione...": 0.0,
-                    "Déficit ou subsídio tarifário (0.0 pts)": 0.0,
-                    "Superávit tarifário (0.0 pts)": 0.0,
-                    "Não sabe informar (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="11.3",
-                    titulo="Equilíbrio / Resultado Tarifário em 2026",
-                    pergunta="Quanto ao custo do transporte público (tarifa de remuneração) e o preço de passagem (tarifa pública), informe qual o resultado no ano de 2026:",
-                    opcoes=opcoes_113,
-                    placeholder_link="Insira o link do balanço financeiro ou estudo tarifário...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 11.1.1.1 (Aplicação de Penalidades)
+                    # ==========================================
+                    opcoes_11111 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (-50.0 pts)": -50.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.1.1.1",
+                        titulo="Aplicação de Penalidade por Meta Não Cumprida",
+                        pergunta="Foi aplicada penalidade pela meta não cumprida?",
+                        opcoes=opcoes_11111,
+                        placeholder_link="Insira o link do processo administrativo ou auto de infração...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 11.3.1 (Link Benefícios Tarifários)
-                # ==========================================
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="11.3.1",
-                    titulo="Divulgação dos Benefícios Tarifários",
-                    pergunta="Informe a página eletrônica (link na internet) em que os benefícios tarifários concedidos no valor das tarifas do transporte público foram divulgados (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
-                    tipo_input="link",
-                    placeholder_link="https://... ou digite XYZ",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 11.2 (Pesquisa de Satisfação)
+                    # ==========================================
+                    opcoes_112 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (-20.0 pts)": -20.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.2",
+                        titulo="Pesquisa de Satisfação dos Usuários (2026)",
+                        pergunta="Foi realizada pesquisa de satisfação dos usuários do transporte público coletivo em 2026?",
+                        opcoes=opcoes_112,
+                        placeholder_link="Insira o link do relatório da pesquisa realizada...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 12.0 (Transporte Remunerado Privado / Aplicativos)
-                # ==========================================
-                opcoes_120 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="12.0",
-                    titulo="Transporte Remunerado Privado Individual (Táxi / Aplicativos)",
-                    pergunta="O Município possui transporte remunerado privado individual de passageiros (táxi por aplicativos)?",
-                    opcoes=opcoes_120,
-                    placeholder_link="Insira o link da regulamentação ou lei municipal...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 11.2.1 (Ações Decorrentes da Pesquisa)
+                    # ==========================================
+                    opcoes_1121 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (-20.0 pts)": -20.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.2.1",
+                        titulo="Ações com Base na Pesquisa de Satisfação",
+                        pergunta="Foram realizadas ações com base nesta pesquisa?",
+                        opcoes=opcoes_1121,
+                        placeholder_link="Insira o link do plano de ação ou melhorias implementadas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-    # ==========================================
-                # QUESITO 12.1 (Regulamentação do Transporte por Aplicativo)
-                # ==========================================
-                opcoes_121 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (-50.0 pts)": -50.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="12.1",
-                    titulo="Regulamentação do Transporte Remunerado Privado Individual",
-                    pergunta="O Município regulamentou o transporte remunerado privado individual de passageiros (táxi por aplicativo como Uber, 99 e similares)?",
-                    opcoes=opcoes_121,
-                    placeholder_link="Insira o link para o decreto ou lei municipal...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 11.3 (Resultado Tarifário 2026)
+                    # ==========================================
+                    opcoes_113 = {
+                        "Selecione...": 0.0,
+                        "Déficit ou subsídio tarifário (0.0 pts)": 0.0,
+                        "Superávit tarifário (0.0 pts)": 0.0,
+                        "Não sabe informar (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.3",
+                        titulo="Equilíbrio / Resultado Tarifário em 2026",
+                        pergunta="Quanto ao custo do transporte público (tarifa de remuneração) e o preço de passagem (tarifa pública), informe qual o resultado no ano de 2026:",
+                        opcoes=opcoes_113,
+                        placeholder_link="Insira o link do balanço financeiro ou estudo tarifário...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 12.1.1 (Normativo de Regulamentação)
-                # ==========================================
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="12.1.1",
-                    titulo="Instrumento Normativo de Regulamentação",
-                    pergunta="Informe o Instrumento normativo, Número e Data da publicação:",
-                    tipo_input="texto",
-                    placeholder_texto="Ex: Lei Municipal nº 2.456, de 15 de maio de 2021",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 11.3.1 (Link Benefícios Tarifários)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="11.3.1",
+                        titulo="Divulgação dos Benefícios Tarifários",
+                        pergunta="Informe a página eletrônica (link na internet) em que os benefícios tarifários concedidos no valor das tarifas do transporte público foram divulgados (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
+                        tipo_input="link",
+                        placeholder_link="https://... ou digite XYZ",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 12.1.2 (Link do Normativo)
-                # ==========================================
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="12.1.2",
-                    titulo="Link do Instrumento Normativo",
-                    pergunta="Informe a página eletrônica (link na internet) do instrumento normativo de transporte remunerado privado individual de passageiros (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
-                    tipo_input="link",
-                    placeholder_link="https://... ou digite XYZ",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 12.0 (Transporte Remunerado Privado / Aplicativos)
+                    # ==========================================
+                    opcoes_120 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.0",
+                        titulo="Transporte Remunerado Privado Individual (Táxi / Aplicativos)",
+                        pergunta="O Município possui transporte remunerado privado individual de passageiros (táxi por aplicativos)?",
+                        opcoes=opcoes_120,
+                        placeholder_link="Insira o link da regulamentação ou lei municipal...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 12.1.3 (Fiscalização Regular)
-                # ==========================================
-                opcoes_1213 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (-50.0 pts)": -50.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="12.1.3",
-                    titulo="Fiscalização do Transporte por Aplicativo",
-                    pergunta="O Município fiscaliza regularmente o transporte remunerado privado individual de passageiros (táxi por aplicativo como Uber, 99 e similares)?",
-                    opcoes=opcoes_1213,
-                    placeholder_link="Insira o link para relatórios de fiscalização ou autos de infração...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+        # ==========================================
+                    # QUESITO 12.1 (Regulamentação do Transporte por Aplicativo)
+                    # ==========================================
+                    opcoes_121 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (-50.0 pts)": -50.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.1",
+                        titulo="Regulamentação do Transporte Remunerado Privado Individual",
+                        pergunta="O Município regulamentou o transporte remunerado privado individual de passageiros (táxi por aplicativo como Uber, 99 e similares)?",
+                        opcoes=opcoes_121,
+                        placeholder_link="Insira o link para o decreto ou lei municipal...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 12.1.3.1 (Periodicidade da Fiscalização)
-                # ==========================================
-                opcoes_12131 = {
-                    "Selecione...": 0.0,
-                    "Diariamente (0.0 pts)": 0.0,
-                    "Semanalmente (0.0 pts)": 0.0,
-                    "Mensalmente (0.0 pts)": 0.0,
-                    "Anualmente (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="12.1.3.1",
-                    titulo="Periodicidade da Fiscalização",
-                    pergunta="Informe a periodicidade da fiscalização realizada pelo município:",
-                    opcoes=opcoes_12131,
-                    placeholder_link="Insira o link do cronograma ou relatórios periódicos...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 12.1.1 (Normativo de Regulamentação)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.1.1",
+                        titulo="Instrumento Normativo de Regulamentação",
+                        pergunta="Informe o Instrumento normativo, Número e Data da publicação:",
+                        tipo_input="texto",
+                        placeholder_texto="Ex: Lei Municipal nº 2.456, de 15 de maio de 2021",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 13.0 (Transporte Não Motorizado - 2025)
-                # ==========================================
-                opcoes_130 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="13.0",
-                    titulo="Incentivo ao Transporte Não Motorizado em 2026",
-                    pergunta="Foram realizadas ações para estimular a adoção/uso dos meios de transporte não motorizados em 2026?",
-                    opcoes=opcoes_130,
-                    placeholder_link="Insira o link comprovando campanhas, ciclovias ou eventos promovidos em 2026...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 12.1.2 (Link do Normativo)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.1.2",
+                        titulo="Link do Instrumento Normativo",
+                        pergunta="Informe a página eletrônica (link na internet) do instrumento normativo de transporte remunerado privado individual de passageiros (Se não estiver disponível na internet, inserir XYZ no campo de resposta):",
+                        tipo_input="link",
+                        placeholder_link="https://... ou digite XYZ",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-    # ==========================================
-                # QUESITO 13.1 (Ações para Transporte Não Motorizado - Checkbox)
-                # ==========================================
-                opcoes_131 = {
-                    "Instalação/manutenção de ciclovias ou ciclofaixas": 0.0,
-                    "Instalação/manutenção de pontos de locação de bicicletas": 0.0,
-                    "Instalação/manutenção de pontos de locação de patinetes": 0.0,
-                    "Outras": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="13.1",
-                    titulo="Ações Realizadas para Transporte Não Motorizado em 2026",
-                    pergunta="Assinale as ações realizadas para estimular a adoção/uso dos meios de transporte não motorizados em 2026:",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_131,
-                    placeholder_link="Insira o link das evidências das ações ou fotos...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 12.1.3 (Fiscalização Regular)
+                    # ==========================================
+                    opcoes_1213 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (-50.0 pts)": -50.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.1.3",
+                        titulo="Fiscalização do Transporte por Aplicativo",
+                        pergunta="O Município fiscaliza regularmente o transporte remunerado privado individual de passageiros (táxi por aplicativo como Uber, 99 e similares)?",
+                        opcoes=opcoes_1213,
+                        placeholder_link="Insira o link para relatórios de fiscalização ou autos de infração...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 13.1.1 (Cronograma de Manutenção)
-                # ==========================================
-                opcoes_1311 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (-20.0 pts)": -20.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="13.1.1",
-                    titulo="Cronograma de Manutenção de Ciclovias e Ciclofaixas",
-                    pergunta="Possui um cronograma de manutenção da infraestrutura das ciclovias ou ciclofaixas?",
-                    opcoes=opcoes_1311,
-                    placeholder_link="Insira o link do cronograma oficial de manutenção...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 12.1.3.1 (Periodicidade da Fiscalização)
+                    # ==========================================
+                    opcoes_12131 = {
+                        "Selecione...": 0.0,
+                        "Diariamente (0.0 pts)": 0.0,
+                        "Semanalmente (0.0 pts)": 0.0,
+                        "Mensalmente (0.0 pts)": 0.0,
+                        "Anualmente (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="12.1.3.1",
+                        titulo="Periodicidade da Fiscalização",
+                        pergunta="Informe a periodicidade da fiscalização realizada pelo município:",
+                        opcoes=opcoes_12131,
+                        placeholder_link="Insira o link do cronograma ou relatórios periódicos...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 13.1.1.1 (Prazo das Manutenções Preventivas)
-                # ==========================================
-                opcoes_13111 = {
-                    "Selecione...": 0.0,
-                    "Sim, para todos os trechos (0.0 pts)": 0.0,
-                    "Sim, para a maior parte dos trechos (-5.0 pts)": -5.0,
-                    "Sim, para a menor parte dos trechos (-10.0 pts)": -10.0,
-                    "Não foram realizadas dentro do prazo (-15.0 pts)": -15.0,
-                    "Não foram realizadas manutenções preventivas no exercício (-20.0 pts)": -20.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="13.1.1.1",
-                    titulo="Cumprimento do Prazo de Manutenção Preventiva",
-                    pergunta="As manutenções preventivas da infraestrutura das ciclovias ou ciclofaixas foram realizadas dentro do prazo?",
-                    opcoes=opcoes_13111,
-                    placeholder_link="Insira o link dos relatórios ou ordens de serviço executadas...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 13.0 (Transporte Não Motorizado - 2025)
+                    # ==========================================
+                    opcoes_130 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.0",
+                        titulo="Incentivo ao Transporte Não Motorizado em 2026",
+                        pergunta="Foram realizadas ações para estimular a adoção/uso dos meios de transporte não motorizados em 2026?",
+                        opcoes=opcoes_130,
+                        placeholder_link="Insira o link comprovando campanhas, ciclovias ou eventos promovidos em 2026...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 14.0 (Acessibilidade de Calçamentos Públicos)
-                # ==========================================
-                opcoes_140 = {
-                    "Selecione...": 0.0,
-                    "Sim, integralmente - Todos os calçamentos públicos (0.0 pts)": 0.0,
-                    "Sim, parcialmente - Em parte dos calçamentos públicos (-10.0 pts)": -10.0,
-                    "Não possui acessibilidade em calçamentos públicos (-50.0 pts)": -50.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="14.0",
-                    titulo="Acessibilidade em Calçamentos Públicos",
-                    pergunta="O Município adequou os calçamentos públicos para acessibilidade das pessoas com deficiência e restrição de mobilidade? (Calçamento público é no entorno de prédios públicos e locais de grande circulação):",
-                    opcoes=opcoes_140,
-                    placeholder_link="Insira o link das vistorias, laudos de acessibilidade ou relatórios de obras...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+        # ==========================================
+                    # QUESITO 13.1 (Ações para Transporte Não Motorizado - Checkbox)
+                    # ==========================================
+                    opcoes_131 = {
+                        "Instalação/manutenção de ciclovias ou ciclofaixas": 0.0,
+                        "Instalação/manutenção de pontos de locação de bicicletas": 0.0,
+                        "Instalação/manutenção de pontos de locação de patinetes": 0.0,
+                        "Outras": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.1",
+                        titulo="Ações Realizadas para Transporte Não Motorizado em 2026",
+                        pergunta="Assinale as ações realizadas para estimular a adoção/uso dos meios de transporte não motorizados em 2026:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_131,
+                        placeholder_link="Insira o link das evidências das ações ou fotos...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-    # ==========================================
-                # QUESITO 14.1 (Recursos de Acessibilidade - Checkbox)
-                # ==========================================
-                opcoes_141 = {
-                    "Calçadas com dimensões mínimas para a circulação": 0.0,
-                    "Sinalização tátil em pisos": 0.0,
-                    "Rampas de acesso": 0.0,
-                    "Escadas com corrimão": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="14.1",
-                    titulo="Recursos de Acessibilidade Oferecidos",
-                    pergunta="Informe os recursos de acessibilidade oferecidos pela Prefeitura:",
-                    tipo_input="checkbox",
-                    opcoes=opcoes_141,
-                    placeholder_link="Insira o link para relatórios, fotos ou projetos de acessibilidade...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 13.1.1 (Cronograma de Manutenção)
+                    # ==========================================
+                    opcoes_1311 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (-20.0 pts)": -20.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.1.1",
+                        titulo="Cronograma de Manutenção de Ciclovias e Ciclofaixas",
+                        pergunta="Possui um cronograma de manutenção da infraestrutura das ciclovias ou ciclofaixas?",
+                        opcoes=opcoes_1311,
+                        placeholder_link="Insira o link do cronograma oficial de manutenção...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 15.0 (Sinalização de Vias Públicas)
-                # ==========================================
-                opcoes_150 = {
-                    "Selecione...": 0.0,
-                    "Sim, integralmente - Todas as vias públicas municipais (50.0 pts)": 50.0,
-                    "Sim, parcialmente - Em parte das vias municipais (10.0 pts)": 10.0,
-                    "Não estão sinalizadas (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="15.0",
-                    titulo="Sinalização de Vias Públicas Pavimentadas",
-                    pergunta="As vias públicas pavimentadas estão devidamente sinalizadas (vertical e horizontalmente) de forma a garantir as condições adequadas de segurança na circulação?",
-                    opcoes=opcoes_150,
-                    placeholder_link="Insira o link para o plano de sinalização, ordens de serviço ou fotos...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 13.1.1.1 (Prazo das Manutenções Preventivas)
+                    # ==========================================
+                    opcoes_13111 = {
+                        "Selecione...": 0.0,
+                        "Sim, para todos os trechos (0.0 pts)": 0.0,
+                        "Sim, para a maior parte dos trechos (-5.0 pts)": -5.0,
+                        "Sim, para a menor parte dos trechos (-10.0 pts)": -10.0,
+                        "Não foram realizadas dentro do prazo (-15.0 pts)": -15.0,
+                        "Não foram realizadas manutenções preventivas no exercício (-20.0 pts)": -20.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="13.1.1.1",
+                        titulo="Cumprimento do Prazo de Manutenção Preventiva",
+                        pergunta="As manutenções preventivas da infraestrutura das ciclovias ou ciclofaixas foram realizadas dentro do prazo?",
+                        opcoes=opcoes_13111,
+                        placeholder_link="Insira o link dos relatórios ou ordens de serviço executadas...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 16.0 (Manutenção de Vias Públicas)
-                # ==========================================
-                opcoes_160 = {
-                    "Selecione...": 0.0,
-                    "Sim, integralmente - Todas as vias públicas municipais (50.0 pts)": 50.0,
-                    "Sim, parcialmente - Em parte das vias municipais (10.0 pts)": 10.0,
-                    "Não estão adequadas (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="16.0",
-                    titulo="Manutenção de Vias Públicas Municipais",
-                    pergunta="Há manutenção adequada das vias públicas no Município? (De acordo com os Manuais do DNIT):",
-                    opcoes=opcoes_160,
-                    placeholder_link="Insira o link para relatórios de operação tapa-buracos, recapeamento ou certidões...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 14.0 (Acessibilidade de Calçamentos Públicos)
+                    # ==========================================
+                    opcoes_140 = {
+                        "Selecione...": 0.0,
+                        "Sim, integralmente - Todos os calçamentos públicos (0.0 pts)": 0.0,
+                        "Sim, parcialmente - Em parte dos calçamentos públicos (-10.0 pts)": -10.0,
+                        "Não possui acessibilidade em calçamentos públicos (-50.0 pts)": -50.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.0",
+                        titulo="Acessibilidade em Calçamentos Públicos",
+                        pergunta="O Município adequou os calçamentos públicos para acessibilidade das pessoas com deficiência e restrição de mobilidade? (Calçamento público é no entorno de prédios públicos e locais de grande circulação):",
+                        opcoes=opcoes_140,
+                        placeholder_link="Insira o link das vistorias, laudos de acessibilidade ou relatórios de obras...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # QUESITO 17.1 (Impressões e Sugestões Finais)
-                # ==========================================
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="17.1",
-                    titulo="Impressões, Comentários e Sugestões",
-                    pergunta="Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?",
-                    tipo_input="texto",
-                    placeholder_texto="Registre aqui suas impressões, críticas ou sugestões sobre a avaliação...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+        # ==========================================
+                    # QUESITO 14.1 (Recursos de Acessibilidade - Checkbox)
+                    # ==========================================
+                    opcoes_141 = {
+                        "Calçadas com dimensões mínimas para a circulação": 0.0,
+                        "Sinalização tátil em pisos": 0.0,
+                        "Rampas de acesso": 0.0,
+                        "Escadas com corrimão": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="14.1",
+                        titulo="Recursos de Acessibilidade Oferecidos",
+                        pergunta="Informe os recursos de acessibilidade oferecidos pela Prefeitura:",
+                        tipo_input="checkbox",
+                        opcoes=opcoes_141,
+                        placeholder_link="Insira o link para relatórios, fotos ou projetos de acessibilidade...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-    # ==========================================
-                # DADOS EXTERNOS DO i-CIDADE: QUESITO C1
-                # ==========================================
-                opcoes_c1 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="C1",
-                    titulo="Inscrição no Programa Cidades Resilientes 2030 (MCR2030)",
-                    pergunta="O Município estava inscrito no Programa Construindo Cidades Resilientes 2030 da ONU?",
-                    opcoes=opcoes_c1,
-                    placeholder_link="Insira o link de comprovação de inscrição ou página no portal MCR2030...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 15.0 (Sinalização de Vias Públicas)
+                    # ==========================================
+                    opcoes_150 = {
+                        "Selecione...": 0.0,
+                        "Sim, integralmente - Todas as vias públicas municipais (50.0 pts)": 50.0,
+                        "Sim, parcialmente - Em parte das vias municipais (10.0 pts)": 10.0,
+                        "Não estão sinalizadas (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="15.0",
+                        titulo="Sinalização de Vias Públicas Pavimentadas",
+                        pergunta="As vias públicas pavimentadas estão devidamente sinalizadas (vertical e horizontalmente) de forma a garantir as condições adequadas de segurança na circulação?",
+                        opcoes=opcoes_150,
+                        placeholder_link="Insira o link para o plano de sinalização, ordens de serviço ou fotos...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
-                # ==========================================
-                # DADOS EXTERNOS DO i-CIDADE: QUESITO C1.1
-                # ==========================================
-                opcoes_c11 = {
-                    "Selecione...": 0.0,
-                    "Etapa A (10.0 pts)": 10.0,
-                    "Etapa B (20.0 pts)": 20.0,
-                    "Etapa C (50.0 pts)": 50.0,
-                    "Não classificada (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="C1.1",
-                    titulo="Estágio do Município no Programa MCR2030",
-                    pergunta="O Município foi classificado em qual estágio do Programa Construindo Cidades Resilientes 2030 da ONU?",
-                    opcoes=opcoes_c11,
-                    placeholder_link="Insira o link para a certidão ou relatório de classificação da ONU/MCR2030...",
-                    on_save_callback=render_conteudo.refresh,
-                )
+                    # ==========================================
+                    # QUESITO 16.0 (Manutenção de Vias Públicas)
+                    # ==========================================
+                    opcoes_160 = {
+                        "Selecione...": 0.0,
+                        "Sim, integralmente - Todas as vias públicas municipais (50.0 pts)": 50.0,
+                        "Sim, parcialmente - Em parte das vias municipais (10.0 pts)": 10.0,
+                        "Não estão adequadas (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="16.0",
+                        titulo="Manutenção de Vias Públicas Municipais",
+                        pergunta="Há manutenção adequada das vias públicas no Município? (De acordo com os Manuais do DNIT):",
+                        opcoes=opcoes_160,
+                        placeholder_link="Insira o link para relatórios de operação tapa-buracos, recapeamento ou certidões...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # QUESITO 17.1 (Impressões e Sugestões Finais)
+                    # ==========================================
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="17.1",
+                        titulo="Impressões, Comentários e Sugestões",
+                        pergunta="Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?",
+                        tipo_input="texto",
+                        placeholder_texto="Registre aqui suas impressões, críticas ou sugestões sobre a avaliação...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+        # ==========================================
+                    # DADOS EXTERNOS DO i-CIDADE: QUESITO C1
+                    # ==========================================
+                    opcoes_c1 = {
+                        "Selecione...": 0.0,
+                        "Sim (0.0 pts)": 0.0,
+                        "Não (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="C1",
+                        titulo="Inscrição no Programa Cidades Resilientes 2030 (MCR2030)",
+                        pergunta="O Município estava inscrito no Programa Construindo Cidades Resilientes 2030 da ONU?",
+                        opcoes=opcoes_c1,
+                        placeholder_link="Insira o link de comprovação de inscrição ou página no portal MCR2030...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
+
+                    # ==========================================
+                    # DADOS EXTERNOS DO i-CIDADE: QUESITO C1.1
+                    # ==========================================
+                    opcoes_c11 = {
+                        "Selecione...": 0.0,
+                        "Etapa A (10.0 pts)": 10.0,
+                        "Etapa B (20.0 pts)": 20.0,
+                        "Etapa C (50.0 pts)": 50.0,
+                        "Não classificada (0.0 pts)": 0.0,
+                    }
+                    render_quesito(
+                        ano=ano_sel,
+                        res_data=res_data,
+                        qid="C1.1",
+                        titulo="Estágio do Município no Programa MCR2030",
+                        pergunta="O Município foi classificado em qual estágio do Programa Construindo Cidades Resilientes 2030 da ONU?",
+                        opcoes=opcoes_c11,
+                        placeholder_link="Insira o link para a certidão ou relatório de classificação da ONU/MCR2030...",
+                        on_save_callback=render_conteudo.refresh,
+                    )
 
                 # String de conexão com o PostgreSQL
                 DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
@@ -2559,5 +2575,3 @@ def container_formulario_icidade(ano=None):
                     ui.button("📥 GERAR ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
     render_conteudo()
-
-   
