@@ -2351,14 +2351,14 @@ def container_formulario_icidade(ano=None):
                     elements.append(desenho_grafico)
 
                     # -------------------------------------------------------------------------
-                    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE - CONFORMIDADE OPERACIONAL)
+                    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE)
                     # -------------------------------------------------------------------------
-                    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE - CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
+                    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE)</b>", styles["h2"]))
                     elements.append(Spacer(1, 6))
 
                     lista_alvo_sp = [
                         "4.0", "11.0", "12.0", "13.0", "4.1", "5.1", 
-                        "5.1.2", "5.1.2.1", "7.3.1", "8.4.1", "8.1", "8.1.1", "12.1.3.1", "14.1"
+                        "5.1.2", "5.1.2.1", "7.3.1", "8.1", "8.1.1", "12.1.3.1", "14.1"
                     ]
 
                     analise_sp = []
