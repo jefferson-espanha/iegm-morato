@@ -3257,11 +3257,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     itens_sumario = [
         [Paragraph("1. Resumo Executivo e Evolução Comparativa", styles['ItemEsq']), Paragraph("Pág. 3", styles['PagDir'])],
         [Paragraph("2. Análise Detalhada de Desempenho por Quesito", styles['ItemEsq']), Paragraph("Pág. 3", styles['PagDir'])],
-        [Paragraph("3. Quadro de Penalidades e Impactos Negativos", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
-        [Paragraph("4. Diagnóstico de Reincidências de Fracasso", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
+        [Paragraph("3. Quadro de Penalidades", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
+        [Paragraph("4. Diagnóstico de Reincidências", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
         [Paragraph("5. Alinhamento com a Agenda 2030 (Metas ODS)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
-        [Paragraph("6. Evolução Temporal da Série Histórica (I-PLAN)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
-        [Paragraph("7. Quesitos de Conformidade Operacional (Sem Pontuação Direta)", styles['ItemEsq']), Paragraph("Pág. 6", styles['PagDir'])],
+        [Paragraph("6. Série Histórica (I-PLAN)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
+        [Paragraph("7. Quesitos Sem Pontuação Direta)", styles['ItemEsq']), Paragraph("Pág. 6", styles['PagDir'])],
     ]
 
     tabela_sumario = Table(itens_sumario, colWidths=[380, 100])
@@ -3566,9 +3566,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN - CONFORMIDADE OPERACIONAL)
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN - CONFORMIDADE OPERACIONAL)</b>", styles["Heading2"]))
+    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
     data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
