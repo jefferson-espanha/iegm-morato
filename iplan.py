@@ -685,8 +685,8 @@ def container_formulario_plan(ano=None):
                         # ==========================================
                         opcoes_11 = {
                             f"PPA inicial 2026-2029 – 01 pt": 1.0,
-                            f"LDO {ano_sel} – 01 pt": 1.0,
-                            f"LOA {ano_sel} – 01 pt": 1.0,
+                            f"LDO 2027 – 01 pt": 1.0,
+                            f"LOA 2027 – 01 pt": 1.0,
                         }
 
                         render_quesito(
@@ -778,7 +778,7 @@ def container_formulario_plan(ano=None):
                             "Convocação contendo o dia, horário e local através dos jornais, rádios, Portal da Prefeitura e plataformas digitais – 0,5 pt": 0.5,
                             "Estabelecimento da Pauta – 0,5 pt": 0.5,
                             "Disponibilização prévia de material de apoio a respeito dos temas a serem debatidos – 0,5 pt": 0.5,
-                            "Planejamento logístico (localização, acomodações, som, vídeo, iluminação, transmissão) – 01 pt": 1.0,
+                            "Planejamento logístico Ex.: localização do ambiente, acomodações adequadas aos participantes, regulação e testagem dos equipamentos eletrônicos (som, vídeo e iluminação), verificação dos equipamentos relacionados a transmissão das audiências etc. –) – 01 pt": 1.0,
                             "Indicação de mediador qualificado – 0,5 pt": 0.5,
                             "Estabelecimento da abordagem de interação – 0,5 pt": 0.5,
                             "Definição de mecanismos de avaliação – 0,5 pt": 0.5,
@@ -1206,7 +1206,7 @@ def container_formulario_plan(ano=None):
                         # ==========================================
                         opcoes_60 = {
                             "Custos estimados, indicadores e metas físicas que se correlacionam com as ações do governo municipal – 0,5 pt": 0.5,
-                            "Critérios para limitação de empenho e movimentação financeira (ressalvados dívida e inovação/desenvolvimento científico/tecnológico por fundo) – 0,5 pt": 0.5,
+                            "Critérios para limitação de empenho e movimentação financeira; ressalvados os pagamentos do serviço da dívida, os relativos à inovação e ao desenvolvimento científico e tecnológico custeadas por fundo criado para tal finalidade. – 0,5 pt": 0.5,         
                             "Critérios para o Poder Executivo estabelecer a programação financeira mensal para todo o Município, nele incluído a Câmara – 01 pt": 1.0,
                             "Percentual da RCL que será retido na peça orçamentária enquanto Reserva de Contingência – 01 pt": 1.0,
                             "Critérios para contratação de horas extras quando o Poder superar o limite prudencial para pessoal (Executivo: 51,30%; Legislativo: 5,7%) – 0,5 pt": 0.5,
@@ -1685,9 +1685,9 @@ def container_formulario_plan(ano=None):
                         # QUESITO 13.1 (Audiências Públicas Quadrimestrais - Checkbox)
                         # ==========================================
                         opcoes_131 = {
-                            "Realizou Audiência pública do 1º Quadrimestre até o final do mês de maio de 2025 – 02 pts": 2.0,
-                            "Realizou Audiência pública do 2º Quadrimestre até o final do mês de setembro de 2025 – 02 pts": 2.0,
-                            "Realizou Audiência pública do 3º Quadrimestre até o final do mês de fevereiro de 2026 – 02 pts": 2.0,
+                            "Realizou Audiência pública do 1º Quadrimestre até o final do mês de maio de 2026 – 02 pts": 2.0,
+                            "Realizou Audiência pública do 2º Quadrimestre até o final do mês de setembro de 2026 – 02 pts": 2.0,
+                            "Realizou Audiência pública do 3º Quadrimestre até o final do mês de fevereiro de 2027 – 02 pts": 2.0,
                             "Não realizou audiência pública quadrimestral dentro do prazo – 00 pts": 0.0,
                             "Não realizou nenhuma audiência pública quadrimestral na Câmara Municipal – -10 pts": -10.0,
                         }
@@ -1779,7 +1779,7 @@ def container_formulario_plan(ano=None):
                             res_data=res_data,
                             qid="13.3",
                             titulo="Retroalimentação para Replanejamento Orçamentário",
-                            pergunta="O acompanhamento e avaliação da execução orçamentária serve de retroalimentação para o replanejamento dos programas e metas das peças orçamentárias?",
+                            pergunta="O acompanhamento e avaliação da execução orçamentária serve de retroalimentação para o replanejamento dos programas e metas das peças orçamentárias?Caso não esteja disponível na internet, recomendamos anexar os Relatórios, conforme Instrução de Preenchimento (IP) no Sistema de Questionários",
                             tipo_input="radio",
                             opcoes=opcoes_133,
                             placeholder_link="Insira o link com evidências/relatórios de replanejamento...",
@@ -1901,7 +1901,7 @@ def container_formulario_plan(ano=None):
                         # ==========================================
                         opcoes_1441 = {
                             "Selecione...": 0.0,
-                            "Sim (Ocupa cargo efetivo) – 05 pts": 5.0,
+                            "Sim – 05 pts": 5.0,
                             "Não – 00 pts": 0.0,
                         }
                         render_quesito(
@@ -2000,7 +2000,7 @@ def container_formulario_plan(ano=None):
                         )
 
                         # ==========================================
-                        # QUESITO 14.4.4.2 (Comunicação de Irregularidade em 2025 - Radio)
+                        # QUESITO 14.4.4.2 (Comunicação de Irregularidade em 2026 - Radio)
                         # ==========================================
                         opcoes_14442 = {
                             "Selecione...": 0.0,
@@ -2012,8 +2012,8 @@ def container_formulario_plan(ano=None):
                             ano=ano_sel,
                             res_data=res_data,
                             qid="14.4.4.2",
-                            titulo="Comunicação de Irregularidades em 2025",
-                            pergunta="A Unidade Central de Controle Interno (UCCI) procedeu com alguma comunicação de irregularidade ou ilegalidade em 2025?",
+                            titulo="Comunicação de Irregularidades em 2026",
+                            pergunta="A Unidade Central de Controle Interno (UCCI) procedeu com alguma comunicação de irregularidade ou ilegalidade em 2026?",
                             tipo_input="radio",
                             opcoes=opcoes_14442,
                             placeholder_link="Insira o link com comprovação das comunicações expedidas...",
@@ -2323,7 +2323,7 @@ def container_formulario_plan(ano=None):
                         )
 
                         # ==========================================
-                        # QUESITO 15.4 (Relatório de Gestão da Ouvidoria 2025 - Radio)
+                        # QUESITO 15.4 (Relatório de Gestão da Ouvidoria 2026 - Radio)
                         # ==========================================
                         opcoes_154 = {
                             "Selecione...": 0.0,
@@ -2334,11 +2334,11 @@ def container_formulario_plan(ano=None):
                             ano=ano_sel,
                             res_data=res_data,
                             qid="15.4",
-                            titulo="Relatório de Gestão da Ouvidoria (Exercício 2025)",
-                            pergunta="A ouvidoria elaborou Relatório de Gestão do exercício de 2025 contendo a consolidação das manifestações encaminhadas pelos usuários de serviços públicos, e com base nelas, apontou falhas e sugeriu melhorias em sua prestação?",
+                            titulo="Relatório de Gestão da Ouvidoria (Exercício 2026)",
+                            pergunta="A ouvidoria elaborou Relatório de Gestão do exercício de 2026 contendo a consolidação das manifestações encaminhadas pelos usuários de serviços públicos, e com base nelas, apontou falhas e sugeriu melhorias em sua prestação?",
                             tipo_input="radio",
                             opcoes=opcoes_154,
-                            placeholder_link="Insira o link do Relatório de Gestão da Ouvidoria 2025...",
+                            placeholder_link="Insira o link do Relatório de Gestão da Ouvidoria 2026...",
                             on_save_callback=render_conteudo.refresh,
                         )
 
@@ -2365,7 +2365,7 @@ def container_formulario_plan(ano=None):
                         )
                    
                         # ==========================================
-                        # QUESITO 15.4.2 (Divulgação do Relatório de Gestão 2025 - Radio/Text)
+                        # QUESITO 15.4.2 (Divulgação do Relatório de Gestão 2026 - Radio/Text)
                         # ==========================================
                         # Regra de cálculo: Se XYZ perde -10 pts; Se <> XYZ ganha 0 pts.
                         opcoes_1542 = {
@@ -2376,8 +2376,8 @@ def container_formulario_plan(ano=None):
                             ano=ano_sel,
                             res_data=res_data,
                             qid="15.4.2",
-                            titulo="Divulgação do Relatório de Gestão de 2025 na Internet",
-                            pergunta="Informe a página eletrônica (link na internet) de divulgação do Relatório de Gestão do exercício de 2025 (Se não estiver disponível, inserir XYZ):",
+                            titulo="Divulgação do Relatório de Gestão de 2026 na Internet",
+                            pergunta="Informe a página eletrônica (link na internet) de divulgação do Relatório de Gestão do exercício de 2026 (Se não estiver disponível, inserir XYZ):",
                             tipo_input="radio",
                             opcoes=opcoes_1542,
                             placeholder_link="Cole o link do relatório ou digite XYZ...",
