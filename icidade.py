@@ -694,7 +694,7 @@ def container_formulario_icidade(ano=None):
                 # ==========================================
                 opcoes_21 = {
                     "Selecione...": 0.0,
-                    "Após 31/12/2023 [Até 2025] (30.0 pts)": 30.0,
+                    "Após 31/12/2023 [Até 2026] (30.0 pts)": 30.0,
                     "Até 31/12/2023 ou Sem Capacitação (0.0 pts)": 0.0,
                 }
                 render_quesito(
@@ -702,7 +702,7 @@ def container_formulario_icidade(ano=None):
                     res_data=res_data,
                     qid="2.1",
                     titulo="Data da Última Capacitação dos Agentes",
-                    pergunta="Qual a data da última capacitação dos agentes municipais para ações de Defesa Civil? (Atenção: Não considerar capacitações do ano corrente de 2026):",
+                    pergunta="Qual a data da última capacitação dos agentes municipais para ações de Defesa Civil? (Atenção: Não considerar capacitações do ano corrente de 2027):",
                     opcoes=opcoes_21,
                     placeholder_link="Informe a data no formato DD/MM/AAAA e insira o link da evidência...",
                     on_save_callback=render_conteudo.refresh,
