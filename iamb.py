@@ -1356,7 +1356,7 @@ def _render_formulario_iamb(ano=None):
                             sel_61_salvos = []
 
                         mapa_61 = {
-                            "plano_emergencial": ("Plano emergencial ou de contingenciamento (+30 pts)", 30.0),
+                            "plano_emergencial": ("Plano emergencial ou de contingenciamento sobre abastecimento de água no caso de sua escassez(+30 pts)", 30.0),
                             "manobra_agua": ("Manejo/manobras de água entre os reservatórios (0 pts)", 0.0),
                             "campanha": ("Campanha de conscientização da população (+5 pts)", 5.0),
                             "fontes_alt": ("Busca de fontes alternativas (poços artesianos) (0 pts)", 0.0),
@@ -1364,13 +1364,13 @@ def _render_formulario_iamb(ano=None):
                             "rodizio": ("Implantação de rodízio de fornecimento de água (0 pts)", 0.0),
                             "reduc_pressao": ("Redução da pressão no abastecimento de água (0 pts)", 0.0),
                             "multa": ("Multa em caso de desperdício de água (0 pts)", 0.0),
-                            "tarifa_dif": ("Tarifa/taxa diferenciada para aumento de consumo (0 pts)", 0.0),
+                            "tarifa_dif": ("Tarifa/taxa diferenciada para aumento de consumo de água (0 pts)", 0.0),
                             "caminhao_pipa": ("Fornecimento de caminhões pipa (0 pts)", 0.0),
                             "drenagem": ("Drenagem pluvial (0 pts)", 0.0),
                             "reuso": ("Incentivo à instalação de sistema para água de reúso (+5 pts)", 5.0),
                             "perdas": ("Redução das perdas na distribuição de água (0 pts)", 0.0),
                             "desassoreamento": ("Desassoreamento (0 pts)", 0.0),
-                            "divulgacao": ("Divulgação dos resultados obtidos e situação dos mananciais (+10 pts)", 10.0),
+                            "divulgacao": ("Divulgação dos resultados obtidos  com o contingenciamento, situação dos mananciais/represas/ETAs (+10 pts)", 10.0),
                         }
 
                         state_61 = {k: k in sel_61_salvos for k in mapa_61.keys()}
@@ -1436,7 +1436,7 @@ def _render_formulario_iamb(ano=None):
                         mapa_62 = {
                             "educacao": ("Rede Municipal de Educação (+10 pts)", 10.0),
                             "saude": ("Rede Municipal da Atenção Básica da Saúde (+10 pts)", 10.0),
-                            "outro": ("Outro setor (+5 pts)", 5.0),
+                            "outro": ("Outro (+5 pts)", 5.0),
                         }
 
                         state_62 = {k: k in sel_62_salvos for k in mapa_62.keys()}
@@ -1653,12 +1653,12 @@ def _render_formulario_iamb(ano=None):
                         mapa_731 = {
                             "expansao": ("Metas de expansão do serviço de abastecimento de água (0 pts)", 0.0),
                             "perdas": ("Metas de redução de perdas na distribuição de água tratada (+2,5 pts)", 2.5),
-                            "qualidade": ("Metas de qualidade na prestação do serviço (+2,5 pts)", 2.5),
+                            "qualidade": ("Metas de qualidade na prestação do serviço  de abastecimento de água (+2,5 pts)", 2.5),
                             "eficiencia": ("Metas de eficiência e de uso racional da água (+2,5 pts)", 2.5),
-                            "volume_percapita": ("Estabelecimento de volume mínimo de abastecimento per capita (+2,5 pts)", 2.5),
+                            "volume_percapita": ("Estabelecimento de volume mínimo de abastecimento água per capita (+2,5 pts)", 2.5),
                             "direitos_deveres": ("Estabelecimento de direitos e deveres dos usuários (+2,5 pts)", 2.5),
-                            "universalizacao_2033": ("Meta de universalização do abastecimento até 31/12/2033 (+2,5 pts)", 2.5),
-                            "cronograma": ("Estabelecimento de cronograma para atingimento das metas (+5,0 pts)", 5.0),
+                            "universalizacao_2033": ("Meta de universalização do abastecimento de água potável até 31/12/2033 (+2,5 pts)", 2.5),
+                            "cronograma": ("Estabelecimento de cronograma para atingimento das metas assinaladas acima (+5,0 pts)", 5.0),
                         }
 
                         state_731 = {k: k in sel_731_salvos for k in mapa_731.keys()}
