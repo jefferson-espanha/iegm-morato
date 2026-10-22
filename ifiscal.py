@@ -2374,8 +2374,7 @@ def container_formulario_ifiscal(ano=None):
                             res_data=res_data,
                             qid="14.0",
                             titulo="Execução Judicial da Dívida Ativa",
-                            pergunta="O Município possui dívida ativa executada de forma judicial em 2026
-                            ?",
+                            pergunta="O Município possui dívida ativa executada de forma judicial em 2026?",
                             tipo_input="radio",
                             opcoes=opcoes_14_0,
                             placeholder_link="Insira o relatório ou certidão das execuções ajuizadas...",
