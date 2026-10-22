@@ -777,7 +777,7 @@ def container_formulario_icidade(ano=None):
                 # ==========================================
                 opcoes_311 = {
                     "Selecione...": 0.0,
-                    "Após 31/12/2023 [Até 2025] (10.0 pts)": 10.0,
+                    "Após 31/12/2023 [Até 2026] (10.0 pts)": 10.0,
                     "Até 31/12/2023 ou Sem Treinamento (0.0 pts)": 0.0,
                 }
                 render_quesito(
@@ -785,7 +785,7 @@ def container_formulario_icidade(ano=None):
                     res_data=res_data,
                     qid="3.1.1",
                     titulo="Data do Último Treinamento de Voluntários",
-                    pergunta="Qual a data do último treinamento de associações de voluntários? (Atenção: Não considerar os treinamentos realizados em 2026):",
+                    pergunta="Qual a data do último treinamento de associações de voluntários? (Atenção: Não considerar os treinamentos realizados em 2027):",
                     opcoes=opcoes_311,
                     placeholder_link="Informe a data (DD/MM/AAAA) e insira o link do certificado ou ata...",
                     on_save_callback=render_conteudo.refresh,
@@ -934,45 +934,6 @@ def container_formulario_icidade(ano=None):
                     pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
                     opcoes=opcoes_512,
                     placeholder_link="Insira o link da documentação de monitoramento ou parecer...",
-                    on_save_callback=render_conteudo.refresh,
-                )
-
-    # ==========================================
-                # QUESITO 5.1.1 (Fiscalização de Áreas de Risco)
-                # ==========================================
-                opcoes_511 = {
-                    "Selecione...": 0.0,
-                    "Sim, integralmente (0.0 pts)": 0.0,
-                    "Sim, parcialmente (0.0 pts)": 0.0,
-                    "Não houve fiscalização (-100.0 pts)": -100.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1.1",
-                    titulo="Fiscalização das Áreas de Risco",
-                    pergunta="As secretarias setoriais realizaram a fiscalização das áreas de risco?",
-                    opcoes=opcoes_511,
-                    placeholder_link="Insira o link dos relatórios de fiscalização...",
-                    on_save_callback=render_conteudo.refresh,
-                )
-
-                # ==========================================
-                # QUESITO 5.1.2 (Possibilidade de Ocupação)
-                # ==========================================
-                opcoes_512 = {
-                    "Selecione...": 0.0,
-                    "Sim (0.0 pts)": 0.0,
-                    "Não (0.0 pts)": 0.0,
-                }
-                render_quesito(
-                    ano=ano_sel,
-                    res_data=res_data,
-                    qid="5.1.2",
-                    titulo="Áreas de Risco Sujeitas a Ocupação ou Invasão",
-                    pergunta="O município possui áreas de risco com possibilidade de ocupação/invasão?",
-                    opcoes=opcoes_512,
-                    placeholder_link="Insira o link do levantamento ou relatório de monitoramento...",
                     on_save_callback=render_conteudo.refresh,
                 )
 
