@@ -324,6 +324,11 @@ def render_quesito(
             elif tipo_input == "text":
                 return 0.0
             elif isinstance(opcao_sel, list):
+                if qid == "15.4.1" and tipo_input == "checkbox":
+                    # Penaliza cada informação obrigatória que não foi marcada.
+                    selecionados_validos = set(opcao_sel) & set(opcoes.keys())
+                    itens_nao_marcados = len(opcoes) - len(selecionados_validos)
+                    return -2.5 * itens_nao_marcados
                 return sum(opcoes.get(opt, 0.0) for opt in opcao_sel)
             return opcoes.get(opcao_sel, 0.0)
 
@@ -3261,7 +3266,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         [Paragraph("4. Diagnóstico de Reincidências", styles['ItemEsq']), Paragraph("Pág. 4", styles['PagDir'])],
         [Paragraph("5. Alinhamento com a Agenda 2030 (Metas ODS)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
         [Paragraph("6. Série Histórica (I-PLAN)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
-        [Paragraph("7. Quesitos Sem Pontuação Direta)", styles['ItemEsq']), Paragraph("Pág. 6", styles['PagDir'])],
+        [Paragraph("7. Quesitos Sem Pontuação Direta", styles['ItemEsq']), Paragraph("Pág. 6", styles['PagDir'])],
     ]
 
     tabela_sumario = Table(itens_sumario, colWidths=[380, 100])
