@@ -494,13 +494,8 @@ def _render_formulario_iamb(ano=None):
     @ui.refreshable
     def render_conteudo():
         ano_sel = int(app.storage.user.get("ano_referencia_global", ano_inicial))
+        # Mantém o ano escolhido, mesmo quando ainda não há respostas salvas nele.
         res_data = load_respostas(ano_sel)
-        if not res_data:
-            ano_com_dados = _obter_ano_com_respostas(ano_sel)
-            if ano_com_dados != ano_sel:
-                app.storage.user["ano_referencia_global"] = ano_com_dados
-                ano_sel = ano_com_dados
-                res_data = load_respostas(ano_sel)
 
         def alterar_ano(novo_ano):
             app.storage.user["ano_referencia_global"] = int(novo_ano)
