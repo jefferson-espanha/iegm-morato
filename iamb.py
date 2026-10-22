@@ -1813,11 +1813,11 @@ def _render_formulario_iamb(ano=None):
 
                         mapa_741 = {
                             "expansao_esgoto": ("Metas de expansão do serviço de coleta de esgoto (0 pts)", 0.0),
-                            "qualidade_esgoto": ("Metas de qualidade na prestação do serviço (+3,5 pts)", 3.5),
+                            "qualidade_esgoto": ("Metas de qualidade na prestação do serviço de coleta de esgoto (+3,5 pts)", 3.5),
                             "reuso_efluentes": ("Meta do reúso de efluentes sanitários (+3,5 pts)", 3.5),
                             "direitos_deveres_esgoto": ("Estabelecimento de direitos e deveres dos usuários (+3,5 pts)", 3.5),
                             "universalizacao_esgoto_2033": ("Meta de universalização da coleta de esgoto até 31/12/2033 (+3,5 pts)", 3.5),
-                            "cronograma_esgoto": ("Estabelecimento de cronograma para atingimento das metas (+6,0 pts)", 6.0),
+                            "cronograma_esgoto": ("Estabelecimento de cronograma para atingimento das metas assinaladas (+6,0 pts)", 6.0),
                         }
 
                         state_741 = {k: k in sel_741_salvos for k in mapa_741.keys()}
@@ -2060,11 +2060,11 @@ def _render_formulario_iamb(ano=None):
                             sel_761_salvos = []
 
                         mapa_761 = {
-                            "expansao_drenagem": ("Metas de expansão do serviço de drenagem e manejo de águas pluviais", 0.0),
-                            "qualidade_drenagem": ("Metas de qualidade na prestação do serviço de drenagem e manejo", 0.0),
+                            "expansao_drenagem": ("Metas de expansão do serviço de drenagem e manejo de águas pluviais urbanas", 0.0),
+                            "qualidade_drenagem": ("Metas de qualidade na prestação do serviço de drenagem e manejo  de águas pluviais urbanas", 0.0),
                             "aproveitamento_chuva": ("Metas de aproveitamento de águas da chuva", 0.0),
                             "direitos_deveres_drenagem": ("Estabelecimento de direitos e deveres dos usuários", 0.0),
-                            "cronograma_drenagem": ("Estabelecimento de cronograma para o atingimento das metas", 0.0),
+                            "cronograma_drenagem": ("Estabelecimento de cronograma para o atingimento das metas assinaladas acima", 0.0),
                         }
 
                         state_761 = {k: k in sel_761_salvos for k in mapa_761.keys()}
@@ -2243,7 +2243,7 @@ def _render_formulario_iamb(ano=None):
                             "nao_licitou": ("Não realizou licitação necessária", 0.0),
                             "pessoal": ("Falta de pessoal qualificado", 0.0),
                             "consenso_consorcio": ("Falta de consenso no consórcio intermunicipal", 0.0),
-                            "outros": ("Outros motivos", 0.0),
+                            "outros": ("Outros", 0.0),
                         }
 
                         state_7811 = {k: k in sel_7811_salvos for k in mapa_7811.keys()}
@@ -2296,7 +2296,7 @@ def _render_formulario_iamb(ano=None):
                         res_data=res_data,
                         qid="7.9",
                         titulo="Previsão para Áreas Prioritárias / Críticas",
-                        pergunta="Possui previsão para áreas prioritárias/críticas de abastecimento de água potável e esgotamento sanitário do município? (Ex: habitações precárias, mananciais degradados, áreas vulneráveis).",
+                        pergunta="Possui previsão para áreas prioritárias/críticas de abastecimento de água potável e esgotamento sanitário do município? (Ex: Áreas com assentamentos habitacionais precários, corpos de água degradados (em especial nas regiões de mananciais) ou áreas vulneráveis quanto aos indicadores de saúde pública.).",
                         opcoes=opcoes_79,
                         placeholder_link="Insira a página do plano ou mapa técnico identificando as áreas prioritárias...",
                         on_save_callback=render_conteudo.refresh,
