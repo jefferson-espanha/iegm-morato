@@ -3047,9 +3047,6 @@ def obter_regra_ods_iamb(qid, resp):
         metas = "11.6, 12.5, 12.4"
         pct = calcular_percentual_checklist(resp, 4)
         status = f"{pct:.1f}% Atendido"
-    elif qid in ["10.0", "10.1"]:
-        metas = "11.6, 12.5, 16.6"
-        status = "Atendido" if "sim" in resp_l else "Não Atendido"
     elif qid == "10.2":
         metas = "11.6, 12.5, 16.6"
         status = "Atendido" if "todos os bairros do município são atendidos" in resp_l else "Não Atendido"
