@@ -3019,7 +3019,7 @@ def obter_regra_ods_iamb(qid, resp):
         status = f"{pct:.1f}% Atendido"
     elif qid in ["7.0", "7.3"]:
         metas = "6.0, 16.6"
-        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        status = "Atendido" if "não" in resp_l else "Não Atendido"
     elif qid in ["7.4", "7.5"]:
         metas = "6.2, 6.3"
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
