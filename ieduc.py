@@ -23432,8 +23432,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
     faixas_turmas = [
         ("F1", "Até 13 alunos (Recomendado)"),
-        ("F2", "De 14 a 20 alunos"),
-        ("F3", "De 21 a 25 alunos"),
+        ("F2", "De 14 a 20 alunos (Razoável)"),
+        ("F3", "De 21 a 25 alunos (Ruim)"),
         ("F4", "Acima de 25 alunos (Crítico)"),
         ("TOTAL", "TOTAL DE TURMAS DE CRECHE"),
     ]
@@ -24495,10 +24495,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     q215_atual = extrair_dados_q215(dados_ano_atual)
 
     faixas_q215 = [
-        ("F1", "Até 22 alunos (F1 - Peso 1.0 - Ideal)", True),
-        ("F2", "De 23 a 25 alunos (F2 - Peso 0.5 - Moderado)", True),
-        ("F3", "De 26 a 30 alunos (F3 - Peso 0.25 - Alerta)", False),
-        ("F4", "Acima de 30 alunos (F4 - Peso 0.0 - Excessivo)", False),
+        ("F1", "Até 22 alunos (F1 - Recomendado)", True),
+        ("F2", "De 23 a 25 alunos (F2 - Razoável)", True),
+        ("F3", "De 26 a 30 alunos (F3 -  Alerta)", False),
+        ("F4", "Acima de 30 alunos (F4 - Crítico)", False),
         ("TOTAL", "TOTAL DE TURMAS ANALISADAS", None),
     ]
 
@@ -25184,10 +25184,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     q37_atual = extrair_dados_q37(dados_ano_atual)
 
     faixas_q37 = [
-        ("G1", "< 1 ano (G1 - Baixa Permanência)", False),
-        ("G2", "≥ 1 ano e < 3 anos (G2 - Permanência Inicial)", False),
+        ("G1", "< 1 ano (G1 - Permanência Crítica)", False),
+        ("G2", "≥ 1 ano e < 3 anos (G2 - Permanência Ruim)", False),
         ("G3", "≥ 3 anos e < 5 anos (G3 - Permanência Intermediária)", True),
-        ("G4", "≥ 5 anos e < 10 anos (G4 - Permanência Razoável)", True),
+        ("G4", "≥ 5 anos e < 10 anos (G4 - Permanência Boa)", True),
         ("G5", "≥ 10 anos e < 15 anos (G5 - Alta Permanência)", True),
         ("G6", "≥ 15 anos (G6 - Longa Trajetória)", True),
         ("TOTAL", "TOTAL DE GESTORES / ESCOLAS MAPEADAS", None)
