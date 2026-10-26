@@ -7052,19 +7052,17 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     lista_alvo_ifiscal = [
         "1.0",
-        "1.1",
-        "5.0",
+        "4.0",
         "7.0",
-        "7.6",
-        "7.6.1",
-        "8.0",
         "9.0",
-        "10.3",
-        "11.0",
-        "11.1",
-        "11.6",
-        "11.6.1",
+        "10.0",
         "12.0",
+        "14.0",
+        "15.0",
+        "18.0",
+        "24.0",
+        "25.0",
+        
     ]
 
     buffer = BytesIO()
@@ -7228,13 +7226,13 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         ],
         [
             Paragraph(
-                "6. Evolução Temporal da Série Histórica (I-FISCAL)", styles["ItemEsq"]
+                "6. Série Histórica (I-FISCAL)", styles["ItemEsq"]
             ),
             Paragraph("Pág. 5", styles["PagDir"]),
         ],
         [
             Paragraph(
-                "7. Quesitos de Conformidade Operacional (Sem Pontuação Direta)",
+                "7. Quesitos de Sem Pontuação Direta",
                 styles["ItemEsq"],
             ),
             Paragraph("Pág. 6", styles["PagDir"]),
@@ -8060,7 +8058,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     elements.append(
         Paragraph(
-            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)</b>",
+            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL)</b>",
             styles["Heading2"],
         )
     )
