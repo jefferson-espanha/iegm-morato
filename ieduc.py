@@ -25721,7 +25721,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_50, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+     # -------------------------------------------------------------------------
     # 📊 25. LIMITES CONSTITUCIONAIS E LEGAIS (INDICADORES E9, E10 E E11)
     # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>25. LIMITES CONSTITUCIONAIS E LEGAIS (E9, E10 E E11)</b>", styles["h2"]))
@@ -25733,50 +25733,66 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         dados_f = {
             "E9": {"val": 0.0, "status": "Sem Dados"},
             "E10": {"val": 0.0, "status": "Sem Dados"},
-            "E11": {"val": 0.0, "desp": 0.0, "rec": 0.0, "status": "Sem Dados"}
+            "E11": {"val": 0.0, "status": "Sem Dados"},
         }
         if not isinstance(dado_ano, dict):
             return dados_f
 
-        # Processamento E9 (Aplicação Total FUNDEB >= 90%)
-        d_e9 = dado_ano.get("E9", {})
-        v_e9 = d_e9.get("valor", "0") if isinstance(d_e9, dict) else str(d_e9)
-        try:
-            val_e9 = float(str(v_e9).replace(",", "."))
-            dados_f["E9"]["val"] = val_e9
-            dados_f["E9"]["status"] = "Regular" if val_e9 >= 90.0 else "Rebaixamento (Abaixo de 90%)"
-        except (ValueError, TypeError):
-            pass
+        def obter_payload(qid):
+            registro = dado_ano.get(qid, {})
+            if not isinstance(registro, dict):
+                return registro
+            # Formato atual: res_data[qid]["valor"] contém o dicionário salvo.
+            if "valor" in registro:
+                payload = registro.get("valor")
+                return payload if isinstance(payload, dict) else payload
+            # Compatibilidade com o formato antigo, em que os campos ficavam diretos.
+            return registro
 
-        # Processamento E10 (Valorização dos Profissionais FUNDEB >= 70%)
-        d_e10 = dado_ano.get("E10", {})
-        v_e10 = d_e10.get("valor", "0") if isinstance(d_e10, dict) else str(d_e10)
-        try:
-            val_e10 = float(str(v_e10).replace(",", "."))
-            dados_f["E10"]["val"] = val_e10
-            dados_f["E10"]["status"] = "Regular" if val_e10 >= 70.0 else "Rebaixamento (Abaixo de 70%)"
-        except (ValueError, TypeError):
-            pass
+        def numero(valor):
+            try:
+                return float(str(valor).strip().replace(",", "."))
+            except (TypeError, ValueError):
+                return 0.0
 
-        # Processamento E11 (Mínimo Constitucional 25% - DESP/REC)
-        d_e11 = dado_ano.get("E11", {})
-        v_e11 = d_e11.get("valor", "0/1") if isinstance(d_e11, dict) else str(d_e11)
-        try:
-            if "/" in str(v_e11):
-                parts = str(v_e11).split("/")
-                desp = float(parts[0])
-                rec = float(parts[1])
-                pe = (desp / max(rec, 0.01)) * 100.0
-            else:
-                pe = float(str(v_e11).replace(",", "."))
-                desp, rec = 0.0, 0.0
+        # E9: percentual aplicado do FUNDEB.
+        payload_e9 = obter_payload("E9")
+        if isinstance(payload_e9, dict):
+            val_e9 = numero(payload_e9.get("pct_fundeb"))
+        else:
+            val_e9 = numero(payload_e9)
+        dados_f["E9"]["val"] = val_e9
+        dados_f["E9"]["status"] = (
+            "Regular" if val_e9 >= 90.0 else "Rebaixamento (Abaixo de 90%)"
+        )
 
-            dados_f["E11"]["val"] = round(pe, 2)
-            dados_f["E11"]["desp"] = desp
-            dados_f["E11"]["rec"] = rec
-            dados_f["E11"]["status"] = "Regular" if pe >= 25.0 else "Descumprimento (Abaixo de 25%)"
-        except (ValueError, TypeError):
-            pass
+        # E10: percentual aplicado aos profissionais da educação.
+        payload_e10 = obter_payload("E10")
+        if isinstance(payload_e10, dict):
+            val_e10 = numero(payload_e10.get("pct_profissionais"))
+        else:
+            val_e10 = numero(payload_e10)
+        dados_f["E10"]["val"] = val_e10
+        dados_f["E10"]["status"] = (
+            "Regular" if val_e10 >= 70.0 else "Rebaixamento (Abaixo de 70%)"
+        )
+
+        # E11: percentual aplicado em educação. O formulário atual salva
+        # diretamente pct_educacao, sem despesa ou receita monetária.
+        payload_e11 = obter_payload("E11")
+        if isinstance(payload_e11, dict):
+            val_e11 = numero(payload_e11.get("pct_educacao"))
+            # Compatibilidade com registros antigos que ainda tinham despesa/receita.
+            if val_e11 == 0.0 and numero(payload_e11.get("receita_impostos")) > 0:
+                desp = numero(payload_e11.get("despesa_propria"))
+                rec = numero(payload_e11.get("receita_impostos"))
+                val_e11 = (desp / rec) * 100.0
+        else:
+            val_e11 = numero(payload_e11)
+        dados_f["E11"]["val"] = round(val_e11, 2)
+        dados_f["E11"]["status"] = (
+            "Regular" if val_e11 >= 25.0 else "Descumprimento (Abaixo de 25%)"
+        )
 
         return dados_f
 
