@@ -21536,91 +21536,71 @@ def container_formulario_ieduc(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E11 • Mínimo Constitucional em Educação (Regra de Rebaixamento)").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Aplicação da Despesa em Ensino com Recursos Próprios sobre a Receita de Impostos (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Percentual aplicado em educação com recursos próprios (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
 
                             d_e11, v_e11 = _carregar_valor_especial(res_data, "E11", "E110")
-                            val_desp = float(v_e11.get("despesa_propria") or 0.0)
-                            val_rec = float(v_e11.get("receita_impostos") or 0.0)
-                            link_e11 = str(d_e11.get("link") or "")
+                            pct_antigo = v_e11.get("pct_educacao")
+                            if pct_antigo is None:
+                                # Compatibilidade com registros antigos que ainda guardavam
+                                # despesa e receita: converte uma única vez para percentual.
+                                desp = float(v_e11.get("despesa_propria") or 0.0)
+                                rec = float(v_e11.get("receita_impostos") or 0.0)
+                                pct_antigo = (desp / rec) * 100.0 if rec > 0 else 0.0
 
                             state_e11 = {
-                                "despesa_propria": val_desp,
-                                "receita_impostos": val_rec,
-                                "pct_educacao": 0.0,
-                                "link": link_e11,
-                                "rebaixar": False,
+                                "pct_educacao": float(pct_antigo or 0.0),
+                                "link": str(d_e11.get("link") or ""),
+                                "rebaixar": bool(v_e11.get("rebaixar", False)),
                             }
 
                             lbl_pontos_e11 = ui.label("📊 Status Quesito E11: Ok").classes("text-sm font-bold text-green-600 mb-4 whitespace-pre-line")
 
                             def calc_e11():
-                                desp = state_e11["despesa_propria"]
-                                rec = state_e11["receita_impostos"]
-
-                                if rec > 0:
-                                    pct = (desp / rec) * 100.0
-                                else:
-                                    pct = 0.0
-
+                                pct = float(state_e11.get("pct_educacao") or 0.0)
                                 rebaixar = pct < 25.0
-                                state_e11["pct_educacao"] = pct
                                 state_e11["rebaixar"] = rebaixar
-
                                 str_pct = f"{pct:.2f}".replace(".", ",")
-                                str_desp = f"R$ {desp:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
-                                str_rec = f"R$ {rec:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
                                 if rebaixar:
                                     lbl_pontos_e11.set_text(
-                                        f"📊 Despesa Ensino: {str_desp} | Receita Impostos: {str_rec}\n"
-                                        f"Índice Apurado: {str_pct}% (Abaixo do mínimo constitucional de 25,00%)\n"
+                                        f"📊 Percentual aplicado em educação: {str_pct}% (Abaixo do mínimo constitucional de 25,00%)\n"
                                         f"⚠️ ATENÇÃO: REBAIXAR 1 FAIXA DO RESULTADO DO i-Educ!"
                                     )
                                     lbl_pontos_e11.classes(replace="text-green-600 text-red-600")
                                 else:
                                     lbl_pontos_e11.set_text(
-                                        f"📊 Despesa Ensino: {str_desp} | Receita Impostos: {str_rec}\n"
-                                        f"Índice Apurado: {str_pct}% (Conforme exigência constitucional >= 25,00%)\n"
+                                        f"📊 Percentual aplicado em educação: {str_pct}% (Conforme exigência constitucional >= 25,00%)\n"
                                         f"✅ Requisito cumprido. Não há rebaixamento de faixa."
                                     )
                                     lbl_pontos_e11.classes(replace="text-red-600 text-green-600")
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 ui.number(
-                                    label="Despesa Aplicada com Recursos Próprios (R$):",
-                                    value=state_e11["despesa_propria"],
+                                    label="Percentual Aplicado em Educação (%):",
+                                    value=state_e11["pct_educacao"],
                                     min=0.0,
-                                    step=1000.0,
+                                    max=100.0,
+                                    step=0.01,
                                     format="%.2f",
-                                    on_change=lambda e: [state_e11.update({"despesa_propria": float(e.value or 0.0)}), calc_e11()],
-                                ).classes("w-full").props("outlined color=blue")
-
-                                ui.number(
-                                    label="Receita de Impostos e Transferências (R$):",
-                                    value=state_e11["receita_impostos"],
-                                    min=0.0,
-                                    step=1000.0,
-                                    format="%.2f",
-                                    on_change=lambda e: [state_e11.update({"receita_impostos": float(e.value or 0.0)}), calc_e11()],
+                                    on_change=lambda e: [state_e11.update({"pct_educacao": float(e.value or 0.0)}), calc_e11()],
                                 ).classes("w-full").props("outlined color=blue")
 
                             ui.textarea(
                                 label="Link de Evidência / Fonte dos Dados (AUDESP):",
                                 value=state_e11["link"],
-                                placeholder="Link do balancete/relatório AUDESP comprobatório dos 25%...",
+                                placeholder="Link do relatório AUDESP comprobatório dos 25%...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e11, "link")
 
                             calc_e11()
 
                             def salvar_e11():
+                                # Salva apenas o percentual, sem valores monetários.
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="E11",
                                     valor={
-                                        "despesa_propria": state_e11["despesa_propria"],
-                                        "receita_impostos": state_e11["receita_impostos"],
-                                        "pct_educacao": state_e11["pct_educacao"],
-                                        "rebaixar": state_e11["rebaixar"],
+                                        "pct_educacao": float(state_e11["pct_educacao"] or 0.0),
+                                        "rebaixar": bool(state_e11["rebaixar"]),
                                     },
                                     pontos=0.0,
                                     link=state_e11["link"],
