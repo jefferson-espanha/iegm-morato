@@ -3568,46 +3568,50 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Spacer(1, 15))
 
 # -------------------------------------------------------------------------
-# 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)
-# -------------------------------------------------------------------------
-elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)</b>", styles["Heading2"]))
-elements.append(Spacer(1, 6))
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 6))
 
-data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
+    data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
 
-for qsp in lista_alvo_iplan:
-info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
-resp_sp = "-"
-status_sp = "Não Informado"
+    for qsp in lista_alvo_iplan:
+        info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
+        resp_sp = "-"
+        status_sp = "Não Informado"
 
-if info_sp:
-resp_sp = info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
+        if info_sp:
+            resp_sp = info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
+            
+            # Tratamento da resposta para comparação
+            resp_str = str(resp_sp).strip().lower()
+            
+            if resp_str in ["sim", "não", "nao"]:
+                # Normaliza a chave do quesito para comparação exata (ex: '7.0', 7.0 ou '7')
+                qsp_chave = str(qsp).strip()
+                
+                # Regra do Quesito 7.0: "Não" gera Conformidade
+                if qsp_chave in ["7.0", "7"]:
+                    status_sp = "Em Conformidade" if "não" in resp_str or "nao" in resp_str else "Fora de Conformidade"
+                # Regra Geral (1.3, 3.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0, 14.5, 15.0, 18.0): "Sim" gera Conformidade
+                else:
+                    status_sp = "Em Conformidade" if "sim" in resp_str else "Fora de Conformidade"
 
-resp_str = str(resp_sp).strip().lower()
+        data_sp.append([qsp, Paragraph(str(resp_sp), styles['TdStyle']), status_sp])
 
-if resp_str in ["sim", "não", "nao"]:
-qsp_chave = str(qsp).strip()
+    t_sp = Table(data_sp, colWidths=[100, 250, 130])
+    t_sp.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495E")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+        ("ALIGN", (2, 0), (2, -1), "CENTER"),
+    ]))
+    elements.append(t_sp)
 
-if qsp_chave in ["7.0", "7"]:
-status_sp = "Em Conformidade" if "não" in resp_str or "nao" in resp_str else "Fora de Conformidade"
-else:
-status_sp = "Em Conformidade" if "sim" in resp_str else "Fora de Conformidade"
-
-data_sp.append([qsp, Paragraph(str(resp_sp), styles['TdStyle']), status_sp])
-
-t_sp = Table(data_sp, colWidths=[100, 250, 130])
-t_sp.setStyle(TableStyle([
-("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495E")),
-("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-("ALIGN", (2, 0), (2, -1), "CENTER"),
-]))
-elements.append(t_sp)
-
-# Construção do Documento PDF
-doc.build(elements)
-return buffer.getvalue()
+    # Construção do Documento PDF
+    doc.build(elements)
+    return buffer.getvalue()
 
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
