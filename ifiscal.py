@@ -683,16 +683,16 @@ def container_formulario_ifiscal(ano=None):
                             val_1_2 = {"efetivo": 0, "comissao": 0, "terceirizado": 0}
 
                         state_1_2 = {
-                            "efetivo": int(val_1_2.get("efetivo", 0)),
-                            "comissao": int(val_1_2.get("comissao", 0)),
-                            "terceirizado": int(val_1_2.get("terceirizado", 0)),
+                            "efetivo": int(val_1_2.get("efetivo") or 0),
+                            "comissao": int(val_1_2.get("comissao") or 0),
+                            "terceirizado": int(val_1_2.get("terceirizado") or 0),
                             "link": dados_1_2.get("link", ""),
                         }
 
                         def calc_pts_1_2():
-                            ef = state_1_2["efetivo"]
-                            co = state_1_2["comissao"]
-                            ter = state_1_2["terceirizado"]
+                            ef = int(state_1_2["efetivo"] or 0)
+                            co = int(state_1_2["comissao"] or 0)
+                            ter = int(state_1_2["terceirizado"] or 0)
                             if ef > 0 and co == 0 and ter == 0:
                                 return 1.5
                             return 0.0
@@ -764,6 +764,14 @@ def container_formulario_ifiscal(ano=None):
                             ).classes("text-sm font-bold text-green-600 my-4")
 
                             def atualizar_impacto_1_2(e=None):
+                                if e and e.sender and e.value is not None:
+                                    if e.sender == num_efetivo:
+                                        state_1_2["efetivo"] = int(e.value)
+                                    elif e.sender == num_comissao:
+                                        state_1_2["comissao"] = int(e.value)
+                                    elif e.sender == num_terceirizado:
+                                        state_1_2["terceirizado"] = int(e.value)
+
                                 pts_att = calc_pts_1_2()
                                 label_impacto_1_2.set_text(
                                     f"📊 Impacto de Pontuação no Quesito 1.2: {pts_att:.1f} pontos"
@@ -775,9 +783,9 @@ def container_formulario_ifiscal(ano=None):
 
                             def salvar_1_2():
                                 valor_dict = {
-                                    "efetivo": state_1_2["efetivo"],
-                                    "comissao": state_1_2["comissao"],
-                                    "terceirizado": state_1_2["terceirizado"],
+                                    "efetivo": int(state_1_2["efetivo"] or 0),
+                                    "comissao": int(state_1_2["comissao"] or 0),
+                                    "terceirizado": int(state_1_2["terceirizado"] or 0),
                                 }
                                 pts_final = calc_pts_1_2()
                                 save_resposta(
