@@ -1296,7 +1296,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a quantidade de turmas de Creche em cada faixa de área por aluno (m²):"
+                                    "Informe a quantidade de turmas de Creche em que o espaço por aluno em sala de aula (área da sala dividido pelo nº de alunos) era: Considerar como sala de aula o local principal ocupado pelos alunos para seu ensino e aprendizagem pelos professores"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = 10 × (1.0×P1 + 0.5×P2 + 0.25×P3 + 0×P4) | Pmáx = 10 pts."
