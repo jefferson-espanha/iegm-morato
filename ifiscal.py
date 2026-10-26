@@ -689,22 +689,13 @@ def container_formulario_ifiscal(ano=None):
                             "link": dados_1_2.get("link", ""),
                         }
 
-                        def _inteiro_1_2(valor):
-                            """Converte com segurança valores vindos do ui.number ou do banco."""
-                            try:
-                                return max(0, int(float(valor or 0)))
-                            except (TypeError, ValueError):
-                                return 0
-
-                        def calc_pts_1_2(valores=None):
-                            """Aplica a regra do quesito 1.2 aos valores atuais ou informados."""
-                            valores = valores or state_1_2
-                            ef = _inteiro_1_2(valores.get("efetivo"))
-                            co = _inteiro_1_2(valores.get("comissao"))
-                            ter = _inteiro_1_2(valores.get("terceirizado"))
-                            # Regra: havendo qualquer cargo preenchido (efetivo,
-                            # comissão ou terceirizado), o quesito recebe 1,5 ponto.
-                            return 1.5 if (ef > 0 or co > 0 or ter > 0) else 0.0
+                        def calc_pts_1_2():
+                            ef = int(state_1_2["efetivo"] or 0)
+                            co = int(state_1_2["comissao"] or 0)
+                            ter = int(state_1_2["terceirizado"] or 0)
+                            if ef > 0 and co == 0 and ter == 0:
+                                return 1.5
+                            return 0.0
 
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -716,7 +707,7 @@ def container_formulario_ifiscal(ano=None):
                                 "Qual o número de cargos de fiscais/auditores tributários preenchidos?"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "ℹ Fórmula: Se houver qualquer cargo preenchido (efetivo, comissão ou terceirizado) -> 1,5 pts | Caso contrário -> 0,0 pts"
+                                "ℹ Fórmula: Se efetivos > 0 E comissão = 0 E terceirizados = 0 -> 1,5 pts | Caso contrário -> 0,0 pts"
                             ).classes("text-xs text-gray-500 mb-6")
 
                             with ui.grid(columns=2).classes(
@@ -791,15 +782,12 @@ def container_formulario_ifiscal(ano=None):
                             num_terceirizado.on("update:model-value", atualizar_impacto_1_2)
 
                             def salvar_1_2():
-                                # Monta o valor definitivo e calcula a pontuação a partir
-                                # exatamente dos dados que serão persistidos.
                                 valor_dict = {
-                                    "efetivo": _inteiro_1_2(state_1_2.get("efetivo")),
-                                    "comissao": _inteiro_1_2(state_1_2.get("comissao")),
-                                    "terceirizado": _inteiro_1_2(state_1_2.get("terceirizado")),
+                                    "efetivo": int(state_1_2["efetivo"] or 0),
+                                    "comissao": int(state_1_2["comissao"] or 0),
+                                    "terceirizado": int(state_1_2["terceirizado"] or 0),
                                 }
-                                state_1_2.update(valor_dict)
-                                pts_final = calc_pts_1_2(valor_dict)
+                                pts_final = calc_pts_1_2()
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="1.2",
@@ -6807,6 +6795,24 @@ def calcular_percentual_checklist(resp, total_itens):
     return min((qtd / total_itens) * 100.0, 100.0)
 
 
+def _checklist_tem_selecao(resp):
+    """Retorna True quando um checkbox possui pelo menos uma opção selecionada."""
+    if isinstance(resp, (list, tuple, set)):
+        return any(str(item).strip() for item in resp)
+    if isinstance(resp, str):
+        texto = resp.strip()
+        if not texto or texto in {"[]", "()", "{}"}:
+            return False
+        try:
+            convertido = json.loads(texto)
+            if isinstance(convertido, (list, tuple, set)):
+                return any(str(item).strip() for item in convertido)
+        except (TypeError, ValueError, json.JSONDecodeError):
+            pass
+        return texto not in {"['']", '[""]'}
+    return bool(resp)
+
+
 def obter_regra_ods_iamb(qid, resp):
     """Mapeia os quesitos do I-Fiscal para as metas da Agenda 2030 (ODS) e seu status."""
     resp_l = str(resp).strip().lower()
@@ -6833,14 +6839,20 @@ def obter_regra_ods_iamb(qid, resp):
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
     elif qid == "6.0":
         metas = "6.4, 6.b, 16.6"
-        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        # 6.0 é checkbox: qualquer opção selecionada atende, inclusive
+        # "Outros" e "Não há diferenciação nas alíquotas dos imóveis".
+        status = "Atendido" if _checklist_tem_selecao(resp) else "Não Atendido"
     elif qid == "6.2":
         metas = "6.4, 6.5, 6.b, 16.6"
         pct = calcular_percentual_checklist(resp, 3)
         status = f"{pct:.1f}% Atendido"
-    elif qid in ["7.0", "7.3"]:
+    elif qid == "7.0":
         metas = "6.0, 16.6"
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "7.3":
+        metas = "6.0, 16.6"
+        # 7.3 também é checkbox: qualquer critério selecionado atende.
+        status = "Atendido" if _checklist_tem_selecao(resp) else "Não Atendido"
     elif qid in ["7.4", "7.5"]:
         metas = "6.2, 6.3"
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -7617,14 +7629,20 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
         elif qid == "6.0":
             metas = "6.4, 6.b, 16.6"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
+            # 6.0 é checkbox: qualquer opção selecionada atende, inclusive
+            # "Outros" e "Não há diferenciação nas alíquotas dos imóveis".
+            status = "Atendido" if _checklist_tem_selecao(resp) else "Não Atendido"
         elif qid == "6.2":
             metas = "6.4, 6.5, 6.b, 16.6"
             pct = calcular_percentual_checklist(resp, 3)
             status = f"{pct:.1f}% Atendido"
-        elif qid in ["7.0", "7.3"]:
+        elif qid == "7.0":
             metas = "6.0, 16.6"
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        elif qid == "7.3":
+            metas = "6.0, 16.6"
+            # 7.3 também é checkbox: qualquer critério selecionado atende.
+            status = "Atendido" if _checklist_tem_selecao(resp) else "Não Atendido"
         elif qid in ["7.4", "7.5"]:
             metas = "6.2, 6.3"
             status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -7719,6 +7737,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         "11.0",
         "12.0",
         "13.0",
+        "14.0",
         "15.0",
     ]
 
@@ -7911,11 +7930,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL)
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)
     # -------------------------------------------------------------------------
     elements.append(
         Paragraph(
-            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL)</b>",
+            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)</b>",
             styles["Heading2"],
         )
     )
