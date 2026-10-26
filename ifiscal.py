@@ -7060,7 +7060,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         "14.0",
         "15.0",
         "18.0",
-        "24.0",
         "25.0",
         
     ]
