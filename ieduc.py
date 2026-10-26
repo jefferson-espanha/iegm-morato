@@ -21763,7 +21763,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         [Paragraph("23. Quantidade de Turmas dos Anos Iniciais por Faixa (Quesito 3.19)", style_item_esquerda), Paragraph("Pág. 14", style_pag_direita)],
         [Paragraph("24. Infraestrutura e Segurança Escolar (Quesito 5.0)", style_item_esquerda), Paragraph("Pág. 14", style_pag_direita)],
         [Paragraph("25. Limites Constitucionais e Legais (Indicadores E9, E10 e E11)", style_item_esquerda), Paragraph("Pág. 15", style_pag_direita)],
-        [Paragraph("26. Quesitos sem Pontuação Direta (Conformidade Operacional)", style_item_esquerda), Paragraph("Pág. 15", style_pag_direita)],
+        [Paragraph("26. Quesitos sem Pontuação Direta)", style_item_esquerda), Paragraph("Pág. 15", style_pag_direita)],
     ]
 
     tabela_sumario = Table(dados_sumario, colWidths=[380, 90])
@@ -22500,8 +22500,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     faixas_atual_13 = extrair_faixas_q13(dados_ano_atual)
 
     faixas_config_13 = [
-        ("F1", "Superior ou igual a 2,30 m² (F1 - Excelência)", True),
-        ("F2", "De 2,00 m² a 2,29 m² (F2 - Adequado)", True),
+        ("F1", "Superior ou igual a 2,30 m² (F1 -Adequado)", True),
+        ("F2", "De 2,00 m² a 2,29 m² (F2 - Razoável)", True),
         ("F3", "De 1,50 m² a 1,99 m² (F3 - Atenção)", False),
         ("F4", "Inferior a 1,50 m² (F4 - Crítico)", False),
         ("TOTAL", "TOTAL DE SALAS AVALIADAS", None)
@@ -22815,8 +22815,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     q18_atual = extrair_dados_q18(dados_ano_atual)
 
     faixas_q18 = [
-        ("F1", "Rotatividade < 20% (F1 - Excelência)", True),
-        ("F2", "Rotatividade ≥ 20% e < 30% (F2 - Adequado)", True),
+        ("F1", "Rotatividade < 20% (F1 - Adequado)", True),
+        ("F2", "Rotatividade ≥ 20% e < 30% (F2 - Razoável)", True),
         ("F3", "Rotatividade ≥ 30% e < 40% (F3 - Atenção)", False),
         ("F4", "Rotatividade ≥ 40% (F4 - Crítico)", False),
         ("TOTAL", "TOTAL DE ESCOLAS AVALIADAS", None),
@@ -23431,10 +23431,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     q115_atual = extrair_dados_q115(dados_ano_atual)
 
     faixas_turmas = [
-        ("F1", "Até 13 alunos (Faixa Ideal)"),
+        ("F1", "Até 13 alunos (Recomendado)"),
         ("F2", "De 14 a 20 alunos"),
         ("F3", "De 21 a 25 alunos"),
-        ("F4", "Acima de 25 alunos (Superlotação)"),
+        ("F4", "Acima de 25 alunos (Crítico)"),
         ("TOTAL", "TOTAL DE TURMAS DE CRECHE"),
     ]
 
@@ -23803,8 +23803,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
     # Parâmetros específicos do Quesito 2.3 (Pré-Escola)
     faixas_config_23 = [
-        ("F1", "Superior ou igual a 1,36 m² (F1 - Excelência)", True),
-        ("F2", "De 1,10 m² a 1,35 m² (F2 - Adequado)", True),
+        ("F1", "Superior ou igual a 1,36 m² (F1 -Adequado)", True),
+        ("F2", "De 1,10 m² a 1,35 m² (F2 - Razoável)", True),
         ("F3", "De 0,90 m² a 1,09 m² (F3 - Atenção)", False),
         ("F4", "Inferior a 0,90 m² (F4 - Crítico)", False),
         ("TOTAL", "TOTAL DE SALAS AVALIADAS", None)
@@ -24136,8 +24136,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     q28_atual = extrair_dados_q28(dados_ano_atual)
 
     faixas_q28 = [
-        ("R1", "Rotatividade < 20% (Q1 - Excelência)", True),
-        ("R2", "Rotatividade ≥ 20% e < 30% (Q2 - Adequado)", True),
+        ("R1", "Rotatividade < 20% (Q1 - Adequado)", True),
+        ("R2", "Rotatividade ≥ 20% e < 30% (Q2 -Razoável)", True),
         ("R3", "Rotatividade ≥ 30% e < 40% (Q3 - Atenção)", False),
         ("R4", "Rotatividade ≥ 40% (Q4 - Crítico)", False),
         ("TOTAL", "TOTAL DE ESCOLAS AVALIADAS", None)
@@ -24309,7 +24309,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         ("G3", "Permanência ≥ 3 anos e < 5 anos (G3 - Regular)", True),
         ("G4", "Permanência ≥ 5 anos e < 10 anos (G4 - Bom)", True),
         ("G5", "Permanência ≥ 10 anos e < 15 anos (G5 - Ótimo)", True),
-        ("G6", "Permanência ≥ 15 anos (G6 - Excelência)", True),
+        ("G6", "Permanência ≥ 15 anos (G6 - Adequado)", True),
         ("TOTAL", "TOTAL DE DIRETORES MAPEADOS", None)
     ]
 
@@ -24675,8 +24675,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     q31_atual = extrair_dados_q31(dados_ano_atual)
 
     faixas_q31 = [
-        ("F1", "≥ 1,875 m² por aluno (F1 - Ideal / Excelente)", True),
-        ("F2", "≥ 1,20 m² e < 1,875 m² (F2 - Adequado)", True),
+        ("F1", "≥ 1,875 m² por aluno (F1 - Adequado)", True),
+        ("F2", "≥ 1,20 m² e < 1,875 m² (F2 - Razoável)", True),
         ("F3", "≥ 1,00 m² e < 1,20 m² (F3 - Limite de Alerta)", False),
         ("F4", "< 1,00 m² por aluno (F4 - Inadequado / Crítico)", False),
         ("TOTAL", "TOTAL DE TURMAS MAPEADAS", None)
@@ -25187,7 +25187,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         ("G1", "< 1 ano (G1 - Baixa Permanência)", False),
         ("G2", "≥ 1 ano e < 3 anos (G2 - Permanência Inicial)", False),
         ("G3", "≥ 3 anos e < 5 anos (G3 - Permanência Intermediária)", True),
-        ("G4", "≥ 5 anos e < 10 anos (G4 - Permanência Consolidada)", True),
+        ("G4", "≥ 5 anos e < 10 anos (G4 - Permanência Razoável)", True),
         ("G5", "≥ 10 anos e < 15 anos (G5 - Alta Permanência)", True),
         ("G6", "≥ 15 anos (G6 - Longa Trajetória)", True),
         ("TOTAL", "TOTAL DE GESTORES / ESCOLAS MAPEADAS", None)
@@ -25347,10 +25347,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     q319_atual = extrair_dados_q319(dados_ano_atual)
 
     faixas_q319 = [
-        ("F1", "Até 24 alunos (Faixa Ideal - Pontuação Máxima)", True),
-        ("F2", "De 25 a 30 alunos (Faixa Adequada)", True),
-        ("F3", "De 31 a 33 alunos (Faixa de Alerta)", False),
-        ("F4", "Acima de 33 alunos (Superlotação / Crítico)", False),
+        ("F1", "Até 24 alunos (Adequada)", True),
+        ("F2", "De 25 a 30 alunos (Razoável)", True),
+        ("F3", "De 31 a 33 alunos (Ruim)", False),
+        ("F4", "Acima de 33 alunos (Crítico)", False),
         ("TOTAL", "TOTAL DE TURMAS APURADAS", None)
     ]
 
