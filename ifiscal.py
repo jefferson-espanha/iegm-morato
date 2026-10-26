@@ -7719,7 +7719,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         "11.0",
         "12.0",
         "13.0",
-        "14.0",
         "15.0",
     ]
 
@@ -7912,11 +7911,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL)
     # -------------------------------------------------------------------------
     elements.append(
         Paragraph(
-            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)</b>",
+            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL)</b>",
             styles["Heading2"],
         )
     )
