@@ -6734,8 +6734,6 @@ PONTUACOES_MAX_Fiscal = {
     "F2": 75.0,
     "F3": 100.0,
     "F4": 25.0,
-    "F5": 25.0,
-    "F8": 75.0,
     "F10": 75.0,
     "F12": 50.0,
     "F13": 50.0,
@@ -6743,8 +6741,7 @@ PONTUACOES_MAX_Fiscal = {
     "F15": 25.0,
     "F16": 25.0,
     "F17": 75.0,
-    "F18": 75.0,
-}
+    }
 
 # Aliases de compatibilidade para evitar NameError
 PONTUACOES_MAX_IAMB = PONTUACOES_MAX_Fiscal
