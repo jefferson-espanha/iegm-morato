@@ -6908,7 +6908,7 @@ def obter_regra_ods_iamb(qid, resp):
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
     elif qid == "14.0":
         metas = "11.6, 12.4"
-        status = "Atendido" if "não" in resp_l else "Não Atendido"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
     elif qid == "15.0":
         metas = "12.0, 16.6"
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
