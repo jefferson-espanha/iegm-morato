@@ -295,9 +295,8 @@ def render_quesito(
             qid=qid, res_data=res_data, on_save_callback=on_save_callback
         )
 
-# =============================================================================
+
 # PAINEL DE CONTROLE LATERAL
-# =============================================================================
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
