@@ -2993,8 +2993,6 @@ def obter_regra_ods_iamb(qid, resp):
     status = "Não Atendido"
 
     if qid in ["1.0", "1.1"]:
-        metas = "12.2, 15.2, 16.6"
-        status = "Atendido" if "sim" in resp_l else "Não Atendido"
     elif qid == "1.1.2":
         metas = "12.8"
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -3017,9 +3015,6 @@ def obter_regra_ods_iamb(qid, resp):
         metas = "6.4, 6.5, 6.b, 16.6"
         pct = calcular_percentual_checklist(resp, 3)
         status = f"{pct:.1f}% Atendido"
-    elif qid in ["7.0", "7.3"]:
-        metas = "6.0, 16.6"
-        status = "Atendido" if "não" in resp_l else "Não Atendido"
     elif qid in ["7.4", "7.5"]:
         metas = "6.2, 6.3"
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
