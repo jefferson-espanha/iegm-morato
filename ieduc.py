@@ -1457,7 +1457,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a quantidade de professores de Creche que: Considerar todos os professores efetivos e temporários (Dados Censo Escolar 2025)"
+                                    "Informe a quantidade de professores de Creche que: Considerar todos os professores efetivos e temporários (Dados Censo Escolar 2026)"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = N1 (Graduação - máx 11 pts) + N2 (Pós-Graduação - máx 7 pts) | Pmáx = 18 pts."
@@ -1532,7 +1532,7 @@ def container_formulario_ieduc(ano=None):
 
                                         inp_grad = (
                                             ui.number(
-                                                "Professores com Nível Superior / Licenciatura (GRAD):",
+                                                "Possuem formação de nível superior obtida em curso de licenciatura (GRAD):",
                                                 value=grad_i,
                                                 min=0,
                                                 step=1,
@@ -1557,7 +1557,7 @@ def container_formulario_ieduc(ano=None):
                                     ui.textarea(
                                         label="Link de Evidência / Documento:",
                                         value=evidencia_14,
-                                        placeholder="Insira o relatório do Censo Escolar 2025 ou relação de professores e diplomas...",
+                                        placeholder="Insira o relatório do Censo Escolar 2026 ou relação de professores e diplomas...",
                                     ).classes("w-full").props("outlined rows=8").bind_value(
                                         state_14, "link"
                                     )
@@ -1769,7 +1769,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o total de dias de ausência dos professores de Creche por categoria (ano de 2025):"
+                                    "Informe o total de dias de ausência dos professores de Creche por categoria (ano de 2026):"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Quesito declaratório / levantamento de absenteísmo."
@@ -1883,7 +1883,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Os profissionais de Creche da rede municipal participaram de cursos de capacitação durante o ano de 2025?"
+                                    "Os profissionais de Creche da rede municipal participaram de cursos de capacitação durante o ano de 2026?"
                                 ).classes("text-base font-bold text-black mb-4")
 
                                 d17 = res_data.get("1.7") or {}
@@ -1963,7 +1963,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("text-xl font-semibold text-blue-500 mb-3")
 
                                 ui.label(
-                                    "Informe a quantidade de profissionais de Creche (Exercício 2025):"
+                                    "Informe a quantidade de profissionais de Creche (Exercício 2026):"
                                 ).classes("text-base font-bold text-black mb-1")
 
                                 ui.label(
@@ -2045,7 +2045,7 @@ def container_formulario_ieduc(ano=None):
                                 with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                     with ui.column().classes("w-full gap-3"):
                                         ui.label(
-                                            "PROFISSIONAIS CAPACITADOS EM 2025:"
+                                            "PROFISSIONAIS CAPACITADOS EM 2026:"
                                         ).classes("font-bold text-xs text-blue-800 uppercase")
 
                                         inp_pcap = ui.number(
@@ -2500,7 +2500,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Indique a quantidade de escolas por tempo de permanência do diretor/gestor de Creche (ao final de 2025):"
+                                    "Indique a quantidade de escolas por tempo de permanência do diretor/gestor de Creche (ao final de 2026):"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = 0×Q1 + 0.5×Q2 + 1.0×Q3 + 1.5×Q4 + 1.75×Q5 + 2.0×Q6 | Pmáx = 2.0 pts."
@@ -2801,16 +2801,16 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("1.10.1", res_data, render_conteudo.refresh)
 
             # =============================================================================
-                            # QUESITO 1.11 (Entrega do Kit Escolar às Creches em 2025)
+                            # QUESITO 1.11 (Entrega do Kit Escolar às Creches em 2026)
                             # =============================================================================
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
-                                ui.label("1.11 • Entrega do Kit Escolar às Creches em 2025").classes(
+                                ui.label("1.11 • Entrega do Kit Escolar às Creches em 2026").classes(
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Houve entrega do Kit escolar às Creches municipais no ano de 2025?"
+                                    "Houve entrega do Kit escolar às Creches municipais no ano de 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Kit escolar = material escolar e pedagógico."
@@ -2906,7 +2906,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a data da última entrega e a data de início das aulas em 2025:"
+                                    "Informe a data da última entrega e a data de início das aulas em 2026:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: ≤ Início Aulas = 18.0 pts | < Início + 15 dias = 9.0 pts | ≥ Início + 15 dias = 3.0 pts."
@@ -2915,7 +2915,7 @@ def container_formulario_ieduc(ano=None):
                                 d1111 = res_data.get("1.11.1") or {}
                                 raw_link_1111 = str(d1111.get("link") or "")
 
-                                dt_entrega_i, dt_inicio_i = "", "05/02/2025"
+                                dt_entrega_i, dt_inicio_i = "", "05/02/2026"
                                 evidencia_1111 = raw_link_1111
 
                                 if "|LINK:" in raw_link_1111:
@@ -2923,7 +2923,7 @@ def container_formulario_ieduc(ano=None):
                                     m_ent = re.search(r"ENTREGA:([\d/]+)", partes_1111)
                                     m_ini = re.search(r"INICIO:([\d/]+)", partes_1111)
                                     dt_entrega_i = m_ent.group(1) if m_ent else ""
-                                    dt_inicio_i = m_ini.group(1) if m_ini else "05/02/2025"
+                                    dt_inicio_i = m_ini.group(1) if m_ini else "05/02/2026"
                                 elif d1111.get("valor"):
                                     dt_entrega_i = str(d1111.get("valor"))
 
@@ -2953,13 +2953,13 @@ def container_formulario_ieduc(ano=None):
                                         inp_dt_ent_1111 = ui.input(
                                             label="Data da última entrega (DD/MM/AAAA):",
                                             value=dt_entrega_i,
-                                            placeholder="Ex: 03/02/2025",
+                                            placeholder="Ex: 03/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_1111, "dt_entrega")
 
                                         inp_dt_ini_1111 = ui.input(
                                             label="Data de início das aulas (DD/MM/AAAA):",
                                             value=dt_inicio_i,
-                                            placeholder="Ex: 05/02/2025",
+                                            placeholder="Ex: 05/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_1111, "dt_inicio")
 
                                     ui.textarea(
@@ -3072,16 +3072,16 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("1.11.2", res_data, render_conteudo.refresh)
 
                             # =============================================================================
-                            # QUESITO 1.12 (Entrega de Material Didático às Creches em 2025)
+                            # QUESITO 1.12 (Entrega de Material Didático às Creches em 2026)
                             # =============================================================================
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
-                                ui.label("1.12 • Entrega de Material Didático às Creches em 2025").classes(
+                                ui.label("1.12 • Entrega de Material Didático às Creches em 2026").classes(
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Houve entrega do material didático (livros, apostilas, etc.) às Creches municipais em 2025?"
+                                    "Houve entrega do material didático (livros, apostilas, etc.) às Creches municipais em 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Apostilas/livros fornecidos pelo Município, Estado ou Governo Federal."
@@ -3177,7 +3177,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a data da última entrega e a data de início das aulas em 2025:"
+                                    "Informe a data da última entrega e a data de início das aulas em 2026:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: ≤ Início Aulas = 18.0 pts | < Início + 15 dias = 9.0 pts | ≥ Início + 15 dias = 3.0 pts."
@@ -3186,7 +3186,7 @@ def container_formulario_ieduc(ano=None):
                                 d1121 = res_data.get("1.12.1") or {}
                                 raw_link_1121 = str(d1121.get("link") or "")
 
-                                dt_entrega_mat_i, dt_inicio_mat_i = "", "05/02/2025"
+                                dt_entrega_mat_i, dt_inicio_mat_i = "", "05/02/2026"
                                 evidencia_1121 = raw_link_1121
 
                                 if "|LINK:" in raw_link_1121:
@@ -3194,7 +3194,7 @@ def container_formulario_ieduc(ano=None):
                                     m_ent = re.search(r"ENTREGA:([\d/]+)", partes_1121)
                                     m_ini = re.search(r"INICIO:([\d/]+)", partes_1121)
                                     dt_entrega_mat_i = m_ent.group(1) if m_ent else ""
-                                    dt_inicio_mat_i = m_ini.group(1) if m_ini else "05/02/2025"
+                                    dt_inicio_mat_i = m_ini.group(1) if m_ini else "05/02/2026"
                                 elif d1121.get("valor"):
                                     dt_entrega_mat_i = str(d1121.get("valor"))
 
@@ -3224,13 +3224,13 @@ def container_formulario_ieduc(ano=None):
                                         inp_dt_ent_1121 = ui.input(
                                             label="Data da última entrega (DD/MM/AAAA):",
                                             value=dt_entrega_mat_i,
-                                            placeholder="Ex: 02/02/2025",
+                                            placeholder="Ex: 02/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_1121, "dt_entrega")
 
                                         inp_dt_ini_1121 = ui.input(
                                             label="Data de início das aulas (DD/MM/AAAA):",
                                             value=dt_inicio_mat_i,
-                                            placeholder="Ex: 05/02/2025",
+                                            placeholder="Ex: 05/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_1121, "dt_inicio")
 
                                     ui.textarea(
@@ -3343,7 +3343,7 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("1.12.2", res_data, render_conteudo.refresh)
 
                             # =============================================================================
-                            # QUESITO 1.13 (Pesquisa/Estudo sobre Demanda por Creches em 2025)
+                            # QUESITO 1.13 (Pesquisa/Estudo sobre Demanda por Creches em 2026)
                             # =============================================================================
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -3352,7 +3352,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "A Prefeitura municipal fez uma pesquisa/estudo para levantar o número de crianças que necessitavam de Creches em 2025?"
+                                    "A Prefeitura municipal fez uma pesquisa/estudo para levantar o número de crianças que necessitavam de Creches em 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Pontuação: Sim = 50.0 pts | Não = 0.0 pts."
@@ -3510,7 +3510,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o número de solicitações de vagas (0 a 3 anos) até 31/12/2025 e o total de vagas ofertadas:"
+                                    "Informe o número de solicitações de vagas (0 a 3 anos) até 31/12/2026 e o total de vagas ofertadas:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Regra: Se Solicitações (Demanda) > Vagas Ofertadas (Oferta) → Perde 50.0 pts (-50.0) | Caso contrário → 0.0 pts."
@@ -3546,7 +3546,7 @@ def container_formulario_ieduc(ano=None):
                                     with ui.column().classes("w-full gap-3"):
                                         inp_demanda = (
                                             ui.number(
-                                                "Nº de crianças (0-3 anos) que solicitaram vaga até 31/12/2025:",
+                                                "Nº de crianças (0-3 anos) que solicitaram vaga até 31/12/2026:",
                                                 value=demanda_i,
                                                 min=0,
                                                 step=1,
@@ -3558,7 +3558,7 @@ def container_formulario_ieduc(ano=None):
 
                                         inp_oferta = (
                                             ui.number(
-                                                "Nº de vagas de creche OFERTADAS em 2025:",
+                                                "Nº de vagas de creche OFERTADAS em 2026:",
                                                 value=oferta_i,
                                                 min=0,
                                                 step=1,
@@ -4414,7 +4414,7 @@ def container_formulario_ieduc(ano=None):
                                             ui.input(
                                                 label="Data da Entrega (DD/MM/AAAA):",
                                                 value=data_val_223,
-                                                placeholder="Ex: 20/02/2025",
+                                                placeholder="Ex: 20/02/2026",
                                             )
                                             .classes("w-full")
                                             .props("outlined color=blue")
@@ -4641,7 +4641,7 @@ def container_formulario_ieduc(ano=None):
                                     ui.textarea(
                                         label="Link de Evidência / Documento:",
                                         value=evidencia_24,
-                                        placeholder="Insira os relatórios do Censo Escolar 2025 ou relação de professores da pré-escola...",
+                                        placeholder="Insira os relatórios do Censo Escolar 2026 ou relação de professores da pré-escola...",
                                     ).classes("w-full").props("outlined rows=8").bind_value(
                                         state_24, "link"
                                     )
@@ -4852,7 +4852,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o total de dias de ausência dos professores de Pré-escola por categoria (ano de 2025):"
+                                    "Informe o total de dias de ausência dos professores de Pré-escola por categoria (ano de 2026):"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Quesito declaratório / levantamento de absenteísmo."
@@ -4962,11 +4962,11 @@ def container_formulario_ieduc(ano=None):
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
-                                ui.label("2.7 • Capacitação dos Profissionais de Pré-escola em 2025").classes(
+                                ui.label("2.7 • Capacitação dos Profissionais de Pré-escola em 2026").classes(
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Os profissionais de Pré-escola da rede municipal participaram de cursos de capacitação durante o ano de 2025?"
+                                    "Os profissionais de Pré-escola da rede municipal participaram de cursos de capacitação durante o ano de 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label("ℹ Quesito triagem.").classes(
                                     "text-xs text-gray-400 mb-6"
@@ -5028,7 +5028,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a quantidade de profissionais de Pré-escola capacitados e o total do quadro em 2025:"
+                                    "Informe a quantidade de profissionais de Pré-escola capacitados e o total do quadro em 2026:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: PC = (Prof. Capacitados + Apoio Capacitados + Gestores Capacitados) / (Total Geral) | PC = 100%: 7 pts | 70% ≤ PC < 100%: 5 pts | 50% ≤ PC < 70%: 3 pts"
@@ -5086,7 +5086,7 @@ def container_formulario_ieduc(ano=None):
 
                                 with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                     with ui.column().classes("w-full gap-3"):
-                                        ui.label("CAPACITADOS EM 2025:").classes("font-bold text-xs text-blue-800 uppercase")
+                                        ui.label("CAPACITADOS EM 2026:").classes("font-bold text-xs text-blue-800 uppercase")
                                         inp_pcap_27 = ui.number("Professores regentes capacitados:", value=prof_cap_p_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_271, "prof_cap")
                                         inp_acap_27 = ui.number("Profissionais de apoio/supervisão capacitados:", value=apoio_cap_p_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_271, "apoio_cap")
                                         inp_gcap_27 = ui.number("Gestores escolares capacitados:", value=gest_cap_p_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_271, "gest_cap")
@@ -5403,7 +5403,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Indique a quantidade de escolas por tempo de permanência do diretor/gestor de Pré-escola (ao final de 2025):"
+                                    "Indique a quantidade de escolas por tempo de permanência do diretor/gestor de Pré-escola (ao final de 2026):"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = 0×Q1 + 0.5×Q2 + 1.0×Q3 + 1.5×Q4 + 1.75×Q5 + 2.0×Q6 | Pmáx = 2.0 pts."
@@ -5701,16 +5701,16 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("2.10.1", res_data, render_conteudo.refresh)
 
                             # =============================================================================
-                            # QUESITO 2.11 (Entrega do Kit Escolar às Pré-escolas em 2025)
+                            # QUESITO 2.11 (Entrega do Kit Escolar às Pré-escolas em 2026)
                             # =============================================================================
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
-                                ui.label("2.11 • Entrega do Kit Escolar às Pré-escolas em 2025").classes(
+                                ui.label("2.11 • Entrega do Kit Escolar às Pré-escolas em 2026").classes(
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Houve entrega do Kit escolar às Pré-Escolas municipais em 2025?"
+                                    "Houve entrega do Kit escolar às Pré-Escolas municipais em 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Kit escolar = material escolar e pedagógico."
@@ -5806,7 +5806,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a data da última entrega e a data de início das aulas em 2025:"
+                                    "Informe a data da última entrega e a data de início das aulas em 2026:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: ≤ Início Aulas = 18.0 pts | < Início + 15 dias = 9.0 pts | ≥ Início + 15 dias = 3.0 pts."
@@ -5815,7 +5815,7 @@ def container_formulario_ieduc(ano=None):
                                 d2111 = res_data.get("2.11.1") or {}
                                 raw_link_2111 = str(d2111.get("link") or "")
 
-                                dt_entrega_p_i, dt_inicio_p_i = "", "05/02/2025"
+                                dt_entrega_p_i, dt_inicio_p_i = "", "05/02/2026"
                                 evidencia_2111 = raw_link_2111
 
                                 if "|LINK:" in raw_link_2111:
@@ -5823,7 +5823,7 @@ def container_formulario_ieduc(ano=None):
                                     m_ent = re.search(r"ENTREGA:([\d/]+)", partes_2111)
                                     m_ini = re.search(r"INICIO:([\d/]+)", partes_2111)
                                     dt_entrega_p_i = m_ent.group(1) if m_ent else ""
-                                    dt_inicio_p_i = m_ini.group(1) if m_ini else "05/02/2025"
+                                    dt_inicio_p_i = m_ini.group(1) if m_ini else "05/02/2026"
                                 elif d2111.get("valor"):
                                     dt_entrega_p_i = str(d2111.get("valor"))
 
@@ -5853,13 +5853,13 @@ def container_formulario_ieduc(ano=None):
                                         inp_dt_ent_2111 = ui.input(
                                             label="Data da última entrega (DD/MM/AAAA):",
                                             value=dt_entrega_p_i,
-                                            placeholder="Ex: 03/02/2025",
+                                            placeholder="Ex: 03/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_2111, "dt_entrega")
 
                                         inp_dt_ini_2111 = ui.input(
                                             label="Data de início das aulas (DD/MM/AAAA):",
                                             value=dt_inicio_p_i,
-                                            placeholder="Ex: 05/02/2025",
+                                            placeholder="Ex: 05/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_2111, "dt_inicio")
 
                                     ui.textarea(
@@ -5977,11 +5977,11 @@ def container_formulario_ieduc(ano=None):
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
-                                ui.label("2.12 • Entrega de Material Didático na Pré-escola em 2025").classes(
+                                ui.label("2.12 • Entrega de Material Didático na Pré-escola em 2026").classes(
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Houve entrega do material didático (livros, apostilas, etc.) às Pré-Escolas municipais em 2025?"
+                                    "Houve entrega do material didático (livros, apostilas, etc.) às Pré-Escolas municipais em 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Apostilas/livros fornecidos pelo Município, Estado ou Governo Federal."
@@ -6077,7 +6077,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a data da última entrega e a data de início das aulas em 2025:"
+                                    "Informe a data da última entrega e a data de início das aulas em 2026:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: ≤ Início Aulas = 18.0 pts | < Início + 15 dias = 9.0 pts | ≥ Início + 15 dias = 3.0 pts."
@@ -6086,7 +6086,7 @@ def container_formulario_ieduc(ano=None):
                                 d2121 = res_data.get("2.12.1") or {}
                                 raw_link_2121 = str(d2121.get("link") or "")
 
-                                dt_entrega_p2_i, dt_inicio_p2_i = "", "05/02/2025"
+                                dt_entrega_p2_i, dt_inicio_p2_i = "", "05/02/2026"
                                 evidencia_2121 = raw_link_2121
 
                                 if "|LINK:" in raw_link_2121:
@@ -6094,7 +6094,7 @@ def container_formulario_ieduc(ano=None):
                                     m_ent = re.search(r"ENTREGA:([\d/]+)", partes_2121)
                                     m_ini = re.search(r"INICIO:([\d/]+)", partes_2121)
                                     dt_entrega_p2_i = m_ent.group(1) if m_ent else ""
-                                    dt_inicio_p2_i = m_ini.group(1) if m_ini else "05/02/2025"
+                                    dt_inicio_p2_i = m_ini.group(1) if m_ini else "05/02/2026"
                                 elif d2121.get("valor"):
                                     dt_entrega_p2_i = str(d2121.get("valor"))
 
@@ -6124,13 +6124,13 @@ def container_formulario_ieduc(ano=None):
                                         inp_dt_ent_2121 = ui.input(
                                             label="Data da última entrega (DD/MM/AAAA):",
                                             value=dt_entrega_p2_i,
-                                            placeholder="Ex: 02/02/2025",
+                                            placeholder="Ex: 02/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_2121, "dt_entrega")
 
                                         inp_dt_ini_2121 = ui.input(
                                             label="Data de início das aulas (DD/MM/AAAA):",
                                             value=dt_inicio_p2_i,
-                                            placeholder="Ex: 05/02/2025",
+                                            placeholder="Ex: 05/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_2121, "dt_inicio")
 
                                     ui.textarea(
@@ -6243,7 +6243,7 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("2.12.2", res_data, render_conteudo.refresh)
 
                             # =============================================================================
-                            # QUESITO 2.13 (Pesquisa/Estudo sobre Demanda por Pré-escola em 2025)
+                            # QUESITO 2.13 (Pesquisa/Estudo sobre Demanda por Pré-escola em 2026)
                             # =============================================================================
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -6252,7 +6252,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "A Prefeitura municipal fez uma pesquisa/estudo para levantar o número de crianças que necessitavam de Pré-escola em 2025?"
+                                    "A Prefeitura municipal fez uma pesquisa/estudo para levantar o número de crianças que necessitavam de Pré-escola em 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Pontuação: Sim = 50.0 pts | Não = 0.0 pts."
@@ -6410,7 +6410,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o número de solicitações de vagas (4 a 5 anos) até 31/12/2025 e o total de vagas ofertadas:"
+                                    "Informe o número de solicitações de vagas (4 a 5 anos) até 31/12/2026 e o total de vagas ofertadas:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Regra: Se Solicitações (Demanda) > Vagas Ofertadas (Oferta) → Perde 50.0 pts (-50.0) | Caso contrário → 0.0 pts."
@@ -6446,7 +6446,7 @@ def container_formulario_ieduc(ano=None):
                                     with ui.column().classes("w-full gap-3"):
                                         inp_demanda_214 = (
                                             ui.number(
-                                                "Nº de crianças (4-5 anos) que solicitaram vaga até 31/12/2025:",
+                                                "Nº de crianças (4-5 anos) que solicitaram vaga até 31/12/2026:",
                                                 value=demanda_214_i,
                                                 min=0,
                                                 step=1,
@@ -6458,7 +6458,7 @@ def container_formulario_ieduc(ano=None):
 
                                         inp_oferta_214 = (
                                             ui.number(
-                                                "Nº de vagas de pré-escola OFERTADAS em 2025:",
+                                                "Nº de vagas de pré-escola OFERTADAS em 2026:",
                                                 value=oferta_214_i,
                                                 min=0,
                                                 step=1,
@@ -6826,7 +6826,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a quantidade de professores regentes dos Anos Iniciais (efetivos e temporários - Dados Censo Escolar 2025) e a quantidade com Licenciatura e Pós-graduação:"
+                                "Informe a quantidade de professores regentes dos Anos Iniciais (efetivos e temporários - Dados Censo Escolar 2026) e a quantidade com Licenciatura e Pós-graduação:"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Regras:\n"
@@ -6929,7 +6929,7 @@ def container_formulario_ieduc(ano=None):
                                     ui.textarea(
                                         label="Link de Evidência / Documento:",
                                         value=evidencia_32,
-                                        placeholder="Insira os relatórios do Censo Escolar 2025, diplomas ou dados do RH...",
+                                        placeholder="Insira os relatórios do Censo Escolar 2026, diplomas ou dados do RH...",
                                     )
                                     .classes("w-full")
                                     .props("outlined rows=8")
@@ -7171,7 +7171,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a quantidade total de dias de ausência dos professores dos Anos Iniciais em 2025:"
+                                "Informe a quantidade total de dias de ausência dos professores dos Anos Iniciais em 2026:"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Quesito quantitativo e declaratório para composição do indicador de faltas/licenças."
@@ -7270,7 +7270,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Os profissionais dos Anos Iniciais da rede municipal participaram de cursos de capacitação durante o ano de 2025?"
+                                "Os profissionais dos Anos Iniciais da rede municipal participaram de cursos de capacitação durante o ano de 2026?"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Quesito declaratório."
@@ -7475,7 +7475,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Assinale as modalidades de capacitação utilizadas em 2025:"
+                                    "Assinale as modalidades de capacitação utilizadas em 2026:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Quesito declaratório de múltipla escolha."
@@ -7663,7 +7663,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Indique a quantidade de escolas municipais divididas pelo tempo de permanência do Diretor/Gestor ao final de 2025:"
+                                    "Indique a quantidade de escolas municipais divididas pelo tempo de permanência do Diretor/Gestor ao final de 2026:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Fórmula: NF = (0×Q1 + 0,5×Q2 + 1,0×Q3 + 1,5×Q4 + 1,75×Q5 + 2,0×Q6) | Pmáx = 2.0 pontos.\n"
@@ -7960,7 +7960,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Qual a média de dias letivos do ano de 2025 para as turmas dos Anos Iniciais?"
+                                    "Qual a média de dias letivos do ano de 2026 para as turmas dos Anos Iniciais?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Regra: Se Dias Letivos < 200 → Penalidade de -50.0 pts | Se Dias Letivos ≥ 200 → 0.0 pts."
@@ -8354,7 +8354,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Houve entrega do Kit Escolar nas escolas dos Anos Iniciais em 2025?"
+                                    "Houve entrega do Kit Escolar nas escolas dos Anos Iniciais em 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Kit escolar = material escolar e pedagógico."
@@ -8399,7 +8399,7 @@ def container_formulario_ieduc(ano=None):
                                         dt_entrega_str = str(d3121.get("valor") or "").strip()
                                         dt_link_str = str(d3121.get("link") or "").strip()
 
-                                        dt_aulas_str = "2025-02-03"
+                                        dt_aulas_str = "2026-02-03"
                                         if "AULAS:" in dt_link_str:
                                             dt_aulas_str = dt_link_str.replace("AULAS:", "").strip()
 
@@ -8479,7 +8479,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a data da última entrega e a data de início das aulas em 2025:"
+                                    "Informe a data da última entrega e a data de início das aulas em 2026:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: ≤ Início Aulas = 20.0 pts | < Início + 15 dias = 10.0 pts | ≥ Início + 15 dias = 4.0 pts."
@@ -8488,7 +8488,7 @@ def container_formulario_ieduc(ano=None):
                                 d3121 = res_data.get("3.12.1") or res_data.get("3.121") or {}
                                 raw_link_3121 = str(d3121.get("link") or "")
 
-                                dt_entrega_3121, dt_inicio_3121 = "", "05/02/2025"
+                                dt_entrega_3121, dt_inicio_3121 = "", "05/02/2026"
                                 evidencia_3121 = raw_link_3121
 
                                 if "|LINK:" in raw_link_3121:
@@ -8496,7 +8496,7 @@ def container_formulario_ieduc(ano=None):
                                     m_ent = re.search(r"ENTREGA:([\d/]+)", partes_3121)
                                     m_ini = re.search(r"INICIO:([\d/]+)", partes_3121)
                                     dt_entrega_3121 = m_ent.group(1) if m_ent else ""
-                                    dt_inicio_3121 = m_ini.group(1) if m_ini else "05/02/2025"
+                                    dt_inicio_3121 = m_ini.group(1) if m_ini else "05/02/2026"
                                 elif d3121.get("valor"):
                                     dt_entrega_3121 = str(d3121.get("valor"))
 
@@ -8526,13 +8526,13 @@ def container_formulario_ieduc(ano=None):
                                         inp_dt_ent_3121 = ui.input(
                                             label="Data da última entrega (DD/MM/AAAA):",
                                             value=dt_entrega_3121,
-                                            placeholder="Ex: 02/02/2025",
+                                            placeholder="Ex: 02/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_3121, "dt_entrega")
 
                                         inp_dt_ini_3121 = ui.input(
                                             label="Data de início das aulas (DD/MM/AAAA):",
                                             value=dt_inicio_3121,
-                                            placeholder="Ex: 05/02/2025",
+                                            placeholder="Ex: 05/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_3121, "dt_inicio")
 
                                     ui.textarea(
@@ -8654,7 +8654,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Houve entrega do material didático (livros, apostilas, etc.) nas escolas dos Anos Iniciais em 2025?"
+                                    "Houve entrega do material didático (livros, apostilas, etc.) nas escolas dos Anos Iniciais em 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Apostilas/livros fornecidos pelo Município e/ou Estado e/ou Governo Federal (PNLD)."
@@ -8731,7 +8731,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a data da última entrega e a data de início das aulas em 2025:"
+                                    "Informe a data da última entrega e a data de início das aulas em 2026:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: ≤ Início Aulas = 20.0 pts | < Início + 15 dias = 10.0 pts | ≥ Início + 15 dias = 4.0 pts."
@@ -8740,7 +8740,7 @@ def container_formulario_ieduc(ano=None):
                                 d3131 = res_data.get("3.13.1") or res_data.get("3.131") or {}
                                 raw_link_3131 = str(d3131.get("link") or "")
 
-                                dt_entrega_3131, dt_inicio_3131 = "", "05/02/2025"
+                                dt_entrega_3131, dt_inicio_3131 = "", "05/02/2026"
                                 evidencia_3131 = raw_link_3131
 
                                 if "|LINK:" in raw_link_3131:
@@ -8748,7 +8748,7 @@ def container_formulario_ieduc(ano=None):
                                     m_ent = re.search(r"ENTREGA:([\d/]+)", partes_3131)
                                     m_ini = re.search(r"INICIO:([\d/]+)", partes_3131)
                                     dt_entrega_3131 = m_ent.group(1) if m_ent else ""
-                                    dt_inicio_3131 = m_ini.group(1) if m_ini else "05/02/2025"
+                                    dt_inicio_3131 = m_ini.group(1) if m_ini else "05/02/2026"
                                 elif "AULAS:" in raw_link_3131:
                                     # Compatibilidade com formato antigo caso exista
                                     dt_inicio_3131 = raw_link_3131.replace("AULAS:", "").strip()
@@ -8783,13 +8783,13 @@ def container_formulario_ieduc(ano=None):
                                         inp_dt_ent_3131 = ui.input(
                                             label="Data da última entrega (DD/MM/AAAA):",
                                             value=dt_entrega_3131,
-                                            placeholder="Ex: 02/02/2025",
+                                            placeholder="Ex: 02/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_3131, "dt_entrega")
 
                                         inp_dt_ini_3131 = ui.input(
                                             label="Data de início das aulas (DD/MM/AAAA):",
                                             value=dt_inicio_3131,
-                                            placeholder="Ex: 05/02/2025",
+                                            placeholder="Ex: 05/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_3131, "dt_inicio")
 
                                     ui.textarea(
@@ -8911,7 +8911,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Houve entrega do uniforme escolar nas escolas dos Anos Iniciais em 2025?"
+                                    "Houve entrega do uniforme escolar nas escolas dos Anos Iniciais em 2026?"
                                 ).classes("text-base font-bold text-black mb-6")
 
                                 d314 = res_data.get("3.14") or {}
@@ -8973,7 +8973,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a data da última entrega e a data de início das aulas em 2025:"
+                                    "Informe a data da última entrega e a data de início das aulas em 2026:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Fórmula: ≤ Início Aulas (20,0 pts) | < Início + 60 dias (10,0 pts) | ≥ Início + 60 dias (4,0 pts)."
@@ -8982,7 +8982,7 @@ def container_formulario_ieduc(ano=None):
                                 d3141 = res_data.get("3.14.1") or res_data.get("3.141") or {}
                                 raw_link_3141 = str(d3141.get("link") or "")
 
-                                dt_entrega_3141, dt_inicio_3141 = "", "05/02/2025"
+                                dt_entrega_3141, dt_inicio_3141 = "", "05/02/2026"
                                 evidencia_3141 = raw_link_3141
 
                                 if "|LINK:" in raw_link_3141:
@@ -8990,7 +8990,7 @@ def container_formulario_ieduc(ano=None):
                                     m_ent = re.search(r"ENTREGA:([\d/]+)", partes_3141)
                                     m_ini = re.search(r"INICIO:([\d/]+)", partes_3141)
                                     dt_entrega_3141 = m_ent.group(1) if m_ent else ""
-                                    dt_inicio_3141 = m_ini.group(1) if m_ini else "05/02/2025"
+                                    dt_inicio_3141 = m_ini.group(1) if m_ini else "05/02/2026"
                                 elif "AULAS:" in raw_link_3141:
                                     # Compatibilidade com formato antigo
                                     dt_inicio_3141 = raw_link_3141.replace("AULAS:", "").strip()
@@ -9025,13 +9025,13 @@ def container_formulario_ieduc(ano=None):
                                         inp_dt_ent_3141 = ui.input(
                                             label="Data da última entrega (DD/MM/AAAA):",
                                             value=dt_entrega_3141,
-                                            placeholder="Ex: 02/02/2025",
+                                            placeholder="Ex: 02/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_3141, "dt_entrega")
 
                                         inp_dt_ini_3141 = ui.input(
                                             label="Data de início das aulas (DD/MM/AAAA):",
                                             value=dt_inicio_3141,
-                                            placeholder="Ex: 05/02/2025",
+                                            placeholder="Ex: 05/02/2026",
                                         ).classes("w-full").props("outlined color=blue").bind_value(state_3141, "dt_inicio")
 
                                     ui.textarea(
@@ -9793,7 +9793,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "A Prefeitura municipal fez uma pesquisa/estudo para levantar o número de crianças que necessitavam dos Anos Iniciais escolares em 2025?"
+                                    "A Prefeitura municipal fez uma pesquisa/estudo para levantar o número de crianças que necessitavam dos Anos Iniciais escolares em 2026?"
                                 ).classes("text-base font-bold text-black mb-6")
 
                                 d316 = res_data.get("3.16") or {}
@@ -9936,12 +9936,12 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("3.16.1", res_data, render_conteudo.refresh)
 
                             # =============================================================================
-                            # QUESITO 3.17 (Atendimento à Demanda por Vagas em 2025)
+                            # QUESITO 3.17 (Atendimento à Demanda por Vagas em 2026
                             # =============================================================================
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
-                                ui.label("3.17 • Balanço de Vagas Solicitadas e Ofertadas (2025)").classes(
+                                ui.label("3.17 • Balanço de Vagas Solicitadas e Ofertadas (2026)").classes(
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
@@ -9985,12 +9985,12 @@ def container_formulario_ieduc(ano=None):
 
                                 with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
                                     inp_dem_317 = ui.input(
-                                        "Nº de crianças (6 a 10 anos) que solicitaram vaga até 31/12/2025:",
+                                        "Nº de crianças (6 a 10 anos) que solicitaram vaga até 31/12/2026:",
                                         value=state_317["demanda"]
                                     ).props("type=number outlined color=blue").bind_value(state_317, "demanda")
 
                                     inp_ofe_317 = ui.input(
-                                        "Nº de vagas de Anos Iniciais ofertadas em 2025:",
+                                        "Nº de vagas de Anos Iniciais ofertadas em 2026:",
                                         value=state_317["oferta"]
                                     ).props("type=number outlined color=blue").bind_value(state_317, "oferta")
 
@@ -10394,16 +10394,16 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("3.20.1", res_data, render_conteudo.refresh)
 
                             # =============================================================================
-                            # QUESITO 3.21 (Quantidade de Aulas Vagas em 2025)
+                            # QUESITO 3.21 (Quantidade de Aulas Vagas em 2026)
                             # =============================================================================
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
-                                ui.label("3.21 • Quantidade de Aulas Vagas em 2025").classes(
+                                ui.label("3.21 • Quantidade de Aulas Vagas em 2026").classes(
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Qual foi o número de aulas vagas nos Anos Iniciais durante o ano de 2025?"
+                                    "Qual foi o número de aulas vagas nos Anos Iniciais durante o ano de 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Informe o total acumulado de aulas não ministradas por ausência sem substituição de docentes."
@@ -10420,7 +10420,7 @@ def container_formulario_ieduc(ano=None):
 
                                 with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                     ui.input(
-                                        "Quantidade de aulas vagas em 2025:",
+                                        "Quantidade de aulas vagas em 2026:",
                                         value=state_321["qtd"]
                                     ).props("type=number outlined color=blue").bind_value(state_321, "qtd")
 
@@ -10463,7 +10463,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Há alunos dos Anos Iniciais, matriculados em escolas municipais, que participaram, durante o ano de 2025, de projetos de recuperação ou reforço escolar?"
+                                    "Há alunos dos Anos Iniciais, matriculados em escolas municipais, que participaram, durante o ano de 2026, de projetos de recuperação ou reforço escolar?"
                                 ).classes("text-base font-bold text-black mb-6")
 
                                 d322 = res_data.get("3.22") or {}
@@ -11168,7 +11168,7 @@ def container_formulario_ieduc(ano=None):
                                 "Informe a quantidade de estabelecimentos de ensino da rede municipal que oferecem Creche, Pré-escola e Anos Iniciais do Ensino Fundamental:"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "⚠️ Considerar somente os estabelecimentos sob gestão municipal (Database - CENSO 2025)."
+                                "⚠️ Considerar somente os estabelecimentos sob gestão municipal (Database - CENSO 2026)."
                             ).classes("text-xs font-semibold text-amber-600 mb-6")
 
                             d50 = res_data.get("5.0") or res_data.get("5") or {}
@@ -11189,7 +11189,7 @@ def container_formulario_ieduc(ano=None):
 
                             # --- Campo Base: Total de Estabelecimentos ---
                             with ui.row().classes("w-full items-center mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200"):
-                                ui.label("Total de estabelecimentos municipais (CENSO 2025):").classes(
+                                ui.label("Total de estabelecimentos municipais (CENSO 2026):").classes(
                                     "text-sm font-bold text-blue-900 w-2/3"
                                 )
                                 inp_total = ui.input(
@@ -11199,8 +11199,8 @@ def container_formulario_ieduc(ano=None):
 
                             ui.separator().classes("mb-6")
 
-                            # --- Item 1: AVCB Vigente em 2025 (Pmax = 50 pts) ---
-                            ui.label("1. Estabelecimentos que possuíam AVCB (Auto de Vistoria do Corpo de Bombeiros) vigente no ano de 2025:").classes(
+                            # --- Item 1: AVCB Vigente em 2026 (Pmax = 50 pts) ---
+                            ui.label("1. Estabelecimentos que possuíam AVCB (Auto de Vistoria do Corpo de Bombeiros) vigente no ano de 2026:").classes(
                                 "text-sm font-bold text-gray-800 mb-2"
                             )
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
@@ -11214,8 +11214,8 @@ def container_formulario_ieduc(ano=None):
                                 "text-sm font-bold text-green-600 mb-6"
                             )
 
-                            # --- Item 2: Necessidade de Reparos em Dezembro/2025 (Pmax = 25 pts) ---
-                            ui.label("2. Estabelecimentos que necessitavam de reparos (conserto de janelas, rachaduras, infiltrações, fiação elétrica, substituição de azulejos danificados, etc) em dezembro de 2025:").classes(
+                            # --- Item 2: Necessidade de Reparos em Dezembro/2026 (Pmax = 25 pts) ---
+                            ui.label("2. Estabelecimentos que necessitavam de reparos (conserto de janelas, rachaduras, infiltrações, fiação elétrica, substituição de azulejos danificados, etc) em dezembro de 2026:").classes(
                                 "text-sm font-bold text-gray-800 mb-2"
                             )
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
@@ -11229,8 +11229,8 @@ def container_formulario_ieduc(ano=None):
                                 "text-sm font-bold text-green-600 mb-6"
                             )
 
-                            # --- Item 3: Capacitação em Primeiros Socorros em 2025 ---
-                            ui.label("3. Estabelecimentos que capacitaram professores e funcionários em noções de primeiros socorros no ano de 2025:").classes(
+                            # --- Item 3: Capacitação em Primeiros Socorros em 2026 ---
+                            ui.label("3. Estabelecimentos que capacitaram professores e funcionários em noções de primeiros socorros no ano de 2026:").classes(
                                 "text-sm font-bold text-gray-800 mb-2"
                             )
                             with ui.row().classes("w-full items-center mb-6 gap-4"):
@@ -11351,7 +11351,7 @@ def container_formulario_ieduc(ano=None):
                                     ui.textarea(
                                         label="Detalhamento Nominal dos Estabelecimentos (AVCB e Reparos):",
                                         value=raw_val_51,
-                                        placeholder="Informe a relação das escolas que possuem AVCB vigente e das escolas que necessitavam de reparos em dez/2025...",
+                                        placeholder="Informe a relação das escolas que possuem AVCB vigente e das escolas que necessitavam de reparos em dez/2026...",
                                     ).classes("w-full").props("outlined rows=5 color=blue").bind_value(
                                         state_51, "detalhamento"
                                     )
@@ -11914,7 +11914,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Houve nutricionista atuando na rede municipal de ensino no ano de 2025?"
+                                    "Houve nutricionista atuando na rede municipal de ensino no ano de 2026?"
                                 ).classes("text-base font-bold text-black mb-6")
 
                                 d80 = res_data.get("8.0") or res_data.get("8") or {}
@@ -11982,7 +11982,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Quantos nutricionistas atuavam no município em 2025?"
+                                    "Quantos nutricionistas atuavam no município em 2026?"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "⚠️ Critério de Pontuação: Cumprimento do dimensionamento mínimo (RT + QT) em relação ao número de alunos para conceder 12,0 pontos."
@@ -12111,7 +12111,7 @@ def container_formulario_ieduc(ano=None):
                                 ui.label("8.2 • Atuação dos Nutricionistas nas Escolas Estaduais").classes(
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
-                                ui.label("Os nutricionistas atuaram nas escolas estaduais em 2025?").classes(
+                                ui.label("Os nutricionistas atuaram nas escolas estaduais em 2026?").classes(
                                     "text-base font-bold text-black mb-6"
                                 )
 
@@ -14923,7 +14923,7 @@ def container_formulario_ieduc(ano=None):
                             # -----------------------------------------------------------------------------
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("16.4 • Aprovação de Contas da SME pelo Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("O Conselho Municipal de Educação aprovou as contas da Secretaria Municipal de Educação referente ao exercício de 2025?").classes("text-base font-bold text-black mb-4")
+                                ui.label("O Conselho Municipal de Educação aprovou as contas da Secretaria Municipal de Educação referente ao exercício de 2026?").classes("text-base font-bold text-black mb-4")
 
                                 # Lista oficial de opções do Radio
                                 opts_164 = [
@@ -15592,7 +15592,7 @@ def container_formulario_ieduc(ano=None):
                             # -----------------------------------------------------------------------------
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("17.6 • Parecer da Prestação de Contas emitido pelo CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Qual foi o parecer da prestação de contas emitido pelo CACS FUNDEB referente ao exercício de 2025?").classes("text-base font-bold text-black mb-4")
+                                ui.label("Qual foi o parecer da prestação de contas emitido pelo CACS FUNDEB referente ao exercício de 2026?").classes("text-base font-bold text-black mb-4")
 
                                 d176 = res_data.get("17.6") or res_data.get("176") or {}
                                 val_176 = str(d176.get("valor") or "Aprovado sem ressalva")
@@ -16452,7 +16452,7 @@ def container_formulario_ieduc(ano=None):
                                 "E1.1 • Estabelecimentos de Creche com Pátio Infantil"
                             ).classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label(
-                                "Informe quantos estabelecimentos que oferecem Creche possuem Pátio Infantil (Dados Censo Escolar 2025):"
+                                "Informe quantos estabelecimentos que oferecem Creche possuem Pátio Infantil (Dados Censo Escolar 2026):"
                             ).classes("text-base font-bold text-black mb-2")
 
                             # Card da Calculadora Automática
@@ -16599,7 +16599,7 @@ def container_formulario_ieduc(ano=None):
 
                             input_link_e11 = (
                                 ui.textarea(
-                                    label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                    label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                     value=state_e11["link"],
                                     placeholder="Link do relatório ou extrato do Censo Escolar...",
                                 )
@@ -16671,7 +16671,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.2 • Disponibilidade de Brinquedos/Materiais Pedagógicos").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos estabelecimentos que oferecem creche disponibilizam brinquedos/materiais pedagógicos (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe quantos estabelecimentos que oferecem creche disponibilizam brinquedos/materiais pedagógicos (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             # Extraction e parsing seguro (Suporta Dict, JSON ou string "X/Y")
                             val_e12_raw = d_e12.get("resposta") if d_e12.get("resposta") is not None else d_e12.get("valor")
@@ -16740,7 +16740,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e12()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e12["link"],
                                 placeholder="Link do relatório ou extrato do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e12, "link")
@@ -16795,7 +16795,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.3 • Número de Crianças Matriculadas na Creche").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe o número de crianças matriculadas na creche (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe o número de crianças matriculadas na creche (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             raw_val_e13 = d_e13.get("valor") if d_e13.get("valor") is not None else d_e13.get("resposta")
                             try:
@@ -16817,7 +16817,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e13, "matriculas")
 
                                 ui.textarea(
-                                    label="Link de Evidência (Censo Escolar 2025):",
+                                    label="Link de Evidência (Censo Escolar 2026):",
                                     value=state_e13["link"],
                                     placeholder="Link do extrato de matrículas do Educacenso...",
                                 ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_e13, "link")
@@ -16870,7 +16870,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.4 • Data de Início de Funcionamento para as Creches").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a data de início de funcionamento para as creches (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a data de início de funcionamento para as creches (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             state_e14 = {
                                 "data_inicio": str(d_e14.get("valor") or d_e14.get("resposta") or ""),
@@ -16881,11 +16881,11 @@ def container_formulario_ieduc(ano=None):
                                 ui.input(
                                     label="Data de Início de Funcionamento (DD/MM/AAAA):",
                                     value=state_e14["data_inicio"],
-                                    placeholder="ex: 05/02/2025",
+                                    placeholder="ex: 05/02/2026",
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e14, "data_inicio")
 
                                 ui.textarea(
-                                    label="Link de Evidência (Censo Escolar 2025):",
+                                    label="Link de Evidência (Censo Escolar 2026):",
                                     value=state_e14["link"],
                                     placeholder="Link da documentação de abertura/Inep...",
                                 ).classes("w-full").props("outlined rows=2 color=blue").bind_value(state_e14, "link")
@@ -16933,7 +16933,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.5 • PPP Atualizado nos Estabelecimentos de Creche").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a quantidade de estabelecimentos que oferecem Creche na rede municipal de ensino (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a quantidade de estabelecimentos que oferecem Creche na rede municipal de ensino (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             # Extraction e parsing seguro (Suporta Dict, JSON ou string "X/Y")
                             val_e15_raw = d_e15.get("resposta") if d_e15.get("resposta") is not None else d_e15.get("valor")
@@ -17002,7 +17002,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e15()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e15["link"],
                                 placeholder="Link do relatório ou extrato do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e15, "link")
@@ -17057,7 +17057,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.6 • Proporção de Professores Temporários na Creche").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a quantidade de professores de Creche (Efetivos e Temporários - Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a quantidade de professores de Creche (Efetivos e Temporários - Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e16_raw = d_e16.get("resposta") if d_e16.get("resposta") is not None else d_e16.get("valor")
                             e16_efet_init, e16_temp_init = 0, 0
@@ -17135,7 +17135,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e16()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e16["link"],
                                 placeholder="Link do extrato de docentes do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e16, "link")
@@ -17190,7 +17190,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.7 • Quantidade de Profissionais de Creche").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a quantidade de profissionais de creche relativos ao exercício de 2025:").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a quantidade de profissionais de creche relativos ao exercício de 2026:").classes("text-base font-bold text-black mb-4")
 
                             val_e17_raw = d_e17.get("resposta") if d_e17.get("resposta") is not None else d_e17.get("valor")
                             e17_reg_init, e17_apo_init = 0, 0
@@ -17233,7 +17233,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e17, "apoio")
 
                             ui.textarea(
-                                label="Link de Evidência / Quadro de Pessoal (Exercício 2025):",
+                                label="Link de Evidência / Quadro de Pessoal (Exercício 2026):",
                                 value=state_e17["link"],
                                 placeholder="Link da folha/quadro demonstrativo de profissionais...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e17, "link")
@@ -17289,7 +17289,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.8 • Estabelecimentos com Turmas em Tempo Integral").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos estabelecimentos de Creche ofereciam turmas em tempo integral (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe quantos estabelecimentos de Creche ofereciam turmas em tempo integral (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e18_raw = d_e18.get("resposta") if d_e18.get("resposta") is not None else d_e18.get("valor")
                             e18_int_init, e18_tot_init = 0, 0
@@ -17369,7 +17369,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e18()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e18["link"],
                                 placeholder="Link do relatório ou documento comprovatório...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e18, "link")
@@ -17424,7 +17424,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.9 • Alunos de Creche Matriculados em Tempo Integral").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos alunos de Creche foram matriculados em turmas de tempo integral - 7 horas ou mais por dia (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe quantos alunos de Creche foram matriculados em turmas de tempo integral - 7 horas ou mais por dia (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e19_raw = d_e19.get("resposta") if d_e19.get("resposta") is not None else d_e19.get("valor")
                             e19_mat_init, e19_tot_init = 0, 0
@@ -17504,7 +17504,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e19()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e19["link"],
                                 placeholder="Link do extrato de matrículas do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e19, "link")
@@ -17559,7 +17559,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.10 • Alunos de Creche com Deficiência, TGD ou Superdotação").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Há alunos de Creche que possuem deficiência, transtornos globais do desenvolvimento ou altas habilidades/superdotação? (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Há alunos de Creche que possuem deficiência, transtornos globais do desenvolvimento ou altas habilidades/superdotação? (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e110 = str(d_e110.get("resposta") or d_e110.get("valor") or "Não")
 
@@ -17574,7 +17574,7 @@ def container_formulario_ieduc(ano=None):
                             ).classes("mb-4").bind_value(state_e110, "opcao")
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e110["link"],
                                 placeholder="Link do relatório de educação especial...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e110, "link")
@@ -17619,7 +17619,7 @@ def container_formulario_ieduc(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.10.1 • Atendimento Educacional Especializado (AEE)").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Houve Atendimento Educacional Especializado (AEE) na Rede Municipal de Ensino? (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Houve Atendimento Educacional Especializado (AEE) na Rede Municipal de Ensino? (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             d_e1101 = res_data.get("E1.10.1") or res_data.get("E1101") or {}
                             val_e1101 = str(d_e1101.get("resposta") or d_e1101.get("valor") or "Sim")
@@ -17648,7 +17648,7 @@ def container_formulario_ieduc(ano=None):
                             ).classes("mb-4")
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e1101["link"],
                                 placeholder="Link da documentação/relatório sobre o AEE...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e1101, "link")
@@ -17682,7 +17682,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.1 • Estabelecimentos de Pré-escola com Pátio Infantil").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos estabelecimentos que oferecem Pré-escola possuem Pátio Infantil (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe quantos estabelecimentos que oferecem Pré-escola possuem Pátio Infantil (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e21_raw = d_e21.get("resposta") if d_e21.get("resposta") is not None else d_e21.get("valor")
                             e21_com_init, e21_tot_init = 0, 0
@@ -17750,7 +17750,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e21()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e21["link"],
                                 placeholder="Link do relatório ou extrato do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e21, "link")
@@ -17805,7 +17805,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.2 • Disponibilidade de Brinquedos/Materiais Pedagógicos (Pré-escola)").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos estabelecimentos que oferecem Pré-escola disponibilizam brinquedos/materiais pedagógicos (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe quantos estabelecimentos que oferecem Pré-escola disponibilizam brinquedos/materiais pedagógicos (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e22_raw = d_e22.get("resposta") if d_e22.get("resposta") is not None else d_e22.get("valor")
                             e22_com_init, e22_tot_init = 0, 0
@@ -17873,7 +17873,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e22()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e22["link"],
                                 placeholder="Link do relatório ou extrato do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e22, "link")
@@ -17928,7 +17928,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.3 • Número de Crianças Matriculadas na Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe o número de crianças matriculadas na pré-escola (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe o número de crianças matriculadas na pré-escola (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             raw_val_e23 = d_e23.get("valor") if d_e23.get("valor") is not None else d_e23.get("resposta")
                             try:
@@ -17950,7 +17950,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e23, "matriculas")
 
                                 ui.textarea(
-                                    label="Link de Evidência (Censo Escolar 2025):",
+                                    label="Link de Evidência (Censo Escolar 2026):",
                                     value=state_e23["link"],
                                     placeholder="Link do extrato de matrículas da pré-escola...",
                                 ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_e23, "link")
@@ -18003,7 +18003,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.4 • Data de Início do Ano Letivo para a Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a data de início do ano letivo para a pré-escola (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a data de início do ano letivo para a pré-escola (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             state_e24 = {
                                 "data_inicio": str(d_e24.get("valor") or d_e24.get("resposta") or ""),
@@ -18014,7 +18014,7 @@ def container_formulario_ieduc(ano=None):
                                 ui.input(
                                     label="Data de Início (DD/MM/AAAA):",
                                     value=state_e24["data_inicio"],
-                                    placeholder="ex: 05/02/2025",
+                                    placeholder="ex: 05/02/2026",
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e24, "data_inicio")
 
                                 ui.textarea(
@@ -18066,7 +18066,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.5 • PPP Atualizado nos Estabelecimentos de Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a quantidade de estabelecimentos que oferecem Pré-escola na rede municipal de ensino (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a quantidade de estabelecimentos que oferecem Pré-escola na rede municipal de ensino (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e25_raw = d_e25.get("resposta") if d_e25.get("resposta") is not None else d_e25.get("valor")
                             e25_com_init, e25_tot_init = 0, 0
@@ -18134,7 +18134,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e25()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e25["link"],
                                 placeholder="Link do relatório ou extrato do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e25, "link")
@@ -18189,7 +18189,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.6 • Proporção de Professores Temporários na Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a quantidade de professores de Pré-escola (Efetivos e Temporários - Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a quantidade de professores de Pré-escola (Efetivos e Temporários - Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e26_raw = d_e26.get("resposta") if d_e26.get("resposta") is not None else d_e26.get("valor")
                             e26_efet_init, e26_temp_init = 0, 0
@@ -18267,7 +18267,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e26()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e26["link"],
                                 placeholder="Link do extrato de docentes do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e26, "link")
@@ -18322,7 +18322,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.7 • Quantidade de Profissionais de Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a quantidade de profissionais de pré-escola relativos ao exercício de 2025:").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a quantidade de profissionais de pré-escola relativos ao exercício de 2026:").classes("text-base font-bold text-black mb-4")
 
                             val_e27_raw = d_e27.get("resposta") if d_e27.get("resposta") is not None else d_e27.get("valor")
                             e27_reg_init, e27_apo_init = 0, 0
@@ -18365,7 +18365,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e27, "apoio")
 
                             ui.textarea(
-                                label="Link de Evidência / Quadro de Pessoal (Exercício 2025):",
+                                label="Link de Evidência / Quadro de Pessoal (Exercício 2026):",
                                 value=state_e27["link"],
                                 placeholder="Link da folha/quadro demonstrativo de profissionais...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e27, "link")
@@ -18421,7 +18421,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.8 • Estabelecimentos de Pré-escola com Tempo Integral").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos estabelecimentos de Pré-escola ofereciam turmas em tempo integral (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe quantos estabelecimentos de Pré-escola ofereciam turmas em tempo integral (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e28_raw = d_e28.get("resposta") if d_e28.get("resposta") is not None else d_e28.get("valor")
                             e28_int_init, e28_tot_init = 0, 0
@@ -18501,7 +18501,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e28()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e28["link"],
                                 placeholder="Link do relatório ou documento comprovatório...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e28, "link")
@@ -18556,7 +18556,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.9 • Alunos de Pré-escola Matriculados em Tempo Integral").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos alunos de Pré-escola foram matriculados em turmas de tempo integral (7 horas ou mais por dia - Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe quantos alunos de Pré-escola foram matriculados em turmas de tempo integral (7 horas ou mais por dia - Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e29_raw = d_e29.get("resposta") if d_e29.get("resposta") is not None else d_e29.get("valor")
                             e29_mat_init, e29_tot_init = 0, 0
@@ -18636,7 +18636,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e29()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e29["link"],
                                 placeholder="Link do relatório do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e29, "link")
@@ -18691,7 +18691,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.10 • Alunos da Pré-escola com Deficiência / TGD / Alta Habilidade").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Há alunos de Pré-escola que possuem deficiência, transtornos globais do desenvolvimento ou altas habilidades/superdotação? (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Há alunos de Pré-escola que possuem deficiência, transtornos globais do desenvolvimento ou altas habilidades/superdotação? (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e210 = str(d_e210.get("resposta") or d_e210.get("valor") or "Sim")
 
@@ -18706,7 +18706,7 @@ def container_formulario_ieduc(ano=None):
                             ).classes("mb-4").bind_value(state_e210, "opcao")
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e210["link"],
                                 placeholder="Link do relatório ou documento do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e210, "link")
@@ -18754,7 +18754,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E2.10.1 • Atendimento Educacional Especializado (AEE) na Pré-escola").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Houve Atendimento Educacional Especializado (AEE) na Rede Municipal de Ensino? (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Houve Atendimento Educacional Especializado (AEE) na Rede Municipal de Ensino? (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e2101 = str(d_e2101.get("resposta") or d_e2101.get("valor") or "Sim")
 
@@ -18781,7 +18781,7 @@ def container_formulario_ieduc(ano=None):
                             ).classes("mb-4")
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e2101["link"],
                                 placeholder="Link do relatório ou comprovante do AEE...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e2101, "link")
@@ -18830,7 +18830,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E3.1 • Crianças Matriculadas nos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe o número de crianças matriculadas nos Anos Iniciais (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe o número de crianças matriculadas nos Anos Iniciais (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             raw_val_e31 = d_e31.get("valor") if d_e31.get("valor") is not None else d_e31.get("resposta")
                             try:
@@ -18852,7 +18852,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e31, "matriculas")
 
                                 ui.textarea(
-                                    label="Link de Evidência (Censo Escolar 2025):",
+                                    label="Link de Evidência (Censo Escolar 2026):",
                                     value=state_e31["link"],
                                     placeholder="Link do relatório de matrículas dos Anos Iniciais...",
                                 ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_e31, "link")
@@ -18905,7 +18905,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E3.2 • Data de Início do Ano Letivo (Anos Iniciais)").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a data de início do ano letivo para as turmas dos Anos Iniciais (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a data de início do ano letivo para as turmas dos Anos Iniciais (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             state_e32 = {
                                 "data_inicio": str(d_e32.get("valor") or d_e32.get("resposta") or ""),
@@ -18916,7 +18916,7 @@ def container_formulario_ieduc(ano=None):
                                 ui.input(
                                     label="Data de Início (DD/MM/AAAA):",
                                     value=state_e32["data_inicio"],
-                                    placeholder="ex: 05/02/2025",
+                                    placeholder="ex: 05/02/2026",
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e32, "data_inicio")
 
                                 ui.textarea(
@@ -18968,7 +18968,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E3.3 • PPP Atualizado nos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a quantidade de estabelecimentos que oferecem Anos Iniciais na rede municipal de ensino (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a quantidade de estabelecimentos que oferecem Anos Iniciais na rede municipal de ensino (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e33_raw = d_e33.get("resposta") if d_e33.get("resposta") is not None else d_e33.get("valor")
                             e33_com_init, e33_tot_init = 0, 0
@@ -19036,7 +19036,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e33()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e33["link"],
                                 placeholder="Link do relatório ou extrato do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e33, "link")
@@ -19090,7 +19090,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E3.4 • Infraestrutura de Ensino com Apoio da Tecnologia (Anos Iniciais)").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe os dados sobre a infraestrutura tecnológica das escolas com Anos Iniciais (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe os dados sobre a infraestrutura tecnológica das escolas com Anos Iniciais (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e34_raw = d_e34.get("resposta") if d_e34.get("resposta") is not None else d_e34.get("valor")
 
@@ -19248,7 +19248,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e34()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e34["link"],
                                 placeholder="Link do relatório de infraestrutura tecnológica...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e34, "link")
@@ -19317,7 +19317,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E3.5 • Proporção de Professores Temporários nos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a quantidade de professores dos Anos Iniciais (Efetivos e Temporários - Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a quantidade de professores dos Anos Iniciais (Efetivos e Temporários - Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e35_raw = d_e35.get("resposta") if d_e35.get("resposta") is not None else d_e35.get("valor")
                             e35_efet_init, e35_temp_init = 0, 0
@@ -19395,7 +19395,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e35()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e35["link"],
                                 placeholder="Link do extrato de docentes do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e35, "link")
@@ -19450,7 +19450,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E3.6 • Quantidade de Profissionais dos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a quantidade de profissionais dos Anos Iniciais do Ensino Fundamental (1º ao 5º ano) relativos ao exercício de 2025:").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a quantidade de profissionais dos Anos Iniciais do Ensino Fundamental (1º ao 5º ano) relativos ao exercício de 2026:").classes("text-base font-bold text-black mb-4")
 
                             val_e36_raw = d_e36.get("resposta") if d_e36.get("resposta") is not None else d_e36.get("valor")
                             e36_reg_init, e36_apo_init = 0, 0
@@ -19493,7 +19493,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e36, "apoio")
 
                             ui.textarea(
-                                label="Link de Evidência / Quadro de Pessoal (Exercício 2025):",
+                                label="Link de Evidência / Quadro de Pessoal (Exercício 2026):",
                                 value=state_e36["link"],
                                 placeholder="Link da folha/quadro demonstrativo de profissionais...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e36, "link")
@@ -19549,7 +19549,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E3.7 • Taxa de Reprovação nos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a taxa de reprovação para a etapa de ensino dos Anos Iniciais (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe a taxa de reprovação para a etapa de ensino dos Anos Iniciais (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             raw_val_e37 = d_e37.get("taxa_reprovacao") if d_e37.get("taxa_reprovacao") is not None else (d_e37.get("resposta") or d_e37.get("valor"))
                             try:
@@ -19574,7 +19574,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e37, "taxa_reprovacao")
 
                                 ui.textarea(
-                                    label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                    label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                     value=state_e37["link"],
                                     placeholder="Link do relatório do Censo Escolar com a taxa de reprovação...",
                                 ).classes("w-full").props("outlined rows=2 color=blue").bind_value(state_e37, "link")
@@ -19823,7 +19823,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E3.9 • Estabelecimentos de Tempo Integral (Anos Iniciais)").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos estabelecimentos dos Anos Iniciais ofereciam turmas em tempo integral (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe quantos estabelecimentos dos Anos Iniciais ofereciam turmas em tempo integral (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e39_raw = d_e39.get("resposta") if d_e39.get("resposta") is not None else d_e39.get("valor")
 
@@ -19903,7 +19903,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e39()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e39["link"],
                                 placeholder="Link do relatório de escolas com turmas integrais...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e39, "link")
@@ -19958,7 +19958,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E3.10 • Alunos em Tempo Integral (Anos Iniciais)").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos alunos dos Anos Iniciais foram matriculados em turmas de tempo integral (>= 7 horas/dia - Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe quantos alunos dos Anos Iniciais foram matriculados em turmas de tempo integral (>= 7 horas/dia - Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             val_e310_raw = d_e310.get("resposta") if d_e310.get("resposta") is not None else d_e310.get("valor")
 
@@ -20038,7 +20038,7 @@ def container_formulario_ieduc(ano=None):
                             calc_e310()
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e310["link"],
                                 placeholder="Link do relatório de matrículas do Censo Escolar...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e310, "link")
@@ -20092,7 +20092,7 @@ def container_formulario_ieduc(ano=None):
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E3.11 • Alunos em Turmas Noturnas (Anos Iniciais)").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe quantos alunos dos Anos Iniciais foram matriculados em turmas de período noturno (Dados Censo Escolar 2025):").classes("text-base font-bold text-black mb-4")
+                            ui.label("Informe quantos alunos dos Anos Iniciais foram matriculados em turmas de período noturno (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
 
                             raw_val_e311 = d_e311.get("alunos_noturno") if d_e311.get("alunos_noturno") is not None else (d_e311.get("resposta") or d_e311.get("valor"))
                             try:
@@ -20114,7 +20114,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=blue").bind_value(state_e311, "alunos_noturno")
 
                                 ui.textarea(
-                                    label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                    label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                     value=state_e311["link"],
                                     placeholder="Link do relatório de matrículas noturnas...",
                                 ).classes("w-full").props("outlined rows=2 color=blue").bind_value(state_e311, "link")
@@ -20191,7 +20191,7 @@ def container_formulario_ieduc(ano=None):
                                 str_pts = f"{pts:.1f}".replace(".", ",")
                                 lbl_pontos_e3121.set_text(f"📊 Penalidade APE (E3.12.1): {str_pts} ponto(s)")
 
-                            ui.label("Há alunos dos Anos Iniciais que possuem deficiência, TGD ou superdotação? (Censo Escolar 2025):").classes("text-base font-bold text-black mb-2")
+                            ui.label("Há alunos dos Anos Iniciais que possuem deficiência, TGD ou superdotação? (Censo Escolar 2026):").classes("text-base font-bold text-black mb-2")
                             ui.radio(["Sim", "Não"], value=state_e312["possui_pne"], on_change=lambda e: [state_e312.update({"possui_pne": e.value}), calc_e3121()]).props("inline color=blue")
 
                             ui.textarea(
@@ -20968,7 +20968,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("w-full").props("outlined color=gray")
 
                             ui.textarea(
-                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2025):",
+                                label="Link de Evidência / Fonte dos Dados (Censo Escolar 2026):",
                                 value=state_e5["link"],
                                 placeholder="Link com a relação de escolas e infraestrutura informada ao MEC/Censo...",
                             ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_e5, "link")
@@ -21037,7 +21037,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "As escolas compartilham espaços com a comunidade? (Dados Censo Escolar 2025)"
+                                "As escolas compartilham espaços com a comunidade? (Dados Censo Escolar 2026)"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Indique o grau de compartilhamento de espaços físicos das unidades escolares com a comunidade local."
@@ -21083,7 +21083,7 @@ def container_formulario_ieduc(ano=None):
                                 ui.textarea(
                                     label="Link de Evidência / Documento:",
                                     value=raw_link_e6,
-                                    placeholder="Insira o link com o relatório do Censo Escolar 2025 ou comprovante de compartilhamento...",
+                                    placeholder="Insira o link com o relatório do Censo Escolar 2026 ou comprovante de compartilhamento...",
                                 ).classes("w-full").props("outlined rows=5").bind_value(
                                     state_e6, "link"
                                 )
@@ -21149,7 +21149,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "As escolas utilizam espaços e equipamentos do entorno escolar? (Dados Censo Escolar 2025)"
+                                "As escolas utilizam espaços e equipamentos do entorno escolar? (Dados Censo Escolar 2026)"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Indique a frequência ou abrangência de uso de praças, quadras, parques ou equipamentos públicos do entorno."
@@ -21195,7 +21195,7 @@ def container_formulario_ieduc(ano=None):
                                 ui.textarea(
                                     label="Link de Evidência / Documento:",
                                     value=raw_link_e7,
-                                    placeholder="Insira o link com o relatório do Censo Escolar 2025 ou documento comprobatório...",
+                                    placeholder="Insira o link com o relatório do Censo Escolar 2026 ou documento comprobatório...",
                                 ).classes("w-full").props("outlined rows=5").bind_value(
                                     state_e7, "link"
                                 )
@@ -21261,7 +21261,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "A Prefeitura realiza Exame de Seleção para ingresso de alunos nas escolas municipais? (Dados Censo Escolar 2025)"
+                                "A Prefeitura realiza Exame de Seleção para ingresso de alunos nas escolas municipais? (Dados Censo Escolar 2026)"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "⚠️ A realização de exame de seleção gera penalidade de 10,0 pontos na avaliação."
