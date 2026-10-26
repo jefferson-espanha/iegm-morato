@@ -21362,14 +21362,32 @@ def container_formulario_ieduc(ano=None):
 
 
                         # -----------------------------------------------------------------------------
+                        def _carregar_valor_especial(respostas, *ids):
+                            """Lê o payload dentro de registro['valor'] sem perder dados."""
+                            registro = {}
+                            for identificador in ids:
+                                candidato = respostas.get(identificador)
+                                if candidato is not None:
+                                    registro = candidato if isinstance(candidato, dict) else {}
+                                    break
+
+                            if isinstance(registro, dict) and "valor" in registro:
+                                valor = registro.get("valor")
+                                if not isinstance(valor, dict):
+                                    valor = {}
+                            else:
+                                # Compatibilidade com dados antigos que já eram um dict direto.
+                                valor = registro if isinstance(registro, dict) else {}
+                            return registro, valor
+
                         # QUESITO E9 - Aplicação de Recursos do FUNDEB
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E9 • Aplicação Geral do FUNDEB (Regra de Rebaixamento)").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Percentual de Aplicação dos Recursos do FUNDEB (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
 
-                            d_e9 = res_data.get("E9") or res_data.get("E90") or {}
-                            val_e9 = float(d_e9.get("pct_fundeb") or 0.0)
+                            d_e9, v_e9 = _carregar_valor_especial(res_data, "E9", "E90")
+                            val_e9 = float(v_e9.get("pct_fundeb") or 0.0)
                             link_e9 = str(d_e9.get("link") or "")
 
                             state_e9 = {
@@ -21444,8 +21462,8 @@ def container_formulario_ieduc(ano=None):
                             ui.label("E10 • FUNDEB - Profissionais da Educação (Regra de Rebaixamento)").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Percentual de Aplicação do FUNDEB nos Profissionais da Educação (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
 
-                            d_e10 = res_data.get("E10") or res_data.get("E100") or {}
-                            val_e10 = float(d_e10.get("pct_profissionais") or 0.0)
+                            d_e10, v_e10 = _carregar_valor_especial(res_data, "E10", "E100")
+                            val_e10 = float(v_e10.get("pct_profissionais") or 0.0)
                             link_e10 = str(d_e10.get("link") or "")
 
                             state_e10 = {
@@ -21520,9 +21538,9 @@ def container_formulario_ieduc(ano=None):
                             ui.label("E11 • Mínimo Constitucional em Educação (Regra de Rebaixamento)").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Aplicação da Despesa em Ensino com Recursos Próprios sobre a Receita de Impostos (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
 
-                            d_e11 = res_data.get("E11") or res_data.get("E110") or {}
-                            val_desp = float(d_e11.get("despesa_propria") or 0.0)
-                            val_rec = float(d_e11.get("receita_impostos") or 0.0)
+                            d_e11, v_e11 = _carregar_valor_especial(res_data, "E11", "E110")
+                            val_desp = float(v_e11.get("despesa_propria") or 0.0)
+                            val_rec = float(v_e11.get("receita_impostos") or 0.0)
                             link_e11 = str(d_e11.get("link") or "")
 
                             state_e11 = {
