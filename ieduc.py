@@ -25289,9 +25289,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # -------------------------------------------------------------------------
     # 📊 23. QUANTIDADE DE TURMAS DOS ANOS INICIAIS POR FAIXA (QUESITO 3.19)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>23. DENSIDADE DE ALUNOS POR TURMA - ANOS INICIAIS (QUESITO 3.19)</b>", styles["h2"]))
+    elements.append(Paragraph("<b>23. QUANTIDADE DE ALUNOS POR TURMA - ANOS INICIAIS (QUESITO 3.19)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
-    elements.append(Paragraph("<b><i>3.19 Distribuição das Turmas dos Anos Iniciais por Faixa de Densidade de Alunos</i></b>", styles["Normal"]))
+    elements.append(Paragraph("<b><i>3.19 Distribuição das Turmas dos Anos Iniciais por Faixa de Alunos</i></b>", styles["Normal"]))
     elements.append(Spacer(1, 6))
 
     def extrair_dados_q319(dado_ano):
