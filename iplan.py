@@ -3194,9 +3194,13 @@ def converter_pontos_em_faixa_iegm(pontos):
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     """Gere o relatório completo e não-resumido do I-PLAN em PDF."""
     
+    # Quesitos sem pontuação direta que devem aparecer no tópico 7.
+    # Para o 7.0, a resposta "Não" indica conformidade.
+    # Nos demais quesitos, a resposta "Sim" indica conformidade.
     lista_alvo_iplan = [
-        "1.0", "1.1", "5.0", "7.0", "7.6", "7.6.1", 
-        "8.0", "9.0", "10.3", "11.0", "11.1", "11.6", "11.6.1", "12.0"
+        "7.0",
+        "1.3", "3.0", "8.0", "9.0", "11.0", "12.0",
+        "13.0", "14.0", "14.5", "15.0", "18.0",
     ]
 
     buffer = BytesIO()
@@ -3575,26 +3579,40 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
 
+    def buscar_resposta_quesito(dados_quesitos, qid):
+        """Localiza a resposta mesmo que o banco use 7, 7.0 ou Q_7.0."""
+        qid = str(qid).strip()
+        candidatos = (qid, f"Q_{qid}")
+        for candidato in candidatos:
+            if candidato in dados_quesitos:
+                return dados_quesitos[candidato]
+
+        # Compatibilidade com fontes que removem o sufixo .0 ou adicionam Q_.
+        qid_sem_prefixo = qid.removeprefix("Q_")
+        qid_sem_decimal = qid_sem_prefixo[:-2] if qid_sem_prefixo.endswith(".0") else qid_sem_prefixo
+        for chave, valor in dados_quesitos.items():
+            chave_normalizada = str(chave).strip().removeprefix("Q_")
+            if chave_normalizada in (qid_sem_prefixo, qid_sem_decimal):
+                return valor
+        return None
+
     for qsp in lista_alvo_iplan:
-        info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
+        info_sp = buscar_resposta_quesito(dados, qsp)
         resp_sp = "-"
         status_sp = "Não Informado"
 
-        if info_sp:
+        if info_sp is not None:
             resp_sp = info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
 
             # As respostas de rádio são salvas com a pontuação no mesmo texto,
-            # por exemplo: "Não – 00 pts" ou "Sim – 01 pt". Portanto, não
-            # comparar o valor inteiro com "sim"/"não".
+            # por exemplo: "Não – 00 pts" ou "Sim – 01 pt".
             resp_str = str(resp_sp).strip().lower()
             resp_normalizada = re.sub(r"\s+", " ", resp_str)
             eh_sim = bool(re.search(r"\bsim\b", resp_normalizada))
             eh_nao = bool(re.search(r"\b(?:não|nao)\b", resp_normalizada))
 
-            # Normaliza a chave do quesito para comparação exata (ex: '7.0', 7.0 ou '7')
-            qsp_chave = str(qsp).strip()
-
             # Quesito 7.0: a resposta "Não" gera conformidade.
+            qsp_chave = str(qsp).strip()
             if qsp_chave in ["7.0", "7"] and (eh_sim or eh_nao):
                 status_sp = "Em Conformidade" if eh_nao else "Fora de Conformidade"
             # Demais quesitos binários: a resposta "Sim" gera conformidade.
