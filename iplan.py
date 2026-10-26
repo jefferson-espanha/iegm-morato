@@ -3567,39 +3567,47 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(d)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)
-    # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)</b>", styles["Heading2"]))
-    elements.append(Spacer(1, 6))
+# -------------------------------------------------------------------------
+# 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)
+# -------------------------------------------------------------------------
+elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)</b>", styles["Heading2"]))
+elements.append(Spacer(1, 6))
 
-    data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
+data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
 
-    for qsp in lista_alvo_iplan:
-        info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
-        resp_sp = "-"
-        status_sp = "Não Informado"
+for qsp in lista_alvo_iplan:
+info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
+resp_sp = "-"
+status_sp = "Não Informado"
 
-        if info_sp:
-            resp_sp = info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
-            status_sp = "Em Conformidade" if "sim" in str(resp_sp).lower() else "Fora de Conformidade"
+if info_sp:
+resp_sp = info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
 
-        data_sp.append([qsp, Paragraph(str(resp_sp), styles['TdStyle']), status_sp])
+resp_str = str(resp_sp).strip().lower()
 
-    t_sp = Table(data_sp, colWidths=[100, 250, 130])
-    t_sp.setStyle(TableStyle([
-        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495E")),
-        ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-        ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-        ("ALIGN", (2, 0), (2, -1), "CENTER"),
-    ]))
-    elements.append(t_sp)
+if resp_str in ["sim", "não", "nao"]:
+qsp_chave = str(qsp).strip()
 
-    # Construção do Documento PDF
-    doc.build(elements)
-    return buffer.getvalue()
+if qsp_chave in ["7.0", "7"]:
+status_sp = "Em Conformidade" if "não" in resp_str or "nao" in resp_str else "Fora de Conformidade"
+else:
+status_sp = "Em Conformidade" if "sim" in resp_str else "Fora de Conformidade"
 
+data_sp.append([qsp, Paragraph(str(resp_sp), styles['TdStyle']), status_sp])
+
+t_sp = Table(data_sp, colWidths=[100, 250, 130])
+t_sp.setStyle(TableStyle([
+("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495E")),
+("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+("ALIGN", (2, 0), (2, -1), "CENTER"),
+]))
+elements.append(t_sp)
+
+# Construção do Documento PDF
+doc.build(elements)
+return buffer.getvalue()
 
 # -----------------------------------------------------------------------------
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
