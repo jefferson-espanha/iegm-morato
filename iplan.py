@@ -3582,20 +3582,24 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
         if info_sp:
             resp_sp = info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
-            
-            # Tratamento da resposta para comparação
+
+            # As respostas de rádio são salvas com a pontuação no mesmo texto,
+            # por exemplo: "Não – 00 pts" ou "Sim – 01 pt". Portanto, não
+            # comparar o valor inteiro com "sim"/"não".
             resp_str = str(resp_sp).strip().lower()
-            
-            if resp_str in ["sim", "não", "nao"]:
-                # Normaliza a chave do quesito para comparação exata (ex: '7.0', 7.0 ou '7')
-                qsp_chave = str(qsp).strip()
-                
-                # Regra do Quesito 7.0: "Não" gera Conformidade
-                if qsp_chave in ["7.0", "7"]:
-                    status_sp = "Em Conformidade" if "não" in resp_str or "nao" in resp_str else "Fora de Conformidade"
-                # Regra Geral (1.3, 3.0, 8.0, 9.0, 11.0, 12.0, 13.0, 14.0, 14.5, 15.0, 18.0): "Sim" gera Conformidade
-                else:
-                    status_sp = "Em Conformidade" if "sim" in resp_str else "Fora de Conformidade"
+            resp_normalizada = re.sub(r"\s+", " ", resp_str)
+            eh_sim = bool(re.search(r"\bsim\b", resp_normalizada))
+            eh_nao = bool(re.search(r"\b(?:não|nao)\b", resp_normalizada))
+
+            # Normaliza a chave do quesito para comparação exata (ex: '7.0', 7.0 ou '7')
+            qsp_chave = str(qsp).strip()
+
+            # Quesito 7.0: a resposta "Não" gera conformidade.
+            if qsp_chave in ["7.0", "7"] and (eh_sim or eh_nao):
+                status_sp = "Em Conformidade" if eh_nao else "Fora de Conformidade"
+            # Demais quesitos binários: a resposta "Sim" gera conformidade.
+            elif eh_sim or eh_nao:
+                status_sp = "Em Conformidade" if eh_sim else "Fora de Conformidade"
 
         data_sp.append([qsp, Paragraph(str(resp_sp), styles['TdStyle']), status_sp])
 
