@@ -824,7 +824,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe o número de creches com brinquedos no pátio e o total de creches no município:"
+                                "Informe quantos estabelecimentos que oferecem Creche possuem:"
                             ).classes("text-base font-bold text-black mb-2")
 
                             # Card da Calculadora Automática
