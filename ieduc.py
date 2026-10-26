@@ -1457,7 +1457,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o total de professores de Creche e a quantidade com Licenciatura e Pós-Graduação:"
+                                    "Informe a quantidade de professores de Creche que: Considerar todos os professores efetivos e temporários (Dados Censo Escolar 2025)"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = N1 (Graduação - máx 11 pts) + N2 (Pós-Graduação - máx 7 pts) | Pmáx = 18 pts."
