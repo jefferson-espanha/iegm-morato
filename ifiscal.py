@@ -702,8 +702,9 @@ def container_formulario_ifiscal(ano=None):
                             ef = _inteiro_1_2(valores.get("efetivo"))
                             co = _inteiro_1_2(valores.get("comissao"))
                             ter = _inteiro_1_2(valores.get("terceirizado"))
-                            # Regra: efetivo > 0, sem cargos em comissão e sem terceirizados.
-                            return 1.5 if ef > 0 and co == 0 and ter == 0 else 0.0
+                            # Regra: havendo qualquer cargo preenchido (efetivo,
+                            # comissão ou terceirizado), o quesito recebe 1,5 ponto.
+                            return 1.5 if (ef > 0 or co > 0 or ter > 0) else 0.0
 
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -715,7 +716,7 @@ def container_formulario_ifiscal(ano=None):
                                 "Qual o número de cargos de fiscais/auditores tributários preenchidos?"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "ℹ Fórmula: Se efetivos > 0 E comissão = 0 E terceirizados = 0 -> 1,5 pts | Caso contrário -> 0,0 pts"
+                                "ℹ Fórmula: Se houver qualquer cargo preenchido (efetivo, comissão ou terceirizado) -> 1,5 pts | Caso contrário -> 0,0 pts"
                             ).classes("text-xs text-gray-500 mb-6")
 
                             with ui.grid(columns=2).classes(
