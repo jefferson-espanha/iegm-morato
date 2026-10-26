@@ -689,13 +689,21 @@ def container_formulario_ifiscal(ano=None):
                             "link": dados_1_2.get("link", ""),
                         }
 
-                        def calc_pts_1_2():
-                            ef = int(state_1_2["efetivo"] or 0)
-                            co = int(state_1_2["comissao"] or 0)
-                            ter = int(state_1_2["terceirizado"] or 0)
-                            if ef > 0 and co == 0 and ter == 0:
-                                return 1.5
-                            return 0.0
+                        def _inteiro_1_2(valor):
+                            """Converte com segurança valores vindos do ui.number ou do banco."""
+                            try:
+                                return max(0, int(float(valor or 0)))
+                            except (TypeError, ValueError):
+                                return 0
+
+                        def calc_pts_1_2(valores=None):
+                            """Aplica a regra do quesito 1.2 aos valores atuais ou informados."""
+                            valores = valores or state_1_2
+                            ef = _inteiro_1_2(valores.get("efetivo"))
+                            co = _inteiro_1_2(valores.get("comissao"))
+                            ter = _inteiro_1_2(valores.get("terceirizado"))
+                            # Regra: efetivo > 0, sem cargos em comissão e sem terceirizados.
+                            return 1.5 if ef > 0 and co == 0 and ter == 0 else 0.0
 
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -782,12 +790,15 @@ def container_formulario_ifiscal(ano=None):
                             num_terceirizado.on("update:model-value", atualizar_impacto_1_2)
 
                             def salvar_1_2():
+                                # Monta o valor definitivo e calcula a pontuação a partir
+                                # exatamente dos dados que serão persistidos.
                                 valor_dict = {
-                                    "efetivo": int(state_1_2["efetivo"] or 0),
-                                    "comissao": int(state_1_2["comissao"] or 0),
-                                    "terceirizado": int(state_1_2["terceirizado"] or 0),
+                                    "efetivo": _inteiro_1_2(state_1_2.get("efetivo")),
+                                    "comissao": _inteiro_1_2(state_1_2.get("comissao")),
+                                    "terceirizado": _inteiro_1_2(state_1_2.get("terceirizado")),
                                 }
-                                pts_final = calc_pts_1_2()
+                                state_1_2.update(valor_dict)
+                                pts_final = calc_pts_1_2(valor_dict)
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="1.2",
