@@ -2992,9 +2992,19 @@ def obter_regra_ods_iamb(qid, resp):
     metas = "-"
     status = "Não Atendido"
 
-    if qid in ["1.0", "1.1"]:
+    if qid == "1.0":
         metas = "12.2, 15.2, 16.6"
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "1.1":
+        metas = "12.2, 15.2, 16.6"
+        # Quesito 1.1 é checklist: qualquer opção selecionada atende.
+        itens_selecionados = _normalizar_lista_checkbox(resp)
+        if itens_selecionados:
+            status = "Atendido"
+        elif isinstance(resp, str) and resp.strip() and resp.strip() not in ["[]", "{}"]:
+            status = "Atendido"
+        else:
+            status = "Não Atendido"
     elif qid == "1.1.2":
         metas = "12.8"
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
@@ -3012,7 +3022,14 @@ def obter_regra_ods_iamb(qid, resp):
         status = "Atendido" if "sim" in resp_l else "Não Atendido"
     elif qid == "6.0":
         metas = "6.4, 6.b, 16.6"
-        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+        # Quesito 6.0 é checklist: qualquer opção selecionada atende.
+        itens_selecionados = _normalizar_lista_checkbox(resp)
+        if itens_selecionados:
+            status = "Atendido"
+        elif isinstance(resp, str) and resp.strip() and resp.strip() not in ["[]", "{}"]:
+            status = "Atendido"
+        else:
+            status = "Não Atendido"
     elif qid == "6.2":
         metas = "6.4, 6.5, 6.b, 16.6"
         pct = calcular_percentual_checklist(resp, 3)
