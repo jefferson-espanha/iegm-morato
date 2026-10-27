@@ -2708,7 +2708,7 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.0", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+                        # =============================================================================
                         # QUESITO 15.1 (Taxa de Absenteísmo de Exames Médicos da Atenção Básica)
                         # =============================================================================
                         with ui.card().classes(
@@ -2723,82 +2723,82 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "⚠️ Regra: Se a Taxa de 2026 (TA) for menor ou igual à média dos 2 anos anteriores (2024 e 2025) = 07 pts. Se for maior = 00 pt."
                             ).classes("text-xs font-semibold text-amber-600 mb-6")
-    
+
                             d151 = res_data.get("15.1") or {}
                             raw_val_151 = d151.get("valor") or {}
-    
+
                             if not isinstance(raw_val_151, dict):
                                 raw_val_151 = {}
-    
+
                             raw_link_151 = str(d151.get("link") or "")
-    
+
                             state_151 = {
                                 "ta_2024": str(raw_val_151.get("ta_2024", "")),
                                 "ta_2025": str(raw_val_151.get("ta_2025", "")),
                                 "ta_2026": str(raw_val_151.get("ta_2026", "")),
                                 "link": raw_link_151,
                             }
-    
+
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
                                 ui.label("Taxa em 2024 (TA-2) (%):").classes("text-sm text-gray-700 w-1/2")
-                                inp_ta_2023_151 = ui.input(
+                                inp_ta_2024_151 = ui.input(
                                     value=state_151["ta_2024"],
                                     placeholder="Ex: 18.5"
                                 ).props("type=number outlined dense color=blue").classes("w-1/2")
                                 inp_ta_2024_151.bind_value(state_151, "ta_2024")
-    
+
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
                                 ui.label("Taxa em 2025 (TA-1) (%):").classes("text-sm text-gray-700 w-1/2")
-                                inp_ta_2024_151 = ui.input(
+                                inp_ta_2025_151 = ui.input(
                                     value=state_151["ta_2025"],
                                     placeholder="Ex: 16.2"
                                 ).props("type=number outlined dense color=blue").classes("w-1/2")
-                                inp_ta_2024_151.bind_value(state_151, "ta_2024")
-    
+                                inp_ta_2025_151.bind_value(state_151, "ta_2025")
+
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
                                 ui.label("Taxa em 2026 (TA) (%):").classes("text-sm text-gray-700 w-1/2")
-                                inp_ta_2025_151 = ui.input(
+                                inp_ta_2026_151 = ui.input(
                                     value=state_151["ta_2026"],
                                     placeholder="Ex: 15.0"
                                 ).props("type=number outlined dense color=blue").classes("w-1/2")
-                                inp_ta_2025_151.bind_value(state_151, "ta_2026")
-    
+                                inp_ta_2026_151.bind_value(state_151, "ta_2026")
+
                             lbl_pts_151 = ui.label("Nota 15.1: 0.0 pontos").classes(
                                 "text-sm font-bold text-green-600 mb-4"
                             )
-    
+
                             def recalc_151():
                                 def parse_val(v):
                                     try:
                                         return float(v.replace(",", "."))
                                     except (ValueError, AttributeError):
                                         return None
-    
-                                v23 = parse_val(state_151["ta_2023"])
+
                                 v24 = parse_val(state_151["ta_2024"])
                                 v25 = parse_val(state_151["ta_2025"])
-    
-                                if v23 is not None and v24 is not None and v25 is not None:
-                                    media_anteriores = (v23 + v24) / 2.0
-                                    if v25 <= media_anteriores:
+                                v26 = parse_val(state_151["ta_2026"])
+
+                                if v24 is not None and v25 is not None and v26 is not None:
+                                    media_anteriores = (v24 + v25) / 2.0
+                                    if v26 <= media_anteriores:
                                         pts = 7.0
                                     else:
                                         pts = 0.0
                                     lbl_pts_151.set_text(
                                         f"📊 Nota 15.1: {pts:.1f} / 7.0 pontos "
-                                        f"(Média 2024-2025: {media_anteriores:.2f}% | 2026: {v25:.2f}%)"
+                                        f"(Média 2024-2025: {media_anteriores:.2f}% | 2026: {v26:.2f}%)"
                                     )
                                 else:
                                     pts = 0.0
                                     lbl_pts_151.set_text("📊 Nota 15.1: 0.0 pontos (Preencha as taxas de 2024, 2025 e 2026)")
-    
+
                                 return pts
-    
-                            for inp in [inp_ta_2023_151, inp_ta_2024_151, inp_ta_2025_151]:
+
+                            for inp in [inp_ta_2024_151, inp_ta_2025_151, inp_ta_2026_151]:
                                 inp.on("update:model-value", recalc_151)
-    
+
                             recalc_151()
-    
+
                             ui.textarea(
                                 label="Link de Evidência / Relatório com a Série Histórica de Absenteísmo em Exames:",
                                 value=raw_link_151,
@@ -2806,7 +2806,7 @@ def container_formulario_saude(ano=None):
                             ).classes("w-full mb-4").props("outlined rows=2").bind_value(
                                 state_151, "link"
                             )
-    
+
                             def salvar_151():
                                 pts = recalc_151()
                                 save_resposta(
@@ -2825,7 +2825,7 @@ def container_formulario_saude(ano=None):
                                 ui.notify(f"Quesito 15.1 salvo! ({pts:.1f} pts)", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO 15.1", on_click=salvar_151).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
