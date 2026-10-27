@@ -10940,8 +10940,8 @@ def container_formulario_saude(ano=None):
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("37.0 • Índice de Desabastecimento do Componente Básico da Assistência Farmacêutica").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe o número de medicamentos da REMUME em falta por mais de 1 mês em 2026 (MD) "
-                                "e o total de medicamentos cadastrados na REMUME (TM) para cálculo da proporção (Pd = MD / TM):"
+                                "Nº de itens de medicamentos do Componente Básico da Assistência Farmacêutica presentes na Relação Municipal de Medicamentos Essenciais com desabastecimento (falta do medicamento) superior a um mês no exercício de 2026 - MD"
+                                "O total de itens de medicamentos do Componente Básico da Assistência Farmacêutica presentes na Relação Municipal de Medicamentos Essenciais - TM: (Pd = MD / TM):"
                             ).classes("text-base font-bold text-black mb-4")
     
                             d370 = res_data.get("37.0") or {}
