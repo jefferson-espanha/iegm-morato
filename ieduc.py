@@ -7551,7 +7551,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o número de escolas distribuídas por faixa de rotatividade de professores:"
+                                    "Quanto a regularidade do corpo docente, informe o número de escolas em que houve rotatividade de professores dos Anos Iniciais:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Fórmula: NF = (3×Q1 + 2×Q2 + 1×Q3 + 0×Q4) | Pmáx = 3.0 pontos.\n"
@@ -7663,7 +7663,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Indique a quantidade de escolas municipais divididas pelo tempo de permanência do Diretor/Gestor ao final de 2026:"
+                                    "Quanto a regularidade de gestores, indique a quantidade de escolas municipais cujo diretor/gestor dos Anos Iniciais, ao final de 2026, permanecia à frente"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Fórmula: NF = (0×Q1 + 0,5×Q2 + 1,0×Q3 + 1,5×Q4 + 1,75×Q5 + 2,0×Q6) | Pmáx = 2.0 pontos.\n"
@@ -9689,7 +9689,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o quantitativo de alunos avaliados e ausentes (4º ou 5º Ano do Ensino Fundamental):"
+                                    "Em relação aos alunos matriculados nas escolas municipais, que integraram o público-alvo da última edição da avaliação municipal própria, informe:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Fórmula: Nota Final = 18,0 pontos × % de Alunos Avaliados sobre o Total do Público-Alvo."
@@ -11386,5060 +11386,5060 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("5.1", res_data, render_conteudo.refresh)
 
                             # =============================================================================
-                        if etapa_atual == 4:
-                            # QUESITO 6.0 (Plano de Cargos e Salários Específico dos Professores)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("6.0 • Plano de Cargos e Salários dos Professores (PCCS)").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "A Prefeitura/Secretaria da Educação Municipal possui Plano de Cargos e Salários para seus professores?"
-                                ).classes("text-base font-bold text-black mb-1")
-                                ui.label(
-                                    "⚠️ Obs: PCCS geral dos servidores públicos do município NÃO caracteriza PCCS específico para os professores."
-                                ).classes("text-xs font-semibold text-amber-600 mb-6")
-
-                                d60 = res_data.get("6.0") or res_data.get("6") or {}
-
-                                opcoes_60_pontos = {
-                                    "Selecione...": 0.0,
-                                    "Sim": 0.0,
-                                    "Não": -10.0,
-                                }
-
-                                opcoes_60_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Sim": "Sim (0.0 pts)",
-                                    "Não": "Não (-10.0 pts - Perde 10 pontos)",
-                                }
-
-                                val_60_bruto = str(d60.get("valor") or "")
-                                val_60_valido = "Selecione..."
-                                if val_60_bruto in opcoes_60_pontos:
-                                    val_60_valido = val_60_bruto
-
-                                raw_link_60 = str(d60.get("link") or "")
-
-                                state_60 = {
-                                    "opcao": val_60_valido,
-                                    "link": raw_link_60,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_60 = ui.radio(
-                                        options=opcoes_60_labels,
-                                        value=state_60["opcao"],
-                                    ).props("color=blue").bind_value(state_60, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência / Lei do PCCS dos Professores:",
-                                        value=raw_link_60,
-                                        placeholder="Link da legislação municipal específica do magistério...",
-                                    ).classes("w-full").props("outlined rows=3").bind_value(
-                                        state_60, "link"
-                                    )
-
-                                lbl_pts_60 = ui.label(
-                                    f"📊 Impacto de Pontuação no Quesito 6.0: {opcoes_60_pontos.get(state_60['opcao'], 0.0):.1f} pontos"
-                                ).classes("text-sm font-bold text-red-600 my-4" if opcoes_60_pontos.get(state_60['opcao'], 0.0) < 0 else "text-sm font-bold text-green-600 my-4")
-
-                                def att_pts_60():
-                                    pts = opcoes_60_pontos.get(state_60["opcao"], 0.0)
-                                    lbl_pts_60.set_text(
-                                        f"📊 Impacto de Pontuação no Quesito 6.0: {pts:.1f} pontos"
-                                    )
-                                    if pts < 0:
-                                        lbl_pts_60.classes(remove="text-green-600", add="text-red-600")
-                                    else:
-                                        lbl_pts_60.classes(remove="text-red-600", add="text-green-600")
-
-                                rad_60.on("update:model-value", att_pts_60)
-
-                                def salvar_60():
-                                    pts = opcoes_60_pontos.get(state_60["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="6.0",
-                                        valor=state_60["opcao"],
-                                        pontos=pts,
-                                        link=state_60["link"],
-                                        comentarios=d60.get("comentarios", []),
-                                        status=d60.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 6.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 6.0", on_click=salvar_60).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("6.0", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 6.1 (Instrumento Normativo, Número e Data do PCCS)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("6.1 • Instrumento Normativo do PCCS dos Professores").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Informe o Instrumento Normativo, Número e Data da publicação:"
-                                ).classes("text-base font-bold text-black mb-1")
-                                ui.label(
-                                    "⚠️ Anexar o documento em PDF por meio do botão ANEXO."
-                                ).classes("text-xs font-semibold text-amber-600 mb-6")
-
-                                d61 = res_data.get("6.1") or res_data.get("61") or {}
-                                raw_val_61 = str(d61.get("valor") or "")
-                                raw_link_61 = str(d61.get("link") or "")
-
-                                state_61 = {
-                                    "norma": raw_val_61,
-                                    "link": raw_link_61,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.input(
-                                        label="Instrumento Normativo, Número e Data (ex: Lei Complementar nº 123/2015 de 10/05/2015):",
-                                        value=state_61["norma"],
-                                    ).props("outlined color=blue").classes("w-full").bind_value(
-                                        state_61, "norma"
-                                    )
-
-                                    ui.textarea(
-                                        label="Link de Evidência / PDF do Diário Oficial:",
-                                        value=raw_link_61,
-                                        placeholder="Link do arquivo PDF da lei de criação do PCCS dos professores...",
-                                    ).classes("w-full").props("outlined rows=3").bind_value(
-                                        state_61, "link"
-                                    )
-
-                                def salvar_61():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="6.1",
-                                        valor=state_61["norma"],
-                                        pontos=0.0,
-                                        link=state_61["link"],
-                                        comentarios=d61.get("comentarios", []),
-                                        status=d61.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 6.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 6.1", on_click=salvar_61).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("6.1", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 6.2 (Requisitos Contidos no PCCS dos Professores)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("6.2 • Requisitos do Plano de Cargos e Salários dos Professores").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Assinale os requisitos contidos no Plano de Cargos e Salários dos professores:"
-                                ).classes("text-base font-bold text-black mb-1")
-                                ui.label("ℹ Quesito qualitativo de seleção múltipla.").classes(
-                                    "text-xs text-gray-400 mb-6"
-                                )
-
-                                d62 = res_data.get("6.2") or res_data.get("62") or {}
-                                raw_link_62 = str(d62.get("link") or "")
-                                val_62_bruto = d62.get("valor") or []
-
-                                # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
-                                if isinstance(val_62_bruto, str):
-                                    try:
-                                        sel_62 = json.loads(val_62_bruto)
-                                    except Exception:
-                                        sel_62 = [
-                                            item.strip()
-                                            for item in val_62_bruto.split(";")
-                                            if item.strip()
-                                        ]
-                                elif isinstance(val_62_bruto, list):
-                                    sel_62 = val_62_bruto
-                                else:
-                                    sel_62 = []
-
-                                state_62 = {
-                                    "opcoes": sel_62,
-                                    "link": raw_link_62,
-                                }
-
-                                opcoes_62 = [
-                                    "Remuneração condigna dos profissionais na educação básica da rede pública",
-                                    "Integração entre o trabalho individual e a proposta pedagógica da escola",
-                                    "Melhoria da qualidade do ensino e da aprendizagem",
-                                    "Medidas de incentivo para que profissionais mais bem avaliados exerçam suas funções em escolas de locais com piores indicadores socioeconômicos ou que atendam estudantes com deficiência, transtornos globais do desenvolvimento e altas habilidades ou superdotação",
-                                    "Contempla capacitação profissional especialmente direcionada à formação continuada com vistas à melhoria da qualidade do ensino",
-                                    "Nenhum dos anteriores",
-                                ]
-
-                                with ui.grid(columns=1).classes("w-full gap-2 mb-4"):
-                                    def make_chk_62(opt_text):
-                                        def on_chk_change(e):
-                                            if e.value:
-                                                if opt_text == "Nenhum dos anteriores":
-                                                    state_62["opcoes"].clear()
-                                                    state_62["opcoes"].append("Nenhum dos anteriores")
-                                                else:
-                                                    if "Nenhum dos anteriores" in state_62["opcoes"]:
-                                                        state_62["opcoes"].remove("Nenhum dos anteriores")
-                                                    if opt_text not in state_62["opcoes"]:
-                                                        state_62["opcoes"].append(opt_text)
-                                            else:
-                                                if opt_text in state_62["opcoes"]:
-                                                    state_62["opcoes"].remove(opt_text)
-                                        return on_chk_change
-
-                                    for opt in opcoes_62:
-                                        ui.checkbox(
-                                            text=opt,
-                                            value=(opt in state_62["opcoes"]),
-                                            on_change=make_chk_62(opt),
-                                        ).props("color=blue")
-
-                                ui.textarea(
-                                    label="Link de Evidência / Artigos da Lei do PCCS:",
-                                    value=raw_link_62,
-                                    placeholder="Link destacando os artigos/dispositivos do PCCS que atendem aos requisitos assinalados...",
-                                ).classes("w-full mb-4").props("outlined rows=2").bind_value(
-                                    state_62, "link"
-                                )
-
-                                def salvar_62():
-                                    opts_sel = state_62["opcoes"]
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="6.2",
-                                        valor=opts_sel,
-                                        pontos=0.0,
-                                        link=state_62["link"],
-                                        comentarios=d62.get("comentarios", []),
-                                        status=d62.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 6.2 salvo com sucesso!", type="positive")
-                                    if callable(getattr(render_conteudo, "refresh", None)):
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 6.2", on_click=salvar_62).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("6.2", res_data, render_conteudo.refresh)
-                            # =============================================================================
-                            # QUESITO 7.0 (Programa de Inibição ao Absenteísmo de Professores)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("7.0 • Inibição ao Absenteísmo de Professores").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Existe um programa de inibição ao absenteísmo de professores em sala de aula (incluindo os afastamentos legais)?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d70 = res_data.get("7.0") or res_data.get("7") or {}
-                                raw_val_70 = d70.get("valor") or {}
-
-                                if not isinstance(raw_val_70, dict):
-                                    raw_val_70 = {}
-
-                                raw_link_70 = str(d70.get("link") or "")
-
-                                # Leitura de ofertas do i-Educ (Q1: Creche, Q2: Pré-escola, Q3: Anos Iniciais)
-                                # Busca nos quesitos das etapas ou assume "SIM" por padrão caso não localizado
-                                d_q1 = res_data.get("1.0") or res_data.get("1") or {}
-                                d_q2 = res_data.get("2.0") or res_data.get("2") or {}
-                                d_q3 = res_data.get("3.0") or res_data.get("3") or {}
-
-                                q1_sim = str(d_q1.get("valor") or "SIM").strip().upper() == "SIM"
-                                q2_sim = str(d_q2.get("valor") or "SIM").strip().upper() == "SIM"
-                                q3_sim = str(d_q3.get("valor") or "SIM").strip().upper() == "SIM"
-
-                                state_70 = {
-                                    "tem_programa": str(raw_val_70.get("tem_programa") or "Selecione..."),
-                                    # Ausências por Faltas/Afastamentos (QTA)
-                                    "qta_creche": str(raw_val_70.get("qta_creche", 0)),
-                                    "qta_pre": str(raw_val_70.get("qta_pre", 0)),
-                                    "qta_iniciais": str(raw_val_70.get("qta_iniciais", 0)),
-                                    # Totais de Professores por Etapa
-                                    "prof_creche": str(raw_val_70.get("prof_creche", 1)),
-                                    "prof_pre": str(raw_val_70.get("prof_pre", 1)),
-                                    "prof_iniciais": str(raw_val_70.get("prof_iniciais", 1)),
-                                    "link": raw_link_70,
-                                }
-
-                                opcoes_70_base = ["Selecione...", "Sim", "Não"]
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_70 = ui.radio(
-                                        options=opcoes_70_base,
-                                        value=state_70["tem_programa"],
-                                    ).props("color=blue").bind_value(state_70, "tem_programa")
-
-                                    ui.textarea(
-                                        label="Link de Evidência / Plano de Redução do Absenteísmo:",
-                                        value=raw_link_70,
-                                        placeholder="Link do programa, bonificação de assiduidade ou diretriz municipal...",
-                                    ).classes("w-full").props("outlined rows=3").bind_value(
-                                        state_70, "link"
-                                    )
-
-                                ui.separator().classes("my-4")
-                                ui.label("📊 Dados para Cálculo de Taxa de Absenteísmo por Etapa (A, B e C):").classes(
-                                    "text-sm font-bold text-gray-800 mb-2"
-                                )
-
-                                with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                    # Creche (A)
-                                    with ui.column().classes("p-3 bg-gray-50 rounded border border-gray-200"):
-                                        ui.label("Creche (A)").classes("font-bold text-blue-800 text-xs")
-                                        ui.input("QTA (Faltas/Afastamentos):", value=state_70["qta_creche"]).props("type=number outlined dense color=blue").bind_value(state_70, "qta_creche")
-                                        ui.input("Total Professores Creche:", value=state_70["prof_creche"]).props("type=number outlined dense color=blue").bind_value(state_70, "prof_creche")
-
-                                    # Pré-escola (B)
-                                    with ui.column().classes("p-3 bg-gray-50 rounded border border-gray-200"):
-                                        ui.label("Pré-escola (B)").classes("font-bold text-blue-800 text-xs")
-                                        ui.input("QTA (Faltas/Afastamentos):", value=state_70["qta_pre"]).props("type=number outlined dense color=blue").bind_value(state_70, "qta_pre")
-                                        ui.input("Total Professores Pré:", value=state_70["prof_pre"]).props("type=number outlined dense color=blue").bind_value(state_70, "prof_pre")
-
-                                    # Anos Iniciais (C)
-                                    with ui.column().classes("p-3 bg-gray-50 rounded border border-gray-200"):
-                                        ui.label("Anos Iniciais (C)").classes("font-bold text-blue-800 text-xs")
-                                        ui.input("QTA (Faltas/Afastamentos):", value=state_70["qta_iniciais"]).props("type=number outlined dense color=blue").bind_value(state_70, "qta_iniciais")
-                                        ui.input("Total Professores Iniciais:", value=state_70["prof_iniciais"]).props("type=number outlined dense color=blue").bind_value(state_70, "prof_iniciais")
-
-                                lbl_resultado_70 = ui.label("Calculando pontuação do absenteísmo...").classes("text-sm font-bold my-2")
-
-                                def calcular_pontos_70():
-                                    if state_70["tem_programa"] != "Sim":
-                                        lbl_resultado_70.set_text("📊 Impacto no Quesito 7.0: 0.0 pontos (Sem programa registrado)")
-                                        lbl_resultado_70.classes(remove="text-red-600", add="text-gray-700")
-                                        return 0.0
-
-                                    try:
-                                        qta_a = float(state_70["qta_creche"])
-                                        prof_a = float(state_70["prof_creche"])
-                                        taxa_a = (qta_a / prof_a) if prof_a > 0 else 0.0
-                                    except (ValueError, ZeroDivisionError):
-                                        taxa_a = 0.0
-
-                                    try:
-                                        qta_b = float(state_70["qta_pre"])
-                                        prof_b = float(state_70["prof_pre"])
-                                        taxa_b = (qta_b / prof_b) if prof_b > 0 else 0.0
-                                    except (ValueError, ZeroDivisionError):
-                                        taxa_b = 0.0
-
-                                    try:
-                                        qta_c = float(state_70["qta_iniciais"])
-                                        prof_c = float(state_70["prof_iniciais"])
-                                        taxa_c = (qta_c / prof_c) if prof_c > 0 else 0.0
-                                    except (ValueError, ZeroDivisionError):
-                                        taxa_c = 0.0
-
-                                    na, nb, nc = 0.0, 0.0, 0.0
-
-                                    # Matriz da Regra de Negócio i-Educ
-                                    if q1_sim and q2_sim and q3_sim:
-                                        na = 0.0 if taxa_a <= 10 else -1.5
-                                        nb = 0.0 if taxa_b <= 10 else -1.5
-                                        nc = 0.0 if taxa_c <= 10 else -2.0
-                                    elif not q1_sim and q2_sim and q3_sim:
-                                        na = 0.0
-                                        nb = 0.0 if taxa_b <= 10 else -2.5
-                                        nc = 0.0 if taxa_c <= 10 else -2.5
-                                    elif q1_sim and not q2_sim and q3_sim:
-                                        na = 0.0 if taxa_a <= 10 else -2.5
-                                        nb = 0.0
-                                        nc = 0.0 if taxa_c <= 10 else -2.5
-                                    elif q1_sim and q2_sim and not q3_sim:
-                                        na = 0.0 if taxa_a <= 10 else -2.5
-                                        nb = 0.0 if taxa_b <= 10 else -2.5
-                                        nc = 0.0
-                                    elif not q1_sim and not q2_sim and q3_sim:
-                                        na = 0.0
-                                        nb = 0.0
-                                        nc = 0.0 if taxa_c <= 10 else -5.0
-                                    elif not q1_sim and q2_sim and not q3_sim:
-                                        na = 0.0
-                                        nb = 0.0 if taxa_b <= 10 else -5.0
-                                        nc = 0.0
-                                    elif q1_sim and not q2_sim and not q3_sim:
-                                        na = 0.0 if taxa_a <= 10 else -5.0
-                                        nb = 0.0
-                                        nc = 0.0
-                                    else:
-                                        na, nb, nc = 0.0, 0.0, 0.0
-
-                                    nf = na + nb + nc
-
-                                    if nf < 0:
-                                        lbl_resultado_70.set_text(
-                                            f"📊 Impacto da Penalidade por Absenteísmo (NF): {nf:.1f} pontos "
-                                            f"(Taxas: A={taxa_a:.1f}, B={taxa_b:.1f}, C={taxa_c:.1f})"
-                                        )
-                                        lbl_resultado_70.classes(remove="text-green-600 text-gray-700", add="text-red-600")
-                                    else:
-                                        lbl_resultado_70.set_text(
-                                            f"📊 Impacto do Quesito 7.0: +5.0 pts (Programa Ativo) / Penalidades da Taxa: 0.0 pts"
-                                        )
-                                        lbl_resultado_70.classes(remove="text-red-600 text-gray-700", add="text-green-600")
-
-                                    return nf
-
-                                def salvar_70():
-                                    nf_penalidade = calcular_pontos_70()
-                                    pts_finais = 5.0 + nf_penalidade if state_70["tem_programa"] == "Sim" else 0.0
-
-                                    dados_salvar = {
-                                        "tem_programa": state_70["tem_programa"],
-                                        "qta_creche": state_70["qta_creche"],
-                                        "qta_pre": state_70["qta_pre"],
-                                        "qta_iniciais": state_70["qta_iniciais"],
-                                        "prof_creche": state_70["prof_creche"],
-                                        "prof_pre": state_70["prof_pre"],
-                                        "prof_iniciais": state_70["prof_iniciais"],
-                                        "nf_penalidade": nf_penalidade,
-                                    }
-
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="7.0",
-                                        valor=dados_salvar,
-                                        pontos=pts_finais,
-                                        link=state_70["link"],
-                                        comentarios=d70.get("comentarios", []),
-                                        status=d70.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify(f"Quesito 7.0 salvo com sucesso! (Pontuação final: {pts_finais:.1f} pts)", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                rad_70.on("update:model-value", calcular_pontos_70)
-
-                                ui.button("💾 SALVAR QUESITO 7.0", on_click=salvar_70).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("7.0", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 7.1 (Especificação do Programa de Inibição ao Absenteísmo)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("7.1 • Detalhamento do Programa de Inibição ao Absenteísmo").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Especifique qual o programa de inibição ao absenteísmo de professores:"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d71 = res_data.get("7.1") or res_data.get("71") or {}
-                                raw_val_71 = str(d71.get("valor") or "")
-                                raw_link_71 = str(d71.get("link") or "")
-
-                                state_71 = {
-                                    "programa_desc": raw_val_71,
-                                    "link": raw_link_71,
-                                }
-
-                                with ui.grid(columns=1).classes("w-full gap-4 mb-4"):
-                                    ui.textarea(
-                                        label="Programa de inibição ao absenteísmo de professores:",
-                                        value=raw_val_71,
-                                        placeholder="Descreva os mecanismos do programa (ex: prêmio de assiduidade, acompanhamento de saúde do trabalhador, reposição obrigatória)...",
-                                    ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
-                                        state_71, "programa_desc"
-                                    )
-
-                                    ui.textarea(
-                                        label="Link de Evidência / Regulamentação do Programa:",
-                                        value=raw_link_71,
-                                        placeholder="Link do decreto ou portaria que institui o programa...",
-                                    ).classes("w-full").props("outlined rows=2 color=blue").bind_value(
-                                        state_71, "link"
-                                    )
-
-                                def salvar_71():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="7.1",
-                                        valor=state_71["programa_desc"],
-                                        pontos=0.0,
-                                        link=state_71["link"],
-                                        comentarios=d71.get("comentarios", []),
-                                        status=d71.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 7.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 7.1", on_click=salvar_71).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("7.1", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 8.0 (Atuação de Nutricionista na Rede Municipal)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("8.0 • Nutricionista na Rede Municipal de Ensino").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Houve nutricionista atuando na rede municipal de ensino no ano de 2026?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d80 = res_data.get("8.0") or res_data.get("8") or {}
-
-                                opcoes_80 = [
-                                    "Selecione...",
-                                    "Sim",
-                                    "Não",
-                                ]
-
-                                val_80_bruto = str(d80.get("valor") or "")
-                                val_80_valido = "Selecione..."
-                                if val_80_bruto in opcoes_80:
-                                    val_80_valido = val_80_bruto
-
-                                raw_link_80 = str(d80.get("link") or "")
-
-                                state_80 = {
-                                    "opcao": val_80_valido,
-                                    "link": raw_link_80,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_80 = ui.radio(
-                                        options=opcoes_80,
-                                        value=state_80["opcao"],
-                                    ).props("color=blue").bind_value(state_80, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência / Portaria de Nomeação / Registro CRN / Cardápios:",
-                                        value=raw_link_80,
-                                        placeholder="Link da portaria de nomeação do nutricionista, RT do CRN ou cardápios assinados...",
-                                    ).classes("w-full").props("outlined rows=3").bind_value(
-                                        state_80, "link"
-                                    )
-
-                                def salvar_80():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="8.0",
-                                        valor=state_80["opcao"],
-                                        pontos=0.0,
-                                        link=state_80["link"],
-                                        comentarios=d80.get("comentarios", []),
-                                        status=d80.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 8.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 8.0", on_click=salvar_80).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("8.0", res_data, render_conteudo.refresh)
-
-            # =============================================================================
-                            # QUESITO 8.1 (Dimensionamento do Quadro de Nutricionistas)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("8.1 • Dimensionamento do Quadro de Nutricionistas").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Quantos nutricionistas atuavam no município em 2026?"
-                                ).classes("text-base font-bold text-black mb-1")
-                                ui.label(
-                                    "⚠️ Critério de Pontuação: Cumprimento do dimensionamento mínimo (RT + QT) em relação ao número de alunos para conceder 12,0 pontos."
-                                ).classes("text-xs font-semibold text-amber-600 mb-6")
-
-                                d81 = res_data.get("8.1") or res_data.get("81") or {}
-                                raw_val_81 = d81.get("valor") or {}
-
-                                if not isinstance(raw_val_81, dict):
-                                    raw_val_81 = {}
-
-                                raw_link_81 = str(d81.get("link") or "")
-
-                                state_81 = {
-                                    "total_alunos": str(raw_val_81.get("total_alunos", 0)),
-                                    "qtd_servidores": str(raw_val_81.get("qtd_servidores", 0)),
-                                    "qtd_terceirizados": str(raw_val_81.get("qtd_terceirizados", 0)),
-                                    "link": raw_link_81,
-                                }
-
-                                with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                    inp_alunos_81 = ui.input(
-                                        "Total de Alunos da Rede:",
-                                        value=state_81["total_alunos"]
-                                    ).props("type=number outlined dense color=blue").bind_value(state_81, "total_alunos")
-
-                                    inp_serv_81 = ui.input(
-                                        "Servidores Municipais (Qi):",
-                                        value=state_81["qtd_servidores"]
-                                    ).props("type=number outlined dense color=blue").bind_value(state_81, "qtd_servidores")
-
-                                    inp_terc_81 = ui.input(
-                                        "Funcionários Terceirizados:",
-                                        value=state_81["qtd_terceirizados"]
-                                    ).props("type=number outlined dense color=blue").bind_value(state_81, "qtd_terceirizados")
-
-                                lbl_req_81 = ui.label("Exigência FNDE/CFN: -").classes("text-xs font-bold text-gray-700 mb-1")
-                                lbl_pts_81 = ui.label("Nota Quesito 8.1: 0.0 / 12.0 pontos").classes("text-sm font-bold text-green-600 mb-4")
-
-                                ui.textarea(
-                                    label="Link de Evidência / Quadro Técnico / CRN / Contratos:",
-                                    value=raw_link_81,
-                                    placeholder="Link das anotações de responsabilidade técnica (ART) no CRN e folha de pagamento...",
-                                ).classes("w-full mb-2").props("outlined rows=2 color=blue").bind_value(
-                                    state_81, "link"
-                                )
-
-                                def recalc_81():
-                                    try:
-                                        alunos = float(state_81["total_alunos"])
-                                    except ValueError:
-                                        alunos = 0.0
-
-                                    try:
-                                        qi = float(state_81["qtd_servidores"])
-                                    except ValueError:
-                                        qi = 0.0
-
-                                    # Cálculo da Necessidade Teórica de Nutricionistas (1 RT + N QT)
-                                    if alunos <= 500:
-                                        nec_rt, nec_qt = 1, 0
-                                    elif alunos <= 1000:
-                                        nec_rt, nec_qt = 1, 1
-                                    elif alunos <= 2500:
-                                        nec_rt, nec_qt = 1, 2
-                                    elif alunos <= 5000:
-                                        nec_rt, nec_qt = 1, 3
-                                    else:
-                                        excedente = alunos - 5000
-                                        nec_qt_extra = int(excedente // 2500)
-                                        nec_rt, nec_qt = 1, 3 + nec_qt_extra
-
-                                    nec_total = nec_rt + nec_qt
-                                    lbl_req_81.set_text(f"Exigência FNDE/CFN para {int(alunos)} alunos: {nec_rt} RT + {nec_qt} QT (Total: {nec_total} nutricionistas)")
-
-                                    if qi >= nec_total and nec_total > 0:
-                                        pts = 12.0
-                                        lbl_pts_81.set_text("📊 Nota Quesito 8.1: 12.0 / 12.0 pontos (Atende ao critério do quadro técnico)")
-                                        lbl_pts_81.classes(remove="text-red-600", add="text-green-600")
-                                    else:
-                                        pts = 0.0
-                                        lbl_pts_81.set_text("📊 Nota Quesito 8.1: 0.0 / 12.0 pontos (Quadro de servidores insuficiente)")
-                                        lbl_pts_81.classes(remove="text-green-600", add="text-red-600")
-
-                                    return pts
-
-                                inp_alunos_81.on("update:model-value", recalc_81)
-                                inp_serv_81.on("update:model-value", recalc_81)
-                                recalc_81()
-
-                                def salvar_81():
-                                    pts = recalc_81()
-                                    dados_salvar = {
-                                        "total_alunos": int(state_81["total_alunos"]) if state_81["total_alunos"].isdigit() else 0,
-                                        "qtd_servidores": int(state_81["qtd_servidores"]) if state_81["qtd_servidores"].isdigit() else 0,
-                                        "qtd_terceirizados": int(state_81["qtd_terceirizados"]) if state_81["qtd_terceirizados"].isdigit() else 0,
-                                    }
-
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="8.1",
-                                        valor=dados_salvar,
-                                        pontos=pts,
-                                        link=state_81["link"],
-                                        comentarios=d81.get("comentarios", []),
-                                        status=d81.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 8.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 8.1", on_click=salvar_81).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("8.1", res_data, render_conteudo.refresh)
-
-                        
-                            # =============================================================================
-                            # QUESITO 8.2 (Atuação nas Escolas Estaduais)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("8.2 • Atuação dos Nutricionistas nas Escolas Estaduais").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label("Os nutricionistas atuaram nas escolas estaduais em 2026?").classes(
-                                    "text-base font-bold text-black mb-6"
-                                )
-
-                                d82 = res_data.get("8.2") or res_data.get("82") or {}
-                                raw_val_82 = d82.get("valor") or {}
-                                if not isinstance(raw_val_82, dict):
-                                    raw_val_82 = {"atuaram": str(raw_val_82 or "Selecione...")}
-
-                                state_82 = {
-                                    "atuaram": str(raw_val_82.get("atuaram", "Selecione...")),
-                                    "link": str(d82.get("link") or ""),
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.radio(
-                                        options=["Selecione...", "Sim", "Não"],
-                                        value=state_82["atuaram"],
-                                    ).props("color=blue").bind_value(state_82, "atuaram")
-
-                                    ui.textarea(
-                                        label="Link de Evidência / Convênio de Alimentação Escolar Estadual:",
-                                        value=state_82["link"],
-                                        placeholder="Link do termo de colaboração/convênio com o estado...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_82, "link"
-                                    )
-
-                                def salvar_82():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="8.2",
-                                        valor={"atuaram": state_82["atuaram"]},
-                                        pontos=0.0,
-                                        link=state_82["link"],
-                                        comentarios=d82.get("comentarios", []),
-                                        status=d82.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 8.2 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 8.2", on_click=salvar_82).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("8.2", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 8.2.1 (Quantidade de Escolas Estaduais)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("8.2.1 • Escolas Estaduais Atendidas").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Informe a quantidade de escolas estaduais com atuação de nutricionistas:"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d821 = res_data.get("8.2.1") or res_data.get("821") or {}
-                                raw_val_821 = d821.get("valor") or {}
-                                if not isinstance(raw_val_821, dict):
-                                    raw_val_821 = {"qtd_escolas_est": str(raw_val_821 or 0)}
-
-                                state_821 = {
-                                    "qtd_escolas_est": str(raw_val_821.get("qtd_escolas_est", 0)),
-                                    "link": str(d821.get("link") or ""),
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.input(
-                                        "Quantidade de escolas estaduais com atuação de nutricionistas:",
-                                        value=state_821["qtd_escolas_est"],
-                                    ).props("type=number outlined dense color=blue").classes("w-full").bind_value(
-                                        state_821, "qtd_escolas_est"
-                                    )
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 8.2.1):",
-                                        value=state_821["link"],
-                                        placeholder="Link da relação de escolas estaduais atendidas...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_821, "link"
-                                    )
-
-                                def salvar_821():
-                                    val_qtd = int(state_821["qtd_escolas_est"]) if state_821["qtd_escolas_est"].isdigit() else 0
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="8.2.1",
-                                        valor={"qtd_escolas_est": val_qtd},
-                                        pontos=0.0,
-                                        link=state_821["link"],
-                                        comentarios=d821.get("comentarios", []),
-                                        status=d821.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 8.2.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 8.2.1", on_click=salvar_821).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("8.2.1", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 8.2.2 (Quantidade de Alunos Estaduais)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("8.2.2 • Alunos Estaduais Atendidos").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Informe a quantidade de alunos da rede estadual atendidos:"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d822 = res_data.get("8.2.2") or res_data.get("822") or {}
-                                raw_val_822 = d822.get("valor") or {}
-                                if not isinstance(raw_val_822, dict):
-                                    raw_val_822 = {"qtd_alunos_est": str(raw_val_822 or 0)}
-
-                                state_822 = {
-                                    "qtd_alunos_est": str(raw_val_822.get("qtd_alunos_est", 0)),
-                                    "link": str(d822.get("link") or ""),
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.input(
-                                        "Quantidade de alunos da rede estadual atendidos:",
-                                        value=state_822["qtd_alunos_est"],
-                                    ).props("type=number outlined dense color=blue").classes("w-full").bind_value(
-                                        state_822, "qtd_alunos_est"
-                                    )
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 8.2.2):",
-                                        value=state_822["link"],
-                                        placeholder="Link do relatório de matrículas estaduais atendidas...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_822, "link"
-                                    )
-
-                                def salvar_822():
-                                    val_qtd = int(state_822["qtd_alunos_est"]) if state_822["qtd_alunos_est"].isdigit() else 0
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="8.2.2",
-                                        valor={"qtd_alunos_est": val_qtd},
-                                        pontos=0.0,
-                                        link=state_822["link"],
-                                        comentarios=d822.get("comentarios", []),
-                                        status=d822.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 8.2.2 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 8.2.2", on_click=salvar_822).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("8.2.2", res_data, render_conteudo.refresh)
-
-            # =============================================================================
-                        if etapa_atual == 5:
-                            # QUESITO 9.0 (Divulgação do Cardápio da Nutricionista)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("9.0 • Divulgação do Cardápio Pré-Estabelecido").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "O município divulga o cardápio pré-estabelecido pela nutricionista na Secretaria de Educação e nas escolas?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d90 = res_data.get("9.0") or res_data.get("9") or {}
-
-                                opcoes_90_pts = {
-                                    "Selecione...": 0.0,
-                                    "Na Secretaria de Educação e em todas as escolas": 2.0,
-                                    "Na Secretaria de Educação e na maior parte das escolas": 1.3,
-                                    "Na Secretaria de Educação e na menor parte das escolas": 0.6,
-                                    "Apenas na Secretaria de Educação": 0.0,
-                                    "Não é divulgado": 0.0,
-                                }
-
-                                opcoes_90_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Na Secretaria de Educação e em todas as escolas": "Na Secretaria de Educação e em todas as escolas (+2,0 pts)",
-                                    "Na Secretaria de Educação e na maior parte das escolas": "Na Secretaria de Educação e na maior parte das escolas (+1,3 pts)",
-                                    "Na Secretaria de Educação e na menor parte das escolas": "Na Secretaria de Educação e na menor parte das escolas (+0,6 pts)",
-                                    "Apenas na Secretaria de Educação": "Apenas na Secretaria de Educação (0,0 pts)",
-                                    "Não é divulgado": "Não é divulgado (0,0 pts)",
-                                }
-
-                                val_90_bruto = str(d90.get("valor") or "")
-                                val_90_valido = "Selecione..."
-                                if val_90_bruto in opcoes_90_pts:
-                                    val_90_valido = val_90_bruto
-
-                                raw_link_90 = str(d90.get("link") or "")
-
-                                state_90 = {
-                                    "opcao": val_90_valido,
-                                    "link": raw_link_90,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_90 = ui.radio(
-                                        options=opcoes_90_labels,
-                                        value=state_90["opcao"],
-                                    ).props("color=blue").bind_value(state_90, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência / Publicação dos Cardápios:",
-                                        value=raw_link_90,
-                                        placeholder="Link do site, mural online ou fotos dos quadros de aviso nas escolas...",
-                                    ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
-                                        state_90, "link"
-                                    )
-
-                                lbl_pts_90 = ui.label(f"📊 Nota Quesito 9.0: {opcoes_90_pts.get(state_90['opcao'], 0.0):.1f} / 2.0 pontos").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def att_pts_90():
-                                    pts = opcoes_90_pts.get(state_90["opcao"], 0.0)
-                                    lbl_pts_90.set_text(f"📊 Nota Quesito 9.0: {pts:.1f} / 2.0 pontos")
-
-                                rad_90.on("update:model-value", att_pts_90)
-
-                                def salvar_90():
-                                    pts = opcoes_90_pts.get(state_90["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="9.0",
-                                        valor=state_90["opcao"],
-                                        pontos=pts,
-                                        link=state_90["link"],
-                                        comentarios=d90.get("comentarios", []),
-                                        status=d90.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 9.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 9.0", on_click=salvar_90).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("9.0", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 10.0 (Cumprimento do Cardápio Pré-Estabelecido)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("10.0 • Cumprimento do Cardápio de Alimentação").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "O município cumpre o cardápio pré-estabelecido pela nutricionista?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d100 = res_data.get("10.0") or res_data.get("10") or {}
-
-                                opcoes_100_pts = {
-                                    "Selecione...": 0.0,
-                                    "Em todas as escolas": 2.5,
-                                    "Na maior parte das escolas": 1.8,
-                                    "Na menor parte das escolas": 0.5,
-                                    "Não cumpre o cardápio": 0.0,
-                                }
-
-                                opcoes_100_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Em todas as escolas": "Em todas as escolas (+2,5 pts)",
-                                    "Na maior parte das escolas": "Na maior parte das escolas (+1,8 pts)",
-                                    "Na menor parte das escolas": "Na menor parte das escolas (+0,5 pts)",
-                                    "Não cumpre o cardápio": "Não cumpre o cardápio (0,0 pts)",
-                                }
-
-                                val_100_bruto = str(d100.get("valor") or "")
-                                val_100_valido = "Selecione..."
-                                if val_100_bruto in opcoes_100_pts:
-                                    val_100_valido = val_100_bruto
-
-                                raw_link_100 = str(d100.get("link") or "")
-
-                                state_100 = {
-                                    "opcao": val_100_valido,
-                                    "link": raw_link_100,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_100 = ui.radio(
-                                        options=opcoes_100_labels,
-                                        value=state_100["opcao"],
-                                    ).props("color=blue").bind_value(state_100, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência / Relatórios de Visita Técnica e Substituição de Cardápio:",
-                                        value=raw_link_100,
-                                        placeholder="Link dos relatórios das visitas das nutricionistas e guias de entrega do PNAE...",
-                                    ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
-                                        state_100, "link"
-                                    )
-
-                                lbl_pts_100 = ui.label(f"📊 Nota Quesito 10.0: {opcoes_100_pts.get(state_100['opcao'], 0.0):.1f} / 2.5 pontos").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def att_pts_100():
-                                    pts = opcoes_100_pts.get(state_100["opcao"], 0.0)
-                                    lbl_pts_100.set_text(f"📊 Nota Quesito 10.0: {pts:.1f} / 2.5 pontos")
-
-                                rad_100.on("update:model-value", att_pts_100)
-
-                                def salvar_100():
-                                    pts = opcoes_100_pts.get(state_100["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="10.0",
-                                        valor=state_100["opcao"],
-                                        pontos=pts,
-                                        link=state_100["link"],
-                                        comentarios=d100.get("comentarios", []),
-                                        status=d100.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 10.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 10.0", on_click=salvar_100).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("10.0", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 11.0 (Controle Formal da Qualidade dos Alimentos)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("11.0 • Controle Formal da Qualidade dos Alimentos").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Existe controle formal pelo(a) nutricionista que permita atestar condições dos alimentos servidos?"
-                                ).classes("text-base font-bold text-black mb-4")
-
-                                d110 = res_data.get("11.0") or res_data.get("11") or {}
-
-                                val_110_bruto = str(d110.get("valor") or "Selecione...")
-                                raw_link_110 = str(d110.get("link") or "")
-
-                                state_110 = {
-                                    "existe_controle": val_110_bruto,
-                                    "link": raw_link_110,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_110 = ui.radio(
-                                        options=["Selecione...", "Sim", "Não"],
-                                        value=state_110["existe_controle"],
-                                    ).props("color=blue").bind_value(state_110, "existe_controle")
-
-                                    ui.textarea(
-                                        label="Link de Evidência / Fichas de Controle e Checklists (Quesito 11.0):",
-                                        value=raw_link_110,
-                                        placeholder="Link dos modelos de ficha de inspeção e checklists...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_110, "link"
-                                    )
-
-                                def salvar_110():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="11.0",
-                                        valor=state_110["existe_controle"],
-                                        pontos=0.0,
-                                        link=state_110["link"],
-                                        comentarios=d110.get("comentarios", []),
-                                        status=d110.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 11.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 11.0", on_click=salvar_110).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("11.0", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 11.1 (Condições Atestadas pelo Nutricionista)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("11.1 • Condições Atestadas pelo(a) Nutricionista").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Assinale as condições atestadas pelo(a) nutricionista (0,25 pt cada):"
-                                ).classes("text-base font-bold text-black mb-4")
-
-                                d111 = res_data.get("11.1") or res_data.get("111") or {}
-                                raw_link_111 = str(d111.get("link") or "")
-                                val_111_bruto = d111.get("valor") or []
-
-                                # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
-                                if isinstance(val_111_bruto, str):
-                                    try:
-                                        sel_111 = json.loads(val_111_bruto)
-                                    except Exception:
-                                        sel_111 = [
-                                            item.strip()
-                                            for item in val_111_bruto.split(";")
-                                            if item.strip()
-                                        ]
-                                elif isinstance(val_111_bruto, list):
-                                    sel_111 = val_111_bruto
-                                else:
-                                    sel_111 = []
-
-                                state_111 = {
-                                    "opcoes": sel_111,
-                                    "link": raw_link_111,
-                                }
-
-                                opcoes_111 = [
-                                    "Condições físicas e estruturais da cozinha",
-                                    "Recebimento dos alimentos para controle de procedência",
-                                    "Higienização dos alimentos",
-                                    "Higienização dos equipamentos",
-                                    "Acondicionamento dos alimentos",
-                                    "Acompanhamento da preparação dos alimentos",
-                                    "Acompanhamento e orientação sobre a manipulação dos alimentos",
-                                    "Aceitação do cardápio proposto",
-                                    "Outras",
-                                ]
-
-                                lbl_pts_111 = ui.label("Nota do Quesito 11.1: 0.00 / 2.00 pontos").classes(
-                                    "text-sm font-bold text-green-600 mb-4"
-                                )
-
-                                def recalc_111():
-                                    validos = [
-                                        item for item in state_111["opcoes"] if item != "Outras"
-                                    ]
-                                    pts = len(validos) * 0.25
-                                    pts = min(pts, 2.0)
-                                    lbl_pts_111.set_text(
-                                        f"📊 Nota do Quesito 11.1: {pts:.2f} / 2.00 pontos ({len(validos)} condições atestadas)"
-                                    )
-                                    return pts
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    with ui.column().classes("w-full gap-1"):
-                                        def make_chk_111(opt_text):
-                                            def on_chk_change(e):
-                                                if e.value and opt_text not in state_111["opcoes"]:
-                                                    state_111["opcoes"].append(opt_text)
-                                                elif not e.value and opt_text in state_111["opcoes"]:
-                                                    state_111["opcoes"].remove(opt_text)
-                                                recalc_111()
-                                            return on_chk_change
-
-                                        for op_111 in opcoes_111:
-                                            pts_txt = " (+0,25 pt)" if op_111 != "Outras" else " (0,00 pt)"
-                                            ui.checkbox(
-                                                text=f"{op_111}{pts_txt}",
-                                                value=(op_111 in state_111["opcoes"]),
-                                                on_change=make_chk_111(op_111),
-                                            ).props("color=blue")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 11.1):",
-                                        value=raw_link_111,
-                                        placeholder="Link dos relatórios e fichas preenchidas com as condições atestadas...",
-                                    ).classes("w-full").props("outlined rows=5 color=blue").bind_value(
-                                        state_111, "link"
-                                    )
-
-                                recalc_111()
-
-                                def salvar_111():
-                                    pts_111 = recalc_111()
-                                    opts_sel = state_111["opcoes"]
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="11.1",
-                                        valor=opts_sel,
-                                        pontos=pts_111,
-                                        link=state_111["link"],
-                                        comentarios=d111.get("comentarios", []),
-                                        status=d111.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 11.1 salvo com sucesso!", type="positive")
-                                    if callable(getattr(render_conteudo, "refresh", None)):
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 11.1", on_click=salvar_111).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("11.1", res_data, render_conteudo.refresh)
-                            
-                            # =============================================================================
-                            # QUESITO 12.0 (Controle de Acondicionamento dos Alimentos)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("12.0 • Controle de Acondicionamento dos Alimentos").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Existe um controle de acondicionamento dos alimentos?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d120 = res_data.get("12.0") or res_data.get("12") or {}
-
-                                opcoes_120 = ["Selecione...", "Sim", "Não"]
-
-                                val_120_bruto = str(d120.get("valor") or "Selecione...")
-                                raw_link_120 = str(d120.get("link") or "")
-
-                                state_120 = {
-                                    "opcao": val_120_bruto,
-                                    "link": raw_link_120,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_120 = ui.radio(
-                                        options=opcoes_120,
-                                        value=state_120["opcao"],
-                                    ).props("color=blue").bind_value(state_120, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência / Fichas de Temperatura e Estoque / Descarte:",
-                                        value=raw_link_120,
-                                        placeholder="Link das planilhas de controle de temperatura de geladeiras/freezers e pálio de armazenamento...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_120, "link"
-                                    )
-
-                                def salvar_120():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="12.0",
-                                        valor=state_120["opcao"],
-                                        pontos=0.0,
-                                        link=state_120["link"],
-                                        comentarios=d120.get("comentarios", []),
-                                        status=d120.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 12.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 12.0", on_click=salvar_120).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("12.0", res_data, render_conteudo.refresh)
-
-       # =============================================================================
-                            # QUESITO 12.1 (Tipos de Controles de Acondicionamento)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("12.1 • Tipos de Controles de Acondicionamento").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Assinale os tipos de controles de acondicionamento adotados:"
-                                ).classes("text-base font-bold text-black mb-4")
-
-                                d121 = res_data.get("12.1") or res_data.get("121") or {}
-                                raw_link_121 = str(d121.get("link") or "")
-                                val_121_bruto = d121.get("valor") or []
-
-                                # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
-                                if isinstance(val_121_bruto, str):
-                                    try:
-                                        sel_121 = json.loads(val_121_bruto)
-                                    except Exception:
-                                        sel_121 = [
-                                            item.strip()
-                                            for item in val_121_bruto.split(";")
-                                            if item.strip()
-                                        ]
-                                elif isinstance(val_121_bruto, list):
-                                    sel_121 = val_121_bruto
-                                else:
-                                    sel_121 = []
-
-                                state_121 = {
-                                    "opcoes": sel_121,
-                                    "link": raw_link_121,
-                                }
-
-                                opcoes_121 = [
-                                    ("Controle de Estoque com sistema PVPS - o primeiro que vence é o primeiro que sai", 0.375),
-                                    ("Telas nas janelas e frestas", 0.35),
-                                    ("Possui sistema de ventilação", 0.35),
-                                    ("As luminárias são protegidas", 0.35),
-                                    ("Possui ralos sifonados, dotados de dispositivos que permitam o seu fechamento", 0.35),
-                                    ("O estoque não possui sinais de goteiras, vazamentos, umidade, trincas, rachaduras, bolores, infiltrações ou descascamento", 0.35),
-                                    ("Há adequada distância no armazenamento de produtos alimentícios do piso, parede, forro", 0.35),
-                                    ("As geladeiras/câmaras frias são higienizadas periodicamente", 0.35),
-                                    ("Ventilação do estoque", 0.35),
-                                    ("Temperatura", 0.35),
-                                    ("Umidade do ar", 0.35),
-                                    ("Prazo de validade", 0.35),
-                                    ("Tipo de alimento", 0.35),
-                                    ("Os alimentos abertos são etiquetados com data de abertura e validade", 0.35),
-                                    ("Desinsetização a cada 6 meses", 0.35),
-                                    ("Desratização a cada 6 meses", 0.35),
-                                    ("Limpeza da caixa d'água a cada 6 meses", 0.375),
-                                    ("Outro", 0.0),
-                                ]
-
-                                lbl_pts_121 = ui.label("Nota do Quesito 12.1: 0.000 pontos").classes(
-                                    "text-sm font-bold text-green-600 mb-4"
-                                )
-
-                                def recalc_121():
-                                    dict_pts = dict(opcoes_121)
-                                    total_pts = sum(dict_pts.get(item, 0.0) for item in state_121["opcoes"])
-                                    lbl_pts_121.set_text(
-                                        f"📊 Nota do Quesito 12.1: {total_pts:.3f} pontos ({len(state_121['opcoes'])} controles selecionados)"
-                                    )
-                                    return total_pts
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    with ui.column().classes("w-full gap-1"):
-                                        def make_chk_121(opt_text):
-                                            def on_chk_change(e):
-                                                if e.value and opt_text not in state_121["opcoes"]:
-                                                    state_121["opcoes"].append(opt_text)
-                                                elif not e.value and opt_text in state_121["opcoes"]:
-                                                    state_121["opcoes"].remove(opt_text)
-                                                recalc_121()
-                                            return on_chk_change
-
-                                        for op_txt, op_pts in opcoes_121:
-                                            lbl_chk = f"{op_txt} (+{op_pts:.3f} pt)" if op_pts > 0 else f"{op_txt} (0,00 pt)"
-                                            ui.checkbox(
-                                                text=lbl_chk,
-                                                value=(op_txt in state_121["opcoes"]),
-                                                on_change=make_chk_121(op_txt),
-                                            ).props("color=blue")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 12.1):",
-                                        value=raw_link_121,
-                                        placeholder="Link das comprovações, fotos e fichas dos controles selecionados...",
-                                    ).classes("w-full").props("outlined rows=6 color=blue").bind_value(
-                                        state_121, "link"
-                                    )
-
-                                recalc_121()
-
-                                def salvar_121():
-                                    pts_121 = recalc_121()
-                                    opts_sel = state_121["opcoes"]
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="12.1",
-                                        valor=opts_sel,
-                                        pontos=pts_121,
-                                        link=state_121["link"],
-                                        comentarios=d121.get("comentarios", []),
-                                        status=d121.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 12.1 salvo com sucesso!", type="positive")
-                                    if callable(getattr(render_conteudo, "refresh", None)):
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 12.1", on_click=salvar_121).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("12.1", res_data, render_conteudo.refresh)
-                            # =============================================================================
-                            # QUESITO 13.0 (Oferta de Transporte Escolar)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("13.0 • Oferta de Transporte Escolar").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "O município oferece transporte escolar?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d130 = res_data.get("13.0") or res_data.get("13") or {}
-
-                                val_130_bruto = str(d130.get("valor") or "Selecione...")
-                                raw_link_130 = str(d130.get("link") or "")
-
-                                state_130 = {
-                                    "opcao": val_130_bruto if val_130_bruto in ["Sim", "Não"] else "Selecione...",
-                                    "link": raw_link_130,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.radio(
-                                        options=["Selecione...", "Sim", "Não"],
-                                        value=state_130["opcao"],
-                                    ).props("color=blue").bind_value(state_130, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 13.0):",
-                                        value=raw_link_130,
-                                        placeholder="Link da legislação, contratos ou relatório de transporte...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_130, "link"
-                                    )
-
-                                def salvar_130():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="13.0",
-                                        valor=state_130["opcao"],
-                                        pontos=0.0,
-                                        link=state_130["link"],
-                                        comentarios=d130.get("comentarios", []),
-                                        status=d130.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 13.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 13.0", on_click=salvar_130).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("13.0", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 13.1 (Modalidade da Frota de Transporte Escolar)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("13.1 • Modalidade da Frota de Transporte Escolar").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "O transporte escolar é realizado por meio de frota própria ou frota alugada / terceirizada?"
-                                ).classes("text-base font-bold text-black mb-2")
-                                ui.label(
-                                    "(Responder NÃO caso forneça APENAS vale transporte)"
-                                ).classes("text-sm italic text-gray-600 mb-6")
-
-                                d131 = res_data.get("13.1") or res_data.get("131") or {}
-
-                                val_131_bruto = str(d131.get("valor") or "Selecione...")
-                                raw_link_131 = str(d131.get("link") or "")
-
-                                state_131 = {
-                                    "opcao": val_131_bruto if val_131_bruto in ["Sim", "Não"] else "Selecione...",
-                                    "link": raw_link_131,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.radio(
-                                        options=["Selecione...", "Sim", "Não"],
-                                        value=state_131["opcao"],
-                                    ).props("color=blue").bind_value(state_131, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 13.1):",
-                                        value=raw_link_131,
-                                        placeholder="Link da documentação da frota ou contratos de locação...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_131, "link"
-                                    )
-
-                                def salvar_131():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="13.1",
-                                        valor=state_131["opcao"],
-                                        pontos=0.0,
-                                        link=state_131["link"],
-                                        comentarios=d131.get("comentarios", []),
-                                        status=d131.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 13.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 13.1", on_click=salvar_131).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("13.1", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 13.1.1 (Estudo Anual do Traçado e Tempo de Viagem)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("13.1.1 • Estudo Anual do Traçado e Tempo de Viagem").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Existe um estudo anual do traçado e tempo de viagem das rotas do transporte escolar?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d1311 = res_data.get("13.1.1") or res_data.get("1311") or {}
-
-                                opcoes_1311_pts = {
-                                    "Selecione...": 0.0,
-                                    "Sim": 0.0,
-                                    "Não": -5.0,
-                                }
-
-                                opcoes_1311_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Sim": "Sim (0,0 pts)",
-                                    "Não": "Não (-5,0 pts / Perde 5 pontos)",
-                                }
-
-                                val_1311_bruto = str(d1311.get("valor") or "Selecione...")
-                                raw_link_1311 = str(d1311.get("link") or "")
-
-                                state_1311 = {
-                                    "opcao": val_1311_bruto if val_1311_bruto in opcoes_1311_pts else "Selecione...",
-                                    "link": raw_link_1311,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_1311 = ui.radio(
-                                        options=opcoes_1311_labels,
-                                        value=state_1311["opcao"],
-                                    ).props("color=blue").bind_value(state_1311, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 13.1.1):",
-                                        value=raw_link_1311,
-                                        placeholder="Link do estudo do traçado das rotas e tempos de itinerário...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_1311, "link"
-                                    )
-
-                                lbl_pts_1311 = ui.label(f"📊 Pontuação Quesito 13.1.1: {opcoes_1311_pts.get(state_1311['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
-
-                                def att_pts_1311():
-                                    pts = opcoes_1311_pts.get(state_1311["opcao"], 0.0)
-                                    cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                    lbl_pts_1311.classes(replace=cor)
-                                    lbl_pts_1311.set_text(f"📊 Pontuação Quesito 13.1.1: {pts:.1f} pontos")
-
-                                rad_1311.on("update:model-value", att_pts_1311)
-
-                                def salvar_1311():
-                                    pts = opcoes_1311_pts.get(state_1311["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="13.1.1",
-                                        valor=state_1311["opcao"],
-                                        pontos=pts,
-                                        link=state_1311["link"],
-                                        comentarios=d1311.get("comentarios", []),
-                                        status=d1311.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 13.1.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 13.1.1", on_click=salvar_1311).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("13.1.1", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 13.1.1.1 (Média de Tempo de Viagem)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("13.1.1.1 • Média de Tempo de Viagem").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Informe a média de tempo de viagem do transporte escolar:"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d13111 = res_data.get("13.1.1.1") or res_data.get("13111") or {}
-                                raw_val_13111 = d13111.get("valor") or {}
-                                if not isinstance(raw_val_13111, dict):
-                                    raw_val_13111 = {"media_tempo_min": str(raw_val_13111 or 0)}
-
-                                raw_link_13111 = str(d13111.get("link") or "")
-
-                                state_13111 = {
-                                    "media_tempo_min": str(raw_val_13111.get("media_tempo_min", 0)),
-                                    "link": raw_link_13111,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.input(
-                                        "Média de tempo (em minutos):",
-                                        value=state_13111["media_tempo_min"],
-                                    ).props("type=number outlined dense color=blue").classes("w-full").bind_value(
-                                        state_13111, "media_tempo_min"
-                                    )
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 13.1.1.1):",
-                                        value=raw_link_13111,
-                                        placeholder="Link do documento que comprove a média calculada...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_13111, "link"
-                                    )
-
-                                def salvar_13111():
-                                    val_tempo = int(state_13111["media_tempo_min"]) if state_13111["media_tempo_min"].isdigit() else 0
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="13.1.1.1",
-                                        valor={"media_tempo_min": val_tempo},
-                                        pontos=0.0,
-                                        link=state_13111["link"],
-                                        comentarios=d13111.get("comentarios", []),
-                                        status=d13111.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 13.1.1.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 13.1.1.1", on_click=salvar_13111).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("13.1.1.1", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 13.1.2 (Veículos com Mais de 10 Anos de Fabricação)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("13.1.2 • Idade da Frota do Transporte Escolar").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Possui veículos para transporte escolar de alunos com mais de 10 anos de fabricação?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d1312 = res_data.get("13.1.2") or res_data.get("1312") or {}
-
-                                opcoes_1312_pts = {
-                                    "Selecione...": 0.0,
-                                    "Sim": -5.0,
-                                    "Não": 0.0,
-                                }
-
-                                opcoes_1312_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Sim": "Sim (-5,0 pts / Perde 5 pontos)",
-                                    "Não": "Não (0,0 pts)",
-                                }
-
-                                val_1312_bruto = str(d1312.get("valor") or "Selecione...")
-                                raw_link_1312 = str(d1312.get("link") or "")
-
-                                state_1312 = {
-                                    "opcao": val_1312_bruto if val_1312_bruto in opcoes_1312_pts else "Selecione...",
-                                    "link": raw_link_1312,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_1312 = ui.radio(
-                                        options=opcoes_1312_labels,
-                                        value=state_1312["opcao"],
-                                    ).props("color=blue").bind_value(state_1312, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 13.1.2):",
-                                        value=raw_link_1312,
-                                        placeholder="Link do inventário de veículos/CRLV da frota...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_1312, "link"
-                                    )
-
-                                lbl_pts_1312 = ui.label(f"📊 Pontuação Quesito 13.1.2: {opcoes_1312_pts.get(state_1312['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
-
-                                def att_pts_1312():
-                                    pts = opcoes_1312_pts.get(state_1312["opcao"], 0.0)
-                                    cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                    lbl_pts_1312.classes(replace=cor)
-                                    lbl_pts_1312.set_text(f"📊 Pontuação Quesito 13.1.2: {pts:.1f} pontos")
-
-                                rad_1312.on("update:model-value", att_pts_1312)
-
-                                def salvar_1312():
-                                    pts = opcoes_1312_pts.get(state_1312["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="13.1.2",
-                                        valor=state_1312["opcao"],
-                                        pontos=pts,
-                                        link=state_1312["link"],
-                                        comentarios=d1312.get("comentarios", []),
-                                        status=d1312.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 13.1.2 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 13.1.2", on_click=salvar_1312).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("13.1.2", res_data, render_conteudo.refresh)
-
-        # =============================================================================
-                            # QUESITO 13.1.2.1 (Quantidade de Veículos com Mais de 10 Anos)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("13.1.2.1 • Quantidade de Veículos com Mais de 10 Anos").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Informe a quantidade de veículos para transporte escolar de alunos com mais de 10 anos de fabricação:"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d13121 = res_data.get("13.1.2.1") or res_data.get("13121") or {}
-                                raw_val_13121 = d13121.get("valor") or {}
-                                if not isinstance(raw_val_13121, dict):
-                                    raw_val_13121 = {"qtd_veiculos_mais_10_anos": str(raw_val_13121 or 0)}
-
-                                raw_link_13121 = str(d13121.get("link") or "")
-
-                                state_13121 = {
-                                    "qtd_veiculos_mais_10_anos": str(raw_val_13121.get("qtd_veiculos_mais_10_anos", 0)),
-                                    "link": raw_link_13121,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.input(
-                                        "Quantidade de veículos com mais de 10 anos:",
-                                        value=state_13121["qtd_veiculos_mais_10_anos"],
-                                    ).props("type=number outlined dense color=blue").classes("w-full").bind_value(
-                                        state_13121, "qtd_veiculos_mais_10_anos"
-                                    )
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 13.1.2.1):",
-                                        value=raw_link_13121,
-                                        placeholder="Link da listagem de veículos e comprovantes de ano de fabricação...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_13121, "link"
-                                    )
-
-                                def salvar_13121():
-                                    val_qtd = int(state_13121["qtd_veiculos_mais_10_anos"]) if state_13121["qtd_veiculos_mais_10_anos"].isdigit() else 0
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="13.1.2.1",
-                                        valor={"qtd_veiculos_mais_10_anos": val_qtd},
-                                        pontos=0.0,
-                                        link=state_13121["link"],
-                                        comentarios=d13121.get("comentarios", []),
-                                        status=d13121.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 13.1.2.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 13.1.2.1", on_click=salvar_13121).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("13.1.2.1", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 13.1.3 (Condições de Uso dos Veículos)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("13.1.3 • Condições de Uso dos Veículos").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Os veículos para transporte escolar de alunos estão em boas condições de uso?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d1313 = res_data.get("13.1.3") or res_data.get("1313") or {}
-
-                                opcoes_1313_pts = {
-                                    "Selecione...": 0.0,
-                                    "Sim, todos os veículos": 0.0,
-                                    "Sim, a maior parte dos veículos": -2.0,
-                                    "Sim, a menor parte dos veículos": -3.0,
-                                    "Não": -5.0,
-                                }
-
-                                opcoes_1313_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Sim, todos os veículos": "Sim, todos os veículos (0,0 pts)",
-                                    "Sim, a maior parte dos veículos": "Sim, a maior parte dos veículos (-2,0 pts / Perde 02 pontos)",
-                                    "Sim, a menor parte dos veículos": "Sim, a menor parte dos veículos (-3,0 pts / Perde 03 pontos)",
-                                    "Não": "Não (-5,0 pts / Perde 05 pontos)",
-                                }
-
-                                val_1313_bruto = str(d1313.get("valor") or "Selecione...")
-                                raw_link_1313 = str(d1313.get("link") or "")
-
-                                state_1313 = {
-                                    "opcao": val_1313_bruto if val_1313_bruto in opcoes_1313_pts else "Selecione...",
-                                    "link": raw_link_1313,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_1313 = ui.radio(
-                                        options=opcoes_1313_labels,
-                                        value=state_1313["opcao"],
-                                    ).props("color=blue").bind_value(state_1313, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 13.1.3):",
-                                        value=raw_link_1313,
-                                        placeholder="Link dos laudos de vistoria e manutenção dos veículos...",
-                                    ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
-                                        state_1313, "link"
-                                    )
-
-                                lbl_pts_1313 = ui.label(f"📊 Pontuação Quesito 13.1.3: {opcoes_1313_pts.get(state_1313['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
-
-                                def att_pts_1313():
-                                    pts = opcoes_1313_pts.get(state_1313["opcao"], 0.0)
-                                    cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                    lbl_pts_1313.classes(replace=cor)
-                                    lbl_pts_1313.set_text(f"📊 Pontuação Quesito 13.1.3: {pts:.1f} pontos")
-
-                                rad_1313.on("update:model-value", att_pts_1313)
-
-                                def salvar_1313():
-                                    pts = opcoes_1313_pts.get(state_1313["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="13.1.3",
-                                        valor=state_1313["opcao"],
-                                        pontos=pts,
-                                        link=state_1313["link"],
-                                        comentarios=d1313.get("comentarios", []),
-                                        status=d1313.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 13.1.3 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 13.1.3", on_click=salvar_1313).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("13.1.3", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 13.1.4 (Especialização dos Condutores)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("13.1.4 • Especialização dos Condutores").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Os condutores possuem aprovação em curso de especialização sobre transporte escolar?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d1314 = res_data.get("13.1.4") or res_data.get("1314") or {}
-
-                                opcoes_1314_pts = {
-                                    "Selecione...": 0.0,
-                                    "Sim, todos os condutores": 0.0,
-                                    "Sim, a maior parte dos condutores": -2.0,
-                                    "Sim, a menor parte dos condutores": -3.0,
-                                    "Não": -5.0,
-                                }
-
-                                opcoes_1314_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Sim, todos os condutores": "Sim, todos os condutores (0,0 pts)",
-                                    "Sim, a maior parte dos condutores": "Sim, a maior parte dos condutores (-2,0 pts / Perde 02 pontos)",
-                                    "Sim, a menor parte dos condutores": "Sim, a menor parte dos condutores (-3,0 pts / Perde 03 pontos)",
-                                    "Não": "Não (-5,0 pts / Perde 05 pontos)",
-                                }
-
-                                val_1314_bruto = str(d1314.get("valor") or "Selecione...")
-                                raw_link_1314 = str(d1314.get("link") or "")
-
-                                state_1314 = {
-                                    "opcao": val_1314_bruto if val_1314_bruto in opcoes_1314_pts else "Selecione...",
-                                    "link": raw_link_1314,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_1314 = ui.radio(
-                                        options=opcoes_1314_labels,
-                                        value=state_1314["opcao"],
-                                    ).props("color=blue").bind_value(state_1314, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 13.1.4):",
-                                        value=raw_link_1314,
-                                        placeholder="Link dos certificados de especialização dos motoristas...",
-                                    ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
-                                        state_1314, "link"
-                                    )
-
-                                lbl_pts_1314 = ui.label(f"📊 Pontuação Quesito 13.1.4: {opcoes_1314_pts.get(state_1314['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
-
-                                def att_pts_1314():
-                                    pts = opcoes_1314_pts.get(state_1314["opcao"], 0.0)
-                                    cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                    lbl_pts_1314.classes(replace=cor)
-                                    lbl_pts_1314.set_text(f"📊 Pontuação Quesito 13.1.4: {pts:.1f} pontos")
-
-                                rad_1314.on("update:model-value", att_pts_1314)
-
-                                def salvar_1314():
-                                    pts = opcoes_1314_pts.get(state_1314["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="13.1.4",
-                                        valor=state_1314["opcao"],
-                                        pontos=pts,
-                                        link=state_1314["link"],
-                                        comentarios=d1314.get("comentarios", []),
-                                        status=d1314.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 13.1.4 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 13.1.4", on_click=salvar_1314).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("13.1.4", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 13.1.5 (Infrações dos Condutores)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("13.1.5 • Histórico de Infrações dos Condutores").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Há condutores que cometeram alguma infração grave ou gravíssima, ou que são reincidentes em infrações médias nos últimos 12 meses?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d1315 = res_data.get("13.1.5") or res_data.get("1315") or {}
-
-                                opcoes_1315_pts = {
-                                    "Selecione...": 0.0,
-                                    "Sim": -3.0,
-                                    "Não": 0.0,
-                                }
-
-                                opcoes_1315_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Sim": "Sim (-3,0 pts / Perde 03 pontos)",
-                                    "Não": "Não (0,0 pts)",
-                                }
-
-                                val_1315_bruto = str(d1315.get("valor") or "Selecione...")
-                                raw_link_1315 = str(d1315.get("link") or "")
-
-                                state_1315 = {
-                                    "opcao": val_1315_bruto if val_1315_bruto in opcoes_1315_pts else "Selecione...",
-                                    "link": raw_link_1315,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_1315 = ui.radio(
-                                        options=opcoes_1315_labels,
-                                        value=state_1315["opcao"],
-                                    ).props("color=blue").bind_value(state_1315, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 13.1.5):",
-                                        value=raw_link_1315,
-                                        placeholder="Link da pontuação das CNHs / certidões do Detran...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_1315, "link"
-                                    )
-
-                                lbl_pts_1315 = ui.label(f"📊 Pontuação Quesito 13.1.5: {opcoes_1315_pts.get(state_1315['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
-
-                                def att_pts_1315():
-                                    pts = opcoes_1315_pts.get(state_1315["opcao"], 0.0)
-                                    cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                    lbl_pts_1315.classes(replace=cor)
-                                    lbl_pts_1315.set_text(f"📊 Pontuação Quesito 13.1.5: {pts:.1f} pontos")
-
-                                rad_1315.on("update:model-value", att_pts_1315)
-
-                                def salvar_1315():
-                                    pts = opcoes_1315_pts.get(state_1315["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="13.1.5",
-                                        valor=state_1315["opcao"],
-                                        pontos=pts,
-                                        link=state_1315["link"],
-                                        comentarios=d1315.get("comentarios", []),
-                                        status=d1315.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 13.1.5 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 13.1.5", on_click=salvar_1315).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("13.1.5", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 13.1.6 (Certidão Negativa Criminal dos Condutores)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("13.1.6 • Certidão Negativa Criminal dos Condutores").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Os condutores apresentaram certidão negativa do registro de distribuição criminal (homicídio, roubo, estupro e corrupção de menores) no prazo de validade (5 anos)?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d1316 = res_data.get("13.1.6") or res_data.get("1316") or {}
-
-                                opcoes_1316_pts = {
-                                    "Selecione...": 0.0,
-                                    "Sim, todos os condutores": 0.0,
-                                    "Sim, a maior parte dos condutores": -1.0,
-                                    "Sim, a menor parte dos condutores": -2.0,
-                                    "Não": -3.0,
-                                }
-
-                                opcoes_1316_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Sim, todos os condutores": "Sim, todos os condutores (0,0 pts)",
-                                    "Sim, a maior parte dos condutores": "Sim, a maior parte dos condutores (-1,0 pt / Perde 01 ponto)",
-                                    "Sim, a menor parte dos condutores": "Sim, a menor parte dos condutores (-2,0 pts / Perde 02 pontos)",
-                                    "Não": "Não (-3,0 pts / Perde 03 pontos)",
-                                }
-
-                                val_1316_bruto = str(d1316.get("valor") or "Selecione...")
-                                raw_link_1316 = str(d1316.get("link") or "")
-
-                                state_1316 = {
-                                    "opcao": val_1316_bruto if val_1316_bruto in opcoes_1316_pts else "Selecione...",
-                                    "link": raw_link_1316,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_1316 = ui.radio(
-                                        options=opcoes_1316_labels,
-                                        value=state_1316["opcao"],
-                                    ).props("color=blue").bind_value(state_1316, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 13.1.6):",
-                                        value=raw_link_1316,
-                                        placeholder="Link das certidões criminais apresentadas...",
-                                    ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
-                                        state_1316, "link"
-                                    )
-
-                                lbl_pts_1316 = ui.label(f"📊 Pontuação Quesito 13.1.6: {opcoes_1316_pts.get(state_1316['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
-
-                                def att_pts_1316():
-                                    pts = opcoes_1316_pts.get(state_1316["opcao"], 0.0)
-                                    cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                    lbl_pts_1316.classes(replace=cor)
-                                    lbl_pts_1316.set_text(f"📊 Pontuação Quesito 13.1.6: {pts:.1f} pontos")
-
-                                rad_1316.on("update:model-value", att_pts_1316)
-
-                                def salvar_1316():
-                                    pts = opcoes_1316_pts.get(state_1316["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="13.1.6",
-                                        valor=state_1316["opcao"],
-                                        pontos=pts,
-                                        link=state_1316["link"],
-                                        comentarios=d1316.get("comentarios", []),
-                                        status=d1316.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 13.1.6 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 13.1.6", on_click=salvar_1316).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("13.1.6", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                        if etapa_atual == 6:
-                            # QUESITO 14.0 (Plano Municipal de Educação)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("14.0 • Plano Municipal de Educação (PME)").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "O município possui o Plano Municipal de Educação?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d140 = res_data.get("14.0") or res_data.get("14") or {}
-
-                                opcoes_140_pts = {
-                                    "Selecione...": 0.0,
-                                    "Sim": 0.0,
-                                    "Não": -50.0,
-                                }
-
-                                opcoes_140_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Sim": "Sim (0,0 pts)",
-                                    "Não": "Não (-50,0 pts / Perde 50 pontos)",
-                                }
-
-                                val_140_bruto = str(d140.get("valor") or "Selecione...")
-                                raw_link_140 = str(d140.get("link") or "")
-
-                                state_140 = {
-                                    "opcao": val_140_bruto if val_140_bruto in opcoes_140_pts else "Selecione...",
-                                    "link": raw_link_140,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_140 = ui.radio(
-                                        options=opcoes_140_labels,
-                                        value=state_140["opcao"],
-                                    ).props("color=blue").bind_value(state_140, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 14.0):",
-                                        value=raw_link_140,
-                                        placeholder="Link do PME ou Diário Oficial...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_140, "link"
-                                    )
-
-                                lbl_pts_140 = ui.label(f"📊 Pontuação Quesito 14.0: {opcoes_140_pts.get(state_140['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
-
-                                def att_pts_140():
-                                    pts = opcoes_140_pts.get(state_140["opcao"], 0.0)
-                                    cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                    lbl_pts_140.classes(replace=cor)
-                                    lbl_pts_140.set_text(f"📊 Pontuação Quesito 14.0: {pts:.1f} pontos")
-
-                                rad_140.on("update:model-value", att_pts_140)
-
-                                def salvar_140():
-                                    pts = opcoes_140_pts.get(state_140["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="14.0",
-                                        valor=state_140["opcao"],
-                                        pontos=pts,
-                                        link=state_140["link"],
-                                        comentarios=d140.get("comentarios", []),
-                                        status=d140.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 14.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 14.0", on_click=salvar_140).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("14.0", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 14.1 (Instrumento Normativo do PME)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("14.1 • Instrumento Normativo do PME").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Informe o Instrumento Normativo, Número e Data da publicação do Plano Municipal de Educação:"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d141 = res_data.get("14.1") or res_data.get("141") or {}
-                                raw_val_141 = d141.get("valor") or {}
-                                if not isinstance(raw_val_141, dict):
-                                    raw_val_141 = {"norma": str(raw_val_141 or "")}
-
-                                raw_link_141 = str(d141.get("link") or "")
-
-                                state_141 = {
-                                    "instrumento": str(raw_val_141.get("instrumento", "")),
-                                    "numero": str(raw_val_141.get("numero", "")),
-                                    "data_pub": str(raw_val_141.get("data_pub", "")),
-                                    "link": raw_link_141,
-                                }
-
-                                with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                    ui.input("Instrumento Normativo (ex: Lei, Decreto):", value=state_141["instrumento"]).props("outlined dense color=blue").bind_value(state_141, "instrumento")
-                                    ui.input("Número:", value=state_141["numero"]).props("outlined dense color=blue").bind_value(state_141, "numero")
-                                    ui.input("Data da Publicação:", value=state_141["data_pub"]).props("outlined dense color=blue placeholder=DD/MM/AAAA").bind_value(state_141, "data_pub")
-
-                                ui.textarea(
-                                    label="Link / Anexo em PDF do PME (Anexar PDF):",
-                                    value=raw_link_141,
-                                    placeholder="Link direto para o documento publicado em PDF...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(
-                                    state_141, "link"
-                                )
-
-                                def salvar_141():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="14.1",
-                                        valor={
-                                            "instrumento": state_141["instrumento"],
-                                            "numero": state_141["numero"],
-                                            "data_pub": state_141["data_pub"],
-                                        },
-                                        pontos=0.0,
-                                        link=state_141["link"],
-                                        comentarios=d141.get("comentarios", []),
-                                        status=d141.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 14.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 14.1", on_click=salvar_141).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("14.1", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 14.2 (Página Eletrônica do PME)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("14.2 • Página Eletrônica do PME").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "Informe a página eletrônica (link na internet) do instrumento normativo do PME:"
-                                ).classes("text-base font-bold text-black mb-2")
-                                ui.label(
-                                    "(Se não estiver disponível na internet, inserir no campo o texto 'XYZ')"
-                                ).classes("text-sm italic text-gray-600 mb-6")
-
-                                d142 = res_data.get("14.2") or res_data.get("142") or {}
-
-                                val_142_bruto = str(d142.get("valor") or "")
-                                raw_link_142 = str(d142.get("link") or "")
-
-                                state_142 = {
-                                    "link_pme": val_142_bruto,
-                                    "link": raw_link_142,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.input(
-                                        "Página eletrônica (link na internet):",
-                                        value=state_142["link_pme"],
-                                        placeholder="http://... ou XYZ",
-                                    ).props("outlined dense color=blue").classes("w-full").bind_value(
-                                        state_142, "link_pme"
-                                    )
-
-                                    ui.textarea(
-                                        label="Link de Evidência Complementar (Quesito 14.2):",
-                                        value=raw_link_142,
-                                        placeholder="Link de apoio ou observações...",
-                                    ).classes("w-full").props("outlined rows=2 color=blue").bind_value(
-                                        state_142, "link"
-                                    )
-
-                                def salvar_142():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="14.2",
-                                        valor=state_142["link_pme"],
-                                        pontos=0.0,
-                                        link=state_142["link"],
-                                        comentarios=d142.get("comentarios", []),
-                                        status=d142.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 14.2 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 14.2", on_click=salvar_142).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("14.2", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 14.3 (Cronograma de Execução das Metas do PME)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("14.3 • Cronograma de Execução das Metas").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "O Plano possui cronograma para execução das metas?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d143 = res_data.get("14.3") or res_data.get("143") or {}
-
-                                opcoes_143_pts = {
-                                    "Selecione...": 0.0,
-                                    "Sim": 20.0,
-                                    "Não": 0.0,
-                                }
-
-                                opcoes_143_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Sim": "Sim (+20,0 pts)",
-                                    "Não": "Não (0,0 pts)",
-                                }
-
-                                val_143_bruto = str(d143.get("valor") or "Selecione...")
-                                raw_link_143 = str(d143.get("link") or "")
-
-                                state_143 = {
-                                    "opcao": val_143_bruto if val_143_bruto in opcoes_143_pts else "Selecione...",
-                                    "link": raw_link_143,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_143 = ui.radio(
-                                        options=opcoes_143_labels,
-                                        value=state_143["opcao"],
-                                    ).props("color=blue").bind_value(state_143, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 14.3):",
-                                        value=raw_link_143,
-                                        placeholder="Link da seção do plano com o cronograma detalhado...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                        state_143, "link"
-                                    )
-
-                                lbl_pts_143 = ui.label(f"📊 Nota Quesito 14.3: {opcoes_143_pts.get(state_143['opcao'], 0.0):.1f} / 20.0 pontos").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def att_pts_143():
-                                    pts = opcoes_143_pts.get(state_133 if 'state_133' in locals() else state_143["opcao"], 0.0)
-                                    pts = opcoes_143_pts.get(state_143["opcao"], 0.0)
-                                    lbl_pts_143.set_text(f"📊 Nota Quesito 14.3: {pts:.1f} / 20.0 pontos")
-
-                                rad_143.on("update:model-value", att_pts_143)
-
-                                def salvar_143():
-                                    pts = opcoes_143_pts.get(state_143["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="14.3",
-                                        valor=state_143["opcao"],
-                                        pontos=pts,
-                                        link=state_143["link"],
-                                        comentarios=d143.get("comentarios", []),
-                                        status=d143.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 14.3 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 14.3", on_click=salvar_143).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("14.3", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                            # QUESITO 14.3.1 (Atingimento das Metas no Prazo)
-                            # =============================================================================
-                            with ui.card().classes(
-                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                            ):
-                                ui.label("14.3.1 • Cumprimento dos Prazos das Metas").classes(
-                                    "text-xl font-semibold text-blue-500 mb-3"
-                                )
-                                ui.label(
-                                    "As metas estão sendo atingidas no prazo?"
-                                ).classes("text-base font-bold text-black mb-6")
-
-                                d1431 = res_data.get("14.3.1") or res_data.get("1431") or {}
-
-                                opcoes_1431_pts = {
-                                    "Selecione...": 0.0,
-                                    "Todas as metas foram atingidas dentro do prazo": 30.0,
-                                    "A maior parte das metas foram atingidas dentro do prazo": 17.0,
-                                    "A menor parte das metas foram atingidas dentro do prazo": 5.0,
-                                    "Nenhuma meta foi atingida no prazo": 0.0,
-                                }
-
-                                opcoes_1431_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Todas as metas foram atingidas dentro do prazo": "Todas as metas foram atingidas dentro do prazo (+30,0 pts)",
-                                    "A maior parte das metas foram atingidas dentro do prazo": "A maior parte das metas foram atingidas dentro do prazo (+17,0 pts)",
-                                    "A menor parte das metas foram atingidas dentro do prazo": "A menor parte das metas foram atingidas dentro do prazo (+5,0 pts)",
-                                    "Nenhuma meta foi atingida no prazo": "Nenhuma meta foi atingida no prazo (0,0 pts)",
-                                }
-
-                                val_1431_bruto = str(d1431.get("valor") or "Selecione...")
-                                raw_link_1431 = str(d1431.get("link") or "")
-
-                                state_1431 = {
-                                    "opcao": val_1431_bruto if val_1431_bruto in opcoes_1431_pts else "Selecione...",
-                                    "link": raw_link_1431,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_1431 = ui.radio(
-                                        options=opcoes_1431_labels,
-                                        value=state_1431["opcao"],
-                                    ).props("color=blue").bind_value(state_1431, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 14.3.1):",
-                                        value=raw_link_1431,
-                                        placeholder="Link do relatório de monitoramento/avaliação do PME...",
-                                    ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
-                                        state_1431, "link"
-                                    )
-
-                                lbl_pts_1431 = ui.label(f"📊 Nota Quesito 14.3.1: {opcoes_1431_pts.get(state_1431['opcao'], 0.0):.1f} / 30.0 pontos").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def att_pts_1431():
-                                    pts = opcoes_1431_pts.get(state_1431["opcao"], 0.0)
-                                    lbl_pts_1431.set_text(f"📊 Nota Quesito 14.3.1: {pts:.1f} / 30.0 pontos")
-
-                                rad_1431.on("update:model-value", att_pts_1431)
-
-                                def salvar_1431():
-                                    pts = opcoes_1431_pts.get(state_1431["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="14.3.1",
-                                        valor=state_1431["opcao"],
-                                        pontos=pts,
-                                        link=state_1431["link"],
-                                        comentarios=d1431.get("comentarios", []),
-                                        status=d1431.get("status", "Pendente"),
-                                    )
-
-                                    ui.notify("Quesito 14.3.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 14.3.1", on_click=salvar_1431).classes(
-                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                                )
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("14.3.1", res_data, render_conteudo.refresh)
-
-                            # =============================================================================
-                        # QUESITO 15.0 (Plano Municipal pela Primeira Infância)
+                    if etapa_atual == 4:
+                        # QUESITO 6.0 (Plano de Cargos e Salários Específico dos Professores)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
-                            ui.label("15.0 • Plano Municipal pela Primeira Infância (PMPI)").classes(
+                            ui.label("6.0 • Plano de Cargos e Salários dos Professores (PCCS)").classes(
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "O município possui o Plano Municipal pela Primeira Infância?"
-                            ).classes("text-base font-bold text-black mb-6")
-
-                            d150 = res_data.get("15.0") or res_data.get("15") or {}
-
-                            val_150_bruto = str(d150.get("valor") or "Selecione...")
-                            raw_link_150 = str(d150.get("link") or "")
-
-                            state_150 = {
-                                "opcao": val_150_bruto if val_150_bruto in ["Sim", "Não"] else "Selecione...",
-                                "link": raw_link_150,
-                            }
-
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                ui.radio(
-                                    options=["Selecione...", "Sim", "Não"],
-                                    value=state_150["opcao"],
-                                ).props("color=blue").bind_value(state_150, "opcao")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 15.0):",
-                                    value=raw_link_150,
-                                    placeholder="Link da lei/decreto ou documento do PMPI...",
-                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                    state_150, "link"
-                                )
-
-                            def salvar_150():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="15.0",
-                                    valor=state_150["opcao"],
-                                    pontos=0.0,
-                                    link=state_150["link"],
-                                    comentarios=d150.get("comentarios", []),
-                                    status=d150.get("status", "Pendente"),
-                                )
-
-                                ui.notify("Quesito 15.0 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 15.0", on_click=salvar_150).classes(
-                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                            )
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("15.0", res_data, render_conteudo.refresh)
-
-                        # =============================================================================
-                        # QUESITO 15.1 (Instrumento Normativo do PMPI)
-                        # =============================================================================
-                        with ui.card().classes(
-                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                        ):
-                            ui.label("15.1 • Instrumento Normativo do PMPI").classes(
-                                "text-xl font-semibold text-blue-500 mb-3"
-                            )
+                                "A Prefeitura/Secretaria da Educação Municipal possui Plano de Cargos e Salários para seus professores?"
+                            ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "Informe o Instrumento Normativo, Número e Data da publicação do Plano Municipal pela Primeira Infância:"
-                            ).classes("text-base font-bold text-black mb-6")
+                                "⚠️ Obs: PCCS geral dos servidores públicos do município NÃO caracteriza PCCS específico para os professores."
+                            ).classes("text-xs font-semibold text-amber-600 mb-6")
 
-                            d151 = res_data.get("15.1") or res_data.get("151") or {}
-                            raw_val_151 = d151.get("valor") or {}
-                            if not isinstance(raw_val_151, dict):
-                                raw_val_151 = {"norma": str(raw_val_151 or "")}
+                            d60 = res_data.get("6.0") or res_data.get("6") or {}
 
-                            raw_link_151 = str(d151.get("link") or "")
-
-                            state_151 = {
-                                "instrumento": str(raw_val_151.get("instrumento", "")),
-                                "numero": str(raw_val_151.get("numero", "")),
-                                "data_pub": str(raw_val_151.get("data_pub", "")),
-                                "link": raw_link_151,
-                            }
-
-                            with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                ui.input("Instrumento Normativo:", value=state_151["instrumento"]).props("outlined dense color=blue").bind_value(state_151, "instrumento")
-                                ui.input("Número:", value=state_151["numero"]).props("outlined dense color=blue").bind_value(state_151, "numero")
-                                ui.input("Data da Publicação:", value=state_151["data_pub"]).props("outlined dense color=blue placeholder=DD/MM/AAAA").bind_value(state_151, "data_pub")
-
-                            ui.textarea(
-                                label="Link / Anexo em PDF do PMPI (Anexar PDF):",
-                                value=raw_link_151,
-                                placeholder="Link direto do documento publicado em PDF...",
-                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(
-                                state_151, "link"
-                            )
-
-                            def salvar_151():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="15.1",
-                                    valor={
-                                        "instrumento": state_151["instrumento"],
-                                        "numero": state_151["numero"],
-                                        "data_pub": state_151["data_pub"],
-                                    },
-                                    pontos=0.0,
-                                    link=state_151["link"],
-                                    comentarios=d151.get("comentarios", []),
-                                    status=d151.get("status", "Pendente"),
-                                )
-
-                                ui.notify("Quesito 15.1 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 15.1", on_click=salvar_151).classes(
-                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                            )
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("15.1", res_data, render_conteudo.refresh)
-
-                        # =============================================================================
-                        # QUESITO 15.2 (Página Eletrônica do PMPI)
-                        # =============================================================================
-                        with ui.card().classes(
-                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                        ):
-                            ui.label("15.2 • Página Eletrônica do PMPI").classes(
-                                "text-xl font-semibold text-blue-500 mb-3"
-                            )
-                            ui.label(
-                                "Informe a página eletrônica (link na internet) do instrumento normativo do PMPI:"
-                            ).classes("text-base font-bold text-black mb-2")
-                            ui.label(
-                                "(Se não estiver disponível na internet, inserir no campo o texto 'XYZ')"
-                            ).classes("text-sm italic text-gray-600 mb-6")
-
-                            d152 = res_data.get("15.2") or res_data.get("152") or {}
-
-                            val_152_bruto = str(d152.get("valor") or "")
-                            raw_link_152 = str(d152.get("link") or "")
-
-                            state_152 = {
-                                "link_pmpi": val_152_bruto,
-                                "link": raw_link_152,
-                            }
-
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                ui.input(
-                                    "Página eletrônica (link na internet):",
-                                    value=state_152["link_pmpi"],
-                                    placeholder="http://... ou XYZ",
-                                ).props("outlined dense color=blue").classes("w-full").bind_value(
-                                    state_152, "link_pmpi"
-                                )
-
-                                ui.textarea(
-                                    label="Link de Evidência Complementar (Quesito 15.2):",
-                                    value=raw_link_152,
-                                    placeholder="Link de apoio ou observações...",
-                                ).classes("w-full").props("outlined rows=2 color=blue").bind_value(
-                                    state_152, "link"
-                                )
-
-                            def salvar_152():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="15.2",
-                                    valor=state_152["link_pmpi"],
-                                    pontos=0.0,
-                                    link=state_152["link"],
-                                    comentarios=d152.get("comentarios", []),
-                                    status=d152.get("status", "Pendente"),
-                                )
-
-                                ui.notify("Quesito 15.2 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 15.2", on_click=salvar_152).classes(
-                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                            )
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("15.2", res_data, render_conteudo.refresh)
-
-                        # =============================================================================
-                        # QUESITO 15.3 (Estipulação de Metas no PMPI)
-                        # =============================================================================
-                        with ui.card().classes(
-                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                        ):
-                            ui.label("15.3 • Estipulação de Metas no PMPI").classes(
-                                "text-xl font-semibold text-blue-500 mb-3"
-                            )
-                            ui.label(
-                                "Foram estipuladas metas?"
-                            ).classes("text-base font-bold text-black mb-6")
-
-                            d153 = res_data.get("15.3") or res_data.get("153") or {}
-
-                            opcoes_153_pts = {
-                                "Selecione...": 0.0,
-                                "Sim": 0.0,
-                                "Não": -5.0,
-                            }
-
-                            opcoes_153_labels = {
-                                "Selecione...": "Selecione...",
-                                "Sim": "Sim (0,0 pts)",
-                                "Não": "Não (-5,0 pts / Perde 05 pontos)",
-                            }
-
-                            val_153_bruto = str(d153.get("valor") or "Selecione...")
-                            raw_link_153 = str(d153.get("link") or "")
-
-                            state_153 = {
-                                "opcao": val_153_bruto if val_153_bruto in opcoes_153_pts else "Selecione...",
-                                "link": raw_link_153,
-                            }
-
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                rad_153 = ui.radio(
-                                    options=opcoes_153_labels,
-                                    value=state_153["opcao"],
-                                ).props("color=blue").bind_value(state_153, "opcao")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 15.3):",
-                                    value=raw_link_153,
-                                    placeholder="Link da seção com as metas do PMPI...",
-                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                    state_153, "link"
-                                )
-
-                            lbl_pts_153 = ui.label(f"📊 Pontuação Quesito 15.3: {opcoes_153_pts.get(state_153['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
-
-                            def att_pts_153():
-                                pts = opcoes_153_pts.get(state_153["opcao"], 0.0)
-                                cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                lbl_pts_153.classes(replace=cor)
-                                lbl_pts_153.set_text(f"📊 Pontuação Quesito 15.3: {pts:.1f} pontos")
-
-                            rad_153.on("update:model-value", att_pts_153)
-
-                            def salvar_153():
-                                pts = opcoes_153_pts.get(state_153["opcao"], 0.0)
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="15.3",
-                                    valor=state_153["opcao"],
-                                    pontos=pts,
-                                    link=state_153["link"],
-                                    comentarios=d153.get("comentarios", []),
-                                    status=d153.get("status", "Pendente"),
-                                )
-
-                                ui.notify("Quesito 15.3 salvo com sucesso!", type="positive")
-                                if render_conteudo.refresh:
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 15.3", on_click=salvar_153).classes(
-                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
-                            )
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("15.3", res_data, render_conteudo.refresh)
-
-                        # =============================================================================
-                        # QUESITO 15.3.1 (Monitoramento das Metas do PMPI)
-                        # =============================================================================
-                        with ui.card().classes(
-                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-                        ):
-                            ui.label("15.3.1 • Monitoramento das Metas do PMPI").classes(
-                                "text-xl font-semibold text-blue-500 mb-3"
-                            )
-                            ui.label(
-                                "Há monitoramento das metas?"
-                            ).classes("text-base font-bold text-black mb-6")
-
-                            d1531 = res_data.get("15.3.1") or res_data.get("1531") or {}
-
-                            opcoes_1531_pts = {
+                            opcoes_60_pontos = {
                                 "Selecione...": 0.0,
                                 "Sim": 0.0,
                                 "Não": -10.0,
                             }
 
-                            opcoes_1531_labels = {
+                            opcoes_60_labels = {
                                 "Selecione...": "Selecione...",
-                                "Sim": "Sim (0,0 pts)",
-                                "Não": "Não (-10,0 pts / Perde 10 pontos)",
+                                "Sim": "Sim (0.0 pts)",
+                                "Não": "Não (-10.0 pts - Perde 10 pontos)",
                             }
 
-                            val_1531_bruto = str(d1531.get("valor") or "Selecione...")
-                            raw_link_1531 = str(d1531.get("link") or "")
+                            val_60_bruto = str(d60.get("valor") or "")
+                            val_60_valido = "Selecione..."
+                            if val_60_bruto in opcoes_60_pontos:
+                                val_60_valido = val_60_bruto
 
-                            state_1531 = {
-                                "opcao": val_1531_bruto if val_1531_bruto in opcoes_1531_pts else "Selecione...",
-                                "link": raw_link_1531,
+                            raw_link_60 = str(d60.get("link") or "")
+
+                            state_60 = {
+                                "opcao": val_60_valido,
+                                "link": raw_link_60,
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                rad_1531 = ui.radio(
-                                    options=opcoes_1531_labels,
-                                    value=state_1531["opcao"],
-                                ).props("color=blue").bind_value(state_1531, "opcao")
+                                rad_60 = ui.radio(
+                                    options=opcoes_60_labels,
+                                    value=state_60["opcao"],
+                                ).props("color=blue").bind_value(state_60, "opcao")
 
                                 ui.textarea(
-                                    label="Link de Evidência (Quesito 15.3.1):",
-                                    value=raw_link_1531,
-                                    placeholder="Link dos relatórios de monitoramento das metas do PMPI...",
-                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                    state_1531, "link"
+                                    label="Link de Evidência / Lei do PCCS dos Professores:",
+                                    value=raw_link_60,
+                                    placeholder="Link da legislação municipal específica do magistério...",
+                                ).classes("w-full").props("outlined rows=3").bind_value(
+                                    state_60, "link"
                                 )
 
-                            lbl_pts_1531 = ui.label(f"📊 Pontuação Quesito 15.3.1: {opcoes_1531_pts.get(state_1531['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+                            lbl_pts_60 = ui.label(
+                                f"📊 Impacto de Pontuação no Quesito 6.0: {opcoes_60_pontos.get(state_60['opcao'], 0.0):.1f} pontos"
+                            ).classes("text-sm font-bold text-red-600 my-4" if opcoes_60_pontos.get(state_60['opcao'], 0.0) < 0 else "text-sm font-bold text-green-600 my-4")
 
-                            def att_pts_1531():
-                                pts = opcoes_1531_pts.get(state_1531["opcao"], 0.0)
-                                cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                lbl_pts_1531.classes(replace=cor)
-                                lbl_pts_1531.set_text(f"📊 Pontuação Quesito 15.3.1: {pts:.1f} pontos")
+                            def att_pts_60():
+                                pts = opcoes_60_pontos.get(state_60["opcao"], 0.0)
+                                lbl_pts_60.set_text(
+                                    f"📊 Impacto de Pontuação no Quesito 6.0: {pts:.1f} pontos"
+                                )
+                                if pts < 0:
+                                    lbl_pts_60.classes(remove="text-green-600", add="text-red-600")
+                                else:
+                                    lbl_pts_60.classes(remove="text-red-600", add="text-green-600")
 
-                            rad_1531.on("update:model-value", att_pts_1531)
+                            rad_60.on("update:model-value", att_pts_60)
 
-                            def salvar_1531():
-                                pts = opcoes_1531_pts.get(state_1531["opcao"], 0.0)
+                            def salvar_60():
+                                pts = opcoes_60_pontos.get(state_60["opcao"], 0.0)
                                 save_resposta(
                                     ano=ano_sel,
-                                    qid="15.3.1",
-                                    valor=state_1531["opcao"],
+                                    qid="6.0",
+                                    valor=state_60["opcao"],
                                     pontos=pts,
-                                    link=state_1531["link"],
-                                    comentarios=d1531.get("comentarios", []),
-                                    status=d1531.get("status", "Pendente"),
+                                    link=state_60["link"],
+                                    comentarios=d60.get("comentarios", []),
+                                    status=d60.get("status", "Pendente"),
                                 )
 
-                                ui.notify("Quesito 15.3.1 salvo com sucesso!", type="positive")
+                                ui.notify("Quesito 6.0 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
 
-                            ui.button("💾 SALVAR QUESITO 15.3.1", on_click=salvar_1531).classes(
+                            ui.button("💾 SALVAR QUESITO 6.0", on_click=salvar_60).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("15.3.1", res_data, render_conteudo.refresh)
+                            bloco_comentarios("6.0", res_data, render_conteudo.refresh)
 
                         # =============================================================================
-                        # QUESITO 15.3.2 (Divulgação dos Resultados do PMPI)
+                        # QUESITO 6.1 (Instrumento Normativo, Número e Data do PCCS)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
-                            ui.label("15.3.2 • Divulgação dos Resultados do PMPI").classes(
+                            ui.label("6.1 • Instrumento Normativo do PCCS dos Professores").classes(
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Houve divulgação dos resultados do Plano?"
+                                "Informe o Instrumento Normativo, Número e Data da publicação:"
+                            ).classes("text-base font-bold text-black mb-1")
+                            ui.label(
+                                "⚠️ Anexar o documento em PDF por meio do botão ANEXO."
+                            ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                            d61 = res_data.get("6.1") or res_data.get("61") or {}
+                            raw_val_61 = str(d61.get("valor") or "")
+                            raw_link_61 = str(d61.get("link") or "")
+
+                            state_61 = {
+                                "norma": raw_val_61,
+                                "link": raw_link_61,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.input(
+                                    label="Instrumento Normativo, Número e Data (ex: Lei Complementar nº 123/2015 de 10/05/2015):",
+                                    value=state_61["norma"],
+                                ).props("outlined color=blue").classes("w-full").bind_value(
+                                    state_61, "norma"
+                                )
+
+                                ui.textarea(
+                                    label="Link de Evidência / PDF do Diário Oficial:",
+                                    value=raw_link_61,
+                                    placeholder="Link do arquivo PDF da lei de criação do PCCS dos professores...",
+                                ).classes("w-full").props("outlined rows=3").bind_value(
+                                    state_61, "link"
+                                )
+
+                            def salvar_61():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="6.1",
+                                    valor=state_61["norma"],
+                                    pontos=0.0,
+                                    link=state_61["link"],
+                                    comentarios=d61.get("comentarios", []),
+                                    status=d61.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 6.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 6.1", on_click=salvar_61).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("6.1", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 6.2 (Requisitos Contidos no PCCS dos Professores)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("6.2 • Requisitos do Plano de Cargos e Salários dos Professores").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Assinale os requisitos contidos no Plano de Cargos e Salários dos professores:"
+                            ).classes("text-base font-bold text-black mb-1")
+                            ui.label("ℹ Quesito qualitativo de seleção múltipla.").classes(
+                                "text-xs text-gray-400 mb-6"
+                            )
+
+                            d62 = res_data.get("6.2") or res_data.get("62") or {}
+                            raw_link_62 = str(d62.get("link") or "")
+                            val_62_bruto = d62.get("valor") or []
+
+                            # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
+                            if isinstance(val_62_bruto, str):
+                                try:
+                                    sel_62 = json.loads(val_62_bruto)
+                                except Exception:
+                                    sel_62 = [
+                                        item.strip()
+                                        for item in val_62_bruto.split(";")
+                                        if item.strip()
+                                    ]
+                            elif isinstance(val_62_bruto, list):
+                                sel_62 = val_62_bruto
+                            else:
+                                sel_62 = []
+
+                            state_62 = {
+                                "opcoes": sel_62,
+                                "link": raw_link_62,
+                            }
+
+                            opcoes_62 = [
+                                "Remuneração condigna dos profissionais na educação básica da rede pública",
+                                "Integração entre o trabalho individual e a proposta pedagógica da escola",
+                                "Melhoria da qualidade do ensino e da aprendizagem",
+                                "Medidas de incentivo para que profissionais mais bem avaliados exerçam suas funções em escolas de locais com piores indicadores socioeconômicos ou que atendam estudantes com deficiência, transtornos globais do desenvolvimento e altas habilidades ou superdotação",
+                                "Contempla capacitação profissional especialmente direcionada à formação continuada com vistas à melhoria da qualidade do ensino",
+                                "Nenhum dos anteriores",
+                            ]
+
+                            with ui.grid(columns=1).classes("w-full gap-2 mb-4"):
+                                def make_chk_62(opt_text):
+                                    def on_chk_change(e):
+                                        if e.value:
+                                            if opt_text == "Nenhum dos anteriores":
+                                                state_62["opcoes"].clear()
+                                                state_62["opcoes"].append("Nenhum dos anteriores")
+                                            else:
+                                                if "Nenhum dos anteriores" in state_62["opcoes"]:
+                                                    state_62["opcoes"].remove("Nenhum dos anteriores")
+                                                if opt_text not in state_62["opcoes"]:
+                                                    state_62["opcoes"].append(opt_text)
+                                        else:
+                                            if opt_text in state_62["opcoes"]:
+                                                state_62["opcoes"].remove(opt_text)
+                                    return on_chk_change
+
+                                for opt in opcoes_62:
+                                    ui.checkbox(
+                                        text=opt,
+                                        value=(opt in state_62["opcoes"]),
+                                        on_change=make_chk_62(opt),
+                                    ).props("color=blue")
+
+                            ui.textarea(
+                                label="Link de Evidência / Artigos da Lei do PCCS:",
+                                value=raw_link_62,
+                                placeholder="Link destacando os artigos/dispositivos do PCCS que atendem aos requisitos assinalados...",
+                            ).classes("w-full mb-4").props("outlined rows=2").bind_value(
+                                state_62, "link"
+                            )
+
+                            def salvar_62():
+                                opts_sel = state_62["opcoes"]
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="6.2",
+                                    valor=opts_sel,
+                                    pontos=0.0,
+                                    link=state_62["link"],
+                                    comentarios=d62.get("comentarios", []),
+                                    status=d62.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 6.2 salvo com sucesso!", type="positive")
+                                if callable(getattr(render_conteudo, "refresh", None)):
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 6.2", on_click=salvar_62).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("6.2", res_data, render_conteudo.refresh)
+                        # =============================================================================
+                        # QUESITO 7.0 (Programa de Inibição ao Absenteísmo de Professores)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("7.0 • Inibição ao Absenteísmo de Professores").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Existe um programa de inibição ao absenteísmo de professores em sala de aula (incluindo os afastamentos legais)?"
                             ).classes("text-base font-bold text-black mb-6")
 
-                            d1532 = res_data.get("15.3.2") or res_data.get("1532") or {}
+                            d70 = res_data.get("7.0") or res_data.get("7") or {}
+                            raw_val_70 = d70.get("valor") or {}
 
-                            opcoes_1532_pts = {
+                            if not isinstance(raw_val_70, dict):
+                                raw_val_70 = {}
+
+                            raw_link_70 = str(d70.get("link") or "")
+
+                            # Leitura de ofertas do i-Educ (Q1: Creche, Q2: Pré-escola, Q3: Anos Iniciais)
+                            # Busca nos quesitos das etapas ou assume "SIM" por padrão caso não localizado
+                            d_q1 = res_data.get("1.0") or res_data.get("1") or {}
+                            d_q2 = res_data.get("2.0") or res_data.get("2") or {}
+                            d_q3 = res_data.get("3.0") or res_data.get("3") or {}
+
+                            q1_sim = str(d_q1.get("valor") or "SIM").strip().upper() == "SIM"
+                            q2_sim = str(d_q2.get("valor") or "SIM").strip().upper() == "SIM"
+                            q3_sim = str(d_q3.get("valor") or "SIM").strip().upper() == "SIM"
+
+                            state_70 = {
+                                "tem_programa": str(raw_val_70.get("tem_programa") or "Selecione..."),
+                                # Ausências por Faltas/Afastamentos (QTA)
+                                "qta_creche": str(raw_val_70.get("qta_creche", 0)),
+                                "qta_pre": str(raw_val_70.get("qta_pre", 0)),
+                                "qta_iniciais": str(raw_val_70.get("qta_iniciais", 0)),
+                                # Totais de Professores por Etapa
+                                "prof_creche": str(raw_val_70.get("prof_creche", 1)),
+                                "prof_pre": str(raw_val_70.get("prof_pre", 1)),
+                                "prof_iniciais": str(raw_val_70.get("prof_iniciais", 1)),
+                                "link": raw_link_70,
+                            }
+
+                            opcoes_70_base = ["Selecione...", "Sim", "Não"]
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_70 = ui.radio(
+                                    options=opcoes_70_base,
+                                    value=state_70["tem_programa"],
+                                ).props("color=blue").bind_value(state_70, "tem_programa")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Plano de Redução do Absenteísmo:",
+                                    value=raw_link_70,
+                                    placeholder="Link do programa, bonificação de assiduidade ou diretriz municipal...",
+                                ).classes("w-full").props("outlined rows=3").bind_value(
+                                    state_70, "link"
+                                )
+
+                            ui.separator().classes("my-4")
+                            ui.label("📊 Dados para Cálculo de Taxa de Absenteísmo por Etapa (A, B e C):").classes(
+                                "text-sm font-bold text-gray-800 mb-2"
+                            )
+
+                            with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                                # Creche (A)
+                                with ui.column().classes("p-3 bg-gray-50 rounded border border-gray-200"):
+                                    ui.label("Creche (A)").classes("font-bold text-blue-800 text-xs")
+                                    ui.input("QTA (Faltas/Afastamentos):", value=state_70["qta_creche"]).props("type=number outlined dense color=blue").bind_value(state_70, "qta_creche")
+                                    ui.input("Total Professores Creche:", value=state_70["prof_creche"]).props("type=number outlined dense color=blue").bind_value(state_70, "prof_creche")
+
+                                # Pré-escola (B)
+                                with ui.column().classes("p-3 bg-gray-50 rounded border border-gray-200"):
+                                    ui.label("Pré-escola (B)").classes("font-bold text-blue-800 text-xs")
+                                    ui.input("QTA (Faltas/Afastamentos):", value=state_70["qta_pre"]).props("type=number outlined dense color=blue").bind_value(state_70, "qta_pre")
+                                    ui.input("Total Professores Pré:", value=state_70["prof_pre"]).props("type=number outlined dense color=blue").bind_value(state_70, "prof_pre")
+
+                                # Anos Iniciais (C)
+                                with ui.column().classes("p-3 bg-gray-50 rounded border border-gray-200"):
+                                    ui.label("Anos Iniciais (C)").classes("font-bold text-blue-800 text-xs")
+                                    ui.input("QTA (Faltas/Afastamentos):", value=state_70["qta_iniciais"]).props("type=number outlined dense color=blue").bind_value(state_70, "qta_iniciais")
+                                    ui.input("Total Professores Iniciais:", value=state_70["prof_iniciais"]).props("type=number outlined dense color=blue").bind_value(state_70, "prof_iniciais")
+
+                            lbl_resultado_70 = ui.label("Calculando pontuação do absenteísmo...").classes("text-sm font-bold my-2")
+
+                            def calcular_pontos_70():
+                                if state_70["tem_programa"] != "Sim":
+                                    lbl_resultado_70.set_text("📊 Impacto no Quesito 7.0: 0.0 pontos (Sem programa registrado)")
+                                    lbl_resultado_70.classes(remove="text-red-600", add="text-gray-700")
+                                    return 0.0
+
+                                try:
+                                    qta_a = float(state_70["qta_creche"])
+                                    prof_a = float(state_70["prof_creche"])
+                                    taxa_a = (qta_a / prof_a) if prof_a > 0 else 0.0
+                                except (ValueError, ZeroDivisionError):
+                                    taxa_a = 0.0
+
+                                try:
+                                    qta_b = float(state_70["qta_pre"])
+                                    prof_b = float(state_70["prof_pre"])
+                                    taxa_b = (qta_b / prof_b) if prof_b > 0 else 0.0
+                                except (ValueError, ZeroDivisionError):
+                                    taxa_b = 0.0
+
+                                try:
+                                    qta_c = float(state_70["qta_iniciais"])
+                                    prof_c = float(state_70["prof_iniciais"])
+                                    taxa_c = (qta_c / prof_c) if prof_c > 0 else 0.0
+                                except (ValueError, ZeroDivisionError):
+                                    taxa_c = 0.0
+
+                                na, nb, nc = 0.0, 0.0, 0.0
+
+                                # Matriz da Regra de Negócio i-Educ
+                                if q1_sim and q2_sim and q3_sim:
+                                    na = 0.0 if taxa_a <= 10 else -1.5
+                                    nb = 0.0 if taxa_b <= 10 else -1.5
+                                    nc = 0.0 if taxa_c <= 10 else -2.0
+                                elif not q1_sim and q2_sim and q3_sim:
+                                    na = 0.0
+                                    nb = 0.0 if taxa_b <= 10 else -2.5
+                                    nc = 0.0 if taxa_c <= 10 else -2.5
+                                elif q1_sim and not q2_sim and q3_sim:
+                                    na = 0.0 if taxa_a <= 10 else -2.5
+                                    nb = 0.0
+                                    nc = 0.0 if taxa_c <= 10 else -2.5
+                                elif q1_sim and q2_sim and not q3_sim:
+                                    na = 0.0 if taxa_a <= 10 else -2.5
+                                    nb = 0.0 if taxa_b <= 10 else -2.5
+                                    nc = 0.0
+                                elif not q1_sim and not q2_sim and q3_sim:
+                                    na = 0.0
+                                    nb = 0.0
+                                    nc = 0.0 if taxa_c <= 10 else -5.0
+                                elif not q1_sim and q2_sim and not q3_sim:
+                                    na = 0.0
+                                    nb = 0.0 if taxa_b <= 10 else -5.0
+                                    nc = 0.0
+                                elif q1_sim and not q2_sim and not q3_sim:
+                                    na = 0.0 if taxa_a <= 10 else -5.0
+                                    nb = 0.0
+                                    nc = 0.0
+                                else:
+                                    na, nb, nc = 0.0, 0.0, 0.0
+
+                                nf = na + nb + nc
+
+                                if nf < 0:
+                                    lbl_resultado_70.set_text(
+                                        f"📊 Impacto da Penalidade por Absenteísmo (NF): {nf:.1f} pontos "
+                                        f"(Taxas: A={taxa_a:.1f}, B={taxa_b:.1f}, C={taxa_c:.1f})"
+                                    )
+                                    lbl_resultado_70.classes(remove="text-green-600 text-gray-700", add="text-red-600")
+                                else:
+                                    lbl_resultado_70.set_text(
+                                        f"📊 Impacto do Quesito 7.0: +5.0 pts (Programa Ativo) / Penalidades da Taxa: 0.0 pts"
+                                    )
+                                    lbl_resultado_70.classes(remove="text-red-600 text-gray-700", add="text-green-600")
+
+                                return nf
+
+                            def salvar_70():
+                                nf_penalidade = calcular_pontos_70()
+                                pts_finais = 5.0 + nf_penalidade if state_70["tem_programa"] == "Sim" else 0.0
+
+                                dados_salvar = {
+                                    "tem_programa": state_70["tem_programa"],
+                                    "qta_creche": state_70["qta_creche"],
+                                    "qta_pre": state_70["qta_pre"],
+                                    "qta_iniciais": state_70["qta_iniciais"],
+                                    "prof_creche": state_70["prof_creche"],
+                                    "prof_pre": state_70["prof_pre"],
+                                    "prof_iniciais": state_70["prof_iniciais"],
+                                    "nf_penalidade": nf_penalidade,
+                                }
+
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="7.0",
+                                    valor=dados_salvar,
+                                    pontos=pts_finais,
+                                    link=state_70["link"],
+                                    comentarios=d70.get("comentarios", []),
+                                    status=d70.get("status", "Pendente"),
+                                )
+
+                                ui.notify(f"Quesito 7.0 salvo com sucesso! (Pontuação final: {pts_finais:.1f} pts)", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            rad_70.on("update:model-value", calcular_pontos_70)
+
+                            ui.button("💾 SALVAR QUESITO 7.0", on_click=salvar_70).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("7.0", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 7.1 (Especificação do Programa de Inibição ao Absenteísmo)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("7.1 • Detalhamento do Programa de Inibição ao Absenteísmo").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Especifique qual o programa de inibição ao absenteísmo de professores:"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d71 = res_data.get("7.1") or res_data.get("71") or {}
+                            raw_val_71 = str(d71.get("valor") or "")
+                            raw_link_71 = str(d71.get("link") or "")
+
+                            state_71 = {
+                                "programa_desc": raw_val_71,
+                                "link": raw_link_71,
+                            }
+
+                            with ui.grid(columns=1).classes("w-full gap-4 mb-4"):
+                                ui.textarea(
+                                    label="Programa de inibição ao absenteísmo de professores:",
+                                    value=raw_val_71,
+                                    placeholder="Descreva os mecanismos do programa (ex: prêmio de assiduidade, acompanhamento de saúde do trabalhador, reposição obrigatória)...",
+                                ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
+                                    state_71, "programa_desc"
+                                )
+
+                                ui.textarea(
+                                    label="Link de Evidência / Regulamentação do Programa:",
+                                    value=raw_link_71,
+                                    placeholder="Link do decreto ou portaria que institui o programa...",
+                                ).classes("w-full").props("outlined rows=2 color=blue").bind_value(
+                                    state_71, "link"
+                                )
+
+                            def salvar_71():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="7.1",
+                                    valor=state_71["programa_desc"],
+                                    pontos=0.0,
+                                    link=state_71["link"],
+                                    comentarios=d71.get("comentarios", []),
+                                    status=d71.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 7.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 7.1", on_click=salvar_71).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("7.1", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 8.0 (Atuação de Nutricionista na Rede Municipal)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("8.0 • Nutricionista na Rede Municipal de Ensino").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Houve nutricionista atuando na rede municipal de ensino no ano de 2026?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d80 = res_data.get("8.0") or res_data.get("8") or {}
+
+                            opcoes_80 = [
+                                "Selecione...",
+                                "Sim",
+                                "Não",
+                            ]
+
+                            val_80_bruto = str(d80.get("valor") or "")
+                            val_80_valido = "Selecione..."
+                            if val_80_bruto in opcoes_80:
+                                val_80_valido = val_80_bruto
+
+                            raw_link_80 = str(d80.get("link") or "")
+
+                            state_80 = {
+                                "opcao": val_80_valido,
+                                "link": raw_link_80,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_80 = ui.radio(
+                                    options=opcoes_80,
+                                    value=state_80["opcao"],
+                                ).props("color=blue").bind_value(state_80, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Portaria de Nomeação / Registro CRN / Cardápios:",
+                                    value=raw_link_80,
+                                    placeholder="Link da portaria de nomeação do nutricionista, RT do CRN ou cardápios assinados...",
+                                ).classes("w-full").props("outlined rows=3").bind_value(
+                                    state_80, "link"
+                                )
+
+                            def salvar_80():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="8.0",
+                                    valor=state_80["opcao"],
+                                    pontos=0.0,
+                                    link=state_80["link"],
+                                    comentarios=d80.get("comentarios", []),
+                                    status=d80.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 8.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 8.0", on_click=salvar_80).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("8.0", res_data, render_conteudo.refresh)
+
+        # =============================================================================
+                        # QUESITO 8.1 (Dimensionamento do Quadro de Nutricionistas)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("8.1 • Dimensionamento do Quadro de Nutricionistas").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Quantos nutricionistas atuavam no município em 2026?"
+                            ).classes("text-base font-bold text-black mb-1")
+                            ui.label(
+                                "⚠️ Critério de Pontuação: Cumprimento do dimensionamento mínimo (RT + QT) em relação ao número de alunos para conceder 12,0 pontos."
+                            ).classes("text-xs font-semibold text-amber-600 mb-6")
+
+                            d81 = res_data.get("8.1") or res_data.get("81") or {}
+                            raw_val_81 = d81.get("valor") or {}
+
+                            if not isinstance(raw_val_81, dict):
+                                raw_val_81 = {}
+
+                            raw_link_81 = str(d81.get("link") or "")
+
+                            state_81 = {
+                                "total_alunos": str(raw_val_81.get("total_alunos", 0)),
+                                "qtd_servidores": str(raw_val_81.get("qtd_servidores", 0)),
+                                "qtd_terceirizados": str(raw_val_81.get("qtd_terceirizados", 0)),
+                                "link": raw_link_81,
+                            }
+
+                            with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                                inp_alunos_81 = ui.input(
+                                    "Total de Alunos da Rede:",
+                                    value=state_81["total_alunos"]
+                                ).props("type=number outlined dense color=blue").bind_value(state_81, "total_alunos")
+
+                                inp_serv_81 = ui.input(
+                                    "Servidores Municipais (Qi):",
+                                    value=state_81["qtd_servidores"]
+                                ).props("type=number outlined dense color=blue").bind_value(state_81, "qtd_servidores")
+
+                                inp_terc_81 = ui.input(
+                                    "Funcionários Terceirizados:",
+                                    value=state_81["qtd_terceirizados"]
+                                ).props("type=number outlined dense color=blue").bind_value(state_81, "qtd_terceirizados")
+
+                            lbl_req_81 = ui.label("Exigência FNDE/CFN: -").classes("text-xs font-bold text-gray-700 mb-1")
+                            lbl_pts_81 = ui.label("Nota Quesito 8.1: 0.0 / 12.0 pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                            ui.textarea(
+                                label="Link de Evidência / Quadro Técnico / CRN / Contratos:",
+                                value=raw_link_81,
+                                placeholder="Link das anotações de responsabilidade técnica (ART) no CRN e folha de pagamento...",
+                            ).classes("w-full mb-2").props("outlined rows=2 color=blue").bind_value(
+                                state_81, "link"
+                            )
+
+                            def recalc_81():
+                                try:
+                                    alunos = float(state_81["total_alunos"])
+                                except ValueError:
+                                    alunos = 0.0
+
+                                try:
+                                    qi = float(state_81["qtd_servidores"])
+                                except ValueError:
+                                    qi = 0.0
+
+                                # Cálculo da Necessidade Teórica de Nutricionistas (1 RT + N QT)
+                                if alunos <= 500:
+                                    nec_rt, nec_qt = 1, 0
+                                elif alunos <= 1000:
+                                    nec_rt, nec_qt = 1, 1
+                                elif alunos <= 2500:
+                                    nec_rt, nec_qt = 1, 2
+                                elif alunos <= 5000:
+                                    nec_rt, nec_qt = 1, 3
+                                else:
+                                    excedente = alunos - 5000
+                                    nec_qt_extra = int(excedente // 2500)
+                                    nec_rt, nec_qt = 1, 3 + nec_qt_extra
+
+                                nec_total = nec_rt + nec_qt
+                                lbl_req_81.set_text(f"Exigência FNDE/CFN para {int(alunos)} alunos: {nec_rt} RT + {nec_qt} QT (Total: {nec_total} nutricionistas)")
+
+                                if qi >= nec_total and nec_total > 0:
+                                    pts = 12.0
+                                    lbl_pts_81.set_text("📊 Nota Quesito 8.1: 12.0 / 12.0 pontos (Atende ao critério do quadro técnico)")
+                                    lbl_pts_81.classes(remove="text-red-600", add="text-green-600")
+                                else:
+                                    pts = 0.0
+                                    lbl_pts_81.set_text("📊 Nota Quesito 8.1: 0.0 / 12.0 pontos (Quadro de servidores insuficiente)")
+                                    lbl_pts_81.classes(remove="text-green-600", add="text-red-600")
+
+                                return pts
+
+                            inp_alunos_81.on("update:model-value", recalc_81)
+                            inp_serv_81.on("update:model-value", recalc_81)
+                            recalc_81()
+
+                            def salvar_81():
+                                pts = recalc_81()
+                                dados_salvar = {
+                                    "total_alunos": int(state_81["total_alunos"]) if state_81["total_alunos"].isdigit() else 0,
+                                    "qtd_servidores": int(state_81["qtd_servidores"]) if state_81["qtd_servidores"].isdigit() else 0,
+                                    "qtd_terceirizados": int(state_81["qtd_terceirizados"]) if state_81["qtd_terceirizados"].isdigit() else 0,
+                                }
+
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="8.1",
+                                    valor=dados_salvar,
+                                    pontos=pts,
+                                    link=state_81["link"],
+                                    comentarios=d81.get("comentarios", []),
+                                    status=d81.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 8.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 8.1", on_click=salvar_81).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("8.1", res_data, render_conteudo.refresh)
+
+                        
+                        # =============================================================================
+                        # QUESITO 8.2 (Atuação nas Escolas Estaduais)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("8.2 • Atuação dos Nutricionistas nas Escolas Estaduais").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label("Os nutricionistas atuaram nas escolas estaduais em 2026?").classes(
+                                "text-base font-bold text-black mb-6"
+                            )
+
+                            d82 = res_data.get("8.2") or res_data.get("82") or {}
+                            raw_val_82 = d82.get("valor") or {}
+                            if not isinstance(raw_val_82, dict):
+                                raw_val_82 = {"atuaram": str(raw_val_82 or "Selecione...")}
+
+                            state_82 = {
+                                "atuaram": str(raw_val_82.get("atuaram", "Selecione...")),
+                                "link": str(d82.get("link") or ""),
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.radio(
+                                    options=["Selecione...", "Sim", "Não"],
+                                    value=state_82["atuaram"],
+                                ).props("color=blue").bind_value(state_82, "atuaram")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Convênio de Alimentação Escolar Estadual:",
+                                    value=state_82["link"],
+                                    placeholder="Link do termo de colaboração/convênio com o estado...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_82, "link"
+                                )
+
+                            def salvar_82():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="8.2",
+                                    valor={"atuaram": state_82["atuaram"]},
+                                    pontos=0.0,
+                                    link=state_82["link"],
+                                    comentarios=d82.get("comentarios", []),
+                                    status=d82.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 8.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 8.2", on_click=salvar_82).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("8.2", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 8.2.1 (Quantidade de Escolas Estaduais)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("8.2.1 • Escolas Estaduais Atendidas").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Informe a quantidade de escolas estaduais com atuação de nutricionistas:"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d821 = res_data.get("8.2.1") or res_data.get("821") or {}
+                            raw_val_821 = d821.get("valor") or {}
+                            if not isinstance(raw_val_821, dict):
+                                raw_val_821 = {"qtd_escolas_est": str(raw_val_821 or 0)}
+
+                            state_821 = {
+                                "qtd_escolas_est": str(raw_val_821.get("qtd_escolas_est", 0)),
+                                "link": str(d821.get("link") or ""),
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.input(
+                                    "Quantidade de escolas estaduais com atuação de nutricionistas:",
+                                    value=state_821["qtd_escolas_est"],
+                                ).props("type=number outlined dense color=blue").classes("w-full").bind_value(
+                                    state_821, "qtd_escolas_est"
+                                )
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 8.2.1):",
+                                    value=state_821["link"],
+                                    placeholder="Link da relação de escolas estaduais atendidas...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_821, "link"
+                                )
+
+                            def salvar_821():
+                                val_qtd = int(state_821["qtd_escolas_est"]) if state_821["qtd_escolas_est"].isdigit() else 0
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="8.2.1",
+                                    valor={"qtd_escolas_est": val_qtd},
+                                    pontos=0.0,
+                                    link=state_821["link"],
+                                    comentarios=d821.get("comentarios", []),
+                                    status=d821.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 8.2.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 8.2.1", on_click=salvar_821).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("8.2.1", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 8.2.2 (Quantidade de Alunos Estaduais)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("8.2.2 • Alunos Estaduais Atendidos").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Informe a quantidade de alunos da rede estadual atendidos:"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d822 = res_data.get("8.2.2") or res_data.get("822") or {}
+                            raw_val_822 = d822.get("valor") or {}
+                            if not isinstance(raw_val_822, dict):
+                                raw_val_822 = {"qtd_alunos_est": str(raw_val_822 or 0)}
+
+                            state_822 = {
+                                "qtd_alunos_est": str(raw_val_822.get("qtd_alunos_est", 0)),
+                                "link": str(d822.get("link") or ""),
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.input(
+                                    "Quantidade de alunos da rede estadual atendidos:",
+                                    value=state_822["qtd_alunos_est"],
+                                ).props("type=number outlined dense color=blue").classes("w-full").bind_value(
+                                    state_822, "qtd_alunos_est"
+                                )
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 8.2.2):",
+                                    value=state_822["link"],
+                                    placeholder="Link do relatório de matrículas estaduais atendidas...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_822, "link"
+                                )
+
+                            def salvar_822():
+                                val_qtd = int(state_822["qtd_alunos_est"]) if state_822["qtd_alunos_est"].isdigit() else 0
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="8.2.2",
+                                    valor={"qtd_alunos_est": val_qtd},
+                                    pontos=0.0,
+                                    link=state_822["link"],
+                                    comentarios=d822.get("comentarios", []),
+                                    status=d822.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 8.2.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 8.2.2", on_click=salvar_822).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("8.2.2", res_data, render_conteudo.refresh)
+
+        # =============================================================================
+                    if etapa_atual == 5:
+                        # QUESITO 9.0 (Divulgação do Cardápio da Nutricionista)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("9.0 • Divulgação do Cardápio Pré-Estabelecido").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "O município divulga o cardápio pré-estabelecido pela nutricionista na Secretaria de Educação e nas escolas?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d90 = res_data.get("9.0") or res_data.get("9") or {}
+
+                            opcoes_90_pts = {
+                                "Selecione...": 0.0,
+                                "Na Secretaria de Educação e em todas as escolas": 2.0,
+                                "Na Secretaria de Educação e na maior parte das escolas": 1.3,
+                                "Na Secretaria de Educação e na menor parte das escolas": 0.6,
+                                "Apenas na Secretaria de Educação": 0.0,
+                                "Não é divulgado": 0.0,
+                            }
+
+                            opcoes_90_labels = {
+                                "Selecione...": "Selecione...",
+                                "Na Secretaria de Educação e em todas as escolas": "Na Secretaria de Educação e em todas as escolas (+2,0 pts)",
+                                "Na Secretaria de Educação e na maior parte das escolas": "Na Secretaria de Educação e na maior parte das escolas (+1,3 pts)",
+                                "Na Secretaria de Educação e na menor parte das escolas": "Na Secretaria de Educação e na menor parte das escolas (+0,6 pts)",
+                                "Apenas na Secretaria de Educação": "Apenas na Secretaria de Educação (0,0 pts)",
+                                "Não é divulgado": "Não é divulgado (0,0 pts)",
+                            }
+
+                            val_90_bruto = str(d90.get("valor") or "")
+                            val_90_valido = "Selecione..."
+                            if val_90_bruto in opcoes_90_pts:
+                                val_90_valido = val_90_bruto
+
+                            raw_link_90 = str(d90.get("link") or "")
+
+                            state_90 = {
+                                "opcao": val_90_valido,
+                                "link": raw_link_90,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_90 = ui.radio(
+                                    options=opcoes_90_labels,
+                                    value=state_90["opcao"],
+                                ).props("color=blue").bind_value(state_90, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Publicação dos Cardápios:",
+                                    value=raw_link_90,
+                                    placeholder="Link do site, mural online ou fotos dos quadros de aviso nas escolas...",
+                                ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
+                                    state_90, "link"
+                                )
+
+                            lbl_pts_90 = ui.label(f"📊 Nota Quesito 9.0: {opcoes_90_pts.get(state_90['opcao'], 0.0):.1f} / 2.0 pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def att_pts_90():
+                                pts = opcoes_90_pts.get(state_90["opcao"], 0.0)
+                                lbl_pts_90.set_text(f"📊 Nota Quesito 9.0: {pts:.1f} / 2.0 pontos")
+
+                            rad_90.on("update:model-value", att_pts_90)
+
+                            def salvar_90():
+                                pts = opcoes_90_pts.get(state_90["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="9.0",
+                                    valor=state_90["opcao"],
+                                    pontos=pts,
+                                    link=state_90["link"],
+                                    comentarios=d90.get("comentarios", []),
+                                    status=d90.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 9.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 9.0", on_click=salvar_90).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("9.0", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 10.0 (Cumprimento do Cardápio Pré-Estabelecido)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("10.0 • Cumprimento do Cardápio de Alimentação").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "O município cumpre o cardápio pré-estabelecido pela nutricionista?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d100 = res_data.get("10.0") or res_data.get("10") or {}
+
+                            opcoes_100_pts = {
+                                "Selecione...": 0.0,
+                                "Em todas as escolas": 2.5,
+                                "Na maior parte das escolas": 1.8,
+                                "Na menor parte das escolas": 0.5,
+                                "Não cumpre o cardápio": 0.0,
+                            }
+
+                            opcoes_100_labels = {
+                                "Selecione...": "Selecione...",
+                                "Em todas as escolas": "Em todas as escolas (+2,5 pts)",
+                                "Na maior parte das escolas": "Na maior parte das escolas (+1,8 pts)",
+                                "Na menor parte das escolas": "Na menor parte das escolas (+0,5 pts)",
+                                "Não cumpre o cardápio": "Não cumpre o cardápio (0,0 pts)",
+                            }
+
+                            val_100_bruto = str(d100.get("valor") or "")
+                            val_100_valido = "Selecione..."
+                            if val_100_bruto in opcoes_100_pts:
+                                val_100_valido = val_100_bruto
+
+                            raw_link_100 = str(d100.get("link") or "")
+
+                            state_100 = {
+                                "opcao": val_100_valido,
+                                "link": raw_link_100,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_100 = ui.radio(
+                                    options=opcoes_100_labels,
+                                    value=state_100["opcao"],
+                                ).props("color=blue").bind_value(state_100, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Relatórios de Visita Técnica e Substituição de Cardápio:",
+                                    value=raw_link_100,
+                                    placeholder="Link dos relatórios das visitas das nutricionistas e guias de entrega do PNAE...",
+                                ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
+                                    state_100, "link"
+                                )
+
+                            lbl_pts_100 = ui.label(f"📊 Nota Quesito 10.0: {opcoes_100_pts.get(state_100['opcao'], 0.0):.1f} / 2.5 pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def att_pts_100():
+                                pts = opcoes_100_pts.get(state_100["opcao"], 0.0)
+                                lbl_pts_100.set_text(f"📊 Nota Quesito 10.0: {pts:.1f} / 2.5 pontos")
+
+                            rad_100.on("update:model-value", att_pts_100)
+
+                            def salvar_100():
+                                pts = opcoes_100_pts.get(state_100["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="10.0",
+                                    valor=state_100["opcao"],
+                                    pontos=pts,
+                                    link=state_100["link"],
+                                    comentarios=d100.get("comentarios", []),
+                                    status=d100.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 10.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 10.0", on_click=salvar_100).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("10.0", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 11.0 (Controle Formal da Qualidade dos Alimentos)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("11.0 • Controle Formal da Qualidade dos Alimentos").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Existe controle formal pelo(a) nutricionista que permita atestar condições dos alimentos servidos?"
+                            ).classes("text-base font-bold text-black mb-4")
+
+                            d110 = res_data.get("11.0") or res_data.get("11") or {}
+
+                            val_110_bruto = str(d110.get("valor") or "Selecione...")
+                            raw_link_110 = str(d110.get("link") or "")
+
+                            state_110 = {
+                                "existe_controle": val_110_bruto,
+                                "link": raw_link_110,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_110 = ui.radio(
+                                    options=["Selecione...", "Sim", "Não"],
+                                    value=state_110["existe_controle"],
+                                ).props("color=blue").bind_value(state_110, "existe_controle")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Fichas de Controle e Checklists (Quesito 11.0):",
+                                    value=raw_link_110,
+                                    placeholder="Link dos modelos de ficha de inspeção e checklists...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_110, "link"
+                                )
+
+                            def salvar_110():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="11.0",
+                                    valor=state_110["existe_controle"],
+                                    pontos=0.0,
+                                    link=state_110["link"],
+                                    comentarios=d110.get("comentarios", []),
+                                    status=d110.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 11.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 11.0", on_click=salvar_110).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("11.0", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 11.1 (Condições Atestadas pelo Nutricionista)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("11.1 • Condições Atestadas pelo(a) Nutricionista").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Assinale as condições atestadas pelo(a) nutricionista (0,25 pt cada):"
+                            ).classes("text-base font-bold text-black mb-4")
+
+                            d111 = res_data.get("11.1") or res_data.get("111") or {}
+                            raw_link_111 = str(d111.get("link") or "")
+                            val_111_bruto = d111.get("valor") or []
+
+                            # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
+                            if isinstance(val_111_bruto, str):
+                                try:
+                                    sel_111 = json.loads(val_111_bruto)
+                                except Exception:
+                                    sel_111 = [
+                                        item.strip()
+                                        for item in val_111_bruto.split(";")
+                                        if item.strip()
+                                    ]
+                            elif isinstance(val_111_bruto, list):
+                                sel_111 = val_111_bruto
+                            else:
+                                sel_111 = []
+
+                            state_111 = {
+                                "opcoes": sel_111,
+                                "link": raw_link_111,
+                            }
+
+                            opcoes_111 = [
+                                "Condições físicas e estruturais da cozinha",
+                                "Recebimento dos alimentos para controle de procedência",
+                                "Higienização dos alimentos",
+                                "Higienização dos equipamentos",
+                                "Acondicionamento dos alimentos",
+                                "Acompanhamento da preparação dos alimentos",
+                                "Acompanhamento e orientação sobre a manipulação dos alimentos",
+                                "Aceitação do cardápio proposto",
+                                "Outras",
+                            ]
+
+                            lbl_pts_111 = ui.label("Nota do Quesito 11.1: 0.00 / 2.00 pontos").classes(
+                                "text-sm font-bold text-green-600 mb-4"
+                            )
+
+                            def recalc_111():
+                                validos = [
+                                    item for item in state_111["opcoes"] if item != "Outras"
+                                ]
+                                pts = len(validos) * 0.25
+                                pts = min(pts, 2.0)
+                                lbl_pts_111.set_text(
+                                    f"📊 Nota do Quesito 11.1: {pts:.2f} / 2.00 pontos ({len(validos)} condições atestadas)"
+                                )
+                                return pts
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                with ui.column().classes("w-full gap-1"):
+                                    def make_chk_111(opt_text):
+                                        def on_chk_change(e):
+                                            if e.value and opt_text not in state_111["opcoes"]:
+                                                state_111["opcoes"].append(opt_text)
+                                            elif not e.value and opt_text in state_111["opcoes"]:
+                                                state_111["opcoes"].remove(opt_text)
+                                            recalc_111()
+                                        return on_chk_change
+
+                                    for op_111 in opcoes_111:
+                                        pts_txt = " (+0,25 pt)" if op_111 != "Outras" else " (0,00 pt)"
+                                        ui.checkbox(
+                                            text=f"{op_111}{pts_txt}",
+                                            value=(op_111 in state_111["opcoes"]),
+                                            on_change=make_chk_111(op_111),
+                                        ).props("color=blue")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 11.1):",
+                                    value=raw_link_111,
+                                    placeholder="Link dos relatórios e fichas preenchidas com as condições atestadas...",
+                                ).classes("w-full").props("outlined rows=5 color=blue").bind_value(
+                                    state_111, "link"
+                                )
+
+                            recalc_111()
+
+                            def salvar_111():
+                                pts_111 = recalc_111()
+                                opts_sel = state_111["opcoes"]
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="11.1",
+                                    valor=opts_sel,
+                                    pontos=pts_111,
+                                    link=state_111["link"],
+                                    comentarios=d111.get("comentarios", []),
+                                    status=d111.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 11.1 salvo com sucesso!", type="positive")
+                                if callable(getattr(render_conteudo, "refresh", None)):
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 11.1", on_click=salvar_111).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("11.1", res_data, render_conteudo.refresh)
+                            
+                        # =============================================================================
+                        # QUESITO 12.0 (Controle de Acondicionamento dos Alimentos)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("12.0 • Controle de Acondicionamento dos Alimentos").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Existe um controle de acondicionamento dos alimentos?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d120 = res_data.get("12.0") or res_data.get("12") or {}
+
+                            opcoes_120 = ["Selecione...", "Sim", "Não"]
+
+                            val_120_bruto = str(d120.get("valor") or "Selecione...")
+                            raw_link_120 = str(d120.get("link") or "")
+
+                            state_120 = {
+                                "opcao": val_120_bruto,
+                                "link": raw_link_120,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_120 = ui.radio(
+                                    options=opcoes_120,
+                                    value=state_120["opcao"],
+                                ).props("color=blue").bind_value(state_120, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência / Fichas de Temperatura e Estoque / Descarte:",
+                                    value=raw_link_120,
+                                    placeholder="Link das planilhas de controle de temperatura de geladeiras/freezers e pálio de armazenamento...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_120, "link"
+                                )
+
+                            def salvar_120():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="12.0",
+                                    valor=state_120["opcao"],
+                                    pontos=0.0,
+                                    link=state_120["link"],
+                                    comentarios=d120.get("comentarios", []),
+                                    status=d120.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 12.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 12.0", on_click=salvar_120).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("12.0", res_data, render_conteudo.refresh)
+
+   # =============================================================================
+                        # QUESITO 12.1 (Tipos de Controles de Acondicionamento)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("12.1 • Tipos de Controles de Acondicionamento").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Assinale os tipos de controles de acondicionamento adotados:"
+                            ).classes("text-base font-bold text-black mb-4")
+
+                            d121 = res_data.get("12.1") or res_data.get("121") or {}
+                            raw_link_121 = str(d121.get("link") or "")
+                            val_121_bruto = d121.get("valor") or []
+
+                            # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
+                            if isinstance(val_121_bruto, str):
+                                try:
+                                    sel_121 = json.loads(val_121_bruto)
+                                except Exception:
+                                    sel_121 = [
+                                        item.strip()
+                                        for item in val_121_bruto.split(";")
+                                        if item.strip()
+                                    ]
+                            elif isinstance(val_121_bruto, list):
+                                sel_121 = val_121_bruto
+                            else:
+                                sel_121 = []
+
+                            state_121 = {
+                                "opcoes": sel_121,
+                                "link": raw_link_121,
+                            }
+
+                            opcoes_121 = [
+                                ("Controle de Estoque com sistema PVPS - o primeiro que vence é o primeiro que sai", 0.375),
+                                ("Telas nas janelas e frestas", 0.35),
+                                ("Possui sistema de ventilação", 0.35),
+                                ("As luminárias são protegidas", 0.35),
+                                ("Possui ralos sifonados, dotados de dispositivos que permitam o seu fechamento", 0.35),
+                                ("O estoque não possui sinais de goteiras, vazamentos, umidade, trincas, rachaduras, bolores, infiltrações ou descascamento", 0.35),
+                                ("Há adequada distância no armazenamento de produtos alimentícios do piso, parede, forro", 0.35),
+                                ("As geladeiras/câmaras frias são higienizadas periodicamente", 0.35),
+                                ("Ventilação do estoque", 0.35),
+                                ("Temperatura", 0.35),
+                                ("Umidade do ar", 0.35),
+                                ("Prazo de validade", 0.35),
+                                ("Tipo de alimento", 0.35),
+                                ("Os alimentos abertos são etiquetados com data de abertura e validade", 0.35),
+                                ("Desinsetização a cada 6 meses", 0.35),
+                                ("Desratização a cada 6 meses", 0.35),
+                                ("Limpeza da caixa d'água a cada 6 meses", 0.375),
+                                ("Outro", 0.0),
+                            ]
+
+                            lbl_pts_121 = ui.label("Nota do Quesito 12.1: 0.000 pontos").classes(
+                                "text-sm font-bold text-green-600 mb-4"
+                            )
+
+                            def recalc_121():
+                                dict_pts = dict(opcoes_121)
+                                total_pts = sum(dict_pts.get(item, 0.0) for item in state_121["opcoes"])
+                                lbl_pts_121.set_text(
+                                    f"📊 Nota do Quesito 12.1: {total_pts:.3f} pontos ({len(state_121['opcoes'])} controles selecionados)"
+                                )
+                                return total_pts
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                with ui.column().classes("w-full gap-1"):
+                                    def make_chk_121(opt_text):
+                                        def on_chk_change(e):
+                                            if e.value and opt_text not in state_121["opcoes"]:
+                                                state_121["opcoes"].append(opt_text)
+                                            elif not e.value and opt_text in state_121["opcoes"]:
+                                                state_121["opcoes"].remove(opt_text)
+                                            recalc_121()
+                                        return on_chk_change
+
+                                    for op_txt, op_pts in opcoes_121:
+                                        lbl_chk = f"{op_txt} (+{op_pts:.3f} pt)" if op_pts > 0 else f"{op_txt} (0,00 pt)"
+                                        ui.checkbox(
+                                            text=lbl_chk,
+                                            value=(op_txt in state_121["opcoes"]),
+                                            on_change=make_chk_121(op_txt),
+                                        ).props("color=blue")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 12.1):",
+                                    value=raw_link_121,
+                                    placeholder="Link das comprovações, fotos e fichas dos controles selecionados...",
+                                ).classes("w-full").props("outlined rows=6 color=blue").bind_value(
+                                    state_121, "link"
+                                )
+
+                            recalc_121()
+
+                            def salvar_121():
+                                pts_121 = recalc_121()
+                                opts_sel = state_121["opcoes"]
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="12.1",
+                                    valor=opts_sel,
+                                    pontos=pts_121,
+                                    link=state_121["link"],
+                                    comentarios=d121.get("comentarios", []),
+                                    status=d121.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 12.1 salvo com sucesso!", type="positive")
+                                if callable(getattr(render_conteudo, "refresh", None)):
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 12.1", on_click=salvar_121).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("12.1", res_data, render_conteudo.refresh)
+                        # =============================================================================
+                        # QUESITO 13.0 (Oferta de Transporte Escolar)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("13.0 • Oferta de Transporte Escolar").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "O município oferece transporte escolar?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d130 = res_data.get("13.0") or res_data.get("13") or {}
+
+                            val_130_bruto = str(d130.get("valor") or "Selecione...")
+                            raw_link_130 = str(d130.get("link") or "")
+
+                            state_130 = {
+                                "opcao": val_130_bruto if val_130_bruto in ["Sim", "Não"] else "Selecione...",
+                                "link": raw_link_130,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.radio(
+                                    options=["Selecione...", "Sim", "Não"],
+                                    value=state_130["opcao"],
+                                ).props("color=blue").bind_value(state_130, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 13.0):",
+                                    value=raw_link_130,
+                                    placeholder="Link da legislação, contratos ou relatório de transporte...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_130, "link"
+                                )
+
+                            def salvar_130():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="13.0",
+                                    valor=state_130["opcao"],
+                                    pontos=0.0,
+                                    link=state_130["link"],
+                                    comentarios=d130.get("comentarios", []),
+                                    status=d130.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 13.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 13.0", on_click=salvar_130).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("13.0", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 13.1 (Modalidade da Frota de Transporte Escolar)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("13.1 • Modalidade da Frota de Transporte Escolar").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "O transporte escolar é realizado por meio de frota própria ou frota alugada / terceirizada?"
+                            ).classes("text-base font-bold text-black mb-2")
+                            ui.label(
+                                "(Responder NÃO caso forneça APENAS vale transporte)"
+                            ).classes("text-sm italic text-gray-600 mb-6")
+
+                            d131 = res_data.get("13.1") or res_data.get("131") or {}
+
+                            val_131_bruto = str(d131.get("valor") or "Selecione...")
+                            raw_link_131 = str(d131.get("link") or "")
+
+                            state_131 = {
+                                "opcao": val_131_bruto if val_131_bruto in ["Sim", "Não"] else "Selecione...",
+                                "link": raw_link_131,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.radio(
+                                    options=["Selecione...", "Sim", "Não"],
+                                    value=state_131["opcao"],
+                                ).props("color=blue").bind_value(state_131, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 13.1):",
+                                    value=raw_link_131,
+                                    placeholder="Link da documentação da frota ou contratos de locação...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_131, "link"
+                                )
+
+                            def salvar_131():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="13.1",
+                                    valor=state_131["opcao"],
+                                    pontos=0.0,
+                                    link=state_131["link"],
+                                    comentarios=d131.get("comentarios", []),
+                                    status=d131.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 13.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 13.1", on_click=salvar_131).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("13.1", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 13.1.1 (Estudo Anual do Traçado e Tempo de Viagem)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("13.1.1 • Estudo Anual do Traçado e Tempo de Viagem").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Existe um estudo anual do traçado e tempo de viagem das rotas do transporte escolar?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d1311 = res_data.get("13.1.1") or res_data.get("1311") or {}
+
+                            opcoes_1311_pts = {
                                 "Selecione...": 0.0,
                                 "Sim": 0.0,
                                 "Não": -5.0,
                             }
 
-                            opcoes_1532_labels = {
+                            opcoes_1311_labels = {
                                 "Selecione...": "Selecione...",
                                 "Sim": "Sim (0,0 pts)",
-                                "Não": "Não (-5,0 pts / Perde 05 pontos)",
+                                "Não": "Não (-5,0 pts / Perde 5 pontos)",
                             }
 
-                            val_1532_bruto = str(d1532.get("valor") or "Selecione...")
-                            raw_link_1532 = str(d1532.get("link") or "")
+                            val_1311_bruto = str(d1311.get("valor") or "Selecione...")
+                            raw_link_1311 = str(d1311.get("link") or "")
 
-                            state_1532 = {
-                                "opcao": val_1532_bruto if val_1532_bruto in opcoes_1532_pts else "Selecione...",
-                                "link": raw_link_1532,
+                            state_1311 = {
+                                "opcao": val_1311_bruto if val_1311_bruto in opcoes_1311_pts else "Selecione...",
+                                "link": raw_link_1311,
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                rad_1532 = ui.radio(
-                                    options=opcoes_1532_labels,
-                                    value=state_1532["opcao"],
-                                ).props("color=blue").bind_value(state_1532, "opcao")
+                                rad_1311 = ui.radio(
+                                    options=opcoes_1311_labels,
+                                    value=state_1311["opcao"],
+                                ).props("color=blue").bind_value(state_1311, "opcao")
 
                                 ui.textarea(
-                                    label="Link de Evidência (Quesito 15.3.2):",
-                                    value=raw_link_1532,
-                                    placeholder="Link da publicação/divulgação dos resultados...",
+                                    label="Link de Evidência (Quesito 13.1.1):",
+                                    value=raw_link_1311,
+                                    placeholder="Link do estudo do traçado das rotas e tempos de itinerário...",
                                 ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
-                                    state_1532, "link"
+                                    state_1311, "link"
                                 )
 
-                            lbl_pts_1532 = ui.label(f"📊 Pontuação Quesito 15.3.2: {opcoes_1532_pts.get(state_1532['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+                            lbl_pts_1311 = ui.label(f"📊 Pontuação Quesito 13.1.1: {opcoes_1311_pts.get(state_1311['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
 
-                            def att_pts_1532():
-                                pts = opcoes_1532_pts.get(state_1532["opcao"], 0.0)
+                            def att_pts_1311():
+                                pts = opcoes_1311_pts.get(state_1311["opcao"], 0.0)
                                 cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                lbl_pts_1532.classes(replace=cor)
-                                lbl_pts_1532.set_text(f"📊 Pontuação Quesito 15.3.2: {pts:.1f} pontos")
+                                lbl_pts_1311.classes(replace=cor)
+                                lbl_pts_1311.set_text(f"📊 Pontuação Quesito 13.1.1: {pts:.1f} pontos")
 
-                            rad_1532.on("update:model-value", att_pts_1532)
+                            rad_1311.on("update:model-value", att_pts_1311)
 
-                            def salvar_1532():
-                                pts = opcoes_1532_pts.get(state_1532["opcao"], 0.0)
+                            def salvar_1311():
+                                pts = opcoes_1311_pts.get(state_1311["opcao"], 0.0)
                                 save_resposta(
                                     ano=ano_sel,
-                                    qid="15.3.2",
-                                    valor=state_1532["opcao"],
+                                    qid="13.1.1",
+                                    valor=state_1311["opcao"],
                                     pontos=pts,
-                                    link=state_1532["link"],
-                                    comentarios=d1532.get("comentarios", []),
-                                    status=d1532.get("status", "Pendente"),
+                                    link=state_1311["link"],
+                                    comentarios=d1311.get("comentarios", []),
+                                    status=d1311.get("status", "Pendente"),
                                 )
 
-                                ui.notify("Quesito 15.3.2 salvo com sucesso!", type="positive")
+                                ui.notify("Quesito 13.1.1 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
 
-                            ui.button("💾 SALVAR QUESITO 15.3.2", on_click=salvar_1532).classes(
+                            ui.button("💾 SALVAR QUESITO 13.1.1", on_click=salvar_1311).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("15.3.2", res_data, render_conteudo.refresh)
+                            bloco_comentarios("13.1.1", res_data, render_conteudo.refresh)
 
                         # =============================================================================
-                        # QUESITO 15.4 (Palestras e Orientações para Primeira Infância)
+                        # QUESITO 13.1.1.1 (Média de Tempo de Viagem)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
-                            ui.label("15.4 • Palestras e Orientações Realizadas").classes(
+                            ui.label("13.1.1.1 • Média de Tempo de Viagem").classes(
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Foram realizadas palestras/orientações sobre:"
-                            ).classes("text-base font-bold text-black mb-4")
+                                "Informe a média de tempo de viagem do transporte escolar:"
+                            ).classes("text-base font-bold text-black mb-6")
 
-                            d154 = res_data.get("15.4") or res_data.get("154") or {}
-                            raw_link_154 = str(d154.get("link") or "")
-                            val_154_bruto = d154.get("valor") or []
+                            d13111 = res_data.get("13.1.1.1") or res_data.get("13111") or {}
+                            raw_val_13111 = d13111.get("valor") or {}
+                            if not isinstance(raw_val_13111, dict):
+                                raw_val_13111 = {"media_tempo_min": str(raw_val_13111 or 0)}
 
-                            # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
-                            if isinstance(val_154_bruto, str):
-                                try:
-                                    sel_154 = json.loads(val_154_bruto)
-                                except Exception:
-                                    sel_154 = [
-                                        item.strip()
-                                        for item in val_154_bruto.split(";")
-                                        if item.strip()
-                                    ]
-                            elif isinstance(val_154_bruto, list):
-                                sel_154 = val_154_bruto
-                            else:
-                                sel_154 = []
+                            raw_link_13111 = str(d13111.get("link") or "")
 
-                            state_154 = {
-                                "opcoes": sel_154,
-                                "link": raw_link_154,
+                            state_13111 = {
+                                "media_tempo_min": str(raw_val_13111.get("media_tempo_min", 0)),
+                                "link": raw_link_13111,
                             }
 
-                            opcoes_154 = [
-                                "Maternidade responsável",
-                                "Aleitamento",
-                                "Alimentação complementar saudável",
-                                "Crescimento infantil",
-                                "Prevenção de acidentes",
-                                "Não uso do castigo físico",
-                                "Outros",
-                            ]
-
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("w-full gap-1"):
-                                    def make_chk_154(opt_text):
-                                        def on_chk_change(e):
-                                            if e.value and opt_text not in state_154["opcoes"]:
-                                                state_154["opcoes"].append(opt_text)
-                                            elif not e.value and opt_text in state_154["opcoes"]:
-                                                state_154["opcoes"].remove(opt_text)
-                                        return on_chk_change
-
-                                    for op_154 in opcoes_154:
-                                        ui.checkbox(
-                                            text=op_154,
-                                            value=(op_154 in state_154["opcoes"]),
-                                            on_change=make_chk_154(op_154),
-                                        ).props("color=blue")
+                                ui.input(
+                                    "Média de tempo (em minutos):",
+                                    value=state_13111["media_tempo_min"],
+                                ).props("type=number outlined dense color=blue").classes("w-full").bind_value(
+                                    state_13111, "media_tempo_min"
+                                )
 
                                 ui.textarea(
-                                    label="Link de Evidência (Quesito 15.4):",
-                                    value=raw_link_154,
-                                    placeholder="Link das listas de presença, fotos e materiais das palestras...",
-                                ).classes("w-full").props("outlined rows=5 color=blue").bind_value(
-                                    state_154, "link"
+                                    label="Link de Evidência (Quesito 13.1.1.1):",
+                                    value=raw_link_13111,
+                                    placeholder="Link do documento que comprove a média calculada...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_13111, "link"
                                 )
 
-                            def salvar_154():
-                                opts_sel = state_154["opcoes"]
+                            def salvar_13111():
+                                val_tempo = int(state_13111["media_tempo_min"]) if state_13111["media_tempo_min"].isdigit() else 0
                                 save_resposta(
                                     ano=ano_sel,
-                                    qid="15.4",
-                                    valor=opts_sel,
+                                    qid="13.1.1.1",
+                                    valor={"media_tempo_min": val_tempo},
                                     pontos=0.0,
-                                    link=state_154["link"],
-                                    comentarios=d154.get("comentarios", []),
-                                    status=d154.get("status", "Pendente"),
+                                    link=state_13111["link"],
+                                    comentarios=d13111.get("comentarios", []),
+                                    status=d13111.get("status", "Pendente"),
                                 )
 
-                                ui.notify("Quesito 15.4 salvo com sucesso!", type="positive")
-                                if callable(getattr(render_conteudo, "refresh", None)):
+                                ui.notify("Quesito 13.1.1.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
                                     render_conteudo.refresh()
 
-                            ui.button("💾 SALVAR QUESITO 15.4", on_click=salvar_154).classes(
+                            ui.button("💾 SALVAR QUESITO 13.1.1.1", on_click=salvar_13111).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
                             ui.separator().classes("my-2")
-                            bloco_comentarios("15.4", res_data, render_conteudo.refresh)
+                            bloco_comentarios("13.1.1.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                            # GRUPO 16 - CONSELHO MUNICIPAL DE EDUCAÇÃO
-                            # =============================================================================
+                        # =============================================================================
+                        # QUESITO 13.1.2 (Veículos com Mais de 10 Anos de Fabricação)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("13.1.2 • Idade da Frota do Transporte Escolar").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Possui veículos para transporte escolar de alunos com mais de 10 anos de fabricação?"
+                            ).classes("text-base font-bold text-black mb-6")
 
-                            # -----------------------------------------------------------------------------
-                        if etapa_atual == 7:
-                            # QUESITO 16.0 - Existência do Conselho
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("16.0 • Conselho Municipal de Educação").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("O município possui Conselho Municipal de Educação?").classes("text-base font-bold text-black mb-6")
+                            d1312 = res_data.get("13.1.2") or res_data.get("1312") or {}
 
-                                d160 = res_data.get("16.0") or res_data.get("160") or {}
-
-                                opcoes_160_pts = {
-                                    "Selecione...": 0.0,
-                                    "Sim": 0.0,
-                                    "Não": 0.0,
-                                }
-
-                                opcoes_160_labels = {
-                                    "Selecione...": "Selecione...",
-                                    "Sim": "Sim (0,0 pts)",
-                                    "Não": "Não (0,0 pts)",
-                                }
-
-                                val_160_bruto = str(d160.get("valor") or "Selecione...")
-                                raw_link_160 = str(d160.get("link") or "")
-
-                                state_160 = {
-                                    "opcao": val_160_bruto if val_160_bruto in opcoes_160_pts else "Selecione...",
-                                    "link": raw_link_160,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    rad_160 = ui.radio(
-                                        options=opcoes_160_labels,
-                                        value=state_160["opcao"],
-                                    ).props("color=blue").bind_value(state_160, "opcao")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 16.0):",
-                                        value=raw_link_160,
-                                        placeholder="Link da norma de criação ou do site do conselho...",
-                                    ).classes("w-full").props("outlined rows=4 color=blue").bind_value(state_160, "link")
-
-                                lbl_pts_160 = ui.label(f"📊 Pontuação Quesito 16.0: {opcoes_160_pts.get(state_160['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def att_pts_160():
-                                    pts = opcoes_160_pts.get(state_160["opcao"], 0.0)
-                                    cor = "text-green-600" if pts >= 0 else "text-red-600"
-                                    lbl_pts_160.classes(replace=cor)
-                                    lbl_pts_160.set_text(f"📊 Pontuação Quesito 16.0: {pts:.1f} pontos")
-
-                                rad_160.on("update:model-value", att_pts_160)
-
-                                def salvar_160():
-                                    pts = opcoes_160_pts.get(state_160["opcao"], 0.0)
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="16.0",
-                                        valor=state_160["opcao"],
-                                        pontos=pts,
-                                        link=state_160["link"],
-                                        comentarios=d160.get("comentarios", []),
-                                        status=d160.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 16.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 16.0", on_click=salvar_160).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("16.0", res_data, render_conteudo.refresh)
-
-                        # -----------------------------------------------------------------------------
-                        # QUESITO 16.1 - Recursos fornecidos para funcionamento
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("16.1 • Recursos para Funcionamento do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal para o funcionamento do Conselho Municipal de Educação:").classes("text-base font-bold text-black mb-6")
-
-                            d161 = res_data.get("16.1") or res_data.get("161") or {}
-                            val_161_lista = list(d161.get("valor")) if isinstance(d161.get("valor"), list) else []
-                            raw_link_161 = str(d161.get("link") or "")
-
-                            recursos_161 = [
-                                ("Recursos Humanos", 0.5),
-                                ("Recursos Tecnológicos", 0.5),
-                                ("Estrutura Física", 0.5),
-                                ("Recursos Orçamentários", 0.5),
-                                ("Recursos Materiais", 0.5),
-                                ("Outros", 0.5),
-                            ]
-
-                            state_161 = {
-                                "selecionados": val_161_lista,
-                                "link": raw_link_161,
+                            opcoes_1312_pts = {
+                                "Selecione...": 0.0,
+                                "Sim": -5.0,
+                                "Não": 0.0,
                             }
 
-                            def calc_pts_161():
-                                return sum(pt for item, pt in recursos_161 if item in state_161["selecionados"])
+                            opcoes_1312_labels = {
+                                "Selecione...": "Selecione...",
+                                "Sim": "Sim (-5,0 pts / Perde 5 pontos)",
+                                "Não": "Não (0,0 pts)",
+                            }
 
-                            lbl_pts_161 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+                            val_1312_bruto = str(d1312.get("valor") or "Selecione...")
+                            raw_link_1312 = str(d1312.get("link") or "")
 
-                            def att_pts_161():
-                                pts = calc_pts_161()
-                                lbl_pts_161.set_text(f"📊 Pontuação Quesito 16.1: {pts:.1f} pontos")
+                            state_1312 = {
+                                "opcao": val_1312_bruto if val_1312_bruto in opcoes_1312_pts else "Selecione...",
+                                "link": raw_link_1312,
+                            }
 
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_1312 = ui.radio(
+                                    options=opcoes_1312_labels,
+                                    value=state_1312["opcao"],
+                                ).props("color=blue").bind_value(state_1312, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 13.1.2):",
+                                    value=raw_link_1312,
+                                    placeholder="Link do inventário de veículos/CRLV da frota...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_1312, "link"
+                                )
+
+                            lbl_pts_1312 = ui.label(f"📊 Pontuação Quesito 13.1.2: {opcoes_1312_pts.get(state_1312['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                            def att_pts_1312():
+                                pts = opcoes_1312_pts.get(state_1312["opcao"], 0.0)
+                                cor = "text-green-600" if pts >= 0 else "text-red-600"
+                                lbl_pts_1312.classes(replace=cor)
+                                lbl_pts_1312.set_text(f"📊 Pontuação Quesito 13.1.2: {pts:.1f} pontos")
+
+                            rad_1312.on("update:model-value", att_pts_1312)
+
+                            def salvar_1312():
+                                pts = opcoes_1312_pts.get(state_1312["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="13.1.2",
+                                    valor=state_1312["opcao"],
+                                    pontos=pts,
+                                    link=state_1312["link"],
+                                    comentarios=d1312.get("comentarios", []),
+                                    status=d1312.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 13.1.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 13.1.2", on_click=salvar_1312).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("13.1.2", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                        # QUESITO 13.1.2.1 (Quantidade de Veículos com Mais de 10 Anos)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("13.1.2.1 • Quantidade de Veículos com Mais de 10 Anos").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Informe a quantidade de veículos para transporte escolar de alunos com mais de 10 anos de fabricação:"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d13121 = res_data.get("13.1.2.1") or res_data.get("13121") or {}
+                            raw_val_13121 = d13121.get("valor") or {}
+                            if not isinstance(raw_val_13121, dict):
+                                raw_val_13121 = {"qtd_veiculos_mais_10_anos": str(raw_val_13121 or 0)}
+
+                            raw_link_13121 = str(d13121.get("link") or "")
+
+                            state_13121 = {
+                                "qtd_veiculos_mais_10_anos": str(raw_val_13121.get("qtd_veiculos_mais_10_anos", 0)),
+                                "link": raw_link_13121,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.input(
+                                    "Quantidade de veículos com mais de 10 anos:",
+                                    value=state_13121["qtd_veiculos_mais_10_anos"],
+                                ).props("type=number outlined dense color=blue").classes("w-full").bind_value(
+                                    state_13121, "qtd_veiculos_mais_10_anos"
+                                )
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 13.1.2.1):",
+                                    value=raw_link_13121,
+                                    placeholder="Link da listagem de veículos e comprovantes de ano de fabricação...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_13121, "link"
+                                )
+
+                            def salvar_13121():
+                                val_qtd = int(state_13121["qtd_veiculos_mais_10_anos"]) if state_13121["qtd_veiculos_mais_10_anos"].isdigit() else 0
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="13.1.2.1",
+                                    valor={"qtd_veiculos_mais_10_anos": val_qtd},
+                                    pontos=0.0,
+                                    link=state_13121["link"],
+                                    comentarios=d13121.get("comentarios", []),
+                                    status=d13121.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 13.1.2.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 13.1.2.1", on_click=salvar_13121).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("13.1.2.1", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 13.1.3 (Condições de Uso dos Veículos)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("13.1.3 • Condições de Uso dos Veículos").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Os veículos para transporte escolar de alunos estão em boas condições de uso?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d1313 = res_data.get("13.1.3") or res_data.get("1313") or {}
+
+                            opcoes_1313_pts = {
+                                "Selecione...": 0.0,
+                                "Sim, todos os veículos": 0.0,
+                                "Sim, a maior parte dos veículos": -2.0,
+                                "Sim, a menor parte dos veículos": -3.0,
+                                "Não": -5.0,
+                            }
+
+                            opcoes_1313_labels = {
+                                "Selecione...": "Selecione...",
+                                "Sim, todos os veículos": "Sim, todos os veículos (0,0 pts)",
+                                "Sim, a maior parte dos veículos": "Sim, a maior parte dos veículos (-2,0 pts / Perde 02 pontos)",
+                                "Sim, a menor parte dos veículos": "Sim, a menor parte dos veículos (-3,0 pts / Perde 03 pontos)",
+                                "Não": "Não (-5,0 pts / Perde 05 pontos)",
+                            }
+
+                            val_1313_bruto = str(d1313.get("valor") or "Selecione...")
+                            raw_link_1313 = str(d1313.get("link") or "")
+
+                            state_1313 = {
+                                "opcao": val_1313_bruto if val_1313_bruto in opcoes_1313_pts else "Selecione...",
+                                "link": raw_link_1313,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_1313 = ui.radio(
+                                    options=opcoes_1313_labels,
+                                    value=state_1313["opcao"],
+                                ).props("color=blue").bind_value(state_1313, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 13.1.3):",
+                                    value=raw_link_1313,
+                                    placeholder="Link dos laudos de vistoria e manutenção dos veículos...",
+                                ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
+                                    state_1313, "link"
+                                )
+
+                            lbl_pts_1313 = ui.label(f"📊 Pontuação Quesito 13.1.3: {opcoes_1313_pts.get(state_1313['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                            def att_pts_1313():
+                                pts = opcoes_1313_pts.get(state_1313["opcao"], 0.0)
+                                cor = "text-green-600" if pts >= 0 else "text-red-600"
+                                lbl_pts_1313.classes(replace=cor)
+                                lbl_pts_1313.set_text(f"📊 Pontuação Quesito 13.1.3: {pts:.1f} pontos")
+
+                            rad_1313.on("update:model-value", att_pts_1313)
+
+                            def salvar_1313():
+                                pts = opcoes_1313_pts.get(state_1313["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="13.1.3",
+                                    valor=state_1313["opcao"],
+                                    pontos=pts,
+                                    link=state_1313["link"],
+                                    comentarios=d1313.get("comentarios", []),
+                                    status=d1313.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 13.1.3 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 13.1.3", on_click=salvar_1313).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("13.1.3", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 13.1.4 (Especialização dos Condutores)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("13.1.4 • Especialização dos Condutores").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Os condutores possuem aprovação em curso de especialização sobre transporte escolar?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d1314 = res_data.get("13.1.4") or res_data.get("1314") or {}
+
+                            opcoes_1314_pts = {
+                                "Selecione...": 0.0,
+                                "Sim, todos os condutores": 0.0,
+                                "Sim, a maior parte dos condutores": -2.0,
+                                "Sim, a menor parte dos condutores": -3.0,
+                                "Não": -5.0,
+                            }
+
+                            opcoes_1314_labels = {
+                                "Selecione...": "Selecione...",
+                                "Sim, todos os condutores": "Sim, todos os condutores (0,0 pts)",
+                                "Sim, a maior parte dos condutores": "Sim, a maior parte dos condutores (-2,0 pts / Perde 02 pontos)",
+                                "Sim, a menor parte dos condutores": "Sim, a menor parte dos condutores (-3,0 pts / Perde 03 pontos)",
+                                "Não": "Não (-5,0 pts / Perde 05 pontos)",
+                            }
+
+                            val_1314_bruto = str(d1314.get("valor") or "Selecione...")
+                            raw_link_1314 = str(d1314.get("link") or "")
+
+                            state_1314 = {
+                                "opcao": val_1314_bruto if val_1314_bruto in opcoes_1314_pts else "Selecione...",
+                                "link": raw_link_1314,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_1314 = ui.radio(
+                                    options=opcoes_1314_labels,
+                                    value=state_1314["opcao"],
+                                ).props("color=blue").bind_value(state_1314, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 13.1.4):",
+                                    value=raw_link_1314,
+                                    placeholder="Link dos certificados de especialização dos motoristas...",
+                                ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
+                                    state_1314, "link"
+                                )
+
+                            lbl_pts_1314 = ui.label(f"📊 Pontuação Quesito 13.1.4: {opcoes_1314_pts.get(state_1314['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                            def att_pts_1314():
+                                pts = opcoes_1314_pts.get(state_1314["opcao"], 0.0)
+                                cor = "text-green-600" if pts >= 0 else "text-red-600"
+                                lbl_pts_1314.classes(replace=cor)
+                                lbl_pts_1314.set_text(f"📊 Pontuação Quesito 13.1.4: {pts:.1f} pontos")
+
+                            rad_1314.on("update:model-value", att_pts_1314)
+
+                            def salvar_1314():
+                                pts = opcoes_1314_pts.get(state_1314["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="13.1.4",
+                                    valor=state_1314["opcao"],
+                                    pontos=pts,
+                                    link=state_1314["link"],
+                                    comentarios=d1314.get("comentarios", []),
+                                    status=d1314.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 13.1.4 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 13.1.4", on_click=salvar_1314).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("13.1.4", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 13.1.5 (Infrações dos Condutores)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("13.1.5 • Histórico de Infrações dos Condutores").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Há condutores que cometeram alguma infração grave ou gravíssima, ou que são reincidentes em infrações médias nos últimos 12 meses?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d1315 = res_data.get("13.1.5") or res_data.get("1315") or {}
+
+                            opcoes_1315_pts = {
+                                "Selecione...": 0.0,
+                                "Sim": -3.0,
+                                "Não": 0.0,
+                            }
+
+                            opcoes_1315_labels = {
+                                "Selecione...": "Selecione...",
+                                "Sim": "Sim (-3,0 pts / Perde 03 pontos)",
+                                "Não": "Não (0,0 pts)",
+                            }
+
+                            val_1315_bruto = str(d1315.get("valor") or "Selecione...")
+                            raw_link_1315 = str(d1315.get("link") or "")
+
+                            state_1315 = {
+                                "opcao": val_1315_bruto if val_1315_bruto in opcoes_1315_pts else "Selecione...",
+                                "link": raw_link_1315,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_1315 = ui.radio(
+                                    options=opcoes_1315_labels,
+                                    value=state_1315["opcao"],
+                                ).props("color=blue").bind_value(state_1315, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 13.1.5):",
+                                    value=raw_link_1315,
+                                    placeholder="Link da pontuação das CNHs / certidões do Detran...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_1315, "link"
+                                )
+
+                            lbl_pts_1315 = ui.label(f"📊 Pontuação Quesito 13.1.5: {opcoes_1315_pts.get(state_1315['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                            def att_pts_1315():
+                                pts = opcoes_1315_pts.get(state_1315["opcao"], 0.0)
+                                cor = "text-green-600" if pts >= 0 else "text-red-600"
+                                lbl_pts_1315.classes(replace=cor)
+                                lbl_pts_1315.set_text(f"📊 Pontuação Quesito 13.1.5: {pts:.1f} pontos")
+
+                            rad_1315.on("update:model-value", att_pts_1315)
+
+                            def salvar_1315():
+                                pts = opcoes_1315_pts.get(state_1315["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="13.1.5",
+                                    valor=state_1315["opcao"],
+                                    pontos=pts,
+                                    link=state_1315["link"],
+                                    comentarios=d1315.get("comentarios", []),
+                                    status=d1315.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 13.1.5 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 13.1.5", on_click=salvar_1315).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("13.1.5", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 13.1.6 (Certidão Negativa Criminal dos Condutores)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("13.1.6 • Certidão Negativa Criminal dos Condutores").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Os condutores apresentaram certidão negativa do registro de distribuição criminal (homicídio, roubo, estupro e corrupção de menores) no prazo de validade (5 anos)?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d1316 = res_data.get("13.1.6") or res_data.get("1316") or {}
+
+                            opcoes_1316_pts = {
+                                "Selecione...": 0.0,
+                                "Sim, todos os condutores": 0.0,
+                                "Sim, a maior parte dos condutores": -1.0,
+                                "Sim, a menor parte dos condutores": -2.0,
+                                "Não": -3.0,
+                            }
+
+                            opcoes_1316_labels = {
+                                "Selecione...": "Selecione...",
+                                "Sim, todos os condutores": "Sim, todos os condutores (0,0 pts)",
+                                "Sim, a maior parte dos condutores": "Sim, a maior parte dos condutores (-1,0 pt / Perde 01 ponto)",
+                                "Sim, a menor parte dos condutores": "Sim, a menor parte dos condutores (-2,0 pts / Perde 02 pontos)",
+                                "Não": "Não (-3,0 pts / Perde 03 pontos)",
+                            }
+
+                            val_1316_bruto = str(d1316.get("valor") or "Selecione...")
+                            raw_link_1316 = str(d1316.get("link") or "")
+
+                            state_1316 = {
+                                "opcao": val_1316_bruto if val_1316_bruto in opcoes_1316_pts else "Selecione...",
+                                "link": raw_link_1316,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_1316 = ui.radio(
+                                    options=opcoes_1316_labels,
+                                    value=state_1316["opcao"],
+                                ).props("color=blue").bind_value(state_1316, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 13.1.6):",
+                                    value=raw_link_1316,
+                                    placeholder="Link das certidões criminais apresentadas...",
+                                ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
+                                    state_1316, "link"
+                                )
+
+                            lbl_pts_1316 = ui.label(f"📊 Pontuação Quesito 13.1.6: {opcoes_1316_pts.get(state_1316['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                            def att_pts_1316():
+                                pts = opcoes_1316_pts.get(state_1316["opcao"], 0.0)
+                                cor = "text-green-600" if pts >= 0 else "text-red-600"
+                                lbl_pts_1316.classes(replace=cor)
+                                lbl_pts_1316.set_text(f"📊 Pontuação Quesito 13.1.6: {pts:.1f} pontos")
+
+                            rad_1316.on("update:model-value", att_pts_1316)
+
+                            def salvar_1316():
+                                pts = opcoes_1316_pts.get(state_1316["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="13.1.6",
+                                    valor=state_1316["opcao"],
+                                    pontos=pts,
+                                    link=state_1316["link"],
+                                    comentarios=d1316.get("comentarios", []),
+                                    status=d1316.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 13.1.6 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 13.1.6", on_click=salvar_1316).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("13.1.6", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                    if etapa_atual == 6:
+                        # QUESITO 14.0 (Plano Municipal de Educação)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("14.0 • Plano Municipal de Educação (PME)").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "O município possui o Plano Municipal de Educação?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d140 = res_data.get("14.0") or res_data.get("14") or {}
+
+                            opcoes_140_pts = {
+                                "Selecione...": 0.0,
+                                "Sim": 0.0,
+                                "Não": -50.0,
+                            }
+
+                            opcoes_140_labels = {
+                                "Selecione...": "Selecione...",
+                                "Sim": "Sim (0,0 pts)",
+                                "Não": "Não (-50,0 pts / Perde 50 pontos)",
+                            }
+
+                            val_140_bruto = str(d140.get("valor") or "Selecione...")
+                            raw_link_140 = str(d140.get("link") or "")
+
+                            state_140 = {
+                                "opcao": val_140_bruto if val_140_bruto in opcoes_140_pts else "Selecione...",
+                                "link": raw_link_140,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_140 = ui.radio(
+                                    options=opcoes_140_labels,
+                                    value=state_140["opcao"],
+                                ).props("color=blue").bind_value(state_140, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 14.0):",
+                                    value=raw_link_140,
+                                    placeholder="Link do PME ou Diário Oficial...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_140, "link"
+                                )
+
+                            lbl_pts_140 = ui.label(f"📊 Pontuação Quesito 14.0: {opcoes_140_pts.get(state_140['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                            def att_pts_140():
+                                pts = opcoes_140_pts.get(state_140["opcao"], 0.0)
+                                cor = "text-green-600" if pts >= 0 else "text-red-600"
+                                lbl_pts_140.classes(replace=cor)
+                                lbl_pts_140.set_text(f"📊 Pontuação Quesito 14.0: {pts:.1f} pontos")
+
+                            rad_140.on("update:model-value", att_pts_140)
+
+                            def salvar_140():
+                                pts = opcoes_140_pts.get(state_140["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="14.0",
+                                    valor=state_140["opcao"],
+                                    pontos=pts,
+                                    link=state_140["link"],
+                                    comentarios=d140.get("comentarios", []),
+                                    status=d140.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 14.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 14.0", on_click=salvar_140).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("14.0", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 14.1 (Instrumento Normativo do PME)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("14.1 • Instrumento Normativo do PME").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Informe o Instrumento Normativo, Número e Data da publicação do Plano Municipal de Educação:"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d141 = res_data.get("14.1") or res_data.get("141") or {}
+                            raw_val_141 = d141.get("valor") or {}
+                            if not isinstance(raw_val_141, dict):
+                                raw_val_141 = {"norma": str(raw_val_141 or "")}
+
+                            raw_link_141 = str(d141.get("link") or "")
+
+                            state_141 = {
+                                "instrumento": str(raw_val_141.get("instrumento", "")),
+                                "numero": str(raw_val_141.get("numero", "")),
+                                "data_pub": str(raw_val_141.get("data_pub", "")),
+                                "link": raw_link_141,
+                            }
+
+                            with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                                ui.input("Instrumento Normativo (ex: Lei, Decreto):", value=state_141["instrumento"]).props("outlined dense color=blue").bind_value(state_141, "instrumento")
+                                ui.input("Número:", value=state_141["numero"]).props("outlined dense color=blue").bind_value(state_141, "numero")
+                                ui.input("Data da Publicação:", value=state_141["data_pub"]).props("outlined dense color=blue placeholder=DD/MM/AAAA").bind_value(state_141, "data_pub")
+
+                            ui.textarea(
+                                label="Link / Anexo em PDF do PME (Anexar PDF):",
+                                value=raw_link_141,
+                                placeholder="Link direto para o documento publicado em PDF...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(
+                                state_141, "link"
+                            )
+
+                            def salvar_141():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="14.1",
+                                    valor={
+                                        "instrumento": state_141["instrumento"],
+                                        "numero": state_141["numero"],
+                                        "data_pub": state_141["data_pub"],
+                                    },
+                                    pontos=0.0,
+                                    link=state_141["link"],
+                                    comentarios=d141.get("comentarios", []),
+                                    status=d141.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 14.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 14.1", on_click=salvar_141).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("14.1", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 14.2 (Página Eletrônica do PME)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("14.2 • Página Eletrônica do PME").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Informe a página eletrônica (link na internet) do instrumento normativo do PME:"
+                            ).classes("text-base font-bold text-black mb-2")
+                            ui.label(
+                                "(Se não estiver disponível na internet, inserir no campo o texto 'XYZ')"
+                            ).classes("text-sm italic text-gray-600 mb-6")
+
+                            d142 = res_data.get("14.2") or res_data.get("142") or {}
+
+                            val_142_bruto = str(d142.get("valor") or "")
+                            raw_link_142 = str(d142.get("link") or "")
+
+                            state_142 = {
+                                "link_pme": val_142_bruto,
+                                "link": raw_link_142,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.input(
+                                    "Página eletrônica (link na internet):",
+                                    value=state_142["link_pme"],
+                                    placeholder="http://... ou XYZ",
+                                ).props("outlined dense color=blue").classes("w-full").bind_value(
+                                    state_142, "link_pme"
+                                )
+
+                                ui.textarea(
+                                    label="Link de Evidência Complementar (Quesito 14.2):",
+                                    value=raw_link_142,
+                                    placeholder="Link de apoio ou observações...",
+                                ).classes("w-full").props("outlined rows=2 color=blue").bind_value(
+                                    state_142, "link"
+                                )
+
+                            def salvar_142():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="14.2",
+                                    valor=state_142["link_pme"],
+                                    pontos=0.0,
+                                    link=state_142["link"],
+                                    comentarios=d142.get("comentarios", []),
+                                    status=d142.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 14.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 14.2", on_click=salvar_142).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("14.2", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 14.3 (Cronograma de Execução das Metas do PME)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("14.3 • Cronograma de Execução das Metas").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "O Plano possui cronograma para execução das metas?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d143 = res_data.get("14.3") or res_data.get("143") or {}
+
+                            opcoes_143_pts = {
+                                "Selecione...": 0.0,
+                                "Sim": 20.0,
+                                "Não": 0.0,
+                            }
+
+                            opcoes_143_labels = {
+                                "Selecione...": "Selecione...",
+                                "Sim": "Sim (+20,0 pts)",
+                                "Não": "Não (0,0 pts)",
+                            }
+
+                            val_143_bruto = str(d143.get("valor") or "Selecione...")
+                            raw_link_143 = str(d143.get("link") or "")
+
+                            state_143 = {
+                                "opcao": val_143_bruto if val_143_bruto in opcoes_143_pts else "Selecione...",
+                                "link": raw_link_143,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_143 = ui.radio(
+                                    options=opcoes_143_labels,
+                                    value=state_143["opcao"],
+                                ).props("color=blue").bind_value(state_143, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 14.3):",
+                                    value=raw_link_143,
+                                    placeholder="Link da seção do plano com o cronograma detalhado...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                    state_143, "link"
+                                )
+
+                            lbl_pts_143 = ui.label(f"📊 Nota Quesito 14.3: {opcoes_143_pts.get(state_143['opcao'], 0.0):.1f} / 20.0 pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def att_pts_143():
+                                pts = opcoes_143_pts.get(state_133 if 'state_133' in locals() else state_143["opcao"], 0.0)
+                                pts = opcoes_143_pts.get(state_143["opcao"], 0.0)
+                                lbl_pts_143.set_text(f"📊 Nota Quesito 14.3: {pts:.1f} / 20.0 pontos")
+
+                            rad_143.on("update:model-value", att_pts_143)
+
+                            def salvar_143():
+                                pts = opcoes_143_pts.get(state_143["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="14.3",
+                                    valor=state_143["opcao"],
+                                    pontos=pts,
+                                    link=state_143["link"],
+                                    comentarios=d143.get("comentarios", []),
+                                    status=d143.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 14.3 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 14.3", on_click=salvar_143).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("14.3", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                        # QUESITO 14.3.1 (Atingimento das Metas no Prazo)
+                        # =============================================================================
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("14.3.1 • Cumprimento dos Prazos das Metas").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "As metas estão sendo atingidas no prazo?"
+                            ).classes("text-base font-bold text-black mb-6")
+
+                            d1431 = res_data.get("14.3.1") or res_data.get("1431") or {}
+
+                            opcoes_1431_pts = {
+                                "Selecione...": 0.0,
+                                "Todas as metas foram atingidas dentro do prazo": 30.0,
+                                "A maior parte das metas foram atingidas dentro do prazo": 17.0,
+                                "A menor parte das metas foram atingidas dentro do prazo": 5.0,
+                                "Nenhuma meta foi atingida no prazo": 0.0,
+                            }
+
+                            opcoes_1431_labels = {
+                                "Selecione...": "Selecione...",
+                                "Todas as metas foram atingidas dentro do prazo": "Todas as metas foram atingidas dentro do prazo (+30,0 pts)",
+                                "A maior parte das metas foram atingidas dentro do prazo": "A maior parte das metas foram atingidas dentro do prazo (+17,0 pts)",
+                                "A menor parte das metas foram atingidas dentro do prazo": "A menor parte das metas foram atingidas dentro do prazo (+5,0 pts)",
+                                "Nenhuma meta foi atingida no prazo": "Nenhuma meta foi atingida no prazo (0,0 pts)",
+                            }
+
+                            val_1431_bruto = str(d1431.get("valor") or "Selecione...")
+                            raw_link_1431 = str(d1431.get("link") or "")
+
+                            state_1431 = {
+                                "opcao": val_1431_bruto if val_1431_bruto in opcoes_1431_pts else "Selecione...",
+                                "link": raw_link_1431,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_1431 = ui.radio(
+                                    options=opcoes_1431_labels,
+                                    value=state_1431["opcao"],
+                                ).props("color=blue").bind_value(state_1431, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 14.3.1):",
+                                    value=raw_link_1431,
+                                    placeholder="Link do relatório de monitoramento/avaliação do PME...",
+                                ).classes("w-full").props("outlined rows=4 color=blue").bind_value(
+                                    state_1431, "link"
+                                )
+
+                            lbl_pts_1431 = ui.label(f"📊 Nota Quesito 14.3.1: {opcoes_1431_pts.get(state_1431['opcao'], 0.0):.1f} / 30.0 pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def att_pts_1431():
+                                pts = opcoes_1431_pts.get(state_1431["opcao"], 0.0)
+                                lbl_pts_1431.set_text(f"📊 Nota Quesito 14.3.1: {pts:.1f} / 30.0 pontos")
+
+                            rad_1431.on("update:model-value", att_pts_1431)
+
+                            def salvar_1431():
+                                pts = opcoes_1431_pts.get(state_1431["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="14.3.1",
+                                    valor=state_1431["opcao"],
+                                    pontos=pts,
+                                    link=state_1431["link"],
+                                    comentarios=d1431.get("comentarios", []),
+                                    status=d1431.get("status", "Pendente"),
+                                )
+
+                                ui.notify("Quesito 14.3.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 14.3.1", on_click=salvar_1431).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("14.3.1", res_data, render_conteudo.refresh)
+
+                        # =============================================================================
+                    # QUESITO 15.0 (Plano Municipal pela Primeira Infância)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("15.0 • Plano Municipal pela Primeira Infância (PMPI)").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "O município possui o Plano Municipal pela Primeira Infância?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d150 = res_data.get("15.0") or res_data.get("15") or {}
+
+                        val_150_bruto = str(d150.get("valor") or "Selecione...")
+                        raw_link_150 = str(d150.get("link") or "")
+
+                        state_150 = {
+                            "opcao": val_150_bruto if val_150_bruto in ["Sim", "Não"] else "Selecione...",
+                            "link": raw_link_150,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.radio(
+                                options=["Selecione...", "Sim", "Não"],
+                                value=state_150["opcao"],
+                            ).props("color=blue").bind_value(state_150, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 15.0):",
+                                value=raw_link_150,
+                                placeholder="Link da lei/decreto ou documento do PMPI...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                state_150, "link"
+                            )
+
+                        def salvar_150():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.0",
+                                valor=state_150["opcao"],
+                                pontos=0.0,
+                                link=state_150["link"],
+                                comentarios=d150.get("comentarios", []),
+                                status=d150.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 15.0 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 15.0", on_click=salvar_150).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.0", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 15.1 (Instrumento Normativo do PMPI)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("15.1 • Instrumento Normativo do PMPI").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe o Instrumento Normativo, Número e Data da publicação do Plano Municipal pela Primeira Infância:"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d151 = res_data.get("15.1") or res_data.get("151") or {}
+                        raw_val_151 = d151.get("valor") or {}
+                        if not isinstance(raw_val_151, dict):
+                            raw_val_151 = {"norma": str(raw_val_151 or "")}
+
+                        raw_link_151 = str(d151.get("link") or "")
+
+                        state_151 = {
+                            "instrumento": str(raw_val_151.get("instrumento", "")),
+                            "numero": str(raw_val_151.get("numero", "")),
+                            "data_pub": str(raw_val_151.get("data_pub", "")),
+                            "link": raw_link_151,
+                        }
+
+                        with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
+                            ui.input("Instrumento Normativo:", value=state_151["instrumento"]).props("outlined dense color=blue").bind_value(state_151, "instrumento")
+                            ui.input("Número:", value=state_151["numero"]).props("outlined dense color=blue").bind_value(state_151, "numero")
+                            ui.input("Data da Publicação:", value=state_151["data_pub"]).props("outlined dense color=blue placeholder=DD/MM/AAAA").bind_value(state_151, "data_pub")
+
+                        ui.textarea(
+                            label="Link / Anexo em PDF do PMPI (Anexar PDF):",
+                            value=raw_link_151,
+                            placeholder="Link direto do documento publicado em PDF...",
+                        ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(
+                            state_151, "link"
+                        )
+
+                        def salvar_151():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.1",
+                                valor={
+                                    "instrumento": state_151["instrumento"],
+                                    "numero": state_151["numero"],
+                                    "data_pub": state_151["data_pub"],
+                                },
+                                pontos=0.0,
+                                link=state_151["link"],
+                                comentarios=d151.get("comentarios", []),
+                                status=d151.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 15.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 15.1", on_click=salvar_151).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 15.2 (Página Eletrônica do PMPI)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("15.2 • Página Eletrônica do PMPI").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Informe a página eletrônica (link na internet) do instrumento normativo do PMPI:"
+                        ).classes("text-base font-bold text-black mb-2")
+                        ui.label(
+                            "(Se não estiver disponível na internet, inserir no campo o texto 'XYZ')"
+                        ).classes("text-sm italic text-gray-600 mb-6")
+
+                        d152 = res_data.get("15.2") or res_data.get("152") or {}
+
+                        val_152_bruto = str(d152.get("valor") or "")
+                        raw_link_152 = str(d152.get("link") or "")
+
+                        state_152 = {
+                            "link_pmpi": val_152_bruto,
+                            "link": raw_link_152,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.input(
+                                "Página eletrônica (link na internet):",
+                                value=state_152["link_pmpi"],
+                                placeholder="http://... ou XYZ",
+                            ).props("outlined dense color=blue").classes("w-full").bind_value(
+                                state_152, "link_pmpi"
+                            )
+
+                            ui.textarea(
+                                label="Link de Evidência Complementar (Quesito 15.2):",
+                                value=raw_link_152,
+                                placeholder="Link de apoio ou observações...",
+                            ).classes("w-full").props("outlined rows=2 color=blue").bind_value(
+                                state_152, "link"
+                            )
+
+                        def salvar_152():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.2",
+                                valor=state_152["link_pmpi"],
+                                pontos=0.0,
+                                link=state_152["link"],
+                                comentarios=d152.get("comentarios", []),
+                                status=d152.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 15.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 15.2", on_click=salvar_152).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 15.3 (Estipulação de Metas no PMPI)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("15.3 • Estipulação de Metas no PMPI").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Foram estipuladas metas?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d153 = res_data.get("15.3") or res_data.get("153") or {}
+
+                        opcoes_153_pts = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": -5.0,
+                        }
+
+                        opcoes_153_labels = {
+                            "Selecione...": "Selecione...",
+                            "Sim": "Sim (0,0 pts)",
+                            "Não": "Não (-5,0 pts / Perde 05 pontos)",
+                        }
+
+                        val_153_bruto = str(d153.get("valor") or "Selecione...")
+                        raw_link_153 = str(d153.get("link") or "")
+
+                        state_153 = {
+                            "opcao": val_153_bruto if val_153_bruto in opcoes_153_pts else "Selecione...",
+                            "link": raw_link_153,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_153 = ui.radio(
+                                options=opcoes_153_labels,
+                                value=state_153["opcao"],
+                            ).props("color=blue").bind_value(state_153, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 15.3):",
+                                value=raw_link_153,
+                                placeholder="Link da seção com as metas do PMPI...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                state_153, "link"
+                            )
+
+                        lbl_pts_153 = ui.label(f"📊 Pontuação Quesito 15.3: {opcoes_153_pts.get(state_153['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                        def att_pts_153():
+                            pts = opcoes_153_pts.get(state_153["opcao"], 0.0)
+                            cor = "text-green-600" if pts >= 0 else "text-red-600"
+                            lbl_pts_153.classes(replace=cor)
+                            lbl_pts_153.set_text(f"📊 Pontuação Quesito 15.3: {pts:.1f} pontos")
+
+                        rad_153.on("update:model-value", att_pts_153)
+
+                        def salvar_153():
+                            pts = opcoes_153_pts.get(state_153["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.3",
+                                valor=state_153["opcao"],
+                                pontos=pts,
+                                link=state_153["link"],
+                                comentarios=d153.get("comentarios", []),
+                                status=d153.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 15.3 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 15.3", on_click=salvar_153).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.3", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 15.3.1 (Monitoramento das Metas do PMPI)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("15.3.1 • Monitoramento das Metas do PMPI").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Há monitoramento das metas?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d1531 = res_data.get("15.3.1") or res_data.get("1531") or {}
+
+                        opcoes_1531_pts = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": -10.0,
+                        }
+
+                        opcoes_1531_labels = {
+                            "Selecione...": "Selecione...",
+                            "Sim": "Sim (0,0 pts)",
+                            "Não": "Não (-10,0 pts / Perde 10 pontos)",
+                        }
+
+                        val_1531_bruto = str(d1531.get("valor") or "Selecione...")
+                        raw_link_1531 = str(d1531.get("link") or "")
+
+                        state_1531 = {
+                            "opcao": val_1531_bruto if val_1531_bruto in opcoes_1531_pts else "Selecione...",
+                            "link": raw_link_1531,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_1531 = ui.radio(
+                                options=opcoes_1531_labels,
+                                value=state_1531["opcao"],
+                            ).props("color=blue").bind_value(state_1531, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 15.3.1):",
+                                value=raw_link_1531,
+                                placeholder="Link dos relatórios de monitoramento das metas do PMPI...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                state_1531, "link"
+                            )
+
+                        lbl_pts_1531 = ui.label(f"📊 Pontuação Quesito 15.3.1: {opcoes_1531_pts.get(state_1531['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                        def att_pts_1531():
+                            pts = opcoes_1531_pts.get(state_1531["opcao"], 0.0)
+                            cor = "text-green-600" if pts >= 0 else "text-red-600"
+                            lbl_pts_1531.classes(replace=cor)
+                            lbl_pts_1531.set_text(f"📊 Pontuação Quesito 15.3.1: {pts:.1f} pontos")
+
+                        rad_1531.on("update:model-value", att_pts_1531)
+
+                        def salvar_1531():
+                            pts = opcoes_1531_pts.get(state_1531["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.3.1",
+                                valor=state_1531["opcao"],
+                                pontos=pts,
+                                link=state_1531["link"],
+                                comentarios=d1531.get("comentarios", []),
+                                status=d1531.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 15.3.1 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 15.3.1", on_click=salvar_1531).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.3.1", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 15.3.2 (Divulgação dos Resultados do PMPI)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("15.3.2 • Divulgação dos Resultados do PMPI").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Houve divulgação dos resultados do Plano?"
+                        ).classes("text-base font-bold text-black mb-6")
+
+                        d1532 = res_data.get("15.3.2") or res_data.get("1532") or {}
+
+                        opcoes_1532_pts = {
+                            "Selecione...": 0.0,
+                            "Sim": 0.0,
+                            "Não": -5.0,
+                        }
+
+                        opcoes_1532_labels = {
+                            "Selecione...": "Selecione...",
+                            "Sim": "Sim (0,0 pts)",
+                            "Não": "Não (-5,0 pts / Perde 05 pontos)",
+                        }
+
+                        val_1532_bruto = str(d1532.get("valor") or "Selecione...")
+                        raw_link_1532 = str(d1532.get("link") or "")
+
+                        state_1532 = {
+                            "opcao": val_1532_bruto if val_1532_bruto in opcoes_1532_pts else "Selecione...",
+                            "link": raw_link_1532,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            rad_1532 = ui.radio(
+                                options=opcoes_1532_labels,
+                                value=state_1532["opcao"],
+                            ).props("color=blue").bind_value(state_1532, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 15.3.2):",
+                                value=raw_link_1532,
+                                placeholder="Link da publicação/divulgação dos resultados...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(
+                                state_1532, "link"
+                            )
+
+                        lbl_pts_1532 = ui.label(f"📊 Pontuação Quesito 15.3.2: {opcoes_1532_pts.get(state_1532['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-red-600 mb-4")
+
+                        def att_pts_1532():
+                            pts = opcoes_1532_pts.get(state_1532["opcao"], 0.0)
+                            cor = "text-green-600" if pts >= 0 else "text-red-600"
+                            lbl_pts_1532.classes(replace=cor)
+                            lbl_pts_1532.set_text(f"📊 Pontuação Quesito 15.3.2: {pts:.1f} pontos")
+
+                        rad_1532.on("update:model-value", att_pts_1532)
+
+                        def salvar_1532():
+                            pts = opcoes_1532_pts.get(state_1532["opcao"], 0.0)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.3.2",
+                                valor=state_1532["opcao"],
+                                pontos=pts,
+                                link=state_1532["link"],
+                                comentarios=d1532.get("comentarios", []),
+                                status=d1532.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 15.3.2 salvo com sucesso!", type="positive")
+                            if render_conteudo.refresh:
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 15.3.2", on_click=salvar_1532).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.3.2", res_data, render_conteudo.refresh)
+
+                    # =============================================================================
+                    # QUESITO 15.4 (Palestras e Orientações para Primeira Infância)
+                    # =============================================================================
+                    with ui.card().classes(
+                        "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                    ):
+                        ui.label("15.4 • Palestras e Orientações Realizadas").classes(
+                            "text-xl font-semibold text-blue-500 mb-3"
+                        )
+                        ui.label(
+                            "Foram realizadas palestras/orientações sobre:"
+                        ).classes("text-base font-bold text-black mb-4")
+
+                        d154 = res_data.get("15.4") or res_data.get("154") or {}
+                        raw_link_154 = str(d154.get("link") or "")
+                        val_154_bruto = d154.get("valor") or []
+
+                        # Tratamento do valor salvo (suporte a JSON / Lista e fallback para string legada)
+                        if isinstance(val_154_bruto, str):
+                            try:
+                                sel_154 = json.loads(val_154_bruto)
+                            except Exception:
+                                sel_154 = [
+                                    item.strip()
+                                    for item in val_154_bruto.split(";")
+                                    if item.strip()
+                                ]
+                        elif isinstance(val_154_bruto, list):
+                            sel_154 = val_154_bruto
+                        else:
+                            sel_154 = []
+
+                        state_154 = {
+                            "opcoes": sel_154,
+                            "link": raw_link_154,
+                        }
+
+                        opcoes_154 = [
+                            "Maternidade responsável",
+                            "Aleitamento",
+                            "Alimentação complementar saudável",
+                            "Crescimento infantil",
+                            "Prevenção de acidentes",
+                            "Não uso do castigo físico",
+                            "Outros",
+                        ]
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("w-full gap-1"):
+                                def make_chk_154(opt_text):
+                                    def on_chk_change(e):
+                                        if e.value and opt_text not in state_154["opcoes"]:
+                                            state_154["opcoes"].append(opt_text)
+                                        elif not e.value and opt_text in state_154["opcoes"]:
+                                            state_154["opcoes"].remove(opt_text)
+                                    return on_chk_change
+
+                                for op_154 in opcoes_154:
+                                    ui.checkbox(
+                                        text=op_154,
+                                        value=(op_154 in state_154["opcoes"]),
+                                        on_change=make_chk_154(op_154),
+                                    ).props("color=blue")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 15.4):",
+                                value=raw_link_154,
+                                placeholder="Link das listas de presença, fotos e materiais das palestras...",
+                            ).classes("w-full").props("outlined rows=5 color=blue").bind_value(
+                                state_154, "link"
+                            )
+
+                        def salvar_154():
+                            opts_sel = state_154["opcoes"]
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="15.4",
+                                valor=opts_sel,
+                                pontos=0.0,
+                                link=state_154["link"],
+                                comentarios=d154.get("comentarios", []),
+                                status=d154.get("status", "Pendente"),
+                            )
+
+                            ui.notify("Quesito 15.4 salvo com sucesso!", type="positive")
+                            if callable(getattr(render_conteudo, "refresh", None)):
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 15.4", on_click=salvar_154).classes(
+                            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                        )
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("15.4", res_data, render_conteudo.refresh)
+
+    # =============================================================================
+                        # GRUPO 16 - CONSELHO MUNICIPAL DE EDUCAÇÃO
+                        # =============================================================================
+
+                        # -----------------------------------------------------------------------------
+                    if etapa_atual == 7:
+                        # QUESITO 16.0 - Existência do Conselho
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("16.0 • Conselho Municipal de Educação").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("O município possui Conselho Municipal de Educação?").classes("text-base font-bold text-black mb-6")
+
+                            d160 = res_data.get("16.0") or res_data.get("160") or {}
+
+                            opcoes_160_pts = {
+                                "Selecione...": 0.0,
+                                "Sim": 0.0,
+                                "Não": 0.0,
+                            }
+
+                            opcoes_160_labels = {
+                                "Selecione...": "Selecione...",
+                                "Sim": "Sim (0,0 pts)",
+                                "Não": "Não (0,0 pts)",
+                            }
+
+                            val_160_bruto = str(d160.get("valor") or "Selecione...")
+                            raw_link_160 = str(d160.get("link") or "")
+
+                            state_160 = {
+                                "opcao": val_160_bruto if val_160_bruto in opcoes_160_pts else "Selecione...",
+                                "link": raw_link_160,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                rad_160 = ui.radio(
+                                    options=opcoes_160_labels,
+                                    value=state_160["opcao"],
+                                ).props("color=blue").bind_value(state_160, "opcao")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 16.0):",
+                                    value=raw_link_160,
+                                    placeholder="Link da norma de criação ou do site do conselho...",
+                                ).classes("w-full").props("outlined rows=4 color=blue").bind_value(state_160, "link")
+
+                            lbl_pts_160 = ui.label(f"📊 Pontuação Quesito 16.0: {opcoes_160_pts.get(state_160['opcao'], 0.0):.1f} pontos").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def att_pts_160():
+                                pts = opcoes_160_pts.get(state_160["opcao"], 0.0)
+                                cor = "text-green-600" if pts >= 0 else "text-red-600"
+                                lbl_pts_160.classes(replace=cor)
+                                lbl_pts_160.set_text(f"📊 Pontuação Quesito 16.0: {pts:.1f} pontos")
+
+                            rad_160.on("update:model-value", att_pts_160)
+
+                            def salvar_160():
+                                pts = opcoes_160_pts.get(state_160["opcao"], 0.0)
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="16.0",
+                                    valor=state_160["opcao"],
+                                    pontos=pts,
+                                    link=state_160["link"],
+                                    comentarios=d160.get("comentarios", []),
+                                    status=d160.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 16.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 16.0", on_click=salvar_160).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("16.0", res_data, render_conteudo.refresh)
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 16.1 - Recursos fornecidos para funcionamento
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("16.1 • Recursos para Funcionamento do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal para o funcionamento do Conselho Municipal de Educação:").classes("text-base font-bold text-black mb-6")
+
+                        d161 = res_data.get("16.1") or res_data.get("161") or {}
+                        val_161_lista = list(d161.get("valor")) if isinstance(d161.get("valor"), list) else []
+                        raw_link_161 = str(d161.get("link") or "")
+
+                        recursos_161 = [
+                            ("Recursos Humanos", 0.5),
+                            ("Recursos Tecnológicos", 0.5),
+                            ("Estrutura Física", 0.5),
+                            ("Recursos Orçamentários", 0.5),
+                            ("Recursos Materiais", 0.5),
+                            ("Outros", 0.5),
+                        ]
+
+                        state_161 = {
+                            "selecionados": val_161_lista,
+                            "link": raw_link_161,
+                        }
+
+                        def calc_pts_161():
+                            return sum(pt for item, pt in recursos_161 if item in state_161["selecionados"])
+
+                        lbl_pts_161 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_161():
+                            pts = calc_pts_161()
+                            lbl_pts_161.set_text(f"📊 Pontuação Quesito 16.1: {pts:.1f} pontos")
+
+                        att_pts_161()
+
+                        def on_checkbox_change_161(e, item):
+                            if e.value and item not in state_161["selecionados"]:
+                                state_161["selecionados"].append(item)
+                            elif not e.value and item in state_161["selecionados"]:
+                                state_161["selecionados"].remove(item)
                             att_pts_161()
 
-                            def on_checkbox_change_161(e, item):
-                                if e.value and item not in state_161["selecionados"]:
-                                    state_161["selecionados"].append(item)
-                                elif not e.value and item in state_161["selecionados"]:
-                                    state_161["selecionados"].remove(item)
-                                att_pts_161()
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in recursos_161:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)",
+                                        value=(item in state_161["selecionados"]),
+                                        on_change=lambda e, it=item: on_checkbox_change_161(e, it)
+                                    )
 
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("gap-2"):
-                                    for item, pt in recursos_161:
-                                        ui.checkbox(
-                                            f"{item} (+{pt:.1f} pts)",
-                                            value=(item in state_161["selecionados"]),
-                                            on_change=lambda e, it=item: on_checkbox_change_161(e, it)
-                                        )
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.1):",
+                                value=raw_link_161,
+                                placeholder="Link do ato normativo, estrutura ou dotação orçamentária...",
+                            ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_161, "link")
 
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 16.1):",
-                                    value=raw_link_161,
-                                    placeholder="Link do ato normativo, estrutura ou dotação orçamentária...",
-                                ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_161, "link")
+                        def salvar_161():
+                            pts = calc_pts_161()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.1",
+                                valor=state_161["selecionados"],
+                                pontos=pts,
+                                link=state_161["link"],
+                                comentarios=d161.get("comentarios", []),
+                                status=d161.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 16.1 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
 
-                            def salvar_161():
-                                pts = calc_pts_161()
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="16.1",
-                                    valor=state_161["selecionados"],
-                                    pontos=pts,
-                                    link=state_161["link"],
-                                    comentarios=d161.get("comentarios", []),
-                                    status=d161.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito 16.1 salvo com sucesso!", type="positive")
-                                if getattr(render_conteudo, "refresh", None):
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 16.1", on_click=salvar_161).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("16.1", res_data, getattr(render_conteudo, "refresh", None))
+                        ui.button("💾 SALVAR QUESITO 16.1", on_click=salvar_161).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
-                        # QUESITO 16.2 - Principais Funções do Conselho
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("16.2 • Principais Funções do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Assinale as principais funções do Conselho Municipal de Educação:").classes("text-base font-bold text-black mb-6")
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 16.2 - Principais Funções do Conselho
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("16.2 • Principais Funções do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale as principais funções do Conselho Municipal de Educação:").classes("text-base font-bold text-black mb-6")
 
-                            d162 = res_data.get("16.2") or res_data.get("162") or {}
-                            val_162_lista = list(d162.get("valor")) if isinstance(d162.get("valor"), list) else []
-                            raw_link_162 = str(d162.get("link") or "")
+                        d162 = res_data.get("16.2") or res_data.get("162") or {}
+                        val_162_lista = list(d162.get("valor")) if isinstance(d162.get("valor"), list) else []
+                        raw_link_162 = str(d162.get("link") or "")
 
-                            funcoes_162 = [
-                                ("Consultiva", 0.5),
-                                ("Normativa", 0.5),
-                                ("Deliberativa", 0.5),
-                                ("Fiscalizadora", 0.5),
-                                ("Mobilizadora", 0.5),
-                                ("Propositiva", 0.5),
-                            ]
+                        funcoes_162 = [
+                            ("Consultiva", 0.5),
+                            ("Normativa", 0.5),
+                            ("Deliberativa", 0.5),
+                            ("Fiscalizadora", 0.5),
+                            ("Mobilizadora", 0.5),
+                            ("Propositiva", 0.5),
+                        ]
 
-                            state_162 = {
-                                "selecionados": val_162_lista,
-                                "link": raw_link_162,
-                            }
+                        state_162 = {
+                            "selecionados": val_162_lista,
+                            "link": raw_link_162,
+                        }
 
-                            def calc_pts_162():
-                                return sum(pt for item, pt in funcoes_162 if item in state_162["selecionados"])
+                        def calc_pts_162():
+                            return sum(pt for item, pt in funcoes_162 if item in state_162["selecionados"])
 
-                            lbl_pts_162 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+                        lbl_pts_162 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
 
-                            def att_pts_162():
-                                pts = calc_pts_162()
-                                lbl_pts_162.set_text(f"📊 Pontuação Quesito 16.2: {pts:.1f} pontos")
+                        def att_pts_162():
+                            pts = calc_pts_162()
+                            lbl_pts_162.set_text(f"📊 Pontuação Quesito 16.2: {pts:.1f} pontos")
 
+                        att_pts_162()
+
+                        def on_checkbox_change_162(e, item):
+                            if e.value and item not in state_162["selecionados"]:
+                                state_162["selecionados"].append(item)
+                            elif not e.value and item in state_162["selecionados"]:
+                                state_162["selecionados"].remove(item)
                             att_pts_162()
 
-                            def on_checkbox_change_162(e, item):
-                                if e.value and item not in state_162["selecionados"]:
-                                    state_162["selecionados"].append(item)
-                                elif not e.value and item in state_162["selecionados"]:
-                                    state_162["selecionados"].remove(item)
-                                att_pts_162()
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in funcoes_162:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)",
+                                        value=(item in state_162["selecionados"]),
+                                        on_change=lambda e, it=item: on_checkbox_change_162(e, it)
+                                    )
 
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("gap-2"):
-                                    for item, pt in funcoes_162:
-                                        ui.checkbox(
-                                            f"{item} (+{pt:.1f} pts)",
-                                            value=(item in state_162["selecionados"]),
-                                            on_change=lambda e, it=item: on_checkbox_change_162(e, it)
-                                        )
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.2):",
+                                value=raw_link_162,
+                                placeholder="Link da lei de criação/regimento interno do conselho...",
+                            ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_162, "link")
 
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 16.2):",
-                                    value=raw_link_162,
-                                    placeholder="Link da lei de criação/regimento interno do conselho...",
-                                ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_162, "link")
+                        def salvar_162():
+                            pts = calc_pts_162()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.2",
+                                valor=state_162["selecionados"],
+                                pontos=pts,
+                                link=state_162["link"],
+                                comentarios=d162.get("comentarios", []),
+                                status=d162.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 16.2 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
 
-                            def salvar_162():
-                                pts = calc_pts_162()
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="16.2",
-                                    valor=state_162["selecionados"],
-                                    pontos=pts,
-                                    link=state_162["link"],
-                                    comentarios=d162.get("comentarios", []),
-                                    status=d162.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito 16.2 salvo com sucesso!", type="positive")
-                                if getattr(render_conteudo, "refresh", None):
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 16.2", on_click=salvar_162).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("16.2", res_data, getattr(render_conteudo, "refresh", None))
+                        ui.button("💾 SALVAR QUESITO 16.2", on_click=salvar_162).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.2", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
-                        # QUESITO 16.3 - Atividades Realizadas no Ano
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("16.3 • Atividades Realizadas no Ano pelo Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Assinale as atividades que o Conselho Municipal de Educação realizou no ano:").classes("text-base font-bold text-black mb-6")
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 16.3 - Atividades Realizadas no Ano
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("16.3 • Atividades Realizadas no Ano pelo Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale as atividades que o Conselho Municipal de Educação realizou no ano:").classes("text-base font-bold text-black mb-6")
 
-                            d163 = res_data.get("16.3") or res_data.get("163") or {}
-                            val_163_lista = list(d163.get("valor")) if isinstance(d163.get("valor"), list) else []
-                            raw_link_163 = str(d163.get("link") or "")
+                        d163 = res_data.get("16.3") or res_data.get("163") or {}
+                        val_163_lista = list(d163.get("valor")) if isinstance(d163.get("valor"), list) else []
+                        raw_link_163 = str(d163.get("link") or "")
 
-                            atividades_163 = [
-                                ("Consultas à sociedade sobre as necessidades e prioridades locais de educação", 0.6),
-                                ("Participação na discussão e definição das políticas e do planejamento educacional", 0.6),
-                                ("Acompanhamento e controle dos atos praticados pelos gestores da educação", 0.6),
-                                ("Elaboração de propostas para melhoria do fluxo escolar", 0.6),
-                                ("Elaboração de propostas para melhoria do rendimento escolar", 0.6),
-                                ("Sugestões de medidas para atualização e capacitação dos professores por meio da educação continuada", 0.6),
-                                ("Acompanhamento e avaliação do cumprimento do Plano Municipal de Educação", 0.6),
-                                ("Fiscalização da implementação da BNCC (Base Nacional Comum Curricular)", 0.6),
-                                ("Emissão de pareceres, resoluções, instruções e recomendações sobre a educação", 0.6),
-                                ("Aprovação dos regimentos escolares e suas alterações", 0.6),
-                                ("Apuração da existência de irregularidades na gerência dos recursos educacionais", 0.0),
-                                ("Outros", 0.0),
-                            ]
+                        atividades_163 = [
+                            ("Consultas à sociedade sobre as necessidades e prioridades locais de educação", 0.6),
+                            ("Participação na discussão e definição das políticas e do planejamento educacional", 0.6),
+                            ("Acompanhamento e controle dos atos praticados pelos gestores da educação", 0.6),
+                            ("Elaboração de propostas para melhoria do fluxo escolar", 0.6),
+                            ("Elaboração de propostas para melhoria do rendimento escolar", 0.6),
+                            ("Sugestões de medidas para atualização e capacitação dos professores por meio da educação continuada", 0.6),
+                            ("Acompanhamento e avaliação do cumprimento do Plano Municipal de Educação", 0.6),
+                            ("Fiscalização da implementação da BNCC (Base Nacional Comum Curricular)", 0.6),
+                            ("Emissão de pareceres, resoluções, instruções e recomendações sobre a educação", 0.6),
+                            ("Aprovação dos regimentos escolares e suas alterações", 0.6),
+                            ("Apuração da existência de irregularidades na gerência dos recursos educacionais", 0.0),
+                            ("Outros", 0.0),
+                        ]
 
-                            state_163 = {
-                                "selecionados": val_163_lista,
-                                "link": raw_link_163,
-                            }
+                        state_163 = {
+                            "selecionados": val_163_lista,
+                            "link": raw_link_163,
+                        }
 
-                            def calc_pts_163():
-                                return sum(pt for item, pt in atividades_163 if item in state_163["selecionados"])
+                        def calc_pts_163():
+                            return sum(pt for item, pt in atividades_163 if item in state_163["selecionados"])
 
-                            lbl_pts_163 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+                        lbl_pts_163 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
 
-                            def att_pts_163():
-                                pts = calc_pts_163()
-                                lbl_pts_163.set_text(f"📊 Pontuação Quesito 16.3: {pts:.1f} pontos")
+                        def att_pts_163():
+                            pts = calc_pts_163()
+                            lbl_pts_163.set_text(f"📊 Pontuação Quesito 16.3: {pts:.1f} pontos")
 
+                        att_pts_163()
+
+                        def on_checkbox_change_163(e, item):
+                            if e.value and item not in state_163["selecionados"]:
+                                state_163["selecionados"].append(item)
+                            elif not e.value and item in state_163["selecionados"]:
+                                state_163["selecionados"].remove(item)
                             att_pts_163()
 
-                            def on_checkbox_change_163(e, item):
-                                if e.value and item not in state_163["selecionados"]:
-                                    state_163["selecionados"].append(item)
-                                elif not e.value and item in state_163["selecionados"]:
-                                    state_163["selecionados"].remove(item)
-                                att_pts_163()
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in atividades_163:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)" if pt > 0 else item,
+                                        value=(item in state_163["selecionados"]),
+                                        on_change=lambda e, it=item: on_checkbox_change_163(e, it)
+                                    )
 
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("gap-2"):
-                                    for item, pt in atividades_163:
-                                        ui.checkbox(
-                                            f"{item} (+{pt:.1f} pts)" if pt > 0 else item,
-                                            value=(item in state_163["selecionados"]),
-                                            on_change=lambda e, it=item: on_checkbox_change_163(e, it)
-                                        )
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.3):",
+                                value=raw_link_163,
+                                placeholder="Link das atas, resoluções, relatórios de gestão...",
+                            ).classes("w-full").props("outlined rows=10 color=blue").bind_value(state_163, "link")
 
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 16.3):",
-                                    value=raw_link_163,
-                                    placeholder="Link das atas, resoluções, relatórios de gestão...",
-                                ).classes("w-full").props("outlined rows=10 color=blue").bind_value(state_163, "link")
+                        def salvar_163():
+                            pts = calc_pts_163()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="16.3",
+                                valor=state_163["selecionados"],
+                                pontos=pts,
+                                link=state_163["link"],
+                                comentarios=d163.get("comentarios", []),
+                                status=d163.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 16.3 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
 
-                            def salvar_163():
-                                pts = calc_pts_163()
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="16.3",
-                                    valor=state_163["selecionados"],
-                                    pontos=pts,
-                                    link=state_163["link"],
-                                    comentarios=d163.get("comentarios", []),
-                                    status=d163.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito 16.3 salvo com sucesso!", type="positive")
-                                if getattr(render_conteudo, "refresh", None):
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 16.3", on_click=salvar_163).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("16.3", res_data, getattr(render_conteudo, "refresh", None))
+                        ui.button("💾 SALVAR QUESITO 16.3", on_click=salvar_163).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("16.3", res_data, getattr(render_conteudo, "refresh", None))
 
 
                   
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 16.3.1 - Quantidade de Irregularidades Apontadas
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("16.3.1 • Irregularidades Apontadas").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Informe quantas irregularidades foram apontadas:").classes("text-base font-bold text-black mb-6")
-
-                                d1631 = res_data.get("16.3.1") or res_data.get("1631") or {}
-                                val_1631 = str(d1631.get("valor") or "0")
-                                raw_link_1631 = str(d1631.get("link") or "")
-
-                                state_1631 = {
-                                    "quantidade": int(val_1631) if val_1631.isdigit() else 0,
-                                    "link": raw_link_1631,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.number(
-                                        label="Quantidade de irregularidades apontadas:",
-                                        value=state_1631["quantidade"],
-                                        min=0,
-                                        step=1,
-                                    ).classes("w-full").props("outlined color=blue").bind_value(state_1631, "quantidade")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 16.3.1):",
-                                        value=raw_link_1631,
-                                        placeholder="Link dos relatórios/denúncias de irregularidades apontadas...",
-                                    ).classes("w-full").props("outlined rows=4 color=blue").bind_value(state_1631, "link")
-
-                                ui.label("📊 Pontuação Quesito 16.3.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def salvar_1631():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="16.3.1",
-                                        valor=str(state_1631["quantidade"]),
-                                        pontos=0.0,
-                                        link=state_1631["link"],
-                                        comentarios=d1631.get("comentarios", []),
-                                        status=d1631.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 16.3.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 16.3.1", on_click=salvar_1631).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("16.3.1", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 16.3.2 - Quantidade de Irregularidades Solucionadas
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("16.3.2 • Irregularidades Solucionadas").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Informe quantas irregularidades foram solucionadas:").classes("text-base font-bold text-black mb-6")
-
-                                d1632 = res_data.get("16.3.2") or res_data.get("1632") or {}
-                                val_1632 = str(d1632.get("valor") or "0")
-                                raw_link_1632 = str(d1632.get("link") or "")
-
-                                state_1632 = {
-                                    "quantidade": int(val_1632) if val_1632.isdigit() else 0,
-                                    "link": raw_link_1632,
-                                }
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.number(
-                                        label="Quantidade de irregularidades solucionadas:",
-                                        value=state_1632["quantidade"],
-                                        min=0,
-                                        step=1,
-                                    ).classes("w-full").props("outlined color=blue").bind_value(state_1632, "quantidade")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 16.3.2):",
-                                        value=raw_link_1632,
-                                        placeholder="Link dos comprovantes de regularização...",
-                                    ).classes("w-full").props("outlined rows=4 color=blue").bind_value(state_1632, "link")
-
-                                ui.label("📊 Pontuação Quesito 16.3.2: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def salvar_1632():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="16.3.2",
-                                        valor=str(state_1632["quantidade"]),
-                                        pontos=0.0,
-                                        link=state_1632["link"],
-                                        comentarios=d1632.get("comentarios", []),
-                                        status=d1632.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 16.3.2 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 16.3.2", on_click=salvar_1632).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("16.3.2", res_data, render_conteudo.refresh)
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 16.3.3 - Irregularidades Apontadas
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("16.3.3 • Irregularidades Apontadas").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Informe as irregularidades apontadas (Se não houve apontamento de irregularidade, informar: Não houve):").classes("text-base font-bold text-black mb-4")
-
-                                d1633 = res_data.get("16.3.3") or res_data.get("1633") or {}
-                                val_1633 = str(d1633.get("valor") or "")
-                                link_1633 = str(d1633.get("link") or "")
-
-                                state_1633 = {
-                                    "texto": val_1633,
-                                    "link": link_1633,
-                                }
-
-                                ui.textarea(
-                                    label="Descrição das Irregularidades Apontadas:",
-                                    value=state_1633["texto"],
-                                    placeholder="Descreva as irregularidades ou digite 'Não houve'...",
-                                ).classes("w-full mb-4").props("outlined rows=4 color=blue").bind_value(state_1633, "texto")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 16.3.3):",
-                                    value=state_1633["link"],
-                                    placeholder="Link para a ata/relatório...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_1633, "link")
-
-                                ui.label("📊 Pontuação Quesito 16.3.3: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def salvar_1633():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="16.3.3",
-                                        valor=state_1633["texto"],
-                                        pontos=0.0,
-                                        link=state_1633["link"],
-                                        comentarios=d1633.get("comentarios", []),
-                                        status=d1633.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 16.3.3 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 16.3.3", on_click=salvar_1633).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("16.3.3", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 16.4 - Aprovação de Contas pelo CME
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("16.4 • Aprovação de Contas da SME pelo Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("O Conselho Municipal de Educação aprovou as contas da Secretaria Municipal de Educação referente ao exercício de 2026?").classes("text-base font-bold text-black mb-4")
-
-                                # Lista oficial de opções do Radio
-                                opts_164 = [
-                                    "Sim",
-                                    "Não",
-                                    "Não compete ao Conselho aprovar as contas da Secretaria – 00",
-                                    "Não compete ao Conselho aprovar as contas da Secretaria",
-                                ]
-
-                                d164 = res_data.get("16.4") or res_data.get("164") or {}
-                                val_164_raw = str(d164.get("valor") or "Sim").strip()
-
-                                # Validação de fallback: garante que o valor pertença às opções válidas do NiceGUI
-                                val_164 = val_164_raw if val_164_raw in opts_164 else opts_164[0]
-                                link_164 = str(d164.get("link") or "")
-
-                                state_164 = {
-                                    "opcao": val_164,
-                                    "link": link_164,
-                                    "pontos": 0.0,
-                                }
-
-                                def calc_164():
-                                    op = state_164["opcao"]
-                                    if op == "Não":
-                                        state_164["pontos"] = -50.0
-                                    else:
-                                        state_164["pontos"] = 0.0
-                            
-                                    # Define cor do texto dinamicamente (vermelho se houver penalidade)
-                                    cor_classe = "text-red-600" if state_164["pontos"] < 0 else "text-green-600"
-                                    lbl_pontos_164.classes(replace=f"text-sm font-bold mb-4 {cor_classe}")
-                                    lbl_pontos_164.set_text(f"📊 Pontuação Quesito 16.4: {state_164['pontos']:.1f} pontos".replace(".", ","))
-
-                                ui.radio(
-                                    options=opts_164,
-                                    value=state_164["opcao"],
-                                    on_change=lambda e: [state_164.update({"opcao": e.value}), calc_164()],
-                                ).classes("mb-4")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 16.4):",
-                                    value=state_164["link"],
-                                    placeholder="Link do parecer/parecer conclusivo...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_164, "link")
-
-                                lbl_pontos_164 = ui.label("📊 Pontuação Quesito 16.4: 0,0 pontos").classes("text-sm font-bold text-green-600 mb-4")
-                                calc_164()
-
-                                def salvar_164():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="16.4",
-                                        valor=state_164["opcao"],
-                                        pontos=state_164["pontos"],
-                                        link=state_164["link"],
-                                        comentarios=d164.get("comentarios", []),
-                                        status=d164.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 16.4 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 16.4", on_click=salvar_164).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("16.4", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 16.4.1 - Motivos da Não Aprovação
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("16.4.1 • Motivos da Não Aprovação").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Informe quais os motivos da não aprovação:").classes("text-base font-bold text-black mb-4")
-
-                                d1641 = res_data.get("16.4.1") or res_data.get("1641") or {}
-                                val_1641 = str(d1641.get("valor") or "")
-                                link_1641 = str(d1641.get("link") or "")
-
-                                state_1641 = {
-                                    "texto": val_1641,
-                                    "link": link_1641,
-                                }
-
-                                ui.textarea(
-                                    label="Motivos da não aprovação:",
-                                    value=state_1641["texto"],
-                                    placeholder="Descreva detalhadamente os motivos caso as contas não tenham sido aprovadas...",
-                                ).classes("w-full mb-4").props("outlined rows=4 color=blue").bind_value(state_1641, "texto")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 16.4.1):",
-                                    value=state_1641["link"],
-                                    placeholder="Link de documentos comprobatórios...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_1641, "link")
-
-                                ui.label("📊 Pontuação Quesito 16.4.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def salvar_1641():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="16.4.1",
-                                        valor=state_1641["texto"],
-                                        pontos=0.0,
-                                        link=state_1641["link"],
-                                        comentarios=d1641.get("comentarios", []),
-                                        status=d1641.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 16.4.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 16.4.1", on_click=salvar_1641).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("16.4.1", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 16.5 - Reuniões do Conselho
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("16.5 • Reuniões do Conselho Municipal de Educação").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Quantas reuniões foram realizadas pelo Conselho Municipal de Educação no último exercício?").classes("text-base font-bold text-black mb-1")
-                                ui.label("(Não considerar reuniões de eleição/exclusão de membros, aprovação de orçamento ou outro assunto não relacionado à natureza do Conselho)").classes("text-sm text-gray-600 italic mb-4")
-
-                                d165 = res_data.get("16.5") or res_data.get("165") or {}
-                                val_165 = str(d165.get("valor") or "0")
-                                link_165 = str(d165.get("link") or "")
-
-                                state_165 = {
-                                    "reunioes": int(val_165) if val_165.isdigit() else 0,
-                                    "link": link_165,
-                                    "pontos": 0.0,
-                                }
-
-                                def calc_165():
-                                    n = state_165["reunioes"]
-                                    if n >= 12:
-                                        state_165["pontos"] = 3.0
-                                    elif n >= 8:
-                                        state_165["pontos"] = 1.5
-                                    elif n >= 4:
-                                        state_165["pontos"] = 1.0
-                                    else:
-                                        state_165["pontos"] = 0.0
-                                    lbl_pontos_165.set_text(f"📊 Pontuação Quesito 16.5: {state_165['pontos']:.1f} pontos".replace(".", ","))
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.number(
-                                        label="Número de Reuniões:",
-                                        value=state_165["reunioes"],
-                                        min=0,
-                                        step=1,
-                                        on_change=lambda e: [state_165.update({"reunioes": int(e.value or 0)}), calc_165()],
-                                    ).classes("w-full").props("outlined color=blue")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 16.5):",
-                                        value=state_165["link"],
-                                        placeholder="Link das atas das reuniões...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_165, "link")
-
-                                lbl_pontos_165 = ui.label("📊 Pontuação Quesito 16.5: 0,0 pontos").classes("text-sm font-bold text-green-600 mb-4")
-                                calc_165()
-
-                                def salvar_165():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="16.5",
-                                        valor=str(state_165["reunioes"]),
-                                        pontos=state_165["pontos"],
-                                        link=state_165["link"],
-                                        comentarios=d165.get("comentarios", []),
-                                        status=d165.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 16.5 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 16.5", on_click=salvar_165).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("16.5", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 17.0 - CACS FUNDEB
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("17.0 • Conselho de Acompanhamento e Controle Social do FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("O município possui Conselho de Acompanhamento e Controle Social do FUNDEB?").classes("text-base font-bold text-black mb-4")
-
-                                d170 = res_data.get("17.0") or res_data.get("170") or {}
-                                val_170 = str(d170.get("valor") or "Sim, com estrutura independente do Conselho Municipal de Educação")
-                                link_170 = str(d170.get("link") or "")
-
-                                state_170 = {
-                                    "opcao": val_170,
-                                    "link": link_170,
-                                }
-
-                                opts_170 = [
-                                    "Sim, com estrutura independente do Conselho Municipal de Educação",
-                                    "Sim, integrado ao Conselho Municipal de Educação",
-                                    "Não",
-                                ]
-
-                                ui.radio(
-                                    options=opts_170,
-                                    value=state_170["opcao"],
-                                ).classes("mb-4").bind_value(state_170, "opcao")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 17.0):",
-                                    value=state_170["link"],
-                                    placeholder="Link do comprovante ou site...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_170, "link")
-
-                                ui.label("📊 Pontuação Quesito 17.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def salvar_170():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="17.0",
-                                        valor=state_170["opcao"],
-                                        pontos=0.0,
-                                        link=state_170["link"],
-                                        comentarios=d170.get("comentarios", []),
-                                        status=d170.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 17.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 17.0", on_click=salvar_170).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("17.0", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 17.1 - Instrumento Normativo CACS FUNDEB
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("17.1 • Instrumento Normativo de Instituição do CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Informe o Instrumento Normativo, Número e Data da publicação que instituiu o Conselho de Acompanhamento e Controle Social do FUNDEB:").classes("text-base font-bold text-black mb-4")
-
-                                d171 = res_data.get("17.1") or res_data.get("171") or {}
-                                val_171 = str(d171.get("valor") or "")
-                                link_171 = str(d171.get("link") or "")
-
-                                state_171 = {
-                                    "texto": val_171,
-                                    "link": link_171,
-                                }
-
-                                ui.textarea(
-                                    label="Instrumento normativo, Número e Data da publicação:",
-                                    value=state_171["texto"],
-                                    placeholder="Ex: Lei Municipal nº 1234 de 10/01/2021...",
-                                ).classes("w-full mb-4").props("outlined rows=3 color=blue").bind_value(state_171, "texto")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 17.1):",
-                                    value=state_171["link"],
-                                    placeholder="Link para a publicação oficial...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_171, "link")
-
-                                ui.label("📊 Pontuação Quesito 17.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def salvar_171():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="17.1",
-                                        valor=state_171["texto"],
-                                        pontos=0.0,
-                                        link=state_171["link"],
-                                        comentarios=d171.get("comentarios", []),
-                                        status=d171.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 17.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 17.1", on_click=salvar_171).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("17.1", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 17.2 - Link do Instrumento Normativo CACS FUNDEB
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("17.2 • Página Eletrônica da Norma do CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Informe a página eletrônica (link na internet) do instrumento normativo que instituiu o CACS FUNDEB:").classes("text-base font-bold text-black mb-1")
-                                ui.label("(Se não estiver disponível na internet, inserir no campo 'Página eletrônica' o texto XYZ)").classes("text-sm text-gray-600 italic mb-4")
-
-                                d172 = res_data.get("17.2") or res_data.get("172") or {}
-                                val_172 = str(d172.get("valor") or d172.get("link") or "")
-
-                                state_172 = {
-                                    "link": val_172,
-                                    "pontos": 0.0,
-                                }
-
-                                def calc_172():
-                                    lk = state_172["link"].strip()
-                                    if lk.upper() == "XYZ" or lk == "":
-                                        state_172["pontos"] = 0.0
-                                    else:
-                                        state_172["pontos"] = 0.0
-                                    lbl_pontos_172.set_text(f"📊 Pontuação Quesito 17.2: {state_172['pontos']:.1f} ponto(s)".replace(".", ","))
-
-                                ui.textarea(
-                                    label="Página eletrônica (link na internet):",
-                                    value=state_172["link"],
-                                    placeholder="Cole o link aqui ou digite XYZ se não estiver disponível...",
-                                    on_change=lambda e: [state_172.update({"link": e.value}), calc_172()],
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue")
-
-                                lbl_pontos_172 = ui.label("📊 Pontuação Quesito 17.2: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-                                calc_172()
-
-                                def salvar_172():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="17.2",
-                                        valor=state_172["link"],
-                                        pontos=state_172["pontos"],
-                                        link=state_172["link"],
-                                        comentarios=d172.get("comentarios", []),
-                                        status=d172.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 17.2 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 17.2", on_click=salvar_172).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("17.2", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 17.3 - Informações do CACS FUNDEB no Sítio Eletrônico
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("17.3 • Informações Atualizadas sobre o CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("A Prefeitura Municipal disponibilizou, em sítio na internet, informações atualizadas sobre a composição e o funcionamento do CACS FUNDEB?").classes("text-base font-bold text-black mb-4")
-
-                                d173 = res_data.get("17.3") or res_data.get("173") or {}
-                                val_173 = str(d173.get("valor") or "Sim")
-                                link_173 = str(d173.get("link") or "")
-
-                                state_173 = {
-                                    "opcao": val_173,
-                                    "link": link_173,
-                                }
-
-                                opts_173 = ["Sim", "Não"]
-
-                                ui.radio(
-                                    options=opts_173,
-                                    value=state_173["opcao"],
-                                ).classes("mb-4").bind_value(state_173, "opcao")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 17.3):",
-                                    value=state_173["link"],
-                                    placeholder="Link da página oficial com composição e funcionamento...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_173, "link")
-
-                                ui.label("📊 Pontuação Quesito 17.3: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def salvar_173():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="17.3",
-                                        valor=state_173["opcao"],
-                                        pontos=0.0,
-                                        link=state_173["link"],
-                                        comentarios=d173.get("comentarios", []),
-                                        status=d173.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 17.3 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 17.3", on_click=salvar_173).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("17.3", res_data, render_conteudo.refresh)
-
-                            # -----------------------------------------------------------------------------
-                        # QUESITO 17.3.1 - Informações Disponibilizadas em Sítio na Internet
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 16.3.1 - Quantidade de Irregularidades Apontadas
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("17.3.1 • Informações Disponibilizadas na Internet (CACS FUNDEB)").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Assinale quais informações foram disponibilizadas em sítio na internet:").classes("text-base font-bold text-black mb-6")
-
-                            d1731 = res_data.get("17.3.1") or res_data.get("1731") or {}
-                            val_1731_lista = list(d1731.get("valor")) if isinstance(d1731.get("valor"), list) else []
-                            raw_link_1731 = str(d1731.get("link") or "")
-
-                            info_1731 = [
-                                ("Nomes dos conselheiros e das entidades ou segmentos que representam", 0.4),
-                                ("Correio eletrônico ou outro canal de contato direto com o conselho", 0.4),
-                                ("Atas de reuniões", 0.4),
-                                ("Relatórios e pareceres", 0.4),
-                                ("Outros documentos produzidos pelo conselho", 0.4),
-                            ]
-
-                            state_1731 = {
-                                "selecionados": val_1731_lista,
-                                "link": raw_link_1731,
-                            }
-
-                            def calc_pts_1731():
-                                return sum(pt for item, pt in info_1731 if item in state_1731["selecionados"])
-
-                            lbl_pts_1731 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
-
-                            def att_pts_1731():
-                                pts = calc_pts_1731()
-                                lbl_pts_1731.set_text(f"📊 Pontuação Quesito 17.3.1: {pts:.1f} pontos")
-
-                            att_pts_1731()
-
-                            def on_checkbox_change_1731(e, item):
-                                if e.value and item not in state_1731["selecionados"]:
-                                    state_1731["selecionados"].append(item)
-                                elif not e.value and item in state_1731["selecionados"]:
-                                    state_1731["selecionados"].remove(item)
-                                att_pts_1731()
-
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("gap-2"):
-                                    for item, pt in info_1731:
-                                        ui.checkbox(
-                                            f"{item} (+{pt:.1f} pts)",
-                                            value=(item in state_1731["selecionados"]),
-                                            on_change=lambda e, it=item: on_checkbox_change_1731(e, it)
-                                        )
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 17.3.1):",
-                                    value=raw_link_1731,
-                                    placeholder="Link da página onde as informações estão publicadas...",
-                                ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_1731, "link")
-
-                            def salvar_1731():
-                                pts = calc_pts_1731()
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="17.3.1",
-                                    valor=state_1731["selecionados"],
-                                    pontos=pts,
-                                    link=state_1731["link"],
-                                    comentarios=d1731.get("comentarios", []),
-                                    status=d1731.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito 17.3.1 salvo com sucesso!", type="positive")
-                                if getattr(render_conteudo, "refresh", None):
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 17.3.1", on_click=salvar_1731).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("17.3.1", res_data, getattr(render_conteudo, "refresh", None))
-
-
-                        # -----------------------------------------------------------------------------
-                        # QUESITO 17.3.2 - Página Eletrônica do Conselho
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("17.3.2 • Página Eletrônica do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a página eletrônica (link na internet) sobre a composição e funcionamento dos conselhos:").classes("text-base font-bold text-black mb-2")
-                            ui.label("⚠️ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto XYZ").classes("text-xs font-semibold text-amber-700 mb-6")
-
-                            d1732 = res_data.get("17.3.2") or res_data.get("1732") or {}
-                            raw_link_1732 = str(d1732.get("link") or d1732.get("valor") or "")
-
-                            state_1732 = {
-                                "link": raw_link_1732,
-                            }
-
-                            ui.textarea(
-                                label="Página eletrônica (link na internet):",
-                                value=raw_link_1732,
-                                placeholder="Insira a URL completa do site ou digite XYZ caso não esteja disponível...",
-                            ).classes("w-full mb-4").props("outlined rows=4 color=blue").bind_value(state_1732, "link")
-
-                            def salvar_1732():
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="17.3.2",
-                                    valor=state_1732["link"],
-                                    pontos=0.0,
-                                    link=state_1732["link"],
-                                    comentarios=d1732.get("comentarios", []),
-                                    status=d1732.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito 17.3.2 salvo com sucesso!", type="positive")
-                                if getattr(render_conteudo, "refresh", None):
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 17.3.2", on_click=salvar_1732).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("17.3.2", res_data, getattr(render_conteudo, "refresh", None))
-
-
-                        # -----------------------------------------------------------------------------
-                        # QUESITO 17.4 - Recursos fornecidos ao CACS FUNDEB
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("17.4 • Recursos para Funcionamento do CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal ao CACS FUNDEB a fim de garantir infraestrutura e condições materiais adequadas à execução plena de suas competências:").classes("text-base font-bold text-black mb-6")
-
-                            d174 = res_data.get("17.4") or res_data.get("174") or {}
-                            val_174_lista = list(d174.get("valor")) if isinstance(d174.get("valor"), list) else []
-                            raw_link_174 = str(d174.get("link") or "")
-
-                            recursos_174 = [
-                                ("Recursos Humanos", 0.5),
-                                ("Recursos Tecnológicos", 0.5),
-                                ("Estrutura Física", 0.5),
-                                ("Recursos Orçamentários", 0.5),
-                                ("Recursos Materiais", 0.5),
-                                ("Outros", 0.5),
-                            ]
-
-                            state_174 = {
-                                "selecionados": val_174_lista,
-                                "link": raw_link_174,
-                            }
-
-                            def calc_pts_174():
-                                return sum(pt for item, pt in recursos_174 if item in state_174["selecionados"])
-
-                            lbl_pts_174 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
-
-                            def att_pts_174():
-                                pts = calc_pts_174()
-                                lbl_pts_174.set_text(f"📊 Pontuação Quesito 17.4: {pts:.1f} pontos")
-
-                            att_pts_174()
-
-                            def on_checkbox_change_174(e, item):
-                                if e.value and item not in state_174["selecionados"]:
-                                    state_174["selecionados"].append(item)
-                                elif not e.value and item in state_174["selecionados"]:
-                                    state_174["selecionados"].remove(item)
-                                att_pts_174()
-
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("gap-2"):
-                                    for item, pt in recursos_174:
-                                        ui.checkbox(
-                                            f"{item} (+{pt:.1f} pts)",
-                                            value=(item in state_174["selecionados"]),
-                                            on_change=lambda e, it=item: on_checkbox_change_174(e, it)
-                                        )
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 17.4):",
-                                    value=raw_link_174,
-                                    placeholder="Link do ato normativo, estrutura ou dotação orçamentária...",
-                                ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_174, "link")
-
-                            def salvar_174():
-                                pts = calc_pts_174()
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="17.4",
-                                    valor=state_174["selecionados"],
-                                    pontos=pts,
-                                    link=state_174["link"],
-                                    comentarios=d174.get("comentarios", []),
-                                    status=d174.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito 17.4 salvo com sucesso!", type="positive")
-                                if getattr(render_conteudo, "refresh", None):
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 17.4", on_click=salvar_174).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("17.4", res_data, getattr(render_conteudo, "refresh", None))
-
-
-                        # -----------------------------------------------------------------------------
-                        # QUESITO 17.5 - Atividades Realizadas pelo CACS FUNDEB
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("17.5 • Atividades Realizadas no Ano pelo CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Assinale as atividades que o CACS Fundeb realizou no ano:").classes("text-base font-bold text-black mb-6")
-
-                            d175 = res_data.get("17.5") or res_data.get("175") or {}
-                            val_175_lista = list(d175.get("valor")) if isinstance(d175.get("valor"), list) else []
-                            raw_link_175 = str(d175.get("link") or "")
-
-                            atividades_175 = [
-                                ("Elaboração do parecer das prestações de contas do FUNDEB", 1.5),
-                                ("Supervisão da elaboração da proposta orçamentária anual", 0.5),
-                                ("Apresentação de manifestação formal acerca dos registros contábeis e demonstrativos gerenciais do Fundo aos órgãos competentes", 0.5),
-                                ("Convocação dos responsáveis para prestação de esclarecimentos acerca do fluxo de recursos e da execução das despesas do Fundo", 0.5),
-                                ("Requisição ao Poder Executivo de cópia de documentos", 0.5),
-                                ("Visitas para verificações in loco", 1.0),
-                                ("Supervisão do censo escolar anual", 1.0),
-                                ("Acompanhar a aplicação dos recursos federais transferidos à conta do PNATE e do PEJA e analisar suas prestações de contas", 0.5),
-                            ]
-
-                            state_175 = {
-                                "selecionados": val_175_lista,
-                                "link": raw_link_175,
-                            }
-
-                            def calc_pts_175():
-                                return sum(pt for item, pt in atividades_175 if item in state_175["selecionados"])
-
-                            lbl_pts_175 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
-
-                            def att_pts_175():
-                                pts = calc_pts_175()
-                                lbl_pts_175.set_text(f"📊 Pontuação Quesito 17.5: {pts:.1f} pontos")
-
-                            att_pts_175()
-
-                            def on_checkbox_change_175(e, item):
-                                if e.value and item not in state_175["selecionados"]:
-                                    state_175["selecionados"].append(item)
-                                elif not e.value and item in state_175["selecionados"]:
-                                    state_175["selecionados"].remove(item)
-                                att_pts_175()
-
-                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                with ui.column().classes("gap-2"):
-                                    for item, pt in atividades_175:
-                                        ui.checkbox(
-                                            f"{item} (+{pt:.1f} pts)",
-                                            value=(item in state_175["selecionados"]),
-                                            on_change=lambda e, it=item: on_checkbox_change_175(e, it)
-                                        )
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 17.5):",
-                                    value=raw_link_175,
-                                    placeholder="Link dos pareceres, relatórios de visita, atas...",
-                                ).classes("w-full").props("outlined rows=8 color=blue").bind_value(state_175, "link")
-
-                            def salvar_175():
-                                pts = calc_pts_175()
-                                save_resposta(
-                                    ano=ano_sel,
-                                    qid="17.5",
-                                    valor=state_175["selecionados"],
-                                    pontos=pts,
-                                    link=state_175["link"],
-                                    comentarios=d175.get("comentarios", []),
-                                    status=d175.get("status", "Pendente"),
-                                )
-                                ui.notify("Quesito 17.5 salvo com sucesso!", type="positive")
-                                if getattr(render_conteudo, "refresh", None):
-                                    render_conteudo.refresh()
-
-                            ui.button("💾 SALVAR QUESITO 17.5", on_click=salvar_175).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                            ui.separator().classes("my-2")
-                            bloco_comentarios("17.5", res_data, getattr(render_conteudo, "refresh", None))
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 17.6 - Parecer da Prestação de Contas CACS FUNDEB
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("17.6 • Parecer da Prestação de Contas emitido pelo CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Qual foi o parecer da prestação de contas emitido pelo CACS FUNDEB referente ao exercício de 2026?").classes("text-base font-bold text-black mb-4")
-
-                                d176 = res_data.get("17.6") or res_data.get("176") or {}
-                                val_176 = str(d176.get("valor") or "Aprovado sem ressalva")
-                                link_176 = str(d176.get("link") or "")
-
-                                state_176 = {
-                                    "opcao": val_176,
-                                    "link": link_176,
-                                    "pontos": 0.0,
-                                }
-
-                                def calc_176():
-                                    op = state_176["opcao"]
-                                    if op == "Não aprovado":
-                                        state_176["pontos"] = -50.0
-                                    elif op == "Não apreciado":
-                                        state_176["pontos"] = -20.0
-                                    else:
-                                        state_176["pontos"] = 0.0
-                                    lbl_pontos_176.set_text(f"📊 Pontuação Quesito 17.6: {state_176['pontos']:.1f} pontos".replace(".", ","))
-
-                                opts_176 = [
-                                    "Aprovado sem ressalva",
-                                    "Aprovado com ressalva",
-                                    "Não aprovado",
-                                    "Não apreciado",
-                                ]
-
-                                ui.radio(
-                                    options=opts_176,
-                                    value=state_176["opcao"],
-                                    on_change=lambda e: [state_176.update({"opcao": e.value}), calc_176()],
-                                ).classes("mb-4")
-
-                                ui.textarea(
-                                    label="Link do Parecer / Anexo (Quesito 17.6):",
-                                    value=state_176["link"],
-                                    placeholder="Link para o parecer anexado...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_176, "link")
-
-                                lbl_pontos_176 = ui.label("📊 Pontuação Quesito 17.6: 0,0 pontos").classes("text-sm font-bold text-green-600 mb-4")
-                                calc_176()
-
-                                def salvar_176():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="17.6",
-                                        valor=state_176["opcao"],
-                                        pontos=state_176["pontos"],
-                                        link=state_176["link"],
-                                        comentarios=d176.get("comentarios", []),
-                                        status=d176.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 17.6 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 17.6", on_click=salvar_176).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("17.6", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 17.6.1 - Motivos da Não Aprovação CACS FUNDEB
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("17.6.1 • Motivos da Não Aprovação").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Informe quais os motivos da não aprovação:").classes("text-base font-bold text-black mb-4")
-
-                                d1761 = res_data.get("17.6.1") or res_data.get("1761") or {}
-                                val_1761 = str(d1761.get("valor") or "")
-                                link_1761 = str(d1761.get("link") or "")
-
-                                state_1761 = {
-                                    "texto": val_1761,
-                                    "link": link_1761,
-                                }
-
-                                ui.textarea(
-                                    label="Motivos da não aprovação:",
-                                    value=state_1761["texto"],
-                                    placeholder="Descreva detalhadamente os motivos caso a prestação de contas não tenha sido aprovada...",
-                                ).classes("w-full mb-4").props("outlined rows=4 color=blue").bind_value(state_1761, "texto")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 17.6.1):",
-                                    value=state_1761["link"],
-                                    placeholder="Link de documentos comprobatórios...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_1761, "link")
-
-                                ui.label("📊 Pontuação Quesito 17.6.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def salvar_1761():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="17.6.1",
-                                        valor=state_1761["texto"],
-                                        pontos=0.0,
-                                        link=state_1761["link"],
-                                        comentarios=d1761.get("comentarios", []),
-                                        status=d1761.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 17.6.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 17.6.1", on_click=salvar_1761).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("17.6.1", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 17.7 - Reuniões do Conselho do FUNDEB
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("17.7 • Reuniões do Conselho do FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Quantas reuniões foram realizadas pelo Conselho do FUNDEB no último exercício?").classes("text-base font-bold text-black mb-1")
-                                ui.label("(Não considerar reuniões de eleição/exclusão de membros, aprovação de orçamento ou outro assunto não relacionado à natureza do Conselho)").classes("text-sm text-gray-600 italic mb-4")
-
-                                d177 = res_data.get("17.7") or res_data.get("177") or {}
-                                val_177 = str(d177.get("valor") or "0")
-                                link_177 = str(d177.get("link") or "")
-
-                                state_177 = {
-                                    "reunioes": int(val_177) if val_177.isdigit() else 0,
-                                    "link": link_177,
-                                    "pontos": 0.0,
-                                }
-
-                                def calc_177():
-                                    n = state_177["reunioes"]
-                                    if n >= 12:
-                                        state_177["pontos"] = 3.0
-                                    elif n >= 8:
-                                        state_177["pontos"] = 1.5
-                                    elif n >= 4:
-                                        state_177["pontos"] = 1.0
-                                    else:
-                                        state_177["pontos"] = 0.0
-                                    lbl_pontos_177.set_text(f"📊 Pontuação Quesito 17.7: {state_177['pontos']:.1f} ponto(s)".replace(".", ","))
-
-                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                                    ui.number(
-                                        label="Número de Reuniões:",
-                                        value=state_177["reunioes"],
-                                        min=0,
-                                        step=1,
-                                        on_change=lambda e: [state_177.update({"reunioes": int(e.value or 0)}), calc_177()],
-                                    ).classes("w-full").props("outlined color=blue")
-
-                                    ui.textarea(
-                                        label="Link de Evidência (Quesito 17.7):",
-                                        value=state_177["link"],
-                                        placeholder="Link das atas das reuniões...",
-                                    ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_177, "link")
-
-                                lbl_pontos_177 = ui.label("📊 Pontuação Quesito 17.7: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-                                calc_177()
-
-                                def salvar_177():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="17.7",
-                                        valor=str(state_177["reunioes"]),
-                                        pontos=state_177["pontos"],
-                                        link=state_177["link"],
-                                        comentarios=d177.get("comentarios", []),
-                                        status=d177.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 17.7 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 17.7", on_click=salvar_177).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("17.7", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                        if etapa_atual == 8:
-                            # QUESITO 18.0 - Conselho de Alimentação Escolar (CAE)
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("18.0 • Conselho de Alimentação Escolar (CAE)").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("O município constituiu o CAE (Conselho de Alimentação Escolar)?").classes("text-base font-bold text-black mb-4")
-
-                                d180 = res_data.get("18.0") or res_data.get("180") or {}
-                                val_180 = str(d180.get("valor") or "Sim")
-                                link_180 = str(d180.get("link") or "")
-
-                                state_180 = {
-                                    "opcao": val_180,
-                                    "link": link_180,
-                                }
-
-                                opts_180 = ["Sim", "Não"]
-
-                                ui.radio(
-                                    options=opts_180,
-                                    value=state_180["opcao"],
-                                ).classes("mb-4").bind_value(state_180, "opcao")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 18.0):",
-                                    value=state_180["link"],
-                                    placeholder="Link da lei/decreto de criação do CAE...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_180, "link")
-
-                                ui.label("📊 Pontuação Quesito 18.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def salvar_180():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="18.0",
-                                        valor=state_180["opcao"],
-                                        pontos=0.0,
-                                        link=state_180["link"],
-                                        comentarios=d180.get("comentarios", []),
-                                        status=d180.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 18.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 18.0", on_click=salvar_180).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("18.0", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 18.1 - Recursos Fornecidos ao CAE
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("18.1 • Recursos Fornecidos ao CAE").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal para o funcionamento do Conselho de Alimentação Escolar:").classes("text-base font-bold text-black mb-4")
-
-                                d181 = res_data.get("18.1") or res_data.get("181") or {}
-                                sel_181 = d181.get("valor") or []
-                                if isinstance(sel_181, str):
-                                    sel_181 = [x.strip() for x in sel_181.split(";") if x.strip()]
-                                link_181 = str(d181.get("link") or "")
-
-                                state_181 = {
-                                    "selecionados": sel_181,
-                                    "link": link_181,
-                                    "pontos": 0.0,
-                                }
-
-                                items_181 = [
-                                    ("humanos", "Recursos Humanos", 0.5),
-                                    ("tecnologicos", "Recursos Tecnológicos", 0.5),
-                                    ("fisica", "Estrutura Física", 0.5),
-                                    ("orcamentarios", "Recursos Orçamentários", 0.5),
-                                    ("materiais", "Recursos Materiais", 0.5),
-                                    ("outros", "Outros", 0.5),
-                                ]
-
-                                def calc_181():
-                                    pts = sum(peso for key, _, peso in items_181 if key in state_181["selecionados"])
-                                    state_181["pontos"] = round(pts, 2)
-                                    lbl_pontos_181.set_text(f"📊 Pontuação Quesito 18.1: {state_181['pontos']:.1f} ponto(s)".replace(".", ","))
-
-                                def toggle_181(key, val):
-                                    if val and key not in state_181["selecionados"]:
-                                        state_181["selecionados"].append(key)
-                                    elif not val and key in state_181["selecionados"]:
-                                        state_181["selecionados"].remove(key)
-                                    calc_181()
-
-                                with ui.column().classes("w-full gap-2 mb-4"):
-                                    for key, rotulo, peso in items_181:
-                                        ui.checkbox(
-                                            text=f"{rotulo} (+{str(peso).replace('.', ',')} pt)",
-                                            value=(key in state_181["selecionados"]),
-                                            on_change=lambda e, k=key: toggle_181(k, e.value),
-                                        )
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 18.1):",
-                                    value=state_181["link"],
-                                    placeholder="Link dos comprovantes do suporte ao CAE...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_181, "link")
-
-                                lbl_pontos_181 = ui.label("📊 Pontuação Quesito 18.1: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-                                calc_181()
-
-                                def salvar_181():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="18.1",
-                                        valor="; ".join(state_181["selecionados"]),
-                                        pontos=state_181["pontos"],
-                                        link=state_181["link"],
-                                        comentarios=d181.get("comentarios", []),
-                                        status=d181.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 18.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 18.1", on_click=salvar_181).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("18.1", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 18.2 - Formação aos Conselheiros sobre o PNAE
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("18.2 • Formação aos Conselheiros sobre o PNAE").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("A Prefeitura ofereceu formação aos conselheiros sobre a execução do PNAE e temas que possuam interfaces com este Programa?").classes("text-base font-bold text-black mb-4")
-
-                                d182 = res_data.get("18.2") or res_data.get("182") or {}
-                                val_182 = str(d182.get("valor") or "Sim")
-                                link_182 = str(d182.get("link") or "")
-
-                                state_182 = {
-                                    "opcao": val_182,
-                                    "link": link_182,
-                                    "pontos": 0.0,
-                                }
-
-                                def calc_182():
-                                    if state_182["opcao"] == "Sim":
-                                        state_182["pontos"] = 6.0
-                                    else:
-                                        state_182["pontos"] = 0.0
-                                    lbl_pontos_182.set_text(f"📊 Pontuação Quesito 18.2: {state_182['pontos']:.1f} pontos".replace(".", ","))
-
-                                opts_182 = ["Sim", "Não"]
-
-                                ui.radio(
-                                    options=opts_182,
-                                    value=state_182["opcao"],
-                                    on_change=lambda e: [state_182.update({"opcao": e.value}), calc_182()],
-                                ).classes("mb-4")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 18.2):",
-                                    value=state_182["link"],
-                                    placeholder="Link dos certificados, ata da capacitação...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_182, "link")
-
-                                lbl_pontos_182 = ui.label("📊 Pontuação Quesito 18.2: 0,0 pontos").classes("text-sm font-bold text-green-600 mb-4")
-                                calc_182()
-
-                                def salvar_182():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="18.2",
-                                        valor=state_182["opcao"],
-                                        pontos=state_182["pontos"],
-                                        link=state_182["link"],
-                                        comentarios=d182.get("comentarios", []),
-                                        status=d182.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 18.2 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 18.2", on_click=salvar_182).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("18.2", res_data, render_conteudo.refresh)
-
-
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 18.3 - Divulgação das Atividades do CAE
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("18.3 • Divulgação das Atividades do CAE").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("A Prefeitura divulga as atividades do CAE por meio de comunicação oficial?").classes("text-base font-bold text-black mb-4")
-
-                                d183 = res_data.get("18.3") or res_data.get("183") or {}
-                                val_183 = str(d183.get("valor") or "Sim")
-                                link_183 = str(d183.get("link") or "")
-
-                                state_183 = {
-                                    "opcao": val_183,
-                                    "link": link_183,
-                                }
-
-                                opts_183 = ["Sim", "Não"]
-
-                                ui.radio(
-                                    options=opts_183,
-                                    value=state_183["opcao"],
-                                ).classes("mb-4").bind_value(state_183, "opcao")
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 18.3):",
-                                    value=state_183["link"],
-                                    placeholder="Link das publicações oficiais...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_183, "link")
-
-                                ui.label("📊 Pontuação Quesito 18.3: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                                def salvar_183():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="18.3",
-                                        valor=state_183["opcao"],
-                                        pontos=0.0,
-                                        link=state_183["link"],
-                                        comentarios=d183.get("comentarios", []),
-                                        status=d183.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 18.3 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 18.3", on_click=salvar_183).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("18.3", res_data, render_conteudo.refresh)
-
-        # -----------------------------------------------------------------------------
-                            # QUESITO 18.3.1 - Atividades Realizadas pelo CAE no Ano
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("18.3.1 • Atividades Realizadas pelo CAE no Ano").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Assinale as atividades realizadas pelo CAE no ano:").classes("text-base font-bold text-black mb-4")
-
-                                d1831 = res_data.get("18.3.1") or res_data.get("1831") or {}
-                                sel_1831 = d1831.get("valor") or []
-                                if isinstance(sel_1831, str):
-                                    sel_1831 = [x.strip() for x in sel_1831.split(";") if x.strip()]
-                                link_1831 = str(d1831.get("link") or "")
-
-                                state_1831 = {
-                                    "selecionados": sel_1831,
-                                    "link": link_1831,
-                                    "pontos": 0.0,
-                                }
-
-                                items_1831 = [
-                                    ("diretrizes", "Acompanhamento e fiscalização do cumprimento das diretrizes estabelecidas sobre alimentação escolar", 0.5),
-                                    ("recursos", "Acompanhamento e fiscalização da aplicação dos recursos destinados à alimentação escolar", 1.0),
-                                    ("qualidade", "Aferição da qualidade dos alimentos, em especial quanto às condições higiênicas, bem como a aceitabilidade dos cardápios oferecidos", 1.0),
-                                    ("estrutura", "Aferição das condições físicas e estruturais da cozinha", 1.0),
-                                    ("parecer_pnae", "Sobre o relatório anual de gestão do PNAE, emitiu parecer conclusivo a respeito, aprovando ou reprovando a execução do Programa", 1.0),
-                                    ("comunicou_irregularidades", "Comunicou aos órgãos de controle as irregularidades observadas", 0.0),
-                                    ("relatorios_pnae", "Forneceu informações e apresentou relatórios de acompanhamento da execução do PNAE sempre que solicitado", 0.0),
-                                    ("visitas", "Realizou visitas periódicas às escolas", 1.0),
-                                    ("reunioes", "Realizou reuniões periódicas", 0.5),
-                                ]
-
-                                def calc_1831():
-                                    pts = sum(peso for key, _, peso in items_1831 if key in state_1831["selecionados"])
-                                    state_1831["pontos"] = round(pts, 2)
-                                    lbl_pontos_1831.set_text(f"📊 Pontuação Quesito 18.3.1: {state_1831['pontos']:.1f} ponto(s)".replace(".", ","))
-
-                                def toggle_1831(key, val):
-                                    if val and key not in state_1831["selecionados"]:
-                                        state_1831["selecionados"].append(key)
-                                    elif not val and key in state_1831["selecionados"]:
-                                        state_1831["selecionados"].remove(key)
-                                    calc_1831()
-
-                                with ui.column().classes("w-full gap-2 mb-4"):
-                                    for key, rotulo, peso in items_1831:
-                                        txt_peso = f" (+{str(peso).replace('.', ',')} pt)" if peso > 0 else " (0,0 pt)"
-                                        ui.checkbox(
-                                            text=f"{rotulo}{txt_peso}",
-                                            value=(key in state_1831["selecionados"]),
-                                            on_change=lambda e, k=key: toggle_1831(k, e.value),
-                                        )
-
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 18.3.1):",
-                                    value=state_1831["link"],
-                                    placeholder="Link das atas/relatórios das atividades...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_1831, "link")
-
-                                lbl_pontos_1831 = ui.label("📊 Pontuação Quesito 18.3.1: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-                                calc_1831()
-
-                                def salvar_1831():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="18.3.1",
-                                        valor="; ".join(state_1831["selecionados"]),
-                                        pontos=state_1831["pontos"],
-                                        link=state_1831["link"],
-                                        comentarios=d1831.get("comentarios", []),
-                                        status=d1831.get("status", "Pendente"),
-                                    )
-                                    ui.notify("Quesito 18.3.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
-
-                                ui.button("💾 SALVAR QUESITO 18.3.1", on_click=salvar_1831).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("18.3.1", res_data, render_conteudo.refresh)
-
-
-                        # -----------------------------------------------------------------------------
-                        # QUESITO 18.3.1.1 - Quantidade de Visitas Realizadas pelo CAE
-                        # -----------------------------------------------------------------------------
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("18.3.1.1 • Visitas do CAE nas Escolas dos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
-                            ui.label("Informe a quantidade de visitas realizadas pelo CAE nas escolas dos Anos Iniciais no ano:").classes("text-base font-bold text-black mb-4")
-
-                            d18311 = res_data.get("18.3.1.1") or res_data.get("18311") or {}
-                        
-                            # Captura e conversão segura de qualquer tipo (int, float, str ou None)
-                            raw_val_18311 = d18311.get("valor")
-                            try:
-                                val_18311_num = int(float(raw_val_18311)) if raw_val_18311 is not None and str(raw_val_18311).strip() != "" else 0
-                            except (ValueError, TypeError):
-                                val_18311_num = 0
-
-                            raw_link_18311 = str(d18311.get("link") or "")
-
-                            state_18311 = {
-                                "visitas": val_18311_num,
-                                "link": raw_link_18311,
+                            ui.label("16.3.1 • Irregularidades Apontadas").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe quantas irregularidades foram apontadas:").classes("text-base font-bold text-black mb-6")
+
+                            d1631 = res_data.get("16.3.1") or res_data.get("1631") or {}
+                            val_1631 = str(d1631.get("valor") or "0")
+                            raw_link_1631 = str(d1631.get("link") or "")
+
+                            state_1631 = {
+                                "quantidade": int(val_1631) if val_1631.isdigit() else 0,
+                                "link": raw_link_1631,
                             }
 
                             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                 ui.number(
-                                    label="Quantidade de visitas realizadas pelo CAE:",
-                                    value=state_18311["visitas"],
+                                    label="Quantidade de irregularidades apontadas:",
+                                    value=state_1631["quantidade"],
                                     min=0,
                                     step=1,
-                                ).classes("w-full").props("outlined color=blue").bind_value(state_18311, "visitas")
+                                ).classes("w-full").props("outlined color=blue").bind_value(state_1631, "quantidade")
 
                                 ui.textarea(
-                                    label="Link de Evidência (Quesito 18.3.1.1):",
-                                    value=state_18311["link"],
-                                    placeholder="Link do relatório/relatórios de visitas...",
-                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_18311, "link")
+                                    label="Link de Evidência (Quesito 16.3.1):",
+                                    value=raw_link_1631,
+                                    placeholder="Link dos relatórios/denúncias de irregularidades apontadas...",
+                                ).classes("w-full").props("outlined rows=4 color=blue").bind_value(state_1631, "link")
 
-                            ui.label("📊 Pontuação Quesito 18.3.1.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+                            ui.label("📊 Pontuação Quesito 16.3.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
 
-                            def salvar_18311():
-                                # Trata para salvar tanto em int quanto em str no formato limpo
-                                val_atual = state_18311.get("visitas")
-                                try:
-                                    qtd_final = int(val_atual) if val_atual is not None else 0
-                                except (ValueError, TypeError):
-                                    qtd_final = 0
-
+                            def salvar_1631():
                                 save_resposta(
                                     ano=ano_sel,
-                                    qid="18.3.1.1",
-                                    valor=qtd_final,  # Salva como inteiro limpo para evitar inconsistência
+                                    qid="16.3.1",
+                                    valor=str(state_1631["quantidade"]),
                                     pontos=0.0,
-                                    link=state_18311["link"],
-                                    comentarios=d18311.get("comentarios", []),
-                                    status=d18311.get("status", "Pendente"),
+                                    link=state_1631["link"],
+                                    comentarios=d1631.get("comentarios", []),
+                                    status=d1631.get("status", "Pendente"),
                                 )
-                                ui.notify("Quesito 18.3.1.1 salvo com sucesso!", type="positive")
-                                if getattr(render_conteudo, "refresh", None):
+                                ui.notify("Quesito 16.3.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
                                     render_conteudo.refresh()
 
-                            ui.button("💾 SALVAR QUESITO 18.3.1.1", on_click=salvar_18311).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.button("💾 SALVAR QUESITO 16.3.1", on_click=salvar_1631).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
                             ui.separator().classes("my-2")
-                            bloco_comentarios("18.3.1.1", res_data, getattr(render_conteudo, "refresh", None))
+                            bloco_comentarios("16.3.1", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 19.0 - (Re)Elaboração do Currículo da Rede Municipal conforme a BNCC
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("19.0 • Adaptação do Currículo à BNCC").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("A Prefeitura Municipal (re)elaborou o currículo da rede municipal de ensino adequando-se às proposições da Base Nacional Comum Curricular (BNCC)?").classes("text-base font-bold text-black mb-4")
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 16.3.2 - Quantidade de Irregularidades Solucionadas
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("16.3.2 • Irregularidades Solucionadas").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe quantas irregularidades foram solucionadas:").classes("text-base font-bold text-black mb-6")
 
-                                d190 = res_data.get("19.0") or res_data.get("190") or {}
-                                val_190 = str(d190.get("valor") or "Sim")
-                                link_190 = str(d190.get("link") or "")
+                            d1632 = res_data.get("16.3.2") or res_data.get("1632") or {}
+                            val_1632 = str(d1632.get("valor") or "0")
+                            raw_link_1632 = str(d1632.get("link") or "")
 
-                                state_190 = {
-                                    "opcao": val_190,
-                                    "link": link_190,
-                                }
+                            state_1632 = {
+                                "quantidade": int(val_1632) if val_1632.isdigit() else 0,
+                                "link": raw_link_1632,
+                            }
 
-                                opts_190 = [
-                                    "Sim",
-                                    "Não",
-                                    "Houve adesão ao Currículo Paulista elaborado pela Secretaria da Educação do Estado de São Paulo",
-                                ]
-
-                                ui.radio(
-                                    options=opts_190,
-                                    value=state_190["opcao"],
-                                ).classes("mb-4").bind_value(state_190, "opcao")
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.number(
+                                    label="Quantidade de irregularidades solucionadas:",
+                                    value=state_1632["quantidade"],
+                                    min=0,
+                                    step=1,
+                                ).classes("w-full").props("outlined color=blue").bind_value(state_1632, "quantidade")
 
                                 ui.textarea(
-                                    label="Link de Evidência (Quesito 19.0):",
-                                    value=state_190["link"],
-                                    placeholder="Link do documento curricular / decreto...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_190, "link")
+                                    label="Link de Evidência (Quesito 16.3.2):",
+                                    value=raw_link_1632,
+                                    placeholder="Link dos comprovantes de regularização...",
+                                ).classes("w-full").props("outlined rows=4 color=blue").bind_value(state_1632, "link")
 
-                                ui.label("📊 Pontuação Quesito 19.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+                            ui.label("📊 Pontuação Quesito 16.3.2: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
 
-                                def salvar_190():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="19.0",
-                                        valor=state_190["opcao"],
-                                        pontos=0.0,
-                                        link=state_190["link"],
-                                        comentarios=d190.get("comentarios", []),
-                                        status=d190.get("status", "Pendente"),
+                            def salvar_1632():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="16.3.2",
+                                    valor=str(state_1632["quantidade"]),
+                                    pontos=0.0,
+                                    link=state_1632["link"],
+                                    comentarios=d1632.get("comentarios", []),
+                                    status=d1632.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 16.3.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 16.3.2", on_click=salvar_1632).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("16.3.2", res_data, render_conteudo.refresh)
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 16.3.3 - Irregularidades Apontadas
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("16.3.3 • Irregularidades Apontadas").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe as irregularidades apontadas (Se não houve apontamento de irregularidade, informar: Não houve):").classes("text-base font-bold text-black mb-4")
+
+                            d1633 = res_data.get("16.3.3") or res_data.get("1633") or {}
+                            val_1633 = str(d1633.get("valor") or "")
+                            link_1633 = str(d1633.get("link") or "")
+
+                            state_1633 = {
+                                "texto": val_1633,
+                                "link": link_1633,
+                            }
+
+                            ui.textarea(
+                                label="Descrição das Irregularidades Apontadas:",
+                                value=state_1633["texto"],
+                                placeholder="Descreva as irregularidades ou digite 'Não houve'...",
+                            ).classes("w-full mb-4").props("outlined rows=4 color=blue").bind_value(state_1633, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.3.3):",
+                                value=state_1633["link"],
+                                placeholder="Link para a ata/relatório...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_1633, "link")
+
+                            ui.label("📊 Pontuação Quesito 16.3.3: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_1633():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="16.3.3",
+                                    valor=state_1633["texto"],
+                                    pontos=0.0,
+                                    link=state_1633["link"],
+                                    comentarios=d1633.get("comentarios", []),
+                                    status=d1633.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 16.3.3 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 16.3.3", on_click=salvar_1633).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("16.3.3", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 16.4 - Aprovação de Contas pelo CME
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("16.4 • Aprovação de Contas da SME pelo Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("O Conselho Municipal de Educação aprovou as contas da Secretaria Municipal de Educação referente ao exercício de 2026?").classes("text-base font-bold text-black mb-4")
+
+                            # Lista oficial de opções do Radio
+                            opts_164 = [
+                                "Sim",
+                                "Não",
+                                "Não compete ao Conselho aprovar as contas da Secretaria – 00",
+                                "Não compete ao Conselho aprovar as contas da Secretaria",
+                            ]
+
+                            d164 = res_data.get("16.4") or res_data.get("164") or {}
+                            val_164_raw = str(d164.get("valor") or "Sim").strip()
+
+                            # Validação de fallback: garante que o valor pertença às opções válidas do NiceGUI
+                            val_164 = val_164_raw if val_164_raw in opts_164 else opts_164[0]
+                            link_164 = str(d164.get("link") or "")
+
+                            state_164 = {
+                                "opcao": val_164,
+                                "link": link_164,
+                                "pontos": 0.0,
+                            }
+
+                            def calc_164():
+                                op = state_164["opcao"]
+                                if op == "Não":
+                                    state_164["pontos"] = -50.0
+                                else:
+                                    state_164["pontos"] = 0.0
+                            
+                                # Define cor do texto dinamicamente (vermelho se houver penalidade)
+                                cor_classe = "text-red-600" if state_164["pontos"] < 0 else "text-green-600"
+                                lbl_pontos_164.classes(replace=f"text-sm font-bold mb-4 {cor_classe}")
+                                lbl_pontos_164.set_text(f"📊 Pontuação Quesito 16.4: {state_164['pontos']:.1f} pontos".replace(".", ","))
+
+                            ui.radio(
+                                options=opts_164,
+                                value=state_164["opcao"],
+                                on_change=lambda e: [state_164.update({"opcao": e.value}), calc_164()],
+                            ).classes("mb-4")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.4):",
+                                value=state_164["link"],
+                                placeholder="Link do parecer/parecer conclusivo...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_164, "link")
+
+                            lbl_pontos_164 = ui.label("📊 Pontuação Quesito 16.4: 0,0 pontos").classes("text-sm font-bold text-green-600 mb-4")
+                            calc_164()
+
+                            def salvar_164():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="16.4",
+                                    valor=state_164["opcao"],
+                                    pontos=state_164["pontos"],
+                                    link=state_164["link"],
+                                    comentarios=d164.get("comentarios", []),
+                                    status=d164.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 16.4 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 16.4", on_click=salvar_164).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("16.4", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 16.4.1 - Motivos da Não Aprovação
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("16.4.1 • Motivos da Não Aprovação").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe quais os motivos da não aprovação:").classes("text-base font-bold text-black mb-4")
+
+                            d1641 = res_data.get("16.4.1") or res_data.get("1641") or {}
+                            val_1641 = str(d1641.get("valor") or "")
+                            link_1641 = str(d1641.get("link") or "")
+
+                            state_1641 = {
+                                "texto": val_1641,
+                                "link": link_1641,
+                            }
+
+                            ui.textarea(
+                                label="Motivos da não aprovação:",
+                                value=state_1641["texto"],
+                                placeholder="Descreva detalhadamente os motivos caso as contas não tenham sido aprovadas...",
+                            ).classes("w-full mb-4").props("outlined rows=4 color=blue").bind_value(state_1641, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 16.4.1):",
+                                value=state_1641["link"],
+                                placeholder="Link de documentos comprobatórios...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_1641, "link")
+
+                            ui.label("📊 Pontuação Quesito 16.4.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_1641():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="16.4.1",
+                                    valor=state_1641["texto"],
+                                    pontos=0.0,
+                                    link=state_1641["link"],
+                                    comentarios=d1641.get("comentarios", []),
+                                    status=d1641.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 16.4.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 16.4.1", on_click=salvar_1641).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("16.4.1", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 16.5 - Reuniões do Conselho
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("16.5 • Reuniões do Conselho Municipal de Educação").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Quantas reuniões foram realizadas pelo Conselho Municipal de Educação no último exercício?").classes("text-base font-bold text-black mb-1")
+                            ui.label("(Não considerar reuniões de eleição/exclusão de membros, aprovação de orçamento ou outro assunto não relacionado à natureza do Conselho)").classes("text-sm text-gray-600 italic mb-4")
+
+                            d165 = res_data.get("16.5") or res_data.get("165") or {}
+                            val_165 = str(d165.get("valor") or "0")
+                            link_165 = str(d165.get("link") or "")
+
+                            state_165 = {
+                                "reunioes": int(val_165) if val_165.isdigit() else 0,
+                                "link": link_165,
+                                "pontos": 0.0,
+                            }
+
+                            def calc_165():
+                                n = state_165["reunioes"]
+                                if n >= 12:
+                                    state_165["pontos"] = 3.0
+                                elif n >= 8:
+                                    state_165["pontos"] = 1.5
+                                elif n >= 4:
+                                    state_165["pontos"] = 1.0
+                                else:
+                                    state_165["pontos"] = 0.0
+                                lbl_pontos_165.set_text(f"📊 Pontuação Quesito 16.5: {state_165['pontos']:.1f} pontos".replace(".", ","))
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.number(
+                                    label="Número de Reuniões:",
+                                    value=state_165["reunioes"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_165.update({"reunioes": int(e.value or 0)}), calc_165()],
+                                ).classes("w-full").props("outlined color=blue")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 16.5):",
+                                    value=state_165["link"],
+                                    placeholder="Link das atas das reuniões...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_165, "link")
+
+                            lbl_pontos_165 = ui.label("📊 Pontuação Quesito 16.5: 0,0 pontos").classes("text-sm font-bold text-green-600 mb-4")
+                            calc_165()
+
+                            def salvar_165():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="16.5",
+                                    valor=str(state_165["reunioes"]),
+                                    pontos=state_165["pontos"],
+                                    link=state_165["link"],
+                                    comentarios=d165.get("comentarios", []),
+                                    status=d165.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 16.5 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 16.5", on_click=salvar_165).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("16.5", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 17.0 - CACS FUNDEB
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("17.0 • Conselho de Acompanhamento e Controle Social do FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("O município possui Conselho de Acompanhamento e Controle Social do FUNDEB?").classes("text-base font-bold text-black mb-4")
+
+                            d170 = res_data.get("17.0") or res_data.get("170") or {}
+                            val_170 = str(d170.get("valor") or "Sim, com estrutura independente do Conselho Municipal de Educação")
+                            link_170 = str(d170.get("link") or "")
+
+                            state_170 = {
+                                "opcao": val_170,
+                                "link": link_170,
+                            }
+
+                            opts_170 = [
+                                "Sim, com estrutura independente do Conselho Municipal de Educação",
+                                "Sim, integrado ao Conselho Municipal de Educação",
+                                "Não",
+                            ]
+
+                            ui.radio(
+                                options=opts_170,
+                                value=state_170["opcao"],
+                            ).classes("mb-4").bind_value(state_170, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.0):",
+                                value=state_170["link"],
+                                placeholder="Link do comprovante ou site...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_170, "link")
+
+                            ui.label("📊 Pontuação Quesito 17.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_170():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="17.0",
+                                    valor=state_170["opcao"],
+                                    pontos=0.0,
+                                    link=state_170["link"],
+                                    comentarios=d170.get("comentarios", []),
+                                    status=d170.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 17.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 17.0", on_click=salvar_170).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("17.0", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 17.1 - Instrumento Normativo CACS FUNDEB
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("17.1 • Instrumento Normativo de Instituição do CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe o Instrumento Normativo, Número e Data da publicação que instituiu o Conselho de Acompanhamento e Controle Social do FUNDEB:").classes("text-base font-bold text-black mb-4")
+
+                            d171 = res_data.get("17.1") or res_data.get("171") or {}
+                            val_171 = str(d171.get("valor") or "")
+                            link_171 = str(d171.get("link") or "")
+
+                            state_171 = {
+                                "texto": val_171,
+                                "link": link_171,
+                            }
+
+                            ui.textarea(
+                                label="Instrumento normativo, Número e Data da publicação:",
+                                value=state_171["texto"],
+                                placeholder="Ex: Lei Municipal nº 1234 de 10/01/2021...",
+                            ).classes("w-full mb-4").props("outlined rows=3 color=blue").bind_value(state_171, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.1):",
+                                value=state_171["link"],
+                                placeholder="Link para a publicação oficial...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_171, "link")
+
+                            ui.label("📊 Pontuação Quesito 17.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_171():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="17.1",
+                                    valor=state_171["texto"],
+                                    pontos=0.0,
+                                    link=state_171["link"],
+                                    comentarios=d171.get("comentarios", []),
+                                    status=d171.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 17.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 17.1", on_click=salvar_171).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("17.1", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 17.2 - Link do Instrumento Normativo CACS FUNDEB
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("17.2 • Página Eletrônica da Norma do CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe a página eletrônica (link na internet) do instrumento normativo que instituiu o CACS FUNDEB:").classes("text-base font-bold text-black mb-1")
+                            ui.label("(Se não estiver disponível na internet, inserir no campo 'Página eletrônica' o texto XYZ)").classes("text-sm text-gray-600 italic mb-4")
+
+                            d172 = res_data.get("17.2") or res_data.get("172") or {}
+                            val_172 = str(d172.get("valor") or d172.get("link") or "")
+
+                            state_172 = {
+                                "link": val_172,
+                                "pontos": 0.0,
+                            }
+
+                            def calc_172():
+                                lk = state_172["link"].strip()
+                                if lk.upper() == "XYZ" or lk == "":
+                                    state_172["pontos"] = 0.0
+                                else:
+                                    state_172["pontos"] = 0.0
+                                lbl_pontos_172.set_text(f"📊 Pontuação Quesito 17.2: {state_172['pontos']:.1f} ponto(s)".replace(".", ","))
+
+                            ui.textarea(
+                                label="Página eletrônica (link na internet):",
+                                value=state_172["link"],
+                                placeholder="Cole o link aqui ou digite XYZ se não estiver disponível...",
+                                on_change=lambda e: [state_172.update({"link": e.value}), calc_172()],
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue")
+
+                            lbl_pontos_172 = ui.label("📊 Pontuação Quesito 17.2: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                            calc_172()
+
+                            def salvar_172():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="17.2",
+                                    valor=state_172["link"],
+                                    pontos=state_172["pontos"],
+                                    link=state_172["link"],
+                                    comentarios=d172.get("comentarios", []),
+                                    status=d172.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 17.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 17.2", on_click=salvar_172).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("17.2", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 17.3 - Informações do CACS FUNDEB no Sítio Eletrônico
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("17.3 • Informações Atualizadas sobre o CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("A Prefeitura Municipal disponibilizou, em sítio na internet, informações atualizadas sobre a composição e o funcionamento do CACS FUNDEB?").classes("text-base font-bold text-black mb-4")
+
+                            d173 = res_data.get("17.3") or res_data.get("173") or {}
+                            val_173 = str(d173.get("valor") or "Sim")
+                            link_173 = str(d173.get("link") or "")
+
+                            state_173 = {
+                                "opcao": val_173,
+                                "link": link_173,
+                            }
+
+                            opts_173 = ["Sim", "Não"]
+
+                            ui.radio(
+                                options=opts_173,
+                                value=state_173["opcao"],
+                            ).classes("mb-4").bind_value(state_173, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.3):",
+                                value=state_173["link"],
+                                placeholder="Link da página oficial com composição e funcionamento...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_173, "link")
+
+                            ui.label("📊 Pontuação Quesito 17.3: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_173():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="17.3",
+                                    valor=state_173["opcao"],
+                                    pontos=0.0,
+                                    link=state_173["link"],
+                                    comentarios=d173.get("comentarios", []),
+                                    status=d173.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 17.3 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 17.3", on_click=salvar_173).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("17.3", res_data, render_conteudo.refresh)
+
+                        # -----------------------------------------------------------------------------
+                    # QUESITO 17.3.1 - Informações Disponibilizadas em Sítio na Internet
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.3.1 • Informações Disponibilizadas na Internet (CACS FUNDEB)").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale quais informações foram disponibilizadas em sítio na internet:").classes("text-base font-bold text-black mb-6")
+
+                        d1731 = res_data.get("17.3.1") or res_data.get("1731") or {}
+                        val_1731_lista = list(d1731.get("valor")) if isinstance(d1731.get("valor"), list) else []
+                        raw_link_1731 = str(d1731.get("link") or "")
+
+                        info_1731 = [
+                            ("Nomes dos conselheiros e das entidades ou segmentos que representam", 0.4),
+                            ("Correio eletrônico ou outro canal de contato direto com o conselho", 0.4),
+                            ("Atas de reuniões", 0.4),
+                            ("Relatórios e pareceres", 0.4),
+                            ("Outros documentos produzidos pelo conselho", 0.4),
+                        ]
+
+                        state_1731 = {
+                            "selecionados": val_1731_lista,
+                            "link": raw_link_1731,
+                        }
+
+                        def calc_pts_1731():
+                            return sum(pt for item, pt in info_1731 if item in state_1731["selecionados"])
+
+                        lbl_pts_1731 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_1731():
+                            pts = calc_pts_1731()
+                            lbl_pts_1731.set_text(f"📊 Pontuação Quesito 17.3.1: {pts:.1f} pontos")
+
+                        att_pts_1731()
+
+                        def on_checkbox_change_1731(e, item):
+                            if e.value and item not in state_1731["selecionados"]:
+                                state_1731["selecionados"].append(item)
+                            elif not e.value and item in state_1731["selecionados"]:
+                                state_1731["selecionados"].remove(item)
+                            att_pts_1731()
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in info_1731:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)",
+                                        value=(item in state_1731["selecionados"]),
+                                        on_change=lambda e, it=item: on_checkbox_change_1731(e, it)
                                     )
-                                    ui.notify("Quesito 19.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
 
-                                ui.button("💾 SALVAR QUESITO 19.0", on_click=salvar_190).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("19.0", res_data, render_conteudo.refresh)
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.3.1):",
+                                value=raw_link_1731,
+                                placeholder="Link da página onde as informações estão publicadas...",
+                            ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_1731, "link")
+
+                        def salvar_1731():
+                            pts = calc_pts_1731()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.3.1",
+                                valor=state_1731["selecionados"],
+                                pontos=pts,
+                                link=state_1731["link"],
+                                comentarios=d1731.get("comentarios", []),
+                                status=d1731.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.3.1 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.3.1", on_click=salvar_1731).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.3.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 19.1 - Etapas de Ensino com Currículo Atualizado
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("19.1 • Etapas de Ensino com Currículo Atualizado conforme BNCC").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Assinale as etapas de ensino que estão com o currículo atualizado conforme a BNCC:").classes("text-base font-bold text-black mb-4")
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 17.3.2 - Página Eletrônica do Conselho
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.3.2 • Página Eletrônica do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a página eletrônica (link na internet) sobre a composição e funcionamento dos conselhos:").classes("text-base font-bold text-black mb-2")
+                        ui.label("⚠️ Se não estiver disponível na internet, inserir no campo 'Página eletrônica (link na internet)' o texto XYZ").classes("text-xs font-semibold text-amber-700 mb-6")
 
-                                d191 = res_data.get("19.1") or res_data.get("191") or {}
-                                sel_191 = d191.get("valor") or []
-                                if isinstance(sel_191, str):
-                                    sel_191 = [x.strip() for x in sel_191.split(";") if x.strip()]
-                                link_191 = str(d191.get("link") or "")
+                        d1732 = res_data.get("17.3.2") or res_data.get("1732") or {}
+                        raw_link_1732 = str(d1732.get("link") or d1732.get("valor") or "")
 
-                                state_191 = {
-                                    "selecionados": sel_191,
-                                    "link": link_191,
-                                }
+                        state_1732 = {
+                            "link": raw_link_1732,
+                        }
 
-                                items_191 = [
-                                    ("creche", "Creche"),
-                                    ("pre_escola", "Pré-escola"),
-                                    ("anos_iniciais", "Anos Iniciais do Ensino Fundamental"),
-                                    ("anos_finais", "Anos Finais do Ensino Fundamental"),
-                                ]
+                        ui.textarea(
+                            label="Página eletrônica (link na internet):",
+                            value=raw_link_1732,
+                            placeholder="Insira a URL completa do site ou digite XYZ caso não esteja disponível...",
+                        ).classes("w-full mb-4").props("outlined rows=4 color=blue").bind_value(state_1732, "link")
 
-                                def toggle_191(key, val):
-                                    if val and key not in state_191["selecionados"]:
-                                        state_191["selecionados"].append(key)
-                                    elif not val and key in state_191["selecionados"]:
-                                        state_191["selecionados"].remove(key)
+                        def salvar_1732():
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.3.2",
+                                valor=state_1732["link"],
+                                pontos=0.0,
+                                link=state_1732["link"],
+                                comentarios=d1732.get("comentarios", []),
+                                status=d1732.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.3.2 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
 
-                                with ui.column().classes("w-full gap-2 mb-4"):
-                                    for key, rotulo in items_191:
-                                        ui.checkbox(
-                                            text=rotulo,
-                                            value=(key in state_191["selecionados"]),
-                                            on_change=lambda e, k=key: toggle_191(k, e.value),
-                                        )
+                        ui.button("💾 SALVAR QUESITO 17.3.2", on_click=salvar_1732).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.3.2", res_data, getattr(render_conteudo, "refresh", None))
 
-                                ui.textarea(
-                                    label="Link de Evidência (Quesito 19.1):",
-                                    value=state_191["link"],
-                                    placeholder="Link do currículo por etapa...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_191, "link")
 
-                                ui.label("📊 Pontuação Quesito 19.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 17.4 - Recursos fornecidos ao CACS FUNDEB
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.4 • Recursos para Funcionamento do CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal ao CACS FUNDEB a fim de garantir infraestrutura e condições materiais adequadas à execução plena de suas competências:").classes("text-base font-bold text-black mb-6")
 
-                                def salvar_191():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="19.1",
-                                        valor="; ".join(state_191["selecionados"]),
-                                        pontos=0.0,
-                                        link=state_191["link"],
-                                        comentarios=d191.get("comentarios", []),
-                                        status=d191.get("status", "Pendente"),
+                        d174 = res_data.get("17.4") or res_data.get("174") or {}
+                        val_174_lista = list(d174.get("valor")) if isinstance(d174.get("valor"), list) else []
+                        raw_link_174 = str(d174.get("link") or "")
+
+                        recursos_174 = [
+                            ("Recursos Humanos", 0.5),
+                            ("Recursos Tecnológicos", 0.5),
+                            ("Estrutura Física", 0.5),
+                            ("Recursos Orçamentários", 0.5),
+                            ("Recursos Materiais", 0.5),
+                            ("Outros", 0.5),
+                        ]
+
+                        state_174 = {
+                            "selecionados": val_174_lista,
+                            "link": raw_link_174,
+                        }
+
+                        def calc_pts_174():
+                            return sum(pt for item, pt in recursos_174 if item in state_174["selecionados"])
+
+                        lbl_pts_174 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_174():
+                            pts = calc_pts_174()
+                            lbl_pts_174.set_text(f"📊 Pontuação Quesito 17.4: {pts:.1f} pontos")
+
+                        att_pts_174()
+
+                        def on_checkbox_change_174(e, item):
+                            if e.value and item not in state_174["selecionados"]:
+                                state_174["selecionados"].append(item)
+                            elif not e.value and item in state_174["selecionados"]:
+                                state_174["selecionados"].remove(item)
+                            att_pts_174()
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in recursos_174:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)",
+                                        value=(item in state_174["selecionados"]),
+                                        on_change=lambda e, it=item: on_checkbox_change_174(e, it)
                                     )
-                                    ui.notify("Quesito 19.1 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
 
-                                ui.button("💾 SALVAR QUESITO 19.1", on_click=salvar_191).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("19.1", res_data, render_conteudo.refresh)
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.4):",
+                                value=raw_link_174,
+                                placeholder="Link do ato normativo, estrutura ou dotação orçamentária...",
+                            ).classes("w-full").props("outlined rows=6 color=blue").bind_value(state_174, "link")
+
+                        def salvar_174():
+                            pts = calc_pts_174()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.4",
+                                valor=state_174["selecionados"],
+                                pontos=pts,
+                                link=state_174["link"],
+                                comentarios=d174.get("comentarios", []),
+                                status=d174.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.4 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.4", on_click=salvar_174).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.4", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 19.2 - Página Eletrônica do Currículo da Rede Municipal
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("19.2 • Link do Currículo da Rede Municipal").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Informe a página eletrônica (link na internet) do currículo da rede municipal de ensino:").classes("text-base font-bold text-black mb-1")
-                                ui.label("(Se não estiver disponível na internet, inserir no campo 'Página eletrônica' o texto XYZ)").classes("text-sm text-gray-600 italic mb-4")
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 17.5 - Atividades Realizadas pelo CACS FUNDEB
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("17.5 • Atividades Realizadas no Ano pelo CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Assinale as atividades que o CACS Fundeb realizou no ano:").classes("text-base font-bold text-black mb-6")
 
-                                d192 = res_data.get("19.2") or res_data.get("192") or {}
-                                val_192 = str(d192.get("valor") or d192.get("link") or "")
+                        d175 = res_data.get("17.5") or res_data.get("175") or {}
+                        val_175_lista = list(d175.get("valor")) if isinstance(d175.get("valor"), list) else []
+                        raw_link_175 = str(d175.get("link") or "")
 
-                                state_192 = {
-                                    "link": val_192,
-                                }
+                        atividades_175 = [
+                            ("Elaboração do parecer das prestações de contas do FUNDEB", 1.5),
+                            ("Supervisão da elaboração da proposta orçamentária anual", 0.5),
+                            ("Apresentação de manifestação formal acerca dos registros contábeis e demonstrativos gerenciais do Fundo aos órgãos competentes", 0.5),
+                            ("Convocação dos responsáveis para prestação de esclarecimentos acerca do fluxo de recursos e da execução das despesas do Fundo", 0.5),
+                            ("Requisição ao Poder Executivo de cópia de documentos", 0.5),
+                            ("Visitas para verificações in loco", 1.0),
+                            ("Supervisão do censo escolar anual", 1.0),
+                            ("Acompanhar a aplicação dos recursos federais transferidos à conta do PNATE e do PEJA e analisar suas prestações de contas", 0.5),
+                        ]
 
-                                ui.textarea(
-                                    label="Página eletrônica (link na internet):",
-                                    value=state_192["link"],
-                                    placeholder="Cole o link aqui ou digite XYZ...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_192, "link")
+                        state_175 = {
+                            "selecionados": val_175_lista,
+                            "link": raw_link_175,
+                        }
 
-                                ui.label("📊 Pontuação Quesito 19.2: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+                        def calc_pts_175():
+                            return sum(pt for item, pt in atividades_175 if item in state_175["selecionados"])
 
-                                def salvar_192():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="19.2",
-                                        valor=state_192["link"],
-                                        pontos=0.0,
-                                        link=state_192["link"],
-                                        comentarios=d192.get("comentarios", []),
-                                        status=d192.get("status", "Pendente"),
+                        lbl_pts_175 = ui.label().classes("text-sm font-bold text-green-600 mb-4")
+
+                        def att_pts_175():
+                            pts = calc_pts_175()
+                            lbl_pts_175.set_text(f"📊 Pontuação Quesito 17.5: {pts:.1f} pontos")
+
+                        att_pts_175()
+
+                        def on_checkbox_change_175(e, item):
+                            if e.value and item not in state_175["selecionados"]:
+                                state_175["selecionados"].append(item)
+                            elif not e.value and item in state_175["selecionados"]:
+                                state_175["selecionados"].remove(item)
+                            att_pts_175()
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            with ui.column().classes("gap-2"):
+                                for item, pt in atividades_175:
+                                    ui.checkbox(
+                                        f"{item} (+{pt:.1f} pts)",
+                                        value=(item in state_175["selecionados"]),
+                                        on_change=lambda e, it=item: on_checkbox_change_175(e, it)
                                     )
-                                    ui.notify("Quesito 19.2 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
 
-                                ui.button("💾 SALVAR QUESITO 19.2", on_click=salvar_192).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("19.2", res_data, render_conteudo.refresh)
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.5):",
+                                value=raw_link_175,
+                                placeholder="Link dos pareceres, relatórios de visita, atas...",
+                            ).classes("w-full").props("outlined rows=8 color=blue").bind_value(state_175, "link")
+
+                        def salvar_175():
+                            pts = calc_pts_175()
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="17.5",
+                                valor=state_175["selecionados"],
+                                pontos=pts,
+                                link=state_175["link"],
+                                comentarios=d175.get("comentarios", []),
+                                status=d175.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 17.5 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 17.5", on_click=salvar_175).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("17.5", res_data, getattr(render_conteudo, "refresh", None))
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 17.6 - Parecer da Prestação de Contas CACS FUNDEB
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("17.6 • Parecer da Prestação de Contas emitido pelo CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Qual foi o parecer da prestação de contas emitido pelo CACS FUNDEB referente ao exercício de 2026?").classes("text-base font-bold text-black mb-4")
+
+                            d176 = res_data.get("17.6") or res_data.get("176") or {}
+                            val_176 = str(d176.get("valor") or "Aprovado sem ressalva")
+                            link_176 = str(d176.get("link") or "")
+
+                            state_176 = {
+                                "opcao": val_176,
+                                "link": link_176,
+                                "pontos": 0.0,
+                            }
+
+                            def calc_176():
+                                op = state_176["opcao"]
+                                if op == "Não aprovado":
+                                    state_176["pontos"] = -50.0
+                                elif op == "Não apreciado":
+                                    state_176["pontos"] = -20.0
+                                else:
+                                    state_176["pontos"] = 0.0
+                                lbl_pontos_176.set_text(f"📊 Pontuação Quesito 17.6: {state_176['pontos']:.1f} pontos".replace(".", ","))
+
+                            opts_176 = [
+                                "Aprovado sem ressalva",
+                                "Aprovado com ressalva",
+                                "Não aprovado",
+                                "Não apreciado",
+                            ]
+
+                            ui.radio(
+                                options=opts_176,
+                                value=state_176["opcao"],
+                                on_change=lambda e: [state_176.update({"opcao": e.value}), calc_176()],
+                            ).classes("mb-4")
+
+                            ui.textarea(
+                                label="Link do Parecer / Anexo (Quesito 17.6):",
+                                value=state_176["link"],
+                                placeholder="Link para o parecer anexado...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_176, "link")
+
+                            lbl_pontos_176 = ui.label("📊 Pontuação Quesito 17.6: 0,0 pontos").classes("text-sm font-bold text-green-600 mb-4")
+                            calc_176()
+
+                            def salvar_176():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="17.6",
+                                    valor=state_176["opcao"],
+                                    pontos=state_176["pontos"],
+                                    link=state_176["link"],
+                                    comentarios=d176.get("comentarios", []),
+                                    status=d176.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 17.6 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 17.6", on_click=salvar_176).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("17.6", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
-                            # QUESITO 19.3 - Incorporação do Currículo nos Projetos Político-Pedagógicos (PPP)
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("19.3 • Incorporação do Currículo nos PPPs").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("As escolas incorporaram em seus Projetos Político-Pedagógicos o atual currículo da rede municipal de ensino?").classes("text-base font-bold text-black mb-4")
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 17.6.1 - Motivos da Não Aprovação CACS FUNDEB
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("17.6.1 • Motivos da Não Aprovação").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe quais os motivos da não aprovação:").classes("text-base font-bold text-black mb-4")
 
-                                d193 = res_data.get("19.3") or res_data.get("193") or {}
-                                val_193 = str(d193.get("valor") or "Sim, em todas as escolas")
-                                link_193 = str(d193.get("link") or "")
+                            d1761 = res_data.get("17.6.1") or res_data.get("1761") or {}
+                            val_1761 = str(d1761.get("valor") or "")
+                            link_1761 = str(d1761.get("link") or "")
 
-                                state_193 = {
-                                    "opcao": val_193,
-                                    "link": link_193,
-                                    "pontos": 0.0,
-                                }
+                            state_1761 = {
+                                "texto": val_1761,
+                                "link": link_1761,
+                            }
 
-                                def calc_193():
-                                    op = state_193["opcao"]
-                                    if op == "Sim, em todas as escolas":
-                                        state_193["pontos"] = 2.0
-                                    elif op == "Sim, na maior parte das escolas":
-                                        state_193["pontos"] = 1.0
-                                    elif op == "Sim, na menor parte das escolas":
-                                        state_193["pontos"] = 0.5
-                                    else:
-                                        state_193["pontos"] = 0.0
-                                    lbl_pontos_193.set_text(f"📊 Pontuação Quesito 19.3: {state_193['pontos']:.1f} ponto(s)".replace(".", ","))
+                            ui.textarea(
+                                label="Motivos da não aprovação:",
+                                value=state_1761["texto"],
+                                placeholder="Descreva detalhadamente os motivos caso a prestação de contas não tenha sido aprovada...",
+                            ).classes("w-full mb-4").props("outlined rows=4 color=blue").bind_value(state_1761, "texto")
 
-                                opts_193 = [
-                                    "Sim, em todas as escolas",
-                                    "Sim, na maior parte das escolas",
-                                    "Sim, na menor parte das escolas",
-                                    "Não",
-                                ]
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 17.6.1):",
+                                value=state_1761["link"],
+                                placeholder="Link de documentos comprobatórios...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_1761, "link")
 
-                                ui.radio(
-                                    options=opts_193,
-                                    value=state_193["opcao"],
-                                    on_change=lambda e: [state_193.update({"opcao": e.value}), calc_193()],
-                                ).classes("mb-4")
+                            ui.label("📊 Pontuação Quesito 17.6.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_1761():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="17.6.1",
+                                    valor=state_1761["texto"],
+                                    pontos=0.0,
+                                    link=state_1761["link"],
+                                    comentarios=d1761.get("comentarios", []),
+                                    status=d1761.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 17.6.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 17.6.1", on_click=salvar_1761).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("17.6.1", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 17.7 - Reuniões do Conselho do FUNDEB
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("17.7 • Reuniões do Conselho do FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Quantas reuniões foram realizadas pelo Conselho do FUNDEB no último exercício?").classes("text-base font-bold text-black mb-1")
+                            ui.label("(Não considerar reuniões de eleição/exclusão de membros, aprovação de orçamento ou outro assunto não relacionado à natureza do Conselho)").classes("text-sm text-gray-600 italic mb-4")
+
+                            d177 = res_data.get("17.7") or res_data.get("177") or {}
+                            val_177 = str(d177.get("valor") or "0")
+                            link_177 = str(d177.get("link") or "")
+
+                            state_177 = {
+                                "reunioes": int(val_177) if val_177.isdigit() else 0,
+                                "link": link_177,
+                                "pontos": 0.0,
+                            }
+
+                            def calc_177():
+                                n = state_177["reunioes"]
+                                if n >= 12:
+                                    state_177["pontos"] = 3.0
+                                elif n >= 8:
+                                    state_177["pontos"] = 1.5
+                                elif n >= 4:
+                                    state_177["pontos"] = 1.0
+                                else:
+                                    state_177["pontos"] = 0.0
+                                lbl_pontos_177.set_text(f"📊 Pontuação Quesito 17.7: {state_177['pontos']:.1f} ponto(s)".replace(".", ","))
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.number(
+                                    label="Número de Reuniões:",
+                                    value=state_177["reunioes"],
+                                    min=0,
+                                    step=1,
+                                    on_change=lambda e: [state_177.update({"reunioes": int(e.value or 0)}), calc_177()],
+                                ).classes("w-full").props("outlined color=blue")
 
                                 ui.textarea(
-                                    label="Link de Evidência (Quesito 19.3):",
-                                    value=state_193["link"],
-                                    placeholder="Link dos PPPs das escolas...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_193, "link")
+                                    label="Link de Evidência (Quesito 17.7):",
+                                    value=state_177["link"],
+                                    placeholder="Link das atas das reuniões...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_177, "link")
 
-                                lbl_pontos_193 = ui.label("📊 Pontuação Quesito 19.3: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
-                                calc_193()
+                            lbl_pontos_177 = ui.label("📊 Pontuação Quesito 17.7: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                            calc_177()
 
-                                def salvar_193():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="19.3",
-                                        valor=state_193["opcao"],
-                                        pontos=state_193["pontos"],
-                                        link=state_193["link"],
-                                        comentarios=d193.get("comentarios", []),
-                                        status=d193.get("status", "Pendente"),
+                            def salvar_177():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="17.7",
+                                    valor=str(state_177["reunioes"]),
+                                    pontos=state_177["pontos"],
+                                    link=state_177["link"],
+                                    comentarios=d177.get("comentarios", []),
+                                    status=d177.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 17.7 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 17.7", on_click=salvar_177).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("17.7", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                    if etapa_atual == 8:
+                        # QUESITO 18.0 - Conselho de Alimentação Escolar (CAE)
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("18.0 • Conselho de Alimentação Escolar (CAE)").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("O município constituiu o CAE (Conselho de Alimentação Escolar)?").classes("text-base font-bold text-black mb-4")
+
+                            d180 = res_data.get("18.0") or res_data.get("180") or {}
+                            val_180 = str(d180.get("valor") or "Sim")
+                            link_180 = str(d180.get("link") or "")
+
+                            state_180 = {
+                                "opcao": val_180,
+                                "link": link_180,
+                            }
+
+                            opts_180 = ["Sim", "Não"]
+
+                            ui.radio(
+                                options=opts_180,
+                                value=state_180["opcao"],
+                            ).classes("mb-4").bind_value(state_180, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 18.0):",
+                                value=state_180["link"],
+                                placeholder="Link da lei/decreto de criação do CAE...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_180, "link")
+
+                            ui.label("📊 Pontuação Quesito 18.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_180():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="18.0",
+                                    valor=state_180["opcao"],
+                                    pontos=0.0,
+                                    link=state_180["link"],
+                                    comentarios=d180.get("comentarios", []),
+                                    status=d180.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 18.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 18.0", on_click=salvar_180).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("18.0", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 18.1 - Recursos Fornecidos ao CAE
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("18.1 • Recursos Fornecidos ao CAE").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal para o funcionamento do Conselho de Alimentação Escolar:").classes("text-base font-bold text-black mb-4")
+
+                            d181 = res_data.get("18.1") or res_data.get("181") or {}
+                            sel_181 = d181.get("valor") or []
+                            if isinstance(sel_181, str):
+                                sel_181 = [x.strip() for x in sel_181.split(";") if x.strip()]
+                            link_181 = str(d181.get("link") or "")
+
+                            state_181 = {
+                                "selecionados": sel_181,
+                                "link": link_181,
+                                "pontos": 0.0,
+                            }
+
+                            items_181 = [
+                                ("humanos", "Recursos Humanos", 0.5),
+                                ("tecnologicos", "Recursos Tecnológicos", 0.5),
+                                ("fisica", "Estrutura Física", 0.5),
+                                ("orcamentarios", "Recursos Orçamentários", 0.5),
+                                ("materiais", "Recursos Materiais", 0.5),
+                                ("outros", "Outros", 0.5),
+                            ]
+
+                            def calc_181():
+                                pts = sum(peso for key, _, peso in items_181 if key in state_181["selecionados"])
+                                state_181["pontos"] = round(pts, 2)
+                                lbl_pontos_181.set_text(f"📊 Pontuação Quesito 18.1: {state_181['pontos']:.1f} ponto(s)".replace(".", ","))
+
+                            def toggle_181(key, val):
+                                if val and key not in state_181["selecionados"]:
+                                    state_181["selecionados"].append(key)
+                                elif not val and key in state_181["selecionados"]:
+                                    state_181["selecionados"].remove(key)
+                                calc_181()
+
+                            with ui.column().classes("w-full gap-2 mb-4"):
+                                for key, rotulo, peso in items_181:
+                                    ui.checkbox(
+                                        text=f"{rotulo} (+{str(peso).replace('.', ',')} pt)",
+                                        value=(key in state_181["selecionados"]),
+                                        on_change=lambda e, k=key: toggle_181(k, e.value),
                                     )
-                                    ui.notify("Quesito 19.3 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
 
-                                ui.button("💾 SALVAR QUESITO 19.3", on_click=salvar_193).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("19.3", res_data, render_conteudo.refresh)
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 18.1):",
+                                value=state_181["link"],
+                                placeholder="Link dos comprovantes do suporte ao CAE...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_181, "link")
+
+                            lbl_pontos_181 = ui.label("📊 Pontuação Quesito 18.1: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                            calc_181()
+
+                            def salvar_181():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="18.1",
+                                    valor="; ".join(state_181["selecionados"]),
+                                    pontos=state_181["pontos"],
+                                    link=state_181["link"],
+                                    comentarios=d181.get("comentarios", []),
+                                    status=d181.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 18.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 18.1", on_click=salvar_181).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("18.1", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
-                        if etapa_atual == 9:
-                            # QUESITO 20.0 - Impressões, Comentários e Sugestões sobre o Questionário
-                            # -----------------------------------------------------------------------------
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                                ui.label("20.0 • Impressões, Comentários e Sugestões").classes("text-xl font-semibold text-blue-500 mb-3")
-                                ui.label("Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?").classes("text-base font-bold text-black mb-1")
-                                ui.label("Utilize o espaço abaixo para registrar suas impressões, comentários e sugestões a respeito do presente questionário.").classes("text-sm text-gray-600 mb-4")
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 18.2 - Formação aos Conselheiros sobre o PNAE
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("18.2 • Formação aos Conselheiros sobre o PNAE").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("A Prefeitura ofereceu formação aos conselheiros sobre a execução do PNAE e temas que possuam interfaces com este Programa?").classes("text-base font-bold text-black mb-4")
 
-                                d200 = res_data.get("20.0") or res_data.get("200") or {}
-                                val_200 = str(d200.get("valor") or "")
-                                link_200 = str(d200.get("link") or "")
+                            d182 = res_data.get("18.2") or res_data.get("182") or {}
+                            val_182 = str(d182.get("valor") or "Sim")
+                            link_182 = str(d182.get("link") or "")
 
-                                state_200 = {
-                                    "texto": val_200,
-                                    "link": link_200,
-                                }
+                            state_182 = {
+                                "opcao": val_182,
+                                "link": link_182,
+                                "pontos": 0.0,
+                            }
 
-                                ui.textarea(
-                                    label="Comentários e Sugestões:",
-                                    value=state_200["texto"],
-                                    placeholder="Registre suas impressões ou sugestões sobre o questionário...",
-                                ).classes("w-full mb-4").props("outlined rows=5 color=blue").bind_value(state_200, "texto")
+                            def calc_182():
+                                if state_182["opcao"] == "Sim":
+                                    state_182["pontos"] = 6.0
+                                else:
+                                    state_182["pontos"] = 0.0
+                                lbl_pontos_182.set_text(f"📊 Pontuação Quesito 18.2: {state_182['pontos']:.1f} pontos".replace(".", ","))
 
-                                ui.textarea(
-                                    label="Link de Evidência Complementar (Opcional):",
-                                    value=state_200["link"],
-                                    placeholder="Link caso queira anexar algum documento de sugestões...",
-                                ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_200, "link")
+                            opts_182 = ["Sim", "Não"]
 
-                                ui.label("📊 Pontuação Quesito 20.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+                            ui.radio(
+                                options=opts_182,
+                                value=state_182["opcao"],
+                                on_change=lambda e: [state_182.update({"opcao": e.value}), calc_182()],
+                            ).classes("mb-4")
 
-                                def salvar_200():
-                                    save_resposta(
-                                        ano=ano_sel,
-                                        qid="20.0",
-                                        valor=state_200["texto"],
-                                        pontos=0.0,
-                                        link=state_200["link"],
-                                        comentarios=d200.get("comentarios", []),
-                                        status=d200.get("status", "Pendente"),
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 18.2):",
+                                value=state_182["link"],
+                                placeholder="Link dos certificados, ata da capacitação...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_182, "link")
+
+                            lbl_pontos_182 = ui.label("📊 Pontuação Quesito 18.2: 0,0 pontos").classes("text-sm font-bold text-green-600 mb-4")
+                            calc_182()
+
+                            def salvar_182():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="18.2",
+                                    valor=state_182["opcao"],
+                                    pontos=state_182["pontos"],
+                                    link=state_182["link"],
+                                    comentarios=d182.get("comentarios", []),
+                                    status=d182.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 18.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 18.2", on_click=salvar_182).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("18.2", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 18.3 - Divulgação das Atividades do CAE
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("18.3 • Divulgação das Atividades do CAE").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("A Prefeitura divulga as atividades do CAE por meio de comunicação oficial?").classes("text-base font-bold text-black mb-4")
+
+                            d183 = res_data.get("18.3") or res_data.get("183") or {}
+                            val_183 = str(d183.get("valor") or "Sim")
+                            link_183 = str(d183.get("link") or "")
+
+                            state_183 = {
+                                "opcao": val_183,
+                                "link": link_183,
+                            }
+
+                            opts_183 = ["Sim", "Não"]
+
+                            ui.radio(
+                                options=opts_183,
+                                value=state_183["opcao"],
+                            ).classes("mb-4").bind_value(state_183, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 18.3):",
+                                value=state_183["link"],
+                                placeholder="Link das publicações oficiais...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_183, "link")
+
+                            ui.label("📊 Pontuação Quesito 18.3: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_183():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="18.3",
+                                    valor=state_183["opcao"],
+                                    pontos=0.0,
+                                    link=state_183["link"],
+                                    comentarios=d183.get("comentarios", []),
+                                    status=d183.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 18.3 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 18.3", on_click=salvar_183).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("18.3", res_data, render_conteudo.refresh)
+
+    # -----------------------------------------------------------------------------
+                        # QUESITO 18.3.1 - Atividades Realizadas pelo CAE no Ano
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("18.3.1 • Atividades Realizadas pelo CAE no Ano").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Assinale as atividades realizadas pelo CAE no ano:").classes("text-base font-bold text-black mb-4")
+
+                            d1831 = res_data.get("18.3.1") or res_data.get("1831") or {}
+                            sel_1831 = d1831.get("valor") or []
+                            if isinstance(sel_1831, str):
+                                sel_1831 = [x.strip() for x in sel_1831.split(";") if x.strip()]
+                            link_1831 = str(d1831.get("link") or "")
+
+                            state_1831 = {
+                                "selecionados": sel_1831,
+                                "link": link_1831,
+                                "pontos": 0.0,
+                            }
+
+                            items_1831 = [
+                                ("diretrizes", "Acompanhamento e fiscalização do cumprimento das diretrizes estabelecidas sobre alimentação escolar", 0.5),
+                                ("recursos", "Acompanhamento e fiscalização da aplicação dos recursos destinados à alimentação escolar", 1.0),
+                                ("qualidade", "Aferição da qualidade dos alimentos, em especial quanto às condições higiênicas, bem como a aceitabilidade dos cardápios oferecidos", 1.0),
+                                ("estrutura", "Aferição das condições físicas e estruturais da cozinha", 1.0),
+                                ("parecer_pnae", "Sobre o relatório anual de gestão do PNAE, emitiu parecer conclusivo a respeito, aprovando ou reprovando a execução do Programa", 1.0),
+                                ("comunicou_irregularidades", "Comunicou aos órgãos de controle as irregularidades observadas", 0.0),
+                                ("relatorios_pnae", "Forneceu informações e apresentou relatórios de acompanhamento da execução do PNAE sempre que solicitado", 0.0),
+                                ("visitas", "Realizou visitas periódicas às escolas", 1.0),
+                                ("reunioes", "Realizou reuniões periódicas", 0.5),
+                            ]
+
+                            def calc_1831():
+                                pts = sum(peso for key, _, peso in items_1831 if key in state_1831["selecionados"])
+                                state_1831["pontos"] = round(pts, 2)
+                                lbl_pontos_1831.set_text(f"📊 Pontuação Quesito 18.3.1: {state_1831['pontos']:.1f} ponto(s)".replace(".", ","))
+
+                            def toggle_1831(key, val):
+                                if val and key not in state_1831["selecionados"]:
+                                    state_1831["selecionados"].append(key)
+                                elif not val and key in state_1831["selecionados"]:
+                                    state_1831["selecionados"].remove(key)
+                                calc_1831()
+
+                            with ui.column().classes("w-full gap-2 mb-4"):
+                                for key, rotulo, peso in items_1831:
+                                    txt_peso = f" (+{str(peso).replace('.', ',')} pt)" if peso > 0 else " (0,0 pt)"
+                                    ui.checkbox(
+                                        text=f"{rotulo}{txt_peso}",
+                                        value=(key in state_1831["selecionados"]),
+                                        on_change=lambda e, k=key: toggle_1831(k, e.value),
                                     )
-                                    ui.notify("Quesito 20.0 salvo com sucesso!", type="positive")
-                                    if render_conteudo.refresh:
-                                        render_conteudo.refresh()
 
-                                ui.button("💾 SALVAR QUESITO 20.0", on_click=salvar_200).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                                ui.separator().classes("my-2")
-                                bloco_comentarios("20.0", res_data, render_conteudo.refresh)
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 18.3.1):",
+                                value=state_1831["link"],
+                                placeholder="Link das atas/relatórios das atividades...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_1831, "link")
 
-                            # =============================================================================
-                            # SEÇÃO: DADOS EXTERNOS DA EDUCAÇÃO - CRECHE
-                            # =============================================================================
+                            lbl_pontos_1831 = ui.label("📊 Pontuação Quesito 18.3.1: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                            calc_1831()
 
-                            # -----------------------------------------------------------------------------
+                            def salvar_1831():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="18.3.1",
+                                    valor="; ".join(state_1831["selecionados"]),
+                                    pontos=state_1831["pontos"],
+                                    link=state_1831["link"],
+                                    comentarios=d1831.get("comentarios", []),
+                                    status=d1831.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 18.3.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 18.3.1", on_click=salvar_1831).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("18.3.1", res_data, render_conteudo.refresh)
+
+
+                    # -----------------------------------------------------------------------------
+                    # QUESITO 18.3.1.1 - Quantidade de Visitas Realizadas pelo CAE
+                    # -----------------------------------------------------------------------------
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                        ui.label("18.3.1.1 • Visitas do CAE nas Escolas dos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
+                        ui.label("Informe a quantidade de visitas realizadas pelo CAE nas escolas dos Anos Iniciais no ano:").classes("text-base font-bold text-black mb-4")
+
+                        d18311 = res_data.get("18.3.1.1") or res_data.get("18311") or {}
+                        
+                        # Captura e conversão segura de qualquer tipo (int, float, str ou None)
+                        raw_val_18311 = d18311.get("valor")
+                        try:
+                            val_18311_num = int(float(raw_val_18311)) if raw_val_18311 is not None and str(raw_val_18311).strip() != "" else 0
+                        except (ValueError, TypeError):
+                            val_18311_num = 0
+
+                        raw_link_18311 = str(d18311.get("link") or "")
+
+                        state_18311 = {
+                            "visitas": val_18311_num,
+                            "link": raw_link_18311,
+                        }
+
+                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                            ui.number(
+                                label="Quantidade de visitas realizadas pelo CAE:",
+                                value=state_18311["visitas"],
+                                min=0,
+                                step=1,
+                            ).classes("w-full").props("outlined color=blue").bind_value(state_18311, "visitas")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 18.3.1.1):",
+                                value=state_18311["link"],
+                                placeholder="Link do relatório/relatórios de visitas...",
+                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_18311, "link")
+
+                        ui.label("📊 Pontuação Quesito 18.3.1.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                        def salvar_18311():
+                            # Trata para salvar tanto em int quanto em str no formato limpo
+                            val_atual = state_18311.get("visitas")
+                            try:
+                                qtd_final = int(val_atual) if val_atual is not None else 0
+                            except (ValueError, TypeError):
+                                qtd_final = 0
+
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="18.3.1.1",
+                                valor=qtd_final,  # Salva como inteiro limpo para evitar inconsistência
+                                pontos=0.0,
+                                link=state_18311["link"],
+                                comentarios=d18311.get("comentarios", []),
+                                status=d18311.get("status", "Pendente"),
+                            )
+                            ui.notify("Quesito 18.3.1.1 salvo com sucesso!", type="positive")
+                            if getattr(render_conteudo, "refresh", None):
+                                render_conteudo.refresh()
+
+                        ui.button("💾 SALVAR QUESITO 18.3.1.1", on_click=salvar_18311).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("18.3.1.1", res_data, getattr(render_conteudo, "refresh", None))
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 19.0 - (Re)Elaboração do Currículo da Rede Municipal conforme a BNCC
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("19.0 • Adaptação do Currículo à BNCC").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("A Prefeitura Municipal (re)elaborou o currículo da rede municipal de ensino adequando-se às proposições da Base Nacional Comum Curricular (BNCC)?").classes("text-base font-bold text-black mb-4")
+
+                            d190 = res_data.get("19.0") or res_data.get("190") or {}
+                            val_190 = str(d190.get("valor") or "Sim")
+                            link_190 = str(d190.get("link") or "")
+
+                            state_190 = {
+                                "opcao": val_190,
+                                "link": link_190,
+                            }
+
+                            opts_190 = [
+                                "Sim",
+                                "Não",
+                                "Houve adesão ao Currículo Paulista elaborado pela Secretaria da Educação do Estado de São Paulo",
+                            ]
+
+                            ui.radio(
+                                options=opts_190,
+                                value=state_190["opcao"],
+                            ).classes("mb-4").bind_value(state_190, "opcao")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 19.0):",
+                                value=state_190["link"],
+                                placeholder="Link do documento curricular / decreto...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_190, "link")
+
+                            ui.label("📊 Pontuação Quesito 19.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_190():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="19.0",
+                                    valor=state_190["opcao"],
+                                    pontos=0.0,
+                                    link=state_190["link"],
+                                    comentarios=d190.get("comentarios", []),
+                                    status=d190.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 19.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 19.0", on_click=salvar_190).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("19.0", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 19.1 - Etapas de Ensino com Currículo Atualizado
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("19.1 • Etapas de Ensino com Currículo Atualizado conforme BNCC").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Assinale as etapas de ensino que estão com o currículo atualizado conforme a BNCC:").classes("text-base font-bold text-black mb-4")
+
+                            d191 = res_data.get("19.1") or res_data.get("191") or {}
+                            sel_191 = d191.get("valor") or []
+                            if isinstance(sel_191, str):
+                                sel_191 = [x.strip() for x in sel_191.split(";") if x.strip()]
+                            link_191 = str(d191.get("link") or "")
+
+                            state_191 = {
+                                "selecionados": sel_191,
+                                "link": link_191,
+                            }
+
+                            items_191 = [
+                                ("creche", "Creche"),
+                                ("pre_escola", "Pré-escola"),
+                                ("anos_iniciais", "Anos Iniciais do Ensino Fundamental"),
+                                ("anos_finais", "Anos Finais do Ensino Fundamental"),
+                            ]
+
+                            def toggle_191(key, val):
+                                if val and key not in state_191["selecionados"]:
+                                    state_191["selecionados"].append(key)
+                                elif not val and key in state_191["selecionados"]:
+                                    state_191["selecionados"].remove(key)
+
+                            with ui.column().classes("w-full gap-2 mb-4"):
+                                for key, rotulo in items_191:
+                                    ui.checkbox(
+                                        text=rotulo,
+                                        value=(key in state_191["selecionados"]),
+                                        on_change=lambda e, k=key: toggle_191(k, e.value),
+                                    )
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 19.1):",
+                                value=state_191["link"],
+                                placeholder="Link do currículo por etapa...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_191, "link")
+
+                            ui.label("📊 Pontuação Quesito 19.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_191():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="19.1",
+                                    valor="; ".join(state_191["selecionados"]),
+                                    pontos=0.0,
+                                    link=state_191["link"],
+                                    comentarios=d191.get("comentarios", []),
+                                    status=d191.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 19.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 19.1", on_click=salvar_191).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("19.1", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 19.2 - Página Eletrônica do Currículo da Rede Municipal
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("19.2 • Link do Currículo da Rede Municipal").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe a página eletrônica (link na internet) do currículo da rede municipal de ensino:").classes("text-base font-bold text-black mb-1")
+                            ui.label("(Se não estiver disponível na internet, inserir no campo 'Página eletrônica' o texto XYZ)").classes("text-sm text-gray-600 italic mb-4")
+
+                            d192 = res_data.get("19.2") or res_data.get("192") or {}
+                            val_192 = str(d192.get("valor") or d192.get("link") or "")
+
+                            state_192 = {
+                                "link": val_192,
+                            }
+
+                            ui.textarea(
+                                label="Página eletrônica (link na internet):",
+                                value=state_192["link"],
+                                placeholder="Cole o link aqui ou digite XYZ...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_192, "link")
+
+                            ui.label("📊 Pontuação Quesito 19.2: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_192():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="19.2",
+                                    valor=state_192["link"],
+                                    pontos=0.0,
+                                    link=state_192["link"],
+                                    comentarios=d192.get("comentarios", []),
+                                    status=d192.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 19.2 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 19.2", on_click=salvar_192).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("19.2", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                        # QUESITO 19.3 - Incorporação do Currículo nos Projetos Político-Pedagógicos (PPP)
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("19.3 • Incorporação do Currículo nos PPPs").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("As escolas incorporaram em seus Projetos Político-Pedagógicos o atual currículo da rede municipal de ensino?").classes("text-base font-bold text-black mb-4")
+
+                            d193 = res_data.get("19.3") or res_data.get("193") or {}
+                            val_193 = str(d193.get("valor") or "Sim, em todas as escolas")
+                            link_193 = str(d193.get("link") or "")
+
+                            state_193 = {
+                                "opcao": val_193,
+                                "link": link_193,
+                                "pontos": 0.0,
+                            }
+
+                            def calc_193():
+                                op = state_193["opcao"]
+                                if op == "Sim, em todas as escolas":
+                                    state_193["pontos"] = 2.0
+                                elif op == "Sim, na maior parte das escolas":
+                                    state_193["pontos"] = 1.0
+                                elif op == "Sim, na menor parte das escolas":
+                                    state_193["pontos"] = 0.5
+                                else:
+                                    state_193["pontos"] = 0.0
+                                lbl_pontos_193.set_text(f"📊 Pontuação Quesito 19.3: {state_193['pontos']:.1f} ponto(s)".replace(".", ","))
+
+                            opts_193 = [
+                                "Sim, em todas as escolas",
+                                "Sim, na maior parte das escolas",
+                                "Sim, na menor parte das escolas",
+                                "Não",
+                            ]
+
+                            ui.radio(
+                                options=opts_193,
+                                value=state_193["opcao"],
+                                on_change=lambda e: [state_193.update({"opcao": e.value}), calc_193()],
+                            ).classes("mb-4")
+
+                            ui.textarea(
+                                label="Link de Evidência (Quesito 19.3):",
+                                value=state_193["link"],
+                                placeholder="Link dos PPPs das escolas...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_193, "link")
+
+                            lbl_pontos_193 = ui.label("📊 Pontuação Quesito 19.3: 0,0 ponto(s)").classes("text-sm font-bold text-green-600 mb-4")
+                            calc_193()
+
+                            def salvar_193():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="19.3",
+                                    valor=state_193["opcao"],
+                                    pontos=state_193["pontos"],
+                                    link=state_193["link"],
+                                    comentarios=d193.get("comentarios", []),
+                                    status=d193.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 19.3 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 19.3", on_click=salvar_193).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("19.3", res_data, render_conteudo.refresh)
+
+
+                        # -----------------------------------------------------------------------------
+                    if etapa_atual == 9:
+                        # QUESITO 20.0 - Impressões, Comentários e Sugestões sobre o Questionário
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("20.0 • Impressões, Comentários e Sugestões").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?").classes("text-base font-bold text-black mb-1")
+                            ui.label("Utilize o espaço abaixo para registrar suas impressões, comentários e sugestões a respeito do presente questionário.").classes("text-sm text-gray-600 mb-4")
+
+                            d200 = res_data.get("20.0") or res_data.get("200") or {}
+                            val_200 = str(d200.get("valor") or "")
+                            link_200 = str(d200.get("link") or "")
+
+                            state_200 = {
+                                "texto": val_200,
+                                "link": link_200,
+                            }
+
+                            ui.textarea(
+                                label="Comentários e Sugestões:",
+                                value=state_200["texto"],
+                                placeholder="Registre suas impressões ou sugestões sobre o questionário...",
+                            ).classes("w-full mb-4").props("outlined rows=5 color=blue").bind_value(state_200, "texto")
+
+                            ui.textarea(
+                                label="Link de Evidência Complementar (Opcional):",
+                                value=state_200["link"],
+                                placeholder="Link caso queira anexar algum documento de sugestões...",
+                            ).classes("w-full mb-4").props("outlined rows=2 color=blue").bind_value(state_200, "link")
+
+                            ui.label("📊 Pontuação Quesito 20.0: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_200():
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="20.0",
+                                    valor=state_200["texto"],
+                                    pontos=0.0,
+                                    link=state_200["link"],
+                                    comentarios=d200.get("comentarios", []),
+                                    status=d200.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 20.0 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 20.0", on_click=salvar_200).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("20.0", res_data, render_conteudo.refresh)
+
                         # =============================================================================
+                        # SEÇÃO: DADOS EXTERNOS DA EDUCAÇÃO - CRECHE
+                        # =============================================================================
+
+                        # -----------------------------------------------------------------------------
+                    # =============================================================================
                     if etapa_atual == 10:
                         # QUESITO E1.1 (Estabelecimentos de Creche com Pátio Infantil - Censo Escolar)
                         # =============================================================================
