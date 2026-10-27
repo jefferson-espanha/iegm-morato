@@ -1190,7 +1190,8 @@ def container_formulario_ieduc(ano=None):
                                 res_data=res_data,
                                 qid="1.2.1.1",
                                 titulo="Frequência de Higienização",
-                                pergunta="Qual a frequência de higienização aplicada na maior parte dos estabelecimentos que oferecem creche?",
+                                pergunta="Qual a frequência de higienização aplicada na maior parte dos estabelecimentos que oferecem creche? (Obs: Frequência de higienização aplicada na maior parte dos estabelecimentos que oferecem creche)
+",
                                 tipo_input="radio",
                                 opcoes=opcoes_1_2_1_1,
                                 placeholder_link="Insira o link do registro/relatório de higienização...",
@@ -1211,7 +1212,7 @@ def container_formulario_ieduc(ano=None):
                                 res_data=res_data,
                                 qid="1.2.2",
                                 titulo="Planejamento de Aquisição",
-                                pergunta="Possui cronograma para compra de brinquedos/materiais pedagógicos? Planejamento de compra de brinquedos/materiais pedagógicos para cada estabelecimento de ensino",
+                                pergunta="Possui cronograma para compra de brinquedos/materiais pedagógicos? (Obs: Planejamento de compra de brinquedos/materiais pedagógicos para cada estabelecimento de ensino)",
                                 tipo_input="radio",
                                 opcoes=opcoes_1_2_2,
                                 placeholder_link="Insira o link ou documento do planejamento de compra...",
@@ -1296,7 +1297,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a quantidade de turmas de Creche em que o espaço por aluno em sala de aula (área da sala dividido pelo nº de alunos) era: Considerar como sala de aula o local principal ocupado pelos alunos para seu ensino e aprendizagem pelos professores"
+                                    "Informe a quantidade de turmas de Creche em que o espaço por aluno em sala de aula (área da sala dividido pelo nº de alunos) era: (Obs: Considerar como sala de aula o local principal ocupado pelos alunos para seu ensino e aprendizagem pelos professores)"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = 10 × (1.0×P1 + 0.5×P2 + 0.25×P3 + 0×P4) | Pmáx = 10 pts."
@@ -1457,7 +1458,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a quantidade de professores de Creche que: Considerar todos os professores efetivos e temporários (Dados Censo Escolar 2026)"
+                                    "Informe a quantidade de professores de Creche que: Obs. Considerar todos os professores efetivos e temporários (Dados Censo Escolar 2026)"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = N1 (Graduação - máx 11 pts) + N2 (Pós-Graduação - máx 7 pts) | Pmáx = 18 pts."
@@ -1613,7 +1614,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o piso salarial mensal dos professores de Creche (base para 40h semanais):"
+                                    "Informe o piso salarial mensal dos professores de Creche (Obs. base para 40h semanais):"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Regra: Se piso < Salário Mínimo Nacional → Perde 20.0 pts (-20.0) | Se piso ≥ Salário Mínimo → 0.0 pts."
@@ -1769,7 +1770,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o total de dias de ausência dos professores de Creche por categoria (ano de 2026):"
+                                    "Informe a quantidade total (dias) de ausência dos professores por faltas (incluindo os afastamentos legais) para Creches - QTA: Obs. Todos os dias de ausência de professores de Creche no ano de 2025 (justificadas ou injustificadas)"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Quesito declaratório / levantamento de absenteísmo."
@@ -1967,7 +1968,7 @@ def container_formulario_ieduc(ano=None):
                                 ).classes("text-base font-bold text-black mb-1")
 
                                 ui.label(
-                                    "⚠️ Não contar o mesmo profissional mais de uma vez. "
+                                    "⚠️ Não contar o mesmo profissional mais de uma vez, mesmo no caso de ter participado de vários cursos."
                                     "Fórmula: PC = (Prof. Capacitados + Apoio Capacitados + Gestores Capacitados) / (Total Geral)\n"
                                     "ℹ PC ≥ 100%: 7,0 pts | 70% ≤ PC < 100%: 5,0 pts | "
                                     "50% ≤ PC < 70%: 3,0 pts | PC < 50%: 0,0 pt"
@@ -2339,7 +2340,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o número de escolas em cada faixa de rotatividade de professores de Creche:"
+                                    "Quanto a regularidade do corpo docente, informe o número de escolas em que houve rotatividade de professores de Creches:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = 3.0 × (3×Q1 + 2×Q2 + 1×Q3 + 0×Q4) | Pmáx = 3.0 pts."
@@ -2500,7 +2501,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Indique a quantidade de escolas por tempo de permanência do diretor/gestor de Creche (ao final de 2026):"
+                                    "Quanto a regularidade de gestores, indique a quantidade de escolas municipais cujo diretor/gestorde Creche, ao final de 2026, permanecia à frente da mesma unidade por:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = 0×Q1 + 0.5×Q2 + 1.0×Q3 + 1.5×Q4 + 1.75×Q5 + 2.0×Q6 | Pmáx = 2.0 pts."
@@ -2569,10 +2570,10 @@ def container_formulario_ieduc(ano=None):
                                 with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                                     with ui.column().classes("w-full gap-3"):
                                         inp_g1 = ui.number("Menor que 1 ano:", value=g1_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g1")
-                                        inp_g2 = ui.number("De 1 ano a 2,9 anos:", value=g2_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g2")
-                                        inp_g3 = ui.number("De 3 anos a 4,9 anos:", value=g3_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g3")
-                                        inp_g4 = ui.number("De 5 anos a 9,9 anos:", value=g4_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g4")
-                                        inp_g5 = ui.number("De 10 anos a 14,9 anos:", value=g5_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g5")
+                                        inp_g2 = ui.number("De 1 ano a 3 anos:", value=g2_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g2")
+                                        inp_g3 = ui.number("De 3 anos a 5 anos:", value=g3_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g3")
+                                        inp_g4 = ui.number("De 5 anos a 10 anos:", value=g4_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g4")
+                                        inp_g5 = ui.number("De 10 anos a 15 anos:", value=g5_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g5")
                                         inp_g6 = ui.number("Maior ou igual a 15 anos:", value=g6_i, min=0, step=1).classes("w-full").props("outlined color=blue").bind_value(state_19, "g6")
 
                                     ui.textarea(
@@ -3627,7 +3628,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a quantidade de turmas de Creche em cada faixa de número de alunos:"
+                                    "Informe a quantidade de turmas de Creche:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = 10.0 × (1.0×P1 + 0.5×P2 + 0.25×P3 + 0×P4) | Pmáx = 10.0 pts."
@@ -3865,7 +3866,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe quantos estabelecimentos que oferecem Pré-escola possuem Brinquedos no Pátio e o total do município:"
+                                "Informe quantos estabelecimentos que oferecem Pré-escola possuem:"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Cálculo: BPI = (Nº Pré-escolas com brinquedos / Nº Total Pré-escolas) × 2.0 pts."
@@ -4198,7 +4199,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Qual a frequência de higienização aplicada na maior parte dos estabelecimentos de Pré-escola?"
+                                    "Qual a frequência de higienização aplicada na maior parte dos estabelecimentos de Pré-escola? (Obs. Frequência de higienização aplicada na maior parte dos estabelecimentos que oferecem pré-escola"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Pontuação: Diária (5.0 pts) | A cada 2 dias (4.0 pts) | A cada 3 dias (3.0 pts) | Semanal (2.0 pts) | Mensal (1.0 pt) | > 30 dias (0.0 pts)."
@@ -4297,7 +4298,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Possui cronograma/planejamento para compra de brinquedos/materiais pedagógicos para cada estabelecimento de ensino?"
+                                    "Possui cronograma/planejamento para compra de brinquedos/materiais pedagógicos para cada estabelecimento de ensino? (Obs. Planejamento de compra de brinquedos/materiais pedagógicos para cada estabelecimento de ensino)"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Pontuação: Sim = 5.0 pts | Não = 0.0 pts."
@@ -4460,7 +4461,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a quantidade de turmas de Pré-escola em cada faixa de área por aluno (m²):"
+                                    "Informe a quantidade de turmas de Pré-escola em que o espaço por aluno em sala de aula (área da sala dividido pelo nº de alunos) era: Obs. Considerar como sala de aula o local principal ocupado pelos alunos para seu ensino e aprendizagem pelos professores"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = 10.0 × (1.0×P1 + 0.5×P2 + 0.25×P3 + 0×P4) | Pmáx = 10.0 pts."
@@ -4573,7 +4574,8 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o total de professores de Pré-escola e a quantidade com Licenciatura e Pós-Graduação:"
+                                    "Informe a quantidade de professores de Pré-escola que: Obs. Considerar todos os professores efetivos e temporários
+(Dados Censo Escolar 2025)"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = N1 (Graduação - máx 11 pts) + N2 (Pós-Graduação - máx 7 pts) | Pmáx = 18 pts."
@@ -4695,7 +4697,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o piso salarial mensal dos professores de Pré-escola (base para 40h semanais):"
+                                    "Informe o piso salarial mensal dos professores de Pré-escola (Obs. Considerar o piso base para 40 horas semanais):"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Regra: Se piso < Salário Mínimo Nacional → Perde 20.0 pts (-20.0) | Se piso ≥ Salário Mínimo → 0.0 pts."
@@ -4852,8 +4854,8 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe o total de dias de ausência dos professores de Pré-escola por categoria (ano de 2026):"
-                                ).classes("text-base font-bold text-black mb-1")
+                                    "Informe a quantidade total (dias) de ausência dos professores por faltas (incluindo os afastamentos legais) para Pré-Escola - QTA: Obs. Todos os dias de ausência de professores da PréEscola no ano de 2026 (justificadas ou injustificadas)"
+                                    ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Quesito declaratório / levantamento de absenteísmo."
                                 ).classes("text-xs text-gray-400 mb-6")
@@ -5028,7 +5030,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a quantidade de profissionais de Pré-escola capacitados e o total do quadro em 2026:"
+                                    "Informe a quantidade de profissionais de Pré-escola: Não contar mesmo profissional mais de uma vez, mesmo no caso de ter participado de vários cursos. Dados relativos ao ano de exercício de 2026"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: PC = (Prof. Capacitados + Apoio Capacitados + Gestores Capacitados) / (Total Geral) | PC = 100%: 7 pts | 70% ≤ PC < 100%: 5 pts | 50% ≤ PC < 70%: 3 pts"
@@ -5243,7 +5245,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe o número de escolas em cada faixa de rotatividade de professores de Pré-escola:"
+                                "Quanto a regularidade do corpo docente, informe o número de escolas em que houve rotatividade de professores de Pré-escola"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Cálculo: NF = 3.0×Q1 + 2.0×Q2 + 1.0×Q3 + 0.0×Q4 (sendo Qi as proporções) | Pmáx = 3.0 pts."
@@ -5403,7 +5405,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Indique a quantidade de escolas por tempo de permanência do diretor/gestor de Pré-escola (ao final de 2026):"
+                                    "Quanto a regularidade de gestores, indique a quantidade de escolas municipais cujo diretor/gestor de Pré-escola, ao final de 2026, permanecia à frente da mesma unidade por:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = 0×Q1 + 0.5×Q2 + 1.0×Q3 + 1.5×Q4 + 1.75×Q5 + 2.0×Q6 | Pmáx = 2.0 pts."
@@ -6527,7 +6529,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a quantidade de turmas de Pré-escola em cada faixa de número de alunos:"
+                                    "Informe a quantidade de turmas de Pré-escola:"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = 10.0 × (1.0×P1 + 0.5×P2 + 0.25×P3 + 0×P4) | Pmáx = 10.0 pts."
@@ -6717,7 +6719,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a quantidade de turmas dos Anos Iniciais por faixa de área disponível por aluno (m²):"
+                                "Informe a quantidade de turmas dos Anos Iniciais em que o espaço por aluno em sala de aula (área da sala dividido pelo nº de alunos) era: Obs. Considerar como sala de aula o local principal ocupado pelos alunos para seu ensino e aprendizagem pelos professores"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Fórmula: NF = 10.0×P1 + 5.0×P2 + 2.5×P3 + 0×P4 | Pmáx = 10.0 pontos."
@@ -6826,7 +6828,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a quantidade de professores regentes dos Anos Iniciais (efetivos e temporários - Dados Censo Escolar 2026) e a quantidade com Licenciatura e Pós-graduação:"
+                                "Informe a quantidade de professores dos Anos Iniciais que: Obs. Considerar todos os professores efetivos e temporários (Dados Censo Escolar 2026)"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Regras:\n"
@@ -7015,7 +7017,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe o valor do piso salarial mensal dos professores dos Anos Iniciais (base 40h/semanais) e o salário mínimo legal:"
+                                "Informe o valor do piso salarial mensal dos professores dos Anos Iniciais? Obs. Considerar o piso base para 40 horas semanais."
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Regra: Se Piso < Salário Mínimo → Penalidade de -20.0 pts | Se Piso ≥ Salário Mínimo → 0.0 pts."
@@ -7171,7 +7173,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a quantidade total de dias de ausência dos professores dos Anos Iniciais em 2026:"
+                                "Informe a quantidade total (dias) de ausência dos professores por faltas (incluindo os afastamentos legais) para os Anos Iniciais - QTA: Obs. Todos os dias de ausência de professores dos Anos Iniciais no ano de 2026 (justificadas ou injustificadas)"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "ℹ Quesito quantitativo e declaratório para composição do indicador de faltas/licenças."
