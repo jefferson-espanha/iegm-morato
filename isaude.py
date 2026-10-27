@@ -2364,20 +2364,20 @@ def container_formulario_saude(ano=None):
                                 inp_ta_2024.bind_value(state_1421, "ta_2024")
     
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
-                                ui.label("Taxa em 2024 (TA-1) (%):").classes("text-sm text-gray-700 w-1/2")
+                                ui.label("Taxa em 2025 (TA-1) (%):").classes("text-sm text-gray-700 w-1/2")
                                 inp_ta_2024 = ui.input(
-                                    value=state_1421["ta_2024"],
+                                    value=state_1421["ta_2025"],
                                     placeholder="Ex: 14.2"
                                 ).props("type=number outlined dense color=blue").classes("w-1/2")
                                 inp_ta_2024.bind_value(state_1421, "ta_2024")
     
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
-                                ui.label("Taxa em 2025 (TA) (%):").classes("text-sm text-gray-700 w-1/2")
+                                ui.label("Taxa em 2026 (TA) (%):").classes("text-sm text-gray-700 w-1/2")
                                 inp_ta_2025 = ui.input(
-                                    value=state_1421["ta_2025"],
+                                    value=state_1421["ta_2026"],
                                     placeholder="Ex: 12.0"
                                 ).props("type=number outlined dense color=blue").classes("w-1/2")
-                                inp_ta_2025.bind_value(state_1421, "ta_2025")
+                                inp_ta_2026.bind_value(state_1421, "ta_2026")
     
                             lbl_pts_1421 = ui.label("Nota 14.2.1: 0.0 pontos").classes(
                                 "text-sm font-bold text-green-600 mb-4"
