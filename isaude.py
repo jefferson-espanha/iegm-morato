@@ -897,9 +897,9 @@ def container_formulario_saude(ano=None):
                             # ==========================================
                             opcoes_3_0 = {
                                 "Selecione...": 0.0,
-                                "Até prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2025 – 10": 10.0,
-                                "Aprovado após prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2025, mas antes da aprovação da LDO 2025 pela Câmara Municipal – 07": 7.0,
-                                "Aprovado após a aprovação da LDO 2025 pela Câmara Municipal – 03": 3.0,
+                                "Até prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2026 – 10": 10.0,
+                                "Aprovado após prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2025, mas antes da aprovação da LDO 2026 pela Câmara Municipal – 07": 7.0,
+                                "Aprovado após a aprovação da LDO 2026 pela Câmara Municipal – 03": 3.0,
                                 "Não aprovado – 00": 0.0,
                             }
     
@@ -908,7 +908,7 @@ def container_formulario_saude(ano=None):
                                 res_data=res_data,
                                 qid="3.0",
                                 titulo="Aprovação da Programação Anual de Saúde",
-                                pergunta="Quando ocorreu a aprovação da Programação Anual de Saúde de 2025 pelo Conselho Municipal de Saúde?",
+                                pergunta="Quando ocorreu a aprovação da Programação Anual de Saúde de 2026 pelo Conselho Municipal de Saúde?",
                                 tipo_input="radio",
                                 opcoes=opcoes_3_0,
                                 placeholder_link="Insira o link do ato de aprovação/resolução do CMS...",
@@ -931,7 +931,7 @@ def container_formulario_saude(ano=None):
                                 res_data=res_data,
                                 qid="3.1",
                                 titulo="Execução da Programação Anual de Saúde",
-                                pergunta="As ações previstas na Programação Anual de Saúde de 2025 foram executadas?",
+                                pergunta="As ações previstas na Programação Anual de Saúde de 2026 foram executadas?",
                                 tipo_input="radio",
                                 opcoes=opcoes_3_1,
                                 placeholder_link="Insira o link do Relatório Anual de Gestão (RAG) ou monitoramento...",
@@ -954,10 +954,10 @@ def container_formulario_saude(ano=None):
                                 res_data=res_data,
                                 qid="3.2",
                                 titulo="Metas dos Indicadores da PAS",
-                                pergunta="As metas previstas para os indicadores foram atingidas na Programação Anual de Saúde de 2025?",
+                                pergunta="As metas previstas para os indicadores foram atingidas na Programação Anual de Saúde de 2026?",
                                 tipo_input="radio",
                                 opcoes=opcoes_3_2,
-                                placeholder_link="Insira o link da avaliação de indicadores / RAG 2025...",
+                                placeholder_link="Insira o link da avaliação de indicadores  2026...",
                                 on_save_callback=render_conteudo.refresh,
                             )
     
@@ -1048,9 +1048,9 @@ def container_formulario_saude(ano=None):
                         # QUESITO 7.0
                         # ==========================================
                         opcoes_7_0 = {
-                            "Relatório do 1º Quadrimestre - até o final do mês de maio de 2025 – 01": 1.0,
-                            "Relatório do 2º Quadrimestre - até o final do mês de setembro de 2025 – 01": 1.0,
-                            "Relatório do 3º Quadrimestre - até o final do mês de fevereiro de 2026 – 01": 1.0,
+                            "Relatório do 1º Quadrimestre - até o final do mês de maio de 2026 – 01": 1.0,
+                            "Relatório do 2º Quadrimestre - até o final do mês de setembro de 2026 – 01": 1.0,
+                            "Relatório do 3º Quadrimestre - até o final do mês de fevereiro de 2027 – 01": 1.0,
                             "Não apresentou nenhum relatório quadrimestral dentro de prazo – 00": 0.0,
                             "Não apresentou nenhum relatório quadrimestral em audiência pública na Câmara Municipal – -01": -1.0,
                         }
@@ -1081,8 +1081,8 @@ def container_formulario_saude(ano=None):
                             ano=ano_sel,
                             res_data=res_data,
                             qid="8.0",
-                            titulo="Encaminhamento do RAG 2025 ao CMS",
-                            pergunta="O Relatório Anual de Gestão de 2025 foi encaminhado ao Conselho Municipal de Saúde até 30/03/2026 (ano seguinte ao da execução financeira)?",
+                            titulo="Encaminhamento do RAG 2026 ao CMS",
+                            pergunta="O Relatório Anual de Gestão de 2026 foi encaminhado ao Conselho Municipal de Saúde até 30/03/2027 (ano seguinte ao da execução financeira)?",
                             tipo_input="radio",
                             opcoes=opcoes_8_0,
                             placeholder_link="Insira o link do protocolo ou comprovante de envio ao CMS...",
@@ -1104,8 +1104,8 @@ def container_formulario_saude(ano=None):
                             ano=ano_sel,
                             res_data=res_data,
                             qid="9.0",
-                            titulo="Parecer Conclusivo sobre o RAG 2024",
-                            pergunta="O Parecer Conclusivo sobre o Relatório Anual de Gestão 2024 foi 'aprovado sem ressalvas', 'aprovado com ressalvas' ou 'irregular/não aprovado'?",
+                            titulo="Parecer Conclusivo sobre o RAG 2025",
+                            pergunta="O Parecer Conclusivo sobre o Relatório Anual de Gestão 2025 foi 'aprovado sem ressalvas', 'aprovado com ressalvas' ou 'irregular/não aprovado'?",
                             tipo_input="radio",
                             opcoes=opcoes_9_0,
                             placeholder_link="Insira o link da resolução ou parecer do CMS...",
@@ -1120,7 +1120,7 @@ def container_formulario_saude(ano=None):
                             res_data=res_data,
                             qid="9.1",
                             titulo="Publicação do Parecer Conclusivo do RAG 2024",
-                            pergunta="Informe a forma e Data da publicação do Parecer Conclusivo sobre o Relatório Anual de Gestão 2024:",
+                            pergunta="Informe a forma e Data da publicação do Parecer Conclusivo sobre o Relatório Anual de Gestão 2025:",
                             tipo_input="text",
                             opcoes={},
                             placeholder_link="Insira o link da publicação do Diário Oficial ou portal...",
@@ -1133,7 +1133,7 @@ def container_formulario_saude(ano=None):
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
-                            ui.label("9.2 • Parecer Conclusivo sobre o Relatório Anual de Gestão (RAG 2024)").classes(
+                            ui.label("9.2 • Parecer Conclusivo sobre o Relatório Anual de Gestão (RAG 2025)").classes(
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
@@ -1211,7 +1211,7 @@ def container_formulario_saude(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Sobre os estabelecimentos de saúde sob gestão municipal, em dezembro de 2025, informe:"
+                                "Sobre os estabelecimentos de saúde sob gestão municipal, em dezembro de 2026, informe:"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "⚠️ Considerar estabelecimentos com atendimento direto à população."
