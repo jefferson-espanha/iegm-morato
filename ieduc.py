@@ -16088,68 +16088,68 @@ def container_formulario_ieduc(ano=None):
 
 
                     # -----------------------------------------------------------------------------
-                    # QUESITO 18.3.1.1 - Quantidade de Visitas Realizadas pelo CAE
-                    # -----------------------------------------------------------------------------
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("18.3.1.1 • Visitas do CAE nas Escolas dos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Informe a quantidade de visitas realizadas pelo CAE nas escolas dos Anos Iniciais no ano:").classes("text-base font-bold text-black mb-4")
+                        # QUESITO 18.3.1.1 - Quantidade de Visitas Realizadas pelo CAE
+                        # -----------------------------------------------------------------------------
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("18.3.1.1 • Visitas do CAE nas Escolas dos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Informe a quantidade de visitas realizadas pelo CAE nas escolas dos Anos Iniciais no ano:").classes("text-base font-bold text-black mb-4")
 
-                        d18311 = res_data.get("18.3.1.1") or res_data.get("18311") or {}
+                            d18311 = res_data.get("18.3.1.1") or res_data.get("18311") or {}
                         
-                        # Captura e conversão segura de qualquer tipo (int, float, str ou None)
-                        raw_val_18311 = d18311.get("valor")
-                        try:
-                            val_18311_num = int(float(raw_val_18311)) if raw_val_18311 is not None and str(raw_val_18311).strip() != "" else 0
-                        except (ValueError, TypeError):
-                            val_18311_num = 0
-
-                        raw_link_18311 = str(d18311.get("link") or "")
-
-                        state_18311 = {
-                            "visitas": val_18311_num,
-                            "link": raw_link_18311,
-                        }
-
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            ui.number(
-                                label="Quantidade de visitas realizadas pelo CAE:",
-                                value=state_18311["visitas"],
-                                min=0,
-                                step=1,
-                            ).classes("w-full").props("outlined color=blue").bind_value(state_18311, "visitas")
-
-                            ui.textarea(
-                                label="Link de Evidência (Quesito 18.3.1.1):",
-                                value=state_18311["link"],
-                                placeholder="Link do relatório/relatórios de visitas...",
-                            ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_18311, "link")
-
-                        ui.label("📊 Pontuação Quesito 18.3.1.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
-
-                        def salvar_18311():
-                            # Trata para salvar tanto em int quanto em str no formato limpo
-                            val_atual = state_18311.get("visitas")
+                            # Captura e conversão segura de qualquer tipo (int, float, str ou None)
+                            raw_val_18311 = d18311.get("valor")
                             try:
-                                qtd_final = int(val_atual) if val_atual is not None else 0
+                                val_18311_num = int(float(raw_val_18311)) if raw_val_18311 is not None and str(raw_val_18311).strip() != "" else 0
                             except (ValueError, TypeError):
-                                qtd_final = 0
+                                val_18311_num = 0
 
-                            save_resposta(
-                                ano=ano_sel,
-                                qid="18.3.1.1",
-                                valor=qtd_final,  # Salva como inteiro limpo para evitar inconsistência
-                                pontos=0.0,
-                                link=state_18311["link"],
-                                comentarios=d18311.get("comentarios", []),
-                                status=d18311.get("status", "Pendente"),
-                            )
-                            ui.notify("Quesito 18.3.1.1 salvo com sucesso!", type="positive")
-                            if getattr(render_conteudo, "refresh", None):
-                                render_conteudo.refresh()
+                            raw_link_18311 = str(d18311.get("link") or "")
 
-                        ui.button("💾 SALVAR QUESITO 18.3.1.1", on_click=salvar_18311).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
-                        ui.separator().classes("my-2")
-                        bloco_comentarios("18.3.1.1", res_data, getattr(render_conteudo, "refresh", None))
+                            state_18311 = {
+                                "visitas": val_18311_num,
+                                "link": raw_link_18311,
+                            }
+
+                            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                ui.number(
+                                    label="Quantidade de visitas realizadas pelo CAE:",
+                                    value=state_18311["visitas"],
+                                    min=0,
+                                    step=1,
+                                ).classes("w-full").props("outlined color=blue").bind_value(state_18311, "visitas")
+
+                                ui.textarea(
+                                    label="Link de Evidência (Quesito 18.3.1.1):",
+                                    value=state_18311["link"],
+                                    placeholder="Link do relatório/relatórios de visitas...",
+                                ).classes("w-full").props("outlined rows=3 color=blue").bind_value(state_18311, "link")
+
+                            ui.label("📊 Pontuação Quesito 18.3.1.1: 0,0 pontos (Informativo)").classes("text-sm font-bold text-green-600 mb-4")
+
+                            def salvar_18311():
+                                # Trata para salvar tanto em int quanto em str no formato limpo
+                                val_atual = state_18311.get("visitas")
+                                try:
+                                    qtd_final = int(val_atual) if val_atual is not None else 0
+                                except (ValueError, TypeError):
+                                    qtd_final = 0
+
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="18.3.1.1",
+                                    valor=qtd_final,  # Salva como inteiro limpo para evitar inconsistência
+                                    pontos=0.0,
+                                    link=state_18311["link"],
+                                    comentarios=d18311.get("comentarios", []),
+                                    status=d18311.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 18.3.1.1 salvo com sucesso!", type="positive")
+                                if getattr(render_conteudo, "refresh", None):
+                                    render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 18.3.1.1", on_click=salvar_18311).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("18.3.1.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
                         # -----------------------------------------------------------------------------
