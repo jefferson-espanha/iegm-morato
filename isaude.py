@@ -8319,7 +8319,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("20.0 • Insumos sob Gestão da Vigilância em Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Sobre Vigilância em Saúde, a Prefeitura realiza gestão de quais tipos de insumos?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Sobre Vigilância em Saúde, a Prefeitura realiza gestão de quais tipos de insumos?").classes("text-base font-bold text-black mb-4")
     
                             d200 = res_data.get("20.0") or {}
                             raw_val_200 = d200.get("valor") or {}
@@ -8367,7 +8367,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("20.1 • Armazenamento e Refrigeração de Imunobiológicos").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("A Prefeitura utiliza frigobar para refrigeração, manutenção, monitoramento e controle da temperatura dos imunobiológicos (soros, vacinas e imunoglobulinas)?").classes("text-sm text-gray-700 mb-2")
+                            ui.label("A Prefeitura utiliza frigobar para refrigeração, manutenção, monitoramento e controle da temperatura dos imunobiológicos (soros, vacinas e imunoglobulinas)?").classes("text-base font-bold text-black mb-4")
                             ui.label("Obs: Frigobar é um refrigerador com dimensões reduzidas, projetado para conservação doméstica/alimentos.").classes("text-xs text-gray-500 italic mb-4")
     
                             d201 = res_data.get("20.1") or {}
@@ -8431,7 +8431,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("20.2 • Materiais de Coleta para Diagnóstico Epidemiológico").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("A Prefeitura disponibilizou os materiais necessários para a coleta dos meios de diagnóstico laboratorial para as doenças sob monitoramento epidemiológico (sangue, saliva, secreção, suor, urina, fezes)?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("A Prefeitura disponibilizou os materiais necessários para a coleta dos meios de diagnóstico laboratorial para as doenças sob monitoramento epidemiológico (sangue, saliva, secreção, suor, urina, fezes)?").classes("text-base font-bold text-black mb-4")
     
                             d202 = res_data.get("20.2") or {}
                             opts_202 = {
@@ -8494,7 +8494,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("20.3 • Equipamentos de Proteção Individual (EPIs) - Controle de Vetores").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("A Prefeitura disponibilizou todos os equipamentos de proteção individual (EPIs) para o manuseio dos insumos para controle de vetores (inseticidas e pesticidas)?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("A Prefeitura disponibilizou todos os equipamentos de proteção individual (EPIs) para o manuseio dos insumos para controle de vetores (inseticidas e pesticidas)?").classes("text-base font-bold text-black mb-4")
     
                             d203 = res_data.get("20.3") or {}
                             opts_203 = {
@@ -8561,7 +8561,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("21.0 • Análise Semanal de Arboviroses").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município analisa semanalmente os dados de casos de arboviroses, acompanhando a tendência dos casos e verificando as variações entre as semanas epidemiológicas?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município analisa semanalmente os dados de casos de arboviroses, acompanhando a tendência dos casos e verificando as variações entre as semanas epidemiológicas?").classes("text-base font-bold text-black mb-4")
     
                             d210 = res_data.get("21.0") or {}
                             opts_210 = {
@@ -8617,7 +8617,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("22.0 • Investigação Epidemiológica de Arboviroses").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município investiga casos notificados, surtos e óbitos de arboviroses?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município investiga casos notificados, surtos e óbitos de arboviroses?").classes("text-base font-bold text-black mb-4")
     
                             d220 = res_data.get("22.0") or {}
                             opts_220 = {
@@ -8680,7 +8680,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("23.0 • Exercício do Controle Vetorial em 2026").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município exerceu as atribuições relacionadas à vigilância entomológica e controle vetorial em 2026?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município exerceu as atribuições relacionadas à vigilância entomológica e controle vetorial em 2026?").classes("text-base font-bold text-black mb-4")
     
                             d230 = res_data.get("23.0") or {}
                             opts_230 = {
@@ -8723,7 +8723,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("23.1 • Atribuições de Vigilância Entomológica Executadas").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Assinale as atribuições da vigilância entomológica e controle vetorial efetivamente realizadas pelo município:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Assinale as atribuições da vigilância entomológica e controle vetorial efetivamente realizadas pelo município:").classes("text-base font-bold text-black mb-4")
     
                             d231 = res_data.get("23.1") or {}
                             raw_val_231 = d231.get("valor") or {}
@@ -8797,7 +8797,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("24.0 • Educação em Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município executou atividades de Educação em Saúde?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município executou atividades de Educação em Saúde?").classes("text-base font-bold text-black mb-4")
     
                             d240 = res_data.get("24.0") or {}
                             opts_240 = {
@@ -8840,7 +8840,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("24.1 • Campanhas Realizadas em 2026").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Assinale as campanhas de educação em saúde realizadas no município em 2026:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Assinale as campanhas de educação em saúde realizadas no município em 2026:").classes("text-base font-bold text-black mb-4")
     
                             d241 = res_data.get("24.1") or {}
                             raw_val_241 = d241.get("valor") or {}
@@ -8926,7 +8926,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("25.0 • Ações Reguladoras e Complexo Regulador").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município desenvolve ações reguladoras em seu território, operacionalizando por meio de complexo regulador municipal e/ou participando em co-gestão da operacionalização dos Complexos Reguladores Regionais?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município desenvolve ações reguladoras em seu território, operacionalizando por meio de complexo regulador municipal e/ou participando em co-gestão da operacionalização dos Complexos Reguladores Regionais?").classes("text-base font-bold text-black mb-4")
     
                             d250 = res_data.get("25.0") or {}
                             opts_250 = {
@@ -8981,8 +8981,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("26.0 • Protocolos de Regulação de Acesso").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município elaborou os protocolos de regulação de acesso formalizados?").classes("text-sm text-gray-700 mb-4")
-    
+                            ui.label("O município elaborou os protocolos de regulação de acesso formalizados?").classes("text-base font-bold text-black mb-4")
                             d260 = res_data.get("26.0") or {}
                             opts_260 = {
                                 "sim": "Sim (10,0 pontos)",
@@ -9036,7 +9035,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("27.0 • Regulação da Referência Intermunicipal").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município regula a referência a ser realizada em outros municípios, de acordo com a programação pactuada e integrada, integrando-se aos fluxos regionais estabelecidos?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município regula a referência a ser realizada em outros municípios, de acordo com a programação pactuada e integrada, integrando-se aos fluxos regionais estabelecidos?").classes("text-base font-bold text-black mb-4")
     
                             d270 = res_data.get("27.0") or {}
                             opts_270 = {
@@ -9091,7 +9090,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.0 • Controle da Fila de Espera na Atenção Especializada").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município possui controle da fila de espera para os atendimentos da Atenção Especializada que não foram inseridos no sistema de regulação do governo estadual (Portal CROSS)?").classes("text-sm text-gray-700 mb-2")
+                            ui.label("O município possui controle da fila de espera para os atendimentos da Atenção Especializada que não foram inseridos no sistema de regulação do governo estadual (Portal CROSS)?").classes("text-base font-bold text-black mb-4")
                             ui.label("Refere-se ao Município como Unidade Solicitante.").classes("text-xs text-gray-500 italic mb-4")
     
                             d280 = res_data.get("28.0") or {}
@@ -9161,7 +9160,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.1 • Tipo de Controle da Lista de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Assinale o tipo de controle da lista de espera para os atendimentos da Atenção Especializada que não foram inseridos no sistema de regulação do governo estadual:").classes("text-sm text-gray-700 mb-2")
+                            ui.label("Assinale o tipo de controle da lista de espera para os atendimentos da Atenção Especializada que não foram inseridos no sistema de regulação do governo estadual:").classes("text-base font-bold text-black mb-4")
                             ui.label("Obs: Planilha eletrônica (Excel, Calc, etc.) não é considerada sistema informatizado.").classes("text-xs text-amber-700 font-medium mb-4")
     
                             d281 = res_data.get("28.1") or {}
@@ -9224,7 +9223,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2 • Serviços Especializados com Lista de Espera Própria").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Assinale os serviços da Atenção Especializada com lista de espera que não foram inseridos no sistema de regulação do governo estadual (Portal CROSS):").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Assinale os serviços da Atenção Especializada com lista de espera que não foram inseridos no sistema de regulação do governo estadual (Portal CROSS):").classes("text-base font-bold text-black mb-4")
     
                             d282 = res_data.get("28.2") or {}
                             raw_val_282 = d282.get("valor") or {}
@@ -9277,7 +9276,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.1 • Consultas Médicas com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe as 3 consultas médicas com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Informe as 3 consultas médicas com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
     
                             d2821 = res_data.get("28.2.1") or {}
                             raw_val_2821 = d2821.get("valor") or {}
@@ -9344,7 +9343,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.2 • Exames Médicos com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe os 3 exames médicos com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Informe os 3 exames médicos com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
     
                             d2822 = res_data.get("28.2.2") or {}
                             raw_val_2822 = d2822.get("valor") or {}
@@ -9415,7 +9414,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.3 • Terapias/Tratamentos Médicos com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe as 3 terapias/tratamentos médicos com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Informe as 3 terapias/tratamentos médicos com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
     
                             d2823 = res_data.get("28.2.3") or {}
                             raw_val_2823 = d2823.get("valor") or {}
@@ -9482,7 +9481,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.4 • Medicamentos com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe os 3 medicamentos com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Informe os 3 medicamentos com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
     
                             d2824 = res_data.get("28.2.4") or {}
                             raw_val_2824 = d2824.get("valor") or {}
@@ -9549,7 +9548,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.5 • OPM (Órteses, Próteses e Materiais) com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe as 3 OPM com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Informe as 3 OPM com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
     
                             d2825 = res_data.get("28.2.5") or {}
                             raw_val_2825 = d2825.get("valor") or {}
@@ -9616,7 +9615,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.6 • Cirurgias Eletivas com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe as 3 cirurgias eletivas da Atenção Especializada com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Informe as 3 cirurgias eletivas da Atenção Especializada com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
     
                             d2826 = res_data.get("28.2.6") or {}
                             raw_val_2826 = d2826.get("valor") or {}
@@ -9683,7 +9682,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.7 • Outros Serviços da Atenção Especializada com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe os 3 outros serviços da Atenção Especializada com maior tempo médio de espera no município:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Informe os 3 outros serviços da Atenção Especializada com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
     
                             d2827 = res_data.get("28.2.7") or {}
                             raw_val_2827 = d2827.get("valor") or {}
@@ -9755,7 +9754,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("29.0 • Atualização do CNES").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município mantém atualizado o Cadastro de Estabelecimentos e Profissionais de Saúde (CNES)?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município mantém atualizado o Cadastro de Estabelecimentos e Profissionais de Saúde (CNES)?").classes("text-base font-bold text-black mb-4")
     
                             opts_290 = [
                                 "SIM, os cadastros de estabelecimentos e de profissionais estão atualizados",
@@ -9820,7 +9819,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("30.0 • Complexo Regulador Municipal").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município possui Complexo Regulador Municipal?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município possui Complexo Regulador Municipal?").classes("text-base font-bold text-black mb-4")
     
                             d300 = res_data.get("30.0") or {}
                             state_300 = {
@@ -9858,7 +9857,7 @@ def container_formulario_saude(ano=None):
                         if state_300["opcao"] == "Sim":
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("30.1 • Central de Regulação").classes("text-xl font-semibold text-blue-600 mb-2")
-                                ui.label("O Complexo Regulador Municipal possui Central de Regulação?").classes("text-sm text-gray-700 mb-4")
+                                ui.label("O Complexo Regulador Municipal possui Central de Regulação?").classes("text-base font-bold text-black mb-4")
     
                                 d301 = res_data.get("30.1") or {}
                                 state_301 = {
@@ -9896,7 +9895,7 @@ def container_formulario_saude(ano=None):
                             if state_301["opcao"] == "Sim":
                                 with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-8"):
                                     ui.label("30.1.1 • Tipos de Central de Regulação").classes("text-xl font-semibold text-blue-600 mb-2")
-                                    ui.label("Assinale os tipos de central de regulação municipal ou regional utilizados pelo município:").classes("text-sm text-gray-700 mb-4")
+                                    ui.label("Assinale os tipos de central de regulação municipal ou regional utilizados pelo município:").classes("text-base font-bold text-black mb-4")
     
                                     d3011 = res_data.get("30.1.1") or {}
                                     raw_val_3011 = d3011.get("valor") or []
@@ -9970,7 +9969,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("31.0 • Atenção Pré-Hospitalar e Central SAMU 192").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município possui serviços de atenção pré-hospitalar e Central Samu 192 ou integra Central Samu 192 de abrangência regional?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município possui serviços de atenção pré-hospitalar e Central Samu 192 ou integra Central Samu 192 de abrangência regional?").classes("text-base font-bold text-black mb-4")
     
                             d310 = res_data.get("31.0") or {}
                             state_310 = {
@@ -10011,7 +10010,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("31.1 • Tempo de Resposta dos Atendimentos do SAMU (ou equivalente)").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe os tempos de resposta (em minutos) para os anos de 2024, 2025 e 2026:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Informe os tempos de resposta (em minutos) para os anos de 2024, 2025 e 2026:").classes("text-base font-bold text-black mb-4")
 
                             d311 = res_data.get("31.1") or {}
                             raw_val_311 = d311.get("valor") or {}
@@ -10135,7 +10134,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("31.2 • Composição das Equipes da Central de Regulação das Urgências").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("As equipes da Central de Regulação das Urgências tiveram ao menos a composição mínima estipulada na legislação no decorrer do exercício?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("As equipes da Central de Regulação das Urgências tiveram ao menos a composição mínima estipulada na legislação no decorrer do exercício?").classes("text-base font-bold text-black mb-4")
     
                             d312 = res_data.get("31.2") or {}
                             state_312 = {
@@ -10201,7 +10200,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("31.3 • Composição das Equipes das Unidades Móveis (Ambulâncias/USA/USB)").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("As equipes das Unidades Móveis tiveram ao menos a composição mínima estipulada na legislação no decorrer do exercício?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("As equipes das Unidades Móveis tiveram ao menos a composição mínima estipulada na legislação no decorrer do exercício?").classes("text-base font-bold text-black mb-4")
     
                             d313 = res_data.get("31.3") or {}
                             state_313 = {
@@ -10267,7 +10266,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("32.0 • Sistema Informatizado de Gerenciamento de Estoque de Insumos").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município utiliza sistema informatizado para gerenciar o estoque de materiais e insumos médicos?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município utiliza sistema informatizado para gerenciar o estoque de materiais e insumos médicos?").classes("text-base font-bold text-black mb-4")
     
                             d320 = res_data.get("32.0") or {}
                             state_320 = {
@@ -10308,7 +10307,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("32.1 • Funções do Sistema de Gestão de Estoque").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Assinale as funções do sistema de gestão de estoque de materiais e insumos médicos:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Assinale as funções do sistema de gestão de estoque de materiais e insumos médicos:").classes("text-base font-bold text-black mb-4")
     
                             d321 = res_data.get("32.1") or {}
                             raw_val_321 = d321.get("valor") or []
@@ -10387,7 +10386,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("33.0 • Ouvidoria da Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município possui Ouvidoria da Saúde implantada?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município possui Ouvidoria da Saúde implantada?").classes("text-base font-bold text-black mb-4")
     
                             d330 = res_data.get("33.0") or {}
                             state_330 = {
@@ -10425,7 +10424,7 @@ def container_formulario_saude(ano=None):
                         if state_330["opcao"] == "Sim":
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("33.1 • Características da Ouvidoria da Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
-                                ui.label("Assinale as características da Ouvidoria da Saúde:").classes("text-sm text-gray-700 mb-4")
+                                ui.label("Assinale as características da Ouvidoria da Saúde:").classes("text-base font-bold text-black mb-4")
     
                                 d331 = res_data.get("33.1") or {}
                                 raw_val_331 = d331.get("valor") or []
@@ -10504,7 +10503,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("34.0 • Sistema OuvidorSUS ou Equivalente").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município utiliza o Sistema OuvidorSUS ou sistema equivalente que, além de permitir a disseminação de informações, o registro e o encaminhamento das manifestações dos cidadãos, possibilita troca de informações entre os órgãos responsáveis pela gestão do SUS?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município utiliza o Sistema OuvidorSUS ou sistema equivalente que, além de permitir a disseminação de informações, o registro e o encaminhamento das manifestações dos cidadãos, possibilita troca de informações entre os órgãos responsáveis pela gestão do SUS?").classes("text-base font-bold text-black mb-4")
     
                             d340 = res_data.get("34.0") or {}
                             state_340 = {
@@ -10552,7 +10551,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("35.0 • Componente Municipal do SNA").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município possui o componente municipal do Sistema Nacional de Auditoria?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município possui o componente municipal do Sistema Nacional de Auditoria?").classes("text-base font-bold text-black mb-4")
     
                             d350 = res_data.get("35.0") or {}
                             state_350 = {
@@ -10593,7 +10592,7 @@ def container_formulario_saude(ano=None):
                             # -------------------------------------------------------------------------
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("35.1 • Características do Componente Municipal do SNA").classes("text-xl font-semibold text-blue-600 mb-2")
-                                ui.label("Assinale as características do componente municipal do Sistema Nacional de Auditoria - SNA:").classes("text-sm text-gray-700 mb-4")
+                                ui.label("Assinale as características do componente municipal do Sistema Nacional de Auditoria - SNA:").classes("text-base font-bold text-black mb-4")
     
                                 d351 = res_data.get("35.1") or {}
                                 raw_val_351 = d351.get("valor") or []
@@ -10672,7 +10671,7 @@ def container_formulario_saude(ano=None):
                             # -------------------------------------------------------------------------
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("35.2 • Divulgação dos Relatórios de Auditoria de 2026").classes("text-xl font-semibold text-blue-600 mb-2")
-                                ui.label("As auditorias concluídas (encerradas) do exercício de 2026 pelo componente municipal do Sistema Nacional de Auditoria do SUS - SNA estão disponibilizadas em site para consulta?").classes("text-sm text-gray-700 mb-4")
+                                ui.label("As auditorias concluídas (encerradas) do exercício de 2026 pelo componente municipal do Sistema Nacional de Auditoria do SUS - SNA estão disponibilizadas em site para consulta?").classes("text-base font-bold text-black mb-4")
     
                                 d352 = res_data.get("35.2") or {}
                                 state_352 = {
@@ -10724,7 +10723,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                             ui.label("35.2.1 • Divulgação das Auditorias de 2026").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe a página eletrônica (site) de divulgação dos resultados das auditorias concluídas (encerradas) em 2026:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Informe a página eletrônica (site) de divulgação dos resultados das auditorias concluídas (encerradas) em 2026:").classes("text-base font-bold text-black mb-4")
     
                             d3521 = res_data.get("35.2.1") or {}
                             state_3521 = {
@@ -10759,7 +10758,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("36.0 • Gestão do Estoque de Medicamentos").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município utiliza sistema informatizado para gerenciar o estoque de itens de medicamentos?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("O município utiliza sistema informatizado para gerenciar o estoque de itens de medicamentos?").classes("text-base font-bold text-black mb-4")
     
                             d360 = res_data.get("36.0") or {}
                             OPCOES_360 = [
@@ -10822,7 +10821,7 @@ def container_formulario_saude(ano=None):
                         if state_360["opcao"] == "Sim, utiliza Sistema Próprio":
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("36.1 • Funcionalidades do Sistema Próprio de Medicamentos").classes("text-xl font-semibold text-blue-600 mb-2")
-                                ui.label("Assinale as funções existentes no sistema próprio de gestão de estoque de medicamentos:").classes("text-sm text-gray-700 mb-4")
+                                ui.label("Assinale as funções existentes no sistema próprio de gestão de estoque de medicamentos:").classes("text-base font-bold text-black mb-4")
     
                                 d361 = res_data.get("36.1") or {}
                                 raw_val_361 = d361.get("valor") or []
@@ -10943,7 +10942,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o número de medicamentos da REMUME em falta por mais de 1 mês em 2026 (MD) "
                                 "e o total de medicamentos cadastrados na REMUME (TM) para cálculo da proporção (Pd = MD / TM):"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             d370 = res_data.get("37.0") or {}
                             val_370 = d370.get("valor") if isinstance(d370.get("valor"), dict) else {}
@@ -11051,7 +11050,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("38.0 • Disponibilização de Serviços de Telemedicina").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Houve a disponibilização do serviço de telemedicina em 2026?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Houve a disponibilização do serviço de telemedicina em 2026?").classes("text-base font-bold text-black mb-4")
     
                             d380 = res_data.get("38.0") or {}
                             state_380 = {
@@ -11094,7 +11093,7 @@ def container_formulario_saude(ano=None):
                             # -------------------------------------------------------------------------
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("38.1 • Serviços Disponibilizados").classes("text-xl font-semibold text-blue-600 mb-2")
-                                ui.label("Assinale os serviços disponibilizados:").classes("text-sm text-gray-700 mb-4")
+                                ui.label("Assinale os serviços disponibilizados:").classes("text-base font-bold text-black mb-4")
     
                                 d381 = res_data.get("38.1") or {}
                                 raw_val_381 = d381.get("valor") or []
@@ -11157,7 +11156,7 @@ def container_formulario_saude(ano=None):
                             # -------------------------------------------------------------------------
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("38.2 • Prescrição e Atestados Eletrônicos").classes("text-xl font-semibold text-blue-600 mb-2")
-                                ui.label("Foi utilizado sistema informatizado para prescrição eletrônica, que possibilitasse a emissão de receitas e atestados, assinados eletronicamente?").classes("text-sm text-gray-700 mb-4")
+                                ui.label("Foi utilizado sistema informatizado para prescrição eletrônica, que possibilitasse a emissão de receitas e atestados, assinados eletronicamente?").classes("text-base font-bold text-black mb-4")
     
                                 d382 = res_data.get("38.2") or {}
                                 state_382 = {
@@ -11196,7 +11195,7 @@ def container_formulario_saude(ano=None):
                             if state_382["opcao"] == "Sim":
                                 with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-8"):
                                     ui.label("38.2.1 • Ferramenta Utilizada para Prescrição e Assinatura Eletrônica").classes("text-xl font-semibold text-blue-600 mb-2")
-                                    ui.label("Assinale a ferramenta utilizada para prescrição e assinatura eletrônica:").classes("text-sm text-gray-700 mb-4")
+                                    ui.label("Assinale a ferramenta utilizada para prescrição e assinatura eletrônica:").classes("text-base font-bold text-black mb-4")
     
                                     d3821 = res_data.get("38.2.1") or {}
                                     raw_val_3821 = d3821.get("valor") or []
@@ -11247,7 +11246,7 @@ def container_formulario_saude(ano=None):
                             # -------------------------------------------------------------------------
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("38.3 • Modalidades de Consultas e Registros de Telemedicina").classes("text-xl font-semibold text-blue-600 mb-2")
-                                ui.label("Assinale as modalidades de consultas e registros realizados referentes aos serviços de telemedicina:").classes("text-sm text-gray-700 mb-4")
+                                ui.label("Assinale as modalidades de consultas e registros realizados referentes aos serviços de telemedicina:").classes("text-base font-bold text-black mb-4")
     
                                 d383 = res_data.get("38.3") or {}
                                 raw_val_383 = d383.get("valor") or []
@@ -11316,7 +11315,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?\n"
                                 "Utilize o espaço abaixo para registrar suas impressões, comentários e sugestões a respeito do presente questionário."
-                            ).classes("text-sm text-gray-700 mb-4 whitespace-pre-line")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             d390 = res_data.get("39.0") or {}
                             state_390 = {
