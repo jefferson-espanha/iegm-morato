@@ -10997,7 +10997,7 @@ def container_formulario_saude(ano=None):
                                 ).classes("w-full").props("outlined dense")
     
                                 inp_tm = ui.number(
-                                    label="Total de itens do Componente Básico na REMUME (TM):",
+                                    label="Total de itens do Componente Básico na Relação Municipal de Medicamentos Essenciais (TM):",
                                     value=state_370["tm"],
                                     min=0,
                                     format="%.0f"
@@ -11007,7 +11007,7 @@ def container_formulario_saude(ano=None):
                             inp_tm.on("update:model-value", lambda: atualizar_calculo_370())
     
                             ui.textarea(
-                                label="Link / Comprovação do controle de estoque e lista REMUME:",
+                                label="Link / Comprovação do controle de estoque e lista Relação Municipal de Medicamentos Essenciais:",
                                 value=state_370["link"]
                             ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_370, "link")
     
