@@ -1060,7 +1060,7 @@ def container_formulario_saude(ano=None):
                             res_data=res_data,
                             qid="7.0",
                             titulo="Apresentação de Relatórios Quadrimestrais",
-                            pergunta="O gestor municipal de saúde apresentou quais Relatórios Quadrimestrais de 2025 previstos no art. 36 da Lei Complementar 141/2012 em audiência pública na Câmara Municipal?",
+                            pergunta="O gestor municipal de saúde apresentou quais Relatórios Quadrimestrais de 2026 previstos no art. 36 da Lei Complementar 141/2012 em audiência pública na Câmara Municipal?",
                             tipo_input="checkbox",
                             opcoes=opcoes_7_0,
                             placeholder_link="Insira o link da ata da audiência pública ou edital...",
@@ -1119,7 +1119,7 @@ def container_formulario_saude(ano=None):
                             ano=ano_sel,
                             res_data=res_data,
                             qid="9.1",
-                            titulo="Publicação do Parecer Conclusivo do RAG 2024",
+                            titulo="Publicação do Parecer Conclusivo do Relatório Anual de Gestão 2025",
                             pergunta="Informe a forma e Data da publicação do Parecer Conclusivo sobre o Relatório Anual de Gestão 2025:",
                             tipo_input="text",
                             opcoes={},
@@ -1137,7 +1137,7 @@ def container_formulario_saude(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a página eletrônica (link na internet) de divulgação do Parecer Conclusivo sobre o Relatório Anual de Gestão 2024:"
+                                "Informe a página eletrônica (link na internet) de divulgação do Parecer Conclusivo sobre o Relatório Anual de Gestão 2025:"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
                                 "⚠️ Se não estiver disponível na internet, inserir no campo Página eletrônica (link na internet) o texto XYZ. (Com XYZ = 00 pts | Diferente de XYZ = 05 pts)."
@@ -1236,7 +1236,7 @@ def container_formulario_saude(ano=None):
     
                             # --- Campo Base: Total de Estabelecimentos ---
                             with ui.row().classes("w-full items-center mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200"):
-                                ui.label("Quantidade de estabelecimentos de saúde sob gestão municipal (Dez/2025):").classes(
+                                ui.label("Quantidade de estabelecimentos de saúde sob gestão municipal (Dez/2026):").classes(
                                     "text-sm font-bold text-blue-900 w-2/3"
                                 )
                                 inp_total_10 = ui.input(
@@ -2256,7 +2256,7 @@ def container_formulario_saude(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "O município possui controle de absenteísmo para as consultas médicas da Atenção Básica?"
+                                "O município possui controle de absenteísmo para as consultas médicas da Atenção Básica? Obs. Exemplos de Agendamento Remoto: por telefone, internet, Voip etc"
                             ).classes("text-base font-bold text-black mb-6")
     
                             d142 = res_data.get("14.2") or {}
@@ -2337,7 +2337,7 @@ def container_formulario_saude(ano=None):
                                 "Informe a taxa de absenteísmo de consulta médica nas UBSs (%):"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "⚠️ Regra: Se a Taxa de 2025 (TA) for menor ou igual à média dos 2 anos anteriores (2023 e 2024) = 10 pts. Se for maior = 00 pt."
+                                "⚠️ Regra: Se a Taxa de 2026 (TA) for menor ou igual à média dos 2 anos anteriores (2024 e 2025) = 10 pts. Se for maior = 00 pt."
                             ).classes("text-xs font-semibold text-amber-600 mb-6")
     
                             d1421 = res_data.get("14.2.1") or {}
@@ -2349,19 +2349,19 @@ def container_formulario_saude(ano=None):
                             raw_link_1421 = str(d1421.get("link") or "")
     
                             state_1421 = {
-                                "ta_2023": str(raw_val_1421.get("ta_2023", "")),
                                 "ta_2024": str(raw_val_1421.get("ta_2024", "")),
                                 "ta_2025": str(raw_val_1421.get("ta_2025", "")),
+                                "ta_2026": str(raw_val_1421.get("ta_2026", "")),
                                 "link": raw_link_1421,
                             }
     
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
-                                ui.label("Taxa em 2023 (TA-2) (%):").classes("text-sm text-gray-700 w-1/2")
-                                inp_ta_2023 = ui.input(
-                                    value=state_1421["ta_2023"],
+                                ui.label("Taxa em 2024 (TA-2) (%):").classes("text-sm text-gray-700 w-1/2")
+                                inp_ta_2024 = ui.input(
+                                    value=state_1421["ta_2024"],
                                     placeholder="Ex: 15.5"
                                 ).props("type=number outlined dense color=blue").classes("w-1/2")
-                                inp_ta_2023.bind_value(state_1421, "ta_2023")
+                                inp_ta_2024.bind_value(state_1421, "ta_2024")
     
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
                                 ui.label("Taxa em 2024 (TA-1) (%):").classes("text-sm text-gray-700 w-1/2")
@@ -2390,9 +2390,9 @@ def container_formulario_saude(ano=None):
                                     except (ValueError, AttributeError):
                                         return None
     
-                                v23 = parse_val(state_1421["ta_2023"])
-                                v24 = parse_val(state_1421["ta_2024"])
-                                v25 = parse_val(state_1421["ta_2025"])
+                                v23 = parse_val(state_1421["ta_2024"])
+                                v24 = parse_val(state_1421["ta_2025"])
+                                v25 = parse_val(state_1421["ta_2026"])
     
                                 if v23 is not None and v24 is not None and v25 is not None:
                                     media_anteriores = (v23 + v24) / 2.0
@@ -2402,15 +2402,15 @@ def container_formulario_saude(ano=None):
                                         pts = 0.0
                                     lbl_pts_1421.set_text(
                                         f"📊 Nota 14.2.1: {pts:.1f} / 10.0 pontos "
-                                        f"(Média 2023-2024: {media_anteriores:.2f}% | 2025: {v25:.2f}%)"
+                                        f"(Média 2024-2025: {media_anteriores:.2f}% | 2026: {v25:.2f}%)"
                                     )
                                 else:
                                     pts = 0.0
-                                    lbl_pts_1421.set_text("📊 Nota 14.2.1: 0.0 pontos (Preencha as taxas de 2023, 2024 e 2025)")
+                                    lbl_pts_1421.set_text("📊 Nota 14.2.1: 0.0 pontos (Preencha as taxas de 2024, 2025 e 2026)")
     
                                 return pts
     
-                            for inp in [inp_ta_2023, inp_ta_2024, inp_ta_2025]:
+                            for inp in [inp_ta_2024, inp_ta_2025, inp_ta_2026]:
                                 inp.on("update:model-value", recalc_1421)
     
                             recalc_1421()
