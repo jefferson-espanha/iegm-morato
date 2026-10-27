@@ -2721,7 +2721,7 @@ def container_formulario_saude(ano=None):
                                 "Informe a taxa de absenteísmo de exame médico da Atenção Básica (%):"
                             ).classes("text-base font-bold text-black mb-1")
                             ui.label(
-                                "⚠️ Regra: Se a Taxa de 2025 (TA) for menor ou igual à média dos 2 anos anteriores (2023 e 2024) = 07 pts. Se for maior = 00 pt."
+                                "⚠️ Regra: Se a Taxa de 2026 (TA) for menor ou igual à média dos 2 anos anteriores (2024 e 2025) = 07 pts. Se for maior = 00 pt."
                             ).classes("text-xs font-semibold text-amber-600 mb-6")
     
                             d151 = res_data.get("15.1") or {}
@@ -2733,35 +2733,35 @@ def container_formulario_saude(ano=None):
                             raw_link_151 = str(d151.get("link") or "")
     
                             state_151 = {
-                                "ta_2023": str(raw_val_151.get("ta_2023", "")),
                                 "ta_2024": str(raw_val_151.get("ta_2024", "")),
                                 "ta_2025": str(raw_val_151.get("ta_2025", "")),
+                                "ta_2026": str(raw_val_151.get("ta_2026", "")),
                                 "link": raw_link_151,
                             }
     
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
-                                ui.label("Taxa em 2023 (TA-2) (%):").classes("text-sm text-gray-700 w-1/2")
+                                ui.label("Taxa em 2024 (TA-2) (%):").classes("text-sm text-gray-700 w-1/2")
                                 inp_ta_2023_151 = ui.input(
-                                    value=state_151["ta_2023"],
+                                    value=state_151["ta_2024"],
                                     placeholder="Ex: 18.5"
                                 ).props("type=number outlined dense color=blue").classes("w-1/2")
-                                inp_ta_2023_151.bind_value(state_151, "ta_2023")
+                                inp_ta_2024_151.bind_value(state_151, "ta_2024")
     
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
-                                ui.label("Taxa em 2024 (TA-1) (%):").classes("text-sm text-gray-700 w-1/2")
+                                ui.label("Taxa em 2025 (TA-1) (%):").classes("text-sm text-gray-700 w-1/2")
                                 inp_ta_2024_151 = ui.input(
-                                    value=state_151["ta_2024"],
+                                    value=state_151["ta_2025"],
                                     placeholder="Ex: 16.2"
                                 ).props("type=number outlined dense color=blue").classes("w-1/2")
                                 inp_ta_2024_151.bind_value(state_151, "ta_2024")
     
                             with ui.row().classes("w-full items-center mb-2 gap-4"):
-                                ui.label("Taxa em 2025 (TA) (%):").classes("text-sm text-gray-700 w-1/2")
+                                ui.label("Taxa em 2026 (TA) (%):").classes("text-sm text-gray-700 w-1/2")
                                 inp_ta_2025_151 = ui.input(
-                                    value=state_151["ta_2025"],
+                                    value=state_151["ta_2026"],
                                     placeholder="Ex: 15.0"
                                 ).props("type=number outlined dense color=blue").classes("w-1/2")
-                                inp_ta_2025_151.bind_value(state_151, "ta_2025")
+                                inp_ta_2025_151.bind_value(state_151, "ta_2026")
     
                             lbl_pts_151 = ui.label("Nota 15.1: 0.0 pontos").classes(
                                 "text-sm font-bold text-green-600 mb-4"
@@ -2786,11 +2786,11 @@ def container_formulario_saude(ano=None):
                                         pts = 0.0
                                     lbl_pts_151.set_text(
                                         f"📊 Nota 15.1: {pts:.1f} / 7.0 pontos "
-                                        f"(Média 2023-2024: {media_anteriores:.2f}% | 2025: {v25:.2f}%)"
+                                        f"(Média 2024-2025: {media_anteriores:.2f}% | 2026: {v25:.2f}%)"
                                     )
                                 else:
                                     pts = 0.0
-                                    lbl_pts_151.set_text("📊 Nota 15.1: 0.0 pontos (Preencha as taxas de 2023, 2024 e 2025)")
+                                    lbl_pts_151.set_text("📊 Nota 15.1: 0.0 pontos (Preencha as taxas de 2024, 2025 e 2026)")
     
                                 return pts
     
@@ -2813,9 +2813,9 @@ def container_formulario_saude(ano=None):
                                     ano=ano_sel,
                                     qid="15.1",
                                     valor={
-                                        "ta_2023": state_151["ta_2023"],
                                         "ta_2024": state_151["ta_2024"],
                                         "ta_2025": state_151["ta_2025"],
+                                        "ta_2026": state_151["ta_2026"],
                                     },
                                     pontos=pts,
                                     link=state_151["link"],
