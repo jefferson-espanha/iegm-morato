@@ -11357,7 +11357,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe as despesas aplicadas em saúde com recursos próprios e a receita total de impostos. "
                                 "A proporção mínima exigida por lei é de 15%."
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds1 = res_data.get("S1") or {}
                             val_s1 = ds1.get("valor") if isinstance(ds1.get("valor"), dict) else {}
@@ -11459,7 +11459,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o total de consultas médicas e a população estimada dos exercícios de 2024, 2025 e 2026 "
                                 "para comparar o indicador do ano atual (PAA) com a média do biênio anterior (MAA):"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
 
                             ds2 = res_data.get("S2") or {}
                             val_s2 = ds2.get("valor") if isinstance(ds2.get("valor"), dict) else {}
@@ -11613,7 +11613,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o número de gestantes com pelo menos 6 consultas de pré-natal "
                                 "(com a 1ª consulta até a 12ª semana) e o total de gestantes cadastradas por quadrimestre em 2026:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds3 = res_data.get("S3") or {}
                             val_s3 = ds3.get("valor") if isinstance(ds3.get("valor"), dict) else {}
@@ -11780,7 +11780,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o número de exames (teste não treponêmico para sífilis e teste rápido para HIV) "
                                 "e a quantidade de gestantes com o primeiro atendimento de pré-natal (TG):"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds4 = res_data.get("S4") or {}
                             val_s4 = ds4.get("valor") if isinstance(ds4.get("valor"), dict) else {}
@@ -11908,7 +11908,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o número de inspeções sanitárias realizadas em 2024, 2025 e 2026. "
                                 "O indicador avalia o desempenho de 2026 em relação à média do biênio anterior:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
 
                             ds5 = res_data.get("S5") or {}
                             val_s5 = ds5.get("valor") if isinstance(ds5.get("valor"), dict) else {}
@@ -12022,7 +12022,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o percentual (%) de cobertura para cada vacina conforme dados do TABNET/DATASUS. "
                                 "O cálculo aplicará a pontuação integral para metas atingidas ou proporcional quando abaixo da meta."
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds6 = res_data.get("S6") or {}
                             val_s6 = ds6.get("valor") if isinstance(ds6.get("valor"), dict) else {}
@@ -12155,7 +12155,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o percentual (%) de cobertura vacinal contra a Influenza nos idosos com 60 anos ou mais. "
                                 "A meta estipulada pelo Ministério da Saúde é de 90,0%."
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds7 = res_data.get("S7") or {}
                             val_s7 = ds7.get("valor") if isinstance(ds7.get("valor"), dict) else {}
@@ -12238,7 +12238,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o percentual (%) de internações por causas sensíveis à atenção básica no total de internações "
                                 "nos estabelecimentos sob gestão municipal (SIH/SUS). Este indicador aplica penalidade proporcional:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds8 = res_data.get("S8") or {}
                             val_s8 = ds8.get("valor") if isinstance(ds8.get("valor"), dict) else {}
@@ -12320,7 +12320,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe a quantidade de internações em estabelecimentos de saúde sob gestão municipal "
                                 "nos exercícios de 2024, 2025 e 2026 para avaliar o crescimento em relação à média do biênio anterior:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
 
                             ds9 = res_data.get("S9") or {}
                             val_s9 = ds9.get("valor") if isinstance(ds9.get("valor"), dict) else {}
@@ -12429,7 +12429,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade obstétrica em 20265. "
                                 "O indicador avalia se a média de permanência (P / F) ultrapassa o limite de 3,1 dias:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds10 = res_data.get("S10") or {}
                             val_s10 = ds10.get("valor") if isinstance(ds10.get("valor"), dict) else {}
@@ -12534,7 +12534,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Pediátrica em 2026. "
                                 "O indicador aplica penalidade se a média de permanência (P / F) for superior a 5,7 dias:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds11 = res_data.get("S11") or {}
                             val_s11 = ds11.get("valor") if isinstance(ds11.get("valor"), dict) else {}
@@ -12635,7 +12635,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Clínica Médica em 2026. "
                                 "O indicador aplica penalidade se a média de permanência (P / F) for superior a 9,7 dias:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds12 = res_data.get("S12") or {}
                             val_s12 = ds12.get("valor") if isinstance(ds12.get("valor"), dict) else {}
@@ -12740,7 +12740,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Cirúrgica em 2026. "
                                 "O indicador aplica penalidade se a média de permanência (P / F) for superior a 6,5 dias:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds13 = res_data.get("S13") or {}
                             val_s13 = ds13.get("valor") if isinstance(ds13.get("valor"), dict) else {}
@@ -12841,7 +12841,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o número de óbitos e total de saídas hospitalares (2024 a 2026). "
                                 "O indicador avalia se a taxa de mortalidade em 2026 (TOAA / SHAA) ultrapassa a média agregada do biênio 2024-2025:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
 
                             ds14 = res_data.get("S14") or {}
                             val_s14 = ds14.get("valor") if isinstance(ds14.get("valor"), dict) else {}
@@ -12958,7 +12958,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o total de partos cesarianos e o total geral de partos realizados em estabelecimentos sob gestão municipal em 2026. "
                                 "O indicador aplica penalidade se a proporção de cesarianas (PC / TP) ultrapassar 40,0%:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds15 = res_data.get("S15") or {}
                             val_s15 = ds15.get("valor") if isinstance(ds15.get("valor"), dict) else {}
@@ -13060,7 +13060,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o número de óbitos de recém-nascidos (ORNAA) e o total de nascidos vivos (NVAA) de 2024 a 2026. "
                                 "O indicador avalia se a taxa de mortalidade neonatal em 2026 ultrapassa a média agregada do biênio 2024-2025:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
 
                             ds16 = res_data.get("S16") or {}
                             val_s16 = ds16.get("valor") if isinstance(ds16.get("valor"), dict) else {}
@@ -13174,7 +13174,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o número de mulheres (25 a 64 anos) com exame citopatológico realizado nos últimos 36 meses na APS "
                                 "e o total de mulheres dessa faixa etária cadastradas no município para os 3 quadrimestres de 2026 (SISAB):"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds17 = res_data.get("S17") or {}
                             val_s17 = ds17.get("valor") if isinstance(ds17.get("valor"), dict) else {}
@@ -13310,7 +13310,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o número de hipertensos com consulta e aferição de PA nos últimos 6 meses (HPA) "
                                 "e o total de hipertensos cadastrados (TH) para os 3 quadrimestres de 2026 (SISAB):"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds18 = res_data.get("S18") or {}
                             val_s18 = ds18.get("valor") if isinstance(ds18.get("valor"), dict) else {}
@@ -13442,7 +13442,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o número de diabéticos com consulta em DM e solicitação de Hemoglobina Glicada nos últimos 6 meses (DHG) "
                                 "e o total de diabéticos cadastrados (TD) para os 3 quadrimestres de 2026 (SISAB):"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             ds19 = res_data.get("S19") or {}
                             val_s19 = ds19.get("valor") if isinstance(ds19.get("valor"), dict) else {}
@@ -13574,7 +13574,7 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Informe o número de gestantes com atendimento odontológico realizado na APS (GPAO) "
                                 "para os 3 quadrimestres de 2026. O total de gestantes (TG) é obtido a partir dos dados declarados no Quesito S3:"
-                            ).classes("text-sm text-gray-700 mb-4")
+                            ).classes("text-base font-bold text-black mb-4")
     
                             # Resgate de dados de S20
                             ds20 = res_data.get("S20") or {}
