@@ -4574,8 +4574,7 @@ def container_formulario_ieduc(ano=None):
                                     "text-xl font-semibold text-blue-500 mb-3"
                                 )
                                 ui.label(
-                                    "Informe a quantidade de professores de Pré-escola que: Obs. Considerar todos os professores efetivos e temporários
-(Dados Censo Escolar 2025)"
+                                    "Informe a quantidade de professores de Pré-escola que: Obs. Considerar todos os professores efetivos e temporários (Dados Censo Escolar 2026)"
                                 ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Cálculo: NF = N1 (Graduação - máx 11 pts) + N2 (Pós-Graduação - máx 7 pts) | Pmáx = 18 pts."
