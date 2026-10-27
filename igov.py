@@ -4,20 +4,15 @@ import json
 import logging
 import os
 import re
-from io import BytesIO
 
+from io import BytesIO
 from nicegui import app, ui
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
-
-# 📌 Adicione a importação da sua função de conexão aqui:
-from database import get_db_connection  # Ajuste 'database' para o nome do seu arquivo/módulo de conexão
-
 # Importações do ReportLab
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.shapes import Drawing, String
 from reportlab.lib import colors
-
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
