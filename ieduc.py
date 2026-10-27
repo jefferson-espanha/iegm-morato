@@ -749,7 +749,7 @@ def container_formulario_ieduc(ano=None):
                     # ==========================================
                     # Navegação leve em estilo de links numerados (somente um grupo é renderizado por vez)
                     etapa_atual = int(app.storage.user.get("ieduc_etapa", 1))
-                    if etapa_atual not in range(1, 11):
+                    if etapa_atual not in range(1, 9):
                         etapa_atual = 1
 
                     def mudar_etapa(nova_etapa):
@@ -757,7 +757,7 @@ def container_formulario_ieduc(ano=None):
                         render_conteudo.refresh()
 
                     with ui.row().classes("w-full items-center gap-3 mb-6 px-1"):
-                        for numero in range(1, 11):
+                        for numero in range(1, 9):
                             estilo = (
                                 "text-blue-900 font-black underline"
                                 if numero == etapa_atual
@@ -16385,7 +16385,7 @@ def container_formulario_ieduc(ano=None):
 
 
                         # -----------------------------------------------------------------------------
-                    if etapa_atual == 9:
+                    if etapa_atual == 8:
                         # QUESITO 20.0 - Impressões, Comentários e Sugestões sobre o Questionário
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -16440,7 +16440,7 @@ def container_formulario_ieduc(ano=None):
 
                         # -----------------------------------------------------------------------------
                     # =============================================================================
-                    if etapa_atual == 10:
+                    if etapa_atual == 8:
                         # QUESITO E1.1 (Estabelecimentos de Creche com Pátio Infantil - Censo Escolar)
                         # =============================================================================
                         d_e11 = res_data.get("E1.1") or res_data.get("E11") or {}
