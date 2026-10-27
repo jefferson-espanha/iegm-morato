@@ -5781,7 +5781,7 @@ def container_formulario_saude(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a quantidade de exames realizados e a quantidade de mamógrafos em 2025:"
+                                "Informe a quantidade de exames realizados e a quantidade de mamógrafos em 2026:"
                             ).classes("text-base font-bold text-black mb-2")
                             ui.label(
                                 "Fórmula: P = EX / MM. Se P >= 6.758 exames/ano -> 0,0 ponto | Se P < 6.758 exames/ano -> -5,0 pontos"
@@ -5802,7 +5802,7 @@ def container_formulario_saude(ano=None):
     
                             with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
                                 num_exames = ui.number(
-                                    label="Quantidade de exames de mamógrafo realizados em 2025 (EX):",
+                                    label="Quantidade de exames de mamógrafo realizados em 2026 (EX):",
                                     value=state_1771["exames"],
                                     min=0,
                                     step=1,
@@ -5810,7 +5810,7 @@ def container_formulario_saude(ano=None):
                                 num_exames.bind_value(state_1771, "exames")
     
                                 num_mamografos = ui.number(
-                                    label="Quantidade de mamógrafos da rede própria em 2025 (MM):",
+                                    label="Quantidade de mamógrafos da rede própria em 2026 (MM):",
                                     value=state_1771["mamografos"],
                                     min=0,
                                     step=1,
@@ -5955,7 +5955,7 @@ def container_formulario_saude(ano=None):
                             bloco_comentarios("17.8", res_data, render_conteudo.refresh)
     
                         # =============================================================================
-                        # QUESITO 17.8.1 (Comparativo de Produtividade dos Ultrassons)
+                        # QUESITO 17.8.1 (Comparativo de Produtividade dos Ultrassons: 2024, 2025, 2026)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -5964,121 +5964,121 @@ def container_formulario_saude(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe a quantidade de exames e de equipamentos de ultrassom nos anos de 2023, 2024 e 2025:"
+                                "Informe a quantidade de exames e de equipamentos de ultrassom nos anos de 2024, 2025 e 2026:"
                             ).classes("text-base font-bold text-black mb-2")
                             ui.label(
-                                "Fórmula: Se EX_2025 / EQ_2025 >= (EX_2023 + EX_2024) / (EQ_2023 + EQ_2024) -> 0,0 ponto | Caso contrário -> -5,0 pontos"
+                                "Fórmula: Se EX_2026 / EQ_2026 >= (EX_2024 + EX_2025) / (EQ_2024 + EQ_2025) -> 0,0 ponto | Caso contrário -> -5,0 pontos"
                             ).classes("text-xs font-semibold text-gray-600 mb-6")
-    
+
                             d1781 = res_data.get("17.8.1") or {}
                             raw_val_1781 = d1781.get("valor") or {}
                             if not isinstance(raw_val_1781, dict):
                                 raw_val_1781 = {}
-    
+
                             raw_link_1781 = str(d1781.get("link") or "")
-    
+
                             state_1781 = {
-                                "ex_2023": int(raw_val_1781.get("ex_2023", 0)),
                                 "ex_2024": int(raw_val_1781.get("ex_2024", 0)),
                                 "ex_2025": int(raw_val_1781.get("ex_2025", 0)),
-                                "eq_2023": int(raw_val_1781.get("eq_2023", 0)),
+                                "ex_2026": int(raw_val_1781.get("ex_2026", 0)),
                                 "eq_2024": int(raw_val_1781.get("eq_2024", 0)),
                                 "eq_2025": int(raw_val_1781.get("eq_2025", 0)),
+                                "eq_2026": int(raw_val_1781.get("eq_2026", 0)),
                                 "link": raw_link_1781,
                             }
-    
+
                             ui.label("Quantidade de Exames Realizados (EX):").classes("text-sm font-bold text-gray-700 mt-2 mb-2")
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                num_ex_2023 = ui.number(
-                                    label="Exames em 2023 (EXAA-2):",
-                                    value=state_1781["ex_2023"],
-                                    min=0,
-                                    precision=0
-                                ).classes("w-full").props("outlined density=compact")
-                                num_ex_2023.bind_value(state_1781, "ex_2023")
-    
                                 num_ex_2024 = ui.number(
-                                    label="Exames em 2024 (EXAA-1):",
+                                    label="Exames em 2024 (EXAA-2):",
                                     value=state_1781["ex_2024"],
                                     min=0,
                                     precision=0
                                 ).classes("w-full").props("outlined density=compact")
                                 num_ex_2024.bind_value(state_1781, "ex_2024")
-    
+
                                 num_ex_2025 = ui.number(
-                                    label="Exames em 2025 (EXAA):",
+                                    label="Exames em 2025 (EXAA-1):",
                                     value=state_1781["ex_2025"],
                                     min=0,
                                     precision=0
                                 ).classes("w-full").props("outlined density=compact")
                                 num_ex_2025.bind_value(state_1781, "ex_2025")
-    
-                            ui.label("Quantidade de Equipamentos (EQ):").classes("text-sm font-bold text-gray-700 mt-2 mb-2")
-                            with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                num_eq_2023 = ui.number(
-                                    label="Equipamentos em 2023 (EQAA-2):",
-                                    value=state_1781["eq_2023"],
+
+                                num_ex_2026 = ui.number(
+                                    label="Exames em 2026 (EXAA):",
+                                    value=state_1781["ex_2026"],
                                     min=0,
                                     precision=0
                                 ).classes("w-full").props("outlined density=compact")
-                                num_eq_2023.bind_value(state_1781, "eq_2023")
-    
+                                num_ex_2026.bind_value(state_1781, "ex_2026")
+
+                            ui.label("Quantidade de Equipamentos (EQ):").classes("text-sm font-bold text-gray-700 mt-2 mb-2")
+                            with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
                                 num_eq_2024 = ui.number(
-                                    label="Equipamentos em 2024 (EQAA-1):",
+                                    label="Equipamentos em 2024 (EQAA-2):",
                                     value=state_1781["eq_2024"],
                                     min=0,
                                     precision=0
                                 ).classes("w-full").props("outlined density=compact")
                                 num_eq_2024.bind_value(state_1781, "eq_2024")
-    
+
                                 num_eq_2025 = ui.number(
-                                    label="Equipamentos em 2025 (EQAA):",
+                                    label="Equipamentos em 2025 (EQAA-1):",
                                     value=state_1781["eq_2025"],
                                     min=0,
                                     precision=0
                                 ).classes("w-full").props("outlined density=compact")
                                 num_eq_2025.bind_value(state_1781, "eq_2025")
-    
-                            lbl_calc_info = ui.label("Produtividade 2025: 0.00 | Média Histórica (2023-2024): 0.00").classes(
+
+                                num_eq_2026 = ui.number(
+                                    label="Equipamentos em 2026 (EQAA):",
+                                    value=state_1781["eq_2026"],
+                                    min=0,
+                                    precision=0
+                                ).classes("w-full").props("outlined density=compact")
+                                num_eq_2026.bind_value(state_1781, "eq_2026")
+
+                            lbl_calc_info = ui.label("Produtividade 2026: 0.00 | Média Histórica (2024-2025): 0.00").classes(
                                 "text-sm font-semibold text-gray-700 mb-1"
                             )
                             lbl_pts_1781 = ui.label("Nota 17.8.1: 0.0 pontos").classes(
                                 "text-sm font-bold text-green-600 mb-4"
                             )
-    
+
                             def recalc_1781():
-                                ex23 = int(state_1781["ex_2023"] or 0)
                                 ex24 = int(state_1781["ex_2024"] or 0)
                                 ex25 = int(state_1781["ex_2025"] or 0)
-    
-                                eq23 = int(state_1781["eq_2023"] or 0)
+                                ex26 = int(state_1781["ex_2026"] or 0)
+
                                 eq24 = int(state_1781["eq_2024"] or 0)
                                 eq25 = int(state_1781["eq_2025"] or 0)
-    
-                                prod_2025 = (ex25 / eq25) if eq25 > 0 else 0.0
-                                
-                                soma_ex_hist = ex23 + ex24
-                                soma_eq_hist = eq23 + eq24
+                                eq26 = int(state_1781["eq_2026"] or 0)
+
+                                prod_2026 = (ex26 / eq26) if eq26 > 0 else 0.0
+
+                                soma_ex_hist = ex24 + ex25
+                                soma_eq_hist = eq24 + eq25
                                 prod_hist = (soma_ex_hist / soma_eq_hist) if soma_eq_hist > 0 else 0.0
-    
-                                if prod_2025 >= prod_hist and eq25 > 0:
+
+                                if prod_2026 >= prod_hist and eq26 > 0:
                                     pts = 0.0
                                     lbl_pts_1781.classes(replace="text-sm font-bold text-green-600 mb-4")
                                 else:
                                     pts = -5.0
                                     lbl_pts_1781.classes(replace="text-sm font-bold text-red-600 mb-4")
-    
+
                                 lbl_calc_info.set_text(
-                                    f"📈 Produtividade 2025: {prod_2025:,.2f} exames/eq | Média Anterior (23-24): {prod_hist:,.2f} exames/eq"
+                                    f"📈 Produtividade 2026: {prod_2026:,.2f} exames/eq | Média Anterior (24-25): {prod_hist:,.2f} exames/eq"
                                 )
                                 lbl_pts_1781.set_text(f"📊 Nota 17.8.1: {pts:.1f} pontos")
                                 return pts
-    
-                            for element in [num_ex_2023, num_ex_2024, num_ex_2025, num_eq_2023, num_eq_2024, num_eq_2025]:
+
+                            for element in [num_ex_2024, num_ex_2025, num_ex_2026, num_eq_2024, num_eq_2025, num_eq_2026]:
                                 element.on("update:model-value", recalc_1781)
-    
+
                             recalc_1781()
-    
+
                             ui.textarea(
                                 label="Link de Evidência / Relatório SIA-SUS e CNES:",
                                 value=raw_link_1781,
@@ -6086,19 +6086,19 @@ def container_formulario_saude(ano=None):
                             ).classes("w-full mb-4").props("outlined rows=2").bind_value(
                                 state_1781, "link"
                             )
-    
+
                             def salvar_1781():
                                 pts = recalc_1781()
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="17.8.1",
                                     valor={
-                                        "ex_2023": state_1781["ex_2023"],
                                         "ex_2024": state_1781["ex_2024"],
                                         "ex_2025": state_1781["ex_2025"],
-                                        "eq_2023": state_1781["eq_2023"],
+                                        "ex_2026": state_1781["ex_2026"],
                                         "eq_2024": state_1781["eq_2024"],
                                         "eq_2025": state_1781["eq_2025"],
+                                        "eq_2026": state_1781["eq_2026"],
                                     },
                                     pontos=pts,
                                     link=state_1781["link"],
@@ -6108,7 +6108,7 @@ def container_formulario_saude(ano=None):
                                 ui.notify(f"Quesito 17.8.1 salvo com sucesso! ({pts:.1f} pts)", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO 17.8.1", on_click=salvar_1781).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
