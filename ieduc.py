@@ -1190,8 +1190,7 @@ def container_formulario_ieduc(ano=None):
                                 res_data=res_data,
                                 qid="1.2.1.1",
                                 titulo="Frequência de Higienização",
-                                pergunta="Qual a frequência de higienização aplicada na maior parte dos estabelecimentos que oferecem creche? (Obs: Frequência de higienização aplicada na maior parte dos estabelecimentos que oferecem creche)
-",
+                                pergunta="Qual a frequência de higienização aplicada na maior parte dos estabelecimentos que oferecem creche? (Obs: Frequência de higienização aplicada na maior parte dos estabelecimentos que oferecem creche)",
                                 tipo_input="radio",
                                 opcoes=opcoes_1_2_1_1,
                                 placeholder_link="Insira o link do registro/relatório de higienização...",
