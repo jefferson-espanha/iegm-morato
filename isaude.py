@@ -4065,7 +4065,7 @@ def container_formulario_saude(ano=None):
                             bloco_comentarios("17.4", res_data, render_conteudo.refresh)
     
                         # =============================================================================
-                        # QUESITO 17.4.1 (Taxa de Absenteísmo para Exames Médicos: 2023, 2024, 2025)
+                        # QUESITO 17.4.1 (Taxa de Absenteísmo para Exames Médicos: 2024, 2025, 2026)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
@@ -4077,63 +4077,63 @@ def container_formulario_saude(ano=None):
                                 "Informe a taxa de absenteísmo de exame médico da Atenção Especializada sob gestão municipal:"
                             ).classes("text-base font-bold text-black mb-2")
                             ui.label(
-                                "Regra de pontuação: Se TA (2025) > média(2023, 2024) -> perde 2 pontos (-02). Caso contrário -> 00 ponto."
+                                "Regra de pontuação: Se TA (2026) > média(2024, 2025) -> perde 2 pontos (-02). Caso contrário -> 00 ponto."
                             ).classes("text-xs font-semibold text-gray-600 mb-6")
-    
+
                             d1741 = res_data.get("17.4.1") or {}
                             raw_val_1741 = d1741.get("valor") or {}
                             if not isinstance(raw_val_1741, dict):
                                 raw_val_1741 = {}
-    
+
                             raw_link_1741 = str(d1741.get("link") or "")
-    
+
                             state_1741 = {
-                                "ta_2023": str(raw_val_1741.get("ta_2023", "")),
                                 "ta_2024": str(raw_val_1741.get("ta_2024", "")),
                                 "ta_2025": str(raw_val_1741.get("ta_2025", "")),
+                                "ta_2026": str(raw_val_1741.get("ta_2026", "")),
                                 "link": raw_link_1741,
                             }
-    
+
                             with ui.row().classes("w-full gap-4 mb-4"):
-                                inp_2023 = ui.input(
-                                    label="Taxa 2023 (TA-2) (%)",
-                                    placeholder="Ex: 99,9%",
-                                    value=state_1741["ta_2023"]
-                                ).classes("w-1/3").props("outlined density=compact")
-                                inp_2023.bind_value(state_1741, "ta_2023")
-    
-                                inp_2024 = ui.input(
-                                    label="Taxa 2024 (TA-1) (%)",
-                                    placeholder="Ex: 99,9%",
+                                inp_ta_2024_1741 = ui.input(
+                                    label="Taxa 2024 (TA-2) (%)",
+                                    placeholder="Ex: 15.5%",
                                     value=state_1741["ta_2024"]
                                 ).classes("w-1/3").props("outlined density=compact")
-                                inp_2024.bind_value(state_1741, "ta_2024")
-    
-                                inp_2025 = ui.input(
-                                    label="Taxa 2025 (TA) (%)",
-                                    placeholder="Ex: 99,9%",
+                                inp_ta_2024_1741.bind_value(state_1741, "ta_2024")
+
+                                inp_ta_2025_1741 = ui.input(
+                                    label="Taxa 2025 (TA-1) (%)",
+                                    placeholder="Ex: 14.0%",
                                     value=state_1741["ta_2025"]
                                 ).classes("w-1/3").props("outlined density=compact")
-                                inp_2025.bind_value(state_1741, "ta_2025")
-    
+                                inp_ta_2025_1741.bind_value(state_1741, "ta_2025")
+
+                                inp_ta_2026_1741 = ui.input(
+                                    label="Taxa 2026 (TA) (%)",
+                                    placeholder="Ex: 12.8%",
+                                    value=state_1741["ta_2026"]
+                                ).classes("w-1/3").props("outlined density=compact")
+                                inp_ta_2026_1741.bind_value(state_1741, "ta_2026")
+
                             lbl_pts_1741 = ui.label("Nota 17.4.1: 0.0 pontos").classes(
                                 "text-sm font-bold text-green-600 mb-4"
                             )
-    
+
                             def recalc_1741():
                                 try:
-                                    t23 = float(state_1741["ta_2023"].replace("%", "").replace(",", ".").strip()) if state_1741["ta_2023"] else None
                                     t24 = float(state_1741["ta_2024"].replace("%", "").replace(",", ".").strip()) if state_1741["ta_2024"] else None
                                     t25 = float(state_1741["ta_2025"].replace("%", "").replace(",", ".").strip()) if state_1741["ta_2025"] else None
-    
-                                    if t23 is not None and t24 is not None and t25 is not None:
-                                        media_anteriores = (t23 + t24) / 2.0
-                                        if t25 > media_anteriores:
+                                    t26 = float(state_1741["ta_2026"].replace("%", "").replace(",", ".").strip()) if state_1741["ta_2026"] else None
+
+                                    if t24 is not None and t25 is not None and t26 is not None:
+                                        media_anteriores = (t24 + t25) / 2.0
+                                        if t26 > media_anteriores:
                                             pts = -2.0
                                         else:
                                             pts = 0.0
                                         lbl_pts_1741.set_text(
-                                            f"📊 Nota 17.4.1: {pts:.1f} pontos (Média 23-24: {media_anteriores:.2f}% | TA 2025: {t25:.2f}%)"
+                                            f"📊 Nota 17.4.1: {pts:.1f} pontos (Média 24-25: {media_anteriores:.2f}% | TA 2026: {t26:.2f}%)"
                                         )
                                     else:
                                         pts = 0.0
@@ -4142,12 +4142,12 @@ def container_formulario_saude(ano=None):
                                     pts = 0.0
                                     lbl_pts_1741.set_text("📊 Nota 17.4.1: Valores inválidos informados")
                                 return pts
-    
-                            for inp in [inp_2023, inp_2024, inp_2025]:
+
+                            for inp in [inp_ta_2024_1741, inp_ta_2025_1741, inp_ta_2026_1741]:
                                 inp.on("update:model-value", recalc_1741)
-    
+
                             recalc_1741()
-    
+
                             ui.textarea(
                                 label="Link de Evidência / Relatórios de Absenteísmo de Exames Ano a Ano:",
                                 value=raw_link_1741,
@@ -4155,16 +4155,16 @@ def container_formulario_saude(ano=None):
                             ).classes("w-full mb-4").props("outlined rows=2").bind_value(
                                 state_1741, "link"
                             )
-    
+
                             def salvar_1741():
                                 pts = recalc_1741()
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="17.4.1",
                                     valor={
-                                        "ta_2023": state_1741["ta_2023"],
                                         "ta_2024": state_1741["ta_2024"],
                                         "ta_2025": state_1741["ta_2025"],
+                                        "ta_2026": state_1741["ta_2026"],
                                     },
                                     pontos=pts,
                                     link=state_1741["link"],
@@ -4174,7 +4174,7 @@ def container_formulario_saude(ano=None):
                                 ui.notify(f"Quesito 17.4.1 salvo! ({pts:.1f} pts)", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO 17.4.1", on_click=salvar_1741).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
