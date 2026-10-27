@@ -4855,7 +4855,7 @@ def container_formulario_ieduc(ano=None):
                                 )
                                 ui.label(
                                     "Informe a quantidade total (dias) de ausência dos professores por faltas (incluindo os afastamentos legais) para Pré-Escola - QTA: Obs. Todos os dias de ausência de professores da PréEscola no ano de 2026 (justificadas ou injustificadas)"
-                                    ).classes("text-base font-bold text-black mb-1")
+                                ).classes("text-base font-bold text-black mb-1")
                                 ui.label(
                                     "ℹ Quesito declaratório / levantamento de absenteísmo."
                                 ).classes("text-xs text-gray-400 mb-6")
