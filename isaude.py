@@ -837,7 +837,6 @@ def container_formulario_saude(ano=None):
                         render_conteudo.refresh()
 
                     with ui.row().classes("w-full items-center gap-4 mb-4 px-1"):
-                        ui.label("(1: 1.0–9.2 | 2: 10.0–14.2.1 | 3: 14.2.2–17.9.2 | 4: 18.0–28.2.7 | 5: 29.0–S20)").classes("text-xs text-gray-500")
                         ui.label("Etapa:").classes("font-bold text-gray-700")
                         for numero in range(1, 6):
                             estilo = "text-green-900 font-black underline" if numero == etapa_atual else "text-green-700 underline"
