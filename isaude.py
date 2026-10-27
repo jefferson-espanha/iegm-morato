@@ -898,7 +898,7 @@ def container_formulario_saude(ano=None):
                             opcoes_3_0 = {
                                 "Selecione...": 0.0,
                                 "Até prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2026 – 10": 10.0,
-                                "Aprovado após prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2025, mas antes da aprovação da LDO 2026 pela Câmara Municipal – 07": 7.0,
+                                "Aprovado após prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2026, mas antes da aprovação da LDO 2026 pela Câmara Municipal – 07": 7.0,
                                 "Aprovado após a aprovação da LDO 2026 pela Câmara Municipal – 03": 3.0,
                                 "Não aprovado – 00": 0.0,
                             }
@@ -6197,7 +6197,7 @@ def container_formulario_saude(ano=None):
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "Informe o total de pacientes-dia e o número total de leitos-dia em 2025:"
+                                "Informe o total de pacientes-dia e o número total de leitos-dia em 2026:"
                             ).classes("text-base font-bold text-black mb-2")
                             ui.label(
                                 "Fórmula: TO = PA / LE. Faixa ideal: 75% a 90% (0,0 ponto). Se TO < 75% ou TO > 90% -> -5,0 pontos."
@@ -6218,7 +6218,7 @@ def container_formulario_saude(ano=None):
     
                             with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
                                 num_pa = ui.number(
-                                    label="Total de pacientes-dia em 2025 (PA):",
+                                    label="Total de pacientes-dia em 2026 (PA):",
                                     value=state_1791["pa"],
                                     min=0,
                                     precision=0
@@ -6226,7 +6226,7 @@ def container_formulario_saude(ano=None):
                                 num_pa.bind_value(state_1791, "pa")
     
                                 num_le = ui.number(
-                                    label="Total de leitos-dia em 2025 (LE):",
+                                    label="Total de leitos-dia em 2026 (LE):",
                                     value=state_1791["le"],
                                     min=0,
                                     precision=0
@@ -6311,78 +6311,78 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Fórmula: Se TOAA <= (TOAA-2 + TOAA-1) / 2 -> 0,0 ponto | Se TOAA > (TOAA-2 + TOAA-1) / 2 -> -5,0 pontos"
                             ).classes("text-xs font-semibold text-gray-600 mb-6")
-    
+
                             d1792 = res_data.get("17.9.2") or {}
                             raw_val_1792 = d1792.get("valor") or {}
                             if not isinstance(raw_val_1792, dict):
                                 raw_val_1792 = {}
-    
+
                             raw_link_1792 = str(d1792.get("link") or "")
-    
+
                             state_1792 = {
-                                "to_2023": int(raw_val_1792.get("to_2023", 0)),
                                 "to_2024": int(raw_val_1792.get("to_2024", 0)),
                                 "to_2025": int(raw_val_1792.get("to_2025", 0)),
+                                "to_2026": int(raw_val_1792.get("to_2026", 0)),
                                 "link": raw_link_1792,
                             }
-    
+
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                num_to_2023 = ui.number(
-                                    label="Nº Hospitais > 100% em 2023 (TOAA-2):",
-                                    value=state_1792["to_2023"],
-                                    min=0,
-                                    precision=0
-                                ).classes("w-full").props("outlined density=compact")
-                                num_to_2023.bind_value(state_1792, "to_2023")
-    
                                 num_to_2024 = ui.number(
-                                    label="Nº Hospitais > 100% em 2024 (TOAA-1):",
+                                    label="Nº Hospitais > 100% em 2024 (TOAA-2):",
                                     value=state_1792["to_2024"],
                                     min=0,
                                     precision=0
                                 ).classes("w-full").props("outlined density=compact")
                                 num_to_2024.bind_value(state_1792, "to_2024")
-    
+
                                 num_to_2025 = ui.number(
-                                    label="Nº Hospitais > 100% em 2025 (TOAA):",
+                                    label="Nº Hospitais > 100% em 2025 (TOAA-1):",
                                     value=state_1792["to_2025"],
                                     min=0,
                                     precision=0
                                 ).classes("w-full").props("outlined density=compact")
                                 num_to_2025.bind_value(state_1792, "to_2025")
-    
-                            lbl_comp_1792 = ui.label("Nº em 2025: 0 | Média (2023-2024): 0.00").classes(
+
+                                num_to_2026 = ui.number(
+                                    label="Nº Hospitais > 100% em 2026 (TOAA):",
+                                    value=state_1792["to_2026"],
+                                    min=0,
+                                    precision=0
+                                ).classes("w-full").props("outlined density=compact")
+                                num_to_2026.bind_value(state_1792, "to_2026")
+
+                            lbl_comp_1792 = ui.label("Nº em 2026: 0 | Média (2024-2025): 0.00").classes(
                                 "text-sm font-semibold text-gray-700 mb-1"
                             )
                             lbl_pts_1792 = ui.label("Nota 17.9.2: 0.0 pontos").classes(
                                 "text-sm font-bold text-green-600 mb-4"
                             )
-    
+
                             def recalc_1792():
-                                t23 = int(state_1792["to_2023"] or 0)
                                 t24 = int(state_1792["to_2024"] or 0)
                                 t25 = int(state_1792["to_2025"] or 0)
-    
-                                media_hist = (t23 + t24) / 2.0
-    
-                                if t25 <= media_hist:
+                                t26 = int(state_1792["to_2026"] or 0)
+
+                                media_hist = (t24 + t25) / 2.0
+
+                                if t26 <= media_hist:
                                     pts = 0.0
                                     lbl_pts_1792.classes(replace="text-sm font-bold text-green-600 mb-4")
                                 else:
                                     pts = -5.0
                                     lbl_pts_1792.classes(replace="text-sm font-bold text-red-600 mb-4")
-    
+
                                 lbl_comp_1792.set_text(
-                                    f"📈 Nº Hospitais com >100% em 2025: {t25} | Média dos Anos Anteriores: {media_hist:.2f}"
+                                    f"📈 Nº Hospitais com >100% em 2026: {t26} | Média dos Anos Anteriores: {media_hist:.2f}"
                                 )
                                 lbl_pts_1792.set_text(f"📊 Nota 17.9.2: {pts:.1f} pontos")
                                 return pts
-    
-                            for element in [num_to_2023, num_to_2024, num_to_2025]:
+
+                            for element in [num_to_2024, num_to_2025, num_to_2026]:
                                 element.on("update:model-value", recalc_1792)
-    
+
                             recalc_1792()
-    
+
                             ui.textarea(
                                 label="Link de Evidência / Relatório Censo Hospitalar:",
                                 value=raw_link_1792,
@@ -6390,16 +6390,16 @@ def container_formulario_saude(ano=None):
                             ).classes("w-full mb-4").props("outlined rows=2").bind_value(
                                 state_1792, "link"
                             )
-    
+
                             def salvar_1792():
                                 pts = recalc_1792()
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="17.9.2",
                                     valor={
-                                        "to_2023": state_1792["to_2023"],
                                         "to_2024": state_1792["to_2024"],
                                         "to_2025": state_1792["to_2025"],
+                                        "to_2026": state_1792["to_2026"],
                                     },
                                     pontos=pts,
                                     link=state_1792["link"],
@@ -6409,7 +6409,7 @@ def container_formulario_saude(ano=None):
                                 ui.notify(f"Quesito 17.9.2 salvo com sucesso! ({pts:.1f} pts)", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO 17.9.2", on_click=salvar_1792).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
@@ -6743,16 +6743,16 @@ def container_formulario_saude(ano=None):
                             bloco_comentarios("18.2.1", res_data, render_conteudo.refresh)
     
                         # =============================================================================
-                        # QUESITO 18.2.1.1 (Atingimento de Metas de Saúde Mental 2025)
+                        # QUESITO 18.2.1.1 (Atingimento de Metas de Saúde Mental 2026)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
-                            ui.label("18.2.1.1 • Atingimento de Metas no Exercício 2025").classes(
+                            ui.label("18.2.1.1 • Atingimento de Metas no Exercício 2026").classes(
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "As metas estabelecidas para o exercício 2025 foram atingidas?"
+                                "As metas estabelecidas para o exercício 2026 foram atingidas?"
                             ).classes("text-base font-bold text-black mb-6")
     
                             d18211 = res_data.get("18.2.1.1") or {}
@@ -6788,9 +6788,9 @@ def container_formulario_saude(ano=None):
                                 return pts
     
                             ui.textarea(
-                                label="Link de Evidência / Relatório Anual de Gestão (RAG) 2025:",
+                                label="Link de Evidência / Relatório Anual de Gestão (RAG) 2026:",
                                 value=raw_link_18211,
-                                placeholder="Link do RAG 2025 ou relatório de monitoramento das metas intersetoriais...",
+                                placeholder="Link do RAG 2026 ou relatório de monitoramento das metas intersetoriais...",
                             ).classes("w-full mb-4").props("outlined rows=2").bind_value(
                                 state_18211, "link"
                             )
@@ -7056,16 +7056,16 @@ def container_formulario_saude(ano=None):
                             bloco_comentarios("18.4.1", res_data, render_conteudo.refresh)
     
                         # =============================================================================
-                        # QUESITO 18.5 (Porte Populacional > 15 mil habitantes - IBGE 2025)
+                        # QUESITO 18.5 (Porte Populacional > 15 mil habitantes - IBGE 2026)
                         # =============================================================================
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
-                            ui.label("18.5 • População Municipal (IBGE 2025)").classes(
+                            ui.label("18.5 • População Municipal (IBGE 2026)").classes(
                                 "text-xl font-semibold text-blue-500 mb-3"
                             )
                             ui.label(
-                                "O município possui população superior a 15 mil habitantes (conforme dados do IBGE 2025)?"
+                                "O município possui população superior a 15 mil habitantes (conforme dados do IBGE 2026)?"
                             ).classes("text-base font-bold text-black mb-6")
     
                             d185 = res_data.get("18.5") or {}
@@ -7099,9 +7099,9 @@ def container_formulario_saude(ano=None):
                                 return pts
     
                             ui.textarea(
-                                label="Link de Evidência / Estimativa Populacional IBGE 2025:",
+                                label="Link de Evidência / Estimativa Populacional IBGE 2026:",
                                 value=raw_link_185,
-                                placeholder="Link da certidão ou publicação oficial do IBGE 2025...",
+                                placeholder="Link da certidão ou publicação oficial do IBGE 2026...",
                             ).classes("w-full mb-4").props("outlined rows=2").bind_value(
                                 state_185, "link"
                             )
@@ -8189,16 +8189,16 @@ def container_formulario_saude(ano=None):
                             raw_link_195 = str(d195.get("link") or "")
     
                             state_195 = {
-                                "la_minus_1": int(raw_val_195.get("la_minus_1", 0)), # Leitos 2024
-                                "la": int(raw_val_195.get("la", 0)),                 # Leitos 2025
-                                "va_minus_1": int(raw_val_195.get("va_minus_1", 0)), # Vagas SRT 2024
-                                "va": int(raw_val_195.get("va", 0)),                 # Vagas SRT 2025
+                                "la_minus_1": int(raw_val_195.get("la_minus_1", 0)), # Leitos 2025
+                                "la": int(raw_val_195.get("la", 0)),                 # Leitos 2026
+                                "va_minus_1": int(raw_val_195.get("va_minus_1", 0)), # Vagas SRT 2025
+                                "va": int(raw_val_195.get("va", 0)),                 # Vagas SRT 2026
                                 "link": raw_link_195,
                             }
     
                             with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
                                 inp_la_m1 = ui.number(
-                                    label="Nº de Leitos de Internação Psiquiátrica Prolongada (2024 - LA-1)",
+                                    label="Nº de Leitos de Internação Psiquiátrica Prolongada (2025 - LA-1)",
                                     value=state_195["la_minus_1"],
                                     min=0,
                                     precision=0,
@@ -8206,7 +8206,7 @@ def container_formulario_saude(ano=None):
                                 inp_la_m1.bind_value(state_195, "la_minus_1")
     
                                 inp_la = ui.number(
-                                    label="Nº de Leitos de Internação Psiquiátrica Prolongada (2025 - LA)",
+                                    label="Nº de Leitos de Internação Psiquiátrica Prolongada (2026 - LA)",
                                     value=state_195["la"],
                                     min=0,
                                     precision=0,
@@ -8214,7 +8214,7 @@ def container_formulario_saude(ano=None):
                                 inp_la.bind_value(state_195, "la")
     
                                 inp_va_m1 = ui.number(
-                                    label="Nº de Vagas Disponibilizadas em SRT (2024 - VA-1)",
+                                    label="Nº de Vagas Disponibilizadas em SRT (2025 - VA-1)",
                                     value=state_195["va_minus_1"],
                                     min=0,
                                     precision=0,
@@ -8222,7 +8222,7 @@ def container_formulario_saude(ano=None):
                                 inp_va_m1.bind_value(state_195, "va_minus_1")
     
                                 inp_va = ui.number(
-                                    label="Nº de Vagas Disponibilizadas em SRT (2025 - VA)",
+                                    label="Nº de Vagas Disponibilizadas em SRT (2026 - VA)",
                                     value=state_195["va"],
                                     min=0,
                                     precision=0,
@@ -8623,7 +8623,7 @@ def container_formulario_saude(ano=None):
                             opts_220 = {
                                 "todos": "Sim, investiga todos os casos (30,0 pontos)",
                                 "parte": "Sim, investiga parte dos casos (15,0 pontos)",
-                                "sem_casos": "Não houve casos em 2025 (30,0 pontos)",
+                                "sem_casos": "Não houve casos em 2026 (30,0 pontos)",
                                 "nao": "Não investiga (0,0 ponto)",
                             }
     
@@ -8679,8 +8679,8 @@ def container_formulario_saude(ano=None):
                         # QUESITO 23.0 (Atribuições de Vigilância Entomológica e Controle Vetorial)
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("23.0 • Exercício do Controle Vetorial em 2025").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("O município exerceu as atribuições relacionadas à vigilância entomológica e controle vetorial em 2025?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("23.0 • Exercício do Controle Vetorial em 2026").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("O município exerceu as atribuições relacionadas à vigilância entomológica e controle vetorial em 2026?").classes("text-sm text-gray-700 mb-4")
     
                             d230 = res_data.get("23.0") or {}
                             opts_230 = {
@@ -8836,11 +8836,11 @@ def container_formulario_saude(ano=None):
                             bloco_comentarios("24.0", res_data, render_conteudo.refresh)
     
                         # -----------------------------------------------------------------------------
-                        # QUESITO 24.1 (Campanhas de Educação em Saúde Realizadas em 2025)
+                        # QUESITO 24.1 (Campanhas de Educação em Saúde Realizadas em 2026)
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                            ui.label("24.1 • Campanhas Realizadas em 2025").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Assinale as campanhas de educação em saúde realizadas no município em 2025:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("24.1 • Campanhas Realizadas em 2026").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("Assinale as campanhas de educação em saúde realizadas no município em 2026:").classes("text-sm text-gray-700 mb-4")
     
                             d241 = res_data.get("24.1") or {}
                             raw_val_241 = d241.get("valor") or {}
@@ -10011,22 +10011,18 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("31.1 • Tempo de Resposta dos Atendimentos do SAMU (ou equivalente)").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe os tempos de resposta (em minutos) para os anos de 2023, 2024 e 2025:").classes("text-sm text-gray-700 mb-4")
-    
+                            ui.label("Informe os tempos de resposta (em minutos) para os anos de 2024, 2025 e 2026:").classes("text-sm text-gray-700 mb-4")
+
                             d311 = res_data.get("31.1") or {}
                             raw_val_311 = d311.get("valor") or {}
                             if not isinstance(raw_val_311, dict):
                                 raw_val_311 = {}
-    
+
                             state_311 = {
                                 # Tempos Médios Principais
-                                "tmr_2023": parse_num(raw_val_311.get("tmr_2023")),
                                 "tmr_2024": parse_num(raw_val_311.get("tmr_2024")),
                                 "tmr_2025": parse_num(raw_val_311.get("tmr_2025")),
-                                # Detalhamento Mín/Med/Máx 2023
-                                "min_2023": parse_num(raw_val_311.get("min_2023")),
-                                "med_2023": parse_num(raw_val_311.get("med_2023")),
-                                "max_2023": parse_num(raw_val_311.get("max_2023")),
+                                "tmr_2026": parse_num(raw_val_311.get("tmr_2026")),
                                 # Detalhamento Mín/Med/Máx 2024
                                 "min_2024": parse_num(raw_val_311.get("min_2024")),
                                 "med_2024": parse_num(raw_val_311.get("med_2024")),
@@ -10035,24 +10031,28 @@ def container_formulario_saude(ano=None):
                                 "min_2025": parse_num(raw_val_311.get("min_2025")),
                                 "med_2025": parse_num(raw_val_311.get("med_2025")),
                                 "max_2025": parse_num(raw_val_311.get("max_2025")),
+                                # Detalhamento Mín/Med/Máx 2026
+                                "min_2026": parse_num(raw_val_311.get("min_2026")),
+                                "med_2026": parse_num(raw_val_311.get("med_2026")),
+                                "max_2026": parse_num(raw_val_311.get("max_2026")),
                                 "link": str(d311.get("link") or ""),
                             }
-    
+
                             lbl_pontos_311 = ui.label("").classes("text-sm font-bold text-green-600 my-2")
-    
+
                             def calc_pontos_311():
                                 # Trata None convertendo para float 0.0 com segurança
-                                t23 = float(parse_num(state_311["tmr_2023"]) or 0)
                                 t24 = float(parse_num(state_311["tmr_2024"]) or 0)
                                 t25 = float(parse_num(state_311["tmr_2025"]) or 0)
-    
+                                t26 = float(parse_num(state_311["tmr_2026"]) or 0)
+
                                 # Se os três anos estiverem preenchidos com valores válidos (>0)
-                                if t23 > 0 and t24 > 0 and t25 > 0:
-                                    media_historica = (t23 + t24) / 2.0
-                                    if t25 > media_historica:
+                                if t24 > 0 and t25 > 0 and t26 > 0:
+                                    media_historica = (t24 + t25) / 2.0
+                                    if t26 > media_historica:
                                         return -5.0  # Perde 5 pontos se o tempo aumentou
                                 return 0.0
-    
+
                             def atualizar_pontos_311():
                                 pts = calc_pontos_311()
                                 if pts < 0:
@@ -10061,56 +10061,56 @@ def container_formulario_saude(ano=None):
                                 else:
                                     lbl_pontos_311.set_text("Pontuação Calculada: 0.0 pontos (Sem penalidade)")
                                     lbl_pontos_311.classes(remove="text-red-600", add="text-green-600")
-    
+
                             ui.label("Tempos Médios de Resposta (Gerais):").classes("text-sm font-bold text-gray-800 mt-2")
                             with ui.row().classes("w-full gap-4"):
-                                inp_t23 = ui.number("2023 - Tempo Médio (min)", value=state_311["tmr_2023"]).classes("w-1/3").bind_value(state_311, "tmr_2023")
                                 inp_t24 = ui.number("2024 - Tempo Médio (min)", value=state_311["tmr_2024"]).classes("w-1/3").bind_value(state_311, "tmr_2024")
                                 inp_t25 = ui.number("2025 - Tempo Médio (min)", value=state_311["tmr_2025"]).classes("w-1/3").bind_value(state_311, "tmr_2025")
-    
-                            inp_t23.on("update:model-value", lambda: atualizar_pontos_311())
+                                inp_t26 = ui.number("2026 - Tempo Médio (min)", value=state_311["tmr_2026"]).classes("w-1/3").bind_value(state_311, "tmr_2026")
+
                             inp_t24.on("update:model-value", lambda: atualizar_pontos_311())
                             inp_t25.on("update:model-value", lambda: atualizar_pontos_311())
-    
+                            inp_t26.on("update:model-value", lambda: atualizar_pontos_311())
+
                             ui.separator().classes("my-3")
                             ui.label("Detalhamento de Tempos por Ano (Mínimo, Médio e Máximo em Minutos):").classes("text-sm font-bold text-gray-800")
-    
-                            ui.label("Ano 2023:").classes("text-xs font-semibold text-gray-600 mt-1")
-                            with ui.row().classes("w-full gap-4"):
-                                ui.number("2023 - Mínimo", value=state_311["min_2023"]).classes("w-1/3").bind_value(state_311, "min_2023")
-                                ui.number("2023 - Médio", value=state_311["med_2023"]).classes("w-1/3").bind_value(state_311, "med_2023")
-                                ui.number("2023 - Máximo", value=state_311["max_2023"]).classes("w-1/3").bind_value(state_311, "max_2023")
-    
+
                             ui.label("Ano 2024:").classes("text-xs font-semibold text-gray-600 mt-1")
                             with ui.row().classes("w-full gap-4"):
                                 ui.number("2024 - Mínimo", value=state_311["min_2024"]).classes("w-1/3").bind_value(state_311, "min_2024")
                                 ui.number("2024 - Médio", value=state_311["med_2024"]).classes("w-1/3").bind_value(state_311, "med_2024")
                                 ui.number("2024 - Máximo", value=state_311["max_2024"]).classes("w-1/3").bind_value(state_311, "max_2024")
-    
+
                             ui.label("Ano 2025:").classes("text-xs font-semibold text-gray-600 mt-1")
                             with ui.row().classes("w-full gap-4"):
                                 ui.number("2025 - Mínimo", value=state_311["min_2025"]).classes("w-1/3").bind_value(state_311, "min_2025")
                                 ui.number("2025 - Médio", value=state_311["med_2025"]).classes("w-1/3").bind_value(state_311, "med_2025")
                                 ui.number("2025 - Máximo", value=state_311["max_2025"]).classes("w-1/3").bind_value(state_311, "max_2025")
-    
+
+                            ui.label("Ano 2026:").classes("text-xs font-semibold text-gray-600 mt-1")
+                            with ui.row().classes("w-full gap-4"):
+                                ui.number("2026 - Mínimo", value=state_311["min_2026"]).classes("w-1/3").bind_value(state_311, "min_2026")
+                                ui.number("2026 - Médio", value=state_311["med_2026"]).classes("w-1/3").bind_value(state_311, "med_2026")
+                                ui.number("2026 - Máximo", value=state_311["max_2026"]).classes("w-1/3").bind_value(state_311, "max_2026")
+
                             atualizar_pontos_311()
-    
+
                             ui.textarea(label="Link / Relatório do Sistema de Gestão de Urgências:", value=state_311["link"]).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_311, "link")
-    
+
                             def salvar_311():
                                 payload_311 = {
-                                    "tmr_2023": parse_num(state_311["tmr_2023"]),
                                     "tmr_2024": parse_num(state_311["tmr_2024"]),
                                     "tmr_2025": parse_num(state_311["tmr_2025"]),
-                                    "min_2023": parse_num(state_311["min_2023"]),
-                                    "med_2023": parse_num(state_311["med_2023"]),
-                                    "max_2023": parse_num(state_311["max_2023"]),
+                                    "tmr_2026": parse_num(state_311["tmr_2026"]),
                                     "min_2024": parse_num(state_311["min_2024"]),
                                     "med_2024": parse_num(state_311["med_2024"]),
                                     "max_2024": parse_num(state_311["max_2024"]),
                                     "min_2025": parse_num(state_311["min_2025"]),
                                     "med_2025": parse_num(state_311["med_2025"]),
                                     "max_2025": parse_num(state_311["max_2025"]),
+                                    "min_2026": parse_num(state_311["min_2026"]),
+                                    "med_2026": parse_num(state_311["med_2026"]),
+                                    "max_2026": parse_num(state_311["max_2026"]),
                                 }
                                 pts = calc_pontos_311()
                                 save_resposta(
@@ -10125,7 +10125,7 @@ def container_formulario_saude(ano=None):
                                 ui.notify("Quesito 31.1 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO 31.1", on_click=salvar_311).classes("bg-blue-600 text-white font-bold my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("31.1", res_data, render_conteudo.refresh)
@@ -10668,11 +10668,11 @@ def container_formulario_saude(ano=None):
                                 bloco_comentarios("35.1", res_data, render_conteudo.refresh)
     
                             # -------------------------------------------------------------------------
-                            # QUESITO 35.2 (Publicação das Auditorias Concluídas de 2025)
+                            # QUESITO 35.2 (Publicação das Auditorias Concluídas de 2026)
                             # -------------------------------------------------------------------------
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
-                                ui.label("35.2 • Divulgação dos Relatórios de Auditoria de 2025").classes("text-xl font-semibold text-blue-600 mb-2")
-                                ui.label("As auditorias concluídas (encerradas) do exercício de 2025 pelo componente municipal do Sistema Nacional de Auditoria do SUS - SNA estão disponibilizadas em site para consulta?").classes("text-sm text-gray-700 mb-4")
+                                ui.label("35.2 • Divulgação dos Relatórios de Auditoria de 2026").classes("text-xl font-semibold text-blue-600 mb-2")
+                                ui.label("As auditorias concluídas (encerradas) do exercício de 2026 pelo componente municipal do Sistema Nacional de Auditoria do SUS - SNA estão disponibilizadas em site para consulta?").classes("text-sm text-gray-700 mb-4")
     
                                 d352 = res_data.get("35.2") or {}
                                 state_352 = {
@@ -10720,11 +10720,11 @@ def container_formulario_saude(ano=None):
                         # =============================================================================
     
                         # -----------------------------------------------------------------------------
-                        # QUESITO 35.2.1 (Página Eletrônica das Auditorias Concluídas em 2025)
+                        # QUESITO 35.2.1 (Página Eletrônica das Auditorias Concluídas em 2026)
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
-                            ui.label("35.2.1 • Divulgação das Auditorias de 2025").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Informe a página eletrônica (site) de divulgação dos resultados das auditorias concluídas (encerradas) em 2025:").classes("text-sm text-gray-700 mb-4")
+                            ui.label("35.2.1 • Divulgação das Auditorias de 2026").classes("text-xl font-semibold text-blue-600 mb-2")
+                            ui.label("Informe a página eletrônica (site) de divulgação dos resultados das auditorias concluídas (encerradas) em 2026:").classes("text-sm text-gray-700 mb-4")
     
                             d3521 = res_data.get("35.2.1") or {}
                             state_3521 = {
@@ -10732,7 +10732,7 @@ def container_formulario_saude(ano=None):
                             }
     
                             ui.textarea(
-                                label="URL / Página eletrônica dos resultados das auditorias (2025):", 
+                                label="URL / Página eletrônica dos resultados das auditorias (2026):", 
                                 value=state_3521["link"]
                             ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_3521, "link")
     
@@ -10941,7 +10941,7 @@ def container_formulario_saude(ano=None):
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("37.0 • Índice de Desabastecimento do Componente Básico da Assistência Farmacêutica").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe o número de medicamentos da REMUME em falta por mais de 1 mês em 2025 (MD) "
+                                "Informe o número de medicamentos da REMUME em falta por mais de 1 mês em 2026 (MD) "
                                 "e o total de medicamentos cadastrados na REMUME (TM) para cálculo da proporção (Pd = MD / TM):"
                             ).classes("text-sm text-gray-700 mb-4")
     
@@ -10991,7 +10991,7 @@ def container_formulario_saude(ano=None):
     
                             with ui.grid(columns=2).classes("w-full gap-4 mb-4"):
                                 inp_md = ui.number(
-                                    label="Nº de itens com desabastecimento > 1 mês em 2025 (MD):",
+                                    label="Nº de itens com desabastecimento > 1 mês em 2026 (MD):",
                                     value=state_370["md"],
                                     min=0,
                                     format="%.0f"
@@ -11051,7 +11051,7 @@ def container_formulario_saude(ano=None):
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("38.0 • Disponibilização de Serviços de Telemedicina").classes("text-xl font-semibold text-blue-600 mb-2")
-                            ui.label("Houve a disponibilização do serviço de telemedicina em 2025?").classes("text-sm text-gray-700 mb-4")
+                            ui.label("Houve a disponibilização do serviço de telemedicina em 2026?").classes("text-sm text-gray-700 mb-4")
     
                             d380 = res_data.get("38.0") or {}
                             state_380 = {
@@ -11458,13 +11458,13 @@ def container_formulario_saude(ano=None):
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S2 • Evolução das Consultas Médicas per Capita (SIA/SUS e IBGE)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe o total de consultas médicas e a população estimada dos exercícios de 2023, 2024 e 2025 "
+                                "Informe o total de consultas médicas e a população estimada dos exercícios de 2024, 2025 e 2026 "
                                 "para comparar o indicador do ano atual (PAA) com a média do biênio anterior (MAA):"
                             ).classes("text-sm text-gray-700 mb-4")
-    
+
                             ds2 = res_data.get("S2") or {}
                             val_s2 = ds2.get("valor") if isinstance(ds2.get("valor"), dict) else {}
-    
+
                             state_s2 = {
                                 "cmaa_2": float(val_s2.get("cmaa_2", 0.0)),
                                 "cmaa_1": float(val_s2.get("cmaa_1", 0.0)),
@@ -11474,20 +11474,20 @@ def container_formulario_saude(ano=None):
                                 "pop": float(val_s2.get("pop", 0.0)),
                                 "link": str(ds2.get("link") or "")
                             }
-    
+
                             lbl_paa_maa = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
                             lbl_pontos_s2 = ui.label("").classes("text-base font-bold text-green-600 mb-4")
-    
+
                             def calc_s2(c2, c1, c, p2, p1, p):
                                 paa = (c / p) if p > 0 else 0.0
                                 soma_c_ant = c2 + c1
                                 soma_p_ant = p2 + p1
                                 maa = (soma_c_ant / soma_p_ant) if soma_p_ant > 0 else 0.0
-    
+
                                 # Se o valor per capita atual for igual ou maior que a média histórica
                                 pts = 20.0 if (p > 0 and soma_p_ant > 0 and paa >= maa) else 0.0
                                 return paa, maa, pts
-    
+
                             def atualizar_calculo_s2():
                                 c2 = float(inp_cmaa_2.value or 0)
                                 c1 = float(inp_cmaa_1.value or 0)
@@ -11495,76 +11495,76 @@ def container_formulario_saude(ano=None):
                                 p2 = float(inp_pop_2.value or 0)
                                 p1 = float(inp_pop_1.value or 0)
                                 p = float(inp_pop.value or 0)
-    
+
                                 paa, maa, pts = calc_s2(c2, c1, c, p2, p1, p)
-    
+
                                 if p > 0 and (p2 + p1) > 0:
-                                    lbl_paa_maa.set_text(f"PAA (2025): {paa:.4f} consultas/hab | MAA (Média 23-24): {maa:.4f} consultas/hab")
+                                    lbl_paa_maa.set_text(f"PAA (2026): {paa:.4f} consultas/hab | MAA (Média 24-25): {maa:.4f} consultas/hab")
                                 else:
                                     lbl_paa_maa.set_text("Preencha as populações e consultas para calcular PAA e MAA")
-    
+
                                 lbl_pontos_s2.set_text(f"Pontuação Calculada: {pts:.1f} / 20.0 pontos")
-    
+
                             ui.label("Consultas Médicas (SIA/SUS):").classes("font-semibold text-gray-800 mt-2")
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
                                 inp_cmaa_2 = ui.number(
-                                    label="Consultas em 2023 (CMAA-2):",
+                                    label="Consultas em 2024 (CMAA-2):",
                                     value=state_s2["cmaa_2"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                                 inp_cmaa_1 = ui.number(
-                                    label="Consultas em 2024 (CMAA-1):",
+                                    label="Consultas em 2025 (CMAA-1):",
                                     value=state_s2["cmaa_1"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                                 inp_cmaa = ui.number(
-                                    label="Consultas em 2025 (CMAA):",
+                                    label="Consultas em 2026 (CMAA):",
                                     value=state_s2["cmaa"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                             ui.label("População Estimada (IBGE):").classes("font-semibold text-gray-800 mt-2")
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
                                 inp_pop_2 = ui.number(
-                                    label="População 2023 (PopAA-2):",
+                                    label="População 2024 (PopAA-2):",
                                     value=state_s2["pop_2"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                                 inp_pop_1 = ui.number(
-                                    label="População 2024 (PopAA-1):",
+                                    label="População 2025 (PopAA-1):",
                                     value=state_s2["pop_1"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                                 inp_pop = ui.number(
-                                    label="População 2025 (PopAA):",
+                                    label="População 2026 (PopAA):",
                                     value=state_s2["pop"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                             inp_cmaa_2.on("update:model-value", lambda: atualizar_calculo_s2())
                             inp_cmaa_1.on("update:model-value", lambda: atualizar_calculo_s2())
                             inp_cmaa.on("update:model-value", lambda: atualizar_calculo_s2())
                             inp_pop_2.on("update:model-value", lambda: atualizar_calculo_s2())
                             inp_pop_1.on("update:model-value", lambda: atualizar_calculo_s2())
                             inp_pop.on("update:model-value", lambda: atualizar_calculo_s2())
-    
+
                             ui.textarea(
                                 label="Link / Comprovação dos dados do SIA/SUS e IBGE:",
                                 value=state_s2["link"]
                             ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s2, "link")
-    
+
                             atualizar_calculo_s2()
-    
+
                             def salvar_s2():
                                 c2 = float(inp_cmaa_2.value or 0)
                                 c1 = float(inp_cmaa_1.value or 0)
@@ -11572,9 +11572,9 @@ def container_formulario_saude(ano=None):
                                 p2 = float(inp_pop_2.value or 0)
                                 p1 = float(inp_pop_1.value or 0)
                                 p = float(inp_pop.value or 0)
-    
+
                                 paa, maa, pts = calc_s2(c2, c1, c, p2, p1, p)
-    
+
                                 dados_finais = {
                                     "cmaa_2": c2,
                                     "cmaa_1": c1,
@@ -11585,7 +11585,7 @@ def container_formulario_saude(ano=None):
                                     "paa": round(paa, 6),
                                     "maa": round(maa, 6)
                                 }
-    
+
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="S2",
@@ -11598,23 +11598,22 @@ def container_formulario_saude(ano=None):
                                 ui.notify("Quesito S2 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO S2", on_click=salvar_s2).classes("bg-blue-600 text-white font-bold my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("S2", res_data, render_conteudo.refresh)
-    
     # =============================================================================
                         # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S3 (SISAB - PRÉ-NATAL)
                         # =============================================================================
     
                         # -----------------------------------------------------------------------------
-                        # QUESITO S3 (Acompanhamento de Gestantes / Pré-Natal - SISAB 2025)
+                        # QUESITO S3 (Acompanhamento de Gestantes / Pré-Natal - SISAB 2026)
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S3 • Cobertura e Qualidade do Pré-Natal (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
                                 "Informe o número de gestantes com pelo menos 6 consultas de pré-natal "
-                                "(com a 1ª consulta até a 12ª semana) e o total de gestantes cadastradas por quadrimestre em 2025:"
+                                "(com a 1ª consulta até a 12ª semana) e o total de gestantes cadastradas por quadrimestre em 2026:"
                             ).classes("text-sm text-gray-700 mb-4")
     
                             ds3 = res_data.get("S3") or {}
@@ -11676,21 +11675,21 @@ def container_formulario_saude(ano=None):
                             ui.label("1. Gestantes com ≥ 6 Consultas (1ª até 12ª Semana):").classes("font-semibold text-gray-800 mt-2")
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
                                 inp_g1q = ui.number(
-                                    label="1º Quadrimestre 2025 (G1Q):",
+                                    label="1º Quadrimestre 2026 (G1Q):",
                                     value=state_s3["g1q"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
     
                                 inp_g2q = ui.number(
-                                    label="2º Quadrimestre 2025 (G2Q):",
+                                    label="2º Quadrimestre 2026 (G2Q):",
                                     value=state_s3["g2q"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
     
                                 inp_g3q = ui.number(
-                                    label="3º Quadrimestre 2025 (G3Q):",
+                                    label="3º Quadrimestre 2026 (G3Q):",
                                     value=state_s3["g3q"],
                                     min=0,
                                     format="%.0f"
@@ -11699,21 +11698,21 @@ def container_formulario_saude(ano=None):
                             ui.label("2. Total de Gestantes Registradas:").classes("font-semibold text-gray-800 mt-2")
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
                                 inp_tg1q = ui.number(
-                                    label="Total 1º Quadrimestre 2025 (TG1Q):",
+                                    label="Total 1º Quadrimestre 2026 (TG1Q):",
                                     value=state_s3["tg1q"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
     
                                 inp_tg2q = ui.number(
-                                    label="Total 2º Quadrimestre 2025 (TG2Q):",
+                                    label="Total 2º Quadrimestre 2026 (TG2Q):",
                                     value=state_s3["tg2q"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
     
                                 inp_tg3q = ui.number(
-                                    label="Total 3º Quadrimestre 2025 (TG3Q):",
+                                    label="Total 3º Quadrimestre 2026 (TG3Q):",
                                     value=state_s3["tg3q"],
                                     min=0,
                                     format="%.0f"
@@ -11908,93 +11907,93 @@ def container_formulario_saude(ano=None):
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S5 • Número de Inspeções Sanitárias (SIA/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe o número de inspeções sanitárias realizadas em 2023, 2024 e 2025. "
-                                "O indicador avalia o desempenho de 2025 em relação à média do biênio anterior:"
+                                "Informe o número de inspeções sanitárias realizadas em 2024, 2025 e 2026. "
+                                "O indicador avalia o desempenho de 2026 em relação à média do biênio anterior:"
                             ).classes("text-sm text-gray-700 mb-4")
-    
+
                             ds5 = res_data.get("S5") or {}
                             val_s5 = ds5.get("valor") if isinstance(ds5.get("valor"), dict) else {}
-    
+
                             state_s5 = {
                                 "ni_2": float(val_s5.get("ni_2", 0.0)),
                                 "ni_1": float(val_s5.get("ni_1", 0.0)),
                                 "ni": float(val_s5.get("ni", 0.0)),
                                 "link": str(ds5.get("link") or "")
                             }
-    
+
                             lbl_comparativo_s5 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
                             lbl_pontos_s5 = ui.label("").classes("text-base font-bold text-green-600 mb-4")
-    
+
                             def calc_s5(ni2, ni1, ni):
                                 media_historica = (ni2 + ni1) / 2.0
                                 pts = 10.0 if ni >= media_historica else 0.0
                                 return media_historica, pts
-    
+
                             def atualizar_calculo_s5():
                                 ni2_val = float(inp_ni2.value or 0)
                                 ni1_val = float(inp_ni1.value or 0)
                                 ni_val = float(inp_ni.value or 0)
-    
+
                                 mni, pts = calc_s5(ni2_val, ni1_val, ni_val)
-    
+
                                 lbl_comparativo_s5.set_text(
-                                    f"• Média Biênio 2023-2024: {mni:.1f} inspeções | Realizado em 2025: {ni_val:.0f} inspeções"
+                                    f"• Média Biênio 2024-2025: {mni:.1f} inspeções | Realizado em 2026: {ni_val:.0f} inspeções"
                                 )
-    
+
                                 if ni_val >= mni:
                                     lbl_pontos_s5.classes(remove="text-red-600", add="text-green-600")
                                     lbl_pontos_s5.set_text(f"Pontuação Calculada: {pts:.1f} / 10.0 pontos (Meta atingida ou superada)")
                                 else:
                                     lbl_pontos_s5.classes(remove="text-green-600", add="text-red-600")
                                     lbl_pontos_s5.set_text(f"Pontuação Calculada: {pts:.1f} / 10.0 pontos (Abaixo da média dos anos anteriores)")
-    
+
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
                                 inp_ni2 = ui.number(
-                                    label="Nº Inspeções em 2023 (NI-2):",
+                                    label="Nº Inspeções em 2024 (NI-2):",
                                     value=state_s5["ni_2"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                                 inp_ni1 = ui.number(
-                                    label="Nº Inspeções em 2024 (NI-1):",
+                                    label="Nº Inspeções em 2025 (NI-1):",
                                     value=state_s5["ni_1"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                                 inp_ni = ui.number(
-                                    label="Nº Inspeções em 2025 (NI):",
+                                    label="Nº Inspeções em 2026 (NI):",
                                     value=state_s5["ni"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                             inp_ni2.on("update:model-value", lambda: atualizar_calculo_s5())
                             inp_ni1.on("update:model-value", lambda: atualizar_calculo_s5())
                             inp_ni.on("update:model-value", lambda: atualizar_calculo_s5())
-    
+
                             ui.textarea(
                                 label="Link / Comprovação dos relatórios do SIA/SUS:",
                                 value=state_s5["link"]
                             ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s5, "link")
-    
+
                             atualizar_calculo_s5()
-    
+
                             def salvar_s5():
                                 ni2_val = float(inp_ni2.value or 0)
                                 ni1_val = float(inp_ni1.value or 0)
                                 ni_val = float(inp_ni.value or 0)
-    
+
                                 mni, pts = calc_s5(ni2_val, ni1_val, ni_val)
-    
+
                                 dados_finais = {
                                     "ni_2": ni2_val,
                                     "ni_1": ni1_val,
                                     "ni": ni_val,
                                     "media_historica": round(mni, 2)
                                 }
-    
+
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="S5",
@@ -12007,11 +12006,11 @@ def container_formulario_saude(ano=None):
                                 ui.notify("Quesito S5 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO S5", on_click=salvar_s5).classes("bg-blue-600 text-white font-bold my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("S5", res_data, render_conteudo.refresh)
-    
+                            
     # =============================================================================
                         # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S6 (VACINAÇÃO - DATASUS/PNI)
                         # =============================================================================
@@ -12321,92 +12320,92 @@ def container_formulario_saude(ano=None):
                             ui.label("S9 • Quantidade de Internações (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
                                 "Informe a quantidade de internações em estabelecimentos de saúde sob gestão municipal "
-                                "nos exercícios de 2023, 2024 e 2025 para avaliar o crescimento em relação à média do biênio anterior:"
+                                "nos exercícios de 2024, 2025 e 2026 para avaliar o crescimento em relação à média do biênio anterior:"
                             ).classes("text-sm text-gray-700 mb-4")
-    
+
                             ds9 = res_data.get("S9") or {}
                             val_s9 = ds9.get("valor") if isinstance(ds9.get("valor"), dict) else {}
-    
+
                             state_s9 = {
                                 "pihaa_2": float(val_s9.get("pihaa_2", 0.0)),
                                 "pihaa_1": float(val_s9.get("pihaa_1", 0.0)),
                                 "pihaa": float(val_s9.get("pihaa", 0.0)),
                                 "link": str(ds9.get("link") or "")
                             }
-    
+
                             lbl_comparativo_s9 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
                             lbl_pontos_s9 = ui.label("").classes("text-base font-bold mb-4")
-    
+
                             def calc_s9(p2, p1, p):
                                 m_hist = (p2 + p1) / 2.0
                                 pts = -5.0 if p > m_hist else 0.0
                                 return m_hist, pts
-    
+
                             def atualizar_calculo_s9():
                                 p2_val = float(inp_p2.value or 0)
                                 p1_val = float(inp_p1.value or 0)
                                 p_val = float(inp_p.value or 0)
-    
+
                                 m_hist, pts = calc_s9(p2_val, p1_val, p_val)
-    
+
                                 lbl_comparativo_s9.set_text(
-                                    f"• Média Biênio 2023-2024: {m_hist:.1f} internações | Realizado em 2025: {p_val:.0f} internações"
+                                    f"• Média Biênio 2024-2025: {m_hist:.1f} internações | Realizado em 2026: {p_val:.0f} internações"
                                 )
-    
+
                                 if p_val <= m_hist:
                                     lbl_pontos_s9.classes(remove="text-red-600", add="text-green-600")
                                     lbl_pontos_s9.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Internações dentro ou abaixo da média)")
                                 else:
                                     lbl_pontos_s9.classes(remove="text-green-600", add="text-red-600")
                                     lbl_pontos_s9.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Internações acima da média do biênio)")
-    
+
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
                                 inp_p2 = ui.number(
-                                    label="Internações em 2023 (PIHAA-2):",
+                                    label="Internações em 2024 (PIHAA-2):",
                                     value=state_s9["pihaa_2"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                                 inp_p1 = ui.number(
-                                    label="Internações em 2024 (PIHAA-1):",
+                                    label="Internações em 2025 (PIHAA-1):",
                                     value=state_s9["pihaa_1"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                                 inp_p = ui.number(
-                                    label="Internações em 2025 (PIHAA):",
+                                    label="Internações em 2026 (PIHAA):",
                                     value=state_s9["pihaa"],
                                     min=0,
                                     format="%.0f"
                                 ).classes("w-full").props("outlined dense")
-    
+
                             inp_p2.on("update:model-value", lambda: atualizar_calculo_s9())
                             inp_p1.on("update:model-value", lambda: atualizar_calculo_s9())
                             inp_p.on("update:model-value", lambda: atualizar_calculo_s9())
-    
+
                             ui.textarea(
                                 label="Link / Comprovação dos dados do SIH/SUS:",
                                 value=state_s9["link"]
                             ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s9, "link")
-    
+
                             atualizar_calculo_s9()
-    
+
                             def salvar_s9():
                                 p2_val = float(inp_p2.value or 0)
                                 p1_val = float(inp_p1.value or 0)
                                 p_val = float(inp_p.value or 0)
-    
+
                                 m_hist, pts = calc_s9(p2_val, p1_val, p_val)
-    
+
                                 dados_finais = {
                                     "pihaa_2": p2_val,
                                     "pihaa_1": p1_val,
                                     "pihaa": p_val,
                                     "media_historica": round(m_hist, 2)
                                 }
-    
+
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="S9",
@@ -12419,18 +12418,17 @@ def container_formulario_saude(ano=None):
                                 ui.notify("Quesito S9 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO S9", on_click=salvar_s9).classes("bg-blue-600 text-white font-bold my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("S9", res_data, render_conteudo.refresh)
-    
                         # -----------------------------------------------------------------------------
                         # QUESITO S10 (Especialidade Obstétrica - Permanência / Frequência - SIH/SUS)
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S10 • Permanência em Especialidade Obstétrica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade obstétrica em 2025. "
+                                "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade obstétrica em 20265. "
                                 "O indicador avalia se a média de permanência (P / F) ultrapassa o limite de 3,1 dias:"
                             ).classes("text-sm text-gray-700 mb-4")
     
@@ -12535,7 +12533,7 @@ def container_formulario_saude(ano=None):
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S11 • Permanência em Especialidade Pediátrica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Pediátrica em 2025. "
+                                "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Pediátrica em 2026. "
                                 "O indicador aplica penalidade se a média de permanência (P / F) for superior a 5,7 dias:"
                             ).classes("text-sm text-gray-700 mb-4")
     
@@ -12636,7 +12634,7 @@ def container_formulario_saude(ano=None):
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S12 • Permanência em Especialidade Clínica Médica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Clínica Médica em 2025. "
+                                "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Clínica Médica em 2026. "
                                 "O indicador aplica penalidade se a média de permanência (P / F) for superior a 9,7 dias:"
                             ).classes("text-sm text-gray-700 mb-4")
     
@@ -12741,7 +12739,7 @@ def container_formulario_saude(ano=None):
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S13 • Permanência em Especialidade Cirúrgica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Cirúrgica em 2025. "
+                                "Informe os dados de Permanência (dias) e Frequência (internações) na especialidade Cirúrgica em 2026. "
                                 "O indicador aplica penalidade se a média de permanência (P / F) for superior a 6,5 dias:"
                             ).classes("text-sm text-gray-700 mb-4")
     
@@ -12836,19 +12834,19 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S13", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       # -----------------------------------------------------------------------------
                         # QUESITO S14 (Taxa de Mortalidade Hospitalar - SIH/SUS)
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S14 • Taxa de Mortalidade Hospitalar (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe o número de óbitos e total de saídas hospitalares (2023 a 2025). "
-                                "O indicador avalia se a taxa de mortalidade em 2025 (TOAA / SHAA) ultrapassa a média agregada do biênio 2023-2024:"
+                                "Informe o número de óbitos e total de saídas hospitalares (2024 a 2026). "
+                                "O indicador avalia se a taxa de mortalidade em 2026 (TOAA / SHAA) ultrapassa a média agregada do biênio 2024-2025:"
                             ).classes("text-sm text-gray-700 mb-4")
-    
+
                             ds14 = res_data.get("S14") or {}
                             val_s14 = ds14.get("valor") if isinstance(ds14.get("valor"), dict) else {}
-    
+
                             state_s14 = {
                                 "toaa_2": float(val_s14.get("toaa_2", 0.0)),
                                 "toaa_1": float(val_s14.get("toaa_1", 0.0)),
@@ -12858,20 +12856,20 @@ def container_formulario_saude(ano=None):
                                 "shaa": float(val_s14.get("shaa", 0.0)),
                                 "link": str(ds14.get("link") or "")
                             }
-    
+
                             lbl_taxas_s14 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
                             lbl_pontos_s14 = ui.label("").classes("text-base font-bold mb-4")
-    
+
                             def calc_s14(t2, t1, t, s2, s1, s):
                                 soma_sh_hist = s2 + s1
                                 soma_to_hist = t2 + t1
-    
+
                                 taxa_hist = (soma_to_hist / soma_sh_hist) if soma_sh_hist > 0 else 0.0
-                                taxa_2025 = (t / s) if s > 0 else 0.0
-    
-                                pts = -2.0 if taxa_2025 > taxa_hist else 0.0
-                                return taxa_2025, taxa_hist, pts
-    
+                                taxa_2026 = (t / s) if s > 0 else 0.0
+
+                                pts = -2.0 if taxa_2026 > taxa_hist else 0.0
+                                return taxa_2026, taxa_hist, pts
+
                             def atualizar_calculo_s14():
                                 t2 = float(inp_t2.value or 0)
                                 t1 = float(inp_t1.value or 0)
@@ -12879,42 +12877,42 @@ def container_formulario_saude(ano=None):
                                 s2 = float(inp_s2.value or 0)
                                 s1 = float(inp_s1.value or 0)
                                 s = float(inp_s.value or 0)
-    
-                                taxa_2025, taxa_hist, pts = calc_s14(t2, t1, t, s2, s1, s)
-    
-                                pct_2025 = taxa_2025 * 100
+
+                                taxa_2026, taxa_hist, pts = calc_s14(t2, t1, t, s2, s1, s)
+
+                                pct_2026 = taxa_2026 * 100
                                 pct_hist = taxa_hist * 100
-    
+
                                 lbl_taxas_s14.set_text(
-                                    f"• Taxa 2025: {pct_2025:.2f}% | Taxa Biênio (2023-2024): {pct_hist:.2f}%"
+                                    f"• Taxa 2026: {pct_2026:.2f}% | Taxa Biênio (2024-2025): {pct_hist:.2f}%"
                                 )
-    
-                                if taxa_2025 <= taxa_hist:
+
+                                if taxa_2026 <= taxa_hist:
                                     lbl_pontos_s14.classes(remove="text-red-600", add="text-green-600")
-                                    lbl_pontos_s14.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Taxa 2025 ≤ Taxa Histórica)")
+                                    lbl_pontos_s14.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Taxa 2026 ≤ Taxa Histórica)")
                                 else:
                                     lbl_pontos_s14.classes(remove="text-green-600", add="text-red-600")
-                                    lbl_pontos_s14.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Mortalidade aumentou em 2025)")
-    
+                                    lbl_pontos_s14.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Mortalidade aumentou em 2026)")
+
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                inp_t2 = ui.number(label="Óbitos 2023 (TOAA-2):", value=state_s14["toaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_t1 = ui.number(label="Óbitos 2024 (TOAA-1):", value=state_s14["toaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_t = ui.number(label="Óbitos 2025 (TOAA):", value=state_s14["toaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-    
-                                inp_s2 = ui.number(label="Saídas 2023 (SHAA-2):", value=state_s14["shaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_s1 = ui.number(label="Saídas 2024 (SHAA-1):", value=state_s14["shaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_s = ui.number(label="Saídas 2025 (SHAA):", value=state_s14["shaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-    
+                                inp_t2 = ui.number(label="Óbitos 2024 (TOAA-2):", value=state_s14["toaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_t1 = ui.number(label="Óbitos 2025 (TOAA-1):", value=state_s14["toaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_t = ui.number(label="Óbitos 2026 (TOAA):", value=state_s14["toaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                                inp_s2 = ui.number(label="Saídas 2024 (SHAA-2):", value=state_s14["shaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_s1 = ui.number(label="Saídas 2025 (SHAA-1):", value=state_s14["shaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_s = ui.number(label="Saídas 2026 (SHAA):", value=state_s14["shaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
                             for inp in [inp_t2, inp_t1, inp_t, inp_s2, inp_s1, inp_s]:
                                 inp.on("update:model-value", lambda: atualizar_calculo_s14())
-    
+
                             ui.textarea(
                                 label="Link / Comprovação dos dados do SIH/SUS:",
                                 value=state_s14["link"]
                             ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s14, "link")
-    
+
                             atualizar_calculo_s14()
-    
+
                             def salvar_s14():
                                 t2 = float(inp_t2.value or 0)
                                 t1 = float(inp_t1.value or 0)
@@ -12922,16 +12920,16 @@ def container_formulario_saude(ano=None):
                                 s2 = float(inp_s2.value or 0)
                                 s1 = float(inp_s1.value or 0)
                                 s = float(inp_s.value or 0)
-    
-                                taxa_2025, taxa_hist, pts = calc_s14(t2, t1, t, s2, s1, s)
-    
+
+                                taxa_2026, taxa_hist, pts = calc_s14(t2, t1, t, s2, s1, s)
+
                                 dados_finais = {
                                     "toaa_2": t2, "toaa_1": t1, "toaa": t,
                                     "shaa_2": s2, "shaa_1": s1, "shaa": s,
-                                    "taxa_2025": round(taxa_2025, 6),
+                                    "taxa_2026": round(taxa_2026, 6),
                                     "taxa_historica": round(taxa_hist, 6)
                                 }
-    
+
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="S14",
@@ -12944,7 +12942,7 @@ def container_formulario_saude(ano=None):
                                 ui.notify("Quesito S14 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO S14", on_click=salvar_s14).classes("bg-blue-600 text-white font-bold my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("S14", res_data, render_conteudo.refresh)
