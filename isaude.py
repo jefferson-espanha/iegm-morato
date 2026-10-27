@@ -10997,7 +10997,7 @@ def container_formulario_saude(ano=None):
                                 ).classes("w-full").props("outlined dense")
     
                                 inp_tm = ui.number(
-                                    label="Total de itens do Componente Básico na Relação Municipal de Medicamentos Essenciais (TM):",
+                                    label="Total de itens do Componente Básico na Relação de Medicamentos Essenciais (TM):",
                                     value=state_370["tm"],
                                     min=0,
                                     format="%.0f"
