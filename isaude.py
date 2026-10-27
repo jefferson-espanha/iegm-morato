@@ -12957,7 +12957,7 @@ def container_formulario_saude(ano=None):
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S15 • Proporção de Partos Cesarianos (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe o total de partos cesarianos e o total geral de partos realizados em estabelecimentos sob gestão municipal em 2025. "
+                                "Informe o total de partos cesarianos e o total geral de partos realizados em estabelecimentos sob gestão municipal em 2026. "
                                 "O indicador aplica penalidade se a proporção de cesarianas (PC / TP) ultrapassar 40,0%:"
                             ).classes("text-sm text-gray-700 mb-4")
     
@@ -13053,19 +13053,19 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S15", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       # -----------------------------------------------------------------------------
                         # QUESITO S16 (Mortalidade Neonatal - SESSP-CCD/FSEADE)
                         # -----------------------------------------------------------------------------
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S16 • Taxa de Mortalidade Neonatal (SESSP-CCD/FSEADE)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
-                                "Informe o número de óbitos de recém-nascidos (ORNAA) e o total de nascidos vivos (NVAA) de 2023 a 2025. "
-                                "O indicador avalia se a taxa de mortalidade neonatal em 2025 ultrapassa a média agregada do biênio 2023-2024:"
+                                "Informe o número de óbitos de recém-nascidos (ORNAA) e o total de nascidos vivos (NVAA) de 2024 a 2026. "
+                                "O indicador avalia se a taxa de mortalidade neonatal em 2026 ultrapassa a média agregada do biênio 2024-2025:"
                             ).classes("text-sm text-gray-700 mb-4")
-    
+
                             ds16 = res_data.get("S16") or {}
                             val_s16 = ds16.get("valor") if isinstance(ds16.get("valor"), dict) else {}
-    
+
                             state_s16 = {
                                 "ornaa_2": float(val_s16.get("ornaa_2", 0.0)),
                                 "ornaa_1": float(val_s16.get("ornaa_1", 0.0)),
@@ -13075,20 +13075,20 @@ def container_formulario_saude(ano=None):
                                 "nvaa": float(val_s16.get("nvaa", 0.0)),
                                 "link": str(ds16.get("link") or "")
                             }
-    
+
                             lbl_taxas_s16 = ui.label("").classes("text-base font-semibold text-blue-800 mb-1")
                             lbl_pontos_s16 = ui.label("").classes("text-base font-bold mb-4")
-    
+
                             def calc_s16(o2, o1, o, n2, n1, n):
                                 soma_nv_hist = n2 + n1
                                 soma_or_hist = o2 + o1
-    
+
                                 taxa_hist = (soma_or_hist / soma_nv_hist) if soma_nv_hist > 0 else 0.0
-                                taxa_2025 = (o / n) if n > 0 else 0.0
-    
-                                pts = -2.0 if taxa_2025 > taxa_hist else 0.0
-                                return taxa_2025, taxa_hist, pts
-    
+                                taxa_2026 = (o / n) if n > 0 else 0.0
+
+                                pts = -2.0 if taxa_2026 > taxa_hist else 0.0
+                                return taxa_2026, taxa_hist, pts
+
                             def atualizar_calculo_s16():
                                 o2 = float(inp_o2.value or 0)
                                 o1 = float(inp_o1.value or 0)
@@ -13096,39 +13096,39 @@ def container_formulario_saude(ano=None):
                                 n2 = float(inp_n2.value or 0)
                                 n1 = float(inp_n1.value or 0)
                                 n = float(inp_n.value or 0)
-    
-                                taxa_2025, taxa_hist, pts = calc_s16(o2, o1, o, n2, n1, n)
-    
+
+                                taxa_2026, taxa_hist, pts = calc_s16(o2, o1, o, n2, n1, n)
+
                                 lbl_taxas_s16.set_text(
-                                    f"• Taxa Neonatal 2025: {(taxa_2025 * 1000):.2f}‰ | Taxa Biênio (2023-2024): {(taxa_hist * 1000):.2f}‰ (por 1.000 Nascidos Vivos)"
+                                    f"• Taxa Neonatal 2026: {(taxa_2026 * 1000):.2f}‰ | Taxa Biênio (2024-2025): {(taxa_hist * 1000):.2f}‰ (por 1.000 Nascidos Vivos)"
                                 )
-    
-                                if taxa_2025 <= taxa_hist:
+
+                                if taxa_2026 <= taxa_hist:
                                     lbl_pontos_s16.classes(remove="text-red-600", add="text-green-600")
-                                    lbl_pontos_s16.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Taxa 2025 ≤ Taxa Histórica)")
+                                    lbl_pontos_s16.set_text(f"Pontuação Calculada: {pts:.1f} ponto (Taxa 2026 ≤ Taxa Histórica)")
                                 else:
                                     lbl_pontos_s16.classes(remove="text-green-600", add="text-red-600")
-                                    lbl_pontos_s16.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Mortalidade Neonatal aumentou em 2025)")
-    
+                                    lbl_pontos_s16.set_text(f"Pontuação/Penalidade Calculada: {pts:.1f} pontos (Mortalidade Neonatal aumentou em 2026)")
+
                             with ui.grid(columns=3).classes("w-full gap-4 mb-4"):
-                                inp_o2 = ui.number(label="Óbitos RN 2023 (ORNAA-2):", value=state_s16["ornaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_o1 = ui.number(label="Óbitos RN 2024 (ORNAA-1):", value=state_s16["ornaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_o = ui.number(label="Óbitos RN 2025 (ORNAA):", value=state_s16["ornaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-    
-                                inp_n2 = ui.number(label="Nascidos Vivos 2023 (NVAA-2):", value=state_s16["nvaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_n1 = ui.number(label="Nascidos Vivos 2024 (NVAA-1):", value=state_s16["nvaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-                                inp_n = ui.number(label="Nascidos Vivos 2025 (NVAA):", value=state_s16["nvaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
-    
+                                inp_o2 = ui.number(label="Óbitos RN 2024 (ORNAA-2):", value=state_s16["ornaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_o1 = ui.number(label="Óbitos RN 2025 (ORNAA-1):", value=state_s16["ornaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_o = ui.number(label="Óbitos RN 2026 (ORNAA):", value=state_s16["ornaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
+                                inp_n2 = ui.number(label="Nascidos Vivos 2024 (NVAA-2):", value=state_s16["nvaa_2"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_n1 = ui.number(label="Nascidos Vivos 2025 (NVAA-1):", value=state_s16["nvaa_1"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+                                inp_n = ui.number(label="Nascidos Vivos 2026 (NVAA):", value=state_s16["nvaa"], min=0, format="%.0f").classes("w-full").props("outlined dense")
+
                             for inp in [inp_o2, inp_o1, inp_o, inp_n2, inp_n1, inp_n]:
                                 inp.on("update:model-value", lambda: atualizar_calculo_s16())
-    
+
                             ui.textarea(
                                 label="Link / Comprovação dos dados do SESSP-CCD/FSEADE:",
                                 value=state_s16["link"]
                             ).classes("w-full mb-3").props("outlined dense rows=2").bind_value(state_s16, "link")
-    
+
                             atualizar_calculo_s16()
-    
+
                             def salvar_s16():
                                 o2 = float(inp_o2.value or 0)
                                 o1 = float(inp_o1.value or 0)
@@ -13136,16 +13136,16 @@ def container_formulario_saude(ano=None):
                                 n2 = float(inp_n2.value or 0)
                                 n1 = float(inp_n1.value or 0)
                                 n = float(inp_n.value or 0)
-    
-                                taxa_2025, taxa_hist, pts = calc_s16(o2, o1, o, n2, n1, n)
-    
+
+                                taxa_2026, taxa_hist, pts = calc_s16(o2, o1, o, n2, n1, n)
+
                                 dados_finais = {
                                     "ornaa_2": o2, "ornaa_1": o1, "ornaa": o,
                                     "nvaa_2": n2, "nvaa_1": n1, "nvaa": n,
-                                    "taxa_2025": round(taxa_2025, 6),
+                                    "taxa_2026": round(taxa_2026, 6),
                                     "taxa_historica": round(taxa_hist, 6)
                                 }
-    
+
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="S16",
@@ -13158,11 +13158,11 @@ def container_formulario_saude(ano=None):
                                 ui.notify("Quesito S16 salvo com sucesso!", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO S16", on_click=salvar_s16).classes("bg-blue-600 text-white font-bold my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("S16", res_data, render_conteudo.refresh)
-    
+                            
     # =============================================================================
                         # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S17 (SISAB / APS)
                         # =============================================================================
@@ -13174,7 +13174,7 @@ def container_formulario_saude(ano=None):
                             ui.label("S17 • Coleta de Exame Citopatológico em Mulheres de 25 a 64 anos (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
                                 "Informe o número de mulheres (25 a 64 anos) com exame citopatológico realizado nos últimos 36 meses na APS "
-                                "e o total de mulheres dessa faixa etária cadastradas no município para os 3 quadrimestres de 2025 (SISAB):"
+                                "e o total de mulheres dessa faixa etária cadastradas no município para os 3 quadrimestres de 2026 (SISAB):"
                             ).classes("text-sm text-gray-700 mb-4")
     
                             ds17 = res_data.get("S17") or {}
@@ -13310,7 +13310,7 @@ def container_formulario_saude(ano=None):
                             ui.label("S18 • Acompanhamento de Pessoas com Hipertensão na APS (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
                                 "Informe o número de hipertensos com consulta e aferição de PA nos últimos 6 meses (HPA) "
-                                "e o total de hipertensos cadastrados (TH) para os 3 quadrimestres de 2025 (SISAB):"
+                                "e o total de hipertensos cadastrados (TH) para os 3 quadrimestres de 2026 (SISAB):"
                             ).classes("text-sm text-gray-700 mb-4")
     
                             ds18 = res_data.get("S18") or {}
@@ -13442,7 +13442,7 @@ def container_formulario_saude(ano=None):
                             ui.label("S19 • Acompanhamento de Pessoas com Diabetes na APS (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
                                 "Informe o número de diabéticos com consulta em DM e solicitação de Hemoglobina Glicada nos últimos 6 meses (DHG) "
-                                "e o total de diabéticos cadastrados (TD) para os 3 quadrimestres de 2025 (SISAB):"
+                                "e o total de diabéticos cadastrados (TD) para os 3 quadrimestres de 2026 (SISAB):"
                             ).classes("text-sm text-gray-700 mb-4")
     
                             ds19 = res_data.get("S19") or {}
@@ -13574,7 +13574,7 @@ def container_formulario_saude(ano=None):
                             ui.label("S20 • Proporção de Gestantes com Atendimento Odontológico na APS (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
                                 "Informe o número de gestantes com atendimento odontológico realizado na APS (GPAO) "
-                                "para os 3 quadrimestres de 2025. O total de gestantes (TG) é obtido a partir dos dados declarados no Quesito S3:"
+                                "para os 3 quadrimestres de 2026. O total de gestantes (TG) é obtido a partir dos dados declarados no Quesito S3:"
                             ).classes("text-sm text-gray-700 mb-4")
     
                             # Resgate de dados de S20
