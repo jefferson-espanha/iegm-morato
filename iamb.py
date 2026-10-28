@@ -164,6 +164,9 @@ def render_quesito(
         "link": link_atual,
     }
 
+    # Inicializa a variável no escopo da função para evitar NameError
+    input_link = None
+
     with ui.card().classes(
         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
     ):
@@ -185,7 +188,7 @@ def render_quesito(
                 .bind_value(state, "opcao")
             )
 
-            ui.textarea(
+            input_link = ui.textarea(
                 label="Link de Evidência / Documento:",
                 value=state["link"],
                 placeholder=placeholder_link,
@@ -207,15 +210,14 @@ def render_quesito(
         radio_opcao.on("update:model-value", ao_mudar_opcao)
 
         # =====================================================================
-        # INSERÇÃO: RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS
+        # RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS
         # =====================================================================
         container_links = ui.row().classes("w-full items-center my-2")
 
         def atualizar_links_visuais():
             container_links.clear()
-            lnk_txt = input_link.value or ""
+            lnk_txt = input_link.value if input_link and input_link.value else ""
             
-            # REGEX para extrair URLs válidas
             REGEX_PURE_URL = r'https?://[^\s]+'
             links = re.findall(REGEX_PURE_URL, lnk_txt)
             
@@ -229,12 +231,14 @@ def render_quesito(
                             "text-caption text-blue-6 mr-2"
                         )
 
-        # Ouve as alterações do campo de entrada do link
-        input_link.on("update:model-value", atualizar_links_visuais)
+        if input_link:
+            input_link.on("update:model-value", atualizar_links_visuais)
 
-        # Executa uma vez no carregamento inicial para exibir links existentes
         atualizar_links_visuais()
-        
+
+        # =====================================================================
+        # BOTÃO DE SALVAR
+        # =====================================================================
         def salvar_acao():
             opcao_sel = state["opcao"]
             pts = opcoes.get(opcao_sel, 0.0)
