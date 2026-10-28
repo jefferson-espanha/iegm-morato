@@ -14589,7 +14589,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             status = f"{pct:.1f}% Atendido"
 
         elif qid == "17.1":
-            status = "Atendido" if pts > 0 or "todos os profissionais" in resp_l else "Não Atendido"
+            status = "Atendido" if pts > 0 or "Sim, para todos os profissionais da saúde – 00 pt (não perde pontos)" in resp_l else "Não Atendido"
 
         elif qid == "17.3":
             status = "Atendido" if pts > 0 or "todas as consultas" in resp_l else "Não Atendido"
