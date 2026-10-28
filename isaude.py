@@ -14345,12 +14345,27 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         if not valor_atual or "selecione" in valor_atual or valor_atual == "none":
             continue
 
-        # Normaliza chaves como "1.0" para "1" para bater com o dicionário
-        chave_busca = qid_limpo.split('_')[0]
-        if chave_busca.endswith(".0") and chave_busca not in PONTUACOES_MAX_ISAUDE:
-            chave_busca = chave_busca[:-2]
+        # Procura o código exato (normalizado) na lista de pontuações máximas.
+        # Se houver prefixos separados por _, testa os componentes sem truncar
+        # quesitos compostos como 14.2.1 ou 30.1.1.
+        pontuacoes_max_norm = {
+            normalizar_chave(codigo): float(pontos)
+            for codigo, pontos in PONTUACOES_MAX_ISAUDE.items()
+        }
+        candidatos_qid = [qid_limpo]
+        candidatos_qid.extend(
+            normalizar_chave(parte)
+            for parte in qid_str.split("_")[1:]
+        )
+        chave_busca = next(
+            (candidato for candidato in candidatos_qid if candidato in pontuacoes_max_norm),
+            None,
+        )
+        # Não classifica quesitos sem máximo cadastrado; evita assumir 10 pontos.
+        if chave_busca is None:
+            continue
 
-        pts_maximo = float(PONTUACOES_MAX_ISAUDE.get(chave_busca, 10.0))
+        pts_maximo = pontuacoes_max_norm[chave_busca]
         eficiencia_atual = (pts_obtidos_atual / pts_maximo * 100.0) if pts_maximo > 0 else 0.0
 
         # Inclui somente quesitos com eficiência inferior a 80% no exercício atual
