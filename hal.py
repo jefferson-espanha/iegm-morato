@@ -2193,7 +2193,7 @@ class SistemaHAL:
                     "respostas_ieduc",
                     "respostas_isaude",
                 ]:
-                    query = f"SELECT * FROM {tabela} WHERE quesito::text = %s AND ano = %s;"
+                    query = f"SELECT * FROM {tabela} WHERE qid::text = %s AND ano = %s;"
                 else:
                     query = f"SELECT * FROM {tabela} WHERE id::text = %s AND ano = %s;"
 
