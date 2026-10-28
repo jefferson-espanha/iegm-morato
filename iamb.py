@@ -205,6 +205,35 @@ def render_quesito(
             )
 
         radio_opcao.on("update:model-value", ao_mudar_opcao)
+
+        # =====================================================================
+        # INSERÇÃO: RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS
+        # =====================================================================
+        container_links = ui.row().classes("w-full items-center my-2")
+
+        def atualizar_links_visuais():
+            container_links.clear()
+            lnk_txt = input_link.value or ""
+            
+            # REGEX para extrair URLs válidas
+            REGEX_PURE_URL = r'https?://[^\s]+'
+            links = re.findall(REGEX_PURE_URL, lnk_txt)
+            
+            if links:
+                with container_links:
+                    ui.label("Links Ativos: ").classes(
+                        "font-bold text-caption"
+                    )
+                    for url in links:
+                        ui.link(url, target=url, new_tab=True).classes(
+                            "text-caption text-blue-6 mr-2"
+                        )
+
+        # Ouve as alterações do campo de entrada do link
+        input_link.on("update:model-value", atualizar_links_visuais)
+
+        # Executa uma vez no carregamento inicial para exibir links existentes
+        atualizar_links_visuais()
         
         def salvar_acao():
             opcao_sel = state["opcao"]
