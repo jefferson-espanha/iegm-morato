@@ -14593,23 +14593,23 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             status = "Atendido" if resp_l in ["00", "sim, para todos os profissionais da saúde – 00 pt (não perde pontos)"] or pts == 0 and resp_l != "none" else "Não Atendido"
 
         elif qid == "17.3":
-            status = "Atendido" if pts > 0 or "todas as consultas" in resp_l else "Não Atendido"
+            status = "Atendido" if resp_l in ["00", "sim, para todas as consultas médicas – 00 pt (não perde pontos)"] or "todas" in resp_l or (pts == 0 and resp_l != "none") else "Não Atendido"
 
         elif qid == "17.3.2":
-            status = "Atendido" if pts > 0 or "sim" in resp_l else "Não Atendido"
+            status = "Atendido" if resp_l in ["00", "sim"] or "sim" in resp_l or (pts == 0 and resp_l != "none") else "Não Atendido"
 
-        elif qid == "17.4":
-            status = "Atendido" if pts > 0 or "todos os exames" in resp_l else "Não Atendido"
+       elif qid == "17.4":
+            status = "Atendido" if resp_l in ["00", "sim, para todos os exames – 00 pt (não perde pontos)"] or "todos os exames" in resp_l or (pts == 0 and resp_l != "none") else "Não Atendido"
 
         elif qid == "17.5":
-            status = "Atendido" if pts > 0 or "todos os serviços" in resp_l else "Não Atendido"
+            status = "Atendido" if resp_l in ["00", "sim, todos os serviços – 00 pt (não perde pontos)"] or "todos os serviços" in resp_l or (pts == 0 and resp_l != "none") else "Não Atendido"
 
         elif qid == "17.6":
-            status = "Atendido" if pts > 0 or "todos os procedimentos" in resp_l else "Não Atendido"
+            status = "Atendido" if resp_l in ["00", "sim, para todos os procedimentos da saúde – 00 pt (não perde pontos)"] or "todos os procedimentos" in resp_l or (pts == 0 and resp_l != "none") else "Não Atendido"
 
         elif qid == "18.1":
             metas = "3.0, 16.6"
-            status = "Atendido" if pts > 0 or "sim" in resp_l else "Não Atendido"
+            status = "Atendido" if resp_l in ["sim", "00"] or "sim" in resp_l or (pts == 0.0 and resp_l != "none" and resp_l != "nao") else "Não Atendido"
 
         elif qid == "18.3":
             metas = "3.0, 16.6"
