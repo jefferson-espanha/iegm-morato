@@ -14609,8 +14609,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
         elif qid == "18.1":
             metas = "3.0, 16.6"
-            status = "Atendido" if resp_l in ["sim", "00"] or "sim" in resp_l or (pts == 0.0 and resp_l != "none" and resp_l != "nao") else "Não Atendido"
-
+            status = "Atendido" if resp_l in ["sim", "00"] or "sim" in resp_l or (pts == 0.0 and resp_l not in ["none", "nao", ""]) else "Não Atendido"
+            
         elif qid == "18.3":
             metas = "3.0, 16.6"
             status = "Atendido" if pts > 0 or "sim" in resp_l else "Não Atendido"
