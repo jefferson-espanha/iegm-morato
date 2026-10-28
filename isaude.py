@@ -14307,13 +14307,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(Spacer(1, 15))
 
     
-    # =========================================================================
-    # 4. DIAGNÓSTICO DE REINCIDÊNCIAS 
-    # =========================================================================
-    elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS </b>", styles["h2"]))
+    # -------------------------------------------------------------------------
+    # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
-    # Dicionário de tetos do i-Saúde
     TETOS_VALIDOS = {
         "11.0": 10.0, "14.2.2": 10.0, "15.2": 10.0, "17.1": 15.0, "17.2": 5.0, "17.3": 10.0,
         "17.4": 10.0, "17.5": 20.0, "17.6": 15.0, "17.7": 10.0, "17.8": 10.0, 
@@ -14328,7 +14327,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     if subquestoes_saude_local and resposta_condicional_na_local:
         for sub_id in subquestoes_saude_local:
             if sub_id not in dados_analise_reinc:
-                dados_analise_reinc[sub_id] = {"pontos": 0.0, "valor": "Não se aplica / Zerado por Condicional", "link": ""}
+                dados_analise_reinc[sub_id] = {"pontos": 0.0, "valor": "Não se aplica", "link": ""}
 
     for qid, info_atual in dados_analise_reinc.items():
         if qid.startswith("COM_") or not isinstance(info_atual, dict): 
@@ -14340,7 +14339,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         valor_atual = str(info_atual.get("valor", "")).strip().lower()
         pts_obtidos_atual = float(info_atual.get("pontos", 0.0))
 
-        # FILTRO 1: Ignora apenas se não foi respondido ou se estiver em estado "selecione"
+        # Filtra apenas não preenchidos
         if not valor_atual or "selecione" in valor_atual or valor_atual == "none":
             continue
 
@@ -14348,17 +14347,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             chave_mae = qid_limpo.split("_")[0]
         else:
             partes_chave = qid_limpo.split('.')
-            if len(partes_chave) > 2:
-                chave_mae = f"{partes_chave[0]}.{partes_chave[1]}"
-            else:
-                chave_mae = qid_limpo
+            chave_mae = f"{partes_chave[0]}.{partes_chave[1]}" if len(partes_chave) > 2 else qid_limpo
 
-        # Obtém o teto se existir, ou usa teto padrão 10.0 para análises de 0 pts
         pts_maximo = float(TETOS_VALIDOS.get(chave_mae, 10.0))
-
-        # Avalia se no ano atual o desempenho é insatisfatório (zerado ou < 50% do teto)
         eficiencia_atual = (pts_obtidos_atual / pts_maximo * 100.0) if pts_maximo > 0 else 0.0
-        
+
+        # Verifica se o quesito está com nota 0 ou abaixo de 50%
         if eficiencia_atual < 50.0 or pts_obtidos_atual <= 0.0:
             info_ant = dados_ano_anterior.get(qid, {}) if isinstance(dados_ano_anterior, dict) else {}
 
@@ -14366,16 +14360,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                 valor_ant = str(info_ant.get("valor", "")).strip().lower()
                 pts_obtidos_ant = float(info_ant.get("pontos", 0.0))
 
-                # FILTRO 2: Ignora se o ano anterior não foi respondido
                 if not valor_ant or "selecione" in valor_ant or valor_ant == "none":
                     continue
 
                 eficiencia_ant = (pts_obtidos_ant / pts_maximo * 100.0) if pts_maximo > 0 else 0.0
 
-                # Verifica reincidência se também ficou abaixo de 50% ou zerado no ano anterior
+                # Reincidência se também ficou zerado/abaixo de 50% no ano anterior
                 if eficiencia_ant < 50.0 or pts_obtidos_ant <= 0.0:
                     origem = "Gestão da Saúde Geral"
-
                     if 'CATEGORIAS_MAP_ISAUDE' in globals():
                         for cat_chave, cat_info in CATEGORIAS_MAP_ISAUDE.items():
                             if chave_mae in cat_info.get("qids", []):
@@ -14383,17 +14375,17 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                                 break
                     else:
                         if chave_mae.startswith("14") or chave_mae.startswith("15"):
-                            origem = "Atenção Básica e Assistência"
+                            origem = "Atenção Básica"
                         elif chave_mae.startswith("17"):
-                            origem = "Vigilância em Saúde e Sanitária"
+                            origem = "Vigilância em Saúde"
                         elif chave_mae.startswith("18") or chave_mae.startswith("19"):
-                            origem = "Recursos, Orçamento e Financiamento"
+                            origem = "Recursos e Finanças"
                         elif chave_mae.startswith("20") or chave_mae.startswith("31"):
-                            origem = "Transparência e Controle Social"
+                            origem = "Controle Social"
                         elif chave_mae.startswith("S"):
-                            origem = "Indicadores Assistenciais Pactuados"
+                            origem = "Indicadores"
 
-                    detalhe_msg = "Reincidência de Nota Zerada (Não Atendido por 2 anos consecutivos)" if (pts_obtidos_atual <= 0 and pts_obtidos_ant <= 0) else "Ineficiência Crônica de Desempenho (Desempenho inferior a 50% por 2 anos consecutivos)"
+                    detalhe_msg = "Reincidência de Nota Zerada" if (pts_obtidos_atual <= 0 and pts_obtidos_ant <= 0) else "Desempenho Crônico < 50%"
 
                     reincidencias_detectadas.append({
                         "qid": qid_str, 
@@ -14403,43 +14395,30 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                         "atual": f"{pts_obtidos_atual:.1f} / {pts_maximo:.1f} pts"
                     })
 
+    # Renderização da Tabela
     if reincidencias_detectadas:
-        data_reinc = [[
-            Paragraph("Quesito", style_th), 
-            Paragraph("Bloco / Origem da Falha", style_th), 
-            Paragraph("Impacto Histórico i-Saúde", style_th), 
-            Paragraph("Exercício Anterior", style_th), 
-            Paragraph("Exercício Atual", style_th)
-        ]]
-
-        def ordenacao_segura(x):
-            limpo = ''.join(c for c in x["qid"].split('_')[0] if c.isdigit() or c == '.')
-            partes = [int(i) for i in limpo.split('.') if i.isdigit()]
-            return partes if partes else [999]
-
-        for reinc in sorted(reincidencias_detectadas, key=ordenacao_segura): 
+        data_reinc = [["Quesito", "Origem da Falha", "Impacto Histórico", "Exercício Anterior", "Exercício Atual"]]
+        for reinc in reincidencias_detectadas: 
             data_reinc.append([
-                Paragraph(reinc["qid"], style_tabela_centro), 
-                Paragraph(reinc["tipo"], style_tabela_centro), 
-                Paragraph(f"<b>{reinc['detalhe']}</b>", style_tabela_padrao), 
-                Paragraph(reinc["ant"], style_tabela_centro), 
-                Paragraph(reinc["atual"], style_tabela_centro)
+                Paragraph(reinc["qid"], styles["Normal"]), 
+                Paragraph(reinc["tipo"], styles["Normal"]), 
+                Paragraph(f"<b>{reinc['detalhe']}</b>", styles["Normal"]), 
+                Paragraph(reinc["ant"], styles["Normal"]), 
+                Paragraph(reinc["atual"], styles["Normal"])
             ])
-
         tabela_reinc = Table(data_reinc, colWidths=[65, 115, 170, 75, 65])
         tabela_reinc.setStyle(TableStyle([
             ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#c0392b")), 
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
             ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#c0392b")), 
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"), 
-            ("TOPPADDING", (0, 0), (-1, -1), 6), 
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ("FONTSIZE", (0, 0), (-1, -1), 9), 
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
         ]))
         elements.append(tabela_reinc)
-        elements.append(Spacer(1, 15))
     else: 
-        elements.append(Paragraph("<font color='#2e7d32'><b>✅ Nenhuma reincidência ativa detectada nos blocos do i-Saúde. O município corrigiu ou mitigou os gargalos assistenciais e orçamentários do ano anterior.</b></font>", styles["Normal"]))
-        elements.append(Spacer(1, 15))
+        elements.append(Paragraph("<font color='#28a745'><b>Nenhuma reincidência ativa detectada.</b></font>", styles["Normal"]))
 
+    elements.append(Spacer(1, 15))
     # -------------------------------------------------------------------------
     # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU) - FORMATADO I-SAÚDE
     # -------------------------------------------------------------------------
