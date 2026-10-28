@@ -14313,12 +14313,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
-    TETOS_VALIDOS = {
-        "11.0": 10.0, "14.2.2": 10.0, "15.2": 10.0, "17.1": 15.0, "17.2": 5.0, "17.3": 10.0,
-        "17.4": 10.0, "17.5": 20.0, "17.6": 15.0, "17.7": 10.0, "17.8": 10.0, 
-        "17.9": 10.0, "18.1": 30.0, "18.2": 20.0, "18.4": 15.0, "18.5": 25.0, 
-        "19.3": 20.0, "19.4": 15.0, "19.5": 40.0, "20.1": 10.0, "20.2": 10.0, 
-        "31.2": 20.0, "31.3": 50.0, "S8": 15.0, "S9": 15.0, "S10": 10.0
+    PONTUACOES_MAX_ISAUDE = {
+        "1": 5, "2": 10, "3": 10, "3.1": 4, "3.2": 4, "4": 6, "5": 4, "6": 5, "7": 3, "8": 2,
+        "9.0": 18, "9.2": 5, "10": 100, "11": 10, "11.2": 2, "12.0": 10, "12.1": 50, "12.2": 40,
+        "13": 5, "13.1": 15, "14": 1, "14.1": 10, "14.2": 2, "14.2.1": 10, "15": 2, "15.1": 7,
+        "16": 10, "16.1": 5, "21": 10, "22": 30, "23.1": 30, "24.1": 10, "25": 5, "26": 10,
+        "27": 5, "28": 5, "28.1": 5, "29": 15, "30.1.1": 9, "32.1": 45, "33.1": 10, "34.0": 5,
+        "35.1": 15, "35.2": 10, "36": 40, "36.1": 40, "37": 90, "S2": 20, "S4": 10,
+        "S6": 100, "S7": 20, "S17": 25, "S18": 25, "S19": 25, "S20": 25,
     }
 
     reincidencias_detectadas = []
@@ -14343,13 +14345,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         if not valor_atual or "selecione" in valor_atual or valor_atual == "none":
             continue
 
-        if "_" in qid_limpo:
-            chave_mae = qid_limpo.split("_")[0]
-        else:
-            partes_chave = qid_limpo.split('.')
-            chave_mae = f"{partes_chave[0]}.{partes_chave[1]}" if len(partes_chave) > 2 else qid_limpo
+        # Normaliza chaves como "1.0" para "1" para bater com o dicionário
+        chave_busca = qid_limpo.split('_')[0]
+        if chave_busca.endswith(".0") and chave_busca not in PONTUACOES_MAX_ISAUDE:
+            chave_busca = chave_busca[:-2]
 
-        pts_maximo = float(TETOS_VALIDOS.get(chave_mae, 10.0))
+        pts_maximo = float(PONTUACOES_MAX_ISAUDE.get(chave_busca, 10.0))
         eficiencia_atual = (pts_obtidos_atual / pts_maximo * 100.0) if pts_maximo > 0 else 0.0
 
         # Verifica se o quesito está com nota 0 ou abaixo de 50%
@@ -14370,20 +14371,18 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                     origem = "Gestão da Saúde Geral"
                     if 'CATEGORIAS_MAP_ISAUDE' in globals():
                         for cat_chave, cat_info in CATEGORIAS_MAP_ISAUDE.items():
-                            if chave_mae in cat_info.get("qids", []):
+                            if chave_busca in cat_info.get("qids", []):
                                 origem = cat_info.get("label", "Outros")
                                 break
                     else:
-                        if chave_mae.startswith("14") or chave_mae.startswith("15"):
+                        if chave_busca.startswith("14") or chave_busca.startswith("15"):
                             origem = "Atenção Básica"
-                        elif chave_mae.startswith("17"):
+                        elif chave_busca.startswith("16") or chave_busca.startswith("17"):
                             origem = "Vigilância em Saúde"
-                        elif chave_mae.startswith("18") or chave_mae.startswith("19"):
-                            origem = "Recursos e Finanças"
-                        elif chave_mae.startswith("20") or chave_mae.startswith("31"):
-                            origem = "Controle Social"
-                        elif chave_mae.startswith("S"):
-                            origem = "Indicadores"
+                        elif chave_busca.startswith("2") or chave_busca.startswith("3"):
+                            origem = "Gestão e Recursos"
+                        elif chave_busca.startswith("S"):
+                            origem = "Indicadores Pactuados"
 
                     detalhe_msg = "Reincidência de Nota Zerada" if (pts_obtidos_atual <= 0 and pts_obtidos_ant <= 0) else "Desempenho Crônico < 50%"
 
