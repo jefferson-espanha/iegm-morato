@@ -233,6 +233,10 @@ def render_quesito(
         "link": link_atual,
     }
 
+    # Inicializa as referências dos componentes para escopo seguro
+    input_link = None
+    input_texto = None
+
     with ui.card().classes(
         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
     ):
@@ -287,7 +291,7 @@ def render_quesito(
 
             elif tipo_input == "text":
                 # Campo para textos/respostas dissertativas
-                ui.textarea(
+                input_texto = ui.textarea(
                     label="Resposta / Comentário:",
                     value=state["opcao"],
                     placeholder="Digite sua resposta...",
@@ -306,7 +310,7 @@ def render_quesito(
                 )
 
             # Lado Direito: Textarea para o Link
-            ui.textarea(
+            input_link = ui.textarea(
                 label="Link de Evidência / Documento:",
                 value=state["link"],
                 placeholder=placeholder_link,
@@ -325,7 +329,6 @@ def render_quesito(
                 return 0.0
             elif isinstance(opcao_sel, list):
                 if qid == "15.4.1" and tipo_input == "checkbox":
-                    # Penaliza cada informação obrigatória que não foi marcada.
                     selecionados_validos = set(opcao_sel) & set(opcoes.keys())
                     itens_nao_marcados = len(opcoes) - len(selecionados_validos)
                     return -2.5 * itens_nao_marcados
@@ -343,13 +346,46 @@ def render_quesito(
                 f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
             )
 
-        # Eventos para atualização em tempo real
+        # Eventos para atualização em tempo real da pontuação
         if tipo_input == "radio":
             input_radio.on("update:model-value", atualizar_impacto)
         elif tipo_input in ["number", "float"]:
             input_num.on("update:model-value", atualizar_impacto)
 
-        # Botão Salvar
+        # =====================================================================
+        # INSERÇÃO: LINKS VISUAIS DINÂMICOS
+        # =====================================================================
+        container_links = ui.row().classes("w-full items-center my-2")
+
+        def atualizar_links_visuais():
+            container_links.clear()
+            val_txt = input_texto.value if input_texto and input_texto.value else ""
+            lnk_txt = input_link.value if input_link and input_link.value else ""
+            txt_total = f"{val_txt} {lnk_txt}"
+
+            REGEX_PURE_URL = r'https?://[^\s]+'
+            links = re.findall(REGEX_PURE_URL, txt_total)
+
+            if links:
+                with container_links:
+                    ui.label("Links Ativos: ").classes(
+                        "font-bold text-caption text-gray-700"
+                    )
+                    for url in links:
+                        ui.link(url, target=url, new_tab=True).classes(
+                            "text-caption text-blue-6 mr-2"
+                        )
+
+        if input_link:
+            input_link.on("update:model-value", atualizar_links_visuais)
+        if input_texto:
+            input_texto.on("update:model-value", atualizar_links_visuais)
+
+        atualizar_links_visuais()
+
+        # =====================================================================
+        # BOTÃO SALVAR
+        # =====================================================================
         def salvar_acao():
             opcao_sel = (
                 list(state["opcao"])
@@ -380,7 +416,6 @@ def render_quesito(
 
         ui.separator().classes("my-2")
         bloco_comentarios(qid, res_data, on_save_callback)
-
 # =============================================================================
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
