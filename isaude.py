@@ -14353,8 +14353,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         pts_maximo = float(PONTUACOES_MAX_ISAUDE.get(chave_busca, 10.0))
         eficiencia_atual = (pts_obtidos_atual / pts_maximo * 100.0) if pts_maximo > 0 else 0.0
 
-        # Verifica se o quesito está com nota 0 ou abaixo de 50%
-        if eficiencia_atual < 50.0 or pts_obtidos_atual <= 0.0:
+        # Inclui somente quesitos com eficiência inferior a 80% no exercício atual
+        if eficiencia_atual < 80.0:
             info_ant = dados_ano_anterior.get(qid, {}) if isinstance(dados_ano_anterior, dict) else {}
 
             if isinstance(info_ant, dict) and info_ant:
@@ -14366,8 +14366,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
                 eficiencia_ant = (pts_obtidos_ant / pts_maximo * 100.0) if pts_maximo > 0 else 0.0
 
-                # Reincidência se também ficou zerado/abaixo de 50% no ano anterior
-                if eficiencia_ant < 50.0 or pts_obtidos_ant <= 0.0:
+                # Reincidência se também ficou abaixo de 80% no ano anterior
+                if eficiencia_ant < 80.0:
                     origem = "Gestão da Saúde Geral"
                     if 'CATEGORIAS_MAP_ISAUDE' in globals():
                         for cat_chave, cat_info in CATEGORIAS_MAP_ISAUDE.items():
@@ -14384,7 +14384,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                         elif chave_busca.startswith("S"):
                             origem = "Indicadores Pactuados"
 
-                    detalhe_msg = "Reincidência de Nota Zerada" if (pts_obtidos_atual <= 0 and pts_obtidos_ant <= 0) else "Desempenho Crônico < 50%"
+                    detalhe_msg = "Reincidência de Nota Zerada" if (pts_obtidos_atual <= 0 and pts_obtidos_ant <= 0) else "Desempenho Crônico < 80%"
 
                     reincidencias_detectadas.append({
                         "qid": qid_str, 
