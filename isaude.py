@@ -6569,33 +6569,35 @@ def container_formulario_saude(ano=None):
                             ui.label(
                                 "Realizou Plano de Ação municipal para inclusão do município à sua RAPS?"
                             ).classes("text-base font-bold text-black mb-6")
-    
+
                             d181 = res_data.get("18.1") or {}
-                            raw_val_181 = str(d181.get("valor", "none"))
+                            raw_val_181 = str(d181.get("valor", "none")).strip()
                             raw_link_181 = str(d181.get("link") or "")
-    
+
                             state_181 = {
                                 "opcao": raw_val_181 if raw_val_181 in ["sim", "nao"] else "none",
                                 "link": raw_link_181,
                             }
-    
+
                             opts_181 = {
                                 "none": "Selecione uma opção...",
                                 "sim": "Sim (0,0 ponto)",
                                 "nao": "Não (-10,0 pontos)",
                             }
-    
+
                             rad_181 = ui.radio(
                                 options=opts_181,
                                 value=state_181["opcao"]
                             ).classes("mb-4")
-                            rad_181.bind_value(state_181, "opcao")
-    
+
                             lbl_pts_181 = ui.label("Nota 18.1: 0.0 pontos").classes(
                                 "text-sm font-bold text-green-600 mb-4"
                             )
-    
-                            def recalc_181():
+
+                            def recalc_181(e=None):
+                                if e is not None and hasattr(e, 'value'):
+                                    state_181["opcao"] = e.value
+                                
                                 val = state_181["opcao"]
                                 if val == "sim":
                                     pts = 0.0
@@ -6606,13 +6608,13 @@ def container_formulario_saude(ano=None):
                                 else:
                                     pts = 0.0
                                     lbl_pts_181.classes(replace="text-sm font-bold text-gray-600 mb-4")
-    
+
                                 lbl_pts_181.set_text(f"📊 Nota 18.1: {pts:.1f} pontos")
                                 return pts
-    
+
                             rad_181.on("update:model-value", recalc_181)
                             recalc_181()
-    
+
                             ui.textarea(
                                 label="Link de Evidência / Plano de Ação RAPS Aprovado:",
                                 value=raw_link_181,
@@ -6620,9 +6622,13 @@ def container_formulario_saude(ano=None):
                             ).classes("w-full mb-4").props("outlined rows=2").bind_value(
                                 state_181, "link"
                             )
-    
+
                             def salvar_181():
                                 pts = recalc_181()
+                                if state_181["opcao"] == "none":
+                                    ui.notify("Selecione uma opção antes de salvar!", type="warning")
+                                    return
+
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="18.1",
@@ -6635,7 +6641,7 @@ def container_formulario_saude(ano=None):
                                 ui.notify(f"Quesito 18.1 salvo com sucesso! ({pts:.1f} pts)", type="positive")
                                 if render_conteudo.refresh:
                                     render_conteudo.refresh()
-    
+
                             ui.button("💾 SALVAR QUESITO 18.1", on_click=salvar_181).classes(
                                 "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
                             )
