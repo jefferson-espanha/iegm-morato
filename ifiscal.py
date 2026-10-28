@@ -219,6 +219,10 @@ def render_quesito(
         "link": link_atual,
     }
 
+    # Inicialização das variáveis para escopo seguro
+    input_link = None
+    input_texto = None
+
     with ui.card().classes(
         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
     ):
@@ -269,11 +273,16 @@ def render_quesito(
                 )
 
             elif tipo_input == "text":
-                ui.textarea(
-                    label="Resposta / Comentário:",
-                    value=state["opcao"],
-                    placeholder="Digite sua resposta...",
-                ).classes("w-full").props("outlined rows=4").bind_value(state, "opcao")
+                input_texto = (
+                    ui.textarea(
+                        label="Resposta / Comentário:",
+                        value=state["opcao"],
+                        placeholder="Digite sua resposta...",
+                    )
+                    .classes("w-full")
+                    .props("outlined rows=4")
+                    .bind_value(state, "opcao")
+                )
 
             else:  # radio
                 input_radio = (
@@ -285,11 +294,16 @@ def render_quesito(
                     .bind_value(state, "opcao")
                 )
 
-            ui.textarea(
-                label="Link de Evidência / Documento:",
-                value=state["link"],
-                placeholder=placeholder_link,
-            ).classes("w-full").props("outlined rows=5").bind_value(state, "link")
+            input_link = (
+                ui.textarea(
+                    label="Link de Evidência / Documento:",
+                    value=state["link"],
+                    placeholder=placeholder_link,
+                )
+                .classes("w-full")
+                .props("outlined rows=5")
+                .bind_value(state, "link")
+            )
 
         def calcular_pontos(opcao_sel):
             if tipo_input in ["number", "float"]:
@@ -319,6 +333,40 @@ def render_quesito(
         elif tipo_input in ["number", "float"]:
             input_num.on("update:model-value", atualizar_impacto)
 
+        # =====================================================================
+        # RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS
+        # =====================================================================
+        container_links = ui.row().classes("w-full items-center my-2")
+
+        def atualizar_links_visuais():
+            container_links.clear()
+            val_txt = input_texto.value if input_texto and input_texto.value else ""
+            lnk_txt = input_link.value if input_link and input_link.value else ""
+            txt_total = f"{val_txt} {lnk_txt}"
+
+            REGEX_PURE_URL = r'https?://[^\s]+'
+            links = re.findall(REGEX_PURE_URL, txt_total)
+
+            if links:
+                with container_links:
+                    ui.label("Links Ativos: ").classes(
+                        "font-bold text-caption text-gray-700"
+                    )
+                    for url in links:
+                        ui.link(url, target=url, new_tab=True).classes(
+                            "text-caption text-blue-6 mr-2"
+                        )
+
+        if input_link:
+            input_link.on("update:model-value", atualizar_links_visuais)
+        if input_texto:
+            input_texto.on("update:model-value", atualizar_links_visuais)
+
+        atualizar_links_visuais()
+
+        # =====================================================================
+        # BOTÃO SALVAR
+        # =====================================================================
         def salvar_acao():
             opcao_sel = state["opcao"]
             pts = calcular_pontos(opcao_sel)
