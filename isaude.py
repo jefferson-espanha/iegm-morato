@@ -13813,7 +13813,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         "16": 10, "16.1": 5, "21": 10, "22": 30, "23.1": 30, "24.1": 10, "25": 5, "26": 10,
         "27": 5, "28": 5, "28.1": 5, "29": 15, "30.1.1": 9, "32.1": 45, "33.1": 10, "34.0": 5,
         "35.1": 15, "35.2": 10, "36": 40, "36.1": 40, "37": 90, "S2": 20, "S3": 25, "S4": 10,
-        "S5": 10, "S6": 100, "S7": 20, "S17": 25, "S18": 25, "S19": 25, "S20": 25,
+        "S6": 100, "S7": 20, "S17": 25, "S18": 25, "S19": 25, "S20": 25,
     }
 
     # Esses dados são opcionais no módulo principal. Listas vazias preservam
@@ -14143,8 +14143,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         "17.7.1": -5.0, "17.8.1": -5.0, "17.9.1": -5.0, "17.9.2": -5.0, "18.1": -10.0,
         "18.2": -5.0, "18.4": -5.0, "18.5.3": -10.0, "18.5.4": -10.0, "19.3": -10.0,
         "19.4": -5.0, "19.5": -15.0, "20.1": -5.0, "20.2": -5.0, "31.2": -10.0,
-        "31.3": -20.0, "S8": -5.0, "S9": -5.0, "S10": -2.0, "S11": -2.0,
-        "S12": -2.0, "S13": -2.0, "S14": -2.0, "S15": -2.0, "S16": -2.0
+        "31.3": -20.0, "S15": -2.0, "S16": -2.0
     }
     penalidades_max_norm = {normalizar_chave(k): v for k, v in PENALIDADES_MAX.items()}
     dados_penalidades = {}
@@ -14234,9 +14233,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(Spacer(1, 15))
 
     # =========================================================================
-    # 4. DIAGNÓSTICO DE REINCIDÊNCIAS (GARGALOS PERSISTENTES)
+    # 4. DIAGNÓSTICO DE REINCIDÊNCIAS 
     # =========================================================================
-    elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS (GARGALOS PERSISTENTES)</b>", styles["h2"]))
+    elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS </b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     # Dicionário de tetos com sintaxe corrigida na chave 11.0
