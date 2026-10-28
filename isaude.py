@@ -14313,7 +14313,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS </b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
-    # Dicionário de tetos com sintaxe corrigida na chave 11.0
+    # Dicionário de tetos do i-Saúde
     TETOS_VALIDOS = {
         "11.0": 10.0, "14.2.2": 10.0, "15.2": 10.0, "17.1": 15.0, "17.2": 5.0, "17.3": 10.0,
         "17.4": 10.0, "17.5": 20.0, "17.6": 15.0, "17.7": 10.0, "17.8": 10.0, 
@@ -14337,11 +14337,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         qid_str = str(qid).strip()
         qid_limpo = normalizar_chave(qid_str)
 
-        # FILTRO 1: Ignora se a resposta atual for inválida, vazia ou "selecione"
         valor_atual = str(info_atual.get("valor", "")).strip().lower()
         pts_obtidos_atual = float(info_atual.get("pontos", 0.0))
 
-        if not valor_atual or "selecione" in valor_atual or pts_obtidos_atual == 0.0:
+        # FILTRO 1: Ignora apenas se não foi respondido ou se estiver em estado "selecione"
+        if not valor_atual or "selecione" in valor_atual or valor_atual == "none":
             continue
 
         if "_" in qid_limpo:
@@ -14353,25 +14353,27 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             else:
                 chave_mae = qid_limpo
 
-        if chave_mae not in TETOS_VALIDOS:
-            continue
+        # Obtém o teto se existir, ou usa teto padrão 10.0 para análises de 0 pts
+        pts_maximo = float(TETOS_VALIDOS.get(chave_mae, 10.0))
 
-        pts_maximo = float(TETOS_VALIDOS[chave_mae])
-
-        # Verifica se está abaixo de 50% de eficiência no ano atual
-        if pts_maximo > 0 and (pts_obtidos_atual / pts_maximo) * 100 < 50.0:
+        # Avalia se no ano atual o desempenho é insatisfatório (zerado ou < 50% do teto)
+        eficiencia_atual = (pts_obtidos_atual / pts_maximo * 100.0) if pts_maximo > 0 else 0.0
+        
+        if eficiencia_atual < 50.0 or pts_obtidos_atual <= 0.0:
             info_ant = dados_ano_anterior.get(qid, {}) if isinstance(dados_ano_anterior, dict) else {}
 
             if isinstance(info_ant, dict) and info_ant:
                 valor_ant = str(info_ant.get("valor", "")).strip().lower()
                 pts_obtidos_ant = float(info_ant.get("pontos", 0.0))
 
-                # FILTRO 2: Ignora se o ano anterior também não foi respondido ou era 0
-                if not valor_ant or "selecione" in valor_ant or pts_obtidos_ant == 0.0:
+                # FILTRO 2: Ignora se o ano anterior não foi respondido
+                if not valor_ant or "selecione" in valor_ant or valor_ant == "none":
                     continue
 
-                # Verifica se também estava abaixo de 50% no ano anterior
-                if (pts_obtidos_ant / pts_maximo) * 100 < 50.0:
+                eficiencia_ant = (pts_obtidos_ant / pts_maximo * 100.0) if pts_maximo > 0 else 0.0
+
+                # Verifica reincidência se também ficou abaixo de 50% ou zerado no ano anterior
+                if eficiencia_ant < 50.0 or pts_obtidos_ant <= 0.0:
                     origem = "Gestão da Saúde Geral"
 
                     if 'CATEGORIAS_MAP_ISAUDE' in globals():
@@ -14391,10 +14393,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                         elif chave_mae.startswith("S"):
                             origem = "Indicadores Assistenciais Pactuados"
 
+                    detalhe_msg = "Reincidência de Nota Zerada (Não Atendido por 2 anos consecutivos)" if (pts_obtidos_atual <= 0 and pts_obtidos_ant <= 0) else "Ineficiência Crônica de Desempenho (Desempenho inferior a 50% por 2 anos consecutivos)"
+
                     reincidencias_detectadas.append({
                         "qid": qid_str, 
                         "tipo": origem, 
-                        "detalhe": "Ineficiência Crônica de Desempenho (Eficiência inferior a 50% por 2 anos consecutivos)",
+                        "detalhe": detalhe_msg,
                         "ant": f"{pts_obtidos_ant:.1f} / {pts_maximo:.1f} pts", 
                         "atual": f"{pts_obtidos_atual:.1f} / {pts_maximo:.1f} pts"
                     })
