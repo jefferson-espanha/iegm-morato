@@ -14399,7 +14399,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                         elif chave_busca.startswith("S"):
                             origem = "Indicadores Pactuados"
 
-                    detalhe_msg = "Reincidência de Nota Zerada" if (pts_obtidos_atual <= 0 and pts_obtidos_ant <= 0) else "Desempenho Crônico < 80%"
+                    detalhe_msg = "Reincidência de Nota Zerada" if (pts_obtidos_atual <= 0 and pts_obtidos_ant <= 0) else "Desempenho < 80%"
 
                     reincidencias_detectadas.append({
                         "qid": qid_str, 
