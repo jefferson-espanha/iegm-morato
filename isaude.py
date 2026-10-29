@@ -15249,11 +15249,21 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             registro = dado_ano.get(qid, {})
             if not isinstance(registro, dict):
                 return registro
-            # Formato atual: res_data[qid]["valor"] contém o dicionário salvo.
+            # 1. Verifica campo 'resposta' (padrão do banco de dados)
+            if "resposta" in registro:
+                payload = registro.get("resposta")
+                if isinstance(payload, dict):
+                    return payload
+                if isinstance(payload, str):
+                    try:
+                        import json
+                        return json.loads(payload)
+                    except Exception:
+                        pass
+            # 2. Verifica campo 'valor'
             if "valor" in registro:
                 payload = registro.get("valor")
                 return payload if isinstance(payload, dict) else payload
-            # Compatibilidade com o formato antigo
             return registro
 
         def numero(valor):
@@ -15269,11 +15279,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             receita = numero(payload_s1.get("receita"))
             ps = numero(payload_s1.get("ps"))
 
-            # Se a proporção 'ps' não veio calculada no payload, calcula dinamicamente
             if ps == 0.0 and receita > 0:
                 ps = (despesa / receita) * 100.0
 
-            # Verifica regra de rebaixamento
             rebaixar = payload_s1.get("rebaixar_faixa")
             if rebaixar is None:
                 rebaixar = (ps < 15.0) if receita > 0 else True
@@ -15297,6 +15305,56 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         dados_f["S1"]["status"] = status
 
         return dados_f
+
+    # --- PROCESSAMENTO E MONTAGEM DA TABELA NO PDF ---
+    dados_s1_processados = extrair_dados_s1(res_data)
+    info_s1 = dados_s1_processados["S1"]
+
+    # Formatação de valores monetários e percentuais
+    despesa_fmt = f"R$ {info_s1['despesa']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    receita_fmt = f"R$ {info_s1['receita']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    ps_fmt = f"{info_s1['ps']:.2f}%".replace(".", ",")
+
+    cor_status = colors.HexColor("#2e7d32") if not info_s1["rebaixar_faixa"] else colors.HexColor("#c62828")
+
+    tabela_dados_s1 = [
+        [
+            Paragraph("<b>Indicador / Métrica</b>", styles["Normal"]),
+            Paragraph("<b>Valor Apurado</b>", styles["Normal"]),
+        ],
+        [
+            Paragraph("Despesa Aplicada em Saúde (Rec. Próprios)", styles["Normal"]),
+            Paragraph(despesa_fmt, styles["Normal"]),
+        ],
+        [
+            Paragraph("Receita de Impostos e Transferências", styles["Normal"]),
+            Paragraph(receita_fmt, styles["Normal"]),
+        ],
+        [
+            Paragraph("Proporção Aplicada em Saúde (PS)", styles["Normal"]),
+            Paragraph(f"<b>{ps_fmt}</b>", styles["Normal"]),
+        ],
+        [
+            Paragraph("Status / Impacto no i-Saúde", styles["Normal"]),
+            Paragraph(f"<font color='{cor_status}'><b>{info_s1['status']}</b></font>", styles["Normal"]),
+        ],
+    ]
+
+    t_s1 = Table(tabela_dados_s1, colWidths=[280, 210])
+    t_s1.setStyle(
+        TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#f2f4f4")),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 6),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+        ])
+    )
+
+    elements.append(t_s1)
+    elements.append(Spacer(1, 15))
 
     # Insira antes do doc.build(elements) para depurar no console/terminal:
     print(f"Total de elementos no PDF: {len(elements)}")
