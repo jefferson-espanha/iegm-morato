@@ -15321,15 +15321,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
         return dados_f
 
-    # --- OBTENÇÃO DA VARIÁVEL E PROCESSAMENTO ---
-    # Captura a variável de dados disponível na função do relatório (dado_ano, res_data ou dados)
-    fonte_dados = (
-        locals().get("dado_ano")
-        or locals().get("res_data")
-        or globals().get("res_data")
-        or globals().get("dado_ano")
-        or {}
-    )
+    # --- OBTENÇÃO DA VARIÁVEL E PROCESSAMENTO (TÓPICO 8) ---
+    # gerar_relatorio_pdf recebe as respostas carregadas em seu parâmetro `dados`.
+    # Usar esse parâmetro evita que a seção apareça vazia por procurar variáveis
+    # locais/globais que não existem no contexto da geração do PDF.
+    fonte_dados = dados if isinstance(dados, dict) else {}
 
     dados_s1_processados = extrair_dados_s1(fonte_dados)
     info_s1 = dados_s1_processados["S1"]
