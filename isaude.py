@@ -15245,34 +15245,43 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         if not isinstance(dado_ano, dict):
             return dados_f
 
-        def obter_payload(qid):
-            registro = dado_ano.get(qid, {})
-            if not isinstance(registro, dict):
-                return registro
-            # 1. Verifica campo 'resposta' (padrão do banco de dados)
-            if "resposta" in registro:
-                payload = registro.get("resposta")
-                if isinstance(payload, dict):
-                    return payload
-                if isinstance(payload, str):
+        # 1. Localiza a estrutura do registro do S1
+        registro_s1 = dado_ano.get("S1", {})
+
+        # Se dado_ano for um dicionário multi-ano (ex: res_data[2024]["S1"])
+        if not registro_s1 and isinstance(dado_ano, dict):
+            for k, v in dado_ano.items():
+                if isinstance(v, dict) and "S1" in v:
+                    registro_s1 = v.get("S1", {})
+                    break
+
+        if not isinstance(registro_s1, dict):
+            registro_s1 = {}
+
+        # 2. Extrai o payload de 'resposta', 'valor' ou diretamente do registro
+        payload_s1 = None
+        for campo in ["resposta", "valor"]:
+            if campo in registro_s1:
+                val = registro_s1.get(campo)
+                if isinstance(val, dict):
+                    payload_s1 = val
+                    break
+                elif isinstance(val, str) and val.strip().startswith("{"):
                     try:
                         import json
-                        return json.loads(payload)
+                        payload_s1 = json.loads(val)
+                        break
                     except Exception:
                         pass
-            # 2. Verifica campo 'valor'
-            if "valor" in registro:
-                payload = registro.get("valor")
-                return payload if isinstance(payload, dict) else payload
-            return registro
+
+        if payload_s1 is None:
+            payload_s1 = registro_s1
 
         def numero(valor):
             try:
                 return float(str(valor).strip().replace(",", "."))
             except (TypeError, ValueError):
                 return 0.0
-
-        payload_s1 = obter_payload("S1")
 
         if isinstance(payload_s1, dict):
             despesa = numero(payload_s1.get("despesa"))
@@ -15307,7 +15316,6 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         return dados_f
 
     # --- PROCESSAMENTO E MONTAGEM DA TABELA NO PDF ---
-    # Tenta usar 'dado_ano' do escopo da função, ou 'res_data' se existir no escopo global
     fonte_dados = locals().get("dado_ano") or globals().get("res_data") or {}
     dados_s1_processados = extrair_dados_s1(fonte_dados)
     info_s1 = dados_s1_processados["S1"]
