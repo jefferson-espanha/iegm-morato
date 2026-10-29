@@ -14007,7 +14007,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             Paragraph("Pág. 6", style_pag_direita),
         ],
         [
-            Paragraph("9. Quesitos sem Pontuação Direta (Conformidade Operacional)", style_item_esquerda),
+            Paragraph("9. Quesitos sem Pontuação Direta", style_item_esquerda),
             Paragraph("Pág. 7", style_pag_direita),
         ],
     ]
@@ -15383,7 +15383,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # -------------------------------------------------------------------------
     # 📊 9. QUESITOS SEM PONTUAÇÃO DIRETA (i-Saúde)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>26. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
+    elements.append(Paragraph("<b>9. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     # Garante a captura dos dados do ano independente do nome da variável usada no escopo
