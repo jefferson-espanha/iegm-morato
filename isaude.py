@@ -15386,23 +15386,13 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph("<b>9. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
-    # Garante a captura dos dados do ano independente do nome da variável usada no escopo
-    dados_ano_atual = (
-        locals().get("dados_ano_atual")
-        or locals().get("dado_ano")
-        or locals().get("res_data")
-        or globals().get("res_data")
-        or globals().get("dado_ano")
-        or {}
-    )
+    # gerar_relatorio_pdf recebe as respostas do exercício no parâmetro `dados`.
+    # Usar essa fonte diretamente evita que o tópico 9 classifique tudo como
+    # inadequado por consultar variáveis locais/globais inexistentes.
+    dados_ano_atual = dados if isinstance(dados, dict) else {}
 
-    # Captura o ano para exibição no texto final
-    ano_exibicao = (
-        locals().get("ano_atual")
-        or locals().get("ano_sel")
-        or globals().get("ano_sel")
-        or "atual"
-    )
+    # Captura o ano recebido pela função para exibição no texto final.
+    ano_exibicao = ano
 
     # Lista dos quesitos a serem auditados dinamicamente no i-Saúde
     lista_alvo_sp = [
@@ -15429,7 +15419,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
     # Processa os dados extraídos dinamicamente do dicionário do exercício atual
     for qid in lista_alvo_sp:
-        info = dados_ano_atual.get(qid) or dados_ano_atual.get(f"Q_{qid}") or {}
+        # Alguns registros antigos guardam quesitos inteiros sem o sufixo .0.
+        chaves_candidatas = [qid, f"Q_{qid}"]
+        if qid.endswith(".0"):
+            chaves_candidatas.extend([qid[:-2], f"Q_{qid[:-2]}"])
+        info = next(
+            (dados_ano_atual[chave] for chave in chaves_candidatas if chave in dados_ano_atual),
+            {},
+        )
         payload = extrair_payload_quesito(info)
 
         status_txt = "Inadequado"
