@@ -150,6 +150,26 @@ def _numero(valor: Any) -> float:
         return 0.0
 
 
+def _parse_valor_brasileiro(valor: Any) -> float:
+    """Converte entrada como 10.000,50 ou 10000.50 para número."""
+    if isinstance(valor, (int, float)):
+        return float(valor)
+    texto = str(valor or "").strip().replace("R$", "").replace(" ", "")
+    if not texto:
+        return 0.0
+    if "," in texto:
+        texto = texto.replace(".", "").replace(",", ".")
+    try:
+        return float(texto)
+    except ValueError:
+        return 0.0
+
+
+def _formatar_moeda_br(valor: Any) -> str:
+    numero = _parse_valor_brasileiro(valor)
+    return f"R$ {numero:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+
 def mostrar_formulario_atividade(ano: int | None = None) -> None:
     """Renderiza o módulo P1/P2 no NiceGUI, para uso integrado ou standalone."""
     try:
@@ -170,13 +190,15 @@ def mostrar_formulario_atividade(ano: int | None = None) -> None:
     programas_p1 = dados["p1"]
     programas_p2 = dados["p2"]
 
-    def persistir(mensagem: str = "Alterações salvas no PostgreSQL") -> None:
+    def persistir(mensagem: str = "Alterações salvas no PostgreSQL") -> bool:
         try:
             salvar_dados(ano_atual, programas_p1, programas_p2)
             ui.notify(mensagem, type="positive")
+            return True
         except Exception as exc:
             LOGGER.exception("Falha ao salvar o módulo Atividade")
-            ui.notify(f"Erro ao salvar: {exc}", type="negative")
+            ui.notify(f"Não foi salvo no banco: {type(exc).__name__}: {exc}", type="negative", timeout=10000)
+            return False
 
     ui.label(f"Painel Integrado de Auditoria i-Plan — Atividade ({ano_atual})").classes(
         "text-2xl font-bold text-blue-900"
@@ -224,8 +246,12 @@ def mostrar_formulario_atividade(ano: int | None = None) -> None:
                 c = ui.number("Meta projetada (C)", value=_numero(registro.get("C")), min=0).classes("w-full")
                 d = ui.number("Realizado físico (D)", value=_numero(registro.get("D")), min=0).classes("w-full")
                 if tipo == "p2_acao":
-                    f = ui.number("Orçamento fixado (F)", value=_numero(registro.get("F")), min=0).classes("w-full")
-                    g = ui.number("Gasto liquidado (G)", value=_numero(registro.get("G")), min=0).classes("w-full")
+                    f = ui.input("Orçamento fixado (F)", value=_formatar_moeda_br(registro.get("F"))).props(
+                        'prefix="R$" inputmode="decimal"'
+                    ).classes("w-full")
+                    g = ui.input("Gasto liquidado (G)", value=_formatar_moeda_br(registro.get("G"))).props(
+                        'prefix="R$" inputmode="decimal"'
+                    ).classes("w-full")
 
             def salvar_item() -> None:
                 nome_txt = (nome.value or "").strip()
@@ -244,15 +270,21 @@ def mostrar_formulario_atividade(ano: int | None = None) -> None:
                         "D": 0.0 if nao_mensuravel else _numero(d.value),
                     }
                     if tipo == "p2_acao":
-                        novo.update({"F": _numero(f.value), "G": _numero(g.value)})
+                        novo.update({"F": _parse_valor_brasileiro(f.value), "G": _parse_valor_brasileiro(g.value)})
                         lista = programas_p2[programa]["acoes"]
                     else:
                         lista = programas_p1[programa]["acoes"]
+                anterior = lista[idx] if idx is not None else None
                 if idx is None:
                     lista.append(novo)
                 else:
                     lista[idx] = novo
-                persistir()
+                if not persistir():
+                    if idx is None:
+                        lista.pop()
+                    else:
+                        lista[idx] = anterior
+                    return
                 dialog.close()
                 renderizar_p1()
                 renderizar_p2()
@@ -263,8 +295,11 @@ def mostrar_formulario_atividade(ano: int | None = None) -> None:
         dialog.open()
 
     def excluir_item(lista: list, idx: int, atualizar) -> None:
-        lista.pop(idx)
-        persistir("Registro excluído e alterações salvas")
+        removido = lista.pop(idx)
+        if not persistir("Registro excluído e alterações salvas"):
+            lista.insert(idx, removido)
+            atualizar()
+            return
         atualizar()
 
     def adicionar_programa(p1: bool, campo: Any) -> None:
@@ -277,8 +312,10 @@ def mostrar_formulario_atividade(ano: int | None = None) -> None:
             ui.notify("Esse programa já existe.", type="warning")
             return
         programas[nome] = {"indicadores": [], "acoes": []} if p1 else {"acoes": []}
+        if not persistir("Programa cadastrado"):
+            programas.pop(nome, None)
+            return
         campo.value = ""
-        persistir("Programa cadastrado")
         renderizar_p1()
         renderizar_p2()
 
@@ -386,7 +423,7 @@ def mostrar_formulario_atividade(ano: int | None = None) -> None:
                             ui.label("Nenhuma ação cadastrada.")
                         for i, item in enumerate(acoes):
                             with ui.row().classes("w-full items-center"):
-                                ui.label(f"{item.get('nome','')} — {item.get('unidade','')} | C: {_numero(item.get('C')):g} | D: {_numero(item.get('D')):g} | F: {_numero(item.get('F')):g} | G: {_numero(item.get('G')):g}").classes("grow")
+                                ui.label(f"{item.get('nome','')} — {item.get('unidade','')} | C: {_numero(item.get('C')):g} | D: {_numero(item.get('D')):g} | Orçamento: {_formatar_moeda_br(item.get('F'))} | Gasto: {_formatar_moeda_br(item.get('G'))}").classes("grow")
                                 ui.button(icon="edit", on_click=lambda i=i: editar_item("p2_acao", nome_programa, i)).props("flat dense")
                                 ui.button(icon="delete", on_click=lambda i=i: excluir_item(acoes, i, renderizar_p2)).props("flat dense color=negative")
                     linhas = []
