@@ -15376,6 +15376,140 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(t_s1)
     elements.append(Spacer(1, 15))
 
+    # -------------------------------------------------------------------------
+    # 📊 9. QUESITOS SEM PONTUAÇÃO DIRETA - i-Saúde)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>26. QUESITOS SEM PONTUAÇÃO DIRETA)</b>", styles["h2"]))
+    elements.append(Spacer(1, 6))
+
+    # Lista dos quesitos a serem auditados dinamicamente no i-Saúde
+    lista_alvo_sp = [
+        "17.0", "17.3.2.1", "17.4.2.1", "17.5.1",
+        "17.7", "17.8", "17.9", "18.0", "18.3", "18.5", "18.5.1", "18.6",
+        "19.0", "19.1", "20.1", "23.0", "24.0", "30.0", "31.0", "33.0", "35.0", "38.0"
+    ]
+
+    analise_sp = []
+
+    def extrair_payload_quesito(info):
+        import json
+        if not info:
+            return None
+        raw = info.get("resposta") if isinstance(info, dict) and "resposta" in info else info.get("valor") if isinstance(info, dict) and "valor" in info else info
+        if isinstance(raw, dict):
+            return raw
+        if isinstance(raw, str) and raw.strip().startswith("{"):
+            try:
+                return json.loads(raw)
+            except Exception:
+                return raw
+        return raw
+
+    # Processa os dados extraídos dinamicamente do dicionário do exercício atual
+    for qid in lista_alvo_sp:
+        info = dados_ano_atual.get(qid) or dados_ano_atual.get(f"Q_{qid}") or {}
+        payload = extrair_payload_quesito(info)
+
+        status_txt = "Inadequado"
+        resp_exibicao = "Não Informado"
+
+        # --- REGRAS ESPECÍFICAS DE VALIDAÇÃO ---
+
+        # 1. Quesito 17.0
+        if qid == "17.0":
+            resp_str = str(payload or "").strip().lower()
+            if any(x in resp_str for x in ["mun", "est", "gestão municipal", "gestão estadual", "sim"]):
+                status_txt = "Adequado"
+            resp_exibicao = str(payload) if payload else "Não Informado"
+
+        # 2. Quesito 17.3.2.1
+        elif qid == "17.3.2.1":
+            if isinstance(payload, dict):
+                opcoes = ["sensibilizacao", "central_relacionamento", "busca_ativa", "campanhas"]
+                if any(payload.get(k) is True or str(payload.get(k)).lower() in ["true", "1", "sim"] for k in opcoes):
+                    status_txt = "Adequado"
+                resp_exibicao = ", ".join([k for k, v in payload.items() if v]) or "Nenhuma opção selecionada"
+            else:
+                resp_exibicao = str(payload) if payload else "Não Informado"
+
+        # 3. Quesito 17.4.2.1
+        elif qid == "17.4.2.1":
+            if isinstance(payload, dict):
+                opcoes = ["sensibilizacao", "central_relacionamento", "confirmacao_telefone", "busca_ativa", "campanhas"]
+                if any(payload.get(k) is True or str(payload.get(k)).lower() in ["true", "1", "sim"] for k in opcoes):
+                    status_txt = "Adequado"
+                resp_exibicao = ", ".join([k for k, v in payload.items() if v]) or "Nenhuma opção selecionada"
+            else:
+                resp_exibicao = str(payload) if payload else "Não Informado"
+
+        # 4. Quesito 17.5.1
+        elif qid == "17.5.1":
+            if isinstance(payload, dict):
+                opcoes = ["cross_siresp", "siga", "sisreg"]
+                if any(payload.get(k) is True or str(payload.get(k)).lower() in ["true", "1", "sim"] for k in opcoes):
+                    status_txt = "Adequado"
+                resp_exibicao = ", ".join([k for k, v in payload.items() if v]) or "Nenhuma opção selecionada"
+            else:
+                resp_exibicao = str(payload) if payload else "Não Informado"
+
+        # 5. Quesitos padrão (Resposta = "Sim")
+        else:
+            resp_str = str(payload or "").strip().lower()
+            if any(x == resp_str or x in resp_str for x in ["sim", "1", "s", "true", "adequado"]):
+                status_txt = "Adequado"
+            resp_exibicao = str(payload) if payload else "Não Informado"
+
+        analise_sp.append({
+            "qid": qid,
+            "resp": resp_exibicao,
+            "status": status_txt
+        })
+
+    if analise_sp:
+        style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
+
+        data_sp = [[
+            Paragraph("Quesito", style_th), 
+            Paragraph("Resposta Informada no Sistema", style_th), 
+            Paragraph("Situação / Conformidade", style_th)
+        ]]
+
+        total_adequados = 0
+        for item in analise_sp:
+            if item["status"] == "Adequado":
+                total_adequados += 1
+                st_p = Paragraph("<font color='#28a745'><b>✅ Adequado</b></font>", style_td_sp)
+            else:
+                st_p = Paragraph("<font color='#dc3545'><b>❌ Inadequado</b></font>", style_td_sp)
+
+            data_sp.append([
+                Paragraph(f"<b>{item['qid']}</b>", style_td_sp),
+                Paragraph(item["resp"], styles["Normal"]),
+                st_p
+            ])
+
+        tabela_sp = Table(data_sp, colWidths=[70, 280, 135])
+        tabela_sp.setStyle(TableStyle([
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#bdc3c7")),
+            ("TOPPADDING", (0, 0), (-1, -1), 3),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 3),
+            ("BACKGROUND", (0, 1), (-1, -1), colors.HexColor("#ffffff")),
+        ]))
+        elements.append(tabela_sp)
+        elements.append(Spacer(1, 8))
+
+        pct_sp = (total_adequados / len(analise_sp)) * 100.0
+        texto_sp = (
+            f"A análise dinâmica dos quesitos sem pontuação direta no exercício de <b>{ano_atual}</b> apontou "
+            f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
+            f"O acompanhamento dessas respostas garante o cumprimento contínuo das exigências operacionais do i-Saúde."
+        )
+        elements.append(Paragraph(texto_sp, style_analise))
+        elements.append(Spacer(1, 15))
+
     # Insira antes do doc.build(elements) para depurar no console/terminal:
     print(f"Total de elementos no PDF: {len(elements)}")
 
