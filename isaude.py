@@ -15219,6 +15219,81 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(desenho_grafico)
     elements.append(Spacer(1, 15))
 
+    # -------------------------------------------------------------------------
+    # 📊 8. MÍNIMO CONSTITUCIONAL EM SAÚDE (INDICADOR S1)
+    # -------------------------------------------------------------------------
+    elements.append(Paragraph("<b>8. MÍNIMO CONSTITUCIONAL EM SAÚDE (S1)</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph("<b><i>Aplicação de Recursos em Saúde - Art. 198 CF / LC 141 (Dados SIOPS)</i></b>", styles["Normal"]))
+    elements.append(Spacer(1, 6))
+
+    def extrair_dados_s1(dado_ano):
+        dados_f = {
+            "S1": {
+                "despesa": 0.0,
+                "receita": 0.0,
+                "ps": 0.0,
+                "rebaixar_faixa": False,
+                "status": "Sem Dados",
+            }
+        }
+
+        if not isinstance(dado_ano, dict):
+            return dados_f
+
+        def obter_payload(qid):
+            registro = dado_ano.get(qid, {})
+            if not isinstance(registro, dict):
+                return registro
+            # Formato atual: res_data[qid]["valor"] contém o dicionário salvo.
+            if "valor" in registro:
+                payload = registro.get("valor")
+                return payload if isinstance(payload, dict) else payload
+            # Compatibilidade com o formato antigo
+            return registro
+
+        def numero(valor):
+            try:
+                return float(str(valor).strip().replace(",", "."))
+            except (TypeError, ValueError):
+                return 0.0
+
+        payload_s1 = obter_payload("S1")
+
+        if isinstance(payload_s1, dict):
+            despesa = numero(payload_s1.get("despesa"))
+            receita = numero(payload_s1.get("receita"))
+            ps = numero(payload_s1.get("ps"))
+
+            # Se a proporção 'ps' não veio calculada no payload, calcula dinamicamente
+            if ps == 0.0 and receita > 0:
+                ps = (despesa / receita) * 100.0
+
+            # Verifica regra de rebaixamento
+            rebaixar = payload_s1.get("rebaixar_faixa")
+            if rebaixar is None:
+                rebaixar = (ps < 15.0) if receita > 0 else True
+
+            status = (
+                "Regular (≥ 15%)"
+                if ps >= 15.0 and receita > 0
+                else "Rebaixamento (Abaixo de 15%)"
+            )
+        else:
+            despesa = 0.0
+            receita = 0.0
+            ps = numero(payload_s1)
+            rebaixar = ps < 15.0
+            status = "Regular (≥ 15%)" if ps >= 15.0 else "Rebaixamento (Abaixo de 15%)"
+
+        dados_f["S1"]["despesa"] = despesa
+        dados_f["S1"]["receita"] = receita
+        dados_f["S1"]["ps"] = ps
+        dados_f["S1"]["rebaixar_faixa"] = rebaixar
+        dados_f["S1"]["status"] = status
+
+        return dados_f
+
     # Insira antes do doc.build(elements) para depurar no console/terminal:
     print(f"Total de elementos no PDF: {len(elements)}")
 
