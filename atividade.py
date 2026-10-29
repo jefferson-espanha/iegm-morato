@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from typing import Any
 
 import psycopg2
@@ -13,13 +14,28 @@ TABELA_ATIVIDADE = "atividade_dados"
 
 
 def _database_url() -> str:
-    """Obtém a conexão do ambiente; não armazena credenciais no código."""
+    """Obtém a URL das variáveis de ambiente ou da configuração do app principal."""
     url = os.getenv("DATABASE_URL") or os.getenv("NEON_DATABASE_URL")
     if not url:
+        # O aplicativo principal pode manter a URL em uma constante Python
+        # (padrão usado por versões anteriores do projeto).
+        modulo_main = sys.modules.get("main") or sys.modules.get("__main__")
+        if modulo_main is None:
+            try:
+                import main as modulo_main  # type: ignore
+            except Exception:
+                modulo_main = None
+        if modulo_main is not None:
+            for nome in ("NEON_URL", "NEON_URI", "DATABASE_URL", "NEON_DATABASE_URL"):
+                url = getattr(modulo_main, nome, None)
+                if url:
+                    break
+    if not url:
         raise RuntimeError(
-            "Configure DATABASE_URL ou NEON_DATABASE_URL no ambiente da aplicação."
+            "Não encontrei a URL do PostgreSQL. Defina DATABASE_URL/NEON_DATABASE_URL "
+            "ou disponibilize NEON_URL/NEON_URI no main.py."
         )
-    return url
+    return str(url).strip()
 
 
 def get_db_connection():
