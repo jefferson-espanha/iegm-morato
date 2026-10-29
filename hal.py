@@ -2156,8 +2156,8 @@ class SistemaHAL:
         """Busca a resposta na tabela correspondente à dimensão fornecida."""
 
         tabelas_map = {
-            "iCidade": "respostas",
-            "iGov-Ti": "respostas_igov",
+            "iCidade": "respostas_icidade",
+            "iGov-Ti": "respostas_igovti",
             "i-Amb": "respostas_iamb",
             "iPlan": "respostas_iplan",
             "iFiscal": "respostas_ifiscal",
