@@ -15242,40 +15242,49 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             }
         }
 
-        if not isinstance(dado_ano, dict):
+        if not dado_ano:
             return dados_f
 
-        # 1. Localiza a estrutura do registro do S1
-        registro_s1 = dado_ano.get("S1", {})
+        import json
 
-        # Se dado_ano for um dicionário multi-ano (ex: res_data[2024]["S1"])
-        if not registro_s1 and isinstance(dado_ano, dict):
-            for k, v in dado_ano.items():
-                if isinstance(v, dict) and "S1" in v:
-                    registro_s1 = v.get("S1", {})
-                    break
+        # Tenta localizar o objeto/registro do S1 onde quer que ele esteja
+        registro_s1 = None
 
-        if not isinstance(registro_s1, dict):
-            registro_s1 = {}
-
-        # 2. Extrai o payload de 'resposta', 'valor' ou diretamente do registro
-        payload_s1 = None
-        for campo in ["resposta", "valor"]:
-            if campo in registro_s1:
-                val = registro_s1.get(campo)
-                if isinstance(val, dict):
-                    payload_s1 = val
-                    break
-                elif isinstance(val, str) and val.strip().startswith("{"):
-                    try:
-                        import json
-                        payload_s1 = json.loads(val)
+        if isinstance(dado_ano, dict):
+            # Caso 1: Mapeado direto como dado_ano["S1"]
+            if "S1" in dado_ano:
+                registro_s1 = dado_ano["S1"]
+            else:
+                # Caso 2: Mapeado por anos (ex: dado_ano[2025]["S1"] ou dado_ano["2025"]["S1"])
+                for k, v in dado_ano.items():
+                    if isinstance(v, dict) and "S1" in v:
+                        registro_s1 = v["S1"]
                         break
-                    except Exception:
-                        pass
 
-        if payload_s1 is None:
-            payload_s1 = registro_s1
+        if registro_s1 is None:
+            registro_s1 = dado_ano
+
+        # Tenta extrair o dicionário interno dos campos 'resposta' ou 'valor'
+        payload = None
+        if isinstance(registro_s1, dict):
+            # Verifica chave 'resposta' (padrão da tabela do banco de dados)
+            raw_val = registro_s1.get("resposta") or registro_s1.get("valor") or registro_s1
+            
+            if isinstance(raw_val, dict):
+                payload = raw_val
+            elif isinstance(raw_val, str):
+                try:
+                    payload = json.loads(raw_val)
+                except Exception:
+                    payload = None
+        elif isinstance(registro_s1, str):
+            try:
+                payload = json.loads(registro_s1)
+            except Exception:
+                payload = None
+
+        if not isinstance(payload, dict):
+            payload = {}
 
         def numero(valor):
             try:
@@ -15283,29 +15292,26 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             except (TypeError, ValueError):
                 return 0.0
 
-        if isinstance(payload_s1, dict):
-            despesa = numero(payload_s1.get("despesa"))
-            receita = numero(payload_s1.get("receita"))
-            ps = numero(payload_s1.get("ps"))
+        despesa = numero(payload.get("despesa"))
+        receita = numero(payload.get("receita"))
+        ps = numero(payload.get("ps"))
 
-            if ps == 0.0 and receita > 0:
-                ps = (despesa / receita) * 100.0
+        # Recalcula a proporção PS se não veio calculada ou zerada
+        if ps == 0.0 and receita > 0:
+            ps = (despesa / receita) * 100.0
 
-            rebaixar = payload_s1.get("rebaixar_faixa")
-            if rebaixar is None:
-                rebaixar = (ps < 15.0) if receita > 0 else True
+        rebaixar = payload.get("rebaixar_faixa")
+        if rebaixar is None:
+            rebaixar = (ps < 15.0) if receita > 0 else True
 
+        if receita > 0 or despesa > 0:
             status = (
                 "Regular (≥ 15%)"
-                if ps >= 15.0 and receita > 0
+                if ps >= 15.0
                 else "Rebaixamento (Abaixo de 15%)"
             )
         else:
-            despesa = 0.0
-            receita = 0.0
-            ps = numero(payload_s1)
-            rebaixar = ps < 15.0
-            status = "Regular (≥ 15%)" if ps >= 15.0 else "Rebaixamento (Abaixo de 15%)"
+            status = "Sem Dados"
 
         dados_f["S1"]["despesa"] = despesa
         dados_f["S1"]["receita"] = receita
@@ -15315,17 +15321,25 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
         return dados_f
 
-    # --- PROCESSAMENTO E MONTAGEM DA TABELA NO PDF ---
-    fonte_dados = locals().get("dado_ano") or globals().get("res_data") or {}
+    # --- OBTENÇÃO DA VARIÁVEL E PROCESSAMENTO ---
+    # Captura a variável de dados disponível na função do relatório (dado_ano, res_data ou dados)
+    fonte_dados = (
+        locals().get("dado_ano")
+        or locals().get("res_data")
+        or globals().get("res_data")
+        or globals().get("dado_ano")
+        or {}
+    )
+
     dados_s1_processados = extrair_dados_s1(fonte_dados)
     info_s1 = dados_s1_processados["S1"]
 
-    # Formatação de valores monetários e percentuais
+    # Formatação de valores monetários e percentuais no padrão brasileiro
     despesa_fmt = f"R$ {info_s1['despesa']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     receita_fmt = f"R$ {info_s1['receita']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     ps_fmt = f"{info_s1['ps']:.2f}%".replace(".", ",")
 
-    cor_status = colors.HexColor("#2e7d32") if not info_s1["rebaixar_faixa"] else colors.HexColor("#c62828")
+    cor_status = colors.HexColor("#2e7d32") if not info_s1["rebaixar_faixa"] and info_s1["receita"] > 0 else colors.HexColor("#c62828")
 
     tabela_dados_s1 = [
         [
