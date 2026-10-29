@@ -15377,10 +15377,28 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Spacer(1, 15))
 
     # -------------------------------------------------------------------------
-    # 📊 9. QUESITOS SEM PONTUAÇÃO DIRETA - i-Saúde)
+    # 📊 9. QUESITOS SEM PONTUAÇÃO DIRETA (i-Saúde)
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>26. QUESITOS SEM PONTUAÇÃO DIRETA)</b>", styles["h2"]))
+    elements.append(Paragraph("<b>26. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
+
+    # Garante a captura dos dados do ano independente do nome da variável usada no escopo
+    dados_ano_atual = (
+        locals().get("dados_ano_atual")
+        or locals().get("dado_ano")
+        or locals().get("res_data")
+        or globals().get("res_data")
+        or globals().get("dado_ano")
+        or {}
+    )
+
+    # Captura o ano para exibição no texto final
+    ano_exibicao = (
+        locals().get("ano_atual")
+        or locals().get("ano_sel")
+        or globals().get("ano_sel")
+        or "atual"
+    )
 
     # Lista dos quesitos a serem auditados dinamicamente no i-Saúde
     lista_alvo_sp = [
@@ -15503,7 +15521,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
         pct_sp = (total_adequados / len(analise_sp)) * 100.0
         texto_sp = (
-            f"A análise dinâmica dos quesitos sem pontuação direta no exercício de <b>{ano_atual}</b> apontou "
+            f"A análise dinâmica dos quesitos sem pontuação direta no exercício de <b>{ano_exibicao}</b> apontou "
             f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
             f"O acompanhamento dessas respostas garante o cumprimento contínuo das exigências operacionais do i-Saúde."
         )
