@@ -15307,7 +15307,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         return dados_f
 
     # --- PROCESSAMENTO E MONTAGEM DA TABELA NO PDF ---
-    dados_s1_processados = extrair_dados_s1(res_data)
+    # Tenta usar 'dado_ano' do escopo da função, ou 'res_data' se existir no escopo global
+    fonte_dados = locals().get("dado_ano") or globals().get("res_data") or {}
+    dados_s1_processados = extrair_dados_s1(fonte_dados)
     info_s1 = dados_s1_processados["S1"]
 
     # Formatação de valores monetários e percentuais
