@@ -14006,6 +14006,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             Paragraph("8. Mínimo Constitucional em Saúde (Indicador S1)", style_item_esquerda),
             Paragraph("Pág. 6", style_pag_direita),
         ],
+        [
+            Paragraph("9. Quesitos sem Pontuação Direta (Conformidade Operacional)", style_item_esquerda),
+            Paragraph("Pág. 7", style_pag_direita),
+        ],
     ]
 
     tabela_sumario = Table(dados_sumario, colWidths=[400, 90])
