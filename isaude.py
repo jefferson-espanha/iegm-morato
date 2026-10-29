@@ -13995,7 +13995,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             Paragraph("Pág. 5", style_pag_direita),
         ],
         [
-            Paragraph("6. ANÁLISE DE TEMPO DE ESPERA", style_item_esquerda),
+            Paragraph("6. Análise de Tempo de Espera", style_item_esquerda),
             Paragraph("Pág. 5", style_pag_direita),
         ],
         [
