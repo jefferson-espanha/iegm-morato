@@ -15117,7 +15117,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     import reportlab.lib.colors as rl_colors
 
     elements.append(Spacer(1, 10))
-    elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO ISAÚDE (CONSOLIDADO FINAL)</b>", styles["h2"]))
+    elements.append(Paragraph("<b>7. SÉRIE HISTÓRICA DO ISAÚDE (CONSOLIDADO FINAL)</b>", styles["h2"]))
     elements.append(Spacer(1, 10))
 
     anos_serie = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
