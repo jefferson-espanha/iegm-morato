@@ -3612,7 +3612,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         max_v = max(pontos_valores) if pontos_valores else 100
         bc.valueAxis.valueMin = 0
         bc.valueAxis.valueMax = max(max_v * 1.15, 100)
-        bc.valueAxis.valueStep = 20
+        bc.valueAxis.valueStep = 100
         bc.valueAxis.labels.fontSize = 8
         
         # Estilo das Barras
