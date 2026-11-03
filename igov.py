@@ -99,6 +99,56 @@ def load_respostas(ano):
     return respostas
 
 
+def get_all_years_data():
+    """Busca todas as respostas do banco Neon agrupadas por ano."""
+    all_data = {}
+    query = """
+        SELECT qid, ano, valor, pontos, link, comentarios
+        FROM respostas_igovti
+        ORDER BY ano ASC;
+    """
+    try:
+        with get_db_connection() as conn:
+            try:
+                cur = conn.cursor(cursor_factory=RealDictCursor)
+            except Exception:
+                cur = conn.cursor()
+
+            cur.execute(query)
+            rows = cur.fetchall()
+
+            for row in rows:
+                if isinstance(row, dict):
+                    qid = str(row["qid"]).strip()
+                    ano = int(row["ano"])
+                    valor = row.get("valor") or ""
+                    pontos = float(row.get("pontos")) if row.get("pontos") is not None else 0.0
+                    link = row.get("link") or ""
+                    if link == "EMPTY_STRING":
+                        link = ""
+                    comentarios = row.get("comentarios") if isinstance(row.get("comentarios"), list) else []
+                else:
+                    qid = str(row[0]).strip()
+                    ano = int(row[1])
+                    valor = row[2] or ""
+                    pontos = float(row[3]) if row[3] is not None else 0.0
+                    link = row[4] or ""
+                    if link == "EMPTY_STRING":
+                        link = ""
+                    comentarios = row[5] if isinstance(row[5], list) else []
+
+                all_data.setdefault(ano, {})[qid] = {
+                    "valor": valor,
+                    "pontos": pontos,
+                    "link": link,
+                    "comentarios": comentarios,
+                }
+    except Exception as e:
+        print(f"❌ Erro ao buscar série histórica no Neon DB: {e}")
+
+    return all_data
+
+
 def save_resposta(
     ano, qid, valor, pontos, link, comentarios=None, status="Pendente"
 ):
@@ -3344,61 +3394,6 @@ def container_formulario_igov_ti():
                     "8.0": 40, "8.2.1": 50, "8.2.2": 30, "9.1": 120
                 }
 
-                def get_all_years_data():
-                    """
-                    Busca todas as respostas do banco Neon de forma resiliente
-                    (trata retorno por tupla ou por dicionário).
-                    """
-                    all_data = {}
-                    query = """
-                        SELECT qid, ano, valor, pontos, link, comentarios
-                        FROM respostas_igovti
-                        ORDER BY ano ASC;
-                    """
-                    try:
-                        with get_db_connection() as conn:
-                            # Usando RealDictCursor se disponível, ou cursor padrão de tupla
-                            try:
-                                import psycopg2.extras
-                                cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                            except Exception:
-                                cur = conn.cursor()
-
-                            cur.execute(query)
-                            rows = cur.fetchall()
-
-                            for row in rows:
-                                # Tratamento universal para Tupla (índice) ou Dict (chave)
-                                if isinstance(row, dict):
-                                    qid = str(row["qid"]).strip()
-                                    ano = int(row["ano"])
-                                    valor = row["valor"] or ""
-                                    pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
-                                    link = row["link"] if row["link"] != "EMPTY_STRING" else ""
-                                    comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
-                                else:
-                                    qid = str(row[0]).strip()
-                                    ano = int(row[1])
-                                    valor = row[2] or ""
-                                    pontos = float(row[3]) if row[3] is not None else 0.0
-                                    link = row[4] if row[4] != "EMPTY_STRING" else ""
-                                    comentarios = row[5] if isinstance(row[5], list) else []
-
-                                if ano not in all_data:
-                                    all_data[ano] = {}
-
-                                all_data[ano][qid] = {
-                                    "valor": valor,
-                                    "pontos": pontos,
-                                    "link": link,
-                                    "comentarios": comentarios
-                                }
-
-                    except Exception as e:
-                        print(f"❌ Erro ao buscar série histórica no Neon DB: {e}")
-
-                    return all_data
-
                 # --- CARREGAMENTO DE DADOS E VARIÁVEIS DO RELATÓRIO ---
                 all_data = get_all_years_data()
 
@@ -4007,7 +4002,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # 7. QUESITOS SEM PONTUAÇÃO DIRETA
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
+    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     analise_sp = []
