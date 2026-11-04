@@ -420,7 +420,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.select(
             options=anos,
             value=int(ano_atual),
-            label="Ano de Referência:",
+            label="Ano base das respostas:",
             on_change=lambda e: on_mudar_ano(e.value),
         ).classes("w-full mb-4 bg-white")
 
@@ -442,7 +442,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
-        ui.button("🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados).classes(
+        ui.button("🔄 ATUALIZAR ANO", on_click=atualizar_dados).classes(
             "w-full bg-blue-700 text-white font-bold mb-2"
         )
 
@@ -661,7 +661,7 @@ def container_formulario_ifiscal(ano=None):
                     with ui.card().classes(
                         "w-full p-6 border rounded-lg shadow-sm bg-white"
                     ):
-                        ui.label(f"📋 Módulo i-Fiscal — Ano {ano_sel}").classes(
+                        ui.label(f"📋 Módulo i-Fiscal — Ano base das respostas {ano_sel}").classes(
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
 
