@@ -323,7 +323,7 @@ def render_quesito(
 
 # PAINEL DE CONTROLE LATERAL
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
-    anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    anos = [2024 (Preenchimento em 2025), 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
     total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
 
