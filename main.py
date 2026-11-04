@@ -591,7 +591,7 @@ def dimension_page():
         return
 
     dimension = app.storage.user.get('selected_dimension', 'Módulo')
-    year = app.storage.user.get('ano_referencia_global',)
+    year = app.storage.user.get('ano_referencia_global', Ano base(2026))
 
     with ui.column().classes('w-full max-w-7xl mx-auto p-6 gap-6'):
         with ui.row().classes('w-full justify-between items-center border-b pb-4'):
