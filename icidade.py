@@ -586,7 +586,7 @@ def container_formulario_icidade(ano=None):
             with ui.element("div").classes(
                 "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm flex flex-col gap-6"
             ):
-                ui.label(f"📋 Módulo i-cidade — Ano base das respostas{ano_sel}").classes(
+                ui.label(f"📋 Módulo i-cidade — Ano base das respostas ({ano_sel})").classes(
                     "text-xl font-bold mb-2 text-slate-800 border-b pb-2"
                 )
 
