@@ -283,7 +283,7 @@ def render_painel_controle(on_refresh_callback=None):
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
-        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
+        ui.button("🔄 Atualizar Ano", on_click=atualizar_dados).classes(
             "w-full bg-blue-700 text-white mb-2"
         )
         ui.separator().classes("my-2")
