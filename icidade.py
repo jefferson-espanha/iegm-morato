@@ -448,7 +448,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             novo_st = e.value
             log = {
                 "autor": "Sistema / " + usuario_atual,
-                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "data": agora_brasilia_formatada(),
                 "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
@@ -530,7 +530,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             if txt:
                 historico.append({
                     "autor": usuario_atual,
-                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "data": agora_brasilia_formatada(),
                     "texto": txt,
                     "status_definido": status_global,
                 })
@@ -550,7 +550,6 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         ui.button("Postar Comentário", on_click=postar_comentario).classes(
             "bg-blue-600 text-white mt-2"
         )
-
 
 # =============================================================================
 # MÓDULO PRINCIPAL DE REQUISITOS (LAYOUT CORRIGIDO)
