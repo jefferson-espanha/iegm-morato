@@ -1,5 +1,6 @@
 import base64
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 import json
 import logging
 import os
@@ -25,6 +26,11 @@ DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
 )
+
+def agora_brasilia_formatada():
+    """Retorna a data e hora atual no fuso oficial de Brasília."""
+    return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
+
 
 
 def get_db_connection():
