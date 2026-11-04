@@ -28,7 +28,6 @@ def get_secret(key, default=None):
     if key == "DATABASE_URL":
         return os.environ.get("DATABASE_URL", NEON_URL)
     return default
-
 # =============================================================================
 # AUTENTICAÇÃO PERSISTENTE NO NEON
 # =============================================================================
