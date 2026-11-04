@@ -711,7 +711,7 @@ def gerar_relatorio_pdf_isaude(dados, ano, total, todos_dados=None):
     elementos = [
         Paragraph("Relatório Analítico — i-Saúde", titulo),
         Spacer(1, 10),
-        Paragraph(f"Ano de referência: <b>{int(ano)}</b>", subtitulo),
+        Paragraph(f"Ano base das respostas: <b>{int(ano)}</b>", subtitulo),
         Spacer(1, 16),
     ]
 
