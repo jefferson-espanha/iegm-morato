@@ -1,6 +1,7 @@
 import ast
 import base64
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import json
 import os
 import re
@@ -15,6 +16,11 @@ DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
 )
+
+def agora_brasilia_formatada():
+    """Retorna a data e hora atual no fuso oficial de Brasília."""
+    return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
+
 
 
 def get_db_connection():
@@ -445,7 +451,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.select(
             options=anos,
             value=int(ano_atual),
-            label="Ano de Referência:",
+            label="Ano base das respostas:",
             on_change=lambda e: on_mudar_ano(e.value),
         ).classes("w-full mb-4 bg-white")
 
@@ -546,7 +552,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             novo_st = e.value
             log = {
                 "autor": "Sistema / " + usuario_atual,
-                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "data": agora_brasilia_formatada(),
                 "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
@@ -628,7 +634,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             if txt:
                 historico.append({
                     "autor": usuario_atual,
-                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "data": agora_brasilia_formatada(),
                     "texto": txt,
                     "status_definido": status_global,
                 })
@@ -682,7 +688,7 @@ def container_formulario_plan(ano=None):
                 # Coluna 2: Formulário Principal (9/12)
                 with ui.element("div").classes("md:col-span-8 lg:col-span-9 flex flex-col gap-4"):
                     with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
-                        ui.label(f"📋 Módulo i-Plan — Ano {ano_sel}").classes(
+                        ui.label(f"📋 Módulo i-Plan — Ano Base das Respostas {ano_sel}").classes(
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
 
