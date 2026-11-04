@@ -1,5 +1,6 @@
 import base64
 from datetime import date, datetime
+from zoneinfo import ZoneInfo
 import json
 import logging
 import os
@@ -25,6 +26,11 @@ DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
 )
+
+def agora_brasilia_formatada():
+    """Retorna a data e hora atual no fuso oficial de Brasília."""
+    return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
+
 
 
 def get_db_connection():
@@ -362,7 +368,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             novo_st = e.value
             log = {
                 "autor": "Sistema / " + usuario_atual,
-                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "data": agora_brasilia_formatada(),
                 "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
@@ -444,7 +450,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             if txt:
                 historico.append({
                     "autor": usuario_atual,
-                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "data": agora_brasilia_formatada(),
                     "texto": txt,
                     "status_definido": status_global,
                 })
