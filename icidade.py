@@ -376,7 +376,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
-        ui.button("🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados).classes(
+        ui.button("🔄 ATUALIZAR ANO", on_click=atualizar_dados).classes(
             "w-full bg-blue-700 text-white font-bold mb-2"
         )
 
