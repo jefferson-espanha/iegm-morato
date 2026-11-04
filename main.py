@@ -517,7 +517,7 @@ def dashboard_page():
 
     with ui.column().classes('w-full max-w-7xl mx-auto p-6 gap-6'):
         with ui.row().classes('w-full justify-between items-center'):
-            ui.html(f'<div style="text-align: center;"><h1 style="color: #001A4D; font-size: 28px; font-weight: bold; margin:0;">IEG-M Francisco Morato</h1><p style="color: #003D99; font-weight: bold; margin:0;">Bem-vindo, {username}!</p></div>')
+            ui.html(f'<div style="text-align: center;"><h1 style="color: #001A4D; font-size: 28px; font-weight: bold; margin:0;">IEG-M 2027 (Ano Base 2026)  Francisco Morato</h1><p style="color: #003D99; font-weight: bold; margin:0;">Bem-vindo, {username}!</p></div>')
             with ui.row().classes('items-center gap-2'):
                 if username.strip().lower() == 'jefferson.espanha':
                     ui.button('👤 Cadastrar usuário', on_click=lambda: ui.navigate.to('/cadastro-usuario')).classes('bg-green-700 text-white')
