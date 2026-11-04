@@ -1,6 +1,5 @@
 import base64
 from datetime import date, datetime
-from zoneinfo import ZoneInfo
 import json
 import logging
 import os
@@ -26,11 +25,6 @@ DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
 )
-
-
-def agora_brasilia_formatada():
-    """Retorna data e hora atual no fuso oficial de Brasília."""
-    return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
 
 
 def get_db_connection():
@@ -329,14 +323,7 @@ def render_quesito(
 
 # PAINEL DE CONTROLE LATERAL
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
-    anos = {
-        2025: "2025 (Ano base 2024)",
-        2026: "2026 (Ano base 2025)",
-        2027: "2027 (Ano base 2026)",
-        2028: "2028 (Ano base 2027)",
-        2029: "2029 (Ano base 2028)",
-        2030: "2030 (Ano base 2029)",
-    }
+    anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
     total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
 
@@ -461,7 +448,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             novo_st = e.value
             log = {
                 "autor": "Sistema / " + usuario_atual,
-                "data": agora_brasilia_formatada(),
+                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
                 "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
@@ -543,7 +530,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             if txt:
                 historico.append({
                     "autor": usuario_atual,
-                    "data": agora_brasilia_formatada(),
+                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
                     "texto": txt,
                     "status_definido": status_global,
                 })
