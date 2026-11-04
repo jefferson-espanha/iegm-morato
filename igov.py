@@ -245,7 +245,7 @@ def render_painel_controle(on_refresh_callback=None):
         ui.select(
             options=anos,
             value=ano_atual,
-            label="Ano de Referência:",
+            label="Ano Base das respostas:",
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
@@ -699,7 +699,7 @@ def container_formulario_igov_ti():
 
         with ui.column().classes("col-span-3 w-full"):
             ui.label(
-                f"Formulário iGov-TI - Governança de TI ({ano_sel})"
+                f"Formulário iGov-TI - Ano Base das respostas ({ano_sel})"
             ).classes("text-h4 mb-1 font-bold text-blue-900")
             ui.label(
                 "Preencha as evidências e questões do indicador iGov-TI."
