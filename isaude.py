@@ -485,7 +485,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.select(
             options=anos,
             value=int(ano_atual),
-            label="Ano de Referência:",
+            label="Ano base das respostas:",
             on_change=lambda e: on_mudar_ano(extrair_ano(e.value)),
         ).classes("w-full mb-4 bg-white")
 
@@ -909,7 +909,7 @@ def container_formulario_saude(ano=None):
                             estilo = "text-green-900 font-black underline" if numero == etapa_atual else "text-green-700 underline"
                             ui.button(str(numero), on_click=lambda n=numero: mudar_etapa(n)).props("flat dense no-caps").classes(f"{estilo} min-w-0 px-1 text-base")
                     with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
-                        ui.label(f"📋 Módulo i-Saúde — Ano {ano_sel}").classes(
+                        ui.label(f"📋 Módulo i-Saúde — Ano base das respostas {ano_sel}").classes(
                             "text-xl font-bold text-slate-800 border-b pb-2 mb-4"
                         )
 
