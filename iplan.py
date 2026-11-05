@@ -22,6 +22,17 @@ def agora_brasilia_formatada():
     return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
 
 
+def extrair_ano(valor, padrao=2026):
+    """Converte ano ou rótulo do seletor, como 'Ano base(2026)', em inteiro."""
+    if valor is None or valor == "":
+        return int(padrao)
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        encontrado = re.search(r"(?<!\d)(20\d{2})(?!\d)", str(valor))
+        return int(encontrado.group(1)) if encontrado else int(padrao)
+
+
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
@@ -63,7 +74,7 @@ def load_respostas(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
+                cur.execute(query, (extrair_ano(ano),))
                 rows = cur.fetchall()
                 for row in rows:
                     val_bruto = row["valor"] or ""
@@ -145,7 +156,7 @@ def save_resposta(
                 cur.execute(
                     query,
                     (
-                        int(ano),
+                        extrair_ano(ano),
                         str(qid),
                         valor_str,
                         float(pontos),
@@ -165,7 +176,7 @@ def zerar_questionario_db(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
+                cur.execute(query, (extrair_ano(ano),))
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
@@ -426,6 +437,7 @@ def render_quesito(
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
+    ano_atual = extrair_ano(ano_atual)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
     total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
@@ -452,7 +464,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             options=anos,
             value=int(ano_atual),
             label="Ano base das respostas:",
-            on_change=lambda e: on_mudar_ano(e.value),
+            on_change=lambda e: on_mudar_ano(extrair_ano(e.value)),
         ).classes("w-full mb-4 bg-white")
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
@@ -660,7 +672,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 # =============================================================================
 def container_formulario_plan(ano=None):
     if "ano_referencia_global" not in app.storage.user:
-        app.storage.user["ano_referencia_global"] = ano if ano else 2026
+        app.storage.user["ano_referencia_global"] = extrair_ano(ano if ano else 2026)
 
     main_container = ui.element("div").classes("w-full")
 
@@ -668,11 +680,11 @@ def container_formulario_plan(ano=None):
     def render_conteudo():
         main_container.clear()
         with main_container:
-            ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+            ano_sel = extrair_ano(app.storage.user.get("ano_referencia_global", 2026))
             res_data = load_respostas(ano_sel)
 
             def alterar_ano(novo_ano):
-                app.storage.user["ano_referencia_global"] = int(novo_ano)
+                app.storage.user["ano_referencia_global"] = extrair_ano(novo_ano)
                 ui.notify(f"Ano alterado para {novo_ano}", type="info")
                 render_conteudo.refresh()
 
@@ -2946,7 +2958,7 @@ def container_formulario_plan(ano=None):
 
     render_conteudo()
 
-    ano_relatorio = int(app.storage.user.get("ano_referencia_global", 2026))
+    ano_relatorio = extrair_ano(app.storage.user.get("ano_referencia_global", 2026))
     renderizar_card_relatorio_iplan(
         res_data=load_respostas(ano_relatorio),
         ano_sel=ano_relatorio,
@@ -3283,7 +3295,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     styles.add(ParagraphStyle('TdCenter', parent=styles['Normal'], fontName='Helvetica', fontSize=8, alignment=TA_CENTER))
     styles.add(ParagraphStyle('CellLink', parent=styles['Normal'], fontName='Helvetica', fontSize=8, leading=10, textColor=colors.HexColor("#1A5276")))
 
-    ano_normalizado = int(str(ano).strip()[:4])
+    ano_normalizado = extrair_ano(ano)
     ano_ant = ano_normalizado - 1
     todos_dados = todos_dados or {}
 
@@ -3713,7 +3725,7 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
                 await asyncio.sleep(0.3)
 
                 dados_locais = res_data or {}
-                ano_alvo = int(ano_sel)
+                ano_alvo = extrair_ano(ano_sel)
 
                 total_pts = float(sum(
                     v.get("pontos", 0) 
@@ -3792,7 +3804,7 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
             try:
                 ano_relatorio = ano_inicial
                 if hasattr(app, "storage") and hasattr(app.storage, "user"):
-                    ano_relatorio = int(app.storage.user.get("ano_referencia_global", ano_inicial))
+                    ano_relatorio = extrair_ano(app.storage.user.get("ano_referencia_global", ano_inicial))
                 dados_relatorio = load_respostas(ano_relatorio)
             except Exception as err:
                 print(f"⚠️ Aviso ao carregar respostas do DB: {err}")
