@@ -890,12 +890,23 @@ def container_formulario_igov_ti():
                             step=1
                         ).classes("w-full").bind_value(state_11, "outr")
 
-                    # Área do Link / Evidência
+                   # Área do Link / Evidência
                     ui.input(
                         label="Página Eletrônica (Link / Evidência da Composição):",
                         placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI...",
                         value=evidencia_11_salva
-                    ).classes("w-full mb-4").bind_value(state_11, "link")
+                    ).classes("w-full mb-2").bind_value(state_11, "link")
+
+                    # Exibe o link ativo/clicável caso já exista algo preenchido no estado
+                    if state_11.get("link"):
+                        url_limpa = state_11["link"] if state_11["link"].startswith(("http://", "https://")) else f"https://{state_11['link']}"
+                        with ui.row().classes("items-center gap-1 mb-4"):
+                            ui.icon("link", size="xs").classes("text-blue-600")
+                            ui.link(
+                                text=state_11["link"],
+                                target=url_limpa,
+                                new_tab=True
+                            ).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
                     
                     # Rodapé do Quesito
                     total_pessoal = parse_int_seguro(d11.get("valor"))
