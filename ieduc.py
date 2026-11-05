@@ -879,69 +879,80 @@ def container_formulario_ieduc(ano=None):
                         # =============================================================================
                         d111 = res_data.get("1.1.1") or res_data.get("111") or {}
 
-                        with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                            ui.label("📌 Quesito 1.1.1 - Brinquedos no Pátio Infantil (BPI)").classes("text-lg font-bold text-blue-900 mb-1")
-                            ui.label("Informe quantos estabelecimentos que oferecem Creche possuem:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
-                            ui.label("ℹ Informe os valores para cálculo automático do indicador e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
-
-                            # Extração e Parsing seguro do campo armazenado no banco
-                            val_111_raw = d111.get("resposta") if d111.get("resposta") is not None else d111.get("valor")
-
-                            bpi_init, tot_init = 0, 0
-
-                            if isinstance(val_111_raw, dict):
-                                bpi_init = int(val_111_raw.get("BPI", val_111_raw.get("bpi", 0)) or 0)
-                                tot_init = int(val_111_raw.get("TOT", val_111_raw.get("tot", 0)) or 0)
-                            elif isinstance(val_111_raw, str):
-                                try:
-                                    parsed = json.loads(val_111_raw)
-                                    if isinstance(parsed, dict):
-                                        bpi_init = int(parsed.get("BPI", parsed.get("bpi", 0)) or 0)
-                                        tot_init = int(parsed.get("TOT", parsed.get("tot", 0)) or 0)
-                                except Exception:
-                                    if "/" in val_111_raw:
-                                        partes = val_111_raw.split("/")
-                                        bpi_init = int(partes[0].strip()) if partes[0].strip().isdigit() else 0
-                                        tot_init = int(partes[1].strip()) if partes[1].strip().isdigit() else 0
-
-                            state_111 = {
-                                "val_bpi": bpi_init,
-                                "val_tot": tot_init,
-                                "link": str(d111.get("link") or ""),
-                                "pts": float(d111.get("pontos", 0.0)),
-                            }
-
-                            lbl_prop_111 = ui.label().classes("text-sm font-semibold text-gray-700")
-                            lbl_pts_111 = ui.label().classes("text-sm font-bold text-green-600")
-
-                            def calcular_111():
-                                try:
-                                    bpi = int(state_111["val_bpi"]) if state_111["val_bpi"] is not None else 0
-                                except (ValueError, TypeError):
-                                    bpi = 0
-
-                                try:
-                                    tot = int(state_111["val_tot"]) if state_111["val_tot"] is not None else 0
-                                except (ValueError, TypeError):
-                                    tot = 0
-
-                                if tot > 0 and bpi >= 0:
-                                    prop = min(bpi / tot, 1.0)
-                                    pts = prop * 2.0
-                                    state_111["pts"] = pts
-                                    cor = "text-green-600" if pts > 0 else "text-gray-500"
-                                    lbl_pts_111.classes(replace=cor)
-                                    lbl_prop_111.set_text(f"📊 Proporção de Atendimento: {prop * 100:.1f}% ({bpi} de {tot})")
-                                    lbl_pts_111.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} / 2.00 pontos")
-                                else:
-                                    state_111["pts"] = 0.0
-                                    lbl_pts_111.classes(replace="text-gray-500")
-                                    lbl_prop_111.set_text("📋 Proporção: Indefinida (O Total de creches deve ser maior que 0)")
-                                    lbl_pts_111.set_text("📊 Impacto de Pontuação Calculado: 0.00 / 2.00 pontos")
+                        with ui.card().classes(
+                            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                        ):
+                            ui.label("1.1.1 • Brinquedos no Pátio Infantil (BPI)").classes(
+                                "text-xl font-semibold text-blue-500 mb-3"
+                            )
+                            ui.label(
+                                "Informe o número de creches com brinquedos no pátio e o total de creches no município:"
+                            ).classes("text-base font-bold text-black mb-2")
 
                             # Card da Calculadora Automática
-                            with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
-                                ui.label("🧮 Calculadora Automática de Indicador (BPI / TOT)").classes("font-bold text-blue-900 mb-3")
+                            with ui.card().classes(
+                                "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
+                            ):
+                                ui.label("🧮 Calculadora Automática de Indicador (BPI / TOT)").classes(
+                                    "font-bold text-blue-700 mb-2"
+                                )
+
+                                # Extração e Parsing seguro do campo armazenado no banco
+                                val_111_raw = d111.get("resposta") if d111.get("resposta") is not None else d111.get("valor")
+                        
+                                bpi_init, tot_init = 0, 0
+
+                                if isinstance(val_111_raw, dict):
+                                    bpi_init = int(val_111_raw.get("BPI", val_111_raw.get("bpi", 0)) or 0)
+                                    tot_init = int(val_111_raw.get("TOT", val_111_raw.get("tot", 0)) or 0)
+                                elif isinstance(val_111_raw, str):
+                                    # Tenta fazer o parse de string JSON ou formato "X/Y"
+                                    try:
+                                        parsed = json.loads(val_111_raw)
+                                        if isinstance(parsed, dict):
+                                            bpi_init = int(parsed.get("BPI", parsed.get("bpi", 0)) or 0)
+                                            tot_init = int(parsed.get("TOT", parsed.get("tot", 0)) or 0)
+                                    except Exception:
+                                        if "/" in val_111_raw:
+                                            partes = val_111_raw.split("/")
+                                            bpi_init = int(partes[0].strip()) if partes[0].strip().isdigit() else 0
+                                            tot_init = int(partes[1].strip()) if partes[1].strip().isdigit() else 0
+
+                                state_111 = {
+                                    "val_bpi": bpi_init,
+                                    "val_tot": tot_init,
+                                    "link": str(d111.get("link") or ""),
+                                    "pts": float(d111.get("pontos", 0.0)),
+                                }
+
+                                lbl_prop_111 = ui.label().classes(
+                                    "text-sm font-bold text-gray-800 mt-2"
+                                )
+                                lbl_pts_111 = ui.label().classes(
+                                    "text-sm font-bold text-green-600 mt-1"
+                                )
+
+                                def calcular_111():
+                                    try:
+                                        bpi = int(state_111["val_bpi"]) if state_111["val_bpi"] is not None else 0
+                                    except (ValueError, TypeError):
+                                        bpi = 0
+
+                                    try:
+                                        tot = int(state_111["val_tot"]) if state_111["val_tot"] is not None else 0
+                                    except (ValueError, TypeError):
+                                        tot = 0
+
+                                    if tot > 0 and bpi >= 0:
+                                        prop = min(bpi / tot, 1.0)
+                                        pts = prop * 2.0
+                                        state_111["pts"] = pts
+                                        lbl_prop_111.set_text(f"Proporção de Atendimento: {prop * 100:.1f}% ({bpi} de {tot})")
+                                        lbl_pts_111.set_text(f"📊 Impacto de Pontuação Calculado: {pts:.2f} / 2.00 pontos")
+                                    else:
+                                        state_111["pts"] = 0.0
+                                        lbl_prop_111.set_text("Proporção: Indefinida (O Total de creches deve ser maior que 0)")
+                                        lbl_pts_111.set_text("📊 Impacto de Pontuação Calculado: 0.00 / 2.00 pontos")
 
                                 with ui.grid(columns=2).classes("w-full gap-4"):
                                     ui.number(
@@ -960,31 +971,17 @@ def container_formulario_ieduc(ano=None):
                                         on_change=lambda e: [state_111.update({"val_tot": e.value}), calcular_111()],
                                     ).classes("w-full").props("outlined bg-white")
 
-                            calcular_111()
+                                calcular_111()
 
-                            # Textarea atribuído a uma variável para leitura direta do valor no salvar
-                            input_link_111 = ui.textarea(
-                                label="Link de Evidência / Documento:",
-                                value=state_111["link"],
-                                placeholder="Insira a lista de creches, relatórios de vistoria ou fotos...",
-                            ).classes("w-full mb-2 border-blue-400 rounded")
-
-                            # Renderização dos Links Ativos (Clicáveis)
-                            @ui.refreshable
-                            def render_links_ativos_111():
-                                raw_txt = input_link_111.value or ""
-                                import re
-                                links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
-
-                                if links_list:
-                                    with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
-                                        ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                        for u in links_list:
-                                            target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                            ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
-
-                            render_links_ativos_111()
-                            input_link_111.on("update:model-value", render_links_ativos_111.refresh)
+                            input_link_111 = (
+                                ui.textarea(
+                                    label="Link de Evidência / Documento:",
+                                    value=state_111["link"],
+                                    placeholder="Insira a lista de creches, relatórios de vistoria ou fotos...",
+                                )
+                                .classes("w-full mb-4")
+                                .props("outlined rows=3")
+                            )
 
                             def salvar_111():
                                 calcular_111()
@@ -994,45 +991,49 @@ def container_formulario_ieduc(ano=None):
 
                                 val_dict = {"BPI": b_val, "TOT": t_val}
                                 str_resposta = json.dumps(val_dict)
-                                lnk_val = str(input_link_111.value or "").strip()
 
                                 try:
+                                    # Grava no banco de dados
                                     save_resposta(
                                         ano=ano_sel,
                                         qid="1.1.1",
                                         valor=str_resposta,
                                         pontos=state_111["pts"],
-                                        link=lnk_val,
+                                        link=input_link_111.value,
                                         comentarios=d111.get("comentarios", []),
                                         status=d111.get("status", "Pendente"),
                                     )
 
+                                    # Atualiza a estrutura local de dados em memória antes do refresh
                                     novos_dados = {
                                         "resposta": str_resposta,
                                         "valor": str_resposta,
                                         "pontos": state_111["pts"],
-                                        "link": lnk_val,
+                                        "link": input_link_111.value,
                                         "comentarios": d111.get("comentarios", []),
                                         "status": d111.get("status", "Pendente"),
                                     }
                                     res_data["1.1.1"] = novos_dados
                                     res_data["111"] = novos_dados
 
-                                    ui.notify("Quesito 1.1.1 salvo com sucesso!", type="positive")
+                                    ui.notify(
+                                        "Quesito 1.1.1 salvo com sucesso!",
+                                        type="positive",
+                                    )
                                     if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
                                         render_conteudo.refresh()
                                 except Exception as e:
-                                    ui.notify(f"Erro ao salvar Quesito 1.1.1: {e}", type="negative")
+                                    ui.notify(
+                                        f"Erro ao salvar Quesito 1.1.1: {e}",
+                                        type="negative",
+                                    )
 
-                            with ui.row().classes("w-full justify-between items-center mb-4"):
-                                with ui.column().classes("gap-0"):
-                                    lbl_prop_111
-                                    lbl_pts_111
-
-                                ui.button("SALVAR QUESITO 1.1.1", on_click=salvar_111, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
-
+                            ui.button("💾 SALVAR QUESITO 1.1.1", on_click=salvar_111).classes(
+                                "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                            )
                             ui.separator().classes("my-2")
                             bloco_comentarios("1.1.1", res_data, render_conteudo.refresh)
+
                         # =============================================================================
                         # QUESITO 1.1.2 (Manutenção Preventiva dos Brinquedos do Pátio)
                         # =============================================================================
