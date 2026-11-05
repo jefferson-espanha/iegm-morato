@@ -3340,17 +3340,8 @@ def container_formulario_igov_ti():
                     ui.label("📌 Quesito 10.1 - Instrumento Normativo da LGPD").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
 
-                    d101 = res_data.get("10.1") or {}
-                    if not isinstance(d101, dict):
-                        d101 = {"valor": "", "pontos": 0.0, "link": ""}
-
-                    val_101_salvo = str(d101.get("valor") or "")
-
-                    state_101 = {"texto": val_101_salvo}
-
-                    def cb_processa_e_salva_101():
+                    def salvar_no_banco_101(qid_val, valor_val, pontos_val, link_val):
                         try:
-                            txt_val = str(state_101["texto"] or "").strip()
                             with get_db_connection() as conn:
                                 with conn.cursor() as cur:
                                     cur.execute("""
@@ -3360,11 +3351,32 @@ def container_formulario_igov_ti():
                                         DO UPDATE SET 
                                             valor = EXCLUDED.valor,
                                             pontos = EXCLUDED.pontos,
+                                            link = EXCLUDED.link,
                                             updated_at = CURRENT_TIMESTAMP;
-                                    """, ("10.1", ano_sel, txt_val, 0.0, ""))
+                                    """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
                                     conn.commit()
+                        except Exception as err_db:
+                            print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                            raise err_db
 
-                            res_data["10.1"] = {"valor": txt_val, "pontos": 0.0, "link": ""}
+                    d101 = res_data.get("10.1") or {}
+                    if not isinstance(d101, dict):
+                        d101 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                    val_101_salvo = str(d101.get("valor") or "")
+                    evidencia_101_salva = str(d101.get("link") or "")
+
+                    state_101 = {
+                        "texto": val_101_salvo,
+                        "link": evidencia_101_salva
+                    }
+
+                    def cb_processa_e_salva_101():
+                        try:
+                            txt_val = str(state_101["texto"] or "").strip()
+                            lnk_val = str(state_101["link"] or "").strip()
+                            salvar_no_banco_101("10.1", txt_val, 0.0, lnk_val)
+                            res_data["10.1"] = {"valor": txt_val, "pontos": 0.0, "link": lnk_val}
                             ui.notify("Quesito 10.1 salvo com sucesso!", type="positive")
                             container_formulario_igov_ti.refresh()
                         except Exception as err:
@@ -3376,8 +3388,31 @@ def container_formulario_igov_ti():
                         placeholder="Ex: Decreto Municipal nº 1.234, de 10 de maio de 2022"
                     ).classes("w-full mb-4").bind_value(state_101, "texto")
 
+                    # Campo Textarea para os Links
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        placeholder="Insira o link da publicação oficial ou norma da LGPD...",
+                        value=evidencia_101_salva
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_101, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_101():
+                        raw_txt = state_101.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_101()
+
                     with ui.row().classes("w-full justify-end items-center mb-4"):
-                        ui.button("Salvar Quesito 10.1", on_click=cb_processa_e_salva_101, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 10.1", on_click=cb_processa_e_salva_101, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("10.1", res_data, ano_sel)
@@ -3388,19 +3423,13 @@ def container_formulario_igov_ti():
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 10.2 - Link da Norma da LGPD").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe a página eletrônica (link na internet):").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
-                    ui.label("Nota: Se não estiver disponível na internet, inserir no campo de resposta o texto XYZ").classes("text-xs text-gray-500 italic mb-2")
 
-                    d102 = res_data.get("10.2") or {}
-                    if not isinstance(d102, dict):
-                        d102 = {"valor": "", "pontos": 0.0, "link": ""}
+                    with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                        ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                        ui.label("• Se não estiver disponível na internet, inserir no campo de resposta o texto XYZ").classes("text-xs text-blue-900 font-medium")
 
-                    val_102_salvo = str(d102.get("valor") or "")
-
-                    state_102 = {"link": val_102_salvo}
-
-                    def cb_processa_e_salva_102():
+                    def salvar_no_banco_102(qid_val, valor_val, pontos_val, link_val):
                         try:
-                            lnk_val = str(state_102["link"] or "").strip()
                             with get_db_connection() as conn:
                                 with conn.cursor() as cur:
                                     cur.execute("""
@@ -3409,30 +3438,61 @@ def container_formulario_igov_ti():
                                         ON CONFLICT (ano, qid) 
                                         DO UPDATE SET 
                                             valor = EXCLUDED.valor,
-                                            link = EXCLUDED.link,
                                             pontos = EXCLUDED.pontos,
+                                            link = EXCLUDED.link,
                                             updated_at = CURRENT_TIMESTAMP;
-                                    """, ("10.2", ano_sel, lnk_val, 0.0, lnk_val))
+                                    """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
                                     conn.commit()
+                        except Exception as err_db:
+                            print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                            raise err_db
 
-                            res_data["10.2"] = {"valor": lnk_val, "pontos": 0.0, "link": lnk_val}
+                    d102 = res_data.get("10.2") or {}
+                    if not isinstance(d102, dict):
+                        d102 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                    link_salvo_102 = str(d102.get("link") or d102.get("valor") or "")
+                    state_102 = {"link": link_salvo_102}
+
+                    def cb_processa_e_salva_102():
+                        try:
+                            lnk_input = str(state_102["link"] or "").strip()
+                            val_str = "XYZ" if not lnk_input or lnk_input.upper() == "XYZ" else lnk_input
+                            salvar_no_banco_102("10.2", val_str, 0.0, lnk_input)
+                            res_data["10.2"] = {"valor": val_str, "pontos": 0.0, "link": lnk_input}
                             ui.notify("Quesito 10.2 salvo com sucesso!", type="positive")
                             container_formulario_igov_ti.refresh()
                         except Exception as err:
                             ui.notify(f"Erro ao salvar Quesito 10.2: {err}", type="negative")
 
-                    ui.input(
-                        "Link da publicação da LGPD (ou XYZ se indisponível):",
-                        value=val_102_salvo,
-                        placeholder="https://... ou XYZ"
-                    ).classes("w-full mb-4").bind_value(state_102, "link")
+                    # Campo Textarea para os Links
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=link_salvo_102,
+                        placeholder="Cole o link aqui ou digite XYZ..."
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_102, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_102():
+                        raw_txt = state_102.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ"]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_102()
 
                     with ui.row().classes("w-full justify-end items-center mb-4"):
-                        ui.button("Salvar Quesito 10.2", on_click=cb_processa_e_salva_102, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 10.2", on_click=cb_processa_e_salva_102, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("10.2", res_data, ano_sel)
-
                 # =============================================================================
                 # QUESITO 10.3 • CLÁUSULAS DE LGPD EM CONTRATOS
                 # =============================================================================
@@ -3562,19 +3622,13 @@ def container_formulario_igov_ti():
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 11.1 - Informações de Contato do Encarregado").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe a página eletrônica (link no site da prefeitura) que contenha a identidade e as informações de contato do encarregado:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
-                    ui.label("Nota: Se não estiver disponível na internet, inserir no campo de resposta o texto XYZ").classes("text-xs text-gray-500 italic mb-2")
 
-                    d111 = res_data.get("11.1") or {}
-                    if not isinstance(d111, dict):
-                        d111 = {"valor": "", "pontos": 0.0, "link": ""}
+                    with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                        ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                        ui.label("• Se não estiver disponível na internet, inserir no campo de resposta o texto XYZ").classes("text-xs text-blue-900 font-medium")
 
-                    val_111_salvo = str(d111.get("valor") or "")
-
-                    state_111 = {"link": val_111_salvo}
-
-                    def cb_processa_e_salva_111():
+                    def salvar_no_banco_111(qid_val, valor_val, pontos_val, link_val):
                         try:
-                            lnk_val = str(state_111["link"] or "").strip()
                             with get_db_connection() as conn:
                                 with conn.cursor() as cur:
                                     cur.execute("""
@@ -3586,23 +3640,55 @@ def container_formulario_igov_ti():
                                             link = EXCLUDED.link,
                                             pontos = EXCLUDED.pontos,
                                             updated_at = CURRENT_TIMESTAMP;
-                                    """, ("11.1", ano_sel, lnk_val, 0.0, lnk_val))
+                                    """, (qid_val, ano_sel, str(valor_val), float(pontos_val), str(link_val)))
                                     conn.commit()
+                        except Exception as err_db:
+                            print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
+                            raise err_db
 
-                            res_data["11.1"] = {"valor": lnk_val, "pontos": 0.0, "link": lnk_val}
+                    d111 = res_data.get("11.1") or {}
+                    if not isinstance(d111, dict):
+                        d111 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                    link_salvo_111 = str(d111.get("link") or d111.get("valor") or "")
+                    state_111 = {"link": link_salvo_111}
+
+                    def cb_processa_e_salva_111():
+                        try:
+                            lnk_input = str(state_111["link"] or "").strip()
+                            val_str = "XYZ" if not lnk_input or lnk_input.upper() == "XYZ" else lnk_input
+                            salvar_no_banco_111("11.1", val_str, 0.0, lnk_input)
+                            res_data["11.1"] = {"valor": val_str, "pontos": 0.0, "link": lnk_input}
                             ui.notify("Quesito 11.1 salvo com sucesso!", type="positive")
                             container_formulario_igov_ti.refresh()
                         except Exception as err:
                             ui.notify(f"Erro ao salvar Quesito 11.1: {err}", type="negative")
 
-                    ui.input(
-                        "Link de Contato do Encarregado (ou XYZ se indisponível):",
-                        value=val_111_salvo,
-                        placeholder="https://... ou XYZ"
-                    ).classes("w-full mb-4").bind_value(state_111, "link")
+                    # Campo Textarea para os Links
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        value=link_salvo_111,
+                        placeholder="Cole o link aqui ou digite XYZ..."
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_111, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_111():
+                        raw_txt = state_111.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ"]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_111()
 
                     with ui.row().classes("w-full justify-end items-center mb-4"):
-                        ui.button("Salvar Quesito 11.1", on_click=cb_processa_e_salva_111, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 11.1", on_click=cb_processa_e_salva_111, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("11.1", res_data, ano_sel)
