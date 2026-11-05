@@ -67,6 +67,40 @@ def agora_brasilia_formatada():
     return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
 
 
+def _instalar_links_ativos_nos_campos_link():
+    """Exibe cada URL uma única vez nos campos de link/evidência."""
+    textarea_original = ui.textarea
+
+    def textarea_com_links(*args, **kwargs):
+        label = kwargs.get("label", args[0] if args else "")
+        campo = textarea_original(*args, **kwargs)
+        if "link" in str(label or "").lower():
+            container = ui.row().classes("w-full items-center my-2")
+
+            def atualizar_links():
+                container.clear()
+                urls = list(dict.fromkeys(re.findall(r"https?://[^\s]+", str(campo.value or ""))))
+                if urls:
+                    with container:
+                        ui.label("Links Ativos:").classes(
+                            "font-bold text-caption text-gray-700 mr-2"
+                        )
+                        for url in urls:
+                            url_limpa = url.rstrip(".,;:)]}")
+                            ui.link(url_limpa, target=url_limpa, new_tab=True).classes(
+                                "text-caption text-blue-6 mr-2"
+                            )
+
+            campo.on("update:model-value", atualizar_links)
+            atualizar_links()
+        return campo
+
+    ui.textarea = textarea_com_links
+
+
+_instalar_links_ativos_nos_campos_link()
+
+
 def safe_float(val, default=0.0):
     """Converte números vindos do JSON/Banco sem deixar a tela quebrar."""
     try:
@@ -391,38 +425,6 @@ def render_quesito(
             input_radio.on("update:model-value", atualizar_impacto)
         elif tipo_input in ["number", "float"]:
             input_num.on("update:model-value", atualizar_impacto)
-
-        # =====================================================================
-        # RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS
-        # =====================================================================
-        container_links = ui.row().classes("w-full items-center my-2")
-
-        def atualizar_links_visuais():
-            container_links.clear()
-            val_txt = input_texto.value if input_texto and input_texto.value else ""
-            lnk_txt = input_link.value if input_link and input_link.value else ""
-            txt_total = f"{val_txt} {lnk_txt}"
-
-            REGEX_PURE_URL = r'https?://[^\s]+'
-            # Remove URLs repetidas antes de renderizar os links ativos.
-            links = list(dict.fromkeys(re.findall(REGEX_PURE_URL, txt_total)))
-
-            if links:
-                with container_links:
-                    ui.label("Links Ativos: ").classes(
-                        "font-bold text-caption text-gray-700"
-                    )
-                    for url in links:
-                        ui.link(url, target=url, new_tab=True).classes(
-                            "text-caption text-blue-6 mr-2"
-                        )
-
-        if input_link:
-            input_link.on("update:model-value", atualizar_links_visuais)
-        if input_texto:
-            input_texto.on("update:model-value", atualizar_links_visuais)
-
-        atualizar_links_visuais()
 
         # =====================================================================
         # BOTÃO SALVAR
