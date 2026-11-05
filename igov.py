@@ -3119,7 +3119,7 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               # =============================================================================
+                # =============================================================================
                 # QUESITO 9.1 • TIPOS DE SERVIÇOS ONLINE (7,5 PONTOS POR ITEM)
                 # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
@@ -3154,8 +3154,6 @@ def container_formulario_igov_ti():
                         d91 = {"valor": "", "pontos": 0.0, "link": ""}
 
                     valor_salvo_91 = str(d91.get("valor") or "")
-                
-                    # CORREÇÃO 1: Limpeza rigorosa com strip() para evitar incompatibilidade por espaços extras
                     itens_salvos_91 = [i.strip() for i in valor_salvo_91.split(",") if i.strip()]
                     evidencia_91_salva = str(d91.get("link") or "")
 
@@ -3170,7 +3168,6 @@ def container_formulario_igov_ti():
                         "Consulta a status de protocolos de todos os atendimentos dos serviços assinalados acima"
                     ]
 
-                    # CORREÇÃO 2: Validação exata de presença do item na lista salva
                     state_91 = {item: item in itens_salvos_91 for item in opcoes_servicos_91}
                     state_91["link"] = evidencia_91_salva
 
@@ -3182,10 +3179,9 @@ def container_formulario_igov_ti():
                             lnk_val = str(state_91.get("link", "") or "").strip()
 
                             salvar_no_banco_91("9.1", valor_string, pts_totais, lnk_val)
-                        
-                            # Atualiza a memória local para renderização dinâmica
+                            
                             res_data["9.1"] = {"valor": valor_string, "pontos": pts_totais, "link": lnk_val}
-                        
+                            
                             ui.notify("Quesito 9.1 salvo com sucesso!", type="positive")
                             container_formulario_igov_ti.refresh()
                         except Exception as err:
@@ -3195,23 +3191,38 @@ def container_formulario_igov_ti():
                         for item in opcoes_servicos_91:
                             ui.checkbox(f"{item} (+7.5 pts)").bind_value(state_91, item)
 
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência dos Serviços Online):",
+                        label="Link de Evidência / Documento:",
                         value=evidencia_91_salva,
                         placeholder="Link da carta de serviços, portal do cidadão..."
-                    ).classes("w-full mb-4").bind_value(state_91, "link")
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_91, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_91():
+                        raw_txt = state_91.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_91()
 
                     pts_atuais_91 = float(d91.get("pontos") or 0.0)
-
-                    # CORREÇÃO 3: Exibição reativa puxando direto do state_91
                     marcados_atuais = [item for item in opcoes_servicos_91 if state_91.get(item, False)]
-                
+                    
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         with ui.column().classes("gap-0"):
                             ui.label(f"📋 Serviços Selecionados ({len(marcados_atuais)}): {', '.join(marcados_atuais) if marcados_atuais else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
                             ui.label(f"📊 Pontuação Total no Quesito 9.1: {pts_atuais_91:.1f} pontos").classes("text-sm font-bold text-green-700")
 
-                        ui.button("Salvar Quesito 9.1", on_click=cb_processa_e_salva_91, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 9.1", on_click=cb_processa_e_salva_91, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("9.1", res_data, ano_sel)
@@ -3275,19 +3286,35 @@ def container_formulario_igov_ti():
                         for item in opcoes_atendimento_92:
                             ui.checkbox(item).bind_value(state_92, item)
 
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência dos Canais de Atendimento):",
+                        label="Link de Evidência / Documento:",
                         value=evidencia_92_salva,
                         placeholder="Link dos contatos oficiais, lista de ramais..."
-                    ).classes("w-full mb-4").bind_value(state_92, "link")
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_92, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_92():
+                        raw_txt = state_92.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_92()
 
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         ui.label(f"📋 Canais Assinalados ({len([i for i in opcoes_atendimento_92 if state_92[i]])}): {valor_salvo_92 if valor_salvo_92 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
-                        ui.button("Salvar Quesito 9.2", on_click=cb_processa_e_salva_92, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 9.2", on_click=cb_processa_e_salva_92, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("9.2", res_data, ano_sel)
-
                 # =============================================================================
                 # QUESITO 10.0 • REGULAMENTAÇÃO DA LGPD
                 # =============================================================================
