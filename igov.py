@@ -5,6 +5,7 @@ import json
 import logging
 import os
 import re
+import ast
 
 from io import BytesIO
 from nicegui import app, ui
@@ -17,6 +18,7 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
 # =============================================================================
 # EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
 # =============================================================================
@@ -34,15 +36,16 @@ def _deduplicar_links(links):
             links_unicos.append(url)
     return links_unicos
 
+
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
 )
 
+
 def agora_brasilia_formatada():
     """Retorna a data e hora atual no fuso oficial de Brasília."""
     return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
-
 
 
 def get_db_connection():
@@ -351,6 +354,7 @@ def render_painel_controle(on_refresh_callback=None):
             </div>
         """).classes("w-full")
 
+
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
@@ -576,9 +580,10 @@ def render_quesito(
                         placeholder=placeholder_link,
                     ).classes("w-full").props("outlined rows=3")
 
-                    container_links = ui.row().classes("mt-1 items-center gap-2")
+                    # Container em coluna único para evitar duplicação visual de linhas
+                    container_links = ui.column().classes("mt-2 w-full gap-1")
 
-                    def atualizar_links_visuais():
+                    def atualizar_links_visuais(_=None):
                         container_links.clear()
                         val_txt = ""
                         if input_valor and hasattr(input_valor, "value"):
@@ -594,15 +599,18 @@ def render_quesito(
                         links = _deduplicar_links(re.findall(REGEX_PURE_URL, txt_total))
                         if links:
                             with container_links:
-                                ui.label("Links Ativos:").classes("font-bold text-caption")
-                                for url in links:
-                                    ui.link(url, target=url, new_tab=True).classes(
-                                        "text-caption text-blue-6 mr-2 underline"
-                                    )
+                                with ui.row().classes("items-center gap-2"):
+                                    ui.label("Links Ativos:").classes("font-bold text-caption text-gray-700")
+                                    for url in links:
+                                        target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                        ui.link(url, target=target_url, new_tab=True).classes(
+                                            "text-caption text-blue-6 mr-2 underline"
+                                        )
 
-                    input_link.on("update:model-value", lambda: atualizar_links_visuais())
+                    if input_link:
+                        input_link.on("update:model-value", atualizar_links_visuais)
                     if is_text_area and input_valor:
-                        input_valor.on("update:model-value", lambda: atualizar_links_visuais())
+                        input_valor.on("update:model-value", atualizar_links_visuais)
 
                     atualizar_links_visuais()
 
