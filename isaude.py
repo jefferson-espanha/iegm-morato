@@ -393,35 +393,197 @@ def render_quesito(
             input_num.on("update:model-value", atualizar_impacto)
 
         # =====================================================================
-        # RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS (Sem Duplicidade)
+        # RENDER QUESITO (FUNÇÃO ÚNICA - SEM DUPLICIDADE DE LINKS)
         # =====================================================================
-        container_links = ui.row().classes("w-full items-center my-2")
+        def render_quesito(
+            ano,
+            res_data,
+            qid,
+            titulo,
+            pergunta,
+            opcoes=None,
+            tipo_input="radio",
+            placeholder_link="Insira o link da evidência...",
+            on_save_callback=None,
+        ):
+            if opcoes is None:
+                opcoes = {}
 
-        def atualizar_links_visuais():
-            container_links.clear()
-            val_txt = input_texto.value if input_texto and input_texto.value else ""
-            lnk_txt = input_link.value if input_link and input_link.value else ""
-            txt_total = f"{val_txt} {lnk_txt}"
+            dados_q = res_data.get(qid, {})
+            link_atual = dados_q.get("link", "")
 
-            REGEX_PURE_URL = r'https?://[^\s]+'
-            links = re.findall(REGEX_PURE_URL, txt_total)
+            if tipo_input == "checkbox":
+                valor_bruto = dados_q.get("valor", [])
+                if isinstance(valor_bruto, list):
+                    valor_atual = valor_bruto
+                elif valor_bruto in opcoes:
+                    valor_atual = [valor_bruto]
+                else:
+                    valor_atual = []
+            elif tipo_input in ["number", "float"]:
+                valor_bruto = dados_q.get("valor", 0.0)
+                try:
+                    valor_atual = float(valor_bruto)
+                except (ValueError, TypeError):
+                    valor_atual = 0.0
+            elif tipo_input == "text":
+                valor_atual = str(dados_q.get("valor", ""))
+            else:  # radio
+                padrao = "Selecione..." if "Selecione..." in opcoes else (list(opcoes.keys())[0] if opcoes else "")
+                valor_atual = dados_q.get("valor", padrao)
+                if valor_atual not in opcoes and opcoes:
+                    valor_atual = padrao
 
-            if links:
-                with container_links:
-                    ui.label("Links Ativos: ").classes(
-                        "font-bold text-caption text-gray-700"
-                    )
-                    for url in set(links):  # set() impede URLs idênticas duplicadas
-                        ui.link(url, target=url, new_tab=True).classes(
-                            "text-caption text-blue-6 mr-2"
+            state = {
+                "opcao": valor_atual,
+                "link": link_atual,
+            }
+
+            input_link = None
+            input_texto = None
+
+            with ui.card().classes(
+                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+            ):
+                ui.label(f"{qid} • {titulo}").classes(
+                    "text-xl font-semibold text-blue-500 mb-3"
+                )
+                ui.label(pergunta).classes("text-base font-bold text-black mb-1")
+                ui.label(
+                    "ℹ Preencha os campos abaixo e clique no botão de salvar."
+                ).classes("text-xs text-gray-400 mb-6")
+
+                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                    if tipo_input == "checkbox":
+                        with ui.column().classes("gap-2 w-full"):
+                            def make_on_change(opt):
+                                def on_change(e):
+                                    if e.value and opt not in state["opcao"]:
+                                        state["opcao"].append(opt)
+                                    elif not e.value and opt in state["opcao"]:
+                                        state["opcao"].remove(opt)
+                                    atualizar_impacto()
+                                return on_change
+
+                            for opt_key in opcoes.keys():
+                                is_checked = opt_key in state["opcao"]
+                                ui.checkbox(
+                                    text=opt_key,
+                                    value=is_checked,
+                                    on_change=make_on_change(opt_key)
+                                ).props("color=blue")
+
+                    elif tipo_input in ["number", "float"]:
+                        input_num = (
+                            ui.number(
+                                label="Pontuação do Quesito:",
+                                value=state["opcao"],
+                                min=0,
+                                max=250,
+                                step=0.1,
+                            )
+                            .classes("w-full")
+                            .props("outlined color=blue")
+                            .bind_value(state, "opcao")
                         )
 
-        if input_link:
-            input_link.on("update:model-value", lambda: atualizar_links_visuais())
-        if input_texto:
-            input_texto.on("update:model-value", lambda: atualizar_links_visuais())
+                    elif tipo_input == "text":
+                        input_texto = (
+                            ui.textarea(
+                                label="Resposta / Comentário:",
+                                value=state["opcao"],
+                                placeholder="Digite sua resposta...",
+                            )
+                            .classes("w-full")
+                            .props("outlined rows=4")
+                            .bind_value(state, "opcao")
+                        )
 
-        atualizar_links_visuais()
+                    else:  # radio
+                        input_radio = (
+                            ui.radio(
+                                options=list(opcoes.keys()),
+                                value=state["opcao"],
+                            )
+                            .props("color=blue")
+                            .bind_value(state, "opcao")
+                        )
+
+                    input_link = (
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state["link"],
+                            placeholder=placeholder_link,
+                        )
+                        .classes("w-full")
+                        .props("outlined rows=5")
+                        .bind_value(state, "link")
+                    )
+
+                def calcular_pontos(opcao_sel):
+                    if tipo_input in ["number", "float"]:
+                        try:
+                            return float(opcao_sel)
+                        except (ValueError, TypeError):
+                            return 0.0
+                    elif tipo_input == "text":
+                        return 0.0
+                    elif isinstance(opcao_sel, list):
+                        return sum(float(opcoes.get(opt, 0.0)) for opt in opcao_sel)
+                    
+                    val = opcoes.get(opcao_sel, 0.0)
+                    try:
+                        return float(val)
+                    except (ValueError, TypeError):
+                        return 0.0
+
+                pts_atuais = calcular_pontos(state["opcao"])
+                label_impacto = ui.label(
+                    f"📊 Impacto de Pontuação no Quesito {qid}: {float(pts_atuais):.2f} pontos"
+                ).classes("text-sm font-bold text-green-600 my-4")
+
+                def atualizar_impacto(e=None):
+                    novos_pts = calcular_pontos(state["opcao"])
+                    label_impacto.set_text(
+                        f"📊 Impacto de Pontuação no Quesito {qid}: {float(novos_pts):.2f} pontos"
+                    )
+
+                if tipo_input == "radio":
+                    input_radio.on("update:model-value", atualizar_impacto)
+                elif tipo_input in ["number", "float"]:
+                    input_num.on("update:model-value", atualizar_impacto)
+
+                # =====================================================================
+                # RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS (ÚNICA)
+                # =====================================================================
+                container_links = ui.row().classes("w-full items-center my-2")
+
+                def atualizar_links_visuais(_=None):
+                    container_links.clear()
+                    val_txt = input_texto.value if input_texto and input_texto.value else ""
+                    lnk_txt = input_link.value if input_link and input_link.value else ""
+                    txt_total = f"{val_txt} {lnk_txt}"
+
+                    REGEX_PURE_URL = r'https?://[^\s]+'
+                    links = re.findall(REGEX_PURE_URL, txt_total)
+
+                    if links:
+                        with container_links:
+                            ui.label("Links Ativos: ").classes(
+                                "font-bold text-caption text-gray-700"
+                            )
+                            for url in dict.fromkeys(links):  # Elimina URLs idênticas duplicadas
+                                target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                ui.link(url, target=target_url, new_tab=True).classes(
+                                    "text-caption text-blue-6 mr-2 underline"
+                                )
+
+                if input_link:
+                    input_link.on("update:model-value", atualizar_links_visuais)
+                if input_texto:
+                    input_texto.on("update:model-value", atualizar_links_visuais)
+
+                atualizar_links_visuais()
 
         # =====================================================================
         # BOTÃO SALVAR
