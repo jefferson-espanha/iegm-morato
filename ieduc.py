@@ -874,7 +874,7 @@ def container_formulario_ieduc(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-# =============================================================================
+                        # =============================================================================
                         # QUESITO 1.1.1 (Brinquedos no Pátio Infantil - BPI)
                         # =============================================================================
                         d111 = res_data.get("1.1.1") or res_data.get("111") or {}
@@ -962,17 +962,17 @@ def container_formulario_ieduc(ano=None):
 
                             calcular_111()
 
-                            # Campo Textarea para os Links
-                            ui.textarea(
+                            # Textarea atribuído a uma variável para leitura direta do valor no salvar
+                            input_link_111 = ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_111["link"],
                                 placeholder="Insira a lista de creches, relatórios de vistoria ou fotos...",
-                            ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_111, "link")
+                            ).classes("w-full mb-2 border-blue-400 rounded")
 
                             # Renderização dos Links Ativos (Clicáveis)
                             @ui.refreshable
                             def render_links_ativos_111():
-                                raw_txt = state_111.get("link", "") or ""
+                                raw_txt = input_link_111.value or ""
                                 import re
                                 links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
 
@@ -984,6 +984,7 @@ def container_formulario_ieduc(ano=None):
                                             ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
                             render_links_ativos_111()
+                            input_link_111.on("update:model-value", render_links_ativos_111.refresh)
 
                             def salvar_111():
                                 calcular_111()
@@ -993,7 +994,7 @@ def container_formulario_ieduc(ano=None):
 
                                 val_dict = {"BPI": b_val, "TOT": t_val}
                                 str_resposta = json.dumps(val_dict)
-                                lnk_val = str(state_111.get("link", "") or "").strip()
+                                lnk_val = str(input_link_111.value or "").strip()
 
                                 try:
                                     save_resposta(
