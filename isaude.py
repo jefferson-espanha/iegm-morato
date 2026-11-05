@@ -2494,25 +2494,6 @@ def container_formulario_saude(ano=None):
                                 state_1421, "link"
                             )
 
-                            # Exibição dinâmica de links ativos
-                            container_links_1421 = ui.row().classes("w-full items-center my-2")
-
-                            def atualizar_links_visuais_1421():
-                                container_links_1421.clear()
-                                lnk_txt = input_link_1421.value if input_link_1421 and input_link_1421.value else ""
-
-                                REGEX_PURE_URL = r'https?://[^\s]+'
-                                links = re.findall(REGEX_PURE_URL, lnk_txt)
-
-                                if links:
-                                    with container_links_1421:
-                                        ui.label("Links Ativos: ").classes("font-bold text-caption text-gray-700")
-                                        for url in links:
-                                            ui.link(url, target=url, new_tab=True).classes("text-caption text-blue-6 mr-2")
-
-                            input_link_1421.on("update:model-value", atualizar_links_visuais_1421)
-                            atualizar_links_visuais_1421()
-
                             # Função para salvar
                             def salvar_1421():
                                 pts = recalc_1421()
