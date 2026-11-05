@@ -2181,158 +2181,158 @@ def container_formulario_plan(ano=None):
                         )
 
                         # =============================================================================
-                    # QUESITO 14.5.1 (Atividades no Plano Operativo Anual - Checkbox)
-                    # =============================================================================
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                        ui.label("📌 Quesito 14.5.1 - Atividades Previstas no Plano Operativo Anual").classes("text-lg font-bold text-blue-900 mb-1")
-                        ui.label("Assinale as atividades previstas no Plano Operativo Anual:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
-                        ui.label("ℹ Selecione as atividades aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
+                        # QUESITO 14.5.1 (Atividades no Plano Operativo Anual - Checkbox)
+                        # =============================================================================
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                            ui.label("📌 Quesito 14.5.1 - Atividades Previstas no Plano Operativo Anual").classes("text-lg font-bold text-blue-900 mb-1")
+                            ui.label("Assinale as atividades previstas no Plano Operativo Anual:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                            ui.label("ℹ Selecione as atividades aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
 
-                        # Bloco de Regras
-                        with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
-                            ui.label("Regra de Pontuação (Faixa por Quantidade de Itens):").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
-                            ui.label(
-                                "• Nenhum item assinalado: 0,0 ponto\n"
-                                "• 1 a 5 itens assinalados: 1,0 ponto\n"
-                                "• 6 a 10 itens assinalados: 3,0 pontos\n"
-                                "• 11 ou mais itens assinalados: 5,0 pontos"
-                            ).classes("text-xs text-blue-900 font-medium mt-1")
+                            # Bloco de Regras
+                            with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                                ui.label("Regra de Pontuação (Faixa por Quantidade de Itens):").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                                ui.label(
+                                    "• Nenhum item assinalado: 0,0 ponto\n"
+                                    "• 1 a 5 itens assinalados: 1,0 ponto\n"
+                                    "• 6 a 10 itens assinalados: 3,0 pontos\n"
+                                    "• 11 ou mais itens assinalados: 5,0 pontos"
+                                ).classes("text-xs text-blue-900 font-medium mt-1")
 
-                        raw_1451 = res_data.get("14.5.1") or res_data.get("14.51") or {}
-                        q1451_data = raw_1451 if isinstance(raw_1451, dict) else {}
+                            raw_1451 = res_data.get("14.5.1") or res_data.get("14.51") or {}
+                            q1451_data = raw_1451 if isinstance(raw_1451, dict) else {}
 
-                        marcados_salvos = _normalizar_lista_checkbox(q1451_data.get("valor", []))
+                            marcados_salvos = _normalizar_lista_checkbox(q1451_data.get("valor", []))
 
-                        lista_opcoes_1451 = [
-                            "Receitas",
-                            "Despesas",
-                            "Administração de pessoal",
-                            "Estoques e almoxarifados",
-                            "Administração do patrimônio",
-                            "Cumprimento das metas do PPA e a execução dos programas de governo e dos orçamentos (LOA e LDO)",
-                            "Cumprimento das metas fiscais, físicas e de resultados dos programas de governo, no que tange a eficiência, eficácia e efetividade",
-                            "Aplicação de recursos públicos por entidades de direito público",
-                            "Aplicação de recursos públicos por entidades de direito privado",
-                            "Os limites e condições para a inscrição de despesas em Restos a Pagar",
-                            "Cumprimento da legislação de licitações e fiscalização de contratos",
-                            "Cumprimento do limite de gastos totais dos legislativos municipais, inclusive no que se refere ao atingimento de metas fiscais (Gestão Fiscal)",
-                            "Transferência para o Legislativo Municipal (Repasses de Duodécimos)",
-                            "Contabilidade",
-                            "Transparência",
-                            "Lei de Acesso à Informação",
-                            "Outros",
-                        ]
+                            lista_opcoes_1451 = [
+                                "Receitas",
+                                "Despesas",
+                                "Administração de pessoal",
+                                "Estoques e almoxarifados",
+                                "Administração do patrimônio",
+                                "Cumprimento das metas do PPA e a execução dos programas de governo e dos orçamentos (LOA e LDO)",
+                                "Cumprimento das metas fiscais, físicas e de resultados dos programas de governo, no que tange a eficiência, eficácia e efetividade",
+                                "Aplicação de recursos públicos por entidades de direito público",
+                                "Aplicação de recursos públicos por entidades de direito privado",
+                                "Os limites e condições para a inscrição de despesas em Restos a Pagar",
+                                "Cumprimento da legislação de licitações e fiscalização de contratos",
+                                "Cumprimento do limite de gastos totais dos legislativos municipais, inclusive no que se refere ao atingimento de metas fiscais (Gestão Fiscal)",
+                                "Transferência para o Legislativo Municipal (Repasses de Duodécimos)",
+                                "Contabilidade",
+                                "Transparência",
+                                "Lei de Acesso à Informação",
+                                "Outros",
+                            ]
 
-                        checkboxes_dict = {}
-                        state_1451 = {
-                            "pts": float(q1451_data.get("pontos", 0.0)),
-                            "link": str(q1451_data.get("link", "") or "")
-                        }
-
-                        def calc_pts_1451(qtd):
-                            if qtd == 0:
-                                return 0.0
-                            elif 1 <= qtd <= 5:
-                                return 1.0
-                            elif 6 <= qtd <= 10:
-                                return 3.0
-                            else:
-                                return 5.0
-
-                        # Cálculo de quantidade e pontos iniciais
-                        qtd_inicial = len([op for op in lista_opcoes_1451 if op in marcados_salvos])
-                        pts_iniciais = calc_pts_1451(qtd_inicial)
-                        cor_txt_1451 = "text-green-600" if pts_iniciais > 0 else "text-gray-500"
-
-                        lbl_qtd_1451 = ui.label(f"📋 Selecionados ({qtd_inicial} de {len(lista_opcoes_1451)})").classes("text-sm font-semibold text-gray-700")
-                        lbl_pts_1451 = ui.label(f"📊 Pontuação Calculada: {pts_iniciais:.1f} / 5.0 pontos").classes(f"text-sm font-bold {cor_txt_1451}")
-
-                        def calcular_1451(_=None):
-                            marcados = [op for op, cb in checkboxes_dict.items() if cb.value]
-                            qtd = len(marcados)
-                            pts = calc_pts_1451(qtd)
-
-                            state_1451["pts"] = pts
-                            cor = "text-green-600" if pts > 0 else "text-gray-500"
-                            lbl_pts_1451.classes(replace=cor)
-                            lbl_qtd_1451.set_text(f"📋 Selecionados ({qtd} de {len(lista_opcoes_1451)})")
-                            lbl_pts_1451.set_text(f"📊 Pontuação Calculada: {pts:.1f} / 5.0 pontos")
-
-                        # Grid de Checkboxes individuais
-                        with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
-                            meio_1451 = (len(lista_opcoes_1451) + 1) // 2
-                            with ui.column().classes("w-full gap-1"):
-                                for opcao in lista_opcoes_1451[:meio_1451]:
-                                    is_checked = opcao in marcados_salvos
-                                    cb = ui.checkbox(text=opcao, value=is_checked)
-                                    cb.on("update:model-value", calcular_1451)
-                                    checkboxes_dict[opcao] = cb
-                            with ui.column().classes("w-full gap-1"):
-                                for opcao in lista_opcoes_1451[meio_1451:]:
-                                    is_checked = opcao in marcados_salvos
-                                    cb = ui.checkbox(text=opcao, value=is_checked)
-                                    cb.on("update:model-value", calcular_1451)
-                                    checkboxes_dict[opcao] = cb
-
-                        # Campo Textarea para os Links
-                        ui.textarea(
-                            label="Link de Evidência / Documento do Plano Operativo:",
-                            value=state_1451["link"],
-                            placeholder="Insira o link comprovando o escopo do Plano Operativo..."
-                        ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_1451, "link")
-
-                        # Renderização dos Links Ativos (Clicáveis)
-                        @ui.refreshable
-                        def render_links_ativos_1451():
-                            raw_txt = state_1451.get("link", "") or ""
-                            import re
-                            links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
-
-                            if links_list:
-                                with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
-                                    ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                    for u in links_list:
-                                        target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                        ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
-
-                        render_links_ativos_1451()
-
-                        # Ação de Salvamento
-                        def salvar_1451():
-                            marcados = [op for op, cb in checkboxes_dict.items() if cb.value]
-                            lnk_val = str(state_1451.get("link", "") or "").strip()
-                            pts = state_1451["pts"]
-
-                            res_data["14.5.1"] = {
-                                "valor": json.dumps(marcados),
-                                "pontos": pts,
-                                "link": lnk_val,
-                                "comentarios": q1451_data.get("comentarios", []),
-                                "status": q1451_data.get("status", "Pendente")
+                            checkboxes_dict = {}
+                            state_1451 = {
+                                "pts": float(q1451_data.get("pontos", 0.0)),
+                                "link": str(q1451_data.get("link", "") or "")
                             }
 
-                            save_resposta(
-                                ano=ano_sel,
-                                qid="14.5.1",
-                                valor=json.dumps(marcados),
-                                pontos=pts,
-                                link=lnk_val,
-                                comentarios=q1451_data.get("comentarios", []),
-                                status=q1451_data.get("status", "Pendente"),
-                            )
-                            ui.notify(f"Quesito 14.5.1 salvo com sucesso! ({pts:.1f} pts)", type="positive")
-                            if render_conteudo.refresh:
-                                render_conteudo.refresh()
+                            def calc_pts_1451(qtd):
+                                if qtd == 0:
+                                    return 0.0
+                                elif 1 <= qtd <= 5:
+                                    return 1.0
+                                elif 6 <= qtd <= 10:
+                                    return 3.0
+                                else:
+                                    return 5.0
 
-                        with ui.row().classes("w-full justify-between items-center mb-4"):
-                            with ui.column().classes("gap-0"):
-                                lbl_qtd_1451
-                                lbl_pts_1451
+                            # Cálculo de quantidade e pontos iniciais
+                            qtd_inicial = len([op for op in lista_opcoes_1451 if op in marcados_salvos])
+                            pts_iniciais = calc_pts_1451(qtd_inicial)
+                            cor_txt_1451 = "text-green-600" if pts_iniciais > 0 else "text-gray-500"
 
-                            ui.button("SALVAR QUESITO 14.5.1", on_click=salvar_1451, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+                            lbl_qtd_1451 = ui.label(f"📋 Selecionados ({qtd_inicial} de {len(lista_opcoes_1451)})").classes("text-sm font-semibold text-gray-700")
+                            lbl_pts_1451 = ui.label(f"📊 Pontuação Calculada: {pts_iniciais:.1f} / 5.0 pontos").classes(f"text-sm font-bold {cor_txt_1451}")
 
-                        ui.separator().classes("my-2")
-                        bloco_comentarios("14.5.1", res_data, render_conteudo.refresh)
+                            def calcular_1451(_=None):
+                                marcados = [op for op, cb in checkboxes_dict.items() if cb.value]
+                                qtd = len(marcados)
+                                pts = calc_pts_1451(qtd)
+
+                                state_1451["pts"] = pts
+                                cor = "text-green-600" if pts > 0 else "text-gray-500"
+                                lbl_pts_1451.classes(replace=cor)
+                                lbl_qtd_1451.set_text(f"📋 Selecionados ({qtd} de {len(lista_opcoes_1451)})")
+                                lbl_pts_1451.set_text(f"📊 Pontuação Calculada: {pts:.1f} / 5.0 pontos")
+
+                            # Grid de Checkboxes individuais
+                            with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
+                                meio_1451 = (len(lista_opcoes_1451) + 1) // 2
+                                with ui.column().classes("w-full gap-1"):
+                                    for opcao in lista_opcoes_1451[:meio_1451]:
+                                        is_checked = opcao in marcados_salvos
+                                        cb = ui.checkbox(text=opcao, value=is_checked)
+                                        cb.on("update:model-value", calcular_1451)
+                                        checkboxes_dict[opcao] = cb
+                                with ui.column().classes("w-full gap-1"):
+                                    for opcao in lista_opcoes_1451[meio_1451:]:
+                                        is_checked = opcao in marcados_salvos
+                                        cb = ui.checkbox(text=opcao, value=is_checked)
+                                        cb.on("update:model-value", calcular_1451)
+                                        checkboxes_dict[opcao] = cb
+
+                            # Campo Textarea para os Links
+                            ui.textarea(
+                                label="Link de Evidência / Documento do Plano Operativo:",
+                                value=state_1451["link"],
+                                placeholder="Insira o link comprovando o escopo do Plano Operativo..."
+                            ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_1451, "link")
+
+                            # Renderização dos Links Ativos (Clicáveis)
+                            @ui.refreshable
+                            def render_links_ativos_1451():
+                                raw_txt = state_1451.get("link", "") or ""
+                                import re
+                                links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                                if links_list:
+                                    with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                        ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                        for u in links_list:
+                                            target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                            ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                            render_links_ativos_1451()
+
+                            # Ação de Salvamento
+                            def salvar_1451():
+                                marcados = [op for op, cb in checkboxes_dict.items() if cb.value]
+                                lnk_val = str(state_1451.get("link", "") or "").strip()
+                                pts = state_1451["pts"]
+
+                                res_data["14.5.1"] = {
+                                    "valor": json.dumps(marcados),
+                                    "pontos": pts,
+                                    "link": lnk_val,
+                                    "comentarios": q1451_data.get("comentarios", []),
+                                    "status": q1451_data.get("status", "Pendente")
+                                }
+
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="14.5.1",
+                                    valor=json.dumps(marcados),
+                                    pontos=pts,
+                                    link=lnk_val,
+                                    comentarios=q1451_data.get("comentarios", []),
+                                    status=q1451_data.get("status", "Pendente"),
+                                )
+                                ui.notify(f"Quesito 14.5.1 salvo com sucesso! ({pts:.1f} pts)", type="positive")
+                                if render_conteudo.refresh:
+                                    render_conteudo.refresh()
+
+                            with ui.row().classes("w-full justify-between items-center mb-4"):
+                                with ui.column().classes("gap-0"):
+                                    lbl_qtd_1451
+                                    lbl_pts_1451
+
+                                ui.button("SALVAR QUESITO 14.5.1", on_click=salvar_1451, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("14.5.1", res_data, render_conteudo.refresh)
 
                         # ==========================================
                     else:  # Etapa 3
