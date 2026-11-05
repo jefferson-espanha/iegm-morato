@@ -404,7 +404,8 @@ def render_quesito(
             txt_total = f"{val_txt} {lnk_txt}"
 
             REGEX_PURE_URL = r'https?://[^\s]+'
-            links = re.findall(REGEX_PURE_URL, txt_total)
+            # Remove URLs repetidas antes de renderizar os links ativos.
+            links = list(dict.fromkeys(re.findall(REGEX_PURE_URL, txt_total)))
 
             if links:
                 with container_links:
