@@ -296,7 +296,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.select(
             options=anos,
             value=int(ano_atual),
-            label="Ano de Referência:",
+            label="Ano base das respostas:",
             on_change=lambda e: on_mudar_ano(e.value),
         ).classes("w-full mb-4 bg-white")
 
@@ -551,7 +551,7 @@ def _render_formulario_iamb(ano=None):
             with ui.element("div").classes(
                 "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
             ):
-                ui.label(f"📋 Módulo i-Amb — Ano {ano_sel}").classes(
+                ui.label(f"📋 Módulo i-Amb — Ano base das respostas {ano_sel}").classes(
                     "text-xl font-bold mb-4 text-slate-800 border-b pb-2"
                 )
 
