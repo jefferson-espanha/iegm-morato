@@ -2333,17 +2333,17 @@ def container_formulario_ieduc(ano=None):
                                                 on_change=make_chk_172(opt),
                                             )
 
-                                # Campo Textarea para os Links
+                                # Campo Textarea com bind direto ao estado para evitar chamadas duplas
                                 input_link_172 = ui.textarea(
                                     label="Link de Evidência / Documento:",
-                                    value=raw_link_172,
+                                    value=state_172["link"],
                                     placeholder="Insira o plano de formação, contratos das plataformas de EAD ou relatórios...",
-                                ).classes("w-full mb-2 border-blue-400 rounded")
+                                ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_172, "link")
 
                                 # Renderização dos Links Ativos (Clicáveis)
                                 @ui.refreshable
                                 def render_links_ativos_172():
-                                    raw_txt = input_link_172.value or ""
+                                    raw_txt = state_172.get("link", "") or ""
                                     import re
                                     links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
 
@@ -2359,7 +2359,7 @@ def container_formulario_ieduc(ano=None):
 
                                 def salvar_172():
                                     opts_sel = list(state_172.get("opcoes") or [])
-                                    link_172 = str(input_link_172.value or "").strip()
+                                    link_172 = str(state_172.get("link") or "").strip()
 
                                     valor_172 = json.dumps(
                                         opts_sel,
