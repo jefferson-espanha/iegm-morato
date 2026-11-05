@@ -1202,12 +1202,28 @@ def container_formulario_igov_ti():
                         ui.checkbox("Comissão de Licitação / Equipe de Apoio (10 pts)").bind_value(state_141, "comissao")
                         ui.checkbox("Recebimento / Gestão de Contrato (15 pts)").bind_value(state_141, "gestao")
 
-                    # Campo de Evidências / Links
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência da Participação):",
-                        value=evidencia_141_salva,
-                        placeholder="Insira o link de portarias de nomeação, termos de referência assinados ou atas de comissões..."
-                    ).classes("w-full mb-4").bind_value(state_141, "link")
+                        label="Link de Evidência / Documento:",
+                        placeholder="Insira o link de portarias de nomeação, termos de referência assinados ou atas de comissões...",
+                        value=evidencia_141_salva
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_141, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_141():
+                        raw_txt = state_141.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_141()
 
                     # Exibição dos pontos calculados no rodapé
                     pts_atuais_141 = float(d141.get("pontos") or 0.0)
@@ -1218,7 +1234,7 @@ def container_formulario_igov_ti():
                             ui.label(f"📋 Etapas Selecionadas: {valor_salvo if valor_salvo else 'Nenhuma'}").classes("text-sm font-semibold text-gray-700")
                             ui.label(f"📊 Impacto de Pontuação no Quesito 1.4.1: +{pts_atuais_141:.1f} pontos").classes(f"text-sm font-bold {cor_txt_141}")
 
-                        ui.button("Salvar Quesito 1.4.1", on_click=cb_processa_e_salva_141, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 1.4.1", on_click=cb_processa_e_salva_141, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
 
