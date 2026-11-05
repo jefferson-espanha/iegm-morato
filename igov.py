@@ -2661,7 +2661,7 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                # =============================================================================
+               # =============================================================================
                 # QUESITO 8.1 • SETORES ENGLOBADOS PELOS SOFTWARES
                 # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
@@ -2723,15 +2723,32 @@ def container_formulario_igov_ti():
                         for item in opcoes_setores_81:
                             ui.checkbox(item).bind_value(state_81, item)
 
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência dos Softwares):",
+                        label="Link de Evidência / Documento:",
                         value=evidencia_81_salva,
                         placeholder="Link dos manuais, contratos ou telas dos sistemas..."
-                    ).classes("w-full mb-4").bind_value(state_81, "link")
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_81, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_81():
+                        raw_txt = state_81.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_81()
 
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         ui.label(f"📋 Selecionados ({len([i for i in opcoes_setores_81 if state_81[i]])}): {valor_salvo_81 if valor_salvo_81 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
-                        ui.button("Salvar Quesito 8.1", on_click=cb_processa_e_salva_81, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 8.1", on_click=cb_processa_e_salva_81, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("8.1", res_data, ano_sel)
@@ -2798,19 +2815,35 @@ def container_formulario_igov_ti():
                         for item in opcoes_integracao_82:
                             ui.checkbox(item).bind_value(state_82, item)
 
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência da Integração):",
+                        label="Link de Evidência / Documento:",
                         value=evidencia_82_salva,
                         placeholder="Link da documentação de integração ou declaração..."
-                    ).classes("w-full mb-4").bind_value(state_82, "link")
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_82, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_82():
+                        raw_txt = state_82.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_82()
 
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         ui.label(f"📋 Integrados ({len([i for i in opcoes_integracao_82 if state_82[i]])}): {valor_salvo_82 if valor_salvo_82 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
-                        ui.button("Salvar Quesito 8.2", on_click=cb_processa_e_salva_82, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 8.2", on_click=cb_processa_e_salva_82, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("8.2", res_data, ano_sel)
-
                 # =============================================================================
                 # QUESITO 8.2.1 • NÍVEL DE INTEGRAÇÃO DÍVIDA ATIVA X CONTABILIDADE
                 # =============================================================================
