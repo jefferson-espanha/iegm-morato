@@ -68,7 +68,11 @@ def agora_brasilia_formatada():
 
 
 def _instalar_links_ativos_nos_campos_link():
-    """Exibe cada URL uma única vez nos campos de link/evidência."""
+    """Exibe cada URL uma única vez, inclusive após recarregamentos."""
+    # Evita envolver ui.textarea novamente quando o módulo for recarregado.
+    if getattr(ui.textarea, "_links_ativos_instalados", False):
+        return
+
     textarea_original = ui.textarea
 
     def textarea_com_links(*args, **kwargs):
@@ -95,6 +99,7 @@ def _instalar_links_ativos_nos_campos_link():
             atualizar_links()
         return campo
 
+    textarea_com_links._links_ativos_instalados = True
     ui.textarea = textarea_com_links
 
 
