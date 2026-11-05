@@ -588,7 +588,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
-        ui.button("🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados).classes(
+        ui.button("🔄 ATUALIZAR ANO", on_click=atualizar_dados).classes(
             "w-full bg-blue-700 text-white font-bold mb-2"
         )
 
@@ -804,7 +804,7 @@ def container_formulario_ieduc(ano=None):
                 # Coluna 2: Formulário Principal (9/12)
                 with ui.element("div").classes("md:col-span-8 lg:col-span-9 flex flex-col gap-4"):
                     with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
-                        ui.label(f"📋 Módulo i-Educ — Ano {ano_sel}").classes(
+                        ui.label(f"📋 Módulo i-Educ — Ano base das respostas {ano_sel}").classes(
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
 
