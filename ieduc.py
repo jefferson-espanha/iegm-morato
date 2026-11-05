@@ -2263,12 +2263,23 @@ def container_formulario_ieduc(ano=None):
                                     getattr(render_conteudo, "refresh", None),
                                 )
                             # =============================================================================
-                            # QUESITO 1.7.2 (Formas de Capacitação Oferecidas)
+                            # QUESITO 1.7.2
+                            # Formas de Capacitação Oferecidas
                             # =============================================================================
-                            with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                                ui.label("📌 Quesito 1.7.2 - Formas de Capacitação Oferecidas").classes("text-lg font-bold text-blue-900 mb-1")
-                                ui.label("Assinale as modalidades de capacitação adotadas:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
-                                ui.label("ℹ Quesito qualitativo de seleção múltipla. Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
+                            with ui.card().classes(
+                                "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
+                            ):
+                                ui.label(
+                                    "1.7.2 • Formas de Capacitação Oferecidas"
+                                ).classes("text-xl font-semibold text-blue-500 mb-3")
+
+                                ui.label(
+                                    "Assinale as modalidades de capacitação adotadas:"
+                                ).classes("text-base font-bold text-black mb-1")
+
+                                ui.label(
+                                    "ℹ Quesito qualitativo de seleção múltipla."
+                                ).classes("text-xs text-gray-400 mb-6")
 
                                 d172 = res_data.get("1.7.2") or {}
 
@@ -2278,12 +2289,16 @@ def container_formulario_ieduc(ano=None):
                                 if isinstance(val_172_bruto, str):
                                     try:
                                         sel_172 = json.loads(val_172_bruto)
+
                                         if not isinstance(sel_172, list):
                                             sel_172 = [str(sel_172)]
+
                                     except Exception:
                                         sel_172 = [val_172_bruto] if val_172_bruto else []
+
                                 elif isinstance(val_172_bruto, list):
                                     sel_172 = list(val_172_bruto)
+
                                 else:
                                     sel_172 = []
 
@@ -2306,96 +2321,81 @@ def container_formulario_ieduc(ano=None):
 
                                         if marcado and opt_text not in opcoes:
                                             opcoes.append(opt_text)
+
                                         elif not marcado and opt_text in opcoes:
                                             opcoes.remove(opt_text)
 
                                         state_172["opcoes"] = opcoes
-                                        lbl_qtd_172.set_text(f"📋 Selecionados ({len(opcoes)} de {len(opcoes_172)})")
 
                                     return on_chk_change
 
-                                lbl_qtd_172 = ui.label(f"📋 Selecionados ({len(state_172['opcoes'])} de {len(opcoes_172)})").classes("text-sm font-semibold text-gray-700")
+                                def atualizar_link_172(e):
+                                    state_172["link"] = str(e.value or "")
 
-                                with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
-                                    meio_172 = (len(opcoes_172) + 1) // 2
-                                    with ui.column().classes("w-full gap-1"):
-                                        for opt in opcoes_172[:meio_172]:
+                                with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                                    with ui.column().classes("gap-2 w-full"):
+                                        for opt in opcoes_172:
                                             ui.checkbox(
                                                 text=opt,
                                                 value=(opt in state_172["opcoes"]),
                                                 on_change=make_chk_172(opt),
-                                            )
-                                    with ui.column().classes("w-full gap-1"):
-                                        for opt in opcoes_172[meio_172:]:
-                                            ui.checkbox(
-                                                text=opt,
-                                                value=(opt in state_172["opcoes"]),
-                                                on_change=make_chk_172(opt),
-                                            )
+                                            ).props("color=blue")
 
-                                # Campo Textarea com bind direto ao estado para evitar chamadas duplas
-                                input_link_172 = ui.textarea(
-                                    label="Link de Evidência / Documento:",
-                                    value=state_172["link"],
-                                    placeholder="Insira o plano de formação, contratos das plataformas de EAD ou relatórios...",
-                                ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_172, "link")
+                                    txt_link_172 = ui.textarea(
+                                        label="Link de Evidência / Documento:",
+                                        value=raw_link_172,
+                                        placeholder=(
+                                            "Insira o plano de formação, contratos "
+                                            "das plataformas de EAD ou relatórios..."
+                                        ),
+                                    ).classes("w-full").props("outlined rows=6")
 
-                                # Renderização dos Links Ativos (Clicáveis)
-                                @ui.refreshable
-                                def render_links_ativos_172():
-                                    raw_txt = state_172.get("link", "") or ""
-                                    import re
-                                    links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
-
-                                    if links_list:
-                                        with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
-                                            ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                            for u in links_list:
-                                                target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                                ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
-
-                                render_links_ativos_172()
-                                input_link_172.on("update:model-value", render_links_ativos_172.refresh)
+                                    txt_link_172.on(
+                                        "update:model-value",
+                                        atualizar_link_172,
+                                    )
 
                                 def salvar_172():
                                     opts_sel = list(state_172.get("opcoes") or [])
-                                    link_172 = str(state_172.get("link") or "").strip()
+                                    link_172 = str(state_172.get("link") or "")
 
                                     valor_172 = json.dumps(
                                         opts_sel,
                                         ensure_ascii=False,
                                     )
 
-                                    try:
-                                        save_resposta(
-                                            ano=ano_sel,
-                                            qid="1.7.2",
-                                            valor=valor_172,
-                                            pontos=0.0,
-                                            link=link_172,
-                                            comentarios=d172.get("comentarios", []),
-                                            status=d172.get("status", "Pendente"),
-                                        )
+                                    save_resposta(
+                                        ano=ano_sel,
+                                        qid="1.7.2",
+                                        valor=valor_172,
+                                        pontos=0.0,
+                                        link=link_172,
+                                        comentarios=d172.get("comentarios", []),
+                                        status=d172.get("status", "Pendente"),
+                                    )
 
-                                        res_data["1.7.2"] = {
-                                            **d172,
-                                            "valor": valor_172,
-                                            "pontos": 0.0,
-                                            "link": link_172,
-                                        }
+                                    # Atualiza os dados em memória antes do refresh
+                                    res_data["1.7.2"] = {
+                                        **d172,
+                                        "valor": valor_172,
+                                        "pontos": 0.0,
+                                        "link": link_172,
+                                    }
 
-                                        ui.notify("Quesito 1.7.2 salvo com sucesso!", type="positive")
+                                    ui.notify(
+                                        "Quesito 1.7.2 salvo com sucesso!",
+                                        type="positive",
+                                    )
 
-                                        if hasattr(render_conteudo, "refresh") and callable(render_conteudo.refresh):
-                                            render_conteudo.refresh()
-                                    except Exception as e:
-                                        ui.notify(f"Erro ao salvar Quesito 1.7.2: {e}", type="negative")
+                                    if render_conteudo.refresh:
+                                        render_conteudo.refresh()
 
-                                with ui.row().classes("w-full justify-between items-center mb-4"):
-                                    with ui.column().classes("gap-0"):
-                                        lbl_qtd_172
-
-                                    ui.button("SALVAR QUESITO 1.7.2", on_click=salvar_172, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+                                ui.button(
+                                    "💾 SALVAR QUESITO 1.7.2",
+                                    on_click=salvar_172,
+                                ).classes(
+                                    "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+                                )
 
                                 ui.separator().classes("my-2")
 
@@ -2404,6 +2404,7 @@ def container_formulario_ieduc(ano=None):
                                     res_data,
                                     render_conteudo.refresh,
                                 )
+
                             
                             # =============================================================================
                             # QUESITO 1.8 (Rotatividade do Corpo Docente em Creches)
