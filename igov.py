@@ -2960,11 +2960,28 @@ def container_formulario_igov_ti():
                         for item in setores_padrao_8:
                             ui.checkbox(item).bind_value(state_83, item)
 
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência da Gestão Direta):",
+                        label="Link de Evidência / Documento:",
                         value=evidencia_83_salva,
                         placeholder="Link do termo de gestão de dados, contrato ou política de BD..."
-                    ).classes("w-full mb-4").bind_value(state_83, "link")
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_83, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_83():
+                        raw_txt = state_83.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_83()
 
                     pts_atuais_83 = float(d83.get("pontos") or 0.0)
                     cor_txt_83 = "text-red-600" if pts_atuais_83 < 0 else "text-gray-700"
@@ -2974,7 +2991,7 @@ def container_formulario_igov_ti():
                             ui.label(f"📋 Bases sob Gestão Direta ({len([i for i in setores_padrao_8 if state_83[i]])}): {valor_salvo_83 if valor_salvo_83 else 'Nenhuma'}").classes("text-sm font-semibold text-gray-700")
                             ui.label(f"📊 Impacto de Pontuação no Quesito 8.3: {pts_atuais_83:.1f} pontos").classes(f"text-sm font-bold {cor_txt_83}")
 
-                        ui.button("Salvar Quesito 8.3", on_click=cb_processa_e_salva_83, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 8.3", on_click=cb_processa_e_salva_83, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("8.3", res_data, ano_sel)
@@ -3048,11 +3065,28 @@ def container_formulario_igov_ti():
                         for item in setores_padrao_8:
                             ui.checkbox(item).bind_value(state_84, item)
 
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência dos Controles de Acesso):",
+                        label="Link de Evidência / Documento:",
                         value=evidencia_84_salva,
                         placeholder="Link de manuais, relatórios de auditoria de logs ou telas de permissão..."
-                    ).classes("w-full mb-4").bind_value(state_84, "link")
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_84, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_84():
+                        raw_txt = state_84.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_84()
 
                     pts_atuais_84 = float(d84.get("pontos") or 0.0)
                     cor_txt_84 = "text-red-600" if pts_atuais_84 < 0 else "text-gray-700"
@@ -3062,12 +3096,12 @@ def container_formulario_igov_ti():
                             ui.label(f"📋 Sistemas com Controle de Acesso ({len([i for i in setores_padrao_8 if state_84[i]])}): {valor_salvo_84 if valor_salvo_84 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
                             ui.label(f"📊 Impacto de Pontuação no Quesito 8.4: {pts_atuais_84:.1f} pontos").classes(f"text-sm font-bold {cor_txt_84}")
 
-                        ui.button("Salvar Quesito 8.4", on_click=cb_processa_e_salva_84, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 8.4", on_click=cb_processa_e_salva_84, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("8.4", res_data, ano_sel)
 
-    # =============================================================================
+                # =============================================================================
                 # QUESITO 9.0 • SERVIÇOS OFERECIDOS DE FORMA ONLINE
                 # =============================================================================
                 opcoes_90 = {
