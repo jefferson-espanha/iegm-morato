@@ -749,23 +749,16 @@ def container_formulario_igov_ti():
                 )
 
                 # =============================================================================
-                # QUESITO 1.1 • COMPOSIÇÃO DA EQUIPE DE TIC
+                # QUESITO 1.1 • COMPOSIÇÃO DA EQUIPE DE TIC (MÚLTIPLOS LINKS)
                 # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                    # Cabeçalho do Quesito
                     ui.label("📌 Quesito 1.1 - Recursos Humanos em TIC").classes("text-lg font-bold text-blue-900 mb-1")
-                
-                    # Enunciado
                     ui.label("Informe a quantidade:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
-                
-                    # Bloco Informativo da Fórmula de Cálculo
+
                     with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
                         ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
-                        ui.label(
-                            "Funcionários concursados + Funcionários comissionados + Estagiários no suporte e atendimento de primeiro nível > 0 — 30 pontos"
-                        ).classes("text-sm text-blue-800 font-medium")
+                        ui.label("Funcionários concursados + Funcionários comissionados + Estagiários no suporte e atendimento de primeiro nível > 0 — 30 pontos").classes("text-sm text-blue-800 font-medium")
 
-                    # Função local de persistência para evitar 'save_resp is not defined'
                     def salvar_no_banco_11(qid_val, valor_val, pontos_val, link_val):
                         try:
                             with get_db_connection() as conn:
@@ -785,7 +778,6 @@ def container_formulario_igov_ti():
                             print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
                             raise err_db
 
-                    # Conversor seguro para prevenir crash com strings vazias
                     def parse_int_seguro(val):
                         if val is None:
                             return 0
@@ -802,10 +794,10 @@ def container_formulario_igov_ti():
                         d11 = {"valor": "0", "pontos": 0.0, "link": ""}
 
                     v_conc_i, v_comi_i, v_esta_i, v_outr_i = 0, 0, 0, 0
-                    evidencia_11_salva = ""
+                    links_salvos = []
                     raw_link = str(d11.get("link") or "")
 
-                    # Extração dos contadores armazenados
+                    # Extração dos contadores e da lista de links armazenados
                     if raw_link:
                         if "|LINK:" in raw_link:
                             contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1)
@@ -823,91 +815,94 @@ def container_formulario_igov_ti():
                         v_esta_i = int(match_e.group(1)) if match_e else 0
                         v_outr_i = int(match_o.group(1)) if match_o else 0
 
-                    # Estado reativo do formulário
+                        if evidencia_11_salva:
+                            links_salvos = [l.strip() for l in evidencia_11_salva.split(";") if l.strip()]
+
+                    if not links_salvos:
+                        links_salvos = [""]
+
                     state_11 = {
                         "conc": v_conc_i,
                         "comi": v_comi_i,
                         "esta": v_esta_i,
                         "outr": v_outr_i,
-                        "link": evidencia_11_salva
+                        "links": links_salvos
                     }
 
-                    # Callback do Botão de Salvar
+                    # Callback de Salvamento
                     def cb_processa_e_salva_11():
                         try:
                             c_val = parse_int_seguro(state_11["conc"])
                             co_val = parse_int_seguro(state_11["comi"])
                             e_val = parse_int_seguro(state_11["esta"])
                             o_val = parse_int_seguro(state_11["outr"])
-                            lnk_val = str(state_11["link"] or "").strip()
+                            
+                            links_validos = [l.strip() for l in state_11["links"] if l.strip()]
+                            lnk_val = ";".join(links_validos)
 
                             total_p = c_val + co_val + e_val
                             pts_calculados = 30.0 if total_p > 0 else 0.0
                             composite_string = f"C:{c_val},Co:{co_val},E:{e_val},O:{o_val}|LINK:{lnk_val}"
 
-                            # Executa salvamento persistente no PostgreSQL
                             salvar_no_banco_11("1.1", str(total_p), pts_calculados, composite_string)
-                        
-                            # Atualiza dict local em memória
+                            
                             res_data["1.1"] = {
                                 "valor": str(total_p), 
                                 "pontos": pts_calculados, 
                                 "link": composite_string
                             }
-                        
+                            
                             ui.notify("Quesito 1.1 salvo com sucesso!", type="positive")
                             container_formulario_igov_ti.refresh()
                         except Exception as err:
                             ui.notify(f"Erro ao salvar Quesito 1.1: {err}", type="negative")
 
-                    # Grid com os Inputs Numéricos
+                    # Grid de Inputs Numéricos
                     with ui.grid(columns=2).classes("w-full gap-4 mb-4 md:grid-cols-4"):
-                        ui.number(
-                            "Funcionários concursados:", 
-                            value=v_conc_i, 
-                            min=0, 
-                            step=1
-                        ).classes("w-full").bind_value(state_11, "conc")
-                    
-                        ui.number(
-                            "Funcionários comissionados:", 
-                            value=v_comi_i, 
-                            min=0, 
-                            step=1
-                        ).classes("w-full").bind_value(state_11, "comi")
-                    
-                        ui.number(
-                            "Estagiários no suporte e atendimento de primeiro nível:", 
-                            value=v_esta_i, 
-                            min=0, 
-                            step=1
-                        ).classes("w-full").bind_value(state_11, "esta")
-                    
-                        ui.number(
-                            "Outros:", 
-                            value=v_outr_i, 
-                            min=0, 
-                            step=1
-                        ).classes("w-full").bind_value(state_11, "outr")
+                        ui.number("Funcionários concursados:", value=v_conc_i, min=0, step=1).classes("w-full").bind_value(state_11, "conc")
+                        ui.number("Funcionários comissionados:", value=v_comi_i, min=0, step=1).classes("w-full").bind_value(state_11, "comi")
+                        ui.number("Estagiários no suporte:", value=v_esta_i, min=0, step=1).classes("w-full").bind_value(state_11, "esta")
+                        ui.number("Outros:", value=v_outr_i, min=0, step=1).classes("w-full").bind_value(state_11, "outr")
 
-                   # Área do Link / Evidência
-                    ui.input(
-                        label="Página Eletrônica (Link / Evidência da Composição):",
-                        placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI...",
-                        value=evidencia_11_salva
-                    ).classes("w-full mb-2").bind_value(state_11, "link")
+                    # Área Dinâmica de Múltiplos Links de Evidência
+                    ui.label("Páginas Eletrônicas (Links / Evidências da Composição):").classes("text-sm font-semibold text-gray-700 mt-2 mb-1")
 
-                    # Exibe o link ativo/clicável caso já exista algo preenchido no estado
-                    if state_11.get("link"):
-                        url_limpa = state_11["link"] if state_11["link"].startswith(("http://", "https://")) else f"https://{state_11['link']}"
-                        with ui.row().classes("items-center gap-1 mb-4"):
-                            ui.icon("link", size="xs").classes("text-blue-600")
-                            ui.link(
-                                text=state_11["link"],
-                                target=url_limpa,
-                                new_tab=True
-                            ).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
-                    
+                    @ui.refreshable
+                    def render_container_links_11():
+                        with ui.column().classes("w-full gap-2 mb-4"):
+                            for idx, link_text in enumerate(state_11["links"]):
+                                with ui.row().classes("w-full items-center gap-2"):
+                                    inp = ui.input(
+                                        placeholder=f"Insira o link da evidência #{idx + 1}...",
+                                        value=link_text
+                                    ).classes("flex-1")
+                                    
+                                    def update_link_val(e, i=idx):
+                                        state_11["links"][i] = e.value
+                                    inp.on("update:model-value", update_link_val)
+
+                                    url_test = link_text.strip()
+                                    if url_test:
+                                        target_url = url_test if url_test.startswith(("http://", "https://")) else f"https://{url_test}"
+                                        ui.button(
+                                            icon="open_in_new", 
+                                            on_click=lambda u=target_url: ui.open(u, new_tab=True)
+                                        ).props("flat round dense color=primary").tooltip("Abrir link")
+
+                                    if len(state_11["links"]) > 1:
+                                        def remover_link(i=idx):
+                                            state_11["links"].pop(i)
+                                            render_container_links_11.refresh()
+                                        ui.button(icon="delete", on_click=remover_link).props("flat round dense color=negative").tooltip("Remover este link")
+
+                            def adicionar_novo_link():
+                                state_11["links"].append("")
+                                render_container_links_11.refresh()
+
+                            ui.button(" Adicionar outro link", icon="add", on_click=adicionar_novo_link).classes("bg-gray-100 text-blue-800 text-xs font-semibold rounded-md border border-gray-300 mt-1")
+
+                    render_container_links_11()
+
                     # Rodapé do Quesito
                     total_pessoal = parse_int_seguro(d11.get("valor"))
                     pts_atuais_11 = float(d11.get("pontos") or 0.0)
@@ -915,16 +910,14 @@ def container_formulario_igov_ti():
 
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         with ui.column().classes("gap-0"):
-                            ui.label(f"👥 Total de Pessoal Efetivo Computado (Concursados + Comissionados + Estagiários): {total_pessoal} funcionário(s)").classes("text-sm font-semibold text-gray-700")
+                            ui.label(f"👥 Total de Pessoal Efetivo Computado: {total_pessoal} funcionário(s)").classes("text-sm font-semibold text-gray-700")
                             ui.label(f"📊 Impacto de Pontuação no Quesito 1.1: +{pts_atuais_11:.1f} pontos").classes(f"text-sm font-bold {cor_txt_11}")
-                    
+                        
                         ui.button("Salvar Quesito 1.1", on_click=cb_processa_e_salva_11, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
 
                     ui.separator().classes("my-2")
-
-                    # Bloco de Comentários Integrado ao Quesito
                     bloco_comentarios("1.1", res_data, ano_sel)
-
+                    
                 # QUESITO 1.2
                 opcoes_12 = {
                     "Selecione...": 0.0,
