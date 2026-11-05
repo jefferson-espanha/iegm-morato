@@ -3,6 +3,7 @@ import base64
 import logging
 from io import BytesIO
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import json
 import os
 import re
@@ -35,6 +36,22 @@ DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
 )
+
+
+def extrair_ano(valor, padrao=2026):
+    """Converte ano ou rótulo do seletor, como 'Ano base(2026)', em inteiro."""
+    if valor is None or valor == "":
+        return int(padrao)
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        encontrado = re.search(r"(?<!\d)(20\d{2})(?!\d)", str(valor))
+        return int(encontrado.group(1)) if encontrado else int(padrao)
+
+
+def agora_brasilia_formatada():
+    """Retorna a data e hora atual no fuso oficial de Brasília."""
+    return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
 
 
 # Pool reutilizável: evita abrir uma conexão TCP/TLS nova a cada clique em Salvar.
@@ -94,7 +111,7 @@ def load_respostas(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
+                cur.execute(query, (extrair_ano(ano),))
                 rows = cur.fetchall()
                 for row in rows:
                     q_id = str(row["quesito"])
@@ -177,7 +194,7 @@ def save_resposta(
                 cur.execute(
                     query,
                     (
-                        int(ano),
+                        extrair_ano(ano),
                         str(qid),
                         resposta_str,
                         float(pontos),
@@ -198,7 +215,7 @@ def zerar_questionario_db(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
+                cur.execute(query, (extrair_ano(ano),))
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no DB: {e}")
@@ -525,6 +542,7 @@ def render_quesito(
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
+    ano_atual = extrair_ano(ano_atual)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
     total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
@@ -548,8 +566,8 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.select(
             options=anos,
             value=int(ano_atual),
-            label="Ano de Referência:",
-            on_change=lambda e: on_mudar_ano(e.value),
+            label="Ano base das respostas:",
+            on_change=lambda e: on_mudar_ano(extrair_ano(e.value)),
         ).classes("w-full mb-4 bg-white")
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
@@ -649,7 +667,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             novo_st = e.value
             log = {
                 "autor": "Sistema / " + usuario_atual,
-                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "data": agora_brasilia_formatada(),
                 "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
@@ -731,7 +749,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             if txt:
                 historico.append({
                     "autor": usuario_atual,
-                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "data": agora_brasilia_formatada(),
                     "texto": txt,
                     "status_definido": status_global,
                 })
@@ -758,7 +776,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 # =============================================================================
 def container_formulario_ieduc(ano=None):
     if "ano_referencia_global" not in app.storage.user:
-        app.storage.user["ano_referencia_global"] = ano if ano else 2026
+        app.storage.user["ano_referencia_global"] = extrair_ano(ano if ano else 2026)
 
     main_container = ui.element("div").classes("w-full")
 
@@ -766,11 +784,11 @@ def container_formulario_ieduc(ano=None):
     def render_conteudo():
         main_container.clear()
         with main_container:
-            ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+            ano_sel = extrair_ano(app.storage.user.get("ano_referencia_global", 2026))
             res_data = load_respostas(ano_sel)
 
             def alterar_ano(novo_ano):
-                app.storage.user["ano_referencia_global"] = int(novo_ano)
+                app.storage.user["ano_referencia_global"] = extrair_ano(novo_ano)
                 ui.notify(f"Ano alterado para {novo_ano}", type="info")
                 render_conteudo.refresh()
 
