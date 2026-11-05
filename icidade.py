@@ -1,6 +1,5 @@
 import base64
 from datetime import date, datetime
-from zoneinfo import ZoneInfo
 import json
 import logging
 import os
@@ -26,22 +25,6 @@ DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
 )
-
-def agora_brasilia_formatada():
-    """Retorna a data e hora atual no fuso oficial de Brasília."""
-    return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
-
-
-def extrair_ano(valor, padrao=2026):
-    """Converte ano ou rótulo como 'Ano base(2026)' em inteiro."""
-    if valor is None or valor == "":
-        return int(padrao)
-    try:
-        return int(valor)
-    except (TypeError, ValueError):
-        encontrado = re.search(r"(?<!\d)(20\d{2})(?!\d)", str(valor))
-        return int(encontrado.group(1)) if encontrado else int(padrao)
-
 
 
 def get_db_connection():
@@ -83,7 +66,7 @@ def load_respostas(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (extrair_ano(ano),))
+                cur.execute(query, (int(ano),))
                 rows = cur.fetchall()
                 for row in rows:
                     respostas[row["qid"]] = {
@@ -137,7 +120,7 @@ def save_resposta(
                 cur.execute(
                     query,
                     (
-                        extrair_ano(ano),
+                        int(ano),
                         str(qid),
                         str(valor),
                         float(pontos),
@@ -156,7 +139,7 @@ def zerar_questionario_db(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (extrair_ano(ano),))
+                cur.execute(query, (int(ano),))
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
@@ -170,228 +153,176 @@ def _obter_lista_comentarios(dados_q):
 # =============================================================================
 # FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (ATUALIZADA)
 # =============================================================================
-    def render_quesito(
-        ano,
-        res_data,
-        qid,
-        titulo,
-        pergunta,
-        opcoes=None,
-        tipo_input="radio",
-        placeholder_link="Insira o link da evidência...",
-        on_save_callback=None,
+def render_quesito(
+    ano,
+    res_data,
+    qid,
+    titulo,
+    pergunta,
+    opcoes=None,
+    tipo_input="radio",
+    placeholder_texto="Digite sua resposta...",
+    placeholder_link="Insira o link da evidência...",
+    on_save_callback=None,
+):
+    dados_q = res_data.get(qid, {})
+    valor_atual = dados_q.get("valor", "")
+    link_atual = dados_q.get("link", "")
+
+    # Para checkboxes, a resposta armazenada é uma lista ou string separada por vírgulas
+    if tipo_input == "checkbox":
+        itens_selecionados = [v.strip() for v in valor_atual.split(",") if v.strip()] if valor_atual else []
+        state = {"opcao": itens_selecionados, "link": link_atual}
+    else:
+        state = {"opcao": valor_atual, "link": link_atual}
+
+    with ui.card().classes(
+        "w-full p-6 mb-4 border border-gray-300 rounded-lg shadow-sm bg-white"
     ):
-        if opcoes is None:
-            opcoes = {}
+        ui.label(f"{qid} • {titulo}").classes(
+            "text-xl font-semibold text-blue-500 mb-3"
+        )
+        ui.label(pergunta).classes("text-base font-bold text-black mb-1")
+        ui.label(
+            "ℹ Preencha os campos abaixo e clique no botão de salvar."
+        ).classes("text-xs text-gray-400 mb-6")
 
-        dados_q = res_data.get(qid, {})
-        link_atual = dados_q.get("link", "")
-
+        # 1. RENDERIZAÇÃO DO CAMPO DE ENTRADA
         if tipo_input == "checkbox":
-            valor_bruto = dados_q.get("valor", [])
-            if isinstance(valor_bruto, list):
-                valor_atual = valor_bruto
-            elif valor_bruto in opcoes:
-                valor_atual = [valor_bruto]
-            else:
-                valor_atual = []
-        elif tipo_input in ["number", "float"]:
-            valor_bruto = dados_q.get("valor", 0.0)
-            try:
-                valor_atual = float(valor_bruto)
-            except (ValueError, TypeError):
-                valor_atual = 0.0
-        elif tipo_input == "text":
-            valor_atual = str(dados_q.get("valor", ""))
-        else:  # radio
-            padrao = "Selecione..." if "Selecione..." in opcoes else (list(opcoes.keys())[0] if opcoes else "")
-            valor_atual = dados_q.get("valor", padrao)
-            if valor_atual not in opcoes and opcoes:
-                valor_atual = padrao
+            if not opcoes:
+                opcoes = {}
+            
+            with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                with ui.element("div").classes("flex flex-col gap-2"):
+                    checkboxes = {}
+                    for item in opcoes.keys():
+                        chk = ui.checkbox(
+                            text=item,
+                            value=(item in state["opcao"])
+                        ).props("color=blue")
+                        checkboxes[item] = chk
 
-        state = {
-            "opcao": valor_atual,
-            "link": link_atual,
-        }
+                ui.textarea(
+                    label="Link de Evidência / Documento:",
+                    value=state["link"],
+                    placeholder=placeholder_link,
+                ).classes("w-full").props("outlined rows=4").bind_value(
+                    state, "link"
+                )
 
-        input_link = None
-        input_texto = None
-
-        with ui.card().classes(
-            "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
-        ):
-            ui.label(f"{qid} • {titulo}").classes(
-                "text-xl font-semibold text-blue-500 mb-3"
+        elif tipo_input in ["texto", "link"]:
+            ui.textarea(
+                label="Resposta / Detalhamento:",
+                value=state["opcao"],
+                placeholder=placeholder_texto if tipo_input == "texto" else placeholder_link,
+            ).classes("w-full mb-4").props("outlined rows=3").bind_value(
+                state, "opcao"
             )
-            ui.label(pergunta).classes("text-base font-bold text-black mb-1")
-            ui.label(
-                "ℹ Preencha os campos abaixo e clique no botão de salvar."
-            ).classes("text-xs text-gray-400 mb-6")
+        else:
+            if not opcoes:
+                opcoes = {"Selecione...": 0.0}
+
+            if state["opcao"] not in opcoes:
+                state["opcao"] = "Selecione..."
 
             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                if tipo_input == "checkbox":
-                    with ui.column().classes("gap-2 w-full"):
-                        def make_on_change(opt):
-                            def on_change(e):
-                                if e.value and opt not in state["opcao"]:
-                                    state["opcao"].append(opt)
-                                elif not e.value and opt in state["opcao"]:
-                                    state["opcao"].remove(opt)
-                                atualizar_impacto()
-                            return on_change
-
-                        for opt_key in opcoes.keys():
-                            is_checked = opt_key in state["opcao"]
-                            ui.checkbox(
-                                text=opt_key,
-                                value=is_checked,
-                                on_change=make_on_change(opt_key)
-                            ).props("color=blue")
-
-                elif tipo_input in ["number", "float"]:
-                    input_num = (
-                        ui.number(
-                            label="Pontuação do Quesito:",
-                            value=state["opcao"],
-                            min=0,
-                            max=250,
-                            step=0.1,
-                        )
-                        .classes("w-full")
-                        .props("outlined color=blue")
-                        .bind_value(state, "opcao")
+                radio_opcao = (
+                    ui.radio(
+                        options=list(opcoes.keys()),
+                        value=state["opcao"],
                     )
-
-                elif tipo_input == "text":
-                    input_texto = (
-                        ui.textarea(
-                            label="Resposta / Comentário:",
-                            value=state["opcao"],
-                            placeholder="Digite sua resposta...",
-                        )
-                        .classes("w-full")
-                        .props("outlined rows=4")
-                        .bind_value(state, "opcao")
-                    )
-
-                else:  # radio
-                    input_radio = (
-                        ui.radio(
-                            options=list(opcoes.keys()),
-                            value=state["opcao"],
-                        )
-                        .props("color=blue")
-                        .bind_value(state, "opcao")
-                    )
-
-                input_link = (
-                    ui.textarea(
-                        label="Link de Evidência / Documento:",
-                        value=state["link"],
-                        placeholder=placeholder_link,
-                    )
-                    .classes("w-full")
-                    .props("outlined rows=5")
-                    .bind_value(state, "link")
+                    .props("color=blue")
+                    .bind_value(state, "opcao")
                 )
 
-            def calcular_pontos(opcao_sel):
-                if tipo_input in ["number", "float"]:
-                    try:
-                        return float(opcao_sel)
-                    except (ValueError, TypeError):
-                        return 0.0
-                elif tipo_input == "text":
-                    return 0.0
-                elif isinstance(opcao_sel, list):
-                    return sum(float(opcoes.get(opt, 0.0)) for opt in opcao_sel)
-                
-                val = opcoes.get(opcao_sel, 0.0)
-                try:
-                    return float(val)
-                except (ValueError, TypeError):
-                    return 0.0
+                ui.textarea(
+                    label="Link de Evidência / Documento:",
+                    value=state["link"],
+                    placeholder=placeholder_link,
+                ).classes("w-full").props("outlined rows=4").bind_value(
+                    state, "link"
+                )
 
-            pts_atuais = calcular_pontos(state["opcao"])
+            pts_atuais = opcoes.get(state["opcao"], 0.0)
             label_impacto = ui.label(
-                f"📊 Impacto de Pontuação no Quesito {qid}: {float(pts_atuais):.2f} pontos"
+                f"📊 Impacto de Pontuação no Quesito {qid}: {pts_atuais:.1f} pontos"
             ).classes("text-sm font-bold text-green-600 my-4")
 
-            def atualizar_impacto(e=None):
-                novos_pts = calcular_pontos(state["opcao"])
+            def ao_mudar_opcao(e):
+                novos_pts = opcoes.get(e.value, 0.0)
                 label_impacto.set_text(
-                    f"📊 Impacto de Pontuação no Quesito {qid}: {float(novos_pts):.2f} pontos"
+                    f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
                 )
 
-            if tipo_input == "radio":
-                input_radio.on("update:model-value", atualizar_impacto)
-            elif tipo_input in ["number", "float"]:
-                input_num.on("update:model-value", atualizar_impacto)
+            radio_opcao.on("update:model-value", ao_mudar_opcao)
 
-            # =====================================================================
-            # RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS (ÚNICA)
-            # =====================================================================
-            container_links = ui.row().classes("w-full items-center my-2")
+        # =====================================================================
+        # INSERÇÃO: RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUÁIS
+        # =====================================================================
+        container_links = ui.row().classes("w-full items-center my-2")
 
-            def atualizar_links_visuais(_=None):
-                container_links.clear()
-                val_txt = input_texto.value if input_texto and input_texto.value else ""
-                lnk_txt = input_link.value if input_link and input_link.value else ""
-                txt_total = f"{val_txt} {lnk_txt}"
-
-                REGEX_PURE_URL = r'https?://[^\s]+'
-                links = re.findall(REGEX_PURE_URL, txt_total)
-
-                if links:
-                    with container_links:
-                        ui.label("Links Ativos: ").classes(
-                            "font-bold text-caption text-gray-700"
-                        )
-                        for url in dict.fromkeys(links):  # Elimina URLs idênticas duplicadas
-                            target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
-                            ui.link(url, target=target_url, new_tab=True).classes(
-                                "text-caption text-blue-6 mr-2 underline"
-                            )
-
-            if input_link:
-                input_link.on("update:model-value", atualizar_links_visuais)
-            if input_texto:
-                input_texto.on("update:model-value", atualizar_links_visuais)
-
-            atualizar_links_visuais()
+        def atualizar_links_visuais():
+            container_links.clear()
+            val_txt = ""
+            if tipo_input in ["texto", "link"]:
+                val_txt = state.get("opcao", "")
             
-        # =====================================================================
-        # SALVAMENTO DA RESPOSTA E COMENTÁRIOS INTERNOS
-        # =====================================================================
+            lnk_txt = state.get("link", "")
+            txt_total = f"{val_txt} {lnk_txt}"
+
+            # REGEX para identificar URLs válidas
+            links = re.findall(r'https?://[^\s]+', txt_total)
+            if links:
+                with container_links:
+                    ui.label("Links Ativos: ").classes("font-bold text-caption text-gray-700")
+                    for url in links:
+                        ui.link(url, target=url, new_tab=True).classes("text-caption text-blue-6 mr-2")
+
+        # Vincula a atualização em tempo real às alterações nos campos de entrada
+        atualizar_links_visuais()
+
+        # 2. BOTÃO DE SALVAR
         def salvar_acao():
-            opcao_sel = state["opcao"]
-            try:
-                pts = calcular_pontos(opcao_sel)
-            except Exception:
+            if tipo_input == "checkbox":
+                sel = [item for item, chk in checkboxes.items() if chk.value]
+                opcao_sel = ", ".join(sel)
                 pts = 0.0
+            else:
+                opcao_sel = state["opcao"]
+                pts = opcoes.get(opcao_sel, 0.0) if (opcoes and tipo_input == "radio") else 0.0
+
+            lnk = state["link"]
 
             save_resposta(
                 ano=ano,
                 qid=qid,
                 valor=opcao_sel,
                 pontos=pts,
-                link=state.get("link", ""),
+                link=lnk,
                 comentarios=dados_q.get("comentarios", []),
                 status=dados_q.get("status", "Pendente"),
             )
             ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
-            if on_save_callback:
-                on_save_callback()
 
-        ui.button("SALVAR RESPOSTA", on_click=salvar_acao).classes(
-            "bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2"
+            if on_save_callback:
+                try:
+                    on_save_callback()
+                except Exception:
+                    ui.run_javascript("window.location.reload()")
+
+        ui.button("Salvar Resposta", on_click=salvar_acao).classes(
+            "bg-blue-600 text-white font-bold px-4 py-2 mb-4"
         )
+
         ui.separator().classes("my-2")
-        bloco_comentarios(qid, res_data, on_save_callback)
+
+        bloco_comentarios(
+            qid=qid, res_data=res_data, on_save_callback=on_save_callback
+        )
+
 
 # PAINEL DE CONTROLE LATERAL
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
-    ano_atual = extrair_ano(ano_atual)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
     total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
@@ -416,9 +347,9 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
 
         ui.select(
             options=anos,
-            value=extrair_ano(ano_atual),
-            label="Ano Base das respostas:",
-            on_change=lambda e: on_mudar_ano(extrair_ano(e.value)),
+            value=int(ano_atual),
+            label="Ano de Referência:",
+            on_change=lambda e: on_mudar_ano(e.value),
         ).classes("w-full mb-4 bg-white")
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
@@ -439,7 +370,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
-        ui.button("🔄 ATUALIZAR ANO", on_click=atualizar_dados).classes(
+        ui.button("🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados).classes(
             "w-full bg-blue-700 text-white font-bold mb-2"
         )
 
@@ -492,7 +423,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
 # BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
 def bloco_comentarios(qid, res_data, on_save_callback=None):
-    ano_sel = extrair_ano(app.storage.user.get("ano_referencia_global", 2026))
+    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
     dados_q = res_data.get(qid, {})
@@ -517,7 +448,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             novo_st = e.value
             log = {
                 "autor": "Sistema / " + usuario_atual,
-                "data": agora_brasilia_formatada(),
+                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
                 "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
@@ -599,7 +530,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             if txt:
                 historico.append({
                     "autor": usuario_atual,
-                    "data": agora_brasilia_formatada(),
+                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
                     "texto": txt,
                     "status_definido": status_global,
                 })
@@ -620,20 +551,21 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             "bg-blue-600 text-white mt-2"
         )
 
+
 # =============================================================================
 # MÓDULO PRINCIPAL DE REQUISITOS (LAYOUT CORRIGIDO)
 # =============================================================================
 def container_formulario_icidade(ano=None):
     if "ano_referencia_global" not in app.storage.user:
-        app.storage.user["ano_referencia_global"] = extrair_ano(ano if ano else 2026)
+        app.storage.user["ano_referencia_global"] = ano if ano else 2026
 
     @ui.refreshable
     def render_conteudo():
-        ano_sel = extrair_ano(app.storage.user.get("ano_referencia_global", 2026))
+        ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
         res_data = load_respostas(ano_sel)
 
         def alterar_ano(novo_ano):
-            app.storage.user["ano_referencia_global"] = extrair_ano(novo_ano)
+            app.storage.user["ano_referencia_global"] = int(novo_ano)
             ui.notify(f"Ano alterado para {novo_ano}", type="info")
             render_conteudo.refresh()
 
@@ -654,7 +586,7 @@ def container_formulario_icidade(ano=None):
             with ui.element("div").classes(
                 "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm flex flex-col gap-6"
             ):
-                ui.label(f"📋 Módulo i-cidade — Ano base das respostas ({ano_sel})").classes(
+                ui.label(f"📋 Módulo i-cidade — Ano {ano_sel}").classes(
                     "text-xl font-bold mb-2 text-slate-800 border-b pb-2"
                 )
 
@@ -2105,7 +2037,7 @@ def container_formulario_icidade(ano=None):
                         nota_atual = 0.0
 
                     try:
-                        ano_atual = extrair_ano(ano)
+                        ano_atual = int(str(ano).strip()[:4])
                     except Exception:
                         ano_atual = 2025
 
