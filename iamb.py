@@ -3595,23 +3595,108 @@ def _render_formulario_iamb(ano=None):
                     )
 
                     # =============================================================================
-                    # QUESITO 10.3.1 (Seleção Única - Licença CETESB para ATT)
+                    # QUESITO 10.3.1 (Seleção Única - Licença CETESB para ATT - Penalidade)
                     # =============================================================================
-                    opcoes_1031 = {
-                        "Selecione...": 0.0,
-                        "Sim – 00 pts": 0.0,
-                        "Não – -50 pts (perde 50 pontos)": -50.0,
-                    }
-                    render_quesito(
-                        ano=ano_sel,
-                        res_data=res_data,
-                        qid="10.3.1",
-                        titulo="Licença de Operação CETESB da ATT",
-                        pergunta="Existe licença de operação da CETESB para a Área de Transbordo e Triagem (ATT) de Resíduos Sólidos Urbanos?",
-                        opcoes=opcoes_1031,
-                        placeholder_link="Insira o link do documento da Licença de Operação emitida pela CETESB...",
-                        on_save_callback=render_conteudo.refresh,
-                    )
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                        ui.label("📌 Quesito 10.3.1 - Licença de Operação CETESB da ATT").classes("text-lg font-bold text-blue-900 mb-1")
+                        ui.label("Existe licença de operação da CETESB para a Área de Transbordo e Triagem (ATT) de Resíduos Sólidos Urbanos?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                        ui.label("ℹ Selecione a opção correspondente à situação atual e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
+
+                        with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
+                            ui.label("Regra de Pontuação:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
+                            ui.label(
+                                "• Sim — Mantém pontuação sem penalização (0,0 ponto)\n"
+                                "• Não — Aplicação de penalização grave (-50,0 pontos)"
+                            ).classes("text-xs text-blue-900 font-medium mt-1")
+
+                        d1031 = res_data.get("10.3.1") or {}
+                        if not isinstance(d1031, dict):
+                            d1031 = {"valor": "", "pontos": 0.0, "link": ""}
+
+                        val_1031_salvo = str(d1031.get("valor") or "Selecione...")
+                        link_1031_salvo = str(d1031.get("link") or "")
+
+                        opcoes_1031 = {
+                            "Selecione...": 0.0,
+                            "Sim – 00 pts": 0.0,
+                            "Não – -50 pts (perde 50 pontos)": -50.0,
+                        }
+
+                        state_1031 = {
+                            "opcao": val_1031_salvo if val_1031_salvo in opcoes_1031 else "Selecione...",
+                            "link": link_1031_salvo
+                        }
+
+                        def calc_pts_1031(op_str):
+                            return opcoes_1031.get(op_str, 0.0)
+
+                        with ui.grid(columns=2).classes("w-full gap-4 items-center mb-4"):
+                            select_1031 = ui.select(
+                                options=list(opcoes_1031.keys()),
+                                label="Resposta:",
+                                value=state_1031["opcao"]
+                            ).classes("w-full mb-2").bind_value(state_1031, "opcao")
+
+                        # Campo Textarea para os Links
+                        ui.textarea(
+                            label="Link de Evidência / Documento:",
+                            value=state_1031["link"],
+                            placeholder="Insira o link do documento da Licença de Operação emitida pela CETESB...",
+                        ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_1031, "link")
+
+                        # Renderização dos Links Ativos (Clicáveis)
+                        @ui.refreshable
+                        def render_links_ativos_1031():
+                            raw_txt = state_1031.get("link", "") or ""
+                            import re
+                            links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                            if links_list:
+                                with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                    ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                    for u in links_list:
+                                        target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                        ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                        render_links_ativos_1031()
+
+                        pts_atuais_1031 = calc_pts_1031(state_1031["opcao"])
+                        cor_txt_1031 = "text-red-600" if pts_atuais_1031 < 0 else "text-gray-700"
+                        lbl_pts_1031 = ui.label(f"📊 Impacto de Pontuação no Quesito 10.3.1: {pts_atuais_1031:.1f} pontos").classes(f"text-sm font-bold {cor_txt_1031}")
+
+                        def att_pts_1031(e):
+                            val = e.value if hasattr(e, "value") else state_1031["opcao"]
+                            pts = calc_pts_1031(val)
+                            cor = "text-red-600" if pts < 0 else "text-gray-700"
+                            lbl_pts_1031.classes(replace=cor)
+                            lbl_pts_1031.set_text(f"📊 Impacto de Pontuação no Quesito 10.3.1: {pts:.1f} pontos")
+
+                        select_1031.on("update:model-value", att_pts_1031)
+
+                        def salvar_1031():
+                            opcao_sel = str(state_1031.get("opcao") or "Selecione...").strip()
+                            lnk_val = str(state_1031.get("link") or "").strip()
+                            pts = calc_pts_1031(opcao_sel)
+                            save_resposta(
+                                ano=ano_sel,
+                                qid="10.3.1",
+                                valor=opcao_sel,
+                                pontos=pts,
+                                link=lnk_val,
+                                comentarios=d1031.get("comentarios", []),
+                                status=d1031.get("status", "Pendente")
+                            )
+                            ui.notify(f"Quesito 10.3.1 salvo com sucesso! Pontuação: {pts:.1f} pts", type="positive")
+                            if render_conteudo.refresh: render_conteudo.refresh()
+
+                        with ui.row().classes("w-full justify-between items-center mb-4"):
+                            with ui.column().classes("gap-0"):
+                                lbl_pts_1031
+
+                            ui.button("SALVAR QUESITO 10.3.1", on_click=salvar_1031, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+
+                        ui.separator().classes("my-2")
+                        bloco_comentarios("10.3.1", res_data, render_conteudo.refresh)
 
                     # =============================================================================
                     # QUESITO 10.3.1.1 (Validade da Licença CETESB da ATT)
@@ -3823,10 +3908,10 @@ def _render_formulario_iamb(ano=None):
                     # =============================================================================
                     # QUESITO 11.3.1 (Seleção Múltipla - Metas Previstas)
                     # =============================================================================
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("11.3.1 • Metas Previstas no PGRCC").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Informe quais metas estão previstas:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Selecione as metas previstas e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                        ui.label("📌 Quesito 11.3.1 - Metas Previstas no PGRCC").classes("text-lg font-bold text-blue-900 mb-1")
+                        ui.label("Informe quais metas estão previstas:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                        ui.label("ℹ Selecione as metas previstas e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
 
                         d1131 = res_data.get("11.3.1") or {}
                         try:
@@ -3849,33 +3934,70 @@ def _render_formulario_iamb(ano=None):
                         def calc_pts_1131():
                             return sum(peso for k, (_, peso) in mapa_1131.items() if state_1131.get(k))
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_1131a = [ui.checkbox(rotulo).bind_value(state_1131, k) for k, (rotulo, _) in list(mapa_1131.items())[:3]]
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_1131b = [ui.checkbox(rotulo).bind_value(state_1131, k) for k, (rotulo, _) in list(mapa_1131.items())[3:]]
 
+                        # Campo Textarea para os Links
                         ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_1131["link"],
                             placeholder="Insira o link das tabelas ou capítulos do plano que comprovam as metas...",
-                        ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_1131, "link")
+                        ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_1131, "link")
+
+                        # Renderização dos Links Ativos (Clicáveis)
+                        @ui.refreshable
+                        def render_links_ativos_1131():
+                            raw_txt = state_1131.get("link", "") or ""
+                            import re
+                            links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                            if links_list:
+                                with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                    ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                    for u in links_list:
+                                        target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                        ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                        render_links_ativos_1131()
+
+                        pts_atuais_1131 = calc_pts_1131()
+                        cor_txt_1131 = "text-green-600" if pts_atuais_1131 > 0 else "text-gray-500"
+                        lbl_pts_1131 = ui.label(f"📊 Impacto de Pontuação no Quesito 11.3.1: {pts_atuais_1131:.1f} pontos").classes(f"text-sm font-bold {cor_txt_1131}")
+
+                        def att_pts_1131():
+                            pts = calc_pts_1131()
+                            cor = "text-green-600" if pts > 0 else "text-gray-500"
+                            lbl_pts_1131.classes(replace=cor)
+                            lbl_pts_1131.set_text(f"📊 Impacto de Pontuação no Quesito 11.3.1: {pts:.1f} pontos")
+
+                        for cb in cb_col_1131a + cb_col_1131b:
+                            cb.on("update:model-value", att_pts_1131)
 
                         def salvar_1131():
                             selecionados = [k for k in mapa_1131.keys() if state_1131.get(k)]
+                            lnk_val = str(state_1131["link"] or "").strip()
                             save_resposta(
                                 ano=ano_sel,
                                 qid="11.3.1",
                                 valor=json.dumps(selecionados),
                                 pontos=calc_pts_1131(),
-                                link=state_1131["link"],
+                                link=lnk_val,
                                 comentarios=d1131.get("comentarios", []),
                                 status=d1131.get("status", "Pendente"),
                             )
                             ui.notify("Quesito 11.3.1 salvo com sucesso!", type="positive")
                             if render_conteudo.refresh: render_conteudo.refresh()
 
-                        ui.button("💾 SALVAR QUESITO 11.3.1", on_click=salvar_1131).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        with ui.row().classes("w-full justify-between items-center mb-4"):
+                            with ui.column().classes("gap-0"):
+                                ui.label(f"📋 Selecionados ({len([k for k in mapa_1131.keys() if state_1131.get(k)])})").classes("text-sm font-semibold text-gray-700")
+                                lbl_pts_1131
+
+                            ui.button("SALVAR QUESITO 11.3.1", on_click=salvar_1131, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.3.1", res_data, render_conteudo.refresh)
 
@@ -3901,10 +4023,10 @@ def _render_formulario_iamb(ano=None):
                     # =============================================================================
                     # QUESITO 11.3.2.1 (Seleção Múltipla - Formas de Monitoramento)
                     # =============================================================================
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("11.3.2.1 • Formas de Monitoramento e Avaliação do PGRCC").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("De que forma é realizado o monitoramento e avaliação?").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                        ui.label("📌 Quesito 11.3.2.1 - Formas de Monitoramento e Avaliação do PGRCC").classes("text-lg font-bold text-blue-900 mb-1")
+                        ui.label("De que forma é realizado o monitoramento e avaliação?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                        ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
 
                         d11321 = res_data.get("11.3.2.1") or {}
                         try:
@@ -3926,33 +4048,70 @@ def _render_formulario_iamb(ano=None):
                         def calc_pts_11321():
                             return sum(peso for k, (_, peso) in mapa_11321.items() if state_11321.get(k))
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_11321a = [ui.checkbox(rotulo).bind_value(state_11321, k) for k, (rotulo, _) in list(mapa_11321.items())[:2]]
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_11321b = [ui.checkbox(rotulo).bind_value(state_11321, k) for k, (rotulo, _) in list(mapa_11321.items())[2:]]
 
+                        # Campo Textarea para os Links
                         ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_11321["link"],
                             placeholder="Insira o link dos relatórios de indicadores, publicações ou avaliações de recursos...",
-                        ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_11321, "link")
+                        ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_11321, "link")
+
+                        # Renderização dos Links Ativos (Clicáveis)
+                        @ui.refreshable
+                        def render_links_ativos_11321():
+                            raw_txt = state_11321.get("link", "") or ""
+                            import re
+                            links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                            if links_list:
+                                with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                    ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                    for u in links_list:
+                                        target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                        ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                        render_links_ativos_11321()
+
+                        pts_atuais_11321 = calc_pts_11321()
+                        cor_txt_11321 = "text-green-600" if pts_atuais_11321 > 0 else "text-gray-500"
+                        lbl_pts_11321 = ui.label(f"📊 Impacto de Pontuação no Quesito 11.3.2.1: {pts_atuais_11321:.1f} pontos").classes(f"text-sm font-bold {cor_txt_11321}")
+
+                        def att_pts_11321():
+                            pts = calc_pts_11321()
+                            cor = "text-green-600" if pts > 0 else "text-gray-500"
+                            lbl_pts_11321.classes(replace=cor)
+                            lbl_pts_11321.set_text(f"📊 Impacto de Pontuação no Quesito 11.3.2.1: {pts:.1f} pontos")
+
+                        for cb in cb_col_11321a + cb_col_11321b:
+                            cb.on("update:model-value", att_pts_11321)
 
                         def salvar_11321():
                             selecionados = [k for k in mapa_11321.keys() if state_11321.get(k)]
+                            lnk_val = str(state_11321["link"] or "").strip()
                             save_resposta(
                                 ano=ano_sel,
                                 qid="11.3.2.1",
                                 valor=json.dumps(selecionados),
                                 pontos=calc_pts_11321(),
-                                link=state_11321["link"],
+                                link=lnk_val,
                                 comentarios=d11321.get("comentarios", []),
                                 status=d11321.get("status", "Pendente"),
                             )
                             ui.notify("Quesito 11.3.2.1 salvo com sucesso!", type="positive")
                             if render_conteudo.refresh: render_conteudo.refresh()
 
-                        ui.button("💾 SALVAR QUESITO 11.3.2.1", on_click=salvar_11321).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        with ui.row().classes("w-full justify-between items-center mb-4"):
+                            with ui.column().classes("gap-0"):
+                                ui.label(f"📋 Selecionados ({len([k for k in mapa_11321.keys() if state_11321.get(k)])})").classes("text-sm font-semibold text-gray-700")
+                                lbl_pts_11321
+
+                            ui.button("SALVAR QUESITO 11.3.2.1", on_click=salvar_11321, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.3.2.1", res_data, render_conteudo.refresh)
 
@@ -3981,10 +4140,10 @@ def _render_formulario_iamb(ano=None):
                     # =============================================================================
                     # QUESITO 11.3.3.1 (Seleção Múltipla - Motivos do Não Cumprimento)
                     # =============================================================================
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("11.3.3.1 • Motivos do Não Cumprimento das Metas").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Assinale os motivos pelos quais as metas não estão sendo cumpridas:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                        ui.label("📌 Quesito 11.3.3.1 - Motivos do Não Cumprimento das Metas").classes("text-lg font-bold text-blue-900 mb-1")
+                        ui.label("Assinale os motivos pelos quais as metas não estão sendo cumpridas:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                        ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
 
                         d11331 = res_data.get("11.3.3.1") or {}
                         try:
@@ -4009,33 +4168,70 @@ def _render_formulario_iamb(ano=None):
                         def calc_pts_11331():
                             return sum(peso for k, (_, peso) in mapa_11331.items() if state_11331.get(k))
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_11331a = [ui.checkbox(rotulo).bind_value(state_11331, k) for k, (rotulo, _) in list(mapa_11331.items())[:4]]
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_11331b = [ui.checkbox(rotulo).bind_value(state_11331, k) for k, (rotulo, _) in list(mapa_11331.items())[4:]]
 
+                        # Campo Textarea para os Links
                         ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_11331["link"],
                             placeholder="Insira o link de documentos ou justificativas referentes aos motivos...",
-                        ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_11331, "link")
+                        ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_11331, "link")
+
+                        # Renderização dos Links Ativos (Clicáveis)
+                        @ui.refreshable
+                        def render_links_ativos_11331():
+                            raw_txt = state_11331.get("link", "") or ""
+                            import re
+                            links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                            if links_list:
+                                with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                    ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                    for u in links_list:
+                                        target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                        ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                        render_links_ativos_11331()
+
+                        pts_atuais_11331 = calc_pts_11331()
+                        cor_txt_11331 = "text-green-600" if pts_atuais_11331 > 0 else "text-gray-500"
+                        lbl_pts_11331 = ui.label(f"📊 Impacto de Pontuação no Quesito 11.3.3.1: {pts_atuais_11331:.1f} pontos").classes(f"text-sm font-bold {cor_txt_11331}")
+
+                        def att_pts_11331():
+                            pts = calc_pts_11331()
+                            cor = "text-green-600" if pts > 0 else "text-gray-500"
+                            lbl_pts_11331.classes(replace=cor)
+                            lbl_pts_11331.set_text(f"📊 Impacto de Pontuação no Quesito 11.3.3.1: {pts:.1f} pontos")
+
+                        for cb in cb_col_11331a + cb_col_11331b:
+                            cb.on("update:model-value", att_pts_11331)
 
                         def salvar_11331():
                             selecionados = [k for k in mapa_11331.keys() if state_11331.get(k)]
+                            lnk_val = str(state_11331["link"] or "").strip()
                             save_resposta(
                                 ano=ano_sel,
                                 qid="11.3.3.1",
                                 valor=json.dumps(selecionados),
                                 pontos=calc_pts_11331(),
-                                link=state_11331["link"],
+                                link=lnk_val,
                                 comentarios=d11331.get("comentarios", []),
                                 status=d11331.get("status", "Pendente"),
                             )
                             ui.notify("Quesito 11.3.3.1 salvo com sucesso!", type="positive")
                             if render_conteudo.refresh: render_conteudo.refresh()
 
-                        ui.button("💾 SALVAR QUESITO 11.3.3.1", on_click=salvar_11331).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        with ui.row().classes("w-full justify-between items-center mb-4"):
+                            with ui.column().classes("gap-0"):
+                                ui.label(f"📋 Selecionados ({len([k for k in mapa_11331.keys() if state_11331.get(k)])})").classes("text-sm font-semibold text-gray-700")
+                                lbl_pts_11331
+
+                            ui.button("SALVAR QUESITO 11.3.3.1", on_click=salvar_11331, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.3.3.1", res_data, render_conteudo.refresh)
 
@@ -4081,10 +4277,10 @@ def _render_formulario_iamb(ano=None):
                     # =============================================================================
                     # QUESITO 11.5.1 (Seleção Múltipla - Atividades Fiscalizadas)
                     # =============================================================================
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("11.5.1 • Atividades Fiscalizadas").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Em quais atividades são realizadas essas fiscalizações?").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Selecione as atividades e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                        ui.label("📌 Quesito 11.5.1 - Atividades Fiscalizadas").classes("text-lg font-bold text-blue-900 mb-1")
+                        ui.label("Em quais atividades são realizadas essas fiscalizações?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                        ui.label("ℹ Selecione as atividades e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
 
                         d1151 = res_data.get("11.5.1") or {}
                         try:
@@ -4106,33 +4302,70 @@ def _render_formulario_iamb(ano=None):
                         def calc_pts_1151():
                             return sum(peso for k, (_, peso) in mapa_1151.items() if state_1151.get(k))
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_1151a = [ui.checkbox(rotulo).bind_value(state_1151, k) for k, (rotulo, _) in list(mapa_1151.items())[:2]]
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_1151b = [ui.checkbox(rotulo).bind_value(state_1151, k) for k, (rotulo, _) in list(mapa_1151.items())[2:]]
 
+                        # Campo Textarea para os Links
                         ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_1151["link"],
                             placeholder="Insira o link das evidências das fiscalizações realizadas...",
-                        ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_1151, "link")
+                        ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_1151, "link")
+
+                        # Renderização dos Links Ativos (Clicáveis)
+                        @ui.refreshable
+                        def render_links_ativos_1151():
+                            raw_txt = state_1151.get("link", "") or ""
+                            import re
+                            links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                            if links_list:
+                                with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                    ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                    for u in links_list:
+                                        target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                        ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                        render_links_ativos_1151()
+
+                        pts_atuais_1151 = calc_pts_1151()
+                        cor_txt_1151 = "text-green-600" if pts_atuais_1151 > 0 else "text-gray-500"
+                        lbl_pts_1151 = ui.label(f"📊 Impacto de Pontuação no Quesito 11.5.1: {pts_atuais_1151:.1f} pontos").classes(f"text-sm font-bold {cor_txt_1151}")
+
+                        def att_pts_1151():
+                            pts = calc_pts_1151()
+                            cor = "text-green-600" if pts > 0 else "text-gray-500"
+                            lbl_pts_1151.classes(replace=cor)
+                            lbl_pts_1151.set_text(f"📊 Impacto de Pontuação no Quesito 11.5.1: {pts:.1f} pontos")
+
+                        for cb in cb_col_1151a + cb_col_1151b:
+                            cb.on("update:model-value", att_pts_1151)
 
                         def salvar_1151():
                             selecionados = [k for k in mapa_1151.keys() if state_1151.get(k)]
+                            lnk_val = str(state_1151["link"] or "").strip()
                             save_resposta(
                                 ano=ano_sel,
                                 qid="11.5.1",
                                 valor=json.dumps(selecionados),
                                 pontos=calc_pts_1151(),
-                                link=state_1151["link"],
+                                link=lnk_val,
                                 comentarios=d1151.get("comentarios", []),
                                 status=d1151.get("status", "Pendente"),
                             )
                             ui.notify("Quesito 11.5.1 salvo com sucesso!", type="positive")
                             if render_conteudo.refresh: render_conteudo.refresh()
 
-                        ui.button("💾 SALVAR QUESITO 11.5.1", on_click=salvar_1151).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        with ui.row().classes("w-full justify-between items-center mb-4"):
+                            with ui.column().classes("gap-0"):
+                                ui.label(f"📋 Selecionados ({len([k for k in mapa_1151.keys() if state_1151.get(k)])})").classes("text-sm font-semibold text-gray-700")
+                                lbl_pts_1151
+
+                            ui.button("SALVAR QUESITO 11.5.1", on_click=salvar_1151, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.5.1", res_data, render_conteudo.refresh)
 
@@ -4243,10 +4476,10 @@ def _render_formulario_iamb(ano=None):
                     # =============================================================================
                     # QUESITO 12.1 (Seleção Múltipla - Forma de Processamento de Resíduos)
                     # =============================================================================
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("12.1 • Forma de Processamento de Resíduos").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Assinale qual a forma realizada de processamento de resíduos:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Selecione as opções praticadas e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                        ui.label("📌 Quesito 12.1 - Forma de Processamento de Resíduos").classes("text-lg font-bold text-blue-900 mb-1")
+                        ui.label("Assinale qual a forma realizada de processamento de resíduos:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                        ui.label("ℹ Selecione as opções praticadas e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
 
                         d121 = res_data.get("12.1") or {}
                         try:
@@ -4269,39 +4502,73 @@ def _render_formulario_iamb(ano=None):
                         def calc_pts_121():
                             return sum(peso for k, (_, peso) in mapa_121.items() if state_121.get(k))
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_121a = [ui.checkbox(rotulo).bind_value(state_121, k) for k, (rotulo, _) in list(mapa_121.items())[:3]]
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_121b = [ui.checkbox(rotulo).bind_value(state_121, k) for k, (rotulo, _) in list(mapa_121.items())[3:]]
 
+                        # Campo Textarea para os Links
                         ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_121["link"],
                             placeholder="Insira o link das comprovações das formas de processamento selecionadas...",
-                        ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_121, "link")
+                        ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_121, "link")
 
-                        lbl_pts_121 = ui.label(f"📊 Impacto de Pontuação no Quesito 12.1: {calc_pts_121():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+                        # Renderização dos Links Ativos (Clicáveis)
+                        @ui.refreshable
+                        def render_links_ativos_121():
+                            raw_txt = state_121.get("link", "") or ""
+                            import re
+                            links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                            if links_list:
+                                with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                    ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                    for u in links_list:
+                                        target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                        ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                        render_links_ativos_121()
+
+                        pts_atuais_121 = calc_pts_121()
+                        cor_txt_121 = "text-green-600" if pts_atuais_121 > 0 else "text-gray-500"
+                        lbl_pts_121 = ui.label(f"📊 Impacto de Pontuação no Quesito 12.1: {pts_atuais_121:.1f} pontos").classes(f"text-sm font-bold {cor_txt_121}")
+
+                        def att_pts_121():
+                            pts = calc_pts_121()
+                            cor = "text-green-600" if pts > 0 else "text-gray-500"
+                            lbl_pts_121.classes(replace=cor)
+                            lbl_pts_121.set_text(f"📊 Impacto de Pontuação no Quesito 12.1: {pts:.1f} pontos")
+
+                        for cb in cb_col_121a + cb_col_121b:
+                            cb.on("update:model-value", att_pts_121)
 
                         def salvar_121():
                             selecionados = [k for k in mapa_121.keys() if state_121.get(k)]
+                            lnk_val = str(state_121["link"] or "").strip()
                             pts = calc_pts_121()
                             save_resposta(
                                 ano=ano_sel,
                                 qid="12.1",
                                 valor=json.dumps(selecionados),
                                 pontos=pts,
-                                link=state_121["link"],
+                                link=lnk_val,
                                 comentarios=d121.get("comentarios", []),
                                 status=d121.get("status", "Pendente"),
                             )
-                            ui.notify("Quesito 12.1 salvo com sucesso!", type="positive")
+                            ui.notify(f"Quesito 12.1 salvo com sucesso! ({pts:.1f} pts)", type="positive")
                             if render_conteudo.refresh: render_conteudo.refresh()
 
-                        ui.button("💾 SALVAR QUESITO 12.1", on_click=salvar_121).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        with ui.row().classes("w-full justify-between items-center mb-4"):
+                            with ui.column().classes("gap-0"):
+                                ui.label(f"📋 Selecionados ({len([k for k in mapa_121.keys() if state_121.get(k)])})").classes("text-sm font-semibold text-gray-700")
+                                lbl_pts_121
+
+                            ui.button("SALVAR QUESITO 12.1", on_click=salvar_121, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+
                         ui.separator().classes("my-2")
                         bloco_comentarios("12.1", res_data, render_conteudo.refresh)
-
                     # =============================================================================
                     # QUESITO 13.0 (Seleção Única - Radio Button)
                     # =============================================================================
@@ -4321,13 +4588,20 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
+                   # =============================================================================
                     # QUESITO 13.1 (Seleção Múltipla com Pontuação Penalizativa / Desconto)
                     # =============================================================================
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("13.1 • Características do Local de Destinação Final dos RSU (Aterro)").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Assinale as características do local de destinação final dos resíduos sólidos urbanos do município (aterro):").classes("text-base font-bold text-black mb-1")
-                        ui.label("⚠️ Regra de Pontuação: Para cada opção NÃO assinalada (exceto 'Outros'), perde-se 5 pontos (Pontuação Máxima de Perda: -110 pts).").classes("text-xs text-amber-600 font-semibold mb-6")
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                        ui.label("📌 Quesito 13.1 - Características do Local de Destinação Final dos RSU (Aterro)").classes("text-lg font-bold text-blue-900 mb-1")
+                        ui.label("Assinale as características do local de destinação final dos resíduos sólidos urbanos do município (aterro):").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                        ui.label("ℹ Selecione as características presentes no local e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
+
+                        with ui.card().classes("w-full p-3 mb-4 bg-amber-50 border-l-4 border-amber-600 rounded-r-md shadow-none"):
+                            ui.label("Regra de Pontuação:").classes("text-xs font-bold text-amber-900 uppercase tracking-wide")
+                            ui.label(
+                                "• Para cada opção NÃO assinalada (exceto 'Outros'), perde-se 5,0 pontos (-5,0 pts)\n"
+                                "• Pontuação Máxima de Penalização/Perda: -110,0 pontos"
+                            ).classes("text-xs text-amber-900 font-medium mt-1")
 
                         d131 = res_data.get("13.1") or {}
                         try:
@@ -4378,38 +4652,74 @@ def _render_formulario_iamb(ano=None):
                         itens_131 = list(mapa_131.items())
                         meio_131 = (len(itens_131) + 1) // 2
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        cb_list_131 = []
+                        with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
                             with ui.column().classes("w-full gap-1"):
                                 for k, (rotulo, _) in itens_131[:meio_131]:
-                                    ui.checkbox(rotulo).bind_value(state_131, k)
+                                    cb_list_131.append(ui.checkbox(rotulo).bind_value(state_131, k))
                             with ui.column().classes("w-full gap-1"):
                                 for k, (rotulo, _) in itens_131[meio_131:]:
-                                    ui.checkbox(rotulo).bind_value(state_131, k)
+                                    cb_list_131.append(ui.checkbox(rotulo).bind_value(state_131, k))
 
+                        # Campo Textarea para os Links
                         ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_131["link"],
                             placeholder="Insira o link das comprovações das características do aterro...",
-                        ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_131, "link")
+                        ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_131, "link")
 
-                        lbl_pts_131 = ui.label(f"📊 Pontuação de Penalização / Impacto no Quesito 13.1: {calc_pts_131():.1f} pontos").classes("text-sm font-bold text-red-600 my-2")
+                        # Renderização dos Links Ativos (Clicáveis)
+                        @ui.refreshable
+                        def render_links_ativos_131():
+                            raw_txt = state_131.get("link", "") or ""
+                            import re
+                            links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                            if links_list:
+                                with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                    ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                    for u in links_list:
+                                        target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                        ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                        render_links_ativos_131()
+
+                        pts_atuais_131 = calc_pts_131()
+                        cor_txt_131 = "text-red-600" if pts_atuais_131 < 0 else "text-gray-700"
+                        lbl_pts_131 = ui.label(f"📊 Impacto de Pontuação no Quesito 13.1: {pts_atuais_131:.1f} pontos").classes(f"text-sm font-bold {cor_txt_131}")
+
+                        def att_pts_131():
+                            pts = calc_pts_131()
+                            cor = "text-red-600" if pts < 0 else "text-gray-700"
+                            lbl_pts_131.classes(replace=cor)
+                            lbl_pts_131.set_text(f"📊 Impacto de Pontuação no Quesito 13.1: {pts:.1f} pontos")
+
+                        for cb in cb_list_131:
+                            cb.on("update:model-value", att_pts_131)
 
                         def salvar_131():
                             selecionados = [k for k in mapa_131.keys() if state_131.get(k)]
+                            lnk_val = str(state_131["link"] or "").strip()
                             pts = calc_pts_131()
                             save_resposta(
                                 ano=ano_sel,
                                 qid="13.1",
                                 valor=json.dumps(selecionados),
                                 pontos=pts,
-                                link=state_131["link"],
+                                link=lnk_val,
                                 comentarios=d131.get("comentarios", []),
                                 status=d131.get("status", "Pendente"),
                             )
-                            ui.notify("Quesito 13.1 salvo com sucesso!", type="positive")
+                            ui.notify(f"Quesito 13.1 salvo com sucesso! ({pts:.1f} pts)", type="positive")
                             if render_conteudo.refresh: render_conteudo.refresh()
 
-                        ui.button("💾 SALVAR QUESITO 13.1", on_click=salvar_131).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        with ui.row().classes("w-full justify-between items-center mb-4"):
+                            with ui.column().classes("gap-0"):
+                                ui.label(f"📋 Selecionados ({len([k for k in mapa_131.keys() if state_131.get(k)])})").classes("text-sm font-semibold text-gray-700")
+                                lbl_pts_131
+
+                            ui.button("SALVAR QUESITO 13.1", on_click=salvar_131, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+
                         ui.separator().classes("my-2")
                         bloco_comentarios("13.1", res_data, render_conteudo.refresh)
 
@@ -4657,10 +4967,10 @@ def _render_formulario_iamb(ano=None):
                     # =============================================================================
                     # QUESITO 14.3 (Seleção Múltipla - Ações de Combate ao Descarte Irregular)
                     # =============================================================================
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("14.3 • Ações de Combate ao Descarte Irregular").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Assinale as ações promovidas pela Prefeitura para combater o descarte irregular de lixo no ano:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Selecione as ações realizadas e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                        ui.label("📌 Quesito 14.3 - Ações de Combate ao Descarte Irregular").classes("text-lg font-bold text-blue-900 mb-1")
+                        ui.label("Assinale as ações promovidas pela Prefeitura para combater o descarte irregular de lixo no ano:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                        ui.label("ℹ Selecione as ações realizadas e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
 
                         d143 = res_data.get("14.3") or {}
                         try:
@@ -4684,36 +4994,71 @@ def _render_formulario_iamb(ano=None):
                         def calc_pts_143():
                             return sum(peso for k, (_, peso) in mapa_143.items() if state_143.get(k))
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_143a = [ui.checkbox(rotulo).bind_value(state_143, k) for k, (rotulo, _) in list(mapa_143.items())[:3]]
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_143b = [ui.checkbox(rotulo).bind_value(state_143, k) for k, (rotulo, _) in list(mapa_143.items())[3:]]
 
+                        # Campo Textarea para os Links
                         ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_143["link"],
                             placeholder="Insira o link de fotos, relatórios ou ordens de serviço das ações realizadas...",
-                        ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_143, "link")
+                        ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_143, "link")
 
-                        lbl_pts_143 = ui.label(f"📊 Impacto de Pontuação no Quesito 14.3: {calc_pts_143():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+                        # Renderização dos Links Ativos (Clicáveis)
+                        @ui.refreshable
+                        def render_links_ativos_143():
+                            raw_txt = state_143.get("link", "") or ""
+                            import re
+                            links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                            if links_list:
+                                with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                    ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                    for u in links_list:
+                                        target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                        ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                        render_links_ativos_143()
+
+                        pts_atuais_143 = calc_pts_143()
+                        cor_txt_143 = "text-green-600" if pts_atuais_143 > 0 else "text-gray-500"
+                        lbl_pts_143 = ui.label(f"📊 Impacto de Pontuação no Quesito 14.3: {pts_atuais_143:.1f} pontos").classes(f"text-sm font-bold {cor_txt_143}")
+
+                        def att_pts_143():
+                            pts = calc_pts_143()
+                            cor = "text-green-600" if pts > 0 else "text-gray-500"
+                            lbl_pts_143.classes(replace=cor)
+                            lbl_pts_143.set_text(f"📊 Impacto de Pontuação no Quesito 14.3: {pts:.1f} pontos")
+
+                        for cb in cb_col_143a + cb_col_143b:
+                            cb.on("update:model-value", att_pts_143)
 
                         def salvar_143():
                             selecionados = [k for k in mapa_143.keys() if state_143.get(k)]
+                            lnk_val = str(state_143["link"] or "").strip()
                             pts = calc_pts_143()
                             save_resposta(
                                 ano=ano_sel,
                                 qid="14.3",
                                 valor=json.dumps(selecionados),
                                 pontos=pts,
-                                link=state_143["link"],
+                                link=lnk_val,
                                 comentarios=d143.get("comentarios", []),
                                 status=d143.get("status", "Pendente"),
                             )
-                            ui.notify("Quesito 14.3 salvo com sucesso!", type="positive")
+                            ui.notify(f"Quesito 14.3 salvo com sucesso! ({pts:.1f} pts)", type="positive")
                             if render_conteudo.refresh: render_conteudo.refresh()
 
-                        ui.button("💾 SALVAR QUESITO 14.3", on_click=salvar_143).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        with ui.row().classes("w-full justify-between items-center mb-4"):
+                            with ui.column().classes("gap-0"):
+                                ui.label(f"📋 Selecionados ({len([k for k in mapa_143.keys() if state_143.get(k)])})").classes("text-sm font-semibold text-gray-700")
+                                lbl_pts_143
+
+                            ui.button("SALVAR QUESITO 14.3", on_click=salvar_143, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+
                         ui.separator().classes("my-2")
                         bloco_comentarios("14.3", res_data, render_conteudo.refresh)
 
@@ -4739,10 +5084,10 @@ def _render_formulario_iamb(ano=None):
                     # =============================================================================
                     # QUESITO 15.1 (Seleção Múltipla - Serviços com Entidade Reguladora)
                     # =============================================================================
-                    with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
-                        ui.label("15.1 • Serviços com Entidade Responsável pela Regulação e Fiscalização").classes("text-xl font-semibold text-blue-500 mb-3")
-                        ui.label("Assinale quais os serviços que possuem entidade responsável pela regulação e fiscalização:").classes("text-base font-bold text-black mb-1")
-                        ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-400 mb-6")
+                    with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
+                        ui.label("📌 Quesito 15.1 - Serviços com Entidade Responsável pela Regulação e Fiscalização").classes("text-lg font-bold text-blue-900 mb-1")
+                        ui.label("Assinale quais os serviços que possuem entidade responsável pela regulação e fiscalização:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
+                        ui.label("ℹ Selecione as opções aplicáveis e clique no botão de salvar.").classes("text-xs text-gray-500 mb-4")
 
                         d151 = res_data.get("15.1") or {}
                         try:
@@ -4764,36 +5109,71 @@ def _render_formulario_iamb(ano=None):
                         def calc_pts_151():
                             return sum(peso for k, (_, peso) in mapa_151.items() if state_151.get(k))
 
-                        with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
+                        with ui.grid(columns=2).classes("w-full gap-2 mb-4"):
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_151a = [ui.checkbox(rotulo).bind_value(state_151, k) for k, (rotulo, _) in list(mapa_151.items())[:2]]
                             with ui.column().classes("w-full gap-1"):
                                 cb_col_151b = [ui.checkbox(rotulo).bind_value(state_151, k) for k, (rotulo, _) in list(mapa_151.items())[2:]]
 
+                        # Campo Textarea para os Links
                         ui.textarea(
                             label="Link de Evidência / Documento:",
                             value=state_151["link"],
                             placeholder="Insira o link das comprovações da regulação dos serviços...",
-                        ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_151, "link")
+                        ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_151, "link")
 
-                        lbl_pts_151 = ui.label(f"📊 Impacto de Pontuação no Quesito 15.1: {calc_pts_151():.1f} pontos").classes("text-sm font-bold text-green-600 my-2")
+                        # Renderização dos Links Ativos (Clicáveis)
+                        @ui.refreshable
+                        def render_links_ativos_151():
+                            raw_txt = state_151.get("link", "") or ""
+                            import re
+                            links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                            if links_list:
+                                with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                    ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                    for u in links_list:
+                                        target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                        ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                        render_links_ativos_151()
+
+                        pts_atuais_151 = calc_pts_151()
+                        cor_txt_151 = "text-green-600" if pts_atuais_151 > 0 else "text-gray-500"
+                        lbl_pts_151 = ui.label(f"📊 Impacto de Pontuação no Quesito 15.1: {pts_atuais_151:.1f} pontos").classes(f"text-sm font-bold {cor_txt_151}")
+
+                        def att_pts_151():
+                            pts = calc_pts_151()
+                            cor = "text-green-600" if pts > 0 else "text-gray-500"
+                            lbl_pts_151.classes(replace=cor)
+                            lbl_pts_151.set_text(f"📊 Impacto de Pontuação no Quesito 15.1: {pts:.1f} pontos")
+
+                        for cb in cb_col_151a + cb_col_151b:
+                            cb.on("update:model-value", att_pts_151)
 
                         def salvar_151():
                             selecionados = [k for k in mapa_151.keys() if state_151.get(k)]
+                            lnk_val = str(state_151["link"] or "").strip()
                             pts = calc_pts_151()
                             save_resposta(
                                 ano=ano_sel,
                                 qid="15.1",
                                 valor=json.dumps(selecionados),
                                 pontos=pts,
-                                link=state_151["link"],
+                                link=lnk_val,
                                 comentarios=d151.get("comentarios", []),
                                 status=d151.get("status", "Pendente"),
                             )
-                            ui.notify("Quesito 15.1 salvo com sucesso!", type="positive")
+                            ui.notify(f"Quesito 15.1 salvo com sucesso! ({pts:.1f} pts)", type="positive")
                             if render_conteudo.refresh: render_conteudo.refresh()
 
-                        ui.button("💾 SALVAR QUESITO 15.1", on_click=salvar_151).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                        with ui.row().classes("w-full justify-between items-center mb-4"):
+                            with ui.column().classes("gap-0"):
+                                ui.label(f"📋 Selecionados ({len([k for k in mapa_151.keys() if state_151.get(k)])})").classes("text-sm font-semibold text-gray-700")
+                                lbl_pts_151
+
+                            ui.button("SALVAR QUESITO 15.1", on_click=salvar_151, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
+
                         ui.separator().classes("my-2")
                         bloco_comentarios("15.1", res_data, render_conteudo.refresh)
 
