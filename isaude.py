@@ -3,6 +3,7 @@ import base64
 import logging
 from io import BytesIO
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import json
 import os
 import re
@@ -43,6 +44,27 @@ def parse_num(val):
             return float(val)
         except (ValueError, TypeError):
             return None
+
+
+def extrair_ano(val, default=2026):
+    """Converte ano ou rótulo do seletor (ex.: 'Ano base(2026)') em inteiro."""
+    if val is None or val == "":
+        return int(default)
+    if isinstance(val, bool):
+        return int(default)
+    try:
+        return int(val)
+    except (TypeError, ValueError):
+        correspondencia = re.search(r"(?<!\d)(20\d{2})(?!\d)", str(val))
+        if correspondencia:
+            return int(correspondencia.group(1))
+        correspondencia = re.search(r"\d{4}", str(val))
+        return int(correspondencia.group(0)) if correspondencia else int(default)
+
+
+def agora_brasilia_formatada():
+    """Retorna data e hora atual no fuso oficial de Brasília."""
+    return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
 
 
 def safe_float(val, default=0.0):
@@ -437,6 +459,7 @@ def render_quesito(
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
+    ano_atual = extrair_ano(ano_atual)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
     total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
@@ -463,7 +486,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             options=anos,
             value=int(ano_atual),
             label="Ano de Referência:",
-            on_change=lambda e: on_mudar_ano(e.value),
+            on_change=lambda e: on_mudar_ano(extrair_ano(e.value)),
         ).classes("w-full mb-4 bg-white")
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
@@ -560,7 +583,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             novo_st = e.value
             log = {
                 "autor": "Sistema / " + usuario_atual,
-                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "data": agora_brasilia_formatada(),
                 "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
@@ -642,7 +665,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             if txt:
                 historico.append({
                     "autor": usuario_atual,
-                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "data": agora_brasilia_formatada(),
                     "texto": txt,
                     "status_definido": status_global,
                 })
@@ -845,7 +868,7 @@ def renderizar_card_relatorio_isaude(res_data=None, ano_sel=2026):
 
 def container_formulario_saude(ano=None):
     if "ano_referencia_global" not in app.storage.user:
-        app.storage.user["ano_referencia_global"] = ano if ano else 2026
+        app.storage.user["ano_referencia_global"] = extrair_ano(ano if ano else 2026)
 
     main_container = ui.element("div").classes("w-full")
 
@@ -853,11 +876,11 @@ def container_formulario_saude(ano=None):
     def render_conteudo():
         main_container.clear()
         with main_container:
-            ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+            ano_sel = extrair_ano(app.storage.user.get("ano_referencia_global", 2026))
             res_data = load_respostas(ano_sel)
 
             def alterar_ano(novo_ano):
-                app.storage.user["ano_referencia_global"] = int(novo_ano)
+                app.storage.user["ano_referencia_global"] = extrair_ano(novo_ano)
                 ui.notify(f"Ano alterado para {novo_ano}", type="info")
                 render_conteudo.refresh()
 
