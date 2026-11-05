@@ -928,7 +928,7 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-    # =============================================================================
+                # =============================================================================
                 # QUESITO 1.3.1 • ÁREAS DE CAPACITAÇÃO EM TIC
                 # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
@@ -976,12 +976,12 @@ def container_formulario_igov_ti():
                     if not isinstance(d131, dict):
                         d131 = {"valor": "", "pontos": 0.0, "link": ""}
 
-                    # Parse das opções previamente marcadas (armazenadas separadas por vírgula no campo 'valor')
+                    # Parse das opções previamente marcadas
                     valor_salvo = str(d131.get("valor") or "")
                     itens_salvos = [i.strip() for i in valor_salvo.split(",") if i.strip()]
                     evidencia_131_salva = str(d131.get("link") or "")
 
-                    # Estado Reativo das Checkboxes
+                    # Estado Reativo das Checkboxes e do Link
                     state_131 = {
                         "infra": "Infraestrutura e Redes" in itens_salvos,
                         "dev": "Desenvolvimento e Software" in itens_salvos,
@@ -994,7 +994,6 @@ def container_formulario_igov_ti():
                     # Callback do Botão de Salvar
                     def cb_processa_e_salva_131():
                         try:
-                            # Identifica os marcados
                             marcados = []
                             if state_131["infra"]:
                                 marcados.append("Infraestrutura e Redes")
@@ -1047,12 +1046,28 @@ def container_formulario_igov_ti():
                         ui.checkbox("Gestão e Segurança").bind_value(state_131, "gestao")
                         ui.checkbox("Outros").bind_value(state_131, "outros")
 
-                    # Campo de Link / Evidência
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência das Capacitações):",
-                        value=evidencia_131_salva,
-                        placeholder="Insira o link dos certificados, plano de capacitação, relatório de treinamentos..."
-                    ).classes("w-full mb-4").bind_value(state_131, "link")
+                        label="Link de Evidência / Documento:",
+                        placeholder="Insira o link dos certificados, plano de capacitação, relatório de treinamentos...",
+                        value=evidencia_131_salva
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_131, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_131():
+                        raw_txt = state_131.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_131()
 
                     # Rodapé com Indicador e Botão
                     pts_atuais_131 = float(d131.get("pontos") or 0.0)
@@ -1063,7 +1078,7 @@ def container_formulario_igov_ti():
                             ui.label(f"📋 Opções selecionadas: {valor_salvo if valor_salvo else 'Nenhuma'}").classes("text-sm font-semibold text-gray-700")
                             ui.label(f"📊 Impacto de Pontuação no Quesito 1.3.1: +{pts_atuais_131:.1f} pontos").classes(f"text-sm font-bold {cor_txt_131}")
 
-                        ui.button("Salvar Quesito 1.3.1", on_click=cb_processa_e_salva_131, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 1.3.1", on_click=cb_processa_e_salva_131, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
 
