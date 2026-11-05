@@ -868,29 +868,32 @@ def container_formulario_igov_ti():
                         ui.number("Outros:", value=v_outr_i, min=0, step=1).classes("w-full").bind_value(state_11, "outr")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_11 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI...",
                         value=evidencia_11_salva
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_11, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_11():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_11 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_11(_=None):
+                        container_links_11.clear()
                         raw_txt = state_11.get("link", "") or ""
-                        # Separa links por quebra de linha ou por vírgula/ponto e vírgula
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_11:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_11()
-
+                    input_link_11.on("update:model-value", atualizar_links_visuais_11)
+                    atualizar_links_visuais_11()
                     # Rodapé do Quesito
                     total_pessoal = parse_int_seguro(d11.get("valor"))
                     pts_atuais_11 = float(d11.get("pontos") or 0.0)
@@ -1059,28 +1062,32 @@ def container_formulario_igov_ti():
                         ui.checkbox("Outros").bind_value(state_131, "outros")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_131 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         placeholder="Insira o link dos certificados, plano de capacitação, relatório de treinamentos...",
                         value=evidencia_131_salva
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_131, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_131():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_131 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_131(_=None):
+                        container_links_131.clear()
                         raw_txt = state_131.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_131:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_131()
-
+                    input_link_131.on("update:model-value", atualizar_links_visuais_131)
+                    atualizar_links_visuais_131()
                     # Rodapé com Indicador e Botão
                     pts_atuais_131 = float(d131.get("pontos") or 0.0)
                     cor_txt_131 = "text-green-600" if pts_atuais_131 > 0 else "text-gray-500"
@@ -1215,28 +1222,32 @@ def container_formulario_igov_ti():
                         ui.checkbox("Recebimento / Gestão de Contrato (15 pts)").bind_value(state_141, "gestao")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_141 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         placeholder="Insira o link de portarias de nomeação, termos de referência assinados ou atas de comissões...",
                         value=evidencia_141_salva
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_141, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_141():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_141 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_141(_=None):
+                        container_links_141.clear()
                         raw_txt = state_141.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_141:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_141()
-
+                    input_link_141.on("update:model-value", atualizar_links_visuais_141)
+                    atualizar_links_visuais_141()
                     # Exibição dos pontos calculados no rodapé
                     pts_atuais_141 = float(d141.get("pontos") or 0.0)
                     cor_txt_141 = "text-green-600" if pts_atuais_141 > 0 else "text-gray-500"
@@ -1351,28 +1362,32 @@ def container_formulario_igov_ti():
                             ui.notify(f"Erro ao salvar Quesito 2.1: {err}", type="negative")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_21 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=link_salvo_21,
                         placeholder="Cole o link aqui ou digite XYZ se não estiver disponível..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_21, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_21():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_21 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_21(_=None):
+                        container_links_21.clear()
                         raw_txt = state_21.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ")
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_21:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_21()
-
+                    input_link_21.on("update:model-value", atualizar_links_visuais_21)
+                    atualizar_links_visuais_21()
                     pts_atuais_21 = float(d21.get("pontos") or 0.0)
                     cor_txt_21 = "text-green-600" if pts_atuais_21 > 0 else "text-gray-500"
 
@@ -1469,28 +1484,32 @@ def container_formulario_igov_ti():
                         ui.checkbox("Estratégia de execução indireta - terceirização (10 pts)").bind_value(state_22, "terc")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_22 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         placeholder="Insira o link com a indicação dos capítulos ou páginas do documento...",
                         value=evidencia_22_salva
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_22, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_22():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_22 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_22(_=None):
+                        container_links_22.clear()
                         raw_txt = state_22.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_22:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_22()
-
+                    input_link_22.on("update:model-value", atualizar_links_visuais_22)
+                    atualizar_links_visuais_22()
                     pts_atuais_22 = float(d22.get("pontos") or 0.0)
                     cor_txt_22 = "text-green-600" if pts_atuais_22 > 0 else "text-gray-500"
 
@@ -1592,28 +1611,32 @@ def container_formulario_igov_ti():
                     ).classes("w-full mb-4").bind_value(state_23, "data")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_23 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=evidencia_23_salva,
                         placeholder="Link do diário oficial ou portaria que comprova a data..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_23, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_23():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_23 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_23(_=None):
+                        container_links_23.clear()
                         raw_txt = state_23.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_23:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_23()
-
+                    input_link_23.on("update:model-value", atualizar_links_visuais_23)
+                    atualizar_links_visuais_23()
                     pts_atuais_23 = float(d23.get("pontos") or 0.0)
                     cor_txt_23 = "text-green-600" if pts_atuais_23 > 0 else "text-gray-500"
 
@@ -1752,28 +1775,32 @@ def container_formulario_igov_ti():
                         ui.checkbox("Assinatura eletrônica onerosa (00 pts)").bind_value(state_3111, "onerosa")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_3111 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         placeholder="Link da ferramenta ou contrato da solução...",
                         value=evidencia_3111_salva
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_3111, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_3111():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_3111 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_3111(_=None):
+                        container_links_3111.clear()
                         raw_txt = state_3111.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_3111:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_3111()
-
+                    input_link_3111.on("update:model-value", atualizar_links_visuais_3111)
+                    atualizar_links_visuais_3111()
                     pts_atuais_3111 = float(d3111.get("pontos") or 0.0)
                     cor_txt_3111 = "text-green-600" if pts_atuais_3111 > 0 else "text-gray-500"
 
@@ -1903,28 +1930,32 @@ def container_formulario_igov_ti():
                         ui.checkbox("ISO/IEC 27005 (2,0 pts)").bind_value(state_321, "27005")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_321 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         placeholder="Insira o link para relatórios de auditoria, políticas ou mapeamento de processos...",
                         value=evidencia_321_salva
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_321, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_321():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_321 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_321(_=None):
+                        container_links_321.clear()
                         raw_txt = state_321.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_321:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_321()
-
+                    input_link_321.on("update:model-value", atualizar_links_visuais_321)
+                    atualizar_links_visuais_321()
                     pts_atuais_321 = float(d321.get("pontos") or 0.0)
                     cor_txt_321 = "text-green-600" if pts_atuais_321 > 0 else "text-gray-500"
 
@@ -2080,28 +2111,32 @@ def container_formulario_igov_ti():
                         ui.checkbox("Pessoas e suas qualificações, habilidades e experiências").bind_value(state_361, "pess")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_361 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         placeholder="Link do sistema de inventário ou documento...",
                         value=evidencia_361_salva
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_361, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_361():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_361 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_361(_=None):
+                        container_links_361.clear()
                         raw_txt = state_361.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_361:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_361()
-
+                    input_link_361.on("update:model-value", atualizar_links_visuais_361)
+                    atualizar_links_visuais_361()
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         ui.label(f"📋 Selecionados: {valor_salvo_361 if valor_salvo_361 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
                         ui.button("SALVAR QUESITO 3.6.1", on_click=cb_processa_e_salva_361, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
@@ -2183,28 +2218,32 @@ def container_formulario_igov_ti():
                     ).classes("w-full mb-4").bind_value(state_41, "texto")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_41 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         placeholder="Insira o link da publicação oficial ou norma da LAI...",
                         value=evidencia_41_salva
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_41, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_41():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_41 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_41(_=None):
+                        container_links_41.clear()
                         raw_txt = state_41.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_41:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_41()
-
+                    input_link_41.on("update:model-value", atualizar_links_visuais_41)
+                    atualizar_links_visuais_41()
                     with ui.row().classes("w-full justify-end mb-4"):
                         ui.button("SALVAR QUESITO 4.1", on_click=cb_processa_e_salva_41, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
@@ -2260,28 +2299,32 @@ def container_formulario_igov_ti():
                             ui.notify(f"Erro ao salvar Quesito 4.2: {err}", type="negative")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_42 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=link_salvo_42,
                         placeholder="Cole o link aqui ou digite XYZ..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_42, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_42():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_42 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_42(_=None):
+                        container_links_42.clear()
                         raw_txt = state_42.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ")
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_42:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_42()
-
+                    input_link_42.on("update:model-value", atualizar_links_visuais_42)
+                    atualizar_links_visuais_42()
                     with ui.row().classes("w-full justify-end mb-4"):
                         ui.button("SALVAR QUESITO 4.2", on_click=cb_processa_e_salva_42, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
@@ -2361,28 +2404,32 @@ def container_formulario_igov_ti():
                     ).classes("w-full mb-4").bind_value(state_51, "texto")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_51 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         placeholder="Insira o link da publicação oficial ou norma do Governo Digital...",
                         value=evidencia_51_salva
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_51, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_51():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_51 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_51(_=None):
+                        container_links_51.clear()
                         raw_txt = state_51.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_51:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_51()
-
+                    input_link_51.on("update:model-value", atualizar_links_visuais_51)
+                    atualizar_links_visuais_51()
                     with ui.row().classes("w-full justify-end mb-4"):
                         ui.button("SALVAR QUESITO 5.1", on_click=cb_processa_e_salva_51, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
@@ -2438,28 +2485,32 @@ def container_formulario_igov_ti():
                             ui.notify(f"Erro ao salvar Quesito 5.2: {err}", type="negative")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_52 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=link_salvo_52,
                         placeholder="Cole o link aqui ou digite XYZ..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_52, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_52():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_52 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_52(_=None):
+                        container_links_52.clear()
                         raw_txt = state_52.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ")
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_52:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_52()
-
+                    input_link_52.on("update:model-value", atualizar_links_visuais_52)
+                    atualizar_links_visuais_52()
                     with ui.row().classes("w-full justify-end mb-4"):
                         ui.button("SALVAR QUESITO 5.2", on_click=cb_processa_e_salva_52, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
@@ -2736,28 +2787,32 @@ def container_formulario_igov_ti():
                             ui.checkbox(item).bind_value(state_81, item)
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_81 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=evidencia_81_salva,
                         placeholder="Link dos manuais, contratos ou telas dos sistemas..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_81, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_81():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_81 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_81(_=None):
+                        container_links_81.clear()
                         raw_txt = state_81.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_81:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_81()
-
+                    input_link_81.on("update:model-value", atualizar_links_visuais_81)
+                    atualizar_links_visuais_81()
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         ui.label(f"📋 Selecionados ({len([i for i in opcoes_setores_81 if state_81[i]])}): {valor_salvo_81 if valor_salvo_81 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
                         ui.button("SALVAR QUESITO 8.1", on_click=cb_processa_e_salva_81, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
@@ -2828,28 +2883,32 @@ def container_formulario_igov_ti():
                             ui.checkbox(item).bind_value(state_82, item)
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_82 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=evidencia_82_salva,
                         placeholder="Link da documentação de integração ou declaração..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_82, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_82():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_82 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_82(_=None):
+                        container_links_82.clear()
                         raw_txt = state_82.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_82:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_82()
-
+                    input_link_82.on("update:model-value", atualizar_links_visuais_82)
+                    atualizar_links_visuais_82()
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         ui.label(f"📋 Integrados ({len([i for i in opcoes_integracao_82 if state_82[i]])}): {valor_salvo_82 if valor_salvo_82 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
                         ui.button("SALVAR QUESITO 8.2", on_click=cb_processa_e_salva_82, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
@@ -2973,28 +3032,32 @@ def container_formulario_igov_ti():
                             ui.checkbox(item).bind_value(state_83, item)
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_83 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=evidencia_83_salva,
                         placeholder="Link do termo de gestão de dados, contrato ou política de BD..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_83, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_83():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_83 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_83(_=None):
+                        container_links_83.clear()
                         raw_txt = state_83.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_83:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_83()
-
+                    input_link_83.on("update:model-value", atualizar_links_visuais_83)
+                    atualizar_links_visuais_83()
                     pts_atuais_83 = float(d83.get("pontos") or 0.0)
                     cor_txt_83 = "text-red-600" if pts_atuais_83 < 0 else "text-gray-700"
 
@@ -3078,28 +3141,32 @@ def container_formulario_igov_ti():
                             ui.checkbox(item).bind_value(state_84, item)
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_84 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=evidencia_84_salva,
                         placeholder="Link de manuais, relatórios de auditoria de logs ou telas de permissão..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_84, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_84():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_84 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_84(_=None):
+                        container_links_84.clear()
                         raw_txt = state_84.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_84:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_84()
-
+                    input_link_84.on("update:model-value", atualizar_links_visuais_84)
+                    atualizar_links_visuais_84()
                     pts_atuais_84 = float(d84.get("pontos") or 0.0)
                     cor_txt_84 = "text-red-600" if pts_atuais_84 < 0 else "text-gray-700"
 
@@ -3204,28 +3271,32 @@ def container_formulario_igov_ti():
                             ui.checkbox(f"{item} (+7.5 pts)").bind_value(state_91, item)
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_91 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=evidencia_91_salva,
                         placeholder="Link da carta de serviços, portal do cidadão..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_91, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_91():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_91 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_91(_=None):
+                        container_links_91.clear()
                         raw_txt = state_91.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_91:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_91()
-
+                    input_link_91.on("update:model-value", atualizar_links_visuais_91)
+                    atualizar_links_visuais_91()
                     pts_atuais_91 = float(d91.get("pontos") or 0.0)
                     marcados_atuais = [item for item in opcoes_servicos_91 if state_91.get(item, False)]
                     
@@ -3299,28 +3370,32 @@ def container_formulario_igov_ti():
                             ui.checkbox(item).bind_value(state_92, item)
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_92 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=evidencia_92_salva,
                         placeholder="Link dos contatos oficiais, lista de ramais..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_92, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_92():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_92 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_92(_=None):
+                        container_links_92.clear()
                         raw_txt = state_92.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_92:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_92()
-
+                    input_link_92.on("update:model-value", atualizar_links_visuais_92)
+                    atualizar_links_visuais_92()
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         ui.label(f"📋 Canais Assinalados ({len([i for i in opcoes_atendimento_92 if state_92[i]])}): {valor_salvo_92 if valor_salvo_92 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
                         ui.button("SALVAR QUESITO 9.2", on_click=cb_processa_e_salva_92, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
@@ -3401,28 +3476,32 @@ def container_formulario_igov_ti():
                     ).classes("w-full mb-4").bind_value(state_101, "texto")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_101 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         placeholder="Insira o link da publicação oficial ou norma da LGPD...",
                         value=evidencia_101_salva
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_101, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_101():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_101 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_101(_=None):
+                        container_links_101.clear()
                         raw_txt = state_101.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_101:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_101()
-
+                    input_link_101.on("update:model-value", atualizar_links_visuais_101)
+                    atualizar_links_visuais_101()
                     with ui.row().classes("w-full justify-end items-center mb-4"):
                         ui.button("SALVAR QUESITO 10.1", on_click=cb_processa_e_salva_101, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
@@ -3478,28 +3557,32 @@ def container_formulario_igov_ti():
                             ui.notify(f"Erro ao salvar Quesito 10.2: {err}", type="negative")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_102 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=link_salvo_102,
                         placeholder="Cole o link aqui ou digite XYZ..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_102, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_102():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_102 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_102(_=None):
+                        container_links_102.clear()
                         raw_txt = state_102.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ")
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_102:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_102()
-
+                    input_link_102.on("update:model-value", atualizar_links_visuais_102)
+                    atualizar_links_visuais_102()
                     with ui.row().classes("w-full justify-end items-center mb-4"):
                         ui.button("SALVAR QUESITO 10.2", on_click=cb_processa_e_salva_102, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
@@ -3677,28 +3760,32 @@ def container_formulario_igov_ti():
                             ui.notify(f"Erro ao salvar Quesito 11.1: {err}", type="negative")
 
                     # Campo Textarea para os Links
-                    ui.textarea(
+                    input_link_111 = ui.textarea(
                         label="Link de Evidência / Documento:",
                         value=link_salvo_111,
                         placeholder="Cole o link aqui ou digite XYZ..."
                     ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_111, "link")
 
-                    # Renderização dos Links Ativos (Clicáveis)
-                    @ui.refreshable
-                    def render_links_ativos_111():
+                    # Renderização única e dinâmica dos Links Ativos
+                    container_links_111 = ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap")
+
+                    def atualizar_links_visuais_111(_=None):
+                        container_links_111.clear()
                         raw_txt = state_111.get("link", "") or ""
-                        import re
-                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ")
+                        links_list = _deduplicar_links(
+                            l for l in re.split(r"[\n;,]+", raw_txt)
+                            if l.strip() and l.strip().upper() != "XYZ"
+                        )
 
                         if links_list:
-                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                            with container_links_111:
                                 ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
-                                for u in links_list:
-                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
-                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+                                for url in links_list:
+                                    target_url = url if url.startswith(("http://", "https://")) else f"https://{url}"
+                                    ui.link(url, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                    render_links_ativos_111()
-
+                    input_link_111.on("update:model-value", atualizar_links_visuais_111)
+                    atualizar_links_visuais_111()
                     with ui.row().classes("w-full justify-end items-center mb-4"):
                         ui.button("SALVAR QUESITO 11.1", on_click=cb_processa_e_salva_111, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
