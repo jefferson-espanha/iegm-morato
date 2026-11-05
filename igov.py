@@ -1890,11 +1890,28 @@ def container_formulario_igov_ti():
                         ui.checkbox("ISO/IEC 27004 (2,0 pts)").bind_value(state_321, "27004")
                         ui.checkbox("ISO/IEC 27005 (2,0 pts)").bind_value(state_321, "27005")
 
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência da Adoção das Normas):",
-                        value=evidencia_321_salva,
-                        placeholder="Insira o link para relatórios de auditoria, políticas ou mapeamento de processos..."
-                    ).classes("w-full mb-4").bind_value(state_321, "link")
+                        label="Link de Evidência / Documento:",
+                        placeholder="Insira o link para relatórios de auditoria, políticas ou mapeamento de processos...",
+                        value=evidencia_321_salva
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_321, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_321():
+                        raw_txt = state_321.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_321()
 
                     pts_atuais_321 = float(d321.get("pontos") or 0.0)
                     cor_txt_321 = "text-green-600" if pts_atuais_321 > 0 else "text-gray-500"
@@ -1904,7 +1921,7 @@ def container_formulario_igov_ti():
                             ui.label(f"📋 Normas Aplicadas: {valor_salvo_321 if valor_salvo_321 else 'Nenhuma'}").classes("text-sm font-semibold text-gray-700")
                             ui.label(f"📊 Impacto de Pontuação no Quesito 3.2.1: +{pts_atuais_321:.1f} pontos").classes(f"text-sm font-bold {cor_txt_321}")
 
-                        ui.button("Salvar Quesito 3.2.1", on_click=cb_processa_e_salva_321, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 3.2.1", on_click=cb_processa_e_salva_321, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("3.2.1", res_data, ano_sel)
