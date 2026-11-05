@@ -576,14 +576,14 @@ def render_quesito(
                         placeholder=placeholder_link,
                     ).classes("w-full").props("outlined rows=3")
 
-                    container_links = ui.row().classes("mt-1")
+                    container_links = ui.row().classes("mt-1 items-center gap-2")
 
                     def atualizar_links_visuais():
                         container_links.clear()
                         val_txt = ""
                         if input_valor and hasattr(input_valor, "value"):
                             val_txt = (
-                                input_valor.value
+                                str(input_valor.value)
                                 if (is_text_area and input_valor.value)
                                 else ""
                             )
@@ -594,21 +594,15 @@ def render_quesito(
                         links = _deduplicar_links(re.findall(REGEX_PURE_URL, txt_total))
                         if links:
                             with container_links:
-                                ui.label("Links Ativos: ").classes(
-                                    "font-bold text-caption"
-                                )
+                                ui.label("Links Ativos:").classes("font-bold text-caption")
                                 for url in links:
                                     ui.link(url, target=url, new_tab=True).classes(
-                                        "text-caption text-blue-6 mr-2"
+                                        "text-caption text-blue-6 mr-2 underline"
                                     )
 
-                    input_link.on(
-                        "update:model-value", atualizar_links_visuais
-                    )
+                    input_link.on("update:model-value", lambda: atualizar_links_visuais())
                     if is_text_area and input_valor:
-                        input_valor.on(
-                            "update:model-value", atualizar_links_visuais
-                        )
+                        input_valor.on("update:model-value", lambda: atualizar_links_visuais())
 
                     atualizar_links_visuais()
 
@@ -659,7 +653,6 @@ def render_quesito(
                 st = d_data.get("status", "Pendente")
                 comms = d_data.get("comentarios", [])
 
-                # Tenta chamar save_resp do main se existir, senão usa local
                 if "save_resp" in globals():
                     try:
                         save_resp(qid, val, pts, link, comms, ano)
