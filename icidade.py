@@ -32,6 +32,17 @@ def agora_brasilia_formatada():
     return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
 
 
+def extrair_ano(valor, padrao=2026):
+    """Converte ano numérico ou rótulo como 'Ano base(2026)' para inteiro."""
+    if valor is None or valor == "":
+        return int(padrao)
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        encontrado = re.search(r"(?<!\d)(20\d{2})(?!\d)", str(valor))
+        return int(encontrado.group(1)) if encontrado else int(padrao)
+
+
 
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
@@ -72,7 +83,7 @@ def load_respostas(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
+                cur.execute(query, (extrair_ano(ano),))
                 rows = cur.fetchall()
                 for row in rows:
                     respostas[row["qid"]] = {
@@ -126,7 +137,7 @@ def save_resposta(
                 cur.execute(
                     query,
                     (
-                        int(ano),
+                        extrair_ano(ano),
                         str(qid),
                         str(valor),
                         float(pontos),
@@ -145,7 +156,7 @@ def zerar_questionario_db(ano):
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(query, (int(ano),))
+                cur.execute(query, (extrair_ano(ano),))
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no Neon DB: {e}")
@@ -457,6 +468,7 @@ def render_quesito(
                 
 # PAINEL DE CONTROLE LATERAL
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
+    ano_atual = extrair_ano(ano_atual)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
     total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
@@ -481,9 +493,9 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
 
         ui.select(
             options=anos,
-            value=int(ano_atual),
+            value=extrair_ano(ano_atual),
             label="Ano Base das respostas:",
-            on_change=lambda e: on_mudar_ano(e.value),
+            on_change=lambda e: on_mudar_ano(extrair_ano(e.value)),
         ).classes("w-full mb-4 bg-white")
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
@@ -557,7 +569,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
 # BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
 def bloco_comentarios(qid, res_data, on_save_callback=None):
-    ano_sel = app.storage.user.get("ano_referencia_global", 2026)
+    ano_sel = extrair_ano(app.storage.user.get("ano_referencia_global", 2026))
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
 
     dados_q = res_data.get(qid, {})
@@ -690,15 +702,15 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 # =============================================================================
 def container_formulario_icidade(ano=None):
     if "ano_referencia_global" not in app.storage.user:
-        app.storage.user["ano_referencia_global"] = ano if ano else 2026
+        app.storage.user["ano_referencia_global"] = extrair_ano(ano if ano else 2026)
 
     @ui.refreshable
     def render_conteudo():
-        ano_sel = int(app.storage.user.get("ano_referencia_global", 2026))
+        ano_sel = extrair_ano(app.storage.user.get("ano_referencia_global", 2026))
         res_data = load_respostas(ano_sel)
 
         def alterar_ano(novo_ano):
-            app.storage.user["ano_referencia_global"] = int(novo_ano)
+            app.storage.user["ano_referencia_global"] = extrair_ano(novo_ano)
             ui.notify(f"Ano alterado para {novo_ano}", type="info")
             render_conteudo.refresh()
 
@@ -2170,7 +2182,7 @@ def container_formulario_icidade(ano=None):
                         nota_atual = 0.0
 
                     try:
-                        ano_atual = int(str(ano).strip()[:4])
+                        ano_atual = extrair_ano(ano)
                     except Exception:
                         ano_atual = 2025
 
