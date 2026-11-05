@@ -749,7 +749,7 @@ def container_formulario_igov_ti():
                 )
 
                 # =============================================================================
-                # QUESITO 1.1 • COMPOSIÇÃO DA EQUIPE DE TIC (MÚLTIPLOS LINKS)
+                # QUESITO 1.1 • COMPOSIÇÃO DA EQUIPE DE TIC
                 # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 1.1 - Recursos Humanos em TIC").classes("text-lg font-bold text-blue-900 mb-1")
@@ -794,10 +794,9 @@ def container_formulario_igov_ti():
                         d11 = {"valor": "0", "pontos": 0.0, "link": ""}
 
                     v_conc_i, v_comi_i, v_esta_i, v_outr_i = 0, 0, 0, 0
-                    links_salvos = []
+                    evidencia_11_salva = ""
                     raw_link = str(d11.get("link") or "")
 
-                    # Extração dos contadores e da lista de links armazenados
                     if raw_link:
                         if "|LINK:" in raw_link:
                             contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1)
@@ -815,18 +814,12 @@ def container_formulario_igov_ti():
                         v_esta_i = int(match_e.group(1)) if match_e else 0
                         v_outr_i = int(match_o.group(1)) if match_o else 0
 
-                        if evidencia_11_salva:
-                            links_salvos = [l.strip() for l in evidencia_11_salva.split(";") if l.strip()]
-
-                    if not links_salvos:
-                        links_salvos = [""]
-
                     state_11 = {
                         "conc": v_conc_i,
                         "comi": v_comi_i,
                         "esta": v_esta_i,
                         "outr": v_outr_i,
-                        "links": links_salvos
+                        "link": evidencia_11_salva
                     }
 
                     # Callback de Salvamento
@@ -836,9 +829,7 @@ def container_formulario_igov_ti():
                             co_val = parse_int_seguro(state_11["comi"])
                             e_val = parse_int_seguro(state_11["esta"])
                             o_val = parse_int_seguro(state_11["outr"])
-                            
-                            links_validos = [l.strip() for l in state_11["links"] if l.strip()]
-                            lnk_val = ";".join(links_validos)
+                            lnk_val = str(state_11["link"] or "").strip()
 
                             total_p = c_val + co_val + e_val
                             pts_calculados = 30.0 if total_p > 0 else 0.0
@@ -864,44 +855,29 @@ def container_formulario_igov_ti():
                         ui.number("Estagiários no suporte:", value=v_esta_i, min=0, step=1).classes("w-full").bind_value(state_11, "esta")
                         ui.number("Outros:", value=v_outr_i, min=0, step=1).classes("w-full").bind_value(state_11, "outr")
 
-                    # Área Dinâmica de Múltiplos Links de Evidência
-                    ui.label("Páginas Eletrônicas (Links / Evidências da Composição):").classes("text-sm font-semibold text-gray-700 mt-2 mb-1")
+                    # Campo Textarea para os Links
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
+                        placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI...",
+                        value=evidencia_11_salva
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_11, "link")
 
+                    # Renderização dos Links Ativos (Clicáveis)
                     @ui.refreshable
-                    def render_container_links_11():
-                        with ui.column().classes("w-full gap-2 mb-4"):
-                            for idx, link_text in enumerate(state_11["links"]):
-                                with ui.row().classes("w-full items-center gap-2"):
-                                    inp = ui.input(
-                                        placeholder=f"Insira o link da evidência #{idx + 1}...",
-                                        value=link_text
-                                    ).classes("flex-1")
-                                    
-                                    def update_link_val(e, i=idx):
-                                        state_11["links"][i] = e.value
-                                    inp.on("update:model-value", update_link_val)
+                    def render_links_ativos_11():
+                        raw_txt = state_11.get("link", "") or ""
+                        # Separa links por quebra de linha ou por vírgula/ponto e vírgula
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
 
-                                    url_test = link_text.strip()
-                                    if url_test:
-                                        target_url = url_test if url_test.startswith(("http://", "https://")) else f"https://{url_test}"
-                                        ui.button(
-                                            icon="open_in_new", 
-                                            on_click=lambda u=target_url: ui.open(u, new_tab=True)
-                                        ).props("flat round dense color=primary").tooltip("Abrir link")
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
 
-                                    if len(state_11["links"]) > 1:
-                                        def remover_link(i=idx):
-                                            state_11["links"].pop(i)
-                                            render_container_links_11.refresh()
-                                        ui.button(icon="delete", on_click=remover_link).props("flat round dense color=negative").tooltip("Remover este link")
-
-                            def adicionar_novo_link():
-                                state_11["links"].append("")
-                                render_container_links_11.refresh()
-
-                            ui.button(" Adicionar outro link", icon="add", on_click=adicionar_novo_link).classes("bg-gray-100 text-blue-800 text-xs font-semibold rounded-md border border-gray-300 mt-1")
-
-                    render_container_links_11()
+                    render_links_ativos_11()
 
                     # Rodapé do Quesito
                     total_pessoal = parse_int_seguro(d11.get("valor"))
@@ -913,7 +889,7 @@ def container_formulario_igov_ti():
                             ui.label(f"👥 Total de Pessoal Efetivo Computado: {total_pessoal} funcionário(s)").classes("text-sm font-semibold text-gray-700")
                             ui.label(f"📊 Impacto de Pontuação no Quesito 1.1: +{pts_atuais_11:.1f} pontos").classes(f"text-sm font-bold {cor_txt_11}")
                         
-                        ui.button("Salvar Quesito 1.1", on_click=cb_processa_e_salva_11, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 1.1", on_click=cb_processa_e_salva_11, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("1.1", res_data, ano_sel)
