@@ -1456,11 +1456,28 @@ def container_formulario_igov_ti():
                         ui.checkbox("Alocação de recursos materiais (10 pts)").bind_value(state_22, "mat")
                         ui.checkbox("Estratégia de execução indireta - terceirização (10 pts)").bind_value(state_22, "terc")
 
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência dos itens do PDTIC):",
-                        value=evidencia_22_salva,
-                        placeholder="Insira o link com a indicação dos capítulos ou páginas do documento..."
-                    ).classes("w-full mb-4").bind_value(state_22, "link")
+                        label="Link de Evidência / Documento:",
+                        placeholder="Insira o link com a indicação dos capítulos ou páginas do documento...",
+                        value=evidencia_22_salva
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_22, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_22():
+                        raw_txt = state_22.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_22()
 
                     pts_atuais_22 = float(d22.get("pontos") or 0.0)
                     cor_txt_22 = "text-green-600" if pts_atuais_22 > 0 else "text-gray-500"
@@ -1470,7 +1487,7 @@ def container_formulario_igov_ti():
                             ui.label(f"📋 Itens Selecionados: {valor_salvo_22 if valor_salvo_22 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
                             ui.label(f"📊 Impacto de Pontuação no Quesito 2.2: +{pts_atuais_22:.1f} pontos").classes(f"text-sm font-bold {cor_txt_22}")
 
-                        ui.button("Salvar Quesito 2.2", on_click=cb_processa_e_salva_22, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 2.2", on_click=cb_processa_e_salva_22, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("2.2", res_data, ano_sel)
@@ -1562,18 +1579,35 @@ def container_formulario_igov_ti():
                         placeholder="Exemplo: 2024-05-10"
                     ).classes("w-full mb-4").bind_value(state_23, "data")
 
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência da Data):",
+                        label="Link de Evidência / Documento:",
                         value=evidencia_23_salva,
                         placeholder="Link do diário oficial ou portaria que comprova a data..."
-                    ).classes("w-full mb-4").bind_value(state_23, "link")
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_23, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_23():
+                        raw_txt = state_23.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_23()
 
                     pts_atuais_23 = float(d23.get("pontos") or 0.0)
                     cor_txt_23 = "text-green-600" if pts_atuais_23 > 0 else "text-gray-500"
 
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         ui.label(f"📊 Impacto de Pontuação no Quesito 2.3: +{pts_atuais_23:.1f} pontos").classes(f"text-sm font-bold {cor_txt_23}")
-                        ui.button("Salvar Quesito 2.3", on_click=cb_processa_e_salva_23, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 2.3", on_click=cb_processa_e_salva_23, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("2.3", res_data, ano_sel)
@@ -1705,11 +1739,28 @@ def container_formulario_igov_ti():
                         ui.checkbox("Assinatura eletrônica de uso gratuito (10 pts)").bind_value(state_3111, "gratuita")
                         ui.checkbox("Assinatura eletrônica onerosa (00 pts)").bind_value(state_3111, "onerosa")
 
+                    # Campo Textarea para os Links
                     ui.textarea(
-                        "Página Eletrônica (Link / Evidência da Assinatura):",
-                        value=evidencia_3111_salva,
-                        placeholder="Link da ferramenta ou contrato da solução..."
-                    ).classes("w-full mb-4").bind_value(state_3111, "link")
+                        label="Link de Evidência / Documento:",
+                        placeholder="Link da ferramenta ou contrato da solução...",
+                        value=evidencia_3111_salva
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_3111, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_3111():
+                        raw_txt = state_3111.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_3111()
 
                     pts_atuais_3111 = float(d3111.get("pontos") or 0.0)
                     cor_txt_3111 = "text-green-600" if pts_atuais_3111 > 0 else "text-gray-500"
@@ -1719,7 +1770,7 @@ def container_formulario_igov_ti():
                             ui.label(f"📋 Selecionados: {valor_salvo_3111 if valor_salvo_3111 else 'Nenhum'}").classes("text-sm font-semibold text-gray-700")
                             ui.label(f"📊 Impacto de Pontuação no Quesito 3.1.1.1: +{pts_atuais_3111:.1f} pontos").classes(f"text-sm font-bold {cor_txt_3111}")
 
-                        ui.button("Salvar Quesito 3.1.1.1", on_click=cb_processa_e_salva_3111, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 3.1.1.1", on_click=cb_processa_e_salva_3111, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("3.1.1.1", res_data, ano_sel)
