@@ -393,7 +393,7 @@ def render_quesito(
             input_num.on("update:model-value", atualizar_impacto)
 
         # =====================================================================
-        # RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS
+        # RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS (Sem Duplicidade)
         # =====================================================================
         container_links = ui.row().classes("w-full items-center my-2")
 
@@ -411,15 +411,15 @@ def render_quesito(
                     ui.label("Links Ativos: ").classes(
                         "font-bold text-caption text-gray-700"
                     )
-                    for url in links:
+                    for url in set(links):  # set() impede URLs idênticas duplicadas
                         ui.link(url, target=url, new_tab=True).classes(
                             "text-caption text-blue-6 mr-2"
                         )
 
         if input_link:
-            input_link.on("update:model-value", atualizar_links_visuais)
+            input_link.on("update:model-value", lambda: atualizar_links_visuais())
         if input_texto:
-            input_texto.on("update:model-value", atualizar_links_visuais)
+            input_texto.on("update:model-value", lambda: atualizar_links_visuais())
 
         atualizar_links_visuais()
 
