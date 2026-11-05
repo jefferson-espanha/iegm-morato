@@ -1281,7 +1281,7 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-    # =============================================================================
+                # =============================================================================
                 # QUESITO 2.1 • PÁGINA ELETRÔNICA DO PDTIC
                 # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
@@ -1338,18 +1338,35 @@ def container_formulario_igov_ti():
                         except Exception as err:
                             ui.notify(f"Erro ao salvar Quesito 2.1: {err}", type="negative")
 
-                    ui.input(
-                        "Página Eletrônica (Link do PDTIC):",
+                    # Campo Textarea para os Links
+                    ui.textarea(
+                        label="Link de Evidência / Documento:",
                         value=link_salvo_21,
                         placeholder="Cole o link aqui ou digite XYZ se não estiver disponível..."
-                    ).classes("w-full mb-4").bind_value(state_21, "link")
+                    ).classes("w-full mb-2 border-blue-400 rounded").bind_value(state_21, "link")
+
+                    # Renderização dos Links Ativos (Clicáveis)
+                    @ui.refreshable
+                    def render_links_ativos_21():
+                        raw_txt = state_21.get("link", "") or ""
+                        import re
+                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ"]
+
+                        if links_list:
+                            with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
+                                ui.label("Links Ativos:").classes("text-sm font-bold text-gray-800")
+                                for u in links_list:
+                                    target_url = u if u.startswith(("http://", "https://")) else f"https://{u}"
+                                    ui.link(u, target_url, new_tab=True).classes("text-sm text-blue-600 underline font-medium hover:text-blue-800 break-all")
+
+                    render_links_ativos_21()
 
                     pts_atuais_21 = float(d21.get("pontos") or 0.0)
                     cor_txt_21 = "text-green-600" if pts_atuais_21 > 0 else "text-gray-500"
 
                     with ui.row().classes("w-full justify-between items-center mb-4"):
                         ui.label(f"📊 Impacto de Pontuação no Quesito 2.1: +{pts_atuais_21:.1f} pontos").classes(f"text-sm font-bold {cor_txt_21}")
-                        ui.button("Salvar Quesito 2.1", on_click=cb_processa_e_salva_21, icon="save").classes("bg-blue-800 text-white font-medium px-4 py-2 rounded-md")
+                        ui.button("SALVAR QUESITO 2.1", on_click=cb_processa_e_salva_21, icon="save").classes("bg-blue-600 text-white font-medium px-4 py-2 rounded-md shadow-sm")
 
                     ui.separator().classes("my-2")
                     bloco_comentarios("2.1", res_data, ano_sel)
