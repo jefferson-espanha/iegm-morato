@@ -891,12 +891,12 @@ def container_formulario_igov_ti():
                         ).classes("w-full").bind_value(state_11, "outr")
 
                     # Área do Link / Evidência
-                    ui.textarea(
-                        "Página Eletrônica (Link / Evidência da Composição):",
-                        value=evidencia_11_salva,
-                        placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI..."
+                    ui.input(
+                        label="Página Eletrônica (Link / Evidência da Composição):",
+                        placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI...",
+                        value=evidencia_11_salva
                     ).classes("w-full mb-4").bind_value(state_11, "link")
-
+                    
                     # Rodapé do Quesito
                     total_pessoal = parse_int_seguro(d11.get("valor"))
                     pts_atuais_11 = float(d11.get("pontos") or 0.0)
