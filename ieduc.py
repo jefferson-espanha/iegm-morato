@@ -54,6 +54,44 @@ def agora_brasilia_formatada():
     return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
 
 
+def _instalar_links_ativos_nos_campos_evidencia():
+    """Adiciona links clicáveis a todos os campos de evidência do formulário."""
+    textarea_original = ui.textarea
+
+    def textarea_com_links(*args, **kwargs):
+        label = kwargs.get("label", args[0] if args else "")
+        campo = textarea_original(*args, **kwargs)
+
+        texto_label = str(label or "").lower()
+        if "link" in texto_label:
+            container = ui.row().classes("w-full items-center my-2")
+
+            def atualizar_links():
+                container.clear()
+                texto = str(campo.value or "")
+                links = re.findall(r"https?://[^\s]+", texto)
+                if links:
+                    with container:
+                        ui.label("Links Ativos:").classes(
+                            "font-bold text-caption text-gray-700 mr-2"
+                        )
+                        for url in links:
+                            # Remove pontuação final comum sem alterar o endereço digitado.
+                            url_limpa = url.rstrip(".,;:)]}")
+                            ui.link(url_limpa, target=url_limpa, new_tab=True).classes(
+                                "text-caption text-blue-6 mr-2"
+                            )
+
+            campo.on("update:model-value", atualizar_links)
+            atualizar_links()
+        return campo
+
+    ui.textarea = textarea_com_links
+
+
+_instalar_links_ativos_nos_campos_evidencia()
+
+
 # Pool reutilizável: evita abrir uma conexão TCP/TLS nova a cada clique em Salvar.
 _DB_POOL = None
 
@@ -476,37 +514,6 @@ def render_quesito(
             input_radio.on("update:model-value", atualizar_impacto)
         elif tipo_input in ["number", "float"]:
             input_num.on("update:model-value", atualizar_impacto)
-
-        # =====================================================================
-        # RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS
-        # =====================================================================
-        container_links = ui.row().classes("w-full items-center my-2")
-
-        def atualizar_links_visuais():
-            container_links.clear()
-            val_txt = input_texto.value if input_texto and input_texto.value else ""
-            lnk_txt = input_link.value if input_link and input_link.value else ""
-            txt_total = f"{val_txt} {lnk_txt}"
-
-            REGEX_PURE_URL = r'https?://[^\s]+'
-            links = re.findall(REGEX_PURE_URL, txt_total)
-
-            if links:
-                with container_links:
-                    ui.label("Links Ativos: ").classes(
-                        "font-bold text-caption text-gray-700"
-                    )
-                    for url in links:
-                        ui.link(url, target=url, new_tab=True).classes(
-                            "text-caption text-blue-6 mr-2"
-                        )
-
-        if input_link:
-            input_link.on("update:model-value", atualizar_links_visuais)
-        if input_texto:
-            input_texto.on("update:model-value", atualizar_links_visuais)
-
-        atualizar_links_visuais()
 
         # =====================================================================
         # BOTÃO SALVAR
@@ -960,7 +967,7 @@ def container_formulario_ieduc(ano=None):
                                         value=state_111["val_bpi"],
                                         min=0,
                                         step=1,
-                                        on_change=lambda e: [state_111.update({"val_bpi": e.value}), calcular_111()],
+                                        on_change=lambda e: atualizar_111_valor("val_bpi", e.value),
                                     ).classes("w-full").props("outlined bg-white")
 
                                     ui.number(
@@ -968,8 +975,12 @@ def container_formulario_ieduc(ano=None):
                                         value=state_111["val_tot"],
                                         min=0,
                                         step=1,
-                                        on_change=lambda e: [state_111.update({"val_tot": e.value}), calcular_111()],
+                                        on_change=lambda e: atualizar_111_valor("val_tot", e.value),
                                     ).classes("w-full").props("outlined bg-white")
+
+                                def atualizar_111_valor(chave, valor):
+                                    state_111[chave] = valor if valor is not None else 0
+                                    calcular_111()
 
                                 calcular_111()
 
@@ -986,30 +997,32 @@ def container_formulario_ieduc(ano=None):
                             def salvar_111():
                                 calcular_111()
 
-                                b_val = int(state_111["val_bpi"]) if state_111["val_bpi"] is not None else 0
-                                t_val = int(state_111["val_tot"]) if state_111["val_tot"] is not None else 0
+                                try:
+                                    b_val = int(float(state_111.get("val_bpi") or 0))
+                                    t_val = int(float(state_111.get("val_tot") or 0))
+                                except (TypeError, ValueError):
+                                    b_val, t_val = 0, 0
 
                                 val_dict = {"BPI": b_val, "TOT": t_val}
-                                str_resposta = json.dumps(val_dict)
 
                                 try:
                                     # Grava no banco de dados
                                     save_resposta(
                                         ano=ano_sel,
                                         qid="1.1.1",
-                                        valor=str_resposta,
+                                        valor=val_dict,
                                         pontos=state_111["pts"],
-                                        link=input_link_111.value,
+                                        link=input_link_111.value or "",
                                         comentarios=d111.get("comentarios", []),
                                         status=d111.get("status", "Pendente"),
                                     )
 
                                     # Atualiza a estrutura local de dados em memória antes do refresh
                                     novos_dados = {
-                                        "resposta": str_resposta,
-                                        "valor": str_resposta,
+                                        "resposta": json.dumps(val_dict, ensure_ascii=False),
+                                        "valor": val_dict,
                                         "pontos": state_111["pts"],
-                                        "link": input_link_111.value,
+                                        "link": input_link_111.value or "",
                                         "comentarios": d111.get("comentarios", []),
                                         "status": d111.get("status", "Pendente"),
                                     }
