@@ -1,5 +1,6 @@
 import base64
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import json
 import os
 import re
@@ -14,6 +15,22 @@ DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
 )
+
+def extrair_ano(valor, padrao=2026):
+    """Converte ano ou rótulo como 'Ano base(2026)' para um inteiro."""
+    if valor is None or valor == "":
+        return int(padrao)
+    try:
+        return int(valor)
+    except (TypeError, ValueError):
+        encontrado = re.search(r"(?<!\d)(20\d{2})(?!\d)", str(valor))
+        return int(encontrado.group(1)) if encontrado else int(padrao)
+
+
+def agora_brasilia_formatada():
+    """Retorna a data e hora atual no fuso oficial de Brasília."""
+    return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
+
 
 
 def get_db_connection():
@@ -271,6 +288,7 @@ def render_quesito(
 # PAINEL DE CONTROLE LATERAL
 # =============================================================================
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
+    ano_atual = extrair_ano(ano_atual)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
     total_pts = sum(float(item.get("pontos", 0)) for item in res_data.values())
@@ -297,7 +315,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             options=anos,
             value=int(ano_atual),
             label="Ano base das respostas:",
-            on_change=lambda e: on_mudar_ano(e.value),
+            on_change=lambda e: on_mudar_ano(extrair_ano(e.value)),
         ).classes("w-full mb-4 bg-white")
 
         with ui.card().classes("w-full mb-4 p-3 bg-white shadow-sm border"):
@@ -396,7 +414,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             novo_st = e.value
             log = {
                 "autor": "Sistema / " + usuario_atual,
-                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "data": agora_brasilia_formatada(),
                 "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
@@ -478,7 +496,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             if txt:
                 historico.append({
                     "autor": usuario_atual,
-                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "data": agora_brasilia_formatada(),
                     "texto": txt,
                     "status_definido": status_global,
                 })
@@ -510,13 +528,13 @@ def _obter_ano_com_respostas(ano_preferido=2026):
             with conn.cursor() as cur:
                 cur.execute("SELECT DISTINCT ano FROM respostas_iamb ORDER BY ano DESC;")
                 anos = [int(row["ano"]) for row in cur.fetchall()]
-        if int(ano_preferido) in anos:
-            return int(ano_preferido)
+        if extrair_ano(ano_preferido) in anos:
+            return extrair_ano(ano_preferido)
         if anos:
             return anos[0]
     except Exception as e:
         print(f"❌ Erro ao localizar ano com respostas no Neon DB: {e}")
-    return int(ano_preferido)
+    return extrair_ano(ano_preferido)
 
 
 def _render_formulario_iamb(ano=None):
@@ -526,12 +544,12 @@ def _render_formulario_iamb(ano=None):
 
     @ui.refreshable
     def render_conteudo():
-        ano_sel = int(app.storage.user.get("ano_referencia_global", ano_inicial))
+        ano_sel = extrair_ano(app.storage.user.get("ano_referencia_global", ano_inicial))
         # Mantém o ano escolhido, mesmo quando ainda não há respostas salvas nele.
         res_data = load_respostas(ano_sel)
 
         def alterar_ano(novo_ano):
-            app.storage.user["ano_referencia_global"] = int(novo_ano)
+            app.storage.user["ano_referencia_global"] = extrair_ano(novo_ano)
             ui.notify(f"Ano alterado para {novo_ano}", type="info")
             render_conteudo.refresh()
 
@@ -5985,7 +6003,7 @@ def container_formulario_iamb(ano=None, res_data=None, ano_sel=2026):
     _render_formulario_iamb(ano=ano_inicial)
 
     # Renderiza o card do relatório PDF com os dados do ano atualmente ativo.
-    ano_relatorio = int(app.storage.user.get("ano_referencia_global", ano_inicial))
+    ano_relatorio = extrair_ano(app.storage.user.get("ano_referencia_global", ano_inicial))
     dados_relatorio = res_data if res_data is not None else load_respostas(ano_relatorio)
     renderizar_card_relatorio_iamb(
         res_data=dados_relatorio,
