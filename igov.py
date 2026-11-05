@@ -22,6 +22,18 @@ from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, S
 # =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
 
+
+def _deduplicar_links(links):
+    """Remove URLs repetidas, preservando a ordem e o primeiro texto exibido."""
+    links_unicos = []
+    vistos = set()
+    for link in links:
+        url = str(link).strip().rstrip(".,;:!?)]}")
+        if url and url not in vistos:
+            vistos.add(url)
+            links_unicos.append(url)
+    return links_unicos
+
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -579,7 +591,7 @@ def render_quesito(
                         lnk_txt = input_link.value or ""
                         txt_total = f"{val_txt} {lnk_txt}"
 
-                        links = re.findall(REGEX_PURE_URL, txt_total)
+                        links = _deduplicar_links(re.findall(REGEX_PURE_URL, txt_total))
                         if links:
                             with container_links:
                                 ui.label("Links Ativos: ").classes(
@@ -868,7 +880,7 @@ def container_formulario_igov_ti():
                         raw_txt = state_11.get("link", "") or ""
                         # Separa links por quebra de linha ou por vírgula/ponto e vírgula
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -1058,7 +1070,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_131():
                         raw_txt = state_131.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -1214,7 +1226,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_141():
                         raw_txt = state_141.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -1350,7 +1362,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_21():
                         raw_txt = state_21.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ"]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ")
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -1468,7 +1480,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_22():
                         raw_txt = state_22.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -1591,7 +1603,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_23():
                         raw_txt = state_23.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -1751,7 +1763,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_3111():
                         raw_txt = state_3111.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -1902,7 +1914,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_321():
                         raw_txt = state_321.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -2079,7 +2091,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_361():
                         raw_txt = state_361.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -2182,7 +2194,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_41():
                         raw_txt = state_41.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -2259,7 +2271,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_42():
                         raw_txt = state_42.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ"]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ")
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -2360,7 +2372,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_51():
                         raw_txt = state_51.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -2437,7 +2449,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_52():
                         raw_txt = state_52.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ"]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ")
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -2735,7 +2747,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_81():
                         raw_txt = state_81.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -2827,7 +2839,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_82():
                         raw_txt = state_82.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -2972,7 +2984,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_83():
                         raw_txt = state_83.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -3077,7 +3089,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_84():
                         raw_txt = state_84.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -3203,7 +3215,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_91():
                         raw_txt = state_91.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -3298,7 +3310,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_92():
                         raw_txt = state_92.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -3400,7 +3412,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_101():
                         raw_txt = state_101.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip()]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip())
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -3477,7 +3489,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_102():
                         raw_txt = state_102.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ"]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ")
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
@@ -3676,7 +3688,7 @@ def container_formulario_igov_ti():
                     def render_links_ativos_111():
                         raw_txt = state_111.get("link", "") or ""
                         import re
-                        links_list = [l.strip() for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ"]
+                        links_list = _deduplicar_links(l for l in re.split(r'[\n;,]+', raw_txt) if l.strip() and l.strip().upper() != "XYZ")
 
                         if links_list:
                             with ui.row().classes("w-full items-center gap-2 mb-4 flex-wrap"):
