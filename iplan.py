@@ -405,7 +405,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.select(
             options=anos,
             value=int(ano_atual),
-            label="Ano de Referência:",
+            label="Ano base de preenchimento:",
             on_change=lambda e: on_mudar_ano(e.value),
         ).classes("w-full mb-4 bg-white")
 
@@ -427,7 +427,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             )
             on_refresh()
 
-        ui.button("🔄 ATUALIZAR UI", on_click=on_refresh).classes(
+        ui.button("🔄 ATUALIZAR ANO", on_click=on_refresh).classes(
             "w-full bg-blue-600 text-white font-bold mb-2"
         )
         ui.button("🗑️ ZERAR ANO", on_click=zerar_acao).classes(
