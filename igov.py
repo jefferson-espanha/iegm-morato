@@ -5,6 +5,7 @@ import logging
 import os
 import re
 from io import BytesIO
+from zoneinfo import ZoneInfo
 
 from nicegui import app, ui
 import psycopg2
@@ -289,6 +290,9 @@ def render_painel_controle(on_refresh_callback=None):
 # =============================================================================
 # 2. BLOCO DE COMENTÁRIOS INTERNOS
 # =============================================================================
+FUSO_BRASILIA = ZoneInfo("America/Sao_Paulo")
+
+
 def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
@@ -315,7 +319,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             novo_st = e.value
             log = {
                 "autor": "Sistema / " + usuario_atual,
-                "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                "data": datetime.now(FUSO_BRASILIA).strftime("%d/%m/%Y %H:%M"),
                 "texto": f"ℹ️ Alterou o status do quesito para: **{novo_st.upper()}**.",
                 "status_definido": novo_st,
             }
@@ -397,7 +401,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             if txt:
                 historico.append({
                     "autor": usuario_atual,
-                    "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
+                    "data": datetime.now(FUSO_BRASILIA).strftime("%d/%m/%Y %H:%M"),
                     "texto": txt,
                     "status_definido": status_global,
                 })
