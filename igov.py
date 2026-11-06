@@ -198,7 +198,7 @@ def render_painel_controle(on_refresh_callback=None):
         ui.select(
             options=anos,
             value=ano_atual,
-            label="Ano de Referência:",
+            label="Ano base de preenchimento:",
             on_change=ao_mudar_ano,
         ).classes("w-full mb-4")
 
@@ -236,7 +236,7 @@ def render_painel_controle(on_refresh_callback=None):
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
-        ui.button("🔄 Atualizar Questionário", on_click=atualizar_dados).classes(
+        ui.button("🔄 Atualizar Ano", on_click=atualizar_dados).classes(
             "w-full bg-blue-700 text-white mb-2"
         )
         ui.separator().classes("my-2")
