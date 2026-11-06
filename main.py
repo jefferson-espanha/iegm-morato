@@ -525,6 +525,12 @@ def dashboard_page():
                 ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
 
         ui.label('📊 Sistema de Preenchimento').classes('text-xl font-bold text-gray-800 border-b w-full pb-2')
+
+        ui.label('Pontos Focais/responsáveis pelo preenchimento, em caso de dúvidas no uso do sistema de preenchimento, acesse o Guia de Acesso e Preenchimento.').classes('text-sm text-gray-600 w-full')
+        ui.button(
+            '📘 Acessar Guia de Acesso e Preenchimento',
+            on_click=lambda: ui.run_javascript("window.open('https://drive.google.com/drive/folders/1iwiuHHbQYZ-p6aEMB9oSjugDEvdB8GVK', '_blank')")
+        ).classes('bg-blue-700 text-white')
         
         with ui.grid(columns=4).classes('w-full gap-4'):
             for dim_name, dim_info in DIMENSIONS_DATA.items():
