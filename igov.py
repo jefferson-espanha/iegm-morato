@@ -3997,7 +3997,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     # -------------------------------------------------------------------------
     # 7. QUESITOS SEM PONTUAÇÃO DIRETA
     # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
+    elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
     analise_sp = []
