@@ -1658,9 +1658,9 @@ def container_formulario_plan(ano=None):
                         # QUESITO 13.1 (Audiências Públicas Quadrimestrais - Checkbox)
                         # ==========================================
                         opcoes_131 = {
-                            "Realizou Audiência pública do 1º Quadrimestre até o final do mês de maio de 2025 – 02 pts": 2.0,
-                            "Realizou Audiência pública do 2º Quadrimestre até o final do mês de setembro de 2025 – 02 pts": 2.0,
-                            "Realizou Audiência pública do 3º Quadrimestre até o final do mês de fevereiro de 2026 – 02 pts": 2.0,
+                            "Realizou Audiência pública do 1º Quadrimestre até o final do mês de maio de 2026 – 02 pts": 2.0,
+                            "Realizou Audiência pública do 2º Quadrimestre até o final do mês de setembro de 2026 – 02 pts": 2.0,
+                            "Realizou Audiência pública do 3º Quadrimestre até o final do mês de fevereiro de 2027 – 02 pts": 2.0,
                             "Não realizou audiência pública quadrimestral dentro do prazo – 00 pts": 0.0,
                             "Não realizou nenhuma audiência pública quadrimestral na Câmara Municipal – -10 pts": -10.0,
                         }
@@ -1973,7 +1973,7 @@ def container_formulario_plan(ano=None):
                         )
 
                         # ==========================================
-                        # QUESITO 14.4.4.2 (Comunicação de Irregularidade em 2025 - Radio)
+                        # QUESITO 14.4.4.2 (Comunicação de Irregularidade em 2026 - Radio)
                         # ==========================================
                         opcoes_14442 = {
                             "Selecione...": 0.0,
@@ -1985,8 +1985,8 @@ def container_formulario_plan(ano=None):
                             ano=ano_sel,
                             res_data=res_data,
                             qid="14.4.4.2",
-                            titulo="Comunicação de Irregularidades em 2025",
-                            pergunta="A Unidade Central de Controle Interno (UCCI) procedeu com alguma comunicação de irregularidade ou ilegalidade em 2025?",
+                            titulo="Comunicação de Irregularidades em 2026",
+                            pergunta="A Unidade Central de Controle Interno (UCCI) procedeu com alguma comunicação de irregularidade ou ilegalidade em 2026?",
                             tipo_input="radio",
                             opcoes=opcoes_14442,
                             placeholder_link="Insira o link com comprovação das comunicações expedidas...",
@@ -2295,7 +2295,7 @@ def container_formulario_plan(ano=None):
                         )
 
                         # ==========================================
-                        # QUESITO 15.4 (Relatório de Gestão da Ouvidoria 2025 - Radio)
+                        # QUESITO 15.4 (Relatório de Gestão da Ouvidoria 2026 - Radio)
                         # ==========================================
                         opcoes_154 = {
                             "Selecione...": 0.0,
@@ -2306,11 +2306,11 @@ def container_formulario_plan(ano=None):
                             ano=ano_sel,
                             res_data=res_data,
                             qid="15.4",
-                            titulo="Relatório de Gestão da Ouvidoria (Exercício 2025)",
-                            pergunta="A ouvidoria elaborou Relatório de Gestão do exercício de 2025 contendo a consolidação das manifestações encaminhadas pelos usuários de serviços públicos, e com base nelas, apontou falhas e sugeriu melhorias em sua prestação?",
+                            titulo="Relatório de Gestão da Ouvidoria (Exercício 2026)",
+                            pergunta="A ouvidoria elaborou Relatório de Gestão do exercício de 2026 contendo a consolidação das manifestações encaminhadas pelos usuários de serviços públicos, e com base nelas, apontou falhas e sugeriu melhorias em sua prestação?",
                             tipo_input="radio",
                             opcoes=opcoes_154,
-                            placeholder_link="Insira o link do Relatório de Gestão da Ouvidoria 2025...",
+                            placeholder_link="Insira o link do Relatório de Gestão da Ouvidoria 2026...",
                             on_save_callback=render_conteudo.refresh,
                         )
 
@@ -2337,7 +2337,7 @@ def container_formulario_plan(ano=None):
                         )
                        
                         # ==========================================
-                        # QUESITO 15.4.2 (Divulgação do Relatório de Gestão 2025 - Radio/Text)
+                        # QUESITO 15.4.2 (Divulgação do Relatório de Gestão 2026 - Radio/Text)
                         # ==========================================
                         # Regra de cálculo: Se XYZ perde -10 pts; Se <> XYZ ganha 0 pts.
                         opcoes_1542 = {
@@ -2348,8 +2348,8 @@ def container_formulario_plan(ano=None):
                             ano=ano_sel,
                             res_data=res_data,
                             qid="15.4.2",
-                            titulo="Divulgação do Relatório de Gestão de 2025 na Internet",
-                            pergunta="Informe a página eletrônica (link na internet) de divulgação do Relatório de Gestão do exercício de 2025 (Se não estiver disponível, inserir XYZ):",
+                            titulo="Divulgação do Relatório de Gestão de 2026 na Internet",
+                            pergunta="Informe a página eletrônica (link na internet) de divulgação do Relatório de Gestão do exercício de 2026 (Se não estiver disponível, inserir XYZ):",
                             tipo_input="radio",
                             opcoes=opcoes_1542,
                             placeholder_link="Cole o link do relatório ou digite XYZ...",
