@@ -34,6 +34,37 @@ DATABASE_URL = os.getenv(
 def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
+def get_all_years_data():
+    """Busca todas as respostas do iGov-TI agrupadas por ano para o relatório PDF."""
+    all_data = {}
+    query = """
+        SELECT qid, ano, valor, pontos, link, comentarios
+        FROM respostas_igovti
+        ORDER BY ano ASC;
+    """
+    try:
+        with get_db_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute(query)
+                rows = cur.fetchall()
+
+                for row in rows:
+                    qid = str(row["qid"]).strip()
+                    ano = int(row["ano"])
+                    link = row["link"] if row["link"] != "EMPTY_STRING" else ""
+                    comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
+
+                    all_data.setdefault(ano, {})[qid] = {
+                        "valor": row["valor"] or "",
+                        "pontos": float(row["pontos"]) if row["pontos"] is not None else 0.0,
+                        "link": link,
+                        "comentarios": comentarios,
+                    }
+    except Exception as e:
+        logging.exception("Erro ao buscar série histórica do iGov-TI")
+
+    return all_data
+
 
 def init_db():
     """Garante que a tabela respostas_igovti exista com as colunas certas."""
@@ -3358,61 +3389,6 @@ def container_formulario_igov_ti():
                     return psycopg2.connect(DATABASE_URL)
 
                 
-                def get_all_years_data():
-                    """
-                    Busca todas as respostas do banco Neon de forma resiliente
-                    (trata retorno por tupla ou por dicionário).
-                    """
-                    all_data = {}
-                    query = """
-                        SELECT qid, ano, valor, pontos, link, comentarios
-                        FROM respostas_igovti
-                        ORDER BY ano ASC;
-                    """
-                    try:
-                        with get_db_connection() as conn:
-                            # Usando RealDictCursor se disponível, ou cursor padrão de tupla
-                            try:
-                                import psycopg2.extras
-                                cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
-                            except Exception:
-                                cur = conn.cursor()
-
-                            cur.execute(query)
-                            rows = cur.fetchall()
-
-                            for row in rows:
-                                # Tratamento universal para Tupla (índice) ou Dict (chave)
-                                if isinstance(row, dict):
-                                    qid = str(row["qid"]).strip()
-                                    ano = int(row["ano"])
-                                    valor = row["valor"] or ""
-                                    pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
-                                    link = row["link"] if row["link"] != "EMPTY_STRING" else ""
-                                    comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
-                                else:
-                                    qid = str(row[0]).strip()
-                                    ano = int(row[1])
-                                    valor = row[2] or ""
-                                    pontos = float(row[3]) if row[3] is not None else 0.0
-                                    link = row[4] if row[4] != "EMPTY_STRING" else ""
-                                    comentarios = row[5] if isinstance(row[5], list) else []
-
-                                if ano not in all_data:
-                                    all_data[ano] = {}
-
-                                all_data[ano][qid] = {
-                                    "valor": valor,
-                                    "pontos": pontos,
-                                    "link": link,
-                                    "comentarios": comentarios
-                                }
-
-                    except Exception as e:
-                        print(f"❌ Erro ao buscar série histórica no Neon DB: {e}")
-
-                    return all_data
-
                 # --- CARREGAMENTO DE DADOS E VARIÁVEIS DO RELATÓRIO ---
                 all_data = get_all_years_data()
 
