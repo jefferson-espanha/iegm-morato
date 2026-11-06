@@ -529,7 +529,7 @@ def dashboard_page():
         ui.label('Pontos Focais/responsáveis pelo preenchimento, em caso de dúvidas no uso do sistema de preenchimento, acesse o Guia de Acesso e Preenchimento.').classes('text-sm text-gray-600 w-full')
         ui.button(
             '📘 Acessar Guia de Acesso e Preenchimento',
-            on_click=lambda: ui.run_javascript("window.open('https://drive.google.com/file/d/1mUCoVTbVKQGs660NiBOghff26X6ZXujk/view?usp=sharing', '_blank')")
+            on_click=lambda: ui.run_javascript("window.open('https://drive.google.com/file/d/1mak0-oJqcdjipkbqacHzfnRiyvOmtB3M/view?usp=sharing', '_blank')")
         ).classes('bg-blue-700 text-white')
         
         with ui.grid(columns=4).classes('w-full gap-4'):
