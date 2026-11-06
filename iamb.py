@@ -3146,7 +3146,7 @@ def _render_formulario_iamb(ano=None):
                             input_data_10311 = ui.input(
                                 label="Data de Validade (DD/MM/AAAA):",
                                 value=data_salva_10311,
-                                placeholder="Ex: 30/06/2025"
+                                placeholder="Ex: 30/06/2026"
                             ).classes("w-full").props("outlined mask='##/##/####'")
 
                         ui.textarea(
@@ -4032,7 +4032,7 @@ def _render_formulario_iamb(ano=None):
                                 ui.input(
                                     "Prazo de Validade (DD/MM/AAAA):",
                                     value=state_1321["validade"],
-                                    placeholder="Ex: 31/12/2025",
+                                    placeholder="Ex: 31/12/2026",
                                 ).classes("w-full").props("outlined").bind_value(state_1321, "validade")
 
                             ui.textarea(
