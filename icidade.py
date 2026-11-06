@@ -324,7 +324,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.select(
             options=anos,
             value=int(ano_atual),
-            label="Ano de Referência:",
+            label="Ano base de preechimento:",
             on_change=lambda e: on_mudar_ano(e.value),
         ).classes("w-full mb-4 bg-white")
 
@@ -346,7 +346,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
-        ui.button("🔄 ATUALIZAR QUESTIONÁRIO", on_click=atualizar_dados).classes(
+        ui.button("🔄 ATUALIZAR ANO", on_click=atualizar_dados).classes(
             "w-full bg-blue-700 text-white font-bold mb-2"
         )
 
