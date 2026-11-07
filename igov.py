@@ -3372,9 +3372,6 @@ def container_formulario_igov_ti():
                 style_td_center = ParagraphStyle('TDCenterStyle', parent=styles['Normal'], fontSize=8, leading=10, fontName='Helvetica', alignment=TA_CENTER)
                 style_analise = ParagraphStyle('AnaliseStyle', parent=styles['Normal'], fontSize=8, leading=11, fontName='Helvetica-Oblique', alignment=TA_LEFT, textColor=colors.HexColor("#2D3748"))
 
-                # String de conexão com o PostgreSQL
-                DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
-
                 # Dicionário de Pontuações Máximas (Tetos) dos Quesitos - iGovTI
                 PONTUACOES_MAX = {
                     "1.0": 30, "1.1": 30, "1.2": 30, "1.3": 30, "1.3.1": 30, "1.4.1": 40, "1.4.2": 20,
@@ -3384,11 +3381,6 @@ def container_formulario_igov_ti():
                     "8.0": 40, "8.2.1": 50, "8.2.2": 30, "9.1": 120
                 }
 
-                def get_db_connection():
-                    """Cria conexão segura com o Neon PostgreSQL."""
-                    return psycopg2.connect(DATABASE_URL)
-
-                
                 # --- CARREGAMENTO DE DADOS E VARIÁVEIS DO RELATÓRIO ---
                 all_data = get_all_years_data()
 
