@@ -2273,15 +2273,27 @@ def container_formulario_plan(ano=None):
                         # ==========================================
                         # QUESITO 15.3 (Características da Ouvidoria - Checkbox)
                         # ==========================================
-                        # Regra de cálculo: Perde -0.5 pt para cada item principal NÃO assinalado (pontuação varia de 0 a -2,5 pts).
+                        # Cada item assinalado evita a perda de -0.5 pt (Se marcar os 5 principais = 0.0 pts. Se não marcar nenhum = -2.5 pts).
                         opcoes_153 = {
-                            "Independência": 0.0,
-                            "Isenção": 0.0,
-                            "Acessibilidade": 0.0,
-                            "Transparência": 0.0,
-                            "Confidencialidade": 0.0,
+                            "Independência": 0.5,
+                            "Isenção": 0.5,
+                            "Acessibilidade": 0.5,
+                            "Transparência": 0.5,
+                            "Confidencialidade": 0.5,
+                            "Outros": 0.0,  # Não é item principal de penalização
+                        }
+
+                        # Nota: Se precisares que a pontuação inicial sem nada marcado seja -2.5 pts,
+                        # podes passar o valor negativo diretamente:
+                        opcoes_153_negativo = {
+                            "Independência": -0.5,
+                            "Isenção": -0.5,
+                            "Acessibilidade": -0.5,
+                            "Transparência": -0.5,
+                            "Confidencialidade": -0.5,
                             "Outros": 0.0,
                         }
+
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
