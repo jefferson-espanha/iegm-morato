@@ -546,36 +546,41 @@ def render_quesito(
                         placeholder=placeholder_link,
                     ).classes("w-full").props("outlined rows=3")
 
-                    container_links = ui.row().classes("mt-1")
+                    container_links = ui.row().classes("mt-1 items-center")
 
                     def atualizar_links_visuais():
+                        # Limpa o container independentemente de quantas vezes seja chamado
                         container_links.clear()
                         
-                        # Captura APENAS o valor do campo de link de evidência para evitar duplicidade
                         lnk_txt = input_link.value or ""
-                        
                         if not lnk_txt.strip():
                             return
 
-                        # Encontra todas as URLs válidas apenas no campo de link
+                        # Extrai URLs válidas e remove duplicatas caso o link se repita
                         links = re.findall(REGEX_PURE_URL, lnk_txt)
                         if links:
                             with container_links:
-                                ui.label("Links Ativos: ").classes(
-                                    "font-bold text-caption"
+                                ui.label("Links Ativos:").classes(
+                                    "font-bold text-caption mr-2"
                                 )
-                                # Remove duplicatas caso o usuário cole o mesmo link várias vezes
                                 for url in sorted(set(links)):
                                     ui.link(url, target=url, new_tab=True).classes(
-                                        "text-caption text-blue-6 mr-2"
-                                    )
+                                    "text-caption text-blue-6 mr-2"
+                                )
 
+                    # Registra o evento de alteração
                     input_link.on(
-                        "update:model-value", atualizar_links_visuais
+                        "update:model-value", lambda _: atualizar_links_visuais()
                     )
 
-                    atualizar_links_visuais()
+                    if is_text_area and input_valor:
+                        input_valor.on(
+                            "update:model-value", lambda _: atualizar_links_visuais()
+                        )
 
+                    # Executa apenas uma vez na carga inicial se houver texto
+                    if d_data.get("link", "").strip():
+                        atualizar_links_visuais()
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
             def atualizar_label_pontos(pts, val):
