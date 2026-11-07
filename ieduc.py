@@ -15004,10 +15004,9 @@ def container_formulario_ieduc(ano=None):
 
                                 # Lista oficial de opções do Radio
                                 opts_164 = [
-                                    "Sim",
-                                    "Não",
-                                    "Não compete ao Conselho aprovar as contas da Secretaria – 00",
-                                    "Não compete ao Conselho aprovar as contas da Secretaria",
+                                    "Sim - 00 pts",
+                                    "Não - -50 pts",
+                                    "Não compete ao Conselho aprovar as contas da Secretaria – 00 pts",
                                 ]
 
                                 d164 = res_data.get("16.4") or res_data.get("164") or {}
