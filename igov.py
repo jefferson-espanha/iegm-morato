@@ -546,44 +546,8 @@ def render_quesito(
                         placeholder=placeholder_link,
                     ).classes("w-full").props("outlined rows=3")
 
-                    container_links = ui.row().classes("mt-1")
-
-                    def atualizar_links_visuais():
-                        container_links.clear()
-                        val_txt = ""
-                        if input_valor and hasattr(input_valor, "value"):
-                            val_txt = (
-                                input_valor.value
-                                if (is_text_area and input_valor.value)
-                                else ""
-                            )
-
-                        lnk_txt = input_link.value or ""
-                        txt_total = f"{val_txt} {lnk_txt}"
-
-                        # Remove URLs repetidas antes de renderizar os links ativos.
-                        # dict.fromkeys preserva a ordem original.
-                        links = list(dict.fromkeys(re.findall(REGEX_PURE_URL, txt_total)))
-
-                        if links:
-                            with container_links:
-                                ui.label("Links Ativos:").classes(
-                                    "font-bold text-caption"
-                                )
-                                for url in links:
-                                    ui.link(url, target=url, new_tab=True).classes(
-                                        "text-caption text-blue-6 mr-2"
-                                    )
-
-                    input_link.on(
-                        "update:model-value", atualizar_links_visuais
-                    )
-                    if is_text_area and input_valor:
-                        input_valor.on(
-                            "update:model-value", atualizar_links_visuais
-                        )
-
-                    atualizar_links_visuais()
+                    # O link fica disponível apenas no campo de evidência,
+                    # sem renderização automática de "Links Ativos" abaixo dele.
 
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
