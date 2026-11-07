@@ -5218,8 +5218,8 @@ def _render_formulario_iamb(ano=None):
                     # =============================================================================
                     opcoes_A6 = {
                         "Selecione...": 0.0,
-                        "Sim": 5.0,
-                        "Não": 0.0,
+                        "Sim - 5.0 pts": 5.0,
+                        "Não - 0.0 pts": 0.0,
                         "Não foi informado": 0.0,
                     }
                     render_quesito(
