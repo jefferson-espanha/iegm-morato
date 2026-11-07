@@ -475,19 +475,11 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 # MÓDULO PRINCIPAL DE REQUISITOS
 # =============================================================================
 def _obter_ano_com_respostas(ano_preferido=2026):
-    """Usa o ano escolhido quando há dados; senão, usa o ano mais recente da tabela."""
+    """Mantém sempre o ano escolhido, mesmo quando ainda não há respostas."""
     try:
-        with get_db_connection() as conn:
-            with conn.cursor() as cur:
-                cur.execute("SELECT DISTINCT ano FROM respostas_iamb ORDER BY ano DESC;")
-                anos = [int(row["ano"]) for row in cur.fetchall()]
-        if int(ano_preferido) in anos:
-            return int(ano_preferido)
-        if anos:
-            return anos[0]
-    except Exception as e:
-        print(f"❌ Erro ao localizar ano com respostas no Neon DB: {e}")
-    return int(ano_preferido)
+        return int(ano_preferido)
+    except (TypeError, ValueError):
+        return 2026
 
 
 def _render_formulario_iamb(ano=None):
@@ -498,13 +490,9 @@ def _render_formulario_iamb(ano=None):
     @ui.refreshable
     def render_conteudo():
         ano_sel = int(app.storage.user.get("ano_referencia_global", ano_inicial))
+        # Não trocar automaticamente para outro ano quando o ano selecionado
+        # ainda não possui respostas. O usuário deve permanecer no ano escolhido.
         res_data = load_respostas(ano_sel)
-        if not res_data:
-            ano_com_dados = _obter_ano_com_respostas(ano_sel)
-            if ano_com_dados != ano_sel:
-                app.storage.user["ano_referencia_global"] = ano_com_dados
-                ano_sel = ano_com_dados
-                res_data = load_respostas(ano_sel)
 
         def alterar_ano(novo_ano):
             app.storage.user["ano_referencia_global"] = int(novo_ano)
