@@ -550,24 +550,22 @@ def render_quesito(
 
                     def atualizar_links_visuais():
                         container_links.clear()
-                        val_txt = ""
-                        if input_valor and hasattr(input_valor, "value"):
-                            val_txt = (
-                                input_valor.value
-                                if (is_text_area and input_valor.value)
-                                else ""
-                            )
-
+                        
+                        # Captura APENAS o valor do campo de link de evidência para evitar duplicidade
                         lnk_txt = input_link.value or ""
-                        txt_total = f"{val_txt} {lnk_txt}"
+                        
+                        if not lnk_txt.strip():
+                            return
 
-                        links = re.findall(REGEX_PURE_URL, txt_total)
+                        # Encontra todas as URLs válidas apenas no campo de link
+                        links = re.findall(REGEX_PURE_URL, lnk_txt)
                         if links:
                             with container_links:
                                 ui.label("Links Ativos: ").classes(
                                     "font-bold text-caption"
                                 )
-                                for url in links:
+                                # Remove duplicatas caso o usuário cole o mesmo link várias vezes
+                                for url in sorted(set(links)):
                                     ui.link(url, target=url, new_tab=True).classes(
                                         "text-caption text-blue-6 mr-2"
                                     )
@@ -575,10 +573,6 @@ def render_quesito(
                     input_link.on(
                         "update:model-value", atualizar_links_visuais
                     )
-                    if is_text_area and input_valor:
-                        input_valor.on(
-                            "update:model-value", atualizar_links_visuais
-                        )
 
                     atualizar_links_visuais()
 
