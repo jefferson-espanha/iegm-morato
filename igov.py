@@ -561,10 +561,13 @@ def render_quesito(
                         lnk_txt = input_link.value or ""
                         txt_total = f"{val_txt} {lnk_txt}"
 
-                        links = re.findall(REGEX_PURE_URL, txt_total)
+                        # Remove URLs repetidas antes de renderizar os links ativos.
+                        # dict.fromkeys preserva a ordem original.
+                        links = list(dict.fromkeys(re.findall(REGEX_PURE_URL, txt_total)))
+
                         if links:
                             with container_links:
-                                ui.label("Links Ativos: ").classes(
+                                ui.label("Links Ativos:").classes(
                                     "font-bold text-caption"
                                 )
                                 for url in links:
