@@ -549,14 +549,14 @@ def render_quesito(
                     container_links = ui.row().classes("mt-1 items-center")
 
                     def atualizar_links_visuais():
-                        # Limpa o container independentemente de quantas vezes seja chamado
+                        # Limpa o container antes de renderizar para evitar duplicações
                         container_links.clear()
                         
                         lnk_txt = input_link.value or ""
                         if not lnk_txt.strip():
                             return
 
-                        # Extrai URLs válidas e remove duplicatas caso o link se repita
+                        # Extrai URLs válidas e remove duplicatas
                         links = re.findall(REGEX_PURE_URL, lnk_txt)
                         if links:
                             with container_links:
@@ -565,8 +565,11 @@ def render_quesito(
                                 )
                                 for url in sorted(set(links)):
                                     ui.link(url, target=url, new_tab=True).classes(
-                                    "text-caption text-blue-6 mr-2"
-                                )
+                                        "text-caption text-blue-6 mr-2"
+                                    )
+
+                    # Executa a renderização inicial uma única vez
+                    atualizar_links_visuais()
 
                     # Registra o evento de alteração
                     input_link.on(
@@ -578,9 +581,6 @@ def render_quesito(
                             "update:model-value", lambda _: atualizar_links_visuais()
                         )
 
-                    # Executa apenas uma vez na carga inicial se houver texto
-                    if d_data.get("link", "").strip():
-                        atualizar_links_visuais()
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
             def atualizar_label_pontos(pts, val):
