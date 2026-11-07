@@ -2358,27 +2358,71 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 15.4.1 (Conteúdo dos Relatórios da Ouvidoria - Checkbox)
-                        # ==========================================
-                        # Regra de cálculo: Perde -2,5 pts para cada item não assinalado (pontuação de 0 a -10 pts).
-                        opcoes_1541 = {
-                            "Número de manifestações recebidas no exercício anterior": 0.0,
-                            "Motivos das Manifestações": 0.0,
-                            "Análise dos Pontos recorrentes": 0.0,
-                            "Providências adotadas pela administração pública nas soluções apresentadas": 0.0,
-                        }
-                        render_quesito(
-                            ano=ano_sel,
-                            res_data=res_data,
-                            qid="15.4.1",
-                            titulo="Informações Constantes nos Relatórios Gerenciais da Ouvidoria",
-                            pergunta="Assinale as informações constantes nos relatórios gerenciais elaborados pela ouvidoria (Cada item não marcado perde -2,5 pts):",
-                            tipo_input="checkbox",
-                            opcoes=opcoes_1541,
-                            placeholder_link="Insira o link demonstrando o conteúdo dos relatórios...",
-                            on_save_callback=render_conteudo.refresh,
-                        )
+                        # =============================================================================
+                        # QUESITO 15.4.1 (Conteúdo dos Relatórios da Ouvidoria - Seleção Múltipla com Desconto)
+                        # =============================================================================
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("15.4.1 • Informações Constantes nos Relatórios Gerenciais da Ouvidoria").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Assinale as informações constantes nos relatórios gerenciais elaborados pela ouvidoria:").classes("text-base font-bold text-black mb-1")
+                            ui.label("⚠️ Regra de Pontuação: Cada item não marcado perde -2,5 pts (Variação de 0 a -10 pts).").classes("text-xs text-amber-600 font-semibold mb-6")
+
+                            d1541 = res_data.get("15.4.1") or {}
+                            try:
+                                sel_1541_salvos = json.loads(d1541.get("valor", "[]"))
+                                if not isinstance(sel_1541_salvos, list): sel_1541_salvos = []
+                            except Exception:
+                                sel_1541_salvos = []
+
+                            # Dicionário mapeando chave: (Rótulo, Penalizável_se_não_marcado)
+                            mapa_1541 = {
+                                "num_manifestacoes": ("Número de manifestações recebidas no exercício anterior", True),
+                                "motivos_manifestacoes": ("Motivos das Manifestações", True),
+                                "analise_recorrentes": ("Análise dos Pontos recorrentes", True),
+                                "providencias_adotadas": ("Providências adotadas pela administração pública nas soluções apresentadas", True),
+                            }
+
+                            state_1541 = {k: k in sel_1541_salvos for k in mapa_1541.keys()}
+                            state_1541["link"] = d1541.get("link", "")
+
+                            def calc_pts_1541():
+                                # Conta quantas opções penalizáveis NÃO foram assinaladas (-2.5 por item)
+                                nao_marcadas = sum(
+                                    1 for k, (_, penalizavel) in mapa_1541.items()
+                                    if penalizavel and not state_1541.get(k)
+                                )
+                                return -(nao_marcadas * 2.5)
+
+                            # Exibição das opções em checkboxes limpos
+                            with ui.column().classes("w-full gap-2 mb-4"):
+                                for k, (rotulo, _) in mapa_1541.items():
+                                    ui.checkbox(rotulo).bind_value(state_1541, k)
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_1541["link"],
+                                placeholder="Insira o link demonstrando o conteúdo dos relatórios...",
+                            ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_1541, "link")
+
+                            lbl_pts_1541 = ui.label(f"📊 Pontuação de Penalização / Impacto no Quesito 15.4.1: {calc_pts_1541():.1f} pontos").classes("text-sm font-bold text-red-600 my-2")
+
+                            def salvar_1541():
+                                selecionados = [k for k in mapa_1541.keys() if state_1541.get(k)]
+                                pts = calc_pts_1541()
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="15.4.1",
+                                    valor=json.dumps(selecionados),
+                                    pontos=pts,
+                                    link=state_1541["link"],
+                                    comentarios=d1541.get("comentarios", []),
+                                    status=d1541.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 15.4.1 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh: render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 15.4.1", on_click=salvar_1541).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("15.4.1", res_data, render_conteudo.refresh)
                        
                         # ==========================================
                         # QUESITO 15.4.2 (Divulgação do Relatório de Gestão 2026 - Radio/Text)
