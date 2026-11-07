@@ -8442,9 +8442,9 @@ def container_formulario_ieduc(ano=None):
 
                                 opcoes_312 = {
                                     "Selecione...": 0.0,
-                                    "Sim": 0.0,
-                                    "O kit escolar permanece no almoxarifado da escola e é retirado no momento do uso pelos alunos": 20.0,
-                                    "Não": 0.0,
+                                    "Sim - 0.0 pts": 0.0,
+                                    "O kit escolar permanece no almoxarifado da escola e é retirado no momento do uso pelos alunos - 20.0 pts": 20.0,
+                                    "Não - 0.0 pts": 0.0,
                                 }
 
                                 val_312_bruto = str(d312.get("valor") or "")
