@@ -15786,7 +15786,7 @@ def container_formulario_ieduc(ano=None):
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("17.7 • Reuniões do Conselho do FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Quantas reuniões foram realizadas pelo Conselho do FUNDEB no último exercício?").classes("text-base font-bold text-black mb-1")
-                                ui.label("(Não considerar reuniões de eleição/exclusão de membros, aprovação de orçamento ou outro assunto não relacionado à natureza do Conselho)").classes("text-sm text-gray-600 italic mb-4")
+                                ui.label("(Não considerar reuniões de eleição/exclusão de membros, aprovação de orçamento ou outro assunto não relacionado à natureza do Conselho) Fórmula de cálculo: Se Nº Reuniões >= 12 -> 3 pontos Se 8 <= Nº Reuniões < 12 -> 1,5 pontos Se 4 <= Nº Reuniões < 8 -> 1 ponto Se Nº Reuniões < 4 -> 00 ponto Pmáx = 3 pontos").classes("text-sm text-gray-600 italic mb-4")
 
                                 d177 = res_data.get("17.7") or res_data.get("177") or {}
                                 val_177 = str(d177.get("valor") or "0")
