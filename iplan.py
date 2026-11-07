@@ -2270,41 +2270,73 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 15.3 (Características da Ouvidoria - Checkbox)
-                        # ==========================================
-                        # Cada item assinalado evita a perda de -0.5 pt (Se marcar os 5 principais = 0.0 pts. Se não marcar nenhum = -2.5 pts).
-                        opcoes_153 = {
-                            "Independência": 0.5,
-                            "Isenção": 0.5,
-                            "Acessibilidade": 0.5,
-                            "Transparência": 0.5,
-                            "Confidencialidade": 0.5,
-                            "Outros": 0.0,  # Não é item principal de penalização
-                        }
+                        # =============================================================================
+                        # QUESITO 15.3 (Características da Ouvidoria - Seleção Múltipla com Desconto)
+                        # =============================================================================
+                        with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
+                            ui.label("15.3 • Características de Execução da Ouvidoria").classes("text-xl font-semibold text-blue-500 mb-3")
+                            ui.label("Assinale as características que a ouvidoria dispõe para a execução de suas atribuições:").classes("text-base font-bold text-black mb-1")
+                            ui.label("⚠️ Regra de Pontuação: Cada item principal não marcado perde -0,5 pt (Variação de 0 a -2,5 pts).").classes("text-xs text-amber-600 font-semibold mb-6")
 
-                        # Nota: Se precisares que a pontuação inicial sem nada marcado seja -2.5 pts,
-                        # podes passar o valor negativo diretamente:
-                        opcoes_153_negativo = {
-                            "Independência": -0.5,
-                            "Isenção": -0.5,
-                            "Acessibilidade": -0.5,
-                            "Transparência": -0.5,
-                            "Confidencialidade": -0.5,
-                            "Outros": 0.0,
-                        }
+                            d153 = res_data.get("15.3") or {}
+                            try:
+                                sel_153_salvos = json.loads(d153.get("valor", "[]"))
+                                if not isinstance(sel_153_salvos, list): sel_153_salvos = []
+                            except Exception:
+                                sel_153_salvos = []
 
-                        render_quesito(
-                            ano=ano_sel,
-                            res_data=res_data,
-                            qid="15.3",
-                            titulo="Características de Execução da Ouvidoria",
-                            pergunta="Assinale as características que a ouvidoria dispõe para a execução de suas atribuições (Cada item principal não marcado perde -0,5 pt):",
-                            tipo_input="checkbox",
-                            opcoes=opcoes_153,
-                            placeholder_link="Insira o link demonstrando o regimento/funcionamento da Ouvidoria...",
-                            on_save_callback=render_conteudo.refresh,
-                        )
+                            # Dicionário mapeando chave: (Rótulo, Penalizável_se_não_marcado)
+                            mapa_153 = {
+                                "independencia": ("Independência", True),
+                                "isencao": ("Isenção", True),
+                                "acessibilidade": ("Acessibilidade", True),
+                                "transparencia": ("Transparência", True),
+                                "confidencialidade": ("Confidencialidade", True),
+                                "outros": ("Outros", False),
+                            }
+
+                            state_153 = {k: k in sel_153_salvos for k in mapa_153.keys()}
+                            state_153["link"] = d153.get("link", "")
+
+                            def calc_pts_153():
+                                # Conta quantas opções penalizáveis NÃO foram assinaladas (-0.5 por item)
+                                nao_marcadas = sum(
+                                    1 for k, (_, penalizavel) in mapa_153.items()
+                                    if penalizavel and not state_153.get(k)
+                                )
+                                return -(nao_marcadas * 0.5)
+
+                            # Exibição das opções em checkboxes limpos
+                            with ui.column().classes("w-full gap-2 mb-4"):
+                                for k, (rotulo, _) in mapa_153.items():
+                                    ui.checkbox(rotulo).bind_value(state_153, k)
+
+                            ui.textarea(
+                                label="Link de Evidência / Documento:",
+                                value=state_153["link"],
+                                placeholder="Insira o link demonstrando o regimento/funcionamento da Ouvidoria...",
+                            ).classes("w-full mb-2").props("outlined rows=4").bind_value(state_153, "link")
+
+                            lbl_pts_153 = ui.label(f"📊 Pontuação de Penalização / Impacto no Quesito 15.3: {calc_pts_153():.1f} pontos").classes("text-sm font-bold text-red-600 my-2")
+
+                            def salvar_153():
+                                selecionados = [k for k in mapa_153.keys() if state_153.get(k)]
+                                pts = calc_pts_153()
+                                save_resposta(
+                                    ano=ano_sel,
+                                    qid="15.3",
+                                    valor=json.dumps(selecionados),
+                                    pontos=pts,
+                                    link=state_153["link"],
+                                    comentarios=d153.get("comentarios", []),
+                                    status=d153.get("status", "Pendente"),
+                                )
+                                ui.notify("Quesito 15.3 salvo com sucesso!", type="positive")
+                                if render_conteudo.refresh: render_conteudo.refresh()
+
+                            ui.button("💾 SALVAR QUESITO 15.3", on_click=salvar_153).classes("bg-blue-500 text-white font-bold px-5 py-2 rounded-md shadow my-2")
+                            ui.separator().classes("my-2")
+                            bloco_comentarios("15.3", res_data, render_conteudo.refresh)
 
                         # ==========================================
                         # QUESITO 15.4 (Relatório de Gestão da Ouvidoria 2026 - Radio)
