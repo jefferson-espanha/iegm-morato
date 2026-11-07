@@ -546,40 +546,41 @@ def render_quesito(
                         placeholder=placeholder_link,
                     ).classes("w-full").props("outlined rows=3")
 
-                    container_links = ui.row().classes("mt-1 items-center")
+                    container_links = ui.row().classes("mt-1")
 
                     def atualizar_links_visuais():
-                        # Limpa o container antes de renderizar para evitar duplicações
                         container_links.clear()
-                        
-                        lnk_txt = input_link.value or ""
-                        if not lnk_txt.strip():
-                            return
+                        val_txt = ""
+                        if input_valor and hasattr(input_valor, "value"):
+                            val_txt = (
+                                input_valor.value
+                                if (is_text_area and input_valor.value)
+                                else ""
+                            )
 
-                        # Extrai URLs válidas e remove duplicatas
-                        links = re.findall(REGEX_PURE_URL, lnk_txt)
+                        lnk_txt = input_link.value or ""
+                        txt_total = f"{val_txt} {lnk_txt}"
+
+                        links = re.findall(REGEX_PURE_URL, txt_total)
                         if links:
                             with container_links:
-                                ui.label("Links Ativos:").classes(
-                                    "font-bold text-caption mr-2"
+                                ui.label("Links Ativos: ").classes(
+                                    "font-bold text-caption"
                                 )
-                                for url in sorted(set(links)):
+                                for url in links:
                                     ui.link(url, target=url, new_tab=True).classes(
                                         "text-caption text-blue-6 mr-2"
                                     )
 
-                    # Executa a renderização inicial uma única vez
-                    atualizar_links_visuais()
-
-                    # Registra o evento de alteração
                     input_link.on(
-                        "update:model-value", lambda _: atualizar_links_visuais()
+                        "update:model-value", atualizar_links_visuais
                     )
-
                     if is_text_area and input_valor:
                         input_valor.on(
-                            "update:model-value", lambda _: atualizar_links_visuais()
+                            "update:model-value", atualizar_links_visuais
                         )
+
+                    atualizar_links_visuais()
 
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
