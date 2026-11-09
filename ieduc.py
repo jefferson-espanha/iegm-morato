@@ -22171,208 +22171,214 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(tabela_pen)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
-    # 4. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
-    # -------------------------------------------------------------------------
-    elements.append(Paragraph("<b>4. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
-    elements.append(Spacer(1, 6))
+# -------------------------------------------------------------------------
+# 4. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
+# -------------------------------------------------------------------------
+elements.append(Paragraph("<b>4. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
+elements.append(Spacer(1, 6))
 
-    def calcular_percentual_checklist(resposta_bruta, total_itens):
-        if not resposta_bruta: return 0.0
-        itens = [i.strip().lower() for i in str(resposta_bruta).split(",") if i.strip()]
-        itens_validos = [i for i in itens if "outros" not in i]
-        return min((len(itens_validos) / total_itens) * 100.0, 100.0) if total_itens > 0 else 0.0
+def calcular_percentual_checklist(resposta_bruta, total_itens):
+    if not resposta_bruta:
+        return 0.0
+    itens = [i.strip().lower() for i in str(resposta_bruta).split(",") if i.strip()]
+    itens_validos = [i for i in itens if "outros" not in i]
+    return min((len(itens_validos) / total_itens) * 100.0, 100.0) if total_itens > 0 else 0.0
 
-    analise_ods = []
-    for qid, info in dados.items():
-        if qid.startswith("COM_") or not isinstance(info, dict): 
-            continue
-        resp = str(info.get("valor", "")).strip()
-        resp_l = resp.lower()
-        metas = ""
-        status = ""
+analise_ods = []
+for qid, info in dados.items():
+    if qid.startswith("COM_") or not isinstance(info, dict): 
+        continue
+    resp = str(info.get("valor", "")).strip()
+    resp_l = resp.lower()
+    metas = ""
+    status = ""
 
-        # --- EIXO 1 ---
-        if qid in ["1.0", "1.1", "1.2", "1.2.1", "1.2.2", "1.7", "1.11", "1.12", "1.13"]:
-            metas = "4.2"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "1.2.1.1":
-            metas = "4.2, 4A"
-            status = "Atendido" if "diária – 05" in resp_l or "diaria" in resp_l else "Não Atendido"
-        elif qid == "1.7.2":
-            metas = "4C, 4.2"
-            status = "Atendido" if any(x in resp_l for x in ["presencialmente", "distância", "distancia", "remotamente", "multiplicadores"]) else "Não Atendido"
-        elif qid == "1.10":
-            metas = "4.2"
-            status = "Atendido" if "planejamento e desempenho da criança – 02" in resp_l or "planejamento" in resp_l else "Não Atendido"
-        elif qid == "1.10.1":
-            metas = "4.2"
-            status = "Atendido" if any(x in resp_l for x in ["mensal", "bimestral", "trimestral", "quadrimestral", "semestral", "anual"]) else "Não Atendido"
+    # --- EIXO 1 ---
+    if qid in ["1.0", "1.1", "1.2", "1.2.1", "1.2.2", "1.7", "1.12", "1.13"]:
+        metas = "4.2"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "1.11":
+        metas = "4.2"
+        status = "Atendido" if ("sim" in resp_l or "almoxarifado" in resp_l) else "Não Atendido"
+    elif qid == "1.2.1.1":
+        metas = "4.2, 4A"
+        status = "Atendido" if any(x in resp_l for x in ["diária", "diaria", "05"]) else "Não Atendido"
+    elif qid == "1.7.2":
+        metas = "4C, 4.2"
+        status = "Atendido" if any(x in resp_l for x in ["presencialmente", "distância", "distancia", "remotamente", "multiplicadores"]) else "Não Atendido"
+    elif qid == "1.10":
+        metas = "4.2"
+        status = "Atendido" if "planejamento e desempenho da criança – 02" in resp_l or "planejamento" in resp_l else "Não Atendido"
+    elif qid == "1.10.1":
+        metas = "4.2"
+        status = "Atendido" if any(x in resp_l for x in ["mensal", "bimestral", "trimestral", "quadrimestral", "semestral", "anual"]) else "Não Atendido"
 
-        # --- EIXO 2 ---
-        elif qid in ["2.0", "2.1", "2.2", "2.2.1", "2.2.2", "2.7", "2.11", "2.12", "2.13"]:
-            metas = "4.2"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "2.2.1.1":
-            metas = "4.2, 4A"
-            status = "Atendido" if "diária – 05" in resp_l or "diaria" in resp_l else "Não Atendido"
-        elif qid == "2.7.2":
-            metas = "4C, 4.2"
-            status = "Atendido" if any(x in resp_l for x in ["presencialmente", "distância", "distancia", "remotamente", "multiplicadores"]) else "Não Atendido"
-        elif qid == "2.10":
-            metas = "4.2"
-            status = "Atendido" if "planejamento e desempenho da criança – 02" in resp_l or "planejamento" in resp_l else "Não Atendido"
-        elif qid == "2.10.1":
-            metas = "4.2"
-            status = "Atendido" if any(x in resp_l for x in ["mensal", "bimestral", "trimestral", "quadrimestral", "semestral", "anual"]) else "Não Atendido"
+    # --- EIXO 2 ---
+    elif qid in ["2.0", "2.1", "2.2", "2.2.1", "2.2.2", "2.7", "2.12", "2.13"]:
+        metas = "4.2"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "2.11":
+        metas = "4.2"
+        status = "Atendido" if ("sim" in resp_l or "almoxarifado" in resp_l) else "Não Atendido"
+    elif qid == "2.2.1.1":
+        metas = "4.2, 4A"
+        status = "Atendido" if any(x in resp_l for x in ["diária", "diaria"]) else "Não Atendido"
+    elif qid == "2.7.2":
+        metas = "4C, 4.2"
+        status = "Atendido" if any(x in resp_l for x in ["presencialmente", "distância", "distancia", "remotamente", "multiplicadores"]) else "Não Atendido"
+    elif qid == "2.10":
+        metas = "4.2"
+        status = "Atendido" if "planejamento e desempenho da criança – 02" in resp_l or "planejamento" in resp_l else "Não Atendido"
+    elif qid == "2.10.1":
+        metas = "4.2"
+        status = "Atendido" if any(x in resp_l for x in ["mensal", "bimestral", "trimestral", "quadrimestral", "semestral", "anual"]) else "Não Atendido"
 
-        # --- EIXO 3 ---
-        elif qid in ["3.0", "3.5", "3.10", "3.12", "3.13", "3.14", "3.15", "3.15.2", "3.15.4", "3.16", "3.22", "3.22.2", "3.23"]:
-            metas = "4.1"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "3.5.2":
-            metas = "4.1, 4C"
-            status = "Atendido" if any(x in resp_l for x in ["presencialmente", "distância", "distancia", "remotamente", "multiplicadores"]) else "Não Atendido"
-        elif qid == "3.8":
-            metas = "4.1"
-            status = "Atendido" if (any(x in resp_l for x in ["mensal", "bimestral", "trimestral", "quadrimestral", "semestral", "anual"]) or "planejamento" in resp_l) else "Não Atendido"
-        elif qid == "3.11":
-            metas = "4.7, 5.1"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "3.15.3":
-            metas = "4.6, 4.1"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "3.20":
-            metas = "4.1"
-            status = "Atendido" if "metodologia desenvolvida exclusivamente pelos profissionais" in resp_l or "exclusivamente" in resp_l else "Não Atendido"
-        elif qid == "3.22.2.1":
-            metas = "4.1"
-            status = "Atendido" if "todas as metas foram atingidas" in resp_l else "Não Atendido"
-        elif qid == "3.23.1":
-            metas = "4.1"
-            status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
+    # --- EIXO 3 ---
+    elif qid in ["3.0", "3.5", "3.10", "3.12", "3.13", "3.14", "3.15", "3.15.2", "3.15.4", "3.16", "3.22", "3.22.2", "3.23"]:
+        metas = "4.1"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "3.5.2":
+        metas = "4.1, 4C"
+        status = "Atendido" if (resp_l and "nenhuma" not in resp_l) else "Não Atendido"
+    elif qid == "3.8":
+        metas = "4.1"
+        status = "Atendido" if (any(x in resp_l for x in ["mensal", "bimestral", "trimestral", "quadrimestral", "semestral", "anual"]) or "planejamento" in resp_l) else "Não Atendido"
+    elif qid == "3.11":
+        metas = "4.7, 5.1"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "3.15.3":
+        metas = "4.6, 4.1"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "3.20":
+        metas = "4.1"
+        status = "Atendido" if "metodologia desenvolvida exclusivamente pelos profissionais" in resp_l or "exclusivamente" in resp_l else "Não Atendido"
+    elif qid == "3.22.2.1":
+        metas = "4.1"
+        status = "Atendido" if "todas as metas foram atingidas" in resp_l else "Não Atendido"
+    elif qid == "3.23.1":
+        metas = "4.1"
+        status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
 
-        # --- DEMAIS EIXOS ---
-        elif qid == "4.0":
-            metas = "4.1"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid in ["6.0", "7.0"]:
-            metas = "4C"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "6.2":
-            metas = "4C"
-            status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
-        elif qid in ["8.0", "8.2", "12.0"]:
-            metas = "2.1"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "9.0":
-            metas = "2.1, 4.2"
-            status = "Atendido" if "secretaria de educação e em todas as escolas" in resp_l else "Não Atendido"
-        elif qid == "10.0":
-            metas = "2.1, 4.2"
-            status = "Atendido" if "em todas as escolas" in resp_l else "Não Atendido"
-        elif qid == "11.0":
-            metas = "2.1, 4.2"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "11.1":
-            metas = "2.1, 4.2"
-            status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
-        elif qid == "12.1":
-            metas = "2.1, 4A"
-            status = f"{calcular_percentual_checklist(resp, 17):.1f}% Atendido"
-        elif qid == "13.0":
-            metas = "4.0"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "13.1":
-            metas = "11.2"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid in ["13.1.2", "13.1.5"]:
-            metas = "11.2"
-            status = "Atendido" if "não" in resp_l else "Não Atendido"
-        elif qid in ["13.1.3", "13.1.4", "13.1.6"]:
-            metas = "11.2"
-            status = "Atendido" if "todos os veículos" in resp_l or "todos os condutores" in resp_l or "00" in resp_l else "Não Atendido"
-        elif qid in ["14.0", "14.3"]:
-            metas = "4.0"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "14.3.1":
-            metas = "4.0"
-            status = "Atendido" if "todas as metas foram atingidas dentro do prazo" in resp_l else "Não Atendido"
-        elif qid in ["15.0", "15.3", "15.3.1", "15.3.2"]:
-            metas = "4.2"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "16.0":
-            metas = "16.6"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "16.1":
-            metas = "4.0, 16.6"
-            status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
-        elif qid == "16.2":
-            metas = "4.0, 16.6"
-            status = f"{calcular_percentual_checklist(resp, 6):.1f}% Atendido"
-        elif qid == "16.3":
-            metas = "4.0, 16.6"
-            status = f"{calcular_percentual_checklist(resp, 11):.1f}% Atendido"
-        elif qid == "17.0":
-            metas = "4.0, 16.6"
-            status = "Atendido" if "estrutura independente" in resp_l else "Não Atendido"
-        elif qid in ["17.3.1", "17.4"]:
-            metas = "4.0, 16.6"
-            status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
-        elif qid == "17.5":
-            metas = "4.0, 16.6"
-            status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
-        elif qid == "17.6":
-            metas = "4.0, 16.6"
-            status = "Atendido" if "aprovado sem ressalva" in resp_l or "00" in resp_l else "Não Atendido"
-        elif qid in ["18.0", "18.2", "19.0"]:
-            metas = "4.0, 16.6" if "18" in qid else "4.0"
-            status = "Atendido" if "sim" in resp_l else "Não Atendido"
-        elif qid == "18.1":
-            metas = "2.1, 4.0, 16.6"
-            status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
-        elif qid == "18.3.1":
-            metas = "4.0, 16.6"
-            status = f"{calcular_percentual_checklist(resp, 9):.1f}% Atendido"
-        elif qid == "19.1":
-            metas = "4.0"
-            status = f"{calcular_percentual_checklist(resp, 4):.1f}% Atendido"
-        elif qid == "19.3":
-            metas = "4.0"
-            status = "Atendido" if "em todas as escolas" in resp_l else "Não Atendido"
+    # --- DEMAIS EIXOS ---
+    elif qid == "4.0":
+        metas = "4.1"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid in ["6.0", "7.0"]:
+        metas = "4C"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "6.2":
+        metas = "4C"
+        status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
+    elif qid in ["8.0", "8.2", "12.0"]:
+        metas = "2.1"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "9.0":
+        metas = "2.1, 4.2"
+        status = "Atendido" if "secretaria de educação e em todas as escolas" in resp_l else "Não Atendido"
+    elif qid == "10.0":
+        metas = "2.1, 4.2"
+        status = "Atendido" if "em todas as escolas" in resp_l else "Não Atendido"
+    elif qid == "11.0":
+        metas = "2.1, 4.2"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "11.1":
+        metas = "2.1, 4.2"
+        status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
+    elif qid == "12.1":
+        metas = "2.1, 4A"
+        status = f"{calcular_percentual_checklist(resp, 17):.1f}% Atendido"
+    elif qid == "13.0":
+        metas = "4.0"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "13.1":
+        metas = "11.2"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid in ["13.1.2", "13.1.5"]:
+        metas = "11.2"
+        status = "Atendido" if "não" in resp_l else "Não Atendido"
+    elif qid in ["13.1.3", "13.1.4", "13.1.6"]:
+        metas = "11.2"
+        status = "Atendido" if "todos os veículos" in resp_l or "todos os condutores" in resp_l or "00" in resp_l else "Não Atendido"
+    elif qid in ["14.0", "14.3"]:
+        metas = "4.0"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "14.3.1":
+        metas = "4.0"
+        status = "Atendido" if "todas as metas foram atingidas dentro do prazo" in resp_l else "Não Atendido"
+    elif qid in ["15.0", "15.3", "15.3.1", "15.3.2"]:
+        metas = "4.2"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "16.0":
+        metas = "16.6"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "16.1":
+        metas = "4.0, 16.6"
+        status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
+    elif qid == "16.2":
+        metas = "4.0, 16.6"
+        status = f"{calcular_percentual_checklist(resp, 6):.1f}% Atendido"
+    elif qid == "16.3":
+        metas = "4.0, 16.6"
+        status = f"{calcular_percentual_checklist(resp, 11):.1f}% Atendido"
+    elif qid == "17.0":
+        metas = "4.0, 16.6"
+        status = "Atendido" if resp_l.startswith("sim") or "sim" in resp_l else "Não Atendido"
+    elif qid in ["17.3.1", "17.4"]:
+        metas = "4.0, 16.6"
+        status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
+    elif qid == "17.5":
+        metas = "4.0, 16.6"
+        status = f"{calcular_percentual_checklist(resp, 8):.1f}% Atendido"
+    elif qid == "17.6":
+        metas = "4.0, 16.6"
+        status = "Atendido" if "aprovado sem ressalva" in resp_l or "00" in resp_l else "Não Atendido"
+    elif qid in ["18.0", "18.2", "19.0"]:
+        metas = "4.0, 16.6" if "18" in qid else "4.0"
+        status = "Atendido" if "sim" in resp_l else "Não Atendido"
+    elif qid == "18.1":
+        metas = "2.1, 4.0, 16.6"
+        status = f"{calcular_percentual_checklist(resp, 5):.1f}% Atendido"
+    elif qid == "18.3.1":
+        metas = "4.0, 16.6"
+        status = f"{calcular_percentual_checklist(resp, 9):.1f}% Atendido"
+    elif qid == "19.1":
+        metas = "4.0"
+        status = f"{calcular_percentual_checklist(resp, 4):.1f}% Atendido"
+    elif qid == "19.3":
+        metas = "4.0"
+        status = "Atendido" if "em todas as escolas" in resp_l else "Não Atendido"
 
-        if metas: 
-            analise_ods.append({"qid": qid, "status": status, "metas": metas, "resp": resp[:50]})
+    if metas: 
+        analise_ods.append({"qid": qid, "status": status, "metas": metas, "resp": resp[:50]})
 
-    if analise_ods:
-        data_ods = [["Quesito", "Resposta Informada", "Vínculo Metas ODS", "Status de Cumprimento"]]
-        style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
+if analise_ods:
+    data_ods = [["Quesito", "Resposta Informada", "Vínculo Metas ODS", "Status de Cumprimento"]]
+    style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
 
-        def extrair_chave_hierarquica(x):
-            return [float(i) if i.replace('.', '', 1).isdigit() else 999 for i in x['qid'].split('.')]
+    def extrair_chave_hierarquica(x):
+        return [float(i) if i.replace('.', '', 1).isdigit() else 999 for i in x['qid'].split('.')]
 
-        for item in sorted(analise_ods, key=extrair_chave_hierarquica):
-            st_txt = item["status"]
-            if "Não Atendido" in st_txt: 
-                st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
-            elif "Atendido" in st_txt and "%" not in st_txt: 
-                st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
-            else: 
-                st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
+    for item in sorted(analise_ods, key=extrair_chave_hierarquica):
+        st_txt = item["status"]
+        if "Não Atendido" in st_txt: 
+            st_p = Paragraph(f"<font color='#dc3545'><b>{st_txt}</b></font>", style_td_ods)
+        elif "Atendido" in st_txt and "%" not in st_txt: 
+            st_p = Paragraph(f"<font color='#28a745'><b>{st_txt}</b></font>", style_td_ods)
+        else: 
+            st_p = Paragraph(f"<font color='#007bff'><b>{st_txt}</b></font>", style_td_ods)
 
-            data_ods.append([item["qid"], Paragraph(item["resp"], styles["Normal"]), item["metas"], st_p])
+        data_ods.append([item["qid"], Paragraph(item["resp"], styles["Normal"]), item["metas"], st_p])
 
-        tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
-        tabela_ods.setStyle(TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")), 
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
-            ("ALIGN", (0, 0), (0, -1), "CENTER"), 
-            ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")), 
-            ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
-        ]))
-        elements.append(tabela_ods)
-        elements.append(Spacer(1, 15))
-
+    tabela_ods = Table(data_ods, colWidths=[60, 200, 115, 110])
+    tabela_ods.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#0f9d58")), 
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke), 
+        ("ALIGN", (0, 0), (0, -1), "CENTER"), 
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#0f9d58")), 
+        ("VALIGN", (0, 0), (-1, -1), "MIDDLE")
+    ]))
+    elements.append(tabela_ods)
+    elements.append(Spacer(1, 15))
     # -------------------------------------------------------------------------
     # 📊 5. SÉRIE HISTÓRICA DO I-EDUC (CONSOLIDADO FINAL)
     # -------------------------------------------------------------------------
