@@ -22170,7 +22170,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         ]))
         elements.append(tabela_pen)
         elements.append(Spacer(1, 15))
-
+        
     # -------------------------------------------------------------------------
     # 4. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
     # -------------------------------------------------------------------------
