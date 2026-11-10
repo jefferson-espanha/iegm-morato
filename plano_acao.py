@@ -903,10 +903,21 @@ def _formulario_acao(on_save, registro=None):
 
 
 def mostrar_formulario_plano_acao(ano_sel=None):
-    estado = {"dados": [], "dim": "Todas", "status": "Todos", "ano": "Todos"}
-    anos = ["Todos", 2024, 2025, 2026, 2027, 2028, 2029, 2030]
-    ui.label("Plano de Ação IEG-M").classes("w-full text-center text-2xl font-bold text-blue-900")
+    ano_inicial = str(ano_sel) if ano_sel not in (None, "", "Todos") else "Todos"
+    estado = {"dados": [], "dim": "Todas", "status": "Todos", "ano": ano_inicial}
+    anos = ["Todos", "2024", "2025", "2026", "2027", "2028", "2029", "2030"]
+    titulo_principal = ui.label(
+        f"Plano de Ação - {ano_inicial}" if ano_inicial != "Todos" else "Plano de Ação"
+    ).classes("w-full text-center text-2xl font-bold text-blue-900")
     ui.label("Cadastro, acompanhamento e relatório das ações estratégicas").classes("w-full text-center text-gray-600 mb-4")
+
+    def alterar_ano(ano):
+        estado["ano"] = str(ano) if ano not in (None, "") else "Todos"
+        titulo_principal.set_text(
+            f"Plano de Ação - {estado['ano']}"
+            if estado["ano"] != "Todos" else "Plano de Ação"
+        )
+        painel.refresh()
 
     @ui.refreshable
     def painel():
@@ -916,9 +927,11 @@ def mostrar_formulario_plano_acao(ano_sel=None):
             estado["dados"] = []
             logger.exception("Erro ao carregar plano de ação: %s", exc)
         dados = estado["dados"]
+        # O ano selecionado representa o ano de elaboração do plano.
+        # Não utilizar data_conclusao neste filtro: prazo e ano de elaboração
+        # são informações diferentes.
         filtrados = [r for r in dados if (estado["dim"] == "Todas" or r.get("dimensao") == estado["dim"])
-                     and (estado["status"] == "Todos" or r.get("status") == estado["status"])
-                     and (estado["ano"] == "Todos" or str(_data(r.get("data_conclusao")))[:4] == str(estado["ano"]))]
+                     and (estado["status"] == "Todos" or r.get("status") == estado["status"])]
         atendidas = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("verde"))
         pendentes = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("vermelho"))
         em_analise = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("amarelo"))
@@ -941,7 +954,7 @@ def mostrar_formulario_plano_acao(ano_sel=None):
         with ui.row().classes("w-full gap-3 mt-3"):
             ui.select(["Todas"] + DIMENSOES, value=estado["dim"], label="Dimensão", on_change=lambda e: (estado.update(dim=e.value), painel.refresh())).classes("w-1/3")
             ui.select(["Todos"] + STATUS, value=estado["status"], label="Status", on_change=lambda e: (estado.update(status=e.value), painel.refresh())).classes("w-1/3")
-            ui.select(anos, value=estado["ano"], label="Ano de conclusão", on_change=lambda e: (estado.update(ano=e.value), painel.refresh())).classes("w-1/3")
+            ui.select(anos, value=estado["ano"], label="Ano de elaboração", on_change=lambda e: alterar_ano(e.value)).classes("w-1/3")
         if not filtrados:
             ui.label("Nenhuma ação localizada para os filtros selecionados.").classes("text-gray-600 mt-6")
             return
