@@ -403,8 +403,8 @@ def renderizar_questao_ui(qid, res_data):
 # =============================================================================
 # EXECUTOR DINÂMICO DE MÓDULOS COM FALLBACK INTELIGENTE
 # =============================================================================
-def _executar_modulo(mod, nome_funcoes, year=None):
-    """Auxiliar para chamar dinamicamente funções com ou sem argumentos de ano."""
+def _executar_modulo(mod, nome_funcoes, year=None, **kwargs):
+    """Chama módulos com ano e, quando necessário, callbacks adicionais."""
     if mod is None:
         ui.label("❌ Módulo não carregado.").classes("text-red-600 font-bold")
         return
@@ -414,10 +414,13 @@ def _executar_modulo(mod, nome_funcoes, year=None):
         if hasattr(mod, nome):
             fn = getattr(mod, nome)
             try:
-                fn(year) if year is not None else fn()
+                if year is not None:
+                    fn(year, **kwargs)
+                else:
+                    fn(**kwargs)
             except TypeError:
                 try:
-                    fn()
+                    fn(year) if year is not None else fn()
                 except Exception as e:
                     ui.label(f"Erro ao executar {nome}: {e}").classes("text-red-600")
             return
@@ -428,7 +431,10 @@ def _executar_modulo(mod, nome_funcoes, year=None):
         if any(fn_name.startswith(prefix) for prefix in ["container_", "mostrar_", "render_"]):
             fn = getattr(mod, fn_name)
             try:
-                fn(year) if year is not None else fn()
+                if year is not None:
+                    fn(year, **kwargs)
+                else:
+                    fn(**kwargs)
             except TypeError:
                 fn()
             return
@@ -602,8 +608,14 @@ def dimension_page():
     with ui.column().classes('w-full max-w-7xl mx-auto p-6 gap-6'):
         with ui.row().classes('w-full justify-between items-center border-b pb-4'):
             ui.button('⬅️ Voltar', on_click=lambda: ui.navigate.to('/dashboard')).classes('bg-gray-600 text-white')
-            ui.html(f'<h2 style="color: #001A4D; font-weight: bold; font-size: 24px; margin: 0;">{dimension} - {year}</h2>')
+            titulo_cabecalho = ui.label(f'{dimension} - {year}').classes('text-2xl font-bold text-blue-950')
             ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
+
+        def atualizar_cabecalho(novo_ano):
+            titulo_cabecalho.set_text(
+                f'{dimension} - {novo_ano}'
+                if novo_ano != 'Todos' else dimension
+            )
 
         # ROTEAMENTO CENTRAL DAS SUBPÁGINAS
         if dimension == "Biblioteca":
@@ -631,7 +643,12 @@ def dimension_page():
         elif dimension == "Relatório de Atividades":
             _executar_modulo(atividade, ["container_formulario_atividade", "mostrar_formulario_atividade", "main"], year)
         elif dimension == "Plano de Ação":
-            _executar_modulo(plano_acao, ["container_formulario_plano_acao", "mostrar_formulario_plano_acao", "main"], year)
+            _executar_modulo(
+                plano_acao,
+                ["container_formulario_plano_acao", "mostrar_formulario_plano_acao", "main"],
+                year,
+                ao_alterar_ano=atualizar_cabecalho,
+            )
 
 # =============================================================================
 # INICIAÇÃO DO SERVIDOR NICEGUI
