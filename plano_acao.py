@@ -62,6 +62,15 @@ def _normalizar_dados_acao(dados: dict) -> dict:
             except ValueError as exc:
                 ULTIMO_ERRO_BANCO = f"Data inválida em {chave}: {valor}"
                 raise ValueError(ULTIMO_ERRO_BANCO) from exc
+    ano = resultado.get("ano_elaboracao")
+    if ano in ("", None, "Não preenchido"):
+        resultado["ano_elaboracao"] = None
+    else:
+        try:
+            resultado["ano_elaboracao"] = int(ano)
+        except (TypeError, ValueError) as exc:
+            ULTIMO_ERRO_BANCO = f"Ano de elaboração inválido: {ano}"
+            raise ValueError(ULTIMO_ERRO_BANCO) from exc
     obrigatorios = {
         "dimensao": "Dimensão",
         "acao": "Título da ação",
@@ -126,11 +135,11 @@ def garantir_schema_plano_acao(conn) -> None:
         )
         cur.execute(
             "ALTER TABLE plano_acao_iegm "
-            "ADD COLUMN IF NOT EXISTS ano_elaboracao INTEGER;"
+            "ALTER COLUMN integracao_planejamento_municipal TYPE TEXT;"
         )
         cur.execute(
             "ALTER TABLE plano_acao_iegm "
-            "ALTER COLUMN integracao_planejamento_municipal TYPE TEXT;"
+            "ADD COLUMN IF NOT EXISTS ano_elaboracao INTEGER;"
         )
     conn.commit()
 
@@ -808,10 +817,7 @@ def _valor_data(v):
 
 
 def _dados_formulario(campos):
-    return {
-        chave: _valor_data(componente.value if hasattr(componente, "value") else componente)
-        for chave, componente in campos.items()
-    }
+    return {k: _valor_data(c.value) for k, c in campos.items()}
 
 
 def _notificar_erro(mensagem):
@@ -858,15 +864,19 @@ def _opcoes_pizza_status(registros):
 
 def _formulario_acao(on_save, registro=None, ano_elaboracao=None):
     registro = registro or {}
-    ano_elaboracao = registro.get("ano_elaboracao") or ano_elaboracao
     with ui.dialog() as dialog, ui.card().classes("w-full max-w-5xl"):
         ui.label("Editar ação" if registro else "Nova ação").classes("text-xl font-bold text-blue-900")
         with ui.scroll_area().classes("w-full").style("max-height: 70vh"):
             with ui.column().classes("w-full gap-3"):
-                campos = {"ano_elaboracao": ano_elaboracao}
+                campos = {}
                 def campo(chave, rotulo, area=False):
                     comp = ui.textarea(rotulo, value=_texto(registro.get(chave))) if area else ui.input(rotulo, value=_texto(registro.get(chave)))
                     return comp.classes("w-full")
+                campos["ano_elaboracao"] = ui.select(
+                    ["Não preenchido", "2024", "2025", "2026", "2027", "2028", "2029", "2030"],
+                    value=str(registro.get("ano_elaboracao") or ano_elaboracao or "Não preenchido"),
+                    label="Ano de elaboração",
+                ).classes("w-full")
                 campos["dimensao"] = ui.select(
                     DIMENSOES,
                     value=registro.get("dimensao") or DIMENSOES[0],
@@ -912,35 +922,33 @@ def _formulario_acao(on_save, registro=None, ano_elaboracao=None):
 
 
 def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
-    """Mostra somente as ações do ano aplicado pelo botão de atualização."""
-    ano_inicial = str(ano_sel) if ano_sel not in (None, "", "Todos") else "2026"
+    """Renderiza o plano e notifica o cabeçalho externo quando o ano mudar.
+
+    ``ao_alterar_ano`` deve receber o ano selecionado. Assim, a tela que
+    contém o botão Voltar pode atualizar o título superior, por exemplo:
+    ``Plano de Ação - 2027``.
+    """
+    ano_inicial = str(ano_sel) if ano_sel not in (None, "", "Todos") else "Todos"
     estado = {
         "dados": [], "dim": "Todas", "status": "Todos",
-        "ano": ano_inicial, "ano_selecionado": ano_inicial,
+        "ano": ano_inicial, "ano_pendente": ano_inicial,
     }
-    anos = [str(ano) for ano in range(2025, 2036)]
-    titulo_principal = ui.label(f"Plano de Ação - {ano_inicial}").classes(
-        "w-full text-center text-2xl font-bold text-blue-900"
-    )
-    ui.label("Cadastro, acompanhamento e relatório das ações estratégicas").classes(
-        "w-full text-center text-gray-600 mb-4"
-    )
+    anos = ["Todos", "2024", "2025", "2026", "2027", "2028", "2029", "2030"]
+    titulo_principal = ui.label(
+        f"Plano de Ação - {ano_inicial}" if ano_inicial != "Todos" else "Plano de Ação"
+    ).classes("w-full text-center text-2xl font-bold text-blue-900")
+    ui.label("Cadastro, acompanhamento e relatório das ações estratégicas").classes("w-full text-center text-gray-600 mb-4")
 
-    with ui.row().classes("w-full items-end gap-3 mb-3"):
-        seletor_ano = ui.select(
-            anos, value=ano_inicial, label="Ano de elaboração"
-        ).classes("w-1/3")
-
-        def atualizar_plano():
-            estado["ano"] = str(seletor_ano.value)
-            titulo_principal.set_text(f"Plano de Ação - {estado['ano']}")
-            if ao_alterar_ano is not None:
-                ao_alterar_ano(estado["ano"])
-            painel.refresh()
-
-        ui.button("Atualizar Plano de Ação", on_click=atualizar_plano).classes(
-            "bg-blue-700 text-white"
+    def atualizar_ano():
+        estado["ano"] = estado["ano_pendente"]
+        titulo_principal.set_text(
+            f"Plano de Ação - {estado['ano']}"
+            if estado["ano"] != "Todos" else "Plano de Ação"
         )
+        # Atualiza também o título superior, ao lado do botão Voltar.
+        if ao_alterar_ano is not None:
+            ao_alterar_ano(estado["ano"])
+        painel.refresh()
 
     @ui.refreshable
     def painel():
@@ -949,12 +957,17 @@ def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
         except Exception as exc:
             estado["dados"] = []
             logger.exception("Erro ao carregar plano de ação: %s", exc)
-        filtrados = [
-            r for r in estado["dados"]
-            if str(r.get("ano_elaboracao") or "") == estado["ano"]
-            and (estado["dim"] == "Todas" or r.get("dimensao") == estado["dim"])
-            and (estado["status"] == "Todos" or r.get("status") == estado["status"])
-        ]
+        dados = estado["dados"]
+        # O ano selecionado representa o ano de elaboração do plano.
+        # Não utilizar data_conclusao neste filtro: prazo e ano de elaboração
+        # são informações diferentes.
+        filtrados = [r for r in dados if (estado["dim"] == "Todas" or r.get("dimensao") == estado["dim"])
+                     and (estado["status"] == "Todos" or r.get("status") == estado["status"])
+                     # Registros antigos não possuem ano_elaboracao. Eles devem
+                     # continuar visíveis até que o usuário os edite e informe o ano.
+                     and (estado["ano"] == "Todos"
+                          or r.get("ano_elaboracao") in (None, "")
+                          or str(r.get("ano_elaboracao")) == estado["ano"])]
         atendidas = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("verde"))
         pendentes = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("vermelho"))
         em_analise = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("amarelo"))
@@ -972,13 +985,15 @@ def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
         with ui.row().classes("w-full justify-between items-center"):
             ui.label(f"{len(filtrados)} ação(ões) encontrada(s)").classes("font-bold")
             with ui.row().classes("gap-2"):
-                ui.button("Nova ação", on_click=lambda: _formulario_acao(painel.refresh, ano_elaboracao=estado["ano"])).classes("bg-blue-700 text-white")
+                ui.button("Nova ação", on_click=lambda: _formulario_acao(painel.refresh, ano_elaboracao=estado["ano"] if estado["ano"] != "Todos" else None)).classes("bg-blue-700 text-white")
                 ui.button("Baixar PDF", on_click=lambda: _gerar_baixar_pdf(filtrados, estado["ano"])).props("outline")
         with ui.row().classes("w-full gap-3 mt-3"):
-            ui.select(["Todas"] + DIMENSOES, value=estado["dim"], label="Dimensão", on_change=lambda e: (estado.update(dim=e.value), painel.refresh())).classes("w-1/2")
-            ui.select(["Todos"] + STATUS, value=estado["status"], label="Status", on_change=lambda e: (estado.update(status=e.value), painel.refresh())).classes("w-1/2")
+            ui.select(["Todas"] + DIMENSOES, value=estado["dim"], label="Dimensão", on_change=lambda e: (estado.update(dim=e.value), painel.refresh())).classes("w-1/3")
+            ui.select(["Todos"] + STATUS, value=estado["status"], label="Status", on_change=lambda e: (estado.update(status=e.value), painel.refresh())).classes("w-1/3")
+            seletor_ano = ui.select(anos, value=estado["ano_pendente"], label="Ano de elaboração", on_change=lambda e: estado.update(ano_pendente=str(e.value))).classes("w-1/3")
+            ui.button("Atualizar ano", on_click=atualizar_ano).props("outline color=primary")
         if not filtrados:
-            ui.label(f"Nenhuma ação cadastrada para {estado['ano']}. O plano está pronto para preenchimento.").classes("text-gray-600 mt-6")
+            ui.label("Nenhuma ação localizada para os filtros selecionados.").classes("text-gray-600 mt-6")
             return
         with ui.card().classes("w-full mt-4 border shadow-sm"):
             ui.label("Distribuição das ações por status").classes("text-lg font-bold text-blue-900")
@@ -987,12 +1002,16 @@ def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
             with ui.card().classes("w-full mt-3 border"):
                 with ui.row().classes("w-full justify-between items-start"):
                     ui.label(_exibir(registro.get("meta_estrategica"))).classes("text-lg font-bold text-blue-900")
-                    ui.badge(_exibir(registro.get("status"))).style(
-                        f"background-color: {_cor_status(registro.get('status'))}; color: {_cor_texto_status(registro.get('status'))};"
+                    ui.badge(
+                        _exibir(registro.get("status"))
+                    ).style(
+                        f"background-color: {_cor_status(registro.get('status'))}; "
+                        f"color: {_cor_texto_status(registro.get('status'))};"
                     )
                 with ui.grid(columns=2).classes("w-full gap-2 mt-2"):
                     campos_exibicao = [
                         ("Dimensão", _exibir(registro.get("dimensao"))),
+                        ("Ano de elaboração", _exibir(registro.get("ano_elaboracao"))),
                         ("Ação", _exibir(registro.get("acao"))),
                         ("Meta estratégica", _exibir(registro.get("meta_estrategica"))),
                         ("Indicadores de desempenho", _exibir(registro.get("indicador_desempenho"))),
@@ -1011,7 +1030,7 @@ def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
                         ui.label(f"{rotulo}: {valor}")
                 ui.label(f"Descrição da ação: {_exibir(registro.get('descricao_acao'))}").classes("text-gray-700 mt-2")
                 with ui.row().classes("gap-2 mt-2"):
-                    ui.button("Editar", on_click=lambda r=registro: _formulario_acao(painel.refresh, r, estado["ano"])).props("outline dense")
+                    ui.button("Editar", on_click=lambda r=registro: _formulario_acao(painel.refresh, r)).props("outline dense")
                     def excluir(r=registro):
                         if deletar_acao_banco(r["id"]):
                             ui.notify("Ação excluída.", type="positive")
