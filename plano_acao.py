@@ -753,9 +753,16 @@ def _normalizar_status(status):
 
 
 def _texto(v):
+    """Converte qualquer valor para texto, sem transformar nulo em 'None'."""
     if v is None:
         return ""
-    return str(v)
+    return str(v).strip()
+
+
+def _exibir(v):
+    """Texto padrão para campos vazios na tela e nos relatórios."""
+    texto = _texto(v)
+    return texto if texto else "Não preenchido"
 
 
 def _titulo_meta_estrategica(registro):
@@ -772,9 +779,23 @@ def _titulo_meta_estrategica(registro):
 
 
 def _data(v):
+    """Retorna a data no formato aceito pelo input HTML (yyyy-mm-dd)."""
     if isinstance(v, (date, datetime)):
         return v.strftime("%Y-%m-%d")
     return _texto(v)[:10] if _texto(v) else ""
+
+
+def _data_exibicao(v):
+    """Exibe datas no padrão brasileiro dd/mm/yyyy."""
+    if isinstance(v, (date, datetime)):
+        return v.strftime("%d/%m/%Y")
+    texto = _texto(v)
+    if not texto:
+        return "Não preenchido"
+    try:
+        return datetime.strptime(texto[:10], "%Y-%m-%d").strftime("%d/%m/%Y")
+    except ValueError:
+        return _exibir(texto)
 
 
 def _valor_data(v):
@@ -930,19 +951,33 @@ def mostrar_formulario_plano_acao(ano_sel=None):
         for registro in filtrados:
             with ui.card().classes("w-full mt-3 border"):
                 with ui.row().classes("w-full justify-between items-start"):
-                    ui.label(_titulo_meta_estrategica(registro)).classes("text-lg font-bold text-blue-900")
+                    ui.label(_exibir(registro.get("meta_estrategica"))).classes("text-lg font-bold text-blue-900")
                     ui.badge(
-                        _texto(registro.get("status")) or "Sem status"
+                        _exibir(registro.get("status"))
                     ).style(
                         f"background-color: {_cor_status(registro.get('status'))}; "
                         f"color: {_cor_texto_status(registro.get('status'))};"
                     )
                 with ui.grid(columns=2).classes("w-full gap-2 mt-2"):
-                    ui.label(f"Dimensão: {_texto(registro.get('dimensao'))}")
-                    ui.label(f"Responsável: {_texto(registro.get('responsavel')) or 'Não definido'}")
-                    ui.label(f"Meta: {_texto(registro.get('meta')) or 'Não definida'}")
-                    ui.label(f"Prazo: {_data(registro.get('data_conclusao')) or 'Não definido'}")
-                ui.label(_texto(registro.get("descricao_acao"))).classes("text-gray-700 mt-2")
+                    campos_exibicao = [
+                        ("Dimensão", _exibir(registro.get("dimensao"))),
+                        ("Ação", _exibir(registro.get("acao"))),
+                        ("Meta estratégica", _exibir(registro.get("meta_estrategica"))),
+                        ("Indicadores de desempenho", _exibir(registro.get("indicador_desempenho"))),
+                        ("Metas mensuráveis", _exibir(registro.get("metas_mensuraveis"))),
+                        ("Responsável", _exibir(registro.get("responsavel"))),
+                        ("Meta", _exibir(registro.get("meta"))),
+                        ("Resultados esperados", _exibir(registro.get("resultados_esperados"))),
+                        ("Data de início", _data_exibicao(registro.get("data_inicio"))),
+                        ("Data de conclusão", _data_exibicao(registro.get("data_conclusao"))),
+                        ("Forma de execução", _exibir(registro.get("forma_execucao"))),
+                        ("Evidências", _exibir(registro.get("evidencias"))),
+                        ("Alinhamento ODS", _exibir(registro.get("alinhamento_ods"))),
+                        ("Integração ao planejamento municipal", _exibir(registro.get("integracao_planejamento_municipal"))),
+                    ]
+                    for rotulo, valor in campos_exibicao:
+                        ui.label(f"{rotulo}: {valor}")
+                ui.label(f"Descrição da ação: {_exibir(registro.get('descricao_acao'))}").classes("text-gray-700 mt-2")
                 with ui.row().classes("gap-2 mt-2"):
                     ui.button("Editar", on_click=lambda r=registro: _formulario_acao(painel.refresh, r)).props("outline dense")
                     def excluir(r=registro):
