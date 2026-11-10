@@ -62,6 +62,15 @@ def _normalizar_dados_acao(dados: dict) -> dict:
             except ValueError as exc:
                 ULTIMO_ERRO_BANCO = f"Data inválida em {chave}: {valor}"
                 raise ValueError(ULTIMO_ERRO_BANCO) from exc
+    ano = resultado.get("ano_elaboracao")
+    if ano in ("", None, "Não preenchido"):
+        resultado["ano_elaboracao"] = None
+    else:
+        try:
+            resultado["ano_elaboracao"] = int(ano)
+        except (TypeError, ValueError) as exc:
+            ULTIMO_ERRO_BANCO = f"Ano de elaboração inválido: {ano}"
+            raise ValueError(ULTIMO_ERRO_BANCO) from exc
     obrigatorios = {
         "dimensao": "Dimensão",
         "acao": "Título da ação",
@@ -128,6 +137,10 @@ def garantir_schema_plano_acao(conn) -> None:
             "ALTER TABLE plano_acao_iegm "
             "ALTER COLUMN integracao_planejamento_municipal TYPE TEXT;"
         )
+        cur.execute(
+            "ALTER TABLE plano_acao_iegm "
+            "ADD COLUMN IF NOT EXISTS ano_elaboracao INTEGER;"
+        )
     conn.commit()
 
 
@@ -148,7 +161,7 @@ def carregar_dados_banco() -> List[dict]:
             cur_context = conn.cursor()
         with cur_context as cur:
             cur.execute("""
-                SELECT id, dimensao, meta_estrategica, indicador_desempenho,
+                SELECT id, ano_elaboracao, dimensao, meta_estrategica, indicador_desempenho,
                        metas_mensuraveis, acao, descricao_acao, meta, resultados_esperados,
                        integracao_planejamento_municipal, alinhamento_ods,
                        data_inicio, data_conclusao, responsavel,
@@ -195,13 +208,13 @@ def inserir_acao_banco(dados: dict) -> bool:
 
     query = """
         INSERT INTO plano_acao_iegm (
-            dimensao, meta_estrategica, indicador_desempenho, acao,
+            ano_elaboracao, dimensao, meta_estrategica, indicador_desempenho, acao,
             metas_mensuraveis, descricao_acao, meta, resultados_esperados,
             integracao_planejamento_municipal, alinhamento_ods,
             data_inicio, data_conclusao, responsavel, forma_execucao,
             evidencias, status
         ) VALUES (
-            %(dimensao)s, %(meta_estrategica)s, %(indicador_desempenho)s, %(acao)s,
+            %(ano_elaboracao)s, %(dimensao)s, %(meta_estrategica)s, %(indicador_desempenho)s, %(acao)s,
             %(metas_mensuraveis)s, %(descricao_acao)s, %(meta)s, %(resultados_esperados)s,
             %(integracao_planejamento_municipal)s, %(alinhamento_ods)s,
             %(data_inicio)s, %(data_conclusao)s, %(responsavel)s,
@@ -244,6 +257,7 @@ def atualizar_acao_banco(registro_id: int, dados: dict) -> bool:
     dados["id"] = registro_id
     query = """
         UPDATE plano_acao_iegm SET
+            ano_elaboracao = %(ano_elaboracao)s,
             dimensao = %(dimensao)s,
             meta_estrategica = %(meta_estrategica)s,
             indicador_desempenho = %(indicador_desempenho)s,
@@ -700,7 +714,7 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
 # PAINEL NICEGUI — PLANO DE AÇÃO
 # ==========================================
 COLUNAS = [
-    "id", "dimensao", "meta_estrategica", "indicador_desempenho",
+    "id", "ano_elaboracao", "dimensao", "meta_estrategica", "indicador_desempenho",
     "metas_mensuraveis", "acao", "descricao_acao", "meta", "resultados_esperados",
     "integracao_planejamento_municipal", "alinhamento_ods", "data_inicio",
     "data_conclusao", "responsavel", "forma_execucao", "evidencias", "status",
@@ -848,7 +862,7 @@ def _opcoes_pizza_status(registros):
     }
 
 
-def _formulario_acao(on_save, registro=None):
+def _formulario_acao(on_save, registro=None, ano_elaboracao=None):
     registro = registro or {}
     with ui.dialog() as dialog, ui.card().classes("w-full max-w-5xl"):
         ui.label("Editar ação" if registro else "Nova ação").classes("text-xl font-bold text-blue-900")
@@ -858,6 +872,11 @@ def _formulario_acao(on_save, registro=None):
                 def campo(chave, rotulo, area=False):
                     comp = ui.textarea(rotulo, value=_texto(registro.get(chave))) if area else ui.input(rotulo, value=_texto(registro.get(chave)))
                     return comp.classes("w-full")
+                campos["ano_elaboracao"] = ui.select(
+                    ["Não preenchido", "2024", "2025", "2026", "2027", "2028", "2029", "2030"],
+                    value=str(registro.get("ano_elaboracao") or ano_elaboracao or "Não preenchido"),
+                    label="Ano de elaboração",
+                ).classes("w-full")
                 campos["dimensao"] = ui.select(
                     DIMENSOES,
                     value=registro.get("dimensao") or DIMENSOES[0],
@@ -910,15 +929,18 @@ def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
     ``Plano de Ação - 2027``.
     """
     ano_inicial = str(ano_sel) if ano_sel not in (None, "", "Todos") else "Todos"
-    estado = {"dados": [], "dim": "Todas", "status": "Todos", "ano": ano_inicial}
+    estado = {
+        "dados": [], "dim": "Todas", "status": "Todos",
+        "ano": ano_inicial, "ano_pendente": ano_inicial,
+    }
     anos = ["Todos", "2024", "2025", "2026", "2027", "2028", "2029", "2030"]
     titulo_principal = ui.label(
         f"Plano de Ação - {ano_inicial}" if ano_inicial != "Todos" else "Plano de Ação"
     ).classes("w-full text-center text-2xl font-bold text-blue-900")
     ui.label("Cadastro, acompanhamento e relatório das ações estratégicas").classes("w-full text-center text-gray-600 mb-4")
 
-    def alterar_ano(ano):
-        estado["ano"] = str(ano) if ano not in (None, "") else "Todos"
+    def atualizar_ano():
+        estado["ano"] = estado["ano_pendente"]
         titulo_principal.set_text(
             f"Plano de Ação - {estado['ano']}"
             if estado["ano"] != "Todos" else "Plano de Ação"
@@ -939,7 +961,8 @@ def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
         # Não utilizar data_conclusao neste filtro: prazo e ano de elaboração
         # são informações diferentes.
         filtrados = [r for r in dados if (estado["dim"] == "Todas" or r.get("dimensao") == estado["dim"])
-                     and (estado["status"] == "Todos" or r.get("status") == estado["status"])]
+                     and (estado["status"] == "Todos" or r.get("status") == estado["status"])
+                     and (estado["ano"] == "Todos" or str(r.get("ano_elaboracao") or "") == estado["ano"])]
         atendidas = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("verde"))
         pendentes = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("vermelho"))
         em_analise = sum(1 for r in filtrados if _texto(r.get("status")).lower().startswith("amarelo"))
@@ -957,12 +980,13 @@ def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
         with ui.row().classes("w-full justify-between items-center"):
             ui.label(f"{len(filtrados)} ação(ões) encontrada(s)").classes("font-bold")
             with ui.row().classes("gap-2"):
-                ui.button("Nova ação", on_click=lambda: _formulario_acao(painel.refresh)).classes("bg-blue-700 text-white")
+                ui.button("Nova ação", on_click=lambda: _formulario_acao(painel.refresh, ano_elaboracao=estado["ano"] if estado["ano"] != "Todos" else None)).classes("bg-blue-700 text-white")
                 ui.button("Baixar PDF", on_click=lambda: _gerar_baixar_pdf(filtrados, estado["ano"])).props("outline")
         with ui.row().classes("w-full gap-3 mt-3"):
             ui.select(["Todas"] + DIMENSOES, value=estado["dim"], label="Dimensão", on_change=lambda e: (estado.update(dim=e.value), painel.refresh())).classes("w-1/3")
             ui.select(["Todos"] + STATUS, value=estado["status"], label="Status", on_change=lambda e: (estado.update(status=e.value), painel.refresh())).classes("w-1/3")
-            ui.select(anos, value=estado["ano"], label="Ano de elaboração", on_change=lambda e: alterar_ano(e.value)).classes("w-1/3")
+            seletor_ano = ui.select(anos, value=estado["ano_pendente"], label="Ano de elaboração", on_change=lambda e: estado.update(ano_pendente=str(e.value))).classes("w-1/3")
+            ui.button("Atualizar ano", on_click=atualizar_ano).props("outline color=primary")
         if not filtrados:
             ui.label("Nenhuma ação localizada para os filtros selecionados.").classes("text-gray-600 mt-6")
             return
@@ -982,6 +1006,7 @@ def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
                 with ui.grid(columns=2).classes("w-full gap-2 mt-2"):
                     campos_exibicao = [
                         ("Dimensão", _exibir(registro.get("dimensao"))),
+                        ("Ano de elaboração", _exibir(registro.get("ano_elaboracao"))),
                         ("Ação", _exibir(registro.get("acao"))),
                         ("Meta estratégica", _exibir(registro.get("meta_estrategica"))),
                         ("Indicadores de desempenho", _exibir(registro.get("indicador_desempenho"))),
