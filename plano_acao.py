@@ -945,6 +945,7 @@ def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
             f"Plano de Ação - {estado['ano']}"
             if estado["ano"] != "Todos" else "Plano de Ação"
         )
+        # Atualiza também o título superior, ao lado do botão Voltar.
         if ao_alterar_ano is not None:
             ao_alterar_ano(estado["ano"])
         painel.refresh()
