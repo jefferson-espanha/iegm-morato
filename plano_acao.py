@@ -902,7 +902,13 @@ def _formulario_acao(on_save, registro=None):
     dialog.open()
 
 
-def mostrar_formulario_plano_acao(ano_sel=None):
+def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
+    """Renderiza o plano e notifica o cabeçalho externo quando o ano mudar.
+
+    ``ao_alterar_ano`` deve receber o ano selecionado. Assim, a tela que
+    contém o botão Voltar pode atualizar o título superior, por exemplo:
+    ``Plano de Ação - 2027``.
+    """
     ano_inicial = str(ano_sel) if ano_sel not in (None, "", "Todos") else "Todos"
     estado = {"dados": [], "dim": "Todas", "status": "Todos", "ano": ano_inicial}
     anos = ["Todos", "2024", "2025", "2026", "2027", "2028", "2029", "2030"]
@@ -917,6 +923,8 @@ def mostrar_formulario_plano_acao(ano_sel=None):
             f"Plano de Ação - {estado['ano']}"
             if estado["ano"] != "Todos" else "Plano de Ação"
         )
+        if ao_alterar_ano is not None:
+            ao_alterar_ano(estado["ano"])
         painel.refresh()
 
     @ui.refreshable
@@ -1004,5 +1012,5 @@ def mostrar_formulario_plano_acao(ano_sel=None):
     painel()
 
 
-def container_formulario_plano_acao(ano_sel=None):
-    return mostrar_formulario_plano_acao(ano_sel)
+def container_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
+    return mostrar_formulario_plano_acao(ano_sel, ao_alterar_ano)
