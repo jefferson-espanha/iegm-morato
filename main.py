@@ -9,7 +9,6 @@ import secrets
 from contextlib import contextmanager
 from nicegui import app, ui
 
-
 NEON_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
 current_dir = (
