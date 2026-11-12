@@ -9,9 +9,7 @@ import secrets
 from contextlib import contextmanager
 from nicegui import app, ui
 
-# =============================================================================
-# INJEÇÃO E CONFIGURAÇÃO DE AMBIENTE (NEON / POSTGRES)
-# =============================================================================
+
 NEON_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
 current_dir = (
@@ -29,11 +27,7 @@ def get_secret(key, default=None):
         return os.environ.get("DATABASE_URL", NEON_URL)
     return default
 
-# =============================================================================
-# AUTENTICAÇÃO PERSISTENTE NO NEON
-# =============================================================================
-# Defina DATABASE_URL no ambiente de produção. O valor abaixo existe apenas como
-# compatibilidade com a configuração anterior; não é necessário alterá-lo no código.
+
 
 @contextmanager
 def db_connection():
@@ -110,7 +104,7 @@ def create_user(username, password="pmfm1234"):
                    VALUES (%s, %s)""",
                 (username, _hash_password(password)),
             )
-# --- CARREGAMENTO OTIMIZADO DE MÓDULOS ---
+
 def import_local_module(module_name):
     try:
         import importlib
@@ -147,9 +141,7 @@ def save_resp(qid, valor, pontos, link, comentarios, ano=2026):
     }
     app.storage.user[chave_ano] = respostas
 
-# =============================================================================
-# HELPER DE SANITIZAÇÃO DE COMENTÁRIOS
-# =============================================================================
+
 def _obter_lista_comentarios(dados_banco):
     raw = dados_banco.get("comentarios", [])
     if isinstance(raw, str):
@@ -163,9 +155,7 @@ def _obter_lista_comentarios(dados_banco):
         return raw
     return []
 
-# =============================================================================
-# CALLBACKS DE COMENTÁRIO E QUESITO
-# =============================================================================
+
 def cb_postar_comentario(qid, ano_sel, usuario_atual, texto_comentario, container_ref, id_chave=None):
     texto = texto_comentario.strip()
     if texto:
@@ -269,9 +259,7 @@ def cb_salvar_questao(qid, ano_sel, usuario_atual, novo_valor, novo_link, novos_
     ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
     container_ref.refresh()
 
-# =============================================================================
-# AUXILIARES E COMPONENTES
-# =============================================================================
+
 def get_image_base64(filename):
     full_path = os.path.join(current_dir, filename)
     if os.path.exists(full_path):
@@ -308,9 +296,7 @@ DIMENSIONS_DATA = {
     "Consulta Rápida": {"img": "hal9000.png", "desc": "Consulte quesitos"},
 }
 
-# =============================================================================
-# COMPONENTES DE INTERFACE DE QUESITO E COMENTÁRIOS
-# =============================================================================
+
 @ui.refreshable
 def bloco_comentarios_ui(questao_id, res_data, sufixo=None):
     ano_sel = app.storage.user.get("ano_referencia_global", date.today().year)
@@ -400,9 +386,7 @@ def renderizar_questao_ui(qid, res_data):
 
         bloco_comentarios_ui(qid, res_data)
 
-# =============================================================================
-# EXECUTOR DINÂMICO DE MÓDULOS COM FALLBACK INTELIGENTE
-# =============================================================================
+
 def _executar_modulo(mod, nome_funcoes, year=None):
     """Auxiliar para chamar dinamicamente funções com ou sem argumentos de ano."""
     if mod is None:
@@ -435,9 +419,7 @@ def _executar_modulo(mod, nome_funcoes, year=None):
 
     ui.label(f"⚠️ Nenhuma função compatível encontrada. Funções disponíveis: {funcs_disponiveis}").classes("text-yellow-600")
 
-# =============================================================================
-# PÁGINAS DO SISTEMA
-# =============================================================================
+
 
 @ui.page('/')
 def login_page():
@@ -633,9 +615,7 @@ def dimension_page():
         elif dimension == "Plano de Ação":
             _executar_modulo(plano_acao, ["container_formulario_plano_acao", "mostrar_formulario_plano_acao", "main"], year)
 
-# =============================================================================
-# INICIAÇÃO DO SERVIDOR NICEGUI
-# =============================================================================
+
 if __name__ in {"__main__", "__mp_main__"}:
     port = int(os.environ.get("PORT", 8080))
     storage_secret = os.environ.get("STORAGE_SECRET", "secret_key_iegm_morato_2026")
