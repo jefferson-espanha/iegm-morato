@@ -11,7 +11,6 @@ from nicegui import app, ui
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
-# Importações do ReportLab
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.shapes import Drawing, String
 from reportlab.lib import colors
@@ -20,9 +19,6 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-# =============================================================================
-# EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
-# =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
 
 DATABASE_URL = os.getenv(
@@ -35,7 +31,7 @@ def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 def get_all_years_data():
-    """Busca todas as respostas do iGov-TI agrupadas por ano para o relatório PDF."""
+   
     all_data = {}
     query = """
         SELECT qid, ano, valor, pontos, link, comentarios
@@ -67,7 +63,7 @@ def get_all_years_data():
 
 
 def init_db():
-    """Garante que a tabela respostas_igovti exista com as colunas certas."""
+   
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -209,9 +205,7 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
     return conteudo.encode("utf-8")
 
 
-# =============================================================================
-# 1. PAINEL LATERAL / CONTROLE
-# =============================================================================
+
 def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
@@ -318,9 +312,7 @@ def render_painel_controle(on_refresh_callback=None):
             </div>
         """).classes("w-full")
 
-# =============================================================================
-# 2. BLOCO DE COMENTÁRIOS INTERNOS
-# =============================================================================
+
 FUSO_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 
@@ -454,9 +446,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         )
 
 
-# =============================================================================
-# 3. RENDERIZADOR DE QUESITO
-# =============================================================================
+
 def render_quesito(
     ano,
     res_data,
@@ -638,9 +628,7 @@ def render_quesito(
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
 
-# =============================================================================
-# 4. CONTAINER PRINCIPAL REFRESHABLE
-# =============================================================================
+
 @ui.refreshable
 def container_formulario_igov_ti():
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
@@ -698,24 +686,22 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                # =============================================================================
-                # QUESITO 1.1 • COMPOSIÇÃO DA EQUIPE DE TIC
-                # =============================================================================
+              
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                    # Cabeçalho do Quesito
+                   
                     ui.label("📌 Quesito 1.1 - Recursos Humanos em TIC").classes("text-lg font-bold text-blue-900 mb-1")
                     
-                    # Enunciado
+                   
                     ui.label("Informe a quantidade:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
                     
-                    # Bloco Informativo da Fórmula de Cálculo
+                   
                     with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
                         ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
                         ui.label(
                             "Funcionários concursados + Funcionários comissionados + Estagiários no suporte e atendimento de primeiro nível > 0 — 30 pontos"
                         ).classes("text-sm text-blue-800 font-medium")
 
-                    # Função local de persistência para evitar 'save_resp is not defined'
+                    
                     def salvar_no_banco_11(qid_val, valor_val, pontos_val, link_val):
                         try:
                             with get_db_connection() as conn:
@@ -735,7 +721,7 @@ def container_formulario_igov_ti():
                             print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
                             raise err_db
 
-                    # Conversor seguro para prevenir crash com strings vazias
+                   
                     def parse_int_seguro(val):
                         if val is None:
                             return 0
@@ -746,7 +732,7 @@ def container_formulario_igov_ti():
                             return 0
                         return int(val_str)
 
-                    # Recuperação do banco
+                 
                     d11 = res_data.get("1.1") or {}
                     if not isinstance(d11, dict):
                         d11 = {"valor": "0", "pontos": 0.0, "link": ""}
@@ -755,7 +741,7 @@ def container_formulario_igov_ti():
                     evidencia_11_salva = ""
                     raw_link = str(d11.get("link") or "")
 
-                    # Extração dos contadores armazenados
+                   
                     if raw_link:
                         if "|LINK:" in raw_link:
                             contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1)
@@ -773,7 +759,7 @@ def container_formulario_igov_ti():
                         v_esta_i = int(match_e.group(1)) if match_e else 0
                         v_outr_i = int(match_o.group(1)) if match_o else 0
 
-                    # Estado reativo do formulário
+                   
                     state_11 = {
                         "conc": v_conc_i,
                         "comi": v_comi_i,
@@ -782,7 +768,7 @@ def container_formulario_igov_ti():
                         "link": evidencia_11_salva
                     }
 
-                    # Callback do Botão de Salvar
+                   
                     def cb_processa_e_salva_11():
                         try:
                             c_val = parse_int_seguro(state_11["conc"])
@@ -795,10 +781,10 @@ def container_formulario_igov_ti():
                             pts_calculados = 30.0 if total_p > 0 else 0.0
                             composite_string = f"C:{c_val},Co:{co_val},E:{e_val},O:{o_val}|LINK:{lnk_val}"
 
-                            # Executa salvamento persistente no PostgreSQL
+                            
                             salvar_no_banco_11("1.1", str(total_p), pts_calculados, composite_string)
                             
-                            # Atualiza dict local em memória
+                           
                             res_data["1.1"] = {
                                 "valor": str(total_p), 
                                 "pontos": pts_calculados, 
@@ -810,7 +796,7 @@ def container_formulario_igov_ti():
                         except Exception as err:
                             ui.notify(f"Erro ao salvar Quesito 1.1: {err}", type="negative")
 
-                    # Grid com os Inputs Numéricos
+                   
                     with ui.grid(columns=2).classes("w-full gap-4 mb-4 md:grid-cols-4"):
                         ui.number(
                             "Funcionários concursados:", 
@@ -840,14 +826,14 @@ def container_formulario_igov_ti():
                             step=1
                         ).classes("w-full").bind_value(state_11, "outr")
 
-                    # Área do Link / Evidência
+                   
                     ui.textarea(
                         "Página Eletrônica (Link / Evidência da Composição):",
                         value=evidencia_11_salva,
                         placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI..."
                     ).classes("w-full mb-4").bind_value(state_11, "link")
 
-                    # Rodapé do Quesito
+                    
                     total_pessoal = parse_int_seguro(d11.get("valor"))
                     pts_atuais_11 = float(d11.get("pontos") or 0.0)
                     cor_txt_11 = "text-green-600" if pts_atuais_11 == 30.0 else "text-gray-500"
@@ -898,14 +884,12 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-    # =============================================================================
-                # QUESITO 1.3.1 • ÁREAS DE CAPACITAÇÃO EM TIC
-                # =============================================================================
+ 
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                    # Cabeçalho do Quesito
+                   
                     ui.label("📌 Quesito 1.3.1 - Áreas de Capacitação em TIC").classes("text-lg font-bold text-blue-900 mb-1")
                     
-                    # Enunciado
+                  
                     ui.label("Informe em quais áreas houve capacitação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
                     
                     # Bloco Informativo da Fórmula de Cálculo
@@ -921,7 +905,7 @@ def container_formulario_igov_ti():
                             "• Somente a opção 'Outros' = 0 pontos"
                         ).classes("text-xs text-blue-900 whitespace-pre-line font-mono")
 
-                    # Função local de persistência
+                    
                     def salvar_no_banco_131(qid_val, valor_val, pontos_val, link_val):
                         try:
                             with get_db_connection() as conn:
@@ -941,17 +925,17 @@ def container_formulario_igov_ti():
                             print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
                             raise err_db
 
-                    # Recuperação do Banco de Dados
+                   
                     d131 = res_data.get("1.3.1") or {}
                     if not isinstance(d131, dict):
                         d131 = {"valor": "", "pontos": 0.0, "link": ""}
 
-                    # Parse das opções previamente marcadas (armazenadas separadas por vírgula no campo 'valor')
+                   
                     valor_salvo = str(d131.get("valor") or "")
                     itens_salvos = [i.strip() for i in valor_salvo.split(",") if i.strip()]
                     evidencia_131_salva = str(d131.get("link") or "")
 
-                    # Estado Reativo das Checkboxes
+                    
                     state_131 = {
                         "infra": "Infraestrutura e Redes" in itens_salvos,
                         "dev": "Desenvolvimento e Software" in itens_salvos,
@@ -961,7 +945,7 @@ def container_formulario_igov_ti():
                         "link": evidencia_131_salva
                     }
 
-                    # Callback do Botão de Salvar
+                   
                     def cb_processa_e_salva_131():
                         try:
                             # Identifica os marcados
@@ -975,13 +959,13 @@ def container_formulario_igov_ti():
                             if state_131["gestao"]:
                                 marcados.append("Gestão e Segurança")
 
-                            # Contagem das 4 opções válidas para pontuação
+                           
                             qtd_validos = len(marcados)
 
                             if state_131["outros"]:
                                 marcados.append("Outros")
 
-                            # Cálculo de Pontuação
+                           
                             if qtd_validos >= 3:
                                 pts_calculados = 30.0
                             elif qtd_validos == 2:
@@ -994,10 +978,10 @@ def container_formulario_igov_ti():
                             valor_string = ", ".join(marcados)
                             lnk_val = str(state_131["link"] or "").strip()
 
-                            # Salva no PostgreSQL
+                            
                             salvar_no_banco_131("1.3.1", valor_string, pts_calculados, lnk_val)
 
-                            # Atualiza em memória
+                           
                             res_data["1.3.1"] = {
                                 "valor": valor_string,
                                 "pontos": pts_calculados,
@@ -1009,7 +993,7 @@ def container_formulario_igov_ti():
                         except Exception as err:
                             ui.notify(f"Erro ao salvar Quesito 1.3.1: {err}", type="negative")
 
-                    # Checkboxes
+                  
                     with ui.column().classes("w-full gap-2 mb-4"):
                         ui.checkbox("Infraestrutura e Redes").bind_value(state_131, "infra")
                         ui.checkbox("Desenvolvimento e Software").bind_value(state_131, "dev")
@@ -1017,14 +1001,14 @@ def container_formulario_igov_ti():
                         ui.checkbox("Gestão e Segurança").bind_value(state_131, "gestao")
                         ui.checkbox("Outros").bind_value(state_131, "outros")
 
-                    # Campo de Link / Evidência
+                   
                     ui.textarea(
                         "Página Eletrônica (Link / Evidência das Capacitações):",
                         value=evidencia_131_salva,
                         placeholder="Insira o link dos certificados, plano de capacitação, relatório de treinamentos..."
                     ).classes("w-full mb-4").bind_value(state_131, "link")
 
-                    # Rodapé com Indicador e Botão
+                  
                     pts_atuais_131 = float(d131.get("pontos") or 0.0)
                     cor_txt_131 = "text-green-600" if pts_atuais_131 > 0 else "text-gray-500"
 
@@ -1037,12 +1021,10 @@ def container_formulario_igov_ti():
 
                     ui.separator().classes("my-2")
 
-                    # Bloco de Comentários
+                    
                     bloco_comentarios("1.3.1", res_data, ano_sel)
 
-    # =============================================================================
-                # QUESITO 1.4 • PARTICIPAÇÃO DO PESSOAL DE TIC NAS LICITAÇÕES E CONTRATOS
-                # =============================================================================
+  
                 opcoes_14 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -1058,17 +1040,15 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                # =============================================================================
-                # QUESITO 1.4.1 • ETAPAS DE PARTICIPAÇÃO DO PESSOAL DE TIC
-                # =============================================================================
+                
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                    # Cabeçalho do Quesito
+                   
                     ui.label("📌 Quesito 1.4.1 - Etapas de Participação do Pessoal de TIC").classes("text-lg font-bold text-blue-900 mb-1")
                     
-                    # Enunciado
+                   
                     ui.label("Assinale as etapas que o pessoal de TIC participa:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
                     
-                    # Bloco Informativo da Pontuação Somada
+                   
                     with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
                         ui.label("Critérios de pontuação (somatório dos itens marcados):").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
                         ui.label(
@@ -1077,7 +1057,7 @@ def container_formulario_igov_ti():
                             "• Recebimento / Gestão de Contrato — 15 pontos"
                         ).classes("text-xs text-blue-900 whitespace-pre-line font-mono mt-1")
 
-                    # Função local de persistência no PostgreSQL
+                  
                     def salvar_no_banco_141(qid_val, valor_val, pontos_val, link_val):
                         try:
                             with get_db_connection() as conn:
@@ -1097,17 +1077,17 @@ def container_formulario_igov_ti():
                             print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
                             raise err_db
 
-                    # Recuperação do Banco de Dados
+                   
                     d141 = res_data.get("1.4.1") or {}
                     if not isinstance(d141, dict):
                         d141 = {"valor": "", "pontos": 0.0, "link": ""}
 
-                    # Parse dos itens marcados armazenados no banco (separados por vírgula)
+                    
                     valor_salvo = str(d141.get("valor") or "")
                     itens_salvos = [i.strip() for i in valor_salvo.split(",") if i.strip()]
                     evidencia_141_salva = str(d141.get("link") or "")
 
-                    # Estado Reativo das Checkboxes
+                  
                     state_141 = {
                         "edital": "Elaboração do edital / Especificação técnica" in itens_salvos,
                         "comissao": "Comissão de Licitação / Equipe de Apoio" in itens_salvos,
@@ -1115,7 +1095,7 @@ def container_formulario_igov_ti():
                         "link": evidencia_141_salva
                     }
 
-                    # Callback para Calcular a Soma dos Pontos e Salvar
+                  
                     def cb_processa_e_salva_141():
                         try:
                             marcados = []
@@ -1136,7 +1116,7 @@ def container_formulario_igov_ti():
                             valor_string = ", ".join(marcados)
                             lnk_val = str(state_141["link"] or "").strip()
 
-                            # Grava persistentemente no banco
+                            
                             salvar_no_banco_141("1.4.1", valor_string, pontos_acumulados, lnk_val)
 
                             # Atualiza a estrutura na memória local da página
@@ -1151,20 +1131,20 @@ def container_formulario_igov_ti():
                         except Exception as err:
                             ui.notify(f"Erro ao salvar Quesito 1.4.1: {err}", type="negative")
 
-                    # Interface com as 3 opções do quesito
+                    
                     with ui.column().classes("w-full gap-2 mb-4"):
                         ui.checkbox("Elaboração do edital / Especificação técnica (15 pts)").bind_value(state_141, "edital")
                         ui.checkbox("Comissão de Licitação / Equipe de Apoio (10 pts)").bind_value(state_141, "comissao")
                         ui.checkbox("Recebimento / Gestão de Contrato (15 pts)").bind_value(state_141, "gestao")
 
-                    # Campo de Evidências / Links
+                   
                     ui.textarea(
                         "Página Eletrônica (Link / Evidência da Participação):",
                         value=evidencia_141_salva,
                         placeholder="Insira o link de portarias de nomeação, termos de referência assinados ou atas de comissões..."
                     ).classes("w-full mb-4").bind_value(state_141, "link")
 
-                    # Exibição dos pontos calculados no rodapé
+                 
                     pts_atuais_141 = float(d141.get("pontos") or 0.0)
                     cor_txt_141 = "text-green-600" if pts_atuais_141 > 0 else "text-gray-500"
 
@@ -1177,12 +1157,10 @@ def container_formulario_igov_ti():
 
                     ui.separator().classes("my-2")
 
-                    # Bloco de Comentários Integrado ao Quesito
+                   
                     bloco_comentarios("1.4.1", res_data, ano_sel)
 
-                # =============================================================================
-                # QUESITO 1.4.2 • ANÁLISE PRÉVIA PARA CONTRATAÇÃO DE SOFTWARES
-                # =============================================================================
+               
                 opcoes_142 = {
                     "Selecione...": 0.0,
                     "Sim, para todos os softwares (20 pts)": 20.0,
@@ -1201,9 +1179,7 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                # =============================================================================
-                # QUESITO 2.0 • PLANO DIRETOR DE TECNOLOGIA DA INFORMAÇÃO E COMUNICAÇÃO (PDTIC)
-                # =============================================================================
+               
                 opcoes_20 = {
                     "Selecione...": 0.0,
                     "SIM, com metas acima de 02 anos (40 pts)": 40.0,
@@ -1220,9 +1196,7 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-    # =============================================================================
-                # QUESITO 2.1 • PÁGINA ELETRÔNICA DO PDTIC
-                # =============================================================================
+ 
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 2.1 - Divulgação do PDTIC").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe a página eletrônica (link na internet) do PDTIC:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -1293,9 +1267,7 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("2.1", res_data, ano_sel)
 
-                # =============================================================================
-                # QUESITO 2.2 • ALOCAÇÃO DE RECURSOS NO PDTIC
-                # =============================================================================
+                
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 2.2 - Conteúdo do Plano de TIC").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("O plano de TIC vigente contempla:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
