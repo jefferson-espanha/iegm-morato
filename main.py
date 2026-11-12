@@ -27,7 +27,6 @@ def get_secret(key, default=None):
     return default
 
 
-
 @contextmanager
 def db_connection():
     """Abre uma conexão PostgreSQL usando psycopg 3 ou psycopg2."""
