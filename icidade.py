@@ -11,7 +11,7 @@ from nicegui import app, ui
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
-# Importações do ReportLab
+
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.shapes import Drawing, String
 from reportlab.lib import colors
@@ -19,9 +19,8 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
-# =============================================================================
-# BANCO DE DADOS (NEON)
-# =============================================================================
+
+
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -151,9 +150,7 @@ def _obter_lista_comentarios(dados_q):
     return coms if isinstance(coms, list) else []
 
 
-# =============================================================================
-# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (ATUALIZADA)
-# =============================================================================
+
 def render_quesito(
     ano,
     res_data,
@@ -170,7 +167,7 @@ def render_quesito(
     valor_atual = dados_q.get("valor", "")
     link_atual = dados_q.get("link", "")
 
-    # Para checkboxes, a resposta armazenada é uma lista ou string separada por vírgulas
+    
     if tipo_input == "checkbox":
         itens_selecionados = [v.strip() for v in valor_atual.split(",") if v.strip()] if valor_atual else []
         state = {"opcao": itens_selecionados, "link": link_atual}
@@ -188,7 +185,7 @@ def render_quesito(
             "ℹ Preencha os campos abaixo e clique no botão de salvar."
         ).classes("text-xs text-gray-400 mb-6")
 
-        # 1. RENDERIZAÇÃO DO CAMPO DE ENTRADA
+        
         if tipo_input == "checkbox":
             if not opcoes:
                 opcoes = {}
@@ -257,7 +254,7 @@ def render_quesito(
 
             radio_opcao.on("update:model-value", ao_mudar_opcao)
 
-        # 2. BOTÃO DE SALVAR
+        
         def salvar_acao():
             if tipo_input == "checkbox":
                 sel = [item for item, chk in checkboxes.items() if chk.value]
@@ -296,9 +293,7 @@ def render_quesito(
             qid=qid, res_data=res_data, on_save_callback=on_save_callback
         )
 
-# =============================================================================
-# PAINEL DE CONTROLE LATERAL
-# =============================================================================
+
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
@@ -343,7 +338,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.separator().classes("my-2")
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
-        # Função de atualização equivalente ao F5
+      
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
@@ -351,7 +346,6 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             "w-full bg-blue-700 text-white font-bold mb-2"
         )
 
-        # Modal de confirmação com senha para zerar
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
@@ -396,9 +390,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             </div>
         """).classes("w-full")
         
-# =============================================================================
-# BLOCO DE COMENTÁRIOS INTERNOS
-# =============================================================================
+
 FUSO_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 
@@ -532,9 +524,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         )
 
 
-# =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS (LAYOUT CORRIGIDO)
-# =============================================================================
+
 def container_formulario_icidade(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
@@ -549,7 +539,7 @@ def container_formulario_icidade(ano=None):
             ui.notify(f"Ano alterado para {novo_ano}", type="info")
             render_conteudo.refresh()
 
-        # Grid principal de 12 colunas
+        
         with ui.element("div").classes(
             "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
         ):
@@ -562,7 +552,7 @@ def container_formulario_icidade(ano=None):
                     on_refresh=render_conteudo.refresh,
                 )
 
-            # Coluna 2: Formulário (9 colunas) — TUDO DEVE FICAR DENTRO DESTE BLOCO
+        
             with ui.element("div").classes(
                 "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm flex flex-col gap-6"
             ):
@@ -585,9 +575,9 @@ def container_formulario_icidade(ano=None):
                         ui.button(str(numero), on_click=lambda n=numero: mudar_etapa(n)).props("flat dense no-caps").classes(f"{estilo} min-w-0 px-1 text-base")
 
                 if etapa_atual == 1:
-                    # ==========================================
-                    # QUESITO 1.0 (Seleção com Pontuação)
-                    # ==========================================
+                    
+                    # QUESITO 1.0
+                    
                     opcoes_10 = {
                         "Selecione...": 0.0,
                         "Sim (40.0 pts)": 40.0,
@@ -604,9 +594,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 1.1 (Campo de Texto / Normativo)
-                    # ==========================================
+                   
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
@@ -618,9 +608,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 1.2 (Link / Página Eletrônica)
-                    # ==========================================
+                    
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
@@ -632,9 +622,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 1.3 (Seleção com Pontuação)
-                    # ==========================================
+                    
                     opcoes_13 = {
                         "Selecione...": 0.0,
                         "Gabinete do Prefeito (5.0 pts)": 5.0,
@@ -653,9 +643,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 1.4 (Seleção com Pontuação)
-                    # ==========================================
+                   
                     opcoes_14 = {
                         "Selecione...": 0.0,
                         "Sim, inclusive com a participação de entidades privadas e da comunidade (50.0 pts)": 50.0,
@@ -675,9 +665,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 1.5 (Campo de Texto / Motivo)
-                    # ==========================================
+                  
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
@@ -689,9 +679,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                  
                     # QUESITO 2.0 (Capacitação de Agentes)
-                    # ==========================================
+                  
                     opcoes_20 = {
                         "Selecione...": 0.0,
                         "Sim (20.0 pts)": 20.0,
@@ -708,9 +698,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 2.1 (Data da Última Capacitação)
-                    # ==========================================
+                 
                     opcoes_21 = {
                         "Selecione...": 0.0,
                         "Após 31/12/2023 [Até 2026] (30.0 pts)": 30.0,
@@ -727,9 +717,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 2.2 (Público-Alvo dos Treinamentos)
-                    # ==========================================
+                   
                     opcoes_22 = {
                         "Selecione...": 0.0,
                         "Para escolas (5.0 pts)": 5.0,
@@ -748,9 +738,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 3.0 (Estímulo à Participação)
-                    # ==========================================
+                    
                     opcoes_30 = {
                         "Selecione...": 0.0,
                         "Sim (10.0 pts)": 10.0,
@@ -767,9 +757,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
-                    # QUESITO 3.1 (Ações Realizadas - Checkbox)
-                    # ==========================================
+                    
+                    # QUESITO 3.1
+                   
                     opcoes_31 = {
                         "Workshop / Palestra": 0.0,
                         "Reunião": 0.0,
@@ -791,9 +781,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 3.1.1 (Data do Último Treinamento)
-                    # ==========================================
+                    
                     opcoes_311 = {
                         "Selecione...": 0.0,
                         "Após 31/12/2023 [Até 2026] (10.0 pts)": 10.0,
@@ -810,9 +800,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 4.0 (Carta Geotécnica)
-                    # ==========================================
+                   
                     opcoes_40 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -829,9 +819,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 4.1 (Ameaças Potenciais - Checkbox)
-                    # ==========================================
+                    
                     opcoes_41 = {
                         "Riscos Geológicos": 0.0,
                         "Riscos Hidrológicos": 0.0,
@@ -852,9 +842,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 4.2 (Carta no Plano Diretor)
-                    # ==========================================
+                  
                     opcoes_42 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -872,9 +862,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 5.0 (Mapeamento Próprio de Ameaças)
-                    # ==========================================
+                    
                     opcoes_50 = {
                         "Selecione...": 0.0,
                         "Sim (200.0 pts)": 200.0,
@@ -891,9 +881,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 5.1 (Principais Ameaças - Checkbox)
-                    # ==========================================
+                   
                     opcoes_51 = {
                         "Epidemias": 0.0,
                         "Estiagem": 0.0,
@@ -917,9 +907,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 5.1.1 (Fiscalização das Áreas de Risco)
-                    # ==========================================
+                 
                     opcoes_511 = {
                         "Selecione...": 0.0,
                         "Sim, integralmente (0.0 pts)": 0.0,
@@ -937,9 +927,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 5.1.2 (Possibilidade de Ocupação/Invasão)
-                    # ==========================================
+                   
                     opcoes_512 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -956,9 +946,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
-                    # QUESITO 5.1.2.1 (Mecanismos de Vedação - Checkbox)
-                    # ==========================================
+                   
+                    # QUESITO 5.1.2.1 
+                    
                     opcoes_5121 = {
                         "Aplicação de sanções monetárias (multas)": 0.0,
                         "Monitoramento (fiscalização)": 0.0,
@@ -979,9 +969,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                  
                     # QUESITO 5.2 (Informação à População)
-                    # ==========================================
+                    
                     opcoes_52 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -999,9 +989,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 6.0 (Vistoria em Edificações)
-                    # ==========================================
+                   
                     opcoes_60 = {
                         "Selecione...": 0.0,
                         "Sim, de acordo com um cronograma preestabelecido (0.0 pts)": 0.0,
@@ -1020,9 +1010,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-        # ==========================================
+        
                     # QUESITO 7.0 (Plano de Contingência - PLANCON)
-                    # ==========================================
+                   
                     opcoes_70 = {
                         "Selecione...": 0.0,
                         "Sim (50.0 pts)": 50.0,
@@ -1039,9 +1029,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 7.1 (PLANCON por Ameaça Especificada)
-                    # ==========================================
+                    
                     opcoes_71 = {
                         "Selecione...": 0.0,
                         "Sim, cada ameaça mapeada possui um PLANCON diferente (5.0 pts)": 5.0,
@@ -1059,9 +1049,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 7.2 (Exercícios Simulados)
-                    # ==========================================
+                   
                     opcoes_72 = {
                         "Selecione...": 0.0,
                         "Sim (80.0 pts)": 80.0,
@@ -1078,9 +1068,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 7.3 (Sistema de Alerta)
-                    # ==========================================
+                   
                     opcoes_73 = {
                         "Selecione...": 0.0,
                         "Sim (50.0 pts)": 50.0,
@@ -1097,9 +1087,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 7.3.1 (Tipos de Sistema de Alerta - Checkbox)
-                    # ==========================================
+                    
                     opcoes_731 = {
                         "Alerta via SMS": 0.0,
                         "Anúncio por rádio/Televisão": 0.0,
@@ -1121,9 +1111,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 7.4 (Sistema de Alarme)
-                    # ==========================================
+                    
                     opcoes_74 = {
                         "Selecione...": 0.0,
                         "Sim (50.0 pts)": 50.0,
@@ -1140,9 +1130,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 7.4.1 (Tipos de Sistema de Alarme - Checkbox)
-                    # ==========================================
+                   
                     opcoes_741 = {
                         "Sinal sonoro (sirene)": 0.0,
                         "Sinal luminoso": 0.0,
@@ -1165,9 +1155,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 7.5 (Cadastro de Abrigos na CEPDEC)
-                    # ==========================================
+                    
                     opcoes_75 = {
                         "Selecione...": 0.0,
                         "Sim, atualizado (10.0 pts)": 10.0,
@@ -1185,9 +1175,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 7.6 (Fornecedores de Ajuda Humanitária)
-                    # ==========================================
+                   
                     opcoes_76 = {
                         "Selecione...": 0.0,
                         "Sim, atualizado (10.0 pts)": 10.0,
@@ -1205,9 +1195,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 7.7 (Data da Última Atualização do PLANCON)
-                    # ==========================================
+                  
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
@@ -1220,9 +1210,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 8.0 (Canal de Atendimento de Emergência)
-                    # ==========================================
+                   
                     opcoes_80 = {
                         "Selecione...": 0.0,
                         "Sim (50.0 pts)": 50.0,
@@ -1239,9 +1229,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
-                    # QUESITO 8.1 (Canais Utilizados - Checkbox)
-                    # ==========================================
+                  
+                    # QUESITO 8.1 (Canais Utilizados)
+                   
                     opcoes_81 = {
                         "Telefone de emergências": 0.0,
                         "Aplicativo de mensagens": 0.0,
@@ -1263,9 +1253,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                  
                     # QUESITO 8.1.1 (Utilização do Número 199)
-                    # ==========================================
+                   
                     opcoes_811 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1282,9 +1272,8 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-        # ==========================================
                     # QUESITO 8.1.1.1 (Atendimento 24h do Telefone 199)
-                    # ==========================================
+                   
                     opcoes_8111 = {
                         "Selecione...": 0.0,
                         "Sim (20.0 pts)": 20.0,
@@ -1301,9 +1290,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 8.2 (Registro Eletrônico de Ocorrências)
-                    # ==========================================
+                    
                     opcoes_82 = {
                         "Selecione...": 0.0,
                         "Sim (50.0 pts)": 50.0,
@@ -1322,9 +1311,9 @@ def container_formulario_icidade(ano=None):
 
 
                 if etapa_atual == 2:
-                    # ==========================================
+                    
                     # QUESITO 9.0 (Estudo de Estrutura de Escolas/Saúde)
-                    # ==========================================
+                  
                     opcoes_90 = {
                         "Selecione...": 0.0,
                         "Sim, em todas as escolas e centros de saúde (100.0 pts)": 100.0,
@@ -1343,9 +1332,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 10.0 (Plano de Mobilidade Urbana)
-                    # ==========================================
+                    
                     opcoes_100 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1363,9 +1352,8 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
-                    # QUESITO 11.0 (Transporte Público Coletivo)
-                    # ==========================================
+                   
+                    # QUESITO 11.0 (Transporte Público Coletivo) 
                     opcoes_110 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
