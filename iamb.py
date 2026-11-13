@@ -8,9 +8,7 @@ from nicegui import app, ui
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
-# =============================================================================
-# BANCO DE DADOS (NEON)
-# =============================================================================
+
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -140,9 +138,7 @@ def _obter_lista_comentarios(dados_q):
     return coms if isinstance(coms, list) else []
 
 
-# =============================================================================
-# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
-# =============================================================================
+
 def render_quesito(
     ano,
     res_data,
@@ -235,9 +231,7 @@ def render_quesito(
         bloco_comentarios(qid, res_data, on_save_callback)
 
 
-# =============================================================================
-# PAINEL DE CONTROLE LATERAL
-# =============================================================================
+
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
@@ -290,7 +284,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             "w-full bg-blue-700 text-white font-bold mb-2"
         )
 
-        # Modal de confirmação de segurança com senha para zerar
+        
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
@@ -335,9 +329,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             </div>
         """).classes("w-full")
 
-# =============================================================================
-# BLOCO DE COMENTÁRIOS INTERNOS
-# =============================================================================
+
 FUSO_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 
@@ -471,9 +463,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         )
 
 
-# =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS
-# =============================================================================
+
 def _obter_ano_com_respostas(ano_preferido=2026):
     """Mantém sempre o ano escolhido, mesmo quando ainda não há respostas."""
     try:
@@ -503,7 +493,7 @@ def _render_formulario_iamb(ano=None):
             "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
         ):
 
-            # Coluna 1: Painel Lateral (3/12)
+            
             with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
                 render_painel_controle(
                     ano_atual=ano_sel,
@@ -511,7 +501,7 @@ def _render_formulario_iamb(ano=None):
                     on_refresh=render_conteudo.refresh,
                 )
 
-            # Coluna 2: Formulário (9/12)
+            
             with ui.element("div").classes(
                 "md:col-span-8 lg:col-span-9 bg-white p-6 border rounded-lg shadow-sm"
             ):
@@ -663,9 +653,8 @@ def _render_formulario_iamb(ano=None):
                             "1.1.1", res_data, render_conteudo.refresh
                         )
 
-                    # =============================================================================
-                    # QUESITO 1.1.2 (Seleção Única - Radio Button)
-                    # =============================================================================
+                   
+                    # QUESITO 1.1.2
                     opcoes_112 = {
                         "Selecione...": 0.0,
                         "Sim – 20 pts": 20.0,
@@ -682,9 +671,8 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 1.1.3 (Seleção Múltipla - Checkboxes)
-                    # =============================================================================
+                    # QUESITO 1.1.3 (Seleção Múltipla)
+                   
                     with ui.card().classes(
                         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                     ):
@@ -698,10 +686,10 @@ def _render_formulario_iamb(ano=None):
                             "ℹ Selecione todas as opções aplicáveis e clique no botão de salvar."
                         ).classes("text-xs text-gray-400 mb-6")
 
-                        # Recupera dados salvos
+                       
                         d113 = res_data.get("1.1.3") or {}
                         
-                        # Trata o valor recuperado (pode ser uma lista em formato string JSON ou legada)
+                        
                         try:
                             selecionados_salvos = json.loads(d113.get("valor", "[]"))
                             if not isinstance(selecionados_salvos, list):
@@ -724,7 +712,7 @@ def _render_formulario_iamb(ano=None):
                             "link": d113.get("link", ""),
                         }
 
-                        # Cálculo dinâmico da pontuação
+                        
                         def calcular_pts_113():
                             if state_113["nenhum"]:
                                 return 0.0
@@ -735,14 +723,14 @@ def _render_formulario_iamb(ano=None):
                             return pts
 
                         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-                            # Coluna da esquerda: Checkboxes com regras de dependência
+                            
                             with ui.column().classes("w-full gap-2"):
                                 cb_escolas = ui.checkbox(mapa_opcoes_113["escolas"][0]).bind_value(state_113, "escolas")
                                 cb_sec = ui.checkbox(mapa_opcoes_113["secretarias"][0]).bind_value(state_113, "secretarias")
                                 cb_mun = ui.checkbox(mapa_opcoes_113["municipes"][0]).bind_value(state_113, "municipes")
                                 cb_nenhum = ui.checkbox(mapa_opcoes_113["nenhum"][0]).bind_value(state_113, "nenhum")
 
-                            # Coluna da direita: Link de evidência
+                            
                             ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=state_113["link"],
@@ -802,9 +790,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("1.1.3", res_data, render_conteudo.refresh)
 
-                   # =============================================================================
-                    # QUESITO 1.2 (Seleção Múltipla - Checkboxes)
-                    # =============================================================================
+                  
+                    # QUESITO 1.2 (Seleção Múltipla)
+                   
                     with ui.card().classes(
                         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                     ):
@@ -887,9 +875,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("1.2", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 2.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    
+                    # QUESITO 2.0 
+                   
                     opcoes_20 = {
                         "Selecione...": 0.0,
                         "Sim – 10 pts": 10.0,
@@ -906,9 +894,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 2.1 (Cálculo Proporcional - Fórmula Pmáx=50)
-                    # =============================================================================
+                    
+                    # QUESITO 2.1 
+                   
                     with ui.card().classes(
                         "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                     ):
@@ -1007,9 +995,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("2.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 3.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    
+                    # QUESITO 3.0 
+                    
                     opcoes_30 = {
                         "Selecione...": 0.0,
                         "Sim, para todos os órgãos e entidades – 10 pts": 10.0,
@@ -1027,9 +1015,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-        # =============================================================================
-                    # QUESITO 3.1 (Seleção Múltipla - Checkboxes com Pontuação Fracionada)
-                    # =============================================================================
+       
+                    # QUESITO 3.1 (Seleção Múltipla)
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("3.1 • Tipos de Ações para Uso Racional de Recursos Naturais").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale quais tipos de ações são realizadas pela Prefeitura:").classes("text-base font-bold text-black mb-1")
@@ -1104,9 +1092,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("3.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 4.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+                   
+                    # QUESITO 4.0 (Seleção Única)
+                   
                     opcoes_40 = {
                         "Selecione...": 0.0,
                         "Sim, com medição da densidade colorimétrica da Escala Ringelmann ou equivalente – 20 pts": 20.0,
@@ -1124,9 +1112,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 5.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+                   
+                    # QUESITO 5.0 
+                   
                     opcoes_50 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -1143,9 +1131,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 5.1 (Campos de Texto para Informações do Contrato)
-                    # =============================================================================
+                   
+                    # QUESITO 5.1
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("5.1 • Detalhamento do Contrato de Poda/Corte").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe o número do contrato e o prestador de serviço:").classes("text-base font-bold text-black mb-1")
@@ -1193,9 +1181,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("5.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 5.2 (Seleção Única com Pontuação Negativa / Penalização)
-                    # =============================================================================
+                   
+                    # QUESITO 5.2 
+                    
                     opcoes_52 = {
                         "Selecione...": 0.0,
                         "Sim – 00 pts": 0.0,
@@ -1214,9 +1202,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-        # =============================================================================
-                    # QUESITO 5.2.1 (Seleção Múltipla com Pontuação Dinâmica e Penalização)
-                    # =============================================================================
+       
+                    # QUESITO 5.2.1 
+                  
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("5.2.1 • Destinação dos Resíduos das Podas de Árvores").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Qual a destinação dos resíduos das podas de árvores?").classes("text-base font-bold text-black mb-1")
@@ -1243,7 +1231,7 @@ def _render_formulario_iamb(ano=None):
                         state_521["link"] = d521.get("link", "")
 
                         def calc_pts_521():
-                            # Opções que contam pontuação positiva
+                           
                             opcoes_validas = ["moveis", "compostagem", "queima", "energia", "construcao"]
                             qtd_validas = sum(1 for k in opcoes_validas if state_521.get(k))
 
@@ -1255,7 +1243,7 @@ def _render_formulario_iamb(ano=None):
                             elif qtd_validas == 1:
                                 pts = 5.0
 
-                            # Aplica a penalização caso vá para aterro sanitário
+                           
                             if state_521.get("aterro"):
                                 pts -= 5.0
 
@@ -1299,9 +1287,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("5.2.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 5.3 (Seleção Única - Radio Button com Penalização)
-                    # =============================================================================
+                  
+                    # QUESITO 5.3 
+                   
                     opcoes_53 = {
                         "Selecione...": 0.0,
                         "Sim – 00 pts": 0.0,
@@ -1318,9 +1306,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 6.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+                   
+                    # QUESITO 6.0
+                  
                     opcoes_60 = {
                         "Selecione...": 0.0,
                         "Sim – 20 pts": 20.0,
@@ -1337,9 +1325,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-        # =============================================================================
-                    # QUESITO 6.1 (Seleção Múltipla com Pontuação Cumulativa Específica)
-                    # =============================================================================
+        
+                    # QUESITO 6.1 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("6.1 • Ações e Medidas Preventivas para Períodos de Estiagem").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale as ações e medidas preventivas de contingenciamento executadas pela Prefeitura:").classes("text-base font-bold text-black mb-1")
@@ -1415,9 +1403,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("6.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
+                   
                     # QUESITO 6.2 (Seleção Múltipla por Setor)
-                    # =============================================================================
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("6.2 • Setores com Contingenciamento para Provisão de Água Potável").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Em quais setores existem ações e medidas de contingenciamento específicos para provisão de água potável?").classes("text-base font-bold text-black mb-1")
@@ -1481,9 +1469,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("6.2", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 7.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    
+                    # QUESITO 7.0 
+                    
                     opcoes_70 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -1500,9 +1488,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 7.1 (Campos de Texto para Instrumento Normativo)
-                    # =============================================================================
+                  
+                    # QUESITO 7.1 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.1 • Instrumento Normativo do Plano de Saneamento Básico").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-bold text-black mb-1")
@@ -1554,9 +1542,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+       
                     # QUESITO 7.2 (Validação de Link vs Texto XYZ)
-                    # =============================================================================
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.2 • Link do Plano Municipal/Regional de Saneamento Básico").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe a página eletrônica (link na internet) do Plano Municipal ou Regional de Saneamento Básico:").classes("text-base font-bold text-black mb-1")
@@ -1613,9 +1601,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.2", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 7.3 (Seleção Única - Radio Button)
-                    # =============================================================================
+                   
+                    # QUESITO 7.3
+                  
                     opcoes_73 = {
                         "Selecione...": 0.0,
                         "Sim – 10 pts": 10.0,
@@ -1632,9 +1620,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 7.3.1 (Seleção Múltipla de Metas)
-                    # =============================================================================
+                    
+                    # QUESITO 7.3.1 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.3.1 • Metas Estabelecidas sobre Abastecimento de Água").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale quais as metas estabelecidas sobre abastecimento de água potável:").classes("text-base font-bold text-black mb-1")
@@ -1702,9 +1690,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.3.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 7.3.2 (Data Prevista para Universalização e Penalização)
-                    # =============================================================================
+                    
+                    # QUESITO 7.3.2 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.3.2 • Data Prevista para Universalização do Abastecimento").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Qual a data prevista para universalização do abastecimento de água potável no município?").classes("text-base font-bold text-black mb-1")
@@ -1774,9 +1762,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.3.2", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 7.4 (Seleção Única - Radio Button)
-                    # =============================================================================
+      
+                    # QUESITO 7.4 
+                   
                     opcoes_74 = {
                         "Selecione...": 0.0,
                         "Sim – 10 pts": 10.0,
@@ -1793,9 +1781,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 7.4.1 (Seleção Múltipla de Metas de Esgoto)
-                    # =============================================================================
+                    
+                    # QUESITO 7.4.1 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.4.1 • Metas Estabelecidas sobre Coleta de Esgoto").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale quais as metas estabelecidas sobre coleta de esgoto:").classes("text-base font-bold text-black mb-1")
@@ -1861,9 +1849,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.4.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 7.4.2 (Data Universalização Coleta de Esgoto e Penalização)
-                    # =============================================================================
+                    
+                    # QUESITO 7.4.2
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.4.2 • Data Prevista para Universalização da Coleta de Esgoto").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Qual a data prevista para universalização da coleta de esgoto no município?").classes("text-base font-bold text-black mb-1")
@@ -1932,9 +1920,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.4.2", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 7.5 (Seleção Única - Radio Button)
-                    # =============================================================================
+                  
+                    # QUESITO 7.5 
+                   
                     opcoes_75 = {
                         "Selecione...": 0.0,
                         "Sim – 30 pts": 30.0,
@@ -1951,9 +1939,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 7.5.1 (Data Universalização Tratamento de Esgoto e Penalização)
-                    # =============================================================================
+                    
+                    # QUESITO 7.5.1 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.5.1 • Data Prevista para Universalização do Tratamento de Esgoto").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Qual a data prevista para universalização do tratamento de esgoto no município?").classes("text-base font-bold text-black mb-1")
@@ -2022,9 +2010,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.5.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 7.6 (Seleção Única - Radio Button)
-                    # =============================================================================
+       
+                    # QUESITO 7.6 
+                    
                     opcoes_76 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -2041,9 +2029,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 7.6.1 (Seleção Múltipla de Metas de Drenagem Pluvial)
-                    # =============================================================================
+                   
+                    # QUESITO 7.6.1 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.6.1 • Metas Estabelecidas sobre Drenagem e Águas Pluviais").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale quais as metas estabelecidas sobre drenagem e manejo de águas pluviais urbanas:").classes("text-base font-bold text-black mb-1")
@@ -2100,9 +2088,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.6.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 7.7 (Seleção Única - Radio Button)
-                    # =============================================================================
+                   
+                    # QUESITO 7.7 
+                   
                     opcoes_77 = {
                         "Selecione...": 0.0,
                         "Sim – 30 pts": 30.0,
@@ -2119,9 +2107,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 7.7.1 (Seleção Múltipla de Formas de Monitoramento)
-                    # =============================================================================
+                   
+                    # QUESITO 7.7.1
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.7.1 • Formas de Monitoramento e Avaliação Executadas").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("De que forma é realizado o monitoramento e avaliação relacionadas ao abastecimento de água potável e esgotamento sanitário?").classes("text-base font-bold text-black mb-1")
@@ -2177,9 +2165,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.7.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 7.8 (Seleção Única - Radio Button)
-                    # =============================================================================
+        
+                    # QUESITO 7.8 
+                   
                     opcoes_78 = {
                         "Selecione...": 0.0,
                         "Sim – 20 pts": 20.0,
@@ -2196,9 +2184,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 7.8.1 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    
+                    # QUESITO 7.8.1 
+                   
                     opcoes_781 = {
                         "Selecione...": 0.0,
                         "Todas as metas foram cumpridas dentro do prazo – 50 pts": 50.0,
@@ -2217,9 +2205,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 7.8.1.1 (Seleção Múltipla de Motivos para Descumprimento)
-                    # =============================================================================
+                   
+                    # QUESITO 7.8.1.1 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.8.1.1 • Motivos do Não Cumprimento das Metas").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale os motivos pelos quais as metas relacionadas ao abastecimento de água potável e esgotamento sanitário não estão sendo cumpridas:").classes("text-base font-bold text-black mb-1")
@@ -2278,9 +2266,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.8.1.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 7.9 (Seleção Única - Radio Button)
-                    # =============================================================================
+                 
+                    # QUESITO 7.9 
+                   
                     opcoes_79 = {
                         "Selecione...": 0.0,
                         "Sim – 03 pts": 3.0,
@@ -2298,9 +2286,8 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 7.10 (Data da Última Revisão e Penalização de Idade do Plano)
-                    # =============================================================================
+                   
+                    # QUESITO 7.10 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("7.10 • Data da Última Revisão do Plano de Saneamento Básico").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Qual a data da última revisão do Plano Municipal ou Regional de Saneamento Básico?").classes("text-base font-bold text-black mb-1")
@@ -2369,9 +2356,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("7.10", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 8.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+       
+                    # QUESITO 8.0 
+                   
                     opcoes_80 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -2388,9 +2375,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 8.1 (Campos de Texto para Instrumento Normativo)
-                    # =============================================================================
+                   
+                    # QUESITO 8.1 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("8.1 • Instrumento Normativo do PMGIRS").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-bold text-black mb-1")
@@ -2442,9 +2429,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("8.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
+                    
                     # QUESITO 8.2 (Validação de Link vs Texto XYZ)
-                    # =============================================================================
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("8.2 • Link do Instrumento Normativo do PMGIRS").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe a página eletrônica (link na internet) do instrumento normativo do PMGIRS:").classes("text-base font-bold text-black mb-1")
@@ -2501,9 +2488,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("8.2", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
+                    
                     # QUESITO 8.3 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    
                     opcoes_83 = {
                         "Selecione...": 0.0,
                         "Sim – 10 pts": 10.0,
@@ -2520,9 +2507,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 8.3.1 (Seleção Múltipla - Formas de Caracterização)
-                    # =============================================================================
+                   
+                    # QUESITO 8.3.1 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("8.3.1 • Forma Utilizada para Caracterizar os Resíduos Sólidos").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale a forma utilizada para caracterizar os resíduos sólidos do município:").classes("text-base font-bold text-black mb-1")
@@ -2578,9 +2565,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("8.3.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 8.4 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    
+                    # QUESITO 8.4 
+                    
                     opcoes_84 = {
                         "Selecione...": 0.0,
                         "Sim – 20 pts": 20.0,
@@ -2597,9 +2584,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 8.4.1 (Seleção Múltipla de Metas de Resíduos Sólidos)
-                    # =============================================================================
+                   
+                    # QUESITO 8.4.1 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("8.4.1 • Metas Estabelecidas sobre Resíduos Sólidos").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale quais as metas estabelecidas sobre resíduos sólidos:").classes("text-base font-bold text-black mb-1")
@@ -2664,9 +2651,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("8.4.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 8.4.2 (Seleção Única - Radio Button)
-                    # =============================================================================
+      
+                    # QUESITO 8.4.2 
+                   
                     opcoes_842 = {
                         "Selecione...": 0.0,
                         "Sim – 30 pts": 30.0,
@@ -2683,9 +2670,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 8.4.2.1 (Seleção Múltipla - Formas de Monitoramento)
-                    # =============================================================================
+                   
+                    # QUESITO 8.4.2.1 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("8.4.2.1 • Formas de Monitoramento e Avaliação de Resíduos Sólidos").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("De que forma é realizado o monitoramento e avaliação das ações e metas de resíduos sólidos?").classes("text-base font-bold text-black mb-1")
@@ -2741,9 +2728,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("8.4.2.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 8.4.3 (Seleção Única - Radio Button)
-                    # =============================================================================
+                   
+                    # QUESITO 8.4.3 
+                   
                     opcoes_843 = {
                         "Selecione...": 0.0,
                         "Todas as metas foram cumpridas dentro do prazo – 50 pts": 50.0,
@@ -2762,9 +2749,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 8.4.3.1 (Seleção Múltipla - Motivos para Descumprimento)
-                    # =============================================================================
+                    
+                    # QUESITO 8.4.3.1 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("8.4.3.1 • Motivos do Não Cumprimento das Metas do PMGIRS").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale os motivos pelos quais as metas do PMGIRS não estão sendo cumpridas:").classes("text-base font-bold text-black mb-1")
@@ -2823,9 +2810,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("8.4.3.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 8.4.4 (Data da Última Revisão/Vigência - Perda de Pontos)
-                    # =============================================================================
+       
+                    # QUESITO 8.4.4 
+                  
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("8.4.4 • Data da Última Revisão do PMGIRS").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Qual a data da última revisão do Plano Municipal ou Regional de Gestão Integrada de Resíduos Sólidos?").classes("text-base font-bold text-black mb-1")
@@ -2885,9 +2872,9 @@ def _render_formulario_iamb(ano=None):
 
 
                 if etapa_atual == 2:
-                    # =============================================================================
-                    # QUESITO 9.0 (Seleção Única - Realiza Coleta Seletiva)
-                    # =============================================================================
+                   
+                    # QUESITO 9.0
+                   
                     opcoes_90 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -2904,9 +2891,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 9.1 (Seleção Única - Coleta Programada)
-                    # =============================================================================
+                    
+                    # QUESITO 9.1 
+                    
                     opcoes_91 = {
                         "Selecione...": 0.0,
                         "Sim – 00 pts": 0.0,
@@ -2923,9 +2910,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 9.2 (Seleção Única - Abrangência Territorial)
-                    # =============================================================================
+                  
+                    # QUESITO 9.2 
+                    
                     opcoes_92 = {
                         "Selecione...": 0.0,
                         "Todos os bairros do município são atendidos – 100 pts": 100.0,
@@ -2943,9 +2930,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 9.3 (Seleção Única - Incentivo e Campanhas)
-                    # =============================================================================
+                   
+                    # QUESITO 9.3 
+                    
                     opcoes_93 = {
                         "Selecione...": 0.0,
                         "Sim – 05 pts": 5.0,
@@ -2962,9 +2949,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 9.3.1 (Seleção Múltipla com Pontuações Individuais)
-                    # =============================================================================
+                  
+                    # QUESITO 9.3.1 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("9.3.1 • Tipos de Ações e/ou Campanhas Realizadas").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale quais Ações e/ou Campanhas foram realizadas:").classes("text-base font-bold text-black mb-1")
@@ -3023,9 +3010,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("9.3.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 10.0 (Seleção Única - Realização da Coleta de Lixo Doméstico)
-                    # =============================================================================
+       
+                    # QUESITO 10.0 
+                   
                     opcoes_100 = {
                         "Selecione...": 0.0,
                         "Sim – 00 pts": 0.0,
@@ -3042,9 +3029,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 10.1 (Seleção Única - Programação da Coleta)
-                    # =============================================================================
+                  
+                    # QUESITO 10.1
+                    
                     opcoes_101 = {
                         "Selecione...": 0.0,
                         "Sim – 00 pts": 0.0,
@@ -3061,9 +3048,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 10.2 (Seleção Única - Abrangência do Atendimento)
-                    # =============================================================================
+                   
+                    # QUESITO 10.2 
+                    
                     opcoes_102 = {
                         "Selecione...": 0.0,
                         "Todos os bairros do município são atendidos – 00 pts": 0.0,
@@ -3081,9 +3068,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 10.3 (Seleção Única - Existência de ATT)
-                    # =============================================================================
+                    
+                    # QUESITO 10.3 
+                   
                     opcoes_103 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -3100,9 +3087,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 10.3.1 (Seleção Única - Licença CETESB para ATT)
-                    # =============================================================================
+                    
+                    # QUESITO 10.3.1 
+                   
                     opcoes_1031 = {
                         "Selecione...": 0.0,
                         "Sim – 00 pts": 0.0,
@@ -3119,9 +3106,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 10.3.1.1 (Validade da Licença CETESB da ATT)
-                    # =============================================================================
+                   
+                    # QUESITO 10.3.1.1 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("10.3.1.1 • Prazo de Validade da Licença de Operação da ATT").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe o prazo de validade da licença de operação da ATT:").classes("text-base font-bold text-black mb-1")
@@ -3178,9 +3165,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("10.3.1.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 11.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+       
+                    # QUESITO 11.0 
+                    
                     opcoes_110 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -3197,9 +3184,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 11.1 (Campos de Texto para Instrumento Normativo)
-                    # =============================================================================
+                    
+                    # QUESITO 11.1
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("11.1 • Instrumento Normativo do PGRCC").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-bold text-black mb-1")
@@ -3251,9 +3238,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 11.2 (Validação de Link vs Texto XYZ)
-                    # =============================================================================
+                    
+                    # QUESITO 11.2 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("11.2 • Link do Instrumento Normativo do PGRCC").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe a página eletrônica (link na internet) do Plano de Gerenciamento de Resíduos da Construção Civil (PGRCC):").classes("text-base font-bold text-black mb-1")
@@ -3307,9 +3294,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.2", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 11.3 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    
+                    # QUESITO 11.3 
+                   
                     opcoes_113 = {
                         "Selecione...": 0.0,
                         "Sim – 30 pts": 30.0,
@@ -3326,9 +3313,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 11.3.1 (Seleção Múltipla - Metas Previstas)
-                    # =============================================================================
+                   
+                    # QUESITO 11.3.1
+                 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("11.3.1 • Metas Previstas no PGRCC").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe quais metas estão previstas:").classes("text-base font-bold text-black mb-1")
@@ -3385,9 +3372,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.3.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 11.3.2 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    
+                    # QUESITO 11.3.2
+                   
                     opcoes_1132 = {
                         "Selecione...": 0.0,
                         "Sim – 20 pts": 20.0,
@@ -3404,9 +3391,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 11.3.2.1 (Seleção Múltipla - Formas de Monitoramento)
-                    # =============================================================================
+                   
+                    # QUESITO 11.3.2.1 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("11.3.2.1 • Formas de Monitoramento e Avaliação do PGRCC").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("De que forma é realizado o monitoramento e avaliação?").classes("text-base font-bold text-black mb-1")
@@ -3462,9 +3449,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.3.2.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 11.3.3 (Seleção Única - Radio Button)
-                    # =============================================================================
+        
+                    # QUESITO 11.3.3 
+                  
                     opcoes_1133 = {
                         "Selecione...": 0.0,
                         "Todas as metas foram cumpridas dentro do prazo – 40 pts": 40.0,
@@ -3483,9 +3470,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 11.3.3.1 (Seleção Múltipla - Motivos do Não Cumprimento)
-                    # =============================================================================
+                   
+                    # QUESITO 11.3.3.1
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("11.3.3.1 • Motivos do Não Cumprimento das Metas").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale os motivos pelos quais as metas não estão sendo cumpridas:").classes("text-base font-bold text-black mb-1")
@@ -3544,9 +3531,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.3.3.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 11.4 (Seleção Única - Radio Button com Penalidades)
-                    # =============================================================================
+                   
+                    # QUESITO 11.4 
+                   
                     opcoes_114 = {
                         "Selecione...": 0.0,
                         "Gerador dos resíduos – 00 pts": 0.0,
@@ -3564,9 +3551,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 11.5 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    
+                    # QUESITO 11.5 
+                  
                     opcoes_115 = {
                         "Selecione...": 0.0,
                         "Sim – 10 pts": 10.0,
@@ -3583,9 +3570,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 11.5.1 (Seleção Múltipla - Atividades Fiscalizadas)
-                    # =============================================================================
+                 
+                    # QUESITO 11.5.1 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("11.5.1 • Atividades Fiscalizadas").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Em quais atividades são realizadas essas fiscalizações?").classes("text-base font-bold text-black mb-1")
@@ -3641,9 +3628,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.5.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 11.6 (Seleção Única - Radio Button)
-                    # =============================================================================
+       
+                    # QUESITO 11.6 
+                   
                     opcoes_116 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -3660,9 +3647,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 11.6.1 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    
+                    # QUESITO 11.6.1
+                   
                     opcoes_1161 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -3679,9 +3666,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 11.6.1.1 (Campo de Texto para Validade da Licença)
-                    # =============================================================================
+                   
+                    # QUESITO 11.6.1.1 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("11.6.1.1 • Prazo de Validade da Licença CETESB").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe o prazo de validade da licença:").classes("text-base font-bold text-black mb-1")
@@ -3726,9 +3713,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("11.6.1.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 12.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+                   
+                    # QUESITO 12.0 
+                    
                     opcoes_120 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -3745,9 +3732,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 12.1 (Seleção Múltipla - Forma de Processamento de Resíduos)
-                    # =============================================================================
+                   
+                    # QUESITO 12.1
+                 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("12.1 • Forma de Processamento de Resíduos").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale qual a forma realizada de processamento de resíduos:").classes("text-base font-bold text-black mb-1")
@@ -3807,9 +3794,8 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("12.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 13.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+                    # QUESITO 13.0
+                    
                     opcoes_130 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -3826,9 +3812,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 13.1 (Seleção Múltipla com Pontuação Penalizativa / Desconto)
-                    # =============================================================================
+                    
+                    # QUESITO 13.1 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("13.1 • Características do Local de Destinação Final dos RSU (Aterro)").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale as características do local de destinação final dos resíduos sólidos urbanos do município (aterro):").classes("text-base font-bold text-black mb-1")
@@ -3841,7 +3827,7 @@ def _render_formulario_iamb(ano=None):
                         except Exception:
                             sel_131_salvos = []
 
-                        # Dicionário mapeando chave: (Rótulo, Penalizável_se_não_marcado)
+                       
                         mapa_131 = {
                             "local_planejado": ("Local da instalação foi planejado", True),
                             "capacidade_definida": ("Capacidade do local é definida", True),
@@ -3879,7 +3865,7 @@ def _render_formulario_iamb(ano=None):
                             )
                             return -(nao_marcadas * 5.0)
 
-                        # Divisão das opções em duas colunas verticais
+                       
                         itens_131 = list(mapa_131.items())
                         meio_131 = (len(itens_131) + 1) // 2
 
@@ -3918,9 +3904,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("13.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+      
                     # QUESITO 13.1.1 (Campo de Texto - Data de Fechamento do Aterro)
-                    # =============================================================================
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("13.1.1 • Data Provável de Fechamento do Aterro").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe a data provável de fechamento do aterro:").classes("text-base font-bold text-black mb-1")
@@ -3965,9 +3951,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("13.1.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 13.2 (Seleção Única - Radio Button com Penalidade)
-                    # =============================================================================
+                    
+                    # QUESITO 13.2 
+                   
                     opcoes_132 = {
                         "Selecione...": 0.0,
                         "Sim – 00 pts": 0.0,
@@ -3984,9 +3970,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 13.2.1 (Campo de Texto - Validade da Licença com Regra de Pontuação)
-                    # =============================================================================
+                    
+                    # QUESITO 13.2.1
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("13.2.1 • Prazo de Validade da Licença do Aterro").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe o prazo de validade da licença:").classes("text-base font-bold text-black mb-1")
@@ -4047,9 +4033,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("13.2.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 14.0 (Seleção Única - Radio Button com Penalidade)
-                    # =============================================================================
+                  
+                    # QUESITO 14.0 
+                   
                     opcoes_140 = {
                         "Selecione...": 0.0,
                         "Sim – -30 pts": -30.0,
@@ -4066,9 +4052,8 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 14.1 (Campo de Texto - Quantidade de Pontos Identificados)
-                    # =============================================================================
+                   
+                    # QUESITO 14.1 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("14.1 • Quantidade de Pontos Identificados").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe a quantidade de pontos identificados:").classes("text-base font-bold text-black mb-1")
@@ -4113,9 +4098,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("14.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 14.2 (Campo de Texto Extenso - Endereço dos Locais)
-                    # =============================================================================
+                   
+                    # QUESITO 14.2 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("14.2 • Endereço dos Locais Identificados").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe o endereço dos locais identificados:").classes("text-base font-bold text-black mb-1")
@@ -4159,9 +4144,8 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("14.2", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 14.3 (Seleção Múltipla - Ações de Combate ao Descarte Irregular)
-                    # =============================================================================
+                 
+                    # QUESITO 14.3 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("14.3 • Ações de Combate ao Descarte Irregular").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale as ações promovidas pela Prefeitura para combater o descarte irregular de lixo no ano:").classes("text-base font-bold text-black mb-1")
@@ -4222,9 +4206,8 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("14.3", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO 15.0 (Seleção Única - Radio Button)
-                    # =============================================================================
+       
+                    # QUESITO 15.0 
                     opcoes_150 = {
                         "Selecione...": 0.0,
                         "Sim – 02 pts": 2.0,
@@ -4241,9 +4224,8 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO 15.1 (Seleção Múltipla - Serviços com Entidade Reguladora)
-                    # =============================================================================
+                   
+                    # QUESITO 15.1 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("15.1 • Serviços com Entidade Responsável pela Regulação e Fiscalização").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Assinale quais os serviços que possuem entidade responsável pela regulação e fiscalização:").classes("text-base font-bold text-black mb-1")
@@ -4302,9 +4284,8 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("15.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 15.1.1 (Campo de Texto - Entidade de Água Potável)
-                    # =============================================================================
+                   
+                    # QUESITO 15.1.1 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("15.1.1 • Entidade Reguladora de Abastecimento de Água Potável").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe a entidade responsável pela regulação e fiscalização do abastecimento de água potável do município:").classes("text-base font-bold text-black mb-1")
@@ -4349,9 +4330,8 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("15.1.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 15.1.2 (Campo de Texto - Entidade de Esgotamento Sanitário)
-                    # =============================================================================
+                  
+                    # QUESITO 15.1.2 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("15.1.2 • Entidade Reguladora de Esgotamento Sanitário").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe a entidade responsável pela regulação e fiscalização do esgotamento sanitário do município:").classes("text-base font-bold text-black mb-1")
@@ -4396,9 +4376,8 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("15.1.2", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 15.1.3 (Campo de Texto - Entidade de Limpeza Urbana e Resíduos)
-                    # =============================================================================
+                   
+                    # QUESITO 15.1.3 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("15.1.3 • Entidade Reguladora de Limpeza Urbana e Resíduos Sólidos").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe a entidade responsável pela regulação e fiscalização de limpeza urbana e manejo de resíduos sólidos do município:").classes("text-base font-bold text-black mb-1")
@@ -4443,9 +4422,8 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("15.1.3", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO 15.1.4 (Campo de Texto - Entidade de Drenagem e Águas Pluviais)
-                    # =============================================================================
+                   
+                    # QUESITO 15.1.4 
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("15.1.4 • Entidade Reguladora de Drenagem e Águas Pluviais").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe a entidade responsável pela regulação e fiscalização de drenagem e manejo das águas pluviais urbanas do município:").classes("text-base font-bold text-black mb-1")
@@ -4492,9 +4470,8 @@ def _render_formulario_iamb(ano=None):
 
 
                 if etapa_atual == 3:
-                    # =============================================================================
-                    # QUESITO 16.0 (Campo de Texto Extenso - Impressões, Comentários e Sugestões)
-                    # =============================================================================
+                   
+                    # QUESITO 16.0
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("16.0 • Impressões, Comentários e Sugestões").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?").classes("text-base font-bold text-black mb-1")
@@ -4538,9 +4515,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("16.0", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO A1 (Indicador ICTEM - CETESB)
-                    # =============================================================================
+                    
+                    # QUESITO A1 
+                  
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("A1 • ICTEM - Indicador de Coleta e Tratabilidade de Esgoto").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe o ICTEM - Indicador de Coleta de Tratabilidade de Esgoto da População Urbana do Município:").classes("text-base font-bold text-black mb-1")
@@ -4604,9 +4581,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("A1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO A2 (Índice IQR - Qualidade de Aterro de Resíduos - CETESB)
-                    # =============================================================================
+                   
+                    # QUESITO A2 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("A2 • IQR - Índice de Qualidade de Aterro de Resíduos").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Utilização do IQR (Índice de Qualidade de Aterro de Resíduos):").classes("text-base font-bold text-black mb-1")
@@ -4659,9 +4636,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("A2", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO A3 (Índice IQT - Estações de Transbordo - CETESB)
-                    # =============================================================================
+                   
+                    # QUESITO A3 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("A3 • IQT - Índice de Qualidade de Estações de Transbordo").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe o IQT - Índice de Qualidade de Estações de Transbordo:").classes("text-base font-bold text-black mb-1")
@@ -4720,9 +4697,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("A3", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO A4 (Seleção Única - Envio de Dados ao SINISA)
-                    # =============================================================================
+       
+                    # QUESITO A4 
+                  
                     opcoes_A4 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -4739,9 +4716,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
-                    # QUESITO A4.1 (Seleção Múltipla - Dados Enviados ao SINISA)
-                    # =============================================================================
+                    
+                    # QUESITO A4.1 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("A4.1 • Dados Informados ao SINISA").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe quais dados foram enviados ao SINISA:").classes("text-base font-bold text-black mb-1")
@@ -4791,9 +4768,8 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("A4.1", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO A4.1.1 (Indicadores de Água e Esgoto - SINISA)
-                    # =============================================================================
+                   
+                    # QUESITO A4.1.1
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("A4.1.1 • Indicadores sobre Abastecimento de Água e Esgotamento Sanitário").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe os dados/percentuais relativos ao abastecimento de água e esgotamento sanitário (SINISA):").classes("text-base font-bold text-black mb-1")
@@ -4821,7 +4797,7 @@ def _render_formulario_iamb(ano=None):
                             except Exception:
                                 return None
 
-                        # 1. Percentual de população atendida com abastecimento de água
+                       
                         def calc_pts_agua(p):
                             if p is None: return 0.0
                             if p >= 100.0: return 20.0
@@ -4829,7 +4805,7 @@ def _render_formulario_iamb(ano=None):
                             elif 90.0 < p <= 99.0: return ((p - 90.0) / 9.0) * 10.0
                             else: return 0.0
 
-                        # 2. Percentual de perdas na distribuição de água
+                        
                         def calc_pts_perdas(p):
                             if p is None: return 0.0
                             if p <= 0.0: return 0.0
@@ -4837,7 +4813,7 @@ def _render_formulario_iamb(ano=None):
                             elif 10.0 < p <= 20.0: return (((p - 10.0) / 10.0) * (-2.0)) - 5.0
                             else: return -10.0
 
-                        # 3. Percentual de população atendida com coleta de esgoto
+                       
                         def calc_pts_coleta_esgoto(p):
                             if p is None: return 0.0
                             if p >= 100.0: return 20.0
@@ -4845,7 +4821,7 @@ def _render_formulario_iamb(ano=None):
                             elif 80.0 < p <= 90.0: return ((p - 80.0) / 10.0) * 10.0
                             else: return 0.0
 
-                        # 4. Índice de tratamento de esgoto
+                     
                         def calc_pts_tratam_esgoto(p):
                             if p is None: return 0.0
                             if p >= 100.0: return 20.0
@@ -4853,7 +4829,7 @@ def _render_formulario_iamb(ano=None):
                             elif 80.0 < p <= 90.0: return ((p - 80.0) / 10.0) * 10.0
                             else: return 0.0
 
-                        # 5. Índice de esgoto tratado referido à água consumida
+                        
                         def calc_pts_esgoto_ref_agua(p):
                             if p is None: return 0.0
                             if p >= 100.0: return 30.0
@@ -4942,9 +4918,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("A4.1.1", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO A4.1.2 (Limpeza Urbana / Resíduos Sólidos - Coleta)
-                    # =============================================================================
+        
+                    # QUESITO A4.1.2 
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("A4.1.2 • Limpeza Urbana e Manejo de Resíduos Sólidos (Taxas de Coleta)").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe as taxas de cobertura do serviço de coleta de resíduos domiciliares (SINISA):").classes("text-base font-bold text-black mb-1")
@@ -4969,7 +4945,7 @@ def _render_formulario_iamb(ano=None):
                             except Exception:
                                 return None
 
-                        # Fórmula de pontuação para Coleta (Pmáx = 20 pontos)
+                       
                         def calc_pts_coleta_residuos(p):
                             if p is None: return 0.0
                             if p >= 100.0: return 20.0
@@ -4978,7 +4954,7 @@ def _render_formulario_iamb(ano=None):
                             else: return 0.0
 
                         def calc_pts_total_A412():
-                            # Considera a taxa informada para o cálculo de pontuação
+                            
                             v_total = parse_val(state_A412["p_coleta_pop_total"])
                             return calc_pts_coleta_residuos(v_total)
 
@@ -5025,9 +5001,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("A4.1.2", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO A4.1.3 (Limpeza Urbana / Resíduos Sólidos - Massas e Reciclagem)
-                    # =============================================================================
+                    
+                    # QUESITO A4.1.3
+                   
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("A4.1.3 • Limpeza Urbana e Manejo de Resíduos Sólidos (Massa Coletada e Recuperada)").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe a massa coletada e recuperada per capita (SINISA):").classes("text-base font-bold text-black mb-1")
@@ -5046,7 +5022,7 @@ def _render_formulario_iamb(ano=None):
                             "link": dA413.get("link", ""),
                         }
 
-                        # 1. Massa coletada de resíduos sólidos da população urbana por dia (kg/hab/dia) - Pmáx = 10 pontos
+                      
                         def calc_pts_massa_coletada(m):
                             if m is None: return 0.0
                             if m > 1.0: return 0.0
@@ -5055,7 +5031,7 @@ def _render_formulario_iamb(ano=None):
                             elif 0.70 < m <= 0.90: return (((0.90 - m) / 0.20) * 2.0) + 7.0
                             else: return 10.0
 
-                        # 2. Massa recuperada per capita de materiais recicláveis (kg/hab/ano) - Pmáx = 12 pontos
+                       
                         def calc_pts_massa_recuperada(m):
                             if m is None: return 0.0
                             if m > 73.0: return 12.0
@@ -5112,9 +5088,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("A4.1.3", res_data, render_conteudo.refresh)
 
-        # =============================================================================
-                    # QUESITO A4.1.4 (Drenagem e Manejo de Águas Pluviais Urbanas)
-                    # =============================================================================
+        
+                    # QUESITO A4.1.4 
+                    
                     with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                         ui.label("A4.1.4 • Drenagem e Manejo de Águas Pluviais Urbanas").classes("text-xl font-semibold text-blue-500 mb-3")
                         ui.label("Informe os dados de cobertura de drenagem e risco de inundação (SINISA):").classes("text-base font-bold text-black mb-1")
@@ -5181,9 +5157,9 @@ def _render_formulario_iamb(ano=None):
                         ui.separator().classes("my-2")
                         bloco_comentarios("A4.1.4", res_data, render_conteudo.refresh)
 
-                    # =============================================================================
-                    # QUESITO A5 (Taxa/Tarifa de Limpeza Urbana e Resíduos Sólidos)
-                    # =============================================================================
+                    
+                    # QUESITO A5 
+                   
                     opcoes_A5 = {
                         "Selecione...": 0.0,
                         "Sim": 0.0,
@@ -5201,9 +5177,9 @@ def _render_formulario_iamb(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # =============================================================================
+                   
                     # QUESITO A6 (Uso de Balança para Pesagem Rotineira)
-                    # =============================================================================
+                   
                     opcoes_A6 = {
                         "Selecione...": 0.0,
                         "Sim - 5.0 pts": 5.0,
@@ -5222,7 +5198,7 @@ def _render_formulario_iamb(ano=None):
                     )
 
 
-    # Executa o formulário depois de definir todos os seus componentes.
+    
     render_conteudo()
 
 import io
@@ -5242,9 +5218,9 @@ from reportlab.platypus import (
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-# -----------------------------------------------------------------------------
+
 # 1. MAPEAMENTOS E TETOS DE PONTUAÇÃO DO I-AMB
-# -----------------------------------------------------------------------------
+
 PONTUACOES_MAX_IAMB = {
     "1.1.2": 20.0, "1.1.3": 5.0, "1.2": 20.0, "2.0": 10.0, "2.1": 50.0,
     "3.0": 10.0, "3.1": 20.0, "4.0": 20.0, "5.2.1": 20.0, "6.0": 20.0,
@@ -5257,7 +5233,7 @@ PONTUACOES_MAX_IAMB = {
     "A4.1.1": 90.0, "A4.1.2": 20.0, "A4.1.3": 22.0, "A6": 5.0
 }
 
-# Alias para evitar erros de referência no ReportLab
+
 PONTUACOES_MAX = PONTUACOES_MAX_IAMB
 
 PENALIDADES_MAX = {
@@ -5265,20 +5241,18 @@ PENALIDADES_MAX = {
     "8.4.4": -30.0, "9.1": -30.0, "10.0": -100.0, "10.1": -30.0, "14.0": -30.0, "A1": -200.0
 }
 
-# String de conexão com o PostgreSQL
+
 DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
 
-# -----------------------------------------------------------------------------
-# 2. FUNÇÕES AUXILIARES E REGRAS DE NEGÓCIO I-AMB
-# -----------------------------------------------------------------------------
+
 def get_db_connection():
-    """Cria conexão segura com o Neon PostgreSQL usando linhas por nome de coluna."""
+    
     return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
 
 
 def calcular_percentual_checklist(resp, total_itens):
-    """Calcula a porcentagem de itens atendidos em um checklist."""
+    
     if not resp:
         return 0.0
     if isinstance(resp, list):
@@ -5291,7 +5265,7 @@ def calcular_percentual_checklist(resp, total_itens):
 
 
 def obter_regra_ods_iamb(qid, resp):
-    """Mapeia os quesitos do I-AMB para as metas da Agenda 2030 (ODS) e seu status."""
+    
     resp_l = str(resp).strip().lower()
     metas = "-"
     status = "Não Atendido"
@@ -5380,7 +5354,7 @@ def obter_regra_ods_iamb(qid, resp):
 
 
 def get_all_years_data():
-    """Busca a série histórica do I-AMB no PostgreSQL Neon DB."""
+    
     all_data = {}
     query = """
         SELECT qid, ano, valor, pontos, link, comentarios
@@ -5451,12 +5425,9 @@ def converter_pontos_em_faixa_iegm(pontos):
         return "A"
 
 
-# -----------------------------------------------------------------------------
-# 3. GERADOR DE RELATÓRIO PDF COMPLETO (REPORTLAB)
-# -----------------------------------------------------------------------------
+
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
-    """Gere o relatório completo e não-resumido do I-AMB em PDF."""
-    
+  
     lista_alvo_iamb = [
         "1.0", "1.1", "5.0", "7.0", "7.6", "7.6.1", 
         "8.0", "9.0", "10.3", "11.0", "11.1", "11.6", "11.6.1", "12.0"
@@ -5488,9 +5459,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     ano_ant = ano_normalizado - 1
     todos_dados = todos_dados or {}
 
-    # -------------------------------------------------------------------------
+   
     # CAPA
-    # -------------------------------------------------------------------------
+    
     elements.append(Spacer(1, 40))
     logo_path = "iegm.png"
     if os.path.exists(logo_path):
@@ -5505,17 +5476,17 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     elements.append(Spacer(1, 40))
     
-    # Título limpo em linha única
+    
     elements.append(Paragraph("<b>Relatório I-AMB</b>", styles['TitleCapa']))
     elements.append(Spacer(1, 15))
     
-    # Subtítulo com Ano de Referência
+  
     elements.append(Paragraph(f"Exercício de Referência: <b>{ano_normalizado}</b>", styles['SubTitleCapa']))
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+    
     # SUMÁRIO
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>SUMÁRIO DE CONTEÚDO</b>", styles["Heading1"]))
     elements.append(Spacer(1, 20))
 
@@ -5539,9 +5510,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_sumario)
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+   
     # 1. RESUMO EXECUTIVO
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>1. RESUMO EXECUTIVO E EVOLUÇÃO COMPARATIVA</b>", styles["Heading2"]))
     elements.append(Spacer(1, 8))
 
@@ -5588,9 +5559,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_exec)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
-    # 2. DESEMPENHO POR QUESITO (FORTES E FRACOS)
-    # -------------------------------------------------------------------------
+   
+    # 2. DESEMPENHO POR QUESITO 
+    
     elements.append(Paragraph("<b>2. ANÁLISE DETALHADA DE DESEMPENHO POR QUESITO</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -5635,7 +5606,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
                         "atual": pts_obt
                     })
 
-    # Tabela Pontos Fortes
+   
     if pontos_fortes:
         elements.append(Paragraph("<b>✅ Pontos Fortes (Eficiência ≥ 70%)</b>", styles["Heading3"]))
         df_fortes = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
@@ -5654,7 +5625,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tf)
         elements.append(Spacer(1, 10))
 
-    # Tabela Pontos Fracos
+    
     if pontos_fracos:
         elements.append(Paragraph("<b>⚠️ Pontos Fracos (Eficiência < 70%)</b>", styles["Heading3"]))
         df_fracos = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
@@ -5674,9 +5645,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+   
     # 3. PENALIDADES E IMPACTOS NEGATIVOS
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -5707,9 +5678,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_penal)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -5732,9 +5703,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+   
     # 5. ALINHAMENTO COM AGENDA 2030 (ODS)
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS)</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -5760,9 +5731,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_ods)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 6. SÉRIE HISTÓRICA DO I-AMB
-    # -------------------------------------------------------------------------
+   
     from reportlab.graphics.shapes import Drawing
     from reportlab.graphics.charts.barcharts import VerticalBarChart
 
@@ -5791,7 +5762,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         anos_labels.append(str(a))
         pontos_valores.append(tot_a)
 
-    # 1. Tabela
+    
     t_hist = Table(data_hist, colWidths=[120, 180, 180])
     t_hist.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2C3E50")),
@@ -5802,7 +5773,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_hist)
     elements.append(Spacer(1, 15))
 
-    # 2. Gráfico de Barras Vertical
+    
     if pontos_valores:
         d = Drawing(480, 180)
         
@@ -5813,19 +5784,19 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         bc.width = 410
         bc.data = [pontos_valores]
         
-        # Eixo X (Anos)
+       
         bc.categoryAxis.categoryNames = anos_labels
         bc.categoryAxis.labels.fontSize = 9
         bc.categoryAxis.labels.dy = -10
         
-        # Eixo Y (Pontuação)
+       
         max_v = max(pontos_valores) if pontos_valores else 100
         bc.valueAxis.valueMin = 0
         bc.valueAxis.valueMax = max(max_v * 1.15, 100)
         bc.valueAxis.valueStep = 20
         bc.valueAxis.labels.fontSize = 8
         
-        # Estilo das Barras
+       
         bc.bars[0].fillColor = colors.HexColor("#2980B9")
         bc.bars[0].strokeColor = colors.HexColor("#1B4F72")
 
@@ -5833,9 +5804,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(d)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-AMB - CONFORMIDADE OPERACIONAL)
-    # -------------------------------------------------------------------------
+   
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-AMB)
+    
     elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-AMB - CONFORMIDADE OPERACIONAL)</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -5862,7 +5833,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     ]))
     elements.append(t_sp)
 
-    # Construção do Documento PDF
+   
     doc.build(elements)
     return buffer.getvalue()
 
@@ -5871,13 +5842,9 @@ import logging
 from nicegui import app, ui
 from fastapi import Response
 
-# -----------------------------------------------------------------------------
-# 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
-# -----------------------------------------------------------------------------
+
 def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
-    """
-    Componente NiceGUI para renderizar o Card de Emissão do PDF do I-AMB.
-    """
+   
     res_data = res_data or {}
     
     with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
@@ -5938,20 +5905,13 @@ def renderizar_card_relatorio_iamb(res_data=None, ano_sel=2026):
 
 
 def container_formulario_iamb(ano=None, res_data=None, ano_sel=2026):
-    """
-    Ponto de entrada público do módulo i-AMB.
-
-    A função render_conteudo é criada dentro de _render_formulario_iamb,
-    portanto ela deve ser chamada nesse mesmo escopo. A versão anterior
-    tentava chamá-la aqui fora, causando NameError.
-    """
+    
     ano_inicial = ano if ano is not None else ano_sel
 
-    # Renderiza o formulário completo. Esta chamada cria e executa
-    # render_conteudo dentro do escopo em que ele está definido.
+   
     _render_formulario_iamb(ano=ano_inicial)
 
-    # Renderiza o card do relatório PDF com os dados do ano atualmente ativo.
+   
     ano_relatorio = int(app.storage.user.get("ano_referencia_global", ano_inicial))
     dados_relatorio = res_data if res_data is not None else load_respostas(ano_relatorio)
     renderizar_card_relatorio_iamb(
@@ -5960,6 +5920,6 @@ def container_formulario_iamb(ano=None, res_data=None, ano_sel=2026):
     )
 
 
-# Exportações para o roteador do NiceGUI
+
 mostrar_formulario_iamb = container_formulario_iamb
 main = container_formulario_iamb
