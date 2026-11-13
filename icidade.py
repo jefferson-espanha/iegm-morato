@@ -1370,9 +1370,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-        # ==========================================
+      
                     # QUESITO 11.1 (Metas de Qualidade do Transporte)
-                    # ==========================================
+                    
                     opcoes_111 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1389,9 +1389,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 11.1.1 (Cumprimento das Metas)
-                    # ==========================================
+                  
                     opcoes_1111 = {
                         "Selecione...": 0.0,
                         "Todas as metas foram atingidas (0.0 pts)": 0.0,
@@ -1410,9 +1410,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 11.1.1.1 (Aplicação de Penalidades)
-                    # ==========================================
+                  
                     opcoes_11111 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1429,9 +1429,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 11.2 (Pesquisa de Satisfação)
-                    # ==========================================
+                   
                     opcoes_112 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1448,9 +1448,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 11.2.1 (Ações Decorrentes da Pesquisa)
-                    # ==========================================
+                   
                     opcoes_1121 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1467,9 +1467,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 11.3 (Resultado Tarifário 2026)
-                    # ==========================================
+                    
                     opcoes_113 = {
                         "Selecione...": 0.0,
                         "Déficit ou subsídio tarifário (0.0 pts)": 0.0,
@@ -1487,9 +1487,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 11.3.1 (Link Benefícios Tarifários)
-                    # ==========================================
+                   
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
@@ -1501,9 +1501,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                  
                     # QUESITO 12.0 (Transporte Remunerado Privado / Aplicativos)
-                    # ==========================================
+                   
                     opcoes_120 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1520,9 +1520,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-        # ==========================================
+       
                     # QUESITO 12.1 (Regulamentação do Transporte por Aplicativo)
-                    # ==========================================
+                   
                     opcoes_121 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1539,9 +1539,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 12.1.1 (Normativo de Regulamentação)
-                    # ==========================================
+                  
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
@@ -1553,9 +1553,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 12.1.2 (Link do Normativo)
-                    # ==========================================
+                   
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
@@ -1567,9 +1567,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 12.1.3 (Fiscalização Regular)
-                    # ==========================================
+                   
                     opcoes_1213 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1586,9 +1586,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 12.1.3.1 (Periodicidade da Fiscalização)
-                    # ==========================================
+                   
                     opcoes_12131 = {
                         "Selecione...": 0.0,
                         "Diariamente (0.0 pts)": 0.0,
@@ -1607,9 +1607,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                  
                     # QUESITO 13.0 (Transporte Não Motorizado - 2025)
-                    # ==========================================
+                    
                     opcoes_130 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1626,9 +1626,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-        # ==========================================
+        
                     # QUESITO 13.1 (Ações para Transporte Não Motorizado - Checkbox)
-                    # ==========================================
+                   
                     opcoes_131 = {
                         "Instalação/manutenção de ciclovias ou ciclofaixas": 0.0,
                         "Instalação/manutenção de pontos de locação de bicicletas": 0.0,
@@ -1647,9 +1647,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 13.1.1 (Cronograma de Manutenção)
-                    # ==========================================
+                    
                     opcoes_1311 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1666,9 +1666,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 13.1.1.1 (Prazo das Manutenções Preventivas)
-                    # ==========================================
+                  
                     opcoes_13111 = {
                         "Selecione...": 0.0,
                         "Sim, para todos os trechos (0.0 pts)": 0.0,
@@ -1688,9 +1688,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 14.0 (Acessibilidade de Calçamentos Públicos)
-                    # ==========================================
+                    
                     opcoes_140 = {
                         "Selecione...": 0.0,
                         "Sim, integralmente - Todos os calçamentos públicos (0.0 pts)": 0.0,
@@ -1708,9 +1708,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-        # ==========================================
+       
                     # QUESITO 14.1 (Recursos de Acessibilidade - Checkbox)
-                    # ==========================================
+                   
                     opcoes_141 = {
                         "Calçadas com dimensões mínimas para a circulação": 0.0,
                         "Sinalização tátil em pisos": 0.0,
@@ -1729,9 +1729,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 15.0 (Sinalização de Vias Públicas)
-                    # ==========================================
+                   
                     opcoes_150 = {
                         "Selecione...": 0.0,
                         "Sim, integralmente - Todas as vias públicas municipais (50.0 pts)": 50.0,
@@ -1749,9 +1749,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                    
                     # QUESITO 16.0 (Manutenção de Vias Públicas)
-                    # ==========================================
+                    
                     opcoes_160 = {
                         "Selecione...": 0.0,
                         "Sim, integralmente - Todas as vias públicas municipais (50.0 pts)": 50.0,
@@ -1769,9 +1769,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # QUESITO 17.1 (Impressões e Sugestões Finais)
-                    # ==========================================
+                    
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
@@ -1783,9 +1783,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-        # ==========================================
-                    # DADOS EXTERNOS DO i-CIDADE: QUESITO C1
-                    # ==========================================
+        
+                  
+                   
                     opcoes_c1 = {
                         "Selecione...": 0.0,
                         "Sim (0.0 pts)": 0.0,
@@ -1802,9 +1802,9 @@ def container_formulario_icidade(ano=None):
                         on_save_callback=render_conteudo.refresh,
                     )
 
-                    # ==========================================
+                   
                     # DADOS EXTERNOS DO i-CIDADE: QUESITO C1.1
-                    # ==========================================
+                    
                     opcoes_c11 = {
                         "Selecione...": 0.0,
                         "Etapa A (10.0 pts)": 10.0,
@@ -1824,10 +1824,10 @@ def container_formulario_icidade(ano=None):
                     )
 
 
-                # String de conexão com o PostgreSQL
+               
                 DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
-                # Dicionário global de Pontuações Máximas (Tetos) dos Quesitos
+               
                 PONTUACOES_MAX = {
                     "1.0": 40.0, "1.3": 5.0, "1.4": 50.0,
                     "2.0": 20.0, "2.1": 30.0, "2.2": 10.0, "3.0": 10.0, "3.1.1": 10.0,
@@ -1896,9 +1896,9 @@ def container_formulario_icidade(ano=None):
 
                     return all_data
                     
-                # =============================================================================
+                
                 # 3. GERADOR DO RELATÓRIO PDF
-                # =============================================================================
+                
 
                 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
                     buffer = BytesIO()
@@ -1913,7 +1913,7 @@ def container_formulario_icidade(ano=None):
                     elements = []
                     styles = getSampleStyleSheet()
 
-                    # Estilo auxiliar para links e quebra de texto em tabelas
+                  
                     style_cell_link = ParagraphStyle(
                         'CellLink',
                         parent=styles['Normal'],
@@ -1922,7 +1922,7 @@ def container_formulario_icidade(ano=None):
                         wordWrap='CJK'
                     )
                    
-                    # Estilo que estava a faltar:
+                   
                     style_analise = ParagraphStyle(
                         'StyleAnalise',
                         parent=styles['Normal'],
@@ -1932,9 +1932,9 @@ def container_formulario_icidade(ano=None):
                         textColor=colors.HexColor("#2c3e50")
                     )
 
-                    # -------------------------------------------------------------------------
+                   
                     # FOLHA 1: CAPA
-                    # -------------------------------------------------------------------------
+                   
                     elements.append(Spacer(1, 100))
                     
                     logo_path = "iegm.png"
@@ -1966,9 +1966,9 @@ def container_formulario_icidade(ano=None):
                     elements.append(Paragraph(str(ano), style_ano_capa))
                     elements.append(PageBreak())
 
-                    # -------------------------------------------------------------------------
+                    
                     # FOLHA 2: SUMÁRIO
-                    # -------------------------------------------------------------------------
+                   
                     elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
                     elements.append(Spacer(1, 30))
 
@@ -1995,9 +1995,9 @@ def container_formulario_icidade(ano=None):
                     elements.append(tabela_sumario)
                     elements.append(PageBreak())
 
-                    # -------------------------------------------------------------------------
+                   
                     # 1. RESUMO EXECUTIVO (COMPARATIVO COM O ANO ANTERIOR)
-                    # -------------------------------------------------------------------------
+                   
                     elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]))
                     elements.append(Spacer(1, 8))
 
@@ -2104,9 +2104,9 @@ def container_formulario_icidade(ano=None):
                     elements.append(tabela_comp)
                     elements.append(Spacer(1, 12))
                     
-                    # -------------------------------------------------------------------------
+                   
                     # 2. ANÁLISE DE DESEMPENHO POR QUESITO
-                    # -------------------------------------------------------------------------
+                   
                     elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO POR QUESITO</b>", styles["h2"]))
                     elements.append(Spacer(1, 6))
 
@@ -2176,9 +2176,9 @@ def container_formulario_icidade(ano=None):
                         ]))
                         elements.append(tabela_fracos)
                         elements.append(Spacer(1, 15))
-                    # -------------------------------------------------------------------------
+                   
                     # 3. ANÁLISE DE IMPACTO E PENALIDADES
-                    # -------------------------------------------------------------------------
+                   
                     elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
                     elements.append(Spacer(1, 6))
 
@@ -2228,9 +2228,9 @@ def container_formulario_icidade(ano=None):
                         elements.append(tabela_pen)
                         elements.append(Spacer(1, 15))
 
-                    # -------------------------------------------------------------------------
+                   
                     # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
-                    # -------------------------------------------------------------------------
+                   
                     elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["h2"]))
                     elements.append(Spacer(1, 6))
                     if reincidencias_detectadas:
@@ -2251,9 +2251,9 @@ def container_formulario_icidade(ano=None):
                     
                     elements.append(Spacer(1, 15))
 
-                    # -------------------------------------------------------------------------
+                   
                     # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
-                    # -------------------------------------------------------------------------
+                   
                     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
                     elements.append(Spacer(1, 6))
                     
@@ -2326,9 +2326,9 @@ def container_formulario_icidade(ano=None):
                         elements.append(tabela_ods)
                         elements.append(Spacer(1, 15))
 
-                    # -------------------------------------------------------------------------
+                    
                     # 6. SÉRIE HISTÓRICA DO I-CIDADE
-                    # -------------------------------------------------------------------------
+                   
                     elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-CIDADE</b>", styles["h2"]))
                     elements.append(Spacer(1, 10))
 
@@ -2342,7 +2342,7 @@ def container_formulario_icidade(ano=None):
                         else: 
                             valores_serie.append(0.0)
 
-                    # Configuração do Gráfico de Barras
+                    
                     desenho_grafico = Drawing(480, 165)
                     bc = VerticalBarChart()
                     bc.x = 45; bc.y = 25; bc.height = 110; bc.width = 410
@@ -2360,9 +2360,9 @@ def container_formulario_icidade(ano=None):
                     desenho_grafico.add(bc)
                     elements.append(desenho_grafico)
 
-                    # -------------------------------------------------------------------------
+                    
                     # 7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE)
-                    # -------------------------------------------------------------------------
+                   
                     elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (ICIDADE)</b>", styles["h2"]))
                     elements.append(Spacer(1, 6))
 
@@ -2499,14 +2499,14 @@ def container_formulario_icidade(ano=None):
                         elements.append(Paragraph(texto_sp, style_analise))
                         elements.append(Spacer(1, 15))
 
-                    # Compila o PDF no buffer de memória
+                    
                     doc.build(elements)
                     buffer.seek(0)
                     return buffer.getvalue()
 
-                # =============================================================================
-                # CARD DE EMISSÃO DO RELATÓRIO PDF (INTERFACE NICEGUI)
-                # =============================================================================
+                
+               
+              
                 with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
                     ui.label("📄 Emissão de Relatório Analítico - iCidade").classes("text-xl font-bold text-blue-900 mb-1")
                     ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
