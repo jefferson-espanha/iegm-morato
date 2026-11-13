@@ -544,7 +544,7 @@ def container_formulario_icidade(ano=None):
             "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
         ):
 
-            # Coluna 1: Painel Lateral (3 colunas)
+           
             with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
                 render_painel_controle(
                     ano_atual=ano_sel,
@@ -1838,14 +1838,11 @@ def container_formulario_icidade(ano=None):
                 }
 
                 def get_db_connection():
-                    """Cria conexão segura com o Neon PostgreSQL."""
+                    
                     return psycopg2.connect(DATABASE_URL)
 
                 def get_all_years_data():
-                    """
-                    Busca todas as respostas do banco Neon de forma resiliente
-                    (trata retorno por tupla ou por dicionário).
-                    """
+                   
                     all_data = {}
                     query = """
                         SELECT id, ano, valor, pontos, link, comentarios
@@ -1854,7 +1851,7 @@ def container_formulario_icidade(ano=None):
                     """
                     try:
                         with get_db_connection() as conn:
-                            # Usando RealDictCursor se disponível, ou cursor padrão de tupla
+                            
                             try:
                                 import psycopg2.extras
                                 cur = conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
@@ -1865,7 +1862,7 @@ def container_formulario_icidade(ano=None):
                             rows = cur.fetchall()
 
                             for row in rows:
-                                # Tratamento universal para Tupla (índice) ou Dict (chave)
+                                
                                 if isinstance(row, dict):
                                     qid = str(row["id"]).strip()
                                     ano = int(row["ano"])
@@ -2021,7 +2018,7 @@ def container_formulario_icidade(ano=None):
                         elif 750.0 <= pts <= 899.9:  return "B+"
                         else:                        return "A"
 
-                    # Puxa os dados que vieram por parâmetro ou tenta buscar no banco
+                  
                     all_data_raw = todos_dados if todos_dados is not None else (get_all_years_data() or {})
                     
                     logging.info(f"=== [DEBUG PDF] Anos disponíveis no PDF: {list(all_data_raw.keys())} ===")
@@ -2041,7 +2038,7 @@ def container_formulario_icidade(ano=None):
                             if str(qid_ant).startswith("COM_"):
                                 continue
 
-                            # Extração resiliente de pontos
+                            
                             pts_val = None
                             if isinstance(info_ant, dict):
                                 pts_val = info_ant.get("pontos") if info_ant.get("pontos") is not None else info_ant.get("pontuacao") if info_ant.get("pontuacao") is not None else info_ant.get("nota") if info_ant.get("nota") is not None else info_ant.get("valor")
