@@ -29,9 +29,7 @@ from reportlab.platypus import (
 from reportlab.graphics.shapes import Drawing, String
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 
-# =============================================================================
-# BANCO DE DADOS (NEON - ESTRUTURA REAL RESPOSTAS_IEDUC)
-# =============================================================================
+
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -39,7 +37,7 @@ DATABASE_URL = os.getenv(
 
 
 def extrair_ano(valor, padrao=2026):
-    """Converte ano ou rótulo do seletor, como 'Ano base(2026)', em inteiro."""
+   
     if valor is None or valor == "":
         return int(padrao)
     try:
@@ -50,12 +48,12 @@ def extrair_ano(valor, padrao=2026):
 
 
 def agora_brasilia_formatada():
-    """Retorna a data e hora atual no fuso oficial de Brasília."""
+   
     return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
 
 
 def _instalar_links_ativos_nos_campos_evidencia():
-    """Adiciona links clicáveis a todos os campos de evidência do formulário."""
+   
     textarea_original = ui.textarea
 
     def textarea_com_links(*args, **kwargs):
@@ -92,7 +90,7 @@ def _instalar_links_ativos_nos_campos_evidencia():
 _instalar_links_ativos_nos_campos_evidencia()
 
 
-# Pool reutilizável: evita abrir uma conexão TCP/TLS nova a cada clique em Salvar.
+
 _DB_POOL = None
 
 
@@ -124,7 +122,7 @@ def get_db_connection():
 
 
 def _obter_lista_comentarios(dados_ou_ano, qid=None):
-    """Trata chamadas com 1 ou 2 argumentos para evitar TypeError."""
+   
     if qid is not None and isinstance(dados_ou_ano, dict):
         dados_q = dados_ou_ano.get(str(qid), {})
         coms = dados_q.get("comentarios", [])
@@ -257,9 +255,7 @@ def zerar_questionario_db(ano):
                 conn.commit()
     except Exception as e:
         print(f"❌ Erro ao zerar questionário no DB: {e}")
-# =============================================================================
-# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
-# =============================================================================
+
 def render_quesito(
     ano,
     res_data,
@@ -277,7 +273,7 @@ def render_quesito(
     dados_q = res_data.get(qid, {})
     link_atual = dados_q.get("link", "")
 
-    # Tratamento inicial do valor armazenado
+    
     if tipo_input == "checkbox":
         valor_bruto = dados_q.get("valor", [])
         if isinstance(valor_bruto, list):
@@ -313,7 +309,7 @@ def render_quesito(
         "link": link_atual,
     }
 
-    # Inicialização das variáveis para escopo seguro
+    
     input_link = None
     input_texto = None
 
@@ -515,9 +511,7 @@ def render_quesito(
         elif tipo_input in ["number", "float"]:
             input_num.on("update:model-value", atualizar_impacto)
 
-        # =====================================================================
-        # BOTÃO SALVAR
-        # =====================================================================
+       
         def salvar_acao():
             opcao_sel = state["opcao"]
             pts = calcular_pontos(opcao_sel)
@@ -545,9 +539,7 @@ def render_quesito(
         ui.separator().classes("my-2")
         bloco_comentarios(qid, res_data, on_save_callback)
 
-# =============================================================================
-# PAINEL DE CONTROLE LATERAL
-# =============================================================================
+
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     ano_atual = extrair_ano(ano_atual)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
@@ -591,7 +583,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.separator().classes("my-2")
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
-        # Atualização da página via F5
+       
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
@@ -599,7 +591,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             "w-full bg-blue-700 text-white font-bold mb-2"
         )
 
-        # Modal de confirmação com senha para zerar
+       
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
@@ -645,9 +637,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         """).classes("w-full")
 
 
-# =============================================================================
-# BLOCO DE COMENTÁRIOS INTERNOS
-# =============================================================================
+
 def bloco_comentarios(qid, res_data, on_save_callback=None):
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
     usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
@@ -778,9 +768,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         )
 
 
-# =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS (IEDUC)
-# =============================================================================
+
 def container_formulario_ieduc(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = extrair_ano(ano if ano else 2026)
@@ -800,7 +788,7 @@ def container_formulario_ieduc(ano=None):
                 render_conteudo.refresh()
 
             with ui.element("div").classes("w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"):
-                # Coluna 1: Painel Lateral (3/12)
+               
                 with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
                     render_painel_controle(
                         ano_atual=ano_sel,
@@ -808,15 +796,14 @@ def container_formulario_ieduc(ano=None):
                         on_refresh=render_conteudo.refresh,
                     )
 
-                # Coluna 2: Formulário Principal (9/12)
+               
                 with ui.element("div").classes("md:col-span-8 lg:col-span-9 flex flex-col gap-4"):
                     with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
                         ui.label(f"📋 Módulo i-Educ — Ano base das respostas {ano_sel}").classes(
                             "text-xl font-bold text-slate-800 border-b pb-2"
                         )
 
-                    # ==========================================
-                    # Navegação leve em estilo de links numerados (somente um grupo é renderizado por vez)
+                   
                     etapa_atual = int(app.storage.user.get("ieduc_etapa", 1))
                     if etapa_atual not in range(1, 9):
                         etapa_atual = 1
@@ -841,7 +828,7 @@ def container_formulario_ieduc(ano=None):
 
                     if etapa_atual == 1:
                         # QUESITO 1.0
-                        # ==========================================
+                        
                         opcoes_1_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -860,9 +847,9 @@ def container_formulario_ieduc(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                        
                         # QUESITO 1.1
-                        # ==========================================
+                      
                         opcoes_1_1 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -881,9 +868,9 @@ def container_formulario_ieduc(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # =============================================================================
+                        
                         # QUESITO 1.1.1 (Brinquedos no Pátio Infantil - BPI)
-                        # =============================================================================
+                        
                         d111 = res_data.get("1.1.1") or res_data.get("111") or {}
 
                         with ui.card().classes(
@@ -896,7 +883,7 @@ def container_formulario_ieduc(ano=None):
                                 "Informe o número de creches com brinquedos no pátio e o total de creches no município:"
                             ).classes("text-base font-bold text-black mb-2")
 
-                            # Card da Calculadora Automática
+                            
                             with ui.card().classes(
                                 "w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"
                             ):
@@ -904,7 +891,7 @@ def container_formulario_ieduc(ano=None):
                                     "font-bold text-blue-700 mb-2"
                                 )
 
-                                # Extração e Parsing seguro do campo armazenado no banco
+                               
                                 val_111_raw = d111.get("resposta") if d111.get("resposta") is not None else d111.get("valor")
                         
                                 bpi_init, tot_init = 0, 0
@@ -1006,7 +993,7 @@ def container_formulario_ieduc(ano=None):
                                 val_dict = {"BPI": b_val, "TOT": t_val}
 
                                 try:
-                                    # Grava no banco de dados
+                                    
                                     save_resposta(
                                         ano=ano_sel,
                                         qid="1.1.1",
@@ -1017,7 +1004,7 @@ def container_formulario_ieduc(ano=None):
                                         status=d111.get("status", "Pendente"),
                                     )
 
-                                    # Atualiza a estrutura local de dados em memória antes do refresh
+                                   
                                     novos_dados = {
                                         "resposta": json.dumps(val_dict, ensure_ascii=False),
                                         "valor": val_dict,
@@ -1047,9 +1034,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("1.1.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 1.1.2 (Manutenção Preventiva dos Brinquedos do Pátio)
-                        # =============================================================================
+                       
                         d112 = res_data.get("1.1.2") or res_data.get("112") or {}
 
                         with ui.card().classes(
@@ -1062,7 +1049,7 @@ def container_formulario_ieduc(ano=None):
                                 "Informe a distribuição das creches quanto à realização e cumprimento do cronograma de manutenção:"
                             ).classes("text-base font-bold text-black mb-2")
 
-                            # Leitura dos dados já gravados no banco.
+                           
                             valor_salvo = d112.get("valor") or d112.get("resposta") or ""
                             cron = ncron = solic = nmanu = 0
 
@@ -1206,9 +1193,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("1.1.2", res_data, render_conteudo.refresh)
                 
-                            # ==========================================
+                            
                             # QUESITO 1.2
-                            # ==========================================
+                           
                             opcoes_1_2 = {
                                 "Selecione...": 0.0,
                                 "Sim": 0.0,
@@ -1227,9 +1214,9 @@ def container_formulario_ieduc(ano=None):
                                 on_save_callback=render_conteudo.refresh,
                             )
 
-                            # ==========================================
+                            
                             # QUESITO 1.2.1
-                            # ==========================================
+                            
                             opcoes_1_2_1 = {
                                 "Selecione...": 0.0,
                                 "Sim": 0.0,
@@ -1248,9 +1235,9 @@ def container_formulario_ieduc(ano=None):
                                 on_save_callback=render_conteudo.refresh,
                             )
 
-                            # ==========================================
+                           
                             # QUESITO 1.2.1.1
-                            # ==========================================
+                            
                             opcoes_1_2_1_1 = {
                                 "Selecione...": 0.0,
                                 "Diária – 05": 5.0,
@@ -1273,9 +1260,9 @@ def container_formulario_ieduc(ano=None):
                                 on_save_callback=render_conteudo.refresh,
                             )
 
-                            # ==========================================
+                            
                             # QUESITO 1.2.2
-                            # ==========================================
+                            
                             opcoes_1_2_2 = {
                                 "Selecione...": 0.0,
                                 "Sim – 05": 5.0,
@@ -1294,9 +1281,9 @@ def container_formulario_ieduc(ano=None):
                                 on_save_callback=render_conteudo.refresh,
                             )
 
-                            # =============================================================================
+                           
                             # QUESITO 1.2.3 (Data da Última Entrega de Brinquedos/Materiais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -1362,9 +1349,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.2.3", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 1.3 (Espaço por Aluno em Sala de Aula - Creche)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -1523,9 +1510,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.3", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 1.4 (Formação e Pós-Graduação dos Professores de Creche)
-                            # =============================================================================
+                         
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -1679,9 +1666,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.4", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 1.5 (Piso Salarial Mensal dos Professores de Creche)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -1835,9 +1822,9 @@ def container_formulario_ieduc(ano=None):
                                     res_data,
                                     getattr(render_conteudo, "refresh", None),
                                 )
-                            # =============================================================================
+                            
                             # QUESITO 1.6 (Quantidade Total de Dias de Ausência dos Professores - QTA)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -1949,9 +1936,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.6", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 1.7 (Participação em Cursos de Capacitação - Sim/Não)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -2027,10 +2014,10 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("1.7", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                            # =============================================================================
+                            
                             # QUESITO 1.7.1
                             # Quantidade de Profissionais de Creche Capacitados
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -2185,7 +2172,7 @@ def container_formulario_ieduc(ano=None):
                                         ),
                                     ).classes("w-full").props("outlined rows=16")
 
-                                # Atualiza a etiqueta de pontos inicial com os dados carregados
+                               
                                 att_pts_171()
 
                                 def salvar_171():
@@ -2262,10 +2249,11 @@ def container_formulario_ieduc(ano=None):
                                     res_data,
                                     getattr(render_conteudo, "refresh", None),
                                 )
-                            # =============================================================================
+                                
+                            
                             # QUESITO 1.7.2
                             # Formas de Capacitação Oferecidas
-                            # =============================================================================
+                          
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -2406,9 +2394,9 @@ def container_formulario_ieduc(ano=None):
                                 )
 
                             
-                            # =============================================================================
+                            
                             # QUESITO 1.8 (Rotatividade do Corpo Docente em Creches)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -2567,9 +2555,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.8", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 1.9 (Regularidade / Permanência dos Gestores de Creche)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -2698,9 +2686,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.9", res_data, render_conteudo.refresh)
 
-                           # =============================================================================
+                          
                             # QUESITO 1.10 (Reuniões Periódicas com Pais - Escopo)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -2716,7 +2704,7 @@ def container_formulario_ieduc(ano=None):
 
                                 d110 = res_data.get("1.10") or {}
 
-                                # Mapeamento com a exibição textual das opções incluindo a pontuação ao lado
+                                
                                 opcoes_110 = {
                                     "Selecione...": 0.0,
                                     "Sobre planejamento e desempenho da criança (2,0 pontos)": 2.0,
@@ -2727,7 +2715,7 @@ def container_formulario_ieduc(ano=None):
 
                                 val_110_bruto = str(d110.get("valor") or "")
 
-                                # Valida se o valor salvo no banco bate com alguma opção da lista
+                                
                                 val_110_valido = "Selecione..."
                                 if val_110_bruto in opcoes_110:
                                     val_110_valido = val_110_bruto
@@ -2799,9 +2787,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.10", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 1.10.1 (Periodicidade das Reuniões com Pais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -2877,9 +2865,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.10.1", res_data, render_conteudo.refresh)
 
-            # =============================================================================
+            
                             # QUESITO 1.11 (Entrega do Kit Escolar às Creches em 2026)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -2973,9 +2961,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.11", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 1.11.1 (Data da Última Entrega do Kit Escolar)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -3085,9 +3073,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.11.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 1.11.2 (Motivo da Não Entrega do Kit Escolar)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -3148,9 +3136,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.11.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 1.12 (Entrega de Material Didático às Creches em 2026)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -3244,9 +3232,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.12", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 1.12.1 (Data da Última Entrega do Material Didático)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -3356,9 +3344,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.12.1", res_data, render_conteudo.refresh)
 
-            # =============================================================================
+           
                             # QUESITO 1.12.2 (Motivo da Não Entrega do Material Didático)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -3419,9 +3407,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.12.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 1.13 (Pesquisa/Estudo sobre Demanda por Creches em 2026)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -3514,9 +3502,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.13", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 1.13.1 (Descrição do Estudo de Demanda)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -3577,9 +3565,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.13.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 1.14 (Demanda vs. Oferta de Vagas de Creche)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -3694,9 +3682,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.14", res_data, render_conteudo.refresh)
 
-            # =============================================================================
+          
                             # QUESITO 1.15 (Quantidade de Alunos por Turma de Creche)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -3807,10 +3795,10 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("1.15", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                     if etapa_atual == 2:
                         # QUESITO 2.0 (Ofertamento de Pré-escola)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3870,9 +3858,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("2.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 2.1 (Presença de Brinquedos no Pátio de Pré-escola)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3932,9 +3920,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("2.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 2.1.1 (Brinquedos no Pátio Infantil - BPI Pré-escola)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4025,9 +4013,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("2.1.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 2.1.2 (Manutenção Preventiva dos Brinquedos - Pré-escola)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4141,9 +4129,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("2.1.2", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 2.2 (Disponibilização de Brinquedos/Materiais em Pré-escolas)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4203,9 +4191,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("2.2", res_data, render_conteudo.refresh)
 
-            # =============================================================================
+            
                             # QUESITO 2.2.1 (Higienização dos Brinquedos/Materiais Pedagógicos)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -4265,9 +4253,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.2.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.2.1.1 (Frequência de Higienização)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -4364,9 +4352,8 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.2.1.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
                             # QUESITO 2.2.2 (Cronograma de Compra de Brinquedos/Materiais)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -4459,9 +4446,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.2.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.2.3 (Data da Última Entrega em Pré-escola)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -4527,9 +4514,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.2.3", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.3 (Espaço por Aluno em Sala de Aula - Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -4640,9 +4627,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.3", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 2.4 (Formação e Pós-Graduação dos Professores de Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -4762,9 +4749,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.4", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 2.5 (Piso Salarial Mensal dos Professores de Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -4919,9 +4906,9 @@ def container_formulario_ieduc(ano=None):
                                     getattr(render_conteudo, "refresh", None),
                                 )
 
-                            # =============================================================================
+                           
                             # QUESITO 2.6 (Ausência dos Professores por Faltas - Pré-escola QTA)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -5033,9 +5020,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.6", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 2.7 (Participação em Capacitação - Pré-escola)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -5095,9 +5082,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.7", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.7.1 (Quantidade e Cálculo de Profissionais Capacitados - Pré-escola)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -5222,9 +5209,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.7.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.7.2 (Formas de Capacitação Oferecidas em Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -5310,9 +5297,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.7.2", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 2.8 (Rotatividade do Corpo Docente em Pré-escola)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -5470,9 +5457,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("2.8", res_data, render_conteudo.refresh)
 
-            # =============================================================================
+           
                             # QUESITO 2.9 (Regularidade e Permanência dos Gestores de Pré-escola)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -5601,9 +5588,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.9", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 2.10 (Reuniões Periódicas com Pais - Pré-escola)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -5698,9 +5685,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.10", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 2.10.1 (Periodicidade das Reuniões com Pais - Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -5777,9 +5764,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.10.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 2.11 (Entrega do Kit Escolar às Pré-escolas em 2026)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -5873,9 +5860,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.11", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.11.1 (Data da Última Entrega do Kit Escolar - Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -5985,9 +5972,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.11.1", res_data, render_conteudo.refresh)
 
-            # =============================================================================
+           
                             # QUESITO 2.11.2 (Motivo da Não Entrega do Kit Escolar - Pré-escola)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -6048,9 +6035,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.11.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.12 (Entrega de Material Didático - Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -6144,9 +6131,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.12", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.12.1 (Data da Última Entrega do Material Didático - Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -6256,9 +6243,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.12.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.12.2 (Motivo da Não Entrega do Material Didático - Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -6319,9 +6306,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.12.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.13 (Pesquisa/Estudo sobre Demanda por Pré-escola em 2026)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -6414,9 +6401,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.13", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.13.1 (Descrição do Estudo de Demanda - Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -6477,9 +6464,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.13.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.14 (Demanda vs. Oferta de Vagas de Pré-escola)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -6594,9 +6581,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.14", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 2.15 (Quantidade de Alunos por Turma de Pré-escola)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -6707,9 +6694,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("2.15", res_data, render_conteudo.refresh)
 
-            # =============================================================================
+           
                         # QUESITO 3.0 (Oferta dos Anos Iniciais do Ensino Fundamental)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6784,9 +6771,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("3.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 3.1 (Espaço por Aluno em Sala de Aula - Anos Iniciais)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6893,9 +6880,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("3.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 3.2 (Qualificação dos Professores - Anos Iniciais)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7082,9 +7069,9 @@ def container_formulario_ieduc(ano=None):
                                 getattr(render_conteudo, "refresh", None),
                             )
 
-                        # =============================================================================
+                        
                         # QUESITO 3.3 (Piso Salarial dos Professores - Anos Iniciais)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7238,9 +7225,9 @@ def container_formulario_ieduc(ano=None):
                                 getattr(render_conteudo, "refresh", None),
                             )
 
-                        # =============================================================================
+                        
                         # QUESITO 3.4 (Ausência de Professores - Anos Iniciais - QTA)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7337,9 +7324,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("3.4", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 3.5 (Capacitação dos Profissionais - Anos Iniciais)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7414,9 +7401,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("3.5", res_data, render_conteudo.refresh)
 
-            # =============================================================================
+           
                             # QUESITO 3.5.1 (Proporção de Profissionais Capacitados - Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -7542,9 +7529,8 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.5.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
                             # QUESITO 3.5.2 (Forma de Capacitação - Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -7618,9 +7604,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.5.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.6 (Rotatividade de Professores - Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -7730,9 +7716,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.6", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.7 (Permanência do Diretor/Gestor Escolar - Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -7852,9 +7838,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.7", res_data, render_conteudo.refresh)
 
-            # =============================================================================
+            
                             # QUESITO 3.8 (Reuniões Periódicas com Pais - Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -7946,9 +7932,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.8", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.8.1 (Periodicidade das Reuniões com Pais - Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -8027,9 +8013,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.8.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 3.9 (Média de Dias Letivos - Anos Iniciais)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -8116,9 +8102,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.9", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.10 (Programa de Competências de Leitura e Escrita - Anos Iniciais)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -8208,9 +8194,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.10", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 3.10.1 (Descrição do Programa de Leitura e Escrita - Anos Iniciais)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -8271,9 +8257,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.10.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                         # QUESITO 3.11 (Ações Governamentais para Enfrentamento ao Bullying)
-                        # =============================================================================
+                       
                         d311 = res_data.get("3.11") or {}
                         valor_salvo_311 = str(d311.get("valor") or d311.get("resposta") or "").strip()
 
@@ -8356,9 +8342,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("3.11", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 3.11.1 (Descrição das Ações Governamentais de Enfrentamento ao Bullying)
-                        # =============================================================================
+                        
                         d311_1 = res_data.get("3.11.1") or {}
                         valor_salvo_311_1 = str(
                             d311_1.get("valor") or d311_1.get("resposta") or ""
@@ -8421,9 +8407,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("3.11.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.12 (Entrega do Kit Escolar - Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -8546,9 +8532,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.12", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 3.12.1 (Data da Última Entrega do Kit Escolar - Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -8658,9 +8644,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.12.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.12.2 (Motivo da Não Entrega do Kit Escolar)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -8721,9 +8707,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.12.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.13 (Entrega do Material Didático - Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -8798,9 +8784,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.13", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.13.1 (Data da Última Entrega do Material Didático - Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -8915,9 +8901,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.13.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.13.2 (Motivo da Não Entrega do Material Didático)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -8978,9 +8964,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.13.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.14 (Entrega de Uniforme Escolar - Anos Iniciais)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9040,9 +9026,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.14", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.14.1 (Data da Última Entrega do Uniforme Escolar)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9171,9 +9157,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.14.1", res_data, getattr(render_conteudo, "refresh", None))
 
-                            # =============================================================================
+                            
                             # QUESITO 3.14.2 (Motivo da Não Entrega do Uniforme Escolar)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
