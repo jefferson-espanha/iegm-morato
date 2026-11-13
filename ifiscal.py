@@ -13,9 +13,7 @@ from fastapi import Response
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
-# =============================================================================
-# BANCO DE DADOS (NEON - ESTRUTURA REAL RESPOSTAS_IFISCAL)
-# =============================================================================
+
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -42,7 +40,7 @@ def load_respostas(ano):
                     q_id = row["quesito"]
                     val_bruto = row["resposta"] or ""
 
-                    # Desserialização recursiva/segura do campo 'resposta'
+                   
                     val_final = val_bruto
                     while isinstance(val_final, str):
                         val_str = val_final.strip()
@@ -56,7 +54,7 @@ def load_respostas(ano):
                         else:
                             break
 
-                    # Extrai link e comentarios dentro do campo JSONB 'detalhes'
+                   
                     detalhes_obj = row["detalhes"] or {}
                     if isinstance(detalhes_obj, str):
                         try:
@@ -97,7 +95,7 @@ def save_resposta(
 
     link_final = link.strip() if link else ""
 
-    # Trata caso o valor venha como dict/list ou como string que precisa ser tratada
+    
     if isinstance(valor, (dict, list)):
         resposta_str = json.dumps(valor, ensure_ascii=False)
     elif isinstance(valor, str):
@@ -169,9 +167,7 @@ def _obter_lista_comentarios(dados_q):
     return coms if isinstance(coms, list) else []
 
 
-# =============================================================================
-# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
-# =============================================================================
+
 def render_quesito(
     ano,
     res_data,
@@ -346,9 +342,7 @@ def render_quesito(
         bloco_comentarios(qid, res_data, on_save_callback)
 
 
-# =============================================================================
-# PAINEL DE CONTROLE LATERAL
-# =============================================================================
+
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
@@ -444,9 +438,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             </div>
         """).classes("w-full")
 
-# =============================================================================
-# BLOCO DE COMENTÁRIOS INTERNOS
-# =============================================================================
+
 FUSO_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 
@@ -578,9 +570,6 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         )
 
 
-# =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS (IFISCAL)
-# =============================================================================
 def container_formulario_ifiscal(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
@@ -602,7 +591,7 @@ def container_formulario_ifiscal(ano=None):
             with ui.element("div").classes(
                 "w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"
             ):
-                # Coluna 1: Painel Lateral (3/12)
+              
                 with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
                     render_painel_controle(
                         ano_atual=ano_sel,
@@ -610,7 +599,7 @@ def container_formulario_ifiscal(ano=None):
                         on_refresh=render_conteudo.refresh,
                     )
 
-                # Coluna 2: Formulário Principal (9/12)
+               
                 with ui.element("div").classes(
                     "md:col-span-8 lg:col-span-9 flex flex-col gap-4"
                 ):
@@ -636,9 +625,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.button(str(numero), on_click=lambda n=numero: mudar_etapa(n)).props("flat dense no-caps").classes(f"{estilo} min-w-0 px-1 text-base")
 
                     if etapa_atual == 1:
-                        # ==========================================
+                       
                         # QUESITO 1.0
-                        # ==========================================
+                      
                         opcoes_1_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -657,9 +646,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                       
                         # QUESITO 1.1
-                        # ==========================================
+                       
                         opcoes_1_1 = {
                             "Selecione...": 0.0,
                             "Sim – 0,5": 0.5,
@@ -678,9 +667,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                       
                         # QUESITO 1.2 (Cargos Preenchidos - Quantitativo)
-                        # ==========================================
+                      
                         dados_1_2 = res_data.get("1.2", {})
                         val_1_2 = dados_1_2.get("valor", {})
                         if not isinstance(val_1_2, dict):
@@ -802,9 +791,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("1.2", res_data, render_conteudo.refresh)
 
-                        # ==========================================
+                       
                         # QUESITO 1.3
-                        # ==========================================
+                       
                         opcoes_1_3 = {
                             "Selecione...": 0.0,
                             "Sim – 10": 10.0,
@@ -823,9 +812,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                       
                         # QUESITO 1.4
-                        # ==========================================
+                        
                         opcoes_1_4 = {
                             "Selecione...": 0.0,
                             "Sim – 03": 3.0,
@@ -844,9 +833,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                        
                         # QUESITO 1.4.1 (Texto Dissertativo)
-                        # ==========================================
+                      
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -858,9 +847,8 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 1.4.2 (Texto / Link)
-                        # ==========================================
+                      
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -872,9 +860,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 1.5 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 1.5 
+                        
                         opcoes_1_5 = {
                             "Selecione...": 0.0,
                             "Sim – 05": 5.0,
@@ -893,9 +881,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 1.5.1 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 1.5.1 
+                       
                         opcoes_1_5_1 = {
                             "Selecione...": 0.0,
                             "Sim – 05": 5.0,
@@ -915,9 +903,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                       
                         # QUESITO 2.0 (Radio)
-                        # ==========================================
+                        
                         opcoes_2_0 = {
                             "Selecione...": 0.0,
                             "Sim – 04": 4.0,
@@ -936,9 +924,8 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
                         # QUESITO 3.0 (Radio)
-                        # ==========================================
+                       
                         opcoes_3_0 = {
                             "Selecione...": 0.0,
                             "Sim – 30": 30.0,
@@ -957,9 +944,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 3.1 (Checkbox - Múltipla Escolha)
-                        # ==========================================
+                       
+                        # QUESITO 3.1
+                       
                         opcoes_3_1 = {
                             "Recadastramento de Imóveis": 0.0,
                             "Programas de Recuperação Fiscal": 0.0,
@@ -984,9 +971,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.0 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 4.0 
+                        
                         opcoes_4_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -1005,9 +992,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.1 (Texto Dissertativo)
-                        # ==========================================
+                       
+                        # QUESITO 4.1 
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1019,9 +1006,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.2 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 4.2 
+                       
                         opcoes_4_2 = {
                             "Selecione...": 0.0,
                             "Menor ou igual a 1 ano": 0.0,
@@ -1042,9 +1029,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.3 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 4.3 
+                       
                         opcoes_4_3 = {
                             "Selecione...": 0.0,
                             "Sim – 05": 5.0,
@@ -1063,9 +1050,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.0 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 5.0
+                        
                         opcoes_5_0 = {
                             "Selecione...": 0.0,
                             "Sim – 03": 3.0,
@@ -1084,9 +1071,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.1 (Texto Dissertativo)
-                        # ==========================================
+                        
+                        # QUESITO 5.1 
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1098,9 +1085,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.2 (Texto Dissertativo)
-                        # ==========================================
+                        
+                        # QUESITO 5.2 
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1112,9 +1099,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.3 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 5.3 
+                        
                         opcoes_5_3 = {
                             "Selecione...": 0.0,
                             "Sim – 03": 3.0,
@@ -1133,9 +1120,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.3.1 (Texto Dissertativo)
-                        # ==========================================
+                       
+                        # QUESITO 5.3.1 
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1147,9 +1134,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.3.2 (Texto Dissertativo)
-                        # ==========================================
+                        
+                        # QUESITO 5.3.2 
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1161,9 +1148,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.3.3 (Texto Dissertativo)
-                        # ==========================================
+                        
+                        # QUESITO 5.3.3
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1175,9 +1162,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.3.4 (Texto Dissertativo)
-                        # ==========================================
+                       
+                        # QUESITO 5.3.4
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1189,9 +1176,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.4 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 5.4
+                       
                         opcoes_5_4 = {
                             "Selecione...": 0.0,
                             "Sim, de forma automática no sistema – 06": 6.0,
@@ -1211,9 +1198,8 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 6.0 (Checkbox - Múltipla Escolha)
-                        # ==========================================
+                       
+                        
                         opcoes_6_0 = {
                             "Alíquotas progressivas em razão do valor do imóvel – 01": 1.0,
                             "Alíquotas diferenciadas em razão da localização do imóvel – 0,5": 0.5,
@@ -1234,9 +1220,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 7.0 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 7.0 
+                       
                         opcoes_7_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -1255,9 +1241,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 7.1 (Texto Dissertativo)
-                        # ==========================================
+                        
+                        # QUESITO 7.1 
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1269,9 +1255,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 7.2 (Página Eletrônica com Regra de Pontuação XYZ)
-                        # ==========================================
+                        
+                        # QUESITO 7.2 
+                        
                         dados_7_2 = res_data.get("7.2", {})
                         val_7_2 = str(dados_7_2.get("valor", ""))
                         link_7_2 = dados_7_2.get("link", "")
@@ -1354,9 +1340,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("7.2", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO 7.3 (Checkbox - Múltipla Escolha)
-                        # ==========================================
+                       
+                        # QUESITO 7.3 
+                        
                         opcoes_7_3 = {
                             "Aposentado, pensionista ou beneficiário de renda mensal vitalícia": 0.0,
                             "Não possuir outro imóvel": 0.0,
@@ -1378,9 +1364,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 8.0 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 8.0 
+                       
                         opcoes_8_0 = {
                             "Selecione...": 0.0,
                             "Sim – 01": 1.0,
@@ -1399,9 +1385,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 8.1 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 8.1 
+                       
                         opcoes_8_1 = {
                             "Selecione...": 0.0,
                             "Sim – 02": 2.0,
@@ -1420,9 +1406,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 8.2 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 8.2 
+                       
                         opcoes_8_2 = {
                             "Selecione...": 0.0,
                             "Sim por meio de sistema automatizado – 15": 15.0,
@@ -1442,9 +1428,8 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 8.3 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 8.3 
                         opcoes_8_3 = {
                             "Selecione...": 0.0,
                             "Sim, sem restrição – 00": 0.0,
@@ -1467,9 +1452,9 @@ def container_formulario_ifiscal(ano=None):
 
 
                     if etapa_atual == 2:
-                        # ==========================================
-                        # QUESITO 9.0 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 9.0
+                       
                         opcoes_9_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -1488,9 +1473,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 9.1 (Texto Dissertativo)
-                        # ==========================================
+                       
+                        # QUESITO 9.1 
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1502,9 +1487,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 9.2 (Página Eletrônica com Regra XYZ)
-                        # ==========================================
+                        
+                        # QUESITO 9.2 
+                       
                         dados_9_2 = res_data.get("9.2", {})
                         val_9_2 = str(dados_9_2.get("valor", ""))
                         link_9_2 = dados_9_2.get("link", "")
@@ -1587,9 +1572,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("9.2", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO 9.3 (Checkbox - Múltipla Escolha)
-                        # ==========================================
+                        
+                        # QUESITO 9.3 
+                      
                         opcoes_9_3 = {
                             "Site da Prefeitura": 0.0,
                             "Órgão Fazendário": 0.0,
@@ -1609,9 +1594,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 9.4 (Radio)
-                        # ==========================================
+                      
+                        # QUESITO 9.4 
+                       
                         opcoes_9_4 = {
                             "Selecione...": 0.0,
                             "Sim – 02": 2.0,
@@ -1630,9 +1615,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 9.4.1 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 9.4.1
+                        
                         opcoes_9_4_1 = {
                             "Selecione...": 0.0,
                             "Sim – 03": 3.0,
@@ -1651,9 +1636,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 9.5 (Checkbox - Múltipla Escolha)
-                        # ==========================================
+                       
+                        # QUESITO 9.5
+                     
                         opcoes_9_5 = {
                             "Sistema Bancário": 0.0,
                             "Diretamente no Caixa da Prefeitura": 0.0,
@@ -1673,9 +1658,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 9.6 (Radio - Penalidade Súmula 656 STF)
-                        # ==========================================
+                        
+                        # QUESITO 9.6 
+                       
                         opcoes_9_6 = {
                             "Selecione...": 0.0,
                             "Sim – -30": -30.0,
@@ -1694,9 +1679,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 10.0 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 10.0 
+                       
                         opcoes_10_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -1715,9 +1700,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 10.1 (Texto Dissertativo)
-                        # ==========================================
+                       
+                        # QUESITO 10.1 
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1729,9 +1714,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 10.2 (Página Eletrônica com Regra XYZ)
-                        # ==========================================
+                        
+                        # QUESITO 10.2 
+                       
                         dados_10_2 = res_data.get("10.2", {})
                         val_10_2 = str(dados_10_2.get("valor", ""))
                         link_10_2 = dados_10_2.get("link", "")
@@ -1818,9 +1803,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("10.2", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO 10.3 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 10.3 
+                       
                         opcoes_10_3 = {
                             "Selecione...": 0.0,
                             "Sim – 00": 0.0,
@@ -1839,9 +1824,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 11.0 (Radio)
-                        # ==========================================
+                      
+                        # QUESITO 11.0
+                       
                         opcoes_11_0 = {
                             "Selecione...": 0.0,
                             "Sim – 03": 3.0,
@@ -1860,9 +1845,7 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.0 (Radio)
-                        # ==========================================
+                      
                         opcoes_12_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -1881,9 +1864,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.1 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 12.1 
+                       
                         opcoes_12_1 = {
                             "Selecione...": 0.0,
                             "Sim – 00": 0.0,
@@ -1902,9 +1885,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                       
                         # QUESITO 12.1.1 (Texto Dissertativo)
-                        # ==========================================
+                      
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1916,9 +1899,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.1.2 (Página Eletrônica com Regra XYZ)
-                        # ==========================================
+                        
+                        # QUESITO 12.1.2 
+                      
                         dados_12_1_2 = res_data.get("12.1.2", {})
                         val_12_1_2 = str(dados_12_1_2.get("valor", ""))
                         link_12_1_2 = dados_12_1_2.get("link", "")
@@ -2005,9 +1988,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("12.1.2", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO 12.2 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 12.2 
+                       
                         opcoes_12_2 = {
                             "Selecione...": 0.0,
                             "Sim, de todas as renúncias de receita – 00": 0.0,
@@ -2027,9 +2010,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.3 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 12.3
+                     
                         opcoes_12_3 = {
                             "Selecione...": 0.0,
                             "Todas as renúncias concedidas estão contidas no demonstrativo – 00": 0.0,
@@ -2050,9 +2033,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.3.1 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 12.3.1 
+                      
                         opcoes_12_3_1 = {
                             "Selecione...": 0.0,
                             "Sim – 00": 0.0,
@@ -2071,9 +2054,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.4 (Texto Dissertativo)
-                        # ==========================================
+                      
+                        # QUESITO 12.4 
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2085,9 +2068,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                        
                         # QUESITO 12.5 (Radio)
-                        # ==========================================
+                      
                         opcoes_12_5 = {
                             "Selecione...": 0.0,
                             "Sim – 00": 0.0,
@@ -2106,9 +2089,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.5.1 (Checkbox - Múltipla Escolha)
-                        # ==========================================
+                        
+                        # QUESITO 12.5.1 
+                       
                         opcoes_12_5_1 = {
                             "Valor dos benefícios concedidos": 0.0,
                             "Público beneficiado": 0.0,
@@ -2129,9 +2112,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.5.2 (Página Eletrônica com Regra XYZ)
-                        # ==========================================
+                       
+                        # QUESITO 12.5.2
+                        
                         dados_12_5_2 = res_data.get("12.5.2", {})
                         val_12_5_2 = str(dados_12_5_2.get("valor", ""))
                         link_12_5_2 = dados_12_5_2.get("link", "")
@@ -2220,9 +2203,9 @@ def container_formulario_ifiscal(ano=None):
 
 
                     if etapa_atual == 3:
-                        # ==========================================
-                        # QUESITO 13.0 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 13.0 
+                        
                         opcoes_13_0 = {
                             "Selecione...": 0.0,
                             "Sim – 01": 1.0,
@@ -2241,9 +2224,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 13.1 (Texto Dissertativo)
-                        # ==========================================
+                        
+                        # QUESITO 13.1 
+                      
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2255,9 +2238,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 13.2 (Página Eletrônica com Regra XYZ)
-                        # ==========================================
+                        
+                        # QUESITO 13.2
+                      
                         dados_13_2 = res_data.get("13.2", {})
                         val_13_2 = str(dados_13_2.get("valor", ""))
                         link_13_2 = dados_13_2.get("link", "")
@@ -2344,9 +2327,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.2", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO 13.3 (Checkbox - Múltipla Escolha com Pontuação)
-                        # ==========================================
+                        
+                        # QUESITO 13.3 
+                       
                         opcoes_13_3 = {
                             "Cobrança administrativa da dívida ativa – 1,5": 1.5,
                             "Parcelamento da dívida ativa – 1,5": 1.5,
@@ -2368,9 +2351,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.0 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 14.0 
+                       
                         opcoes_14_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -2389,9 +2372,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.1 (Texto Dissertativo)
-                        # ==========================================
+                       
+                        # QUESITO 14.1 
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2403,9 +2386,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 15.0 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 15.0 
+                        
                         opcoes_15_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -2424,9 +2407,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 15.1 (Texto Dissertativo)
-                        # ==========================================
+                       
+                        # QUESITO 15.1 
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2438,9 +2421,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 15.2 (Checkbox - Múltipla Escolha)
-                        # ==========================================
+                        
+                        # QUESITO 15.2
+                       
                         opcoes_15_2 = {
                             "Protesto Extrajudicial da CDA (Certidão da Dívida Ativa)": 0.0,
                             "Parcelamento": 0.0,
@@ -2463,9 +2446,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 16.0 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 16.0
+                       
                         opcoes_16_0 = {
                             "Selecione...": 0.0,
                             "Sim, houve prescrição ordinária – -10": -10.0,
@@ -2485,9 +2468,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 16.1 (Texto Dissertativo)
-                        # ==========================================
+                       
+                        # QUESITO 16.1 
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2499,9 +2482,8 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 16.2 (Texto Dissertativo)
-                        # ==========================================
+                        
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2513,9 +2495,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 16.3 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 16.3 
+                       
                         opcoes_16_3 = {
                             "Selecione...": 0.0,
                             "Sim – 00": 0.0,
@@ -2534,9 +2516,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 17.0 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 17.0 
+                        
                         opcoes_17_0 = {
                             "Selecione...": 0.0,
                             "Sim, de todas as ações – 00": 0.0,
@@ -2557,9 +2539,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 17.1 (Texto Dissertativo)
-                        # ==========================================
+                         
+                        # QUESITO 17.1 
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2571,9 +2553,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 17.2 (Texto Dissertativo)
-                        # ==========================================
+                        
+                        # QUESITO 17.2
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2585,9 +2567,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 18.0 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 18.0 
+                      
                         opcoes_18_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -2606,7 +2588,7 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                       
                         # QUESITO 18.1 (Checkbox - Múltipla Escolha com Pontuação)
                         # ==========================================
                         opcoes_18_1 = {
