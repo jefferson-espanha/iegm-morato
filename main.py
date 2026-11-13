@@ -29,7 +29,7 @@ def get_secret(key, default=None):
 
 @contextmanager
 def db_connection():
-    """Abre uma conexão PostgreSQL usando psycopg 3 ou psycopg2."""
+  
     database_url = get_secret("DATABASE_URL")
     if not database_url:
         raise RuntimeError("DATABASE_URL não configurada")
@@ -90,7 +90,7 @@ def update_password(username, new_password):
 
 
 def create_user(username, password="pmfm1234"):
-    """Cadastra um usuário comum com a senha inicial padrão."""
+    
     username = username.strip().lower()
     if not username:
         raise ValueError("Informe o nome de usuário")
@@ -124,7 +124,7 @@ atividade = import_local_module("atividade")
 plano_acao = import_local_module("plano_acao")
 hal_core = import_local_module("hal")
 
-# Stubs de persistência no storage de sessão
+
 def load_respostas(ano):
     return app.storage.user.get(f"respostas_{ano}", {})
 
@@ -386,12 +386,12 @@ def renderizar_questao_ui(qid, res_data):
 
 
 def _executar_modulo(mod, nome_funcoes, year=None):
-    """Auxiliar para chamar dinamicamente funções com ou sem argumentos de ano."""
+  
     if mod is None:
         ui.label("❌ Módulo não carregado.").classes("text-red-600 font-bold")
         return
 
-    # 1. Tenta encontrar pelas funções fornecidas na lista de preferência
+   
     for nome in nome_funcoes:
         if hasattr(mod, nome):
             fn = getattr(mod, nome)
@@ -404,7 +404,7 @@ def _executar_modulo(mod, nome_funcoes, year=None):
                     ui.label(f"Erro ao executar {nome}: {e}").classes("text-red-600")
             return
 
-    # 2. Fallback inteligente: procura funções que comecem com 'container_', 'mostrar_' ou 'render_'
+   
     funcs_disponiveis = [f for f in dir(mod) if not f.startswith("_") and callable(getattr(mod, f))]
     for fn_name in funcs_disponiveis:
         if any(fn_name.startswith(prefix) for prefix in ["container_", "mostrar_", "render_"]):
@@ -585,7 +585,7 @@ def dimension_page():
             ui.html(f'<h2 style="color: #001A4D; font-weight: bold; font-size: 24px; margin: 0;">{dimension} - {year}</h2>')
             ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
 
-        # ROTEAMENTO CENTRAL DAS SUBPÁGINAS
+       
         if dimension == "Biblioteca":
             ui.label("📚 Biblioteca de Documentos").classes('text-xl font-bold')
             ui.label("Acesse o acervo documental completo e referências diretamente no Google Drive.")
