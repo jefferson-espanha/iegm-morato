@@ -3303,7 +3303,7 @@ def container_formulario_igov_ti():
                 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
                 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
-                # --- CRIAÇÃO DO BUFFER E DO DOCUMENTO (Corrige 'doc' is not defined) ---
+                
                 buffer = io.BytesIO()
                 doc = SimpleDocTemplate(
                     buffer,
@@ -3318,14 +3318,14 @@ def container_formulario_igov_ti():
                 elements = []
                 styles = getSampleStyleSheet()
 
-                # Definindo os estilos visuais
+                
                 style_title = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=16, leading=20, alignment=TA_CENTER, textColor=colors.HexColor("#1A365D"))
                 style_th = ParagraphStyle('THStyle', parent=styles['Normal'], fontSize=9, leading=11, fontName='Helvetica-Bold', alignment=TA_CENTER, textColor=colors.white)
                 style_td = ParagraphStyle('TDStyle', parent=styles['Normal'], fontSize=8, leading=10, fontName='Helvetica', alignment=TA_LEFT)
                 style_td_center = ParagraphStyle('TDCenterStyle', parent=styles['Normal'], fontSize=8, leading=10, fontName='Helvetica', alignment=TA_CENTER)
                 style_analise = ParagraphStyle('AnaliseStyle', parent=styles['Normal'], fontSize=8, leading=11, fontName='Helvetica-Oblique', alignment=TA_LEFT, textColor=colors.HexColor("#2D3748"))
 
-                # Dicionário de Pontuações Máximas (Tetos) dos Quesitos - iGovTI
+                
                 PONTUACOES_MAX = {
                     "1.0": 30, "1.1": 30, "1.2": 30, "1.3": 30, "1.3.1": 30, "1.4.1": 40, "1.4.2": 20,
                     "2.0": 40, "2.1": 20, "2.2": 40, "2.3": 20,
@@ -3334,7 +3334,7 @@ def container_formulario_igov_ti():
                     "8.0": 40, "8.2.1": 50, "8.2.2": 30, "9.1": 120
                 }
 
-                # --- CARREGAMENTO DE DADOS E VARIÁVEIS DO RELATÓRIO ---
+                
                 all_data = get_all_years_data()
 
                 if 'ano' not in locals() and 'ano' not in globals():
@@ -3344,11 +3344,11 @@ def container_formulario_igov_ti():
                 ano_atual = int(str(ano).strip()[:4])
                 ano_ant = ano_atual - 1
 
-                # Dicionários de respostas por ano
+               
                 dados = all_data.get(ano_atual, {})
                 dados_ano_anterior = all_data.get(ano_ant, {})
 
-                # Cálculo da nota do ano anterior
+              
                 nota_anterior = 0.0
                 for qid_ant, info_ant in dados_ano_anterior.items():
                     if str(qid_ant).startswith("COM_"):
@@ -3358,7 +3358,7 @@ def container_formulario_igov_ti():
                     elif isinstance(info_ant, (int, float)):
                         nota_anterior += float(info_ant)
 
-                # Identificação de reincidências
+                
                 reincidencias_detectadas = []
                 for qid, info_atual in dados.items():
                     if str(qid).startswith("COM_"):
@@ -3454,7 +3454,7 @@ from reportlab.graphics.shapes import Drawing
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-# Dicionário global de pontuações máximas caso não venha de fora
+
 PONTUACOES_MAX_DEFAULT = {
     "1.0": 30, "1.1": 30, "1.2": 30, "1.3": 30, "1.3.1": 30, "1.4.1": 40, "1.4.2": 20,
     "2.0": 40, "2.1": 20, "2.2": 40, "2.3": 20,
@@ -3518,9 +3518,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         wordWrap='CJK'
     )
 
-    # -------------------------------------------------------------------------
+   
     # FOLHA 1: CAPA
-    # -------------------------------------------------------------------------
+   
     elements.append(Spacer(1, 100))
     logo_path = "iegm.png"
     if os.path.exists(logo_path):
@@ -3542,9 +3542,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(Paragraph(str(ano), style_ano_capa))
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+  
     # FOLHA 2: SUMÁRIO
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
     elements.append(Spacer(1, 30))
 
@@ -3571,7 +3571,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_sumario)
     elements.append(PageBreak())
 
-    # ESTILOS DAS TABELAS
+    
     style_th = ParagraphStyle('Th', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.whitesmoke, alignment=1)
     style_td_ano = ParagraphStyle('TdAno', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2c3e50"), alignment=1)
     style_td_pts = ParagraphStyle('TdPts', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, alignment=1)
@@ -3579,9 +3579,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
     style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
 
-    # -------------------------------------------------------------------------
+   
     # 1. RESUMO EXECUTIVO
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
 
@@ -3656,9 +3656,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_comp)
     elements.append(Spacer(1, 12))
 
-    # -------------------------------------------------------------------------
+    
     # 2. ANÁLISE DE DESEMPENHO POR QUESITO
-    # -------------------------------------------------------------------------
+  
     elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO POR QUESITO</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -3759,9 +3759,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tabela_fracos)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 3. ANÁLISE DE IMPACTO E PENALIDADES
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -3804,9 +3804,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tabela_pen)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
     if reincidencias_detectadas:
@@ -3833,9 +3833,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 5. ALINHAMENTO COM A AGENDA 2030 (ODS)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -3873,9 +3873,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tabela_ods)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 6. SÉRIE HISTÓRICA DO I-GOV TI (GRÁFICO DE BARRAS)
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-GOV TI</b>", styles["h2"]))
     elements.append(Spacer(1, 10))
 
@@ -3935,9 +3935,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(drawing)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 7. QUESITOS SEM PONTUAÇÃO DIRETA
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -3987,14 +3987,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     buffer.seek(0)
     return buffer.getvalue()
     
-# Ponte universal de execução para importação do main.py
+
 def render_igovti():
         container_formulario_igov_ti()
 
 
-# =============================================================================
-# ENTRYPOINT DA APLICAÇÃO (Execução direta deste arquivo)
-# =============================================================================
+
+# ENTRYPOINT DA APLICAÇÃO
+
 if __name__ in {"__main__", "__mp_main__"}:
         @ui.page("/")
         def main_page():
