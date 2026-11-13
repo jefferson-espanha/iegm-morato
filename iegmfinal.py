@@ -1,10 +1,3 @@
-"""Painel IEG-M final para integração com o main.py NiceGUI.
-
-A API pública esperada pelo carregador é:
-    container_painel_iegm_final(ano)
-    mostrar_painel_iegm_final(ano)
-"""
-
 import logging
 import os
 from typing import Any, Callable, Optional
@@ -23,8 +16,7 @@ TABELAS_DIMENSOES = {
     "iamb": "respostas_iamb",
 }
 
-# Primeiro tenta o conector já usado pelo módulo i-Cidade; em seguida,
-# utiliza psycopg2 diretamente com DATABASE_URL/NEON_DATABASE_URL.
+
 _conector_externo: Optional[Callable] = None
 try:
     from icidade_completo import get_connection as _conector_externo
@@ -49,8 +41,7 @@ def _abrir_conexao():
 
     database_url = os.getenv("DATABASE_URL") or os.getenv("NEON_DATABASE_URL")
     if not database_url:
-        # O main normalmente expõe NEON_URL. A leitura é feita somente em
-        # tempo de execução para evitar import circular durante o carregamento.
+       
         try:
             import main
             database_url = getattr(main, "NEON_URL", None)
@@ -144,7 +135,7 @@ def puxar_nota_icidade(ano: int) -> float:
 
 
 def carregar_pontuacoes(ano: int) -> dict[str, float]:
-    """Carrega todas as dimensões sem derrubar a página se uma tabela faltar."""
+    
     consultas = {
         "I-CIDADE": puxar_nota_icidade,
         "I-GOV TI": puxar_nota_igov,
