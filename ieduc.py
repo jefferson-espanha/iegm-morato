@@ -9220,9 +9220,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.14.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 3.15 (Indicador Próprio de Qualidade de Ensino)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9294,9 +9294,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.15", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 3.15.1 (Composição e Avaliação do Indicador Próprio)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9357,9 +9357,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.15.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 3.15.2 (Classificação de Alunos por Nível de Desempenho)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9429,9 +9429,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.15.2", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+     
                             # QUESITO 3.15.2.1 (Classificação por Nível de Desempenho)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9492,9 +9492,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.15.2.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.15.3 (Metas Específicas do Indicador Próprio)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9563,9 +9563,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.15.3", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.15.3.1 (Metas e Resultados do Indicador Próprio)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9674,9 +9674,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.15.3.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.15.4 (Avaliação de Participação na Prova Municipal)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9742,9 +9742,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.15.4", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.15.4.1 (Alunos Avaliados e Ausentes na Avaliação Municipal)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9846,9 +9846,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.15.4.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.16 (Pesquisa/Estudo sobre Demanda de Anos Iniciais)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9935,9 +9935,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.16", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+        
                             # QUESITO 3.16.1 (Descrição do Estudo de Demanda)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -9998,9 +9998,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.16.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 3.17 (Atendimento à Demanda por Vagas em 2026
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10105,9 +10105,8 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.17", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
-                            # QUESITO 3.18 (Alunos Matriculados em Período Parcial por Turno)
-                            # =============================================================================
+                           
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10184,9 +10183,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.18", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.19 (Quantidade de Turmas por Faixa de Tamanho)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10295,9 +10294,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.19", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.20 (Processo de Sondagem / Avaliação Diagnóstica)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10384,9 +10383,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.20", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.20.1 (Periodicidade da Avaliação Diagnóstica)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10456,9 +10455,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.20.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 3.21 (Quantidade de Aulas Vagas em 2026)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10516,9 +10515,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.21", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+        
                             # QUESITO 3.22 (Participação em Recuperação ou Reforço Escolar)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10584,9 +10583,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.22", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.22.1 (Número de Alunos Atendidos no Reforço)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10641,9 +10640,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.22.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.22.2 (Metas Traçadas para o Reforço Escolar)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10732,9 +10731,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.22.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 3.22.2.1 (Atingimento das Metas do Reforço)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10827,9 +10826,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.22.2.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.23 (Ações de Monitoramento e Combate ao Abandono Escolar)
-                            # =============================================================================
+                            
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -10917,9 +10916,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.23", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                             # QUESITO 3.23.1 (Ações Específicas Realizadas para Redução do Abandono)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -11045,9 +11044,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.23.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                             # QUESITO 3.23.2 (Motivos do Abandono Escolar)
-                            # =============================================================================
+                           
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -11061,7 +11060,7 @@ def container_formulario_ieduc(ano=None):
                                 d3232 = res_data.get("3.232") or res_data.get("3.23.2") or {}
                                 raw_val_3232 = d3232.get("valor") or {}
 
-                                # Garantir estrutura em dicionário para persistência individualizada
+                                
                                 if not isinstance(raw_val_3232, dict):
                                     raw_val_3232 = {}
 
@@ -11149,10 +11148,10 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("3.23.2", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                            
                     if etapa_atual == 3:
                         # QUESITO 4.0 (Oferta dos Anos Finais do Ensino Fundamental)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -11218,9 +11217,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("4.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 5.0 (Infraestrutura, Segurança e Capacitação - Creche, Pré e Anos Iniciais)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -11250,7 +11249,7 @@ def container_formulario_ieduc(ano=None):
                                 "link": raw_link_50,
                             }
 
-                            # --- Campo Base: Total de Estabelecimentos ---
+                          
                             with ui.row().classes("w-full items-center mb-6 bg-blue-50 p-4 rounded-lg border border-blue-200"):
                                 ui.label("Total de estabelecimentos municipais (CENSO 2026):").classes(
                                     "text-sm font-bold text-blue-900 w-2/3"
@@ -11262,7 +11261,7 @@ def container_formulario_ieduc(ano=None):
 
                             ui.separator().classes("mb-6")
 
-                            # --- Item 1: AVCB Vigente em 2026 (Pmax = 50 pts) ---
+                           
                             ui.label("1. Estabelecimentos que possuíam AVCB (Auto de Vistoria do Corpo de Bombeiros) vigente no ano de 2026:").classes(
                                 "text-sm font-bold text-gray-800 mb-2"
                             )
@@ -11277,7 +11276,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-sm font-bold text-green-600 mb-6"
                             )
 
-                            # --- Item 2: Necessidade de Reparos em Dezembro/2026 (Pmax = 25 pts) ---
+                           
                             ui.label("2. Estabelecimentos que necessitavam de reparos (conserto de janelas, rachaduras, infiltrações, fiação elétrica, substituição de azulejos danificados, etc) em dezembro de 2026:").classes(
                                 "text-sm font-bold text-gray-800 mb-2"
                             )
@@ -11292,7 +11291,7 @@ def container_formulario_ieduc(ano=None):
                                 "text-sm font-bold text-green-600 mb-6"
                             )
 
-                            # --- Item 3: Capacitação em Primeiros Socorros em 2026 ---
+                           
                             ui.label("3. Estabelecimentos que capacitaram professores e funcionários em noções de primeiros socorros no ano de 2026:").classes(
                                 "text-sm font-bold text-gray-800 mb-2"
                             )
@@ -11303,7 +11302,7 @@ def container_formulario_ieduc(ano=None):
                                 ).props("type=number outlined dense color=blue").classes("w-1/2")
                                 inp_socorros.bind_value(state_50, "qtd_socorros")
 
-                            # --- Lógica de Cálculo de Pontuações Finais ---
+                            
                             def recalc_pontos_50():
                                 try:
                                     total = float(state_50["total_escolas"])
@@ -11344,7 +11343,7 @@ def container_formulario_ieduc(ano=None):
                             inp_reparos.on("update:model-value", recalc_pontos_50)
                             inp_socorros.on("update:model-value", recalc_pontos_50)
 
-                            # Inicializar os textos informativos de notas
+                            
                             recalc_pontos_50()
 
                             ui.textarea(
@@ -11385,9 +11384,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("5.0", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+       
                             # QUESITO 5.1 (Detalhamento das Escolas com AVCB e Necessidade de Reparos)
-                            # =============================================================================
+                          
                             with ui.card().classes(
                                 "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                             ):
@@ -11448,10 +11447,10 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("5.1", res_data, render_conteudo.refresh)
 
-                            # =============================================================================
+                           
                     if etapa_atual == 4:
                         # QUESITO 6.0 (Plano de Cargos e Salários Específico dos Professores)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -11543,9 +11542,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("6.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                      
                         # QUESITO 6.1 (Instrumento Normativo, Número e Data do PCCS)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -11605,9 +11604,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("6.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                      
                         # QUESITO 6.2 (Requisitos Contidos no PCCS dos Professores)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -11707,9 +11706,9 @@ def container_formulario_ieduc(ano=None):
                             )
                             ui.separator().classes("my-2")
                             bloco_comentarios("6.2", res_data, render_conteudo.refresh)
-                        # =============================================================================
+                      
                         # QUESITO 7.0 (Programa de Inibição ao Absenteísmo de Professores)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -11728,8 +11727,7 @@ def container_formulario_ieduc(ano=None):
 
                             raw_link_70 = str(d70.get("link") or "")
 
-                            # Leitura de ofertas do i-Educ (Q1: Creche, Q2: Pré-escola, Q3: Anos Iniciais)
-                            # Busca nos quesitos das etapas ou assume "SIM" por padrão caso não localizado
+                            
                             d_q1 = res_data.get("1.0") or res_data.get("1") or {}
                             d_q2 = res_data.get("2.0") or res_data.get("2") or {}
                             d_q3 = res_data.get("3.0") or res_data.get("3") or {}
@@ -11907,9 +11905,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("7.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 7.1 (Especificação do Programa de Inibição ao Absenteísmo)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -11967,9 +11965,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("7.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 8.0 (Atuação de Nutricionista na Rede Municipal)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12035,9 +12033,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("8.0", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+       
                         # QUESITO 8.1 (Dimensionamento do Quadro de Nutricionistas)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12165,9 +12163,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("8.1", res_data, render_conteudo.refresh)
 
                         
-                        # =============================================================================
+                       
                         # QUESITO 8.2 (Atuação nas Escolas Estaduais)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12222,9 +12220,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("8.2", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 8.2.1 (Quantidade de Escolas Estaduais)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12282,9 +12280,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("8.2.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 8.2.2 (Quantidade de Alunos Estaduais)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12342,10 +12340,10 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("8.2.2", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+       
                     if etapa_atual == 5:
                         # QUESITO 9.0 (Divulgação do Cardápio da Nutricionista)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12432,9 +12430,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("9.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                      
                         # QUESITO 10.0 (Cumprimento do Cardápio Pré-Estabelecido)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12519,9 +12517,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("10.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 11.0 (Controle Formal da Qualidade dos Alimentos)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12577,9 +12575,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("11.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 11.1 (Condições Atestadas pelo Nutricionista)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12693,9 +12691,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("11.1", res_data, render_conteudo.refresh)
                             
-                        # =============================================================================
+                        
                         # QUESITO 12.0 (Controle de Acondicionamento dos Alimentos)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12753,9 +12751,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("12.0", res_data, render_conteudo.refresh)
 
-   # =============================================================================
+   
                         # QUESITO 12.1 (Tipos de Controles de Acondicionamento)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12874,9 +12872,9 @@ def container_formulario_ieduc(ano=None):
                             )
                             ui.separator().classes("my-2")
                             bloco_comentarios("12.1", res_data, render_conteudo.refresh)
-                        # =============================================================================
+                        
                         # QUESITO 13.0 (Oferta de Transporte Escolar)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12932,9 +12930,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 13.1 (Modalidade da Frota de Transporte Escolar)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -12993,9 +12991,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 13.1.1 (Estudo Anual do Traçado e Tempo de Viagem)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13074,9 +13072,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.1.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 13.1.1.1 (Média de Tempo de Viagem)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13137,9 +13135,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.1.1.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 13.1.2 (Veículos com Mais de 10 Anos de Fabricação)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13218,9 +13216,8 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.1.2", res_data, render_conteudo.refresh)
 
-    # =============================================================================
                         # QUESITO 13.1.2.1 (Quantidade de Veículos com Mais de 10 Anos)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13281,9 +13278,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.1.2.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 13.1.3 (Condições de Uso dos Veículos)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13366,9 +13363,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.1.3", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 13.1.4 (Especialização dos Condutores)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13451,9 +13448,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.1.4", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 13.1.5 (Infrações dos Condutores)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13532,9 +13529,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.1.5", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 13.1.6 (Certidão Negativa Criminal dos Condutores)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13617,10 +13614,10 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.1.6", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                     if etapa_atual == 6:
                         # QUESITO 14.0 (Plano Municipal de Educação)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13699,9 +13696,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 14.1 (Instrumento Normativo do PME)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13764,9 +13761,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 14.2 (Página Eletrônica do PME)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13828,9 +13825,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.2", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 14.3 (Cronograma de Execução das Metas do PME)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13908,9 +13905,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.3", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 14.3.1 (Atingimento das Metas no Prazo)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -13991,9 +13988,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.3.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 15.0 (Plano Municipal pela Primeira Infância)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -14049,9 +14046,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 15.1 (Instrumento Normativo do PMPI)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -14114,9 +14111,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 15.2 (Página Eletrônica do PMPI)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -14178,9 +14175,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.2", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 15.3 (Estipulação de Metas no PMPI)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -14259,9 +14256,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.3", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 15.3.1 (Monitoramento das Metas do PMPI)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -14340,9 +14337,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.3.1", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                        
                         # QUESITO 15.3.2 (Divulgação dos Resultados do PMPI)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -14421,9 +14418,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.3.2", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # QUESITO 15.4 (Palestras e Orientações para Primeira Infância)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -14515,14 +14512,14 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.4", res_data, render_conteudo.refresh)
 
-        # =============================================================================
+        
                             # GRUPO 16 - CONSELHO MUNICIPAL DE EDUCAÇÃO
-                            # =============================================================================
+                           
 
-                            # -----------------------------------------------------------------------------
+                            
                     if etapa_atual == 7:
                         # QUESITO 16.0 - Existência do Conselho
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("16.0 • Conselho Municipal de Educação").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("O município possui Conselho Municipal de Educação?").classes("text-base font-bold text-black mb-6")
@@ -14590,9 +14587,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("16.0", res_data, render_conteudo.refresh)
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 16.1 - Recursos fornecidos para funcionamento
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("16.1 • Recursos para Funcionamento do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal para o funcionamento do Conselho Municipal de Educação:").classes("text-base font-bold text-black mb-6")
@@ -14668,9 +14665,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("16.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 16.2 - Principais Funções do Conselho
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("16.2 • Principais Funções do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale as principais funções do Conselho Municipal de Educação:").classes("text-base font-bold text-black mb-6")
@@ -14746,9 +14743,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("16.2", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 16.3 - Atividades Realizadas no Ano
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("16.3 • Atividades Realizadas no Ano pelo Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale as atividades que o Conselho Municipal de Educação realizou no ano:").classes("text-base font-bold text-black mb-6")
@@ -14831,9 +14828,9 @@ def container_formulario_ieduc(ano=None):
 
 
                   
-                            # -----------------------------------------------------------------------------
+                           
                             # QUESITO 16.3.1 - Quantidade de Irregularidades Apontadas
-                            # -----------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("16.3.1 • Irregularidades Apontadas").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Informe quantas irregularidades foram apontadas:").classes("text-base font-bold text-black mb-6")
@@ -14882,9 +14879,9 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("16.3.1", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                            
                             # QUESITO 16.3.2 - Quantidade de Irregularidades Solucionadas
-                            # -----------------------------------------------------------------------------
+                           
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("16.3.2 • Irregularidades Solucionadas").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Informe quantas irregularidades foram solucionadas:").classes("text-base font-bold text-black mb-6")
@@ -14932,9 +14929,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("16.3.2", res_data, render_conteudo.refresh)
 
-                            # -----------------------------------------------------------------------------
+                           
                             # QUESITO 16.3.3 - Irregularidades Apontadas
-                            # -----------------------------------------------------------------------------
+                           
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("16.3.3 • Irregularidades Apontadas").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Informe as irregularidades apontadas (Se não houve apontamento de irregularidade, informar: Não houve):").classes("text-base font-bold text-black mb-4")
@@ -14981,9 +14978,9 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("16.3.3", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                            
                             # QUESITO 16.4 - Aprovação de Contas pelo CME
-                            # -----------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("16.4 • Aprovação de Contas da SME pelo Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("O Conselho Municipal de Educação aprovou as contas da Secretaria Municipal de Educação referente ao exercício de 2026?").classes("text-base font-bold text-black mb-4")
@@ -15054,9 +15051,9 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("16.4", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                           
                             # QUESITO 16.4.1 - Motivos da Não Aprovação
-                            # -----------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("16.4.1 • Motivos da Não Aprovação").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Informe quais os motivos da não aprovação:").classes("text-base font-bold text-black mb-4")
@@ -15103,9 +15100,9 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("16.4.1", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                            
                             # QUESITO 16.5 - Reuniões do Conselho
-                            # -----------------------------------------------------------------------------
+                          
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("16.5 • Reuniões do Conselho Municipal de Educação").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Quantas reuniões foram realizadas pelo Conselho Municipal de Educação no último exercício?").classes("text-base font-bold text-black mb-1")
@@ -15170,9 +15167,9 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("16.5", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                            
                             # QUESITO 17.0 - CACS FUNDEB
-                            # -----------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("17.0 • Conselho de Acompanhamento e Controle Social do FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("O município possui Conselho de Acompanhamento e Controle Social do FUNDEB?").classes("text-base font-bold text-black mb-4")
@@ -15224,9 +15221,9 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("17.0", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                           
                             # QUESITO 17.1 - Instrumento Normativo CACS FUNDEB
-                            # -----------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("17.1 • Instrumento Normativo de Instituição do CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Informe o Instrumento Normativo, Número e Data da publicação que instituiu o Conselho de Acompanhamento e Controle Social do FUNDEB:").classes("text-base font-bold text-black mb-4")
@@ -15273,9 +15270,9 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("17.1", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                           
                             # QUESITO 17.2 - Link do Instrumento Normativo CACS FUNDEB
-                            # -----------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("17.2 • Página Eletrônica da Norma do CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Informe a página eletrônica (link na internet) do instrumento normativo que instituiu o CACS FUNDEB:").classes("text-base font-bold text-black mb-1")
@@ -15326,9 +15323,9 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("17.2", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                            
                             # QUESITO 17.3 - Informações do CACS FUNDEB no Sítio Eletrônico
-                            # -----------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("17.3 • Informações Atualizadas sobre o CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("A Prefeitura Municipal disponibilizou, em sítio na internet, informações atualizadas sobre a composição e o funcionamento do CACS FUNDEB?").classes("text-base font-bold text-black mb-4")
@@ -15375,9 +15372,9 @@ def container_formulario_ieduc(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("17.3", res_data, render_conteudo.refresh)
 
-                            # -----------------------------------------------------------------------------
+                          
                         # QUESITO 17.3.1 - Informações Disponibilizadas em Sítio na Internet
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("17.3.1 • Informações Disponibilizadas na Internet (CACS FUNDEB)").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale quais informações foram disponibilizadas em sítio na internet:").classes("text-base font-bold text-black mb-6")
@@ -15452,9 +15449,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("17.3.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 17.3.2 - Página Eletrônica do Conselho
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("17.3.2 • Página Eletrônica do Conselho").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Informe a página eletrônica (link na internet) sobre a composição e funcionamento dos conselhos:").classes("text-base font-bold text-black mb-2")
@@ -15492,9 +15489,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("17.3.2", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 17.4 - Recursos fornecidos ao CACS FUNDEB
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("17.4 • Recursos para Funcionamento do CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal ao CACS FUNDEB a fim de garantir infraestrutura e condições materiais adequadas à execução plena de suas competências:").classes("text-base font-bold text-black mb-6")
@@ -15570,9 +15567,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("17.4", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                      
                         # QUESITO 17.5 - Atividades Realizadas pelo CACS FUNDEB
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("17.5 • Atividades Realizadas no Ano pelo CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale as atividades que o CACS Fundeb realizou no ano:").classes("text-base font-bold text-black mb-6")
@@ -15649,9 +15646,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5", res_data, getattr(render_conteudo, "refresh", None))
 
-                            # -----------------------------------------------------------------------------
+                           
                             # QUESITO 17.6 - Parecer da Prestação de Contas CACS FUNDEB
-                            # -----------------------------------------------------------------------------
+                           
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("17.6 • Parecer da Prestação de Contas emitido pelo CACS FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Qual foi o parecer da prestação de contas emitido pelo CACS FUNDEB referente ao exercício de 2026?").classes("text-base font-bold text-black mb-4")
@@ -15717,9 +15714,9 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("17.6", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                           
                             # QUESITO 17.6.1 - Motivos da Não Aprovação CACS FUNDEB
-                            # -----------------------------------------------------------------------------
+                           
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("17.6.1 • Motivos da Não Aprovação").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Informe quais os motivos da não aprovação:").classes("text-base font-bold text-black mb-4")
@@ -15766,9 +15763,9 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("17.6.1", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                            
                             # QUESITO 17.7 - Reuniões do Conselho do FUNDEB
-                            # -----------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                                 ui.label("17.7 • Reuniões do Conselho do FUNDEB").classes("text-xl font-semibold text-blue-500 mb-3")
                                 ui.label("Quantas reuniões foram realizadas pelo Conselho do FUNDEB no último exercício?").classes("text-base font-bold text-black mb-1")
@@ -15833,10 +15830,10 @@ def container_formulario_ieduc(ano=None):
                                 bloco_comentarios("17.7", res_data, render_conteudo.refresh)
 
 
-                            # -----------------------------------------------------------------------------
+                           
                     if etapa_atual == 8:
                         # QUESITO 18.0 - Conselho de Alimentação Escolar (CAE)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("18.0 • Conselho de Alimentação Escolar (CAE)").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("O município constituiu o CAE (Conselho de Alimentação Escolar)?").classes("text-base font-bold text-black mb-4")
@@ -15884,9 +15881,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("18.0", res_data, render_conteudo.refresh)
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 18.1 - Recursos Fornecidos ao CAE
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("18.1 • Recursos Fornecidos ao CAE").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale os recursos fornecidos pela Prefeitura Municipal para o funcionamento do Conselho de Alimentação Escolar:").classes("text-base font-bold text-black mb-4")
@@ -15960,9 +15957,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("18.1", res_data, render_conteudo.refresh)
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 18.2 - Formação aos Conselheiros sobre o PNAE
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("18.2 • Formação aos Conselheiros sobre o PNAE").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("A Prefeitura ofereceu formação aos conselheiros sobre a execução do PNAE e temas que possuam interfaces com este Programa?").classes("text-base font-bold text-black mb-4")
@@ -16020,9 +16017,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("18.2", res_data, render_conteudo.refresh)
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 18.3 - Divulgação das Atividades do CAE
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("18.3 • Divulgação das Atividades do CAE").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("A Prefeitura divulga as atividades do CAE por meio de comunicação oficial?").classes("text-base font-bold text-black mb-4")
@@ -16069,9 +16066,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.3", res_data, render_conteudo.refresh)
 
-    # -----------------------------------------------------------------------------
+    
                         # QUESITO 18.3.1 - Atividades Realizadas pelo CAE no Ano
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("18.3.1 • Atividades Realizadas pelo CAE no Ano").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale as atividades realizadas pelo CAE no ano:").classes("text-base font-bold text-black mb-4")
@@ -16149,9 +16146,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("18.3.1", res_data, render_conteudo.refresh)
 
 
-                    # -----------------------------------------------------------------------------
+                  
                         # QUESITO 18.3.1.1 - Quantidade de Visitas Realizadas pelo CAE
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("18.3.1.1 • Visitas do CAE nas Escolas dos Anos Iniciais").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Informe a quantidade de visitas realizadas pelo CAE nas escolas dos Anos Iniciais no ano:").classes("text-base font-bold text-black mb-4")
@@ -16214,9 +16211,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("18.3.1.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 19.0 - (Re)Elaboração do Currículo da Rede Municipal conforme a BNCC
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("19.0 • Adaptação do Currículo à BNCC").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("A Prefeitura Municipal (re)elaborou o currículo da rede municipal de ensino adequando-se às proposições da Base Nacional Comum Curricular (BNCC)?").classes("text-base font-bold text-black mb-4")
@@ -16268,9 +16265,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("19.0", res_data, render_conteudo.refresh)
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 19.1 - Etapas de Ensino com Currículo Atualizado
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("19.1 • Etapas de Ensino com Currículo Atualizado conforme BNCC").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale as etapas de ensino que estão com o currículo atualizado conforme a BNCC:").classes("text-base font-bold text-black mb-4")
@@ -16334,9 +16331,8 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("19.1", res_data, render_conteudo.refresh)
 
 
-                        # -----------------------------------------------------------------------------
                         # QUESITO 19.2 - Página Eletrônica do Currículo da Rede Municipal
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("19.2 • Link do Currículo da Rede Municipal").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Informe a página eletrônica (link na internet) do currículo da rede municipal de ensino:").classes("text-base font-bold text-black mb-1")
@@ -16376,9 +16372,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("19.2", res_data, render_conteudo.refresh)
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 19.3 - Incorporação do Currículo nos Projetos Político-Pedagógicos (PPP)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("19.3 • Incorporação do Currículo nos PPPs").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("As escolas incorporaram em seus Projetos Político-Pedagógicos o atual currículo da rede municipal de ensino?").classes("text-base font-bold text-black mb-4")
@@ -16446,10 +16442,10 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("19.3", res_data, render_conteudo.refresh)
 
 
-                        # -----------------------------------------------------------------------------
+                        
                     if etapa_atual == 8:
                         # QUESITO 20.0 - Impressões, Comentários e Sugestões sobre o Questionário
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("20.0 • Impressões, Comentários e Sugestões").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?").classes("text-base font-bold text-black mb-1")
@@ -16496,15 +16492,14 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("20.0", res_data, render_conteudo.refresh)
 
-                        # =============================================================================
+                       
                         # SEÇÃO: DADOS EXTERNOS DA EDUCAÇÃO - CRECHE
-                        # =============================================================================
+                       
 
-                        # -----------------------------------------------------------------------------
-                    # =============================================================================
+                       
                     if etapa_atual == 8:
                         # QUESITO E1.1 (Estabelecimentos de Creche com Pátio Infantil - Censo Escolar)
-                        # =============================================================================
+                       
                         d_e11 = res_data.get("E1.1") or res_data.get("E11") or {}
 
                         with ui.card().classes(
@@ -16683,7 +16678,7 @@ def container_formulario_ieduc(ano=None):
                                 str_resposta = json.dumps(val_dict)
 
                                 try:
-                                    # Grava no banco de dados
+                                    
                                     save_resposta(
                                         ano=ano_sel,
                                         qid="E1.1",
@@ -16694,7 +16689,7 @@ def container_formulario_ieduc(ano=None):
                                         status=d_e11.get("status", "Pendente"),
                                     )
 
-                                    # Atualiza a estrutura local de dados em memória antes do refresh
+                                    
                                     novos_dados = {
                                         "resposta": str_resposta,
                                         "valor": str_resposta,
@@ -16726,9 +16721,8 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E1.1", res_data, render_conteudo.refresh)
 
-# -----------------------------------------------------------------------------
+
                         # QUESITO E1.2 - Brinquedos e Materiais Pedagógicos na Creche (Censo Escolar)
-                        # -----------------------------------------------------------------------------
                         d_e12 = res_data.get("E1.2") or res_data.get("E12") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
