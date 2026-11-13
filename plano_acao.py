@@ -29,14 +29,12 @@ ULTIMO_ERRO_BANCO = ""
 
 
 def _normalizar_dados_acao(dados: dict) -> dict:
-    """Converte campos vazios e datas para os tipos aceitos pelo schema."""
+    
     global ULTIMO_ERRO_BANCO
     resultado = {chave: (valor.strip() if isinstance(valor, str) else valor)
                  for chave, valor in dados.items()}
 
-    # Limites definidos no schema plano_acao_iegm. O banco rejeita a operação
-    # quando um texto ultrapassa VARCHAR(n); cortar somente esses campos evita
-    # que uma descrição longa impeça o salvamento dos demais dados.
+   
     limites_varchar = {
         "dimensao": 50,
         "periodo_report": 50,
@@ -88,11 +86,9 @@ def _normalizar_dados_acao(dados: dict) -> dict:
 def obter_ultimo_erro_banco() -> str:
     return ULTIMO_ERRO_BANCO
 
-# ==========================================
-# GESTÃO DE CONEXÃO COM O NEON POSTGRESQL
-# ==========================================
+
 def obter_conexao():
-    """Obtém o conector do projeto ou conecta diretamente ao PostgreSQL."""
+   
     global ULTIMO_ERRO_BANCO
     try:
         try:
@@ -127,7 +123,7 @@ def obter_conexao():
 
 
 def garantir_schema_plano_acao(conn) -> None:
-    """Garante as colunas e amplia o texto de integração sem apagar dados."""
+    
     with conn.cursor() as cur:
         cur.execute(
             "ALTER TABLE plano_acao_iegm "
@@ -145,7 +141,7 @@ def garantir_schema_plano_acao(conn) -> None:
 
 
 def carregar_dados_banco() -> List[dict]:
-    """Carrega todos os registros do banco Neon PostgreSQL."""
+   
     conn = obter_conexao()
     if not conn:
         return []
@@ -188,7 +184,7 @@ def carregar_dados_banco() -> List[dict]:
 
 
 def inserir_acao_banco(dados: dict) -> bool:
-    """Insere uma nova ação no Neon PostgreSQL."""
+   
     global ULTIMO_ERRO_BANCO
     try:
         dados = _normalizar_dados_acao(dados)
@@ -236,7 +232,7 @@ def inserir_acao_banco(dados: dict) -> bool:
 
 
 def atualizar_acao_banco(registro_id: int, dados: dict) -> bool:
-    """Atualiza um registro existente no Neon PostgreSQL pelo ID."""
+   
     global ULTIMO_ERRO_BANCO
     try:
         dados = _normalizar_dados_acao(dados)
@@ -291,7 +287,7 @@ def atualizar_acao_banco(registro_id: int, dados: dict) -> bool:
 
 
 def deletar_acao_banco(registro_id: int) -> bool:
-    """Deleta um registro no Neon PostgreSQL pelo ID."""
+   
     conn = obter_conexao()
     if not conn:
         return False
@@ -312,23 +308,20 @@ def deletar_acao_banco(registro_id: int) -> bool:
 
 
 def recarregar_session_state():
-    """Compatibilidade legada: retorna os dados atuais do banco."""
+   
     return carregar_dados_banco()
 
 
 def init_session_state():
-    """Mantido para compatibilidade; o NiceGUI recarrega por componente."""
+  
     return None
 
 
 def converter_para_df() -> pd.DataFrame:
-    """Converte os registros atuais em DataFrame sem depender de estado externo."""
+  
     return pd.DataFrame(carregar_dados_banco(), columns=COLUNAS)
 
 
-# ==========================================
-# GERADOR DE PDF COM REPORTLAB
-# ==========================================
 class NumberedCanvas(canvas.Canvas):
 
     def __init__(self, *args, **kwargs):
@@ -468,7 +461,7 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
     )
 
     def grafico_pizza_status(df):
-        """Cria um gráfico de pizza vetorial para o relatório PDF."""
+       
         contagem = df["status"].fillna("Sem status").astype(str).value_counts()
         desenho = Drawing(500, 230)
         if contagem.empty:
@@ -710,9 +703,7 @@ def gerar_pdf_relatorio(df_dados, ano_selecionado):
 
 
 
-# ==========================================
-# PAINEL NICEGUI — PLANO DE AÇÃO
-# ==========================================
+
 COLUNAS = [
     "id", "ano_elaboracao", "dimensao", "meta_estrategica", "indicador_desempenho",
     "metas_mensuraveis", "acao", "descricao_acao", "meta", "resultados_esperados",
@@ -767,20 +758,20 @@ def _normalizar_status(status):
 
 
 def _texto(v):
-    """Converte qualquer valor para texto, sem transformar nulo em 'None'."""
+   
     if v is None:
         return ""
     return str(v).strip()
 
 
 def _exibir(v):
-    """Texto padrão para campos vazios na tela e nos relatórios."""
+   
     texto = _texto(v)
     return texto if texto else "Não preenchido"
 
 
 def _titulo_meta_estrategica(registro):
-    """Exibe a meta estratégica cadastrada, sem usar o id ou inventar título."""
+    
     meta = _texto(registro.get("meta_estrategica")).strip()
     if not meta:
         return "Meta estratégica não informada"
@@ -793,14 +784,14 @@ def _titulo_meta_estrategica(registro):
 
 
 def _data(v):
-    """Retorna a data no formato aceito pelo input HTML (yyyy-mm-dd)."""
+   
     if isinstance(v, (date, datetime)):
         return v.strftime("%Y-%m-%d")
     return _texto(v)[:10] if _texto(v) else ""
 
 
 def _data_exibicao(v):
-    """Exibe datas no padrão brasileiro dd/mm/yyyy."""
+   
     if isinstance(v, (date, datetime)):
         return v.strftime("%d/%m/%Y")
     texto = _texto(v)
@@ -922,12 +913,7 @@ def _formulario_acao(on_save, registro=None, ano_elaboracao=None):
 
 
 def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
-    """Renderiza o plano e notifica o cabeçalho externo quando o ano mudar.
-
-    ``ao_alterar_ano`` deve receber o ano selecionado. Assim, a tela que
-    contém o botão Voltar pode atualizar o título superior, por exemplo:
-    ``Plano de Ação - 2027``.
-    """
+   
     ano_inicial = str(ano_sel) if ano_sel not in (None, "", "Todos") else "Todos"
     estado = {
         "dados": [], "dim": "Todas", "status": "Todos",
@@ -958,9 +944,7 @@ def mostrar_formulario_plano_acao(ano_sel=None, ao_alterar_ano=None):
             estado["dados"] = []
             logger.exception("Erro ao carregar plano de ação: %s", exc)
         dados = estado["dados"]
-        # O ano selecionado representa o ano de elaboração do plano.
-        # Não utilizar data_conclusao neste filtro: prazo e ano de elaboração
-        # são informações diferentes.
+        
         filtrados = [r for r in dados if (estado["dim"] == "Todas" or r.get("dimensao") == estado["dim"])
                      and (estado["status"] == "Todos" or r.get("status") == estado["status"])
                      # Registros antigos não possuem ano_elaboracao. Eles devem
