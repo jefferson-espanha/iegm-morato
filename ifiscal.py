@@ -2589,8 +2589,8 @@ def container_formulario_ifiscal(ano=None):
                         )
 
                        
-                        # QUESITO 18.1 (Checkbox - Múltipla Escolha com Pontuação)
-                        # ==========================================
+                        # QUESITO 18.1 
+                        
                         opcoes_18_1 = {
                             "PPA, LDO e LOA – 2,5": 2.5,
                             "Balanços de exercício – 2,5": 2.5,
@@ -2614,9 +2614,9 @@ def container_formulario_ifiscal(ano=None):
 
 
                     if etapa_atual == 4:
-                        # ==========================================
-                        # QUESITO 19.0 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 19.0 
+                       
                         opcoes_19_0 = {
                             "Selecione...": 0.0,
                             "Sim – 03": 3.0,
@@ -2635,9 +2635,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 19.1 (Checkbox - Múltipla Escolha com Pontuação)
-                        # ==========================================
+                       
+                        # QUESITO 19.1
+                      
                         opcoes_19_1 = {
                             "Categoria econômica – 0,3": 0.3,
                             "Origem – 0,3": 0.3,
@@ -2663,9 +2663,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 20.0 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 20.0 
+                      
                         opcoes_20_0 = {
                             "Selecione...": 0.0,
                             "Sim – 03": 3.0,
@@ -2684,9 +2684,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 20.1 (Checkbox - Múltipla Escolha com Pontuação)
-                        # ==========================================
+                        
+                        # QUESITO 20.1 
+                       
                         opcoes_20_1 = {
                             "Valor empenhado – 0,3": 0.3,
                             "Valor liquidado – 0,3": 0.3,
@@ -2720,9 +2720,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 21.0 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 21.0 
+                        
                         opcoes_21_0 = {
                             "Selecione...": 0.0,
                             "Sim – 03": 3.0,
@@ -2741,9 +2741,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 21.1 (Página Eletrônica com Regra XYZ)
-                        # ==========================================
+                       
+                        # QUESITO 21.1 
+                        
                         dados_21_1 = res_data.get("21.1", {})
                         val_21_1 = str(dados_21_1.get("valor", ""))
                         link_21_1 = dados_21_1.get("link", "")
@@ -2830,9 +2830,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("21.1", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO 22.0 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 22.0 
+                       
                         opcoes_22_0 = {
                             "Selecione...": 0.0,
                             "Sim – 03": 3.0,
@@ -2851,9 +2851,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 22.1 (Página Eletrônica com Regra XYZ)
-                        # ==========================================
+                       
+                        # QUESITO 22.1 
+                        
                         dados_22_1 = res_data.get("22.1", {})
                         val_22_1 = str(dados_22_1.get("valor", ""))
                         link_22_1 = dados_22_1.get("link", "")
@@ -2940,9 +2940,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("22.1", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO 23.0 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 23.0 
+                       
                         opcoes_23_0 = {
                             "Selecione...": 0.0,
                             "Todos os repasses foram dentro do prazo legal – 00": 0.0,
@@ -2964,9 +2964,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 24.0 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 24.0 
+                       
                         opcoes_24_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -2985,9 +2985,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 24.1 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 24.1 
+                       
                         opcoes_24_1 = {
                             "Selecione...": 0.0,
                             "Todas as parcelas foram recolhidas dentro do prazo legal – 00": 0.0,
@@ -3009,9 +3009,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 25.0 (Radio)
-                        # ==========================================
+                        
+                        # QUESITO 25.0
+                       
                         opcoes_25_0 = {
                             "Selecione...": 0.0,
                             "Sim": 0.0,
@@ -3030,9 +3030,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 25.1 (Radio)
-                        # ==========================================
+                       
+                        # QUESITO 25.1 
+                       
                         opcoes_25_1 = {
                             "Selecione...": 0.0,
                             "Sim – 00": 0.0,
@@ -3051,9 +3051,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 26.0 (Texto Dissertativo / Feedback)
-                        # ==========================================
+                       
+                        # QUESITO 26.0 
+                       
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -3065,9 +3065,9 @@ def container_formulario_ifiscal(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO F1 (Análise da Receita - Execução Orçamentária)
-                        # ==========================================
+                       
+                        # QUESITO F1 
+                       
                         f1_data = res_data.get("F1", {})
 
                         with ui.card().classes(
@@ -3265,9 +3265,8 @@ def container_formulario_ifiscal(ano=None):
                             )
                             ui.separator().classes("my-2")
                             bloco_comentarios("F1", res_data, render_conteudo.refresh)
-                        # ==========================================
-                        # QUESITO F2 (Análise da Despesa - Execução Orçamentária)
-                        # ==========================================
+                        
+                        # QUESITO F2 
                         f2_data = res_data.get("F2", {})
 
                         with ui.card().classes(
@@ -3300,7 +3299,7 @@ def container_formulario_ifiscal(ano=None):
                                     "🧮 Calculadora Automática do Indicador T"
                                 ).classes("font-bold text-blue-700 mb-2")
 
-                                # Desserialização segura do dicionário salvo
+                              
                                 val_f2_bruto = f2_data.get("valor", {})
                                 while isinstance(val_f2_bruto, str):
                                     try:
@@ -3465,9 +3464,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F2", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F3 (Análise do Resultado da Execução Orçamentária)
-                        # ==========================================
+                       
+                        # QUESITO F3 
+                       
                         f3_data = res_data.get("F3", {})
 
                         with ui.card().classes(
@@ -3665,9 +3664,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F3", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F4 (Análise do Nível de Cancelamento de Restos a Pagar)
-                        # ==========================================
+                       
+                        # QUESITO F4 
+                        
                         f4_data = res_data.get("F4", {})
 
                         with ui.card().classes(
@@ -3802,9 +3801,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F4", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F5 (Despesas com Pessoal – Poder Executivo)
-                        # ==========================================
+                       
+                        # QUESITO F5 
+                       
                         f5_data = res_data.get("F5", {})
 
                         with ui.card().classes(
@@ -3952,9 +3951,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F5", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F6 (Despesas com Pessoal – Poder Legislativo)
-                        # ==========================================
+                       
+                        # QUESITO F6
+                        
                         f6_data = res_data.get("F6", {})
 
                         with ui.card().classes(
@@ -4172,9 +4171,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F6", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F7 (Apuração do Resultado Financeiro – Resultado Consolidado)
-                        # ==========================================
+                       
+                        # QUESITO F7 
+                       
                         f7_data = res_data.get("F7", {})
 
                         with ui.card().classes(
@@ -4318,9 +4317,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F7", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F8 (Apuração da Dívida Fundada - Aumento/Redução)
-                        # ==========================================
+                       
+                        # QUESITO F8
+                        
                         f8_data = res_data.get("F8", {})
 
                         with ui.card().classes(
@@ -4474,9 +4473,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F8", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F9 (Apuração dos Pagamentos dos Precatórios)
-                        # ==========================================
+                        
+                        # QUESITO F9 
+                        
                         f9_data = res_data.get("F9", {})
 
                         with ui.card().classes(
@@ -4616,9 +4615,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F9", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F10 (Repasse de Duodécimos às Câmaras)
-                        # ==========================================
+                       
+                        # QUESITO F10 
+                       
                         f10_data = res_data.get("F10", {})
 
                         with ui.card().classes(
@@ -4752,9 +4751,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F10", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F11 (Pontualidade na Prestação de Contas)
-                        # ==========================================
+                        
+                        # QUESITO F11 
+                        
                         f11_data = res_data.get("F11", {})
 
                         with ui.card().classes(
@@ -4874,9 +4873,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F11", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F12 (Dívida Ativa: Percentual de Recebimento)
-                        # ==========================================
+                        
+                        # QUESITO F12 
+                        
                         f12_data = res_data.get("F12", {})
 
                         with ui.card().classes(
@@ -5102,9 +5101,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F12", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F13 (Dívida Ativa: Percentual de Cancelamento)
-                        # ==========================================
+                      
+                        # QUESITO F13 
+                       
                         f13_data = res_data.get("F13", {})
 
                         with ui.card().classes(
@@ -5269,9 +5268,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F13", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F14 (Alertas do Sistema AUDESP)
-                        # ==========================================
+                       
+                        # QUESITO F14 
+                       
                         f14_data = res_data.get("F14", {})
 
                         with ui.card().classes(
@@ -5404,9 +5403,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F14", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F15 (Balancetes Rejeitados)
-                        # ==========================================
+                       
+                        # QUESITO F15 
+                      
                         f15_data = res_data.get("F15", {})
 
                         with ui.card().classes(
@@ -5539,9 +5538,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F15", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F16 (Resultado Primário - Operacional)
-                        # ==========================================
+                       
+                        # QUESITO F16 
+                        
                         f16_data = res_data.get("F16", {})
 
                         with ui.card().classes(
@@ -5697,9 +5696,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F16", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F17 (Índice de Liquidez Imediata)
-                        # ==========================================
+                        
+                        # QUESITO F17
+                       
                         f17_data = res_data.get("F17", {})
 
                         with ui.card().classes(
@@ -5866,9 +5865,8 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F17", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F18 (Limite de Endividamento - Regra de Ouro)
-                        # ==========================================
+                        
+                        # QUESITO F18 
                         f18_data = res_data.get("F18", {})
 
                         with ui.card().classes(
@@ -6035,9 +6033,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F18", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F19 (Percentual da Taxa de Investimento)
-                        # ==========================================
+                        
+                        # QUESITO F19 
+                        
                         f19_data = res_data.get("F19", {})
 
                         with ui.card().classes(
@@ -6219,9 +6217,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F19", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F20 (Relação Despesas Correntes / Receitas Correntes - Art. 167-A)
-                        # ==========================================
+                       
+                        # QUESITO F20 
+                       
                         f20_data = res_data.get("F20", {})
 
                         with ui.card().classes(
@@ -6387,9 +6385,9 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F20", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO F21 (Liquidez dos Restos a Pagar - LRP)
-                        # ==========================================
+                       
+                        # QUESITO F21 
+                     
                         f21_data = res_data.get("F21", {})
 
                         with ui.card().classes(
@@ -6545,13 +6543,11 @@ def container_formulario_ifiscal(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("F21", res_data, render_conteudo.refresh)
 
-        # Renderiza o conteúdo na primeira abertura da página.
-        # Sem esta chamada, o container é criado, mas permanece vazio.
+      
 
     render_conteudo()
 
-    # O card do relatório pertence ao mesmo fluxo do formulário.
-    # Ele é chamado depois da renderização inicial, como no módulo-modelo.
+   
     try:
         ano_relatorio = int(
             app.storage.user.get("ano_referencia_global", ano or 2026)
@@ -6567,9 +6563,7 @@ def container_formulario_ifiscal(ano=None):
         ano_sel=ano_relatorio,
     )
 
-# -----------------------------------------------------------------------------
-# 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
-# -----------------------------------------------------------------------------
+
 def renderizar_card_relatorio_ifiscal(res_data=None, ano_sel=2026):
     """
     Componente NiceGUI para renderizar o Card de Emissão do PDF do I-Fiscal.
@@ -6681,9 +6675,7 @@ import asyncio
 from nicegui import app, ui
 from fastapi import Response
 
-# -----------------------------------------------------------------------------
-# 1. MAPEAMENTOS E TETOS DE PONTUAÇÃO DO I-Fiscal
-# -----------------------------------------------------------------------------
+
 PONTUACOES_MAX_Fiscal = {
     "1.1": 0.5,
     "1.2": 1.5,
@@ -6729,7 +6721,7 @@ PONTUACOES_MAX_Fiscal = {
     "F18": 75.0,
 }
 
-# Aliases de compatibilidade para evitar NameError
+
 PONTUACOES_MAX_IAMB = PONTUACOES_MAX_Fiscal
 PONTUACOES_MAX_IFISCAL = PONTUACOES_MAX_Fiscal
 PONTUACOES_MAX = PONTUACOES_MAX_Fiscal
@@ -6756,20 +6748,18 @@ PENALIDADES_MAX = {
     "F21": -50.0,
 }
 
-# String de conexão com o PostgreSQL
+
 DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
 
-# -----------------------------------------------------------------------------
-# 2. FUNÇÕES AUXILIARES E REGRAS DE NEGÓCIO I-Fiscal
-# -----------------------------------------------------------------------------
+
 def get_db_connection():
-    """Cria conexão segura com o Neon PostgreSQL usando linhas por nome de coluna."""
+  
     return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
 
 
 def calcular_percentual_checklist(resp, total_itens):
-    """Calcula a porcentagem de itens atendidos em um checklist."""
+    
     if not resp:
         return 0.0
     if isinstance(resp, list):
@@ -6782,7 +6772,7 @@ def calcular_percentual_checklist(resp, total_itens):
 
 
 def obter_regra_ods_iamb(qid, resp):
-    """Mapeia os quesitos do I-Fiscal para as metas da Agenda 2030 (ODS) e seu status."""
+    
     resp_l = str(resp).strip().lower()
     metas = "-"
     status = "Não Atendido"
@@ -6879,7 +6869,7 @@ def obter_regra_ods_iamb(qid, resp):
 
 
 def _desserializar_resposta(valor):
-    """Converte respostas JSON armazenadas como texto sem perder textos comuns."""
+   
     resultado = valor
     while isinstance(resultado, str):
         texto = resultado.strip()
@@ -6896,7 +6886,7 @@ def _desserializar_resposta(valor):
 
 
 def get_all_years_data():
-    """Busca a série histórica do I-Fiscal no PostgreSQL Neon DB."""
+  
     all_data = {}
     query = """
         SELECT ano, quesito, resposta, pontos, detalhes
@@ -6942,7 +6932,7 @@ def get_all_years_data():
 
 
 def load_respostas(ano):
-    """Carrega as respostas de um ano específico do PostgreSQL Neon DB."""
+    
     respostas = {}
     query = """
         SELECT id, ano, quesito, resposta, pontos, detalhes
@@ -7006,11 +6996,9 @@ def converter_pontos_em_faixa_iegm(pontos):
         return "A"
 
 
-# -----------------------------------------------------------------------------
-# 3. GERADOR DE RELATÓRIO PDF COMPLETO (REPORTLAB)
-# -----------------------------------------------------------------------------
+
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
-    """Gere o relatório completo e não-resumido do I-Fiscal em PDF."""
+   
 
     lista_alvo_ifiscal = [
         "1.0",
@@ -7124,9 +7112,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     ano_ant = ano_normalizado - 1
     todos_dados = todos_dados or {}
 
-    # -------------------------------------------------------------------------
+  
     # CAPA
-    # -------------------------------------------------------------------------
+    
     elements.append(Spacer(1, 40))
     logo_path = "iegm.png"
     if os.path.exists(logo_path):
@@ -7143,11 +7131,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     elements.append(Spacer(1, 40))
 
-    # Título limpo em linha única
+   
     elements.append(Paragraph("<b>Relatório I-Fiscal</b>", styles["TitleCapa"]))
     elements.append(Spacer(1, 15))
 
-    # Subtítulo com Ano de Referência
+   
     elements.append(
         Paragraph(
             f"Exercício de Referência: <b>{ano_normalizado}</b>", styles["SubTitleCapa"]
@@ -7155,9 +7143,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     )
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+   
     # SUMÁRIO
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>SUMÁRIO DE CONTEÚDO</b>", styles["Heading1"]))
     elements.append(Spacer(1, 20))
 
@@ -7217,9 +7205,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_sumario)
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+  
     # 1. RESUMO EXECUTIVO
-    # -------------------------------------------------------------------------
+   
     elements.append(
         Paragraph(
             "<b>1. RESUMO EXECUTIVO E EVOLUÇÃO COMPARATIVA</b>", styles["Heading2"]
@@ -7305,9 +7293,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_exec)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 2. DESEMPENHO POR QUESITO (FORTES E FRACOS)
-    # -------------------------------------------------------------------------
+    
     elements.append(
         Paragraph(
             "<b>2. ANÁLISE DETALHADA DE DESEMPENHO POR QUESITO</b>", styles["Heading2"]
@@ -7362,7 +7350,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
                         {"qid": qid, "max": pts_max, "ant": pts_ant, "atual": pts_obt}
                     )
 
-    # Tabela Pontos Fortes
+   
     if pontos_fortes:
         elements.append(
             Paragraph("<b>✅ Pontos Fortes (Eficiência ≥ 70%)</b>", styles["Heading3"])
@@ -7394,7 +7382,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tf)
         elements.append(Spacer(1, 10))
 
-    # Tabela Pontos Fracos
+   
     if pontos_fracos:
         elements.append(
             Paragraph("<b>⚠️ Pontos Fracos (Eficiência < 70%)</b>", styles["Heading3"])
@@ -7427,9 +7415,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+    
     # 3. PENALIDADES E IMPACTOS NEGATIVOS
-    # -------------------------------------------------------------------------
+    
     elements.append(
         Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES</b>", styles["Heading2"])
     )
@@ -7468,9 +7456,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_penal)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
-    # -------------------------------------------------------------------------
+   
     elements.append(
         Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["Heading2"])
     )
@@ -7518,9 +7506,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+    
     # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU) - I-Fiscal
-    # -------------------------------------------------------------------------
+    
     elements.append(
         Paragraph(
             "<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]
@@ -7566,7 +7554,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         )
 
     def obter_regra_ods_ifiscal(qid, resp):
-        """Mapeia os quesitos do I-Fiscal para as metas da Agenda 2030 (ODS) e seu status."""
+        
         resp_l = str(resp).strip().lower()
         metas = "-"
         status = "Não Atendido"
@@ -7661,7 +7649,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
         return metas, status
 
-    # Lista de Quesitos do I-Fiscal mapeados na regra ODS
+  
     QUESITOS_IFISCAL_ODS = [
         "1.0",
         "1.1",
@@ -7715,7 +7703,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         if not resp or resp_l == "não respondido" or resp == "[]":
             continue
 
-        # Obtém metas e status calculados dinamicamente
+        
         metas, status = obter_regra_ods_iamb(qid, resp)
 
         exibicao_resp = resp
@@ -7807,9 +7795,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tabela_ods)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 6. SÉRIE HISTÓRICA DO I-FISCAL
-    # -------------------------------------------------------------------------
+    
     elements.append(
         Paragraph("<b>6. SÉRIE HISTÓRICA DO I-Fiscal</b>", styles["Heading2"])
     )
@@ -7835,11 +7823,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         f_a = converter_pontos_em_faixa_iegm(tot_a)
         data_hist.append([str(a), f"{tot_a:.1f} pts", f_a])
 
-        # Coleta dados para o gráfico
+        
         anos_labels.append(str(a))
         pontos_valores.append(tot_a)
 
-    # 1. Tabela
+   
     t_hist = Table(data_hist, colWidths=[120, 180, 180])
     t_hist.setStyle(
         TableStyle(
@@ -7854,7 +7842,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_hist)
     elements.append(Spacer(1, 15))
 
-    # 2. Gráfico de Barras Vertical
+   
     if pontos_valores:
         d = Drawing(480, 180)
 
@@ -7865,19 +7853,19 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         bc.width = 410
         bc.data = [pontos_valores]
 
-        # Eixo X (Anos)
+        
         bc.categoryAxis.categoryNames = anos_labels
         bc.categoryAxis.labels.fontSize = 9
         bc.categoryAxis.labels.dy = -10
 
-        # Eixo Y (Pontuação)
+        
         max_v = max(pontos_valores) if pontos_valores else 100
         bc.valueAxis.valueMin = 0
         bc.valueAxis.valueMax = max(max_v * 1.15, 100)
         bc.valueAxis.valueStep = 20
         bc.valueAxis.labels.fontSize = 8
 
-        # Estilo das Barras
+        
         bc.bars[0].fillColor = colors.HexColor("#2980B9")
         bc.bars[0].strokeColor = colors.HexColor("#1B4F72")
 
@@ -7885,9 +7873,135 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(d)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)
-    # -------------------------------------------------------------------------
+   
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL)
+   
+    elements.append(
+        Paragraph(
+            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL)</b>",
+            styles["Heading2"],
+        )
+    )
+    elements.append(Spacer(1, 6))
+
+    data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
+
+    for qsp in lista_alvo_ifiscal:
+        info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
+        resp_sp = "-"
+        status_sp = "Não Informado"
+
+        if info_sp:
+            resp_sp = (
+                info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
+            )
+            status_sp = (
+                "Em Conformidade"
+                if "sim" in str(resp_sp).lower()
+                else "Fora de Conformidade"
+            )
+
+        data_sp.append([qsp, Paragraph(str(resp_sp), styles["TdStyle"]), status_sp])
+
+    t_sp = Table(data_sp, colWidths=[100, 250, 130])
+    t_sp.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495E")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                ("ALIGN", (2, 0), (2, -1), "CENTER"),
+            ]
+        )
+    )
+    elements.append(t_sp)
+
+   
+    doc.build(elements)
+    return buffer.getvalue()
+
+   
+    # 6. SÉRIE HISTÓRICA DO I-FISCAL
+   
+    elements.append(
+        Paragraph("<b>6. SÉRIE HISTÓRICA DO I-Fiscal</b>", styles["Heading2"])
+    )
+    elements.append(Spacer(1, 6))
+
+    data_hist = [["Exercício / Ano", "Pontuação Acumulada", "Faixa / Conceito"]]
+    anos_ordenados = sorted(todos_dados.keys())
+
+    anos_labels = []
+    pontos_valores = []
+
+    for a in anos_ordenados:
+        sub_d = todos_dados[a]
+        tot_a = 0.0
+        if isinstance(sub_d, dict):
+            for k_a, v_a in sub_d.items():
+                if str(k_a).startswith("COM_"):
+                    continue
+                tot_a += converter_para_float(
+                    v_a.get("pontos") if isinstance(v_a, dict) else v_a
+                )
+
+        f_a = converter_pontos_em_faixa_iegm(tot_a)
+        data_hist.append([str(a), f"{tot_a:.1f} pts", f_a])
+
+       
+        anos_labels.append(str(a))
+        pontos_valores.append(tot_a)
+
+   
+    t_hist = Table(data_hist, colWidths=[120, 180, 180])
+    t_hist.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2C3E50")),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
+                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ]
+        )
+    )
+    elements.append(t_hist)
+    elements.append(Spacer(1, 15))
+
+   
+    if pontos_valores:
+        d = Drawing(480, 180)
+
+        bc = VerticalBarChart()
+        bc.x = 40
+        bc.y = 25
+        bc.height = 135
+        bc.width = 410
+        bc.data = [pontos_valores]
+
+        
+        bc.categoryAxis.categoryNames = anos_labels
+        bc.categoryAxis.labels.fontSize = 9
+        bc.categoryAxis.labels.dy = -10
+
+        
+        max_v = max(pontos_valores) if pontos_valores else 100
+        bc.valueAxis.valueMin = 0
+        bc.valueAxis.valueMax = max(max_v * 1.15, 100)
+        bc.valueAxis.valueStep = 20
+        bc.valueAxis.labels.fontSize = 8
+
+       
+        bc.bars[0].fillColor = colors.HexColor("#2980B9")
+        bc.bars[0].strokeColor = colors.HexColor("#1B4F72")
+
+        d.add(bc)
+        elements.append(d)
+        elements.append(Spacer(1, 15))
+
+   
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL)
+   
     elements.append(
         Paragraph(
             "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)</b>",
@@ -7929,147 +8043,15 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     )
     elements.append(t_sp)
 
-    # Construção do Documento PDF
-    doc.build(elements)
-    return buffer.getvalue()
-
-    # -------------------------------------------------------------------------
-    # 6. SÉRIE HISTÓRICA DO I-FISCAL
-    # -------------------------------------------------------------------------
-    elements.append(
-        Paragraph("<b>6. SÉRIE HISTÓRICA DO I-Fiscal</b>", styles["Heading2"])
-    )
-    elements.append(Spacer(1, 6))
-
-    data_hist = [["Exercício / Ano", "Pontuação Acumulada", "Faixa / Conceito"]]
-    anos_ordenados = sorted(todos_dados.keys())
-
-    anos_labels = []
-    pontos_valores = []
-
-    for a in anos_ordenados:
-        sub_d = todos_dados[a]
-        tot_a = 0.0
-        if isinstance(sub_d, dict):
-            for k_a, v_a in sub_d.items():
-                if str(k_a).startswith("COM_"):
-                    continue
-                tot_a += converter_para_float(
-                    v_a.get("pontos") if isinstance(v_a, dict) else v_a
-                )
-
-        f_a = converter_pontos_em_faixa_iegm(tot_a)
-        data_hist.append([str(a), f"{tot_a:.1f} pts", f_a])
-
-        # Coleta dados para o gráfico
-        anos_labels.append(str(a))
-        pontos_valores.append(tot_a)
-
-    # 1. Tabela
-    t_hist = Table(data_hist, colWidths=[120, 180, 180])
-    t_hist.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2C3E50")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ]
-        )
-    )
-    elements.append(t_hist)
-    elements.append(Spacer(1, 15))
-
-    # 2. Gráfico de Barras Vertical
-    if pontos_valores:
-        d = Drawing(480, 180)
-
-        bc = VerticalBarChart()
-        bc.x = 40
-        bc.y = 25
-        bc.height = 135
-        bc.width = 410
-        bc.data = [pontos_valores]
-
-        # Eixo X (Anos)
-        bc.categoryAxis.categoryNames = anos_labels
-        bc.categoryAxis.labels.fontSize = 9
-        bc.categoryAxis.labels.dy = -10
-
-        # Eixo Y (Pontuação)
-        max_v = max(pontos_valores) if pontos_valores else 100
-        bc.valueAxis.valueMin = 0
-        bc.valueAxis.valueMax = max(max_v * 1.15, 100)
-        bc.valueAxis.valueStep = 20
-        bc.valueAxis.labels.fontSize = 8
-
-        # Estilo das Barras
-        bc.bars[0].fillColor = colors.HexColor("#2980B9")
-        bc.bars[0].strokeColor = colors.HexColor("#1B4F72")
-
-        d.add(bc)
-        elements.append(d)
-        elements.append(Spacer(1, 15))
-
-    # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)
-    # -------------------------------------------------------------------------
-    elements.append(
-        Paragraph(
-            "<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-FISCAL - CONFORMIDADE OPERACIONAL)</b>",
-            styles["Heading2"],
-        )
-    )
-    elements.append(Spacer(1, 6))
-
-    data_sp = [["Quesito Target", "Resposta Apresentada", "Situação de Conformidade"]]
-
-    for qsp in lista_alvo_ifiscal:
-        info_sp = dados.get(qsp) or dados.get(f"Q_{qsp}")
-        resp_sp = "-"
-        status_sp = "Não Informado"
-
-        if info_sp:
-            resp_sp = (
-                info_sp.get("valor", "") if isinstance(info_sp, dict) else str(info_sp)
-            )
-            status_sp = (
-                "Em Conformidade"
-                if "sim" in str(resp_sp).lower()
-                else "Fora de Conformidade"
-            )
-
-        data_sp.append([qsp, Paragraph(str(resp_sp), styles["TdStyle"]), status_sp])
-
-    t_sp = Table(data_sp, colWidths=[100, 250, 130])
-    t_sp.setStyle(
-        TableStyle(
-            [
-                ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#34495E")),
-                ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-                ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#BDC3C7")),
-                ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
-                ("ALIGN", (2, 0), (2, -1), "CENTER"),
-            ]
-        )
-    )
-    elements.append(t_sp)
-
-    # Construção do Documento PDF
+   
     doc.build(elements)
     return buffer.getvalue()
 
 
-# Alias de compatibilidade caso seja chamado com nome antigo
-renderizar_card_relatorio_iamb = renderizar_card_relatorio_ifiscal
-# Alias compatível com a chamada usada pela página principal.
-renderizar_card_relatorio_ifiscal = renderizar_card_relatorio_ifiscal
 
 
 def _render_formulario_ifiscal(ano=2026):
-    """
-    Renderiza os campos do formulário do I-FISCAL na interface NiceGUI.
-    """
+   
     with ui.column().classes("w-full p-4"):
         ui.label(f"Formulário do I-Fiscal - Exercício {ano}").classes(
             "text-2xl font-bold text-gray-800 mb-4"
@@ -8081,16 +8063,14 @@ def _render_formulario_ifiscal(ano=2026):
 
 
 def container_formulario_(ano=None, res_data=None, ano_sel=2026):
-    """
-    Ponto de entrada público do módulo I-FISCAL no NiceGUI.
-    """
+    
     ano_inicial = ano if ano is not None else ano_sel
-    # Container principal centralizado
+    
     with ui.element("div").classes("w-full max-w-5xl mx-auto p-4"):
-        # 1. Renderiza o formulário I-Fiscal real exibido ao usuário.
+        
         container_formulario_ifiscal(ano=ano_inicial)
 
-        # 2. Carrega as respostas do banco de dados com tratamento de exceção seguro
+       
         dados_relatorio = res_data
         if dados_relatorio is None:
             try:
@@ -8107,7 +8087,7 @@ def container_formulario_(ano=None, res_data=None, ano_sel=2026):
         else:
             ano_relatorio = ano_inicial
 
-        # 3. Renderiza o card do relatório PDF
+       
         renderizar_card_relatorio_ifiscal(
             res_data=dados_relatorio,
             ano_sel=ano_relatorio,
@@ -8116,12 +8096,11 @@ def container_formulario_(ano=None, res_data=None, ano_sel=2026):
 
 @ui.page("/")
 def pagina_principal():
-    # O container monta o formulário e, ao final, o card do relatório.
+   
     container_formulario_ifiscal()
 
 
-# O NiceGUI pode iniciar o módulo como __mp_main__ quando usa multiprocessing.
-# Com apenas __main__, o servidor sobe e encerra antes de renderizar a página.
+
 if __name__ in {"__main__", "__mp_main__"}:
     ui.run(
         storage_secret=os.getenv(
