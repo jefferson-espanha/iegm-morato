@@ -536,9 +536,7 @@ def render_quesito(
                         placeholder=placeholder_link,
                     ).classes("w-full").props("outlined rows=3")
 
-                    # O link fica disponível apenas no campo de evidência,
-                    # sem renderização automática de "Links Ativos" abaixo dele.
-
+                    
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
             def atualizar_label_pontos(pts, val):
@@ -668,7 +666,7 @@ def container_formulario_igov_ti():
                 )
 
             if etapa_atual == 1:
-                # QUESITO 1.0
+               
                 opcoes_10 = {
                     "Selecione...": 0.0,
                     "Sim – 30 pts": 30.0,
@@ -3363,7 +3361,7 @@ def container_formulario_igov_ti():
                                 "max": p_max
                             })
    
-    # CARD DE EMISSÃO DO RELATÓRIO PDF (4 ESPAÇOS DE INDENTAÇÃO)
+   
    
     with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
         ui.label("📄 Emissão de Relatório Analítico - iGov TI").classes("text-xl font-bold text-blue-900 mb-1")
@@ -3451,7 +3449,7 @@ PONTUACOES_MAX_DEFAULT = {
 
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
    
-    # DEFINIÇÃO DOS QUESITOS SEM PONTUAÇÃO DIRETA E SUAS REGRAS
+   
    
     LISTA_ALVO_SP = ["1.4", "3.2", "5.0", "5.3", "9.0", "10.0", "10.3", "10.4", "10.5", "11.0"]
 
@@ -3660,7 +3658,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
         qid_clean = str(qid_raw).replace("Q_", "").strip()
 
-        # Ignora itens sem pontuação direta definidos na LISTA_ALVO_SP
+       
         if qid_clean in LISTA_ALVO_SP:
             continue
 
