@@ -16844,9 +16844,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E1.2", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E1.3 - Número de Crianças Matriculadas na Creche
-                        # -----------------------------------------------------------------------------
+                        
                         d_e13 = res_data.get("E1.3") or res_data.get("E13") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -16919,9 +16919,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E1.3", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E1.4 - Data de Início de Funcionamento das Creches
-                        # -----------------------------------------------------------------------------
+                        
                         d_e14 = res_data.get("E1.4") or res_data.get("E14") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -16982,9 +16982,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E1.4", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E1.5 - PPP Atualizado nos Estabelecimentos de Creche (Censo Escolar)
-                        # -----------------------------------------------------------------------------
+                       
                         d_e15 = res_data.get("E1.5") or res_data.get("E15") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -17106,9 +17106,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E1.5", res_data, getattr(render_conteudo, "refresh", None))
 
                        
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E1.6 - Quantidade de Professores de Creche (Efetivos vs Temporários)
-                        # -----------------------------------------------------------------------------
+                        
                         d_e16 = res_data.get("E1.6") or res_data.get("E16") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -17239,9 +17239,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E1.6", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E1.7 - Quantidade de Profissionais de Creche (Regentes e Apoio)
-                        # -----------------------------------------------------------------------------
+                       
                         d_e17 = res_data.get("E1.7") or res_data.get("E17") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -17338,9 +17338,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E1.7", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E1.8 - Estabelecimentos de Creche com Tempo Integral
-                        # -----------------------------------------------------------------------------
+                       
                         d_e18 = res_data.get("E1.8") or res_data.get("E18") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -17473,9 +17473,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E1.8", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E1.9 - Alunos de Creche em Tempo Integral (7h ou mais/dia)
-                        # -----------------------------------------------------------------------------
+                        
                         d_e19 = res_data.get("E1.9") or res_data.get("E19") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -17608,9 +17608,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E1.9", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E1.10 - Alunos de Creche com Deficiência / TGD / Superdotação
-                        # -----------------------------------------------------------------------------
+                        
                         d_e110 = res_data.get("E1.10") or res_data.get("E110") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -17670,9 +17670,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E1.10", res_data, getattr(render_conteudo, "refresh", None))
                             
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E1.10.1 - Atendimento Educacional Especializado (AEE) na Creche
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E1.10.1 • Atendimento Educacional Especializado (AEE)").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Houve Atendimento Educacional Especializado (AEE) na Rede Municipal de Ensino? (Dados Censo Escolar 2026):").classes("text-base font-bold text-black mb-4")
@@ -17731,9 +17731,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E1.10.1", res_data, render_conteudo.refresh)
 
 
-                       # -----------------------------------------------------------------------------
+                       
                         # QUESITO E2.1 - Estabelecimentos de Pré-escola com Pátio Infantil
-                        # -----------------------------------------------------------------------------
+                        
                         d_e21 = res_data.get("E2.1") or res_data.get("E21") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -17854,9 +17854,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E2.2 - Brinquedos e Materiais Pedagógicos na Pré-escola
-                        # -----------------------------------------------------------------------------
+                      
                         d_e22 = res_data.get("E2.2") or res_data.get("E22") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -17977,9 +17977,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.2", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E2.3 - Crianças Matriculadas na Pré-escola
-                        # -----------------------------------------------------------------------------
+                        
                         d_e23 = res_data.get("E2.3") or res_data.get("E23") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -18052,9 +18052,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.3", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E2.4 - Data de Início do Ano Letivo para a Pré-escola
-                        # -----------------------------------------------------------------------------
+                       
                         d_e24 = res_data.get("E2.4") or res_data.get("E24") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -18115,9 +18115,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.4", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E2.5 - PPP Atualizado nos Estabelecimentos de Pré-escola
-                        # -----------------------------------------------------------------------------
+                        
                         d_e25 = res_data.get("E2.5") or res_data.get("E25") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -18238,9 +18238,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.5", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E2.6 - Professores de Pré-escola (Efetivos vs Temporários)
-                        # -----------------------------------------------------------------------------
+                        
                         d_e26 = res_data.get("E2.6") or res_data.get("E26") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -18371,9 +18371,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.6", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                       # -----------------------------------------------------------------------------
+                      
                         # QUESITO E2.7 - Profissionais de Pré-escola (Regentes e Apoio)
-                        # -----------------------------------------------------------------------------
+                        
                         d_e27 = res_data.get("E2.7") or res_data.get("E27") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -18470,9 +18470,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.7", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E2.8 - Estabelecimentos de Pré-escola com Tempo Integral
-                        # -----------------------------------------------------------------------------
+                       
                         d_e28 = res_data.get("E2.8") or res_data.get("E28") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -18605,9 +18605,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.8", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E2.9 - Alunos de Pré-escola em Tempo Integral
-                        # -----------------------------------------------------------------------------
+                        
                         d_e29 = res_data.get("E2.9") or res_data.get("E29") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -18740,9 +18740,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.9", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                      
                         # QUESITO E2.10 - Alunos de Pré-escola com Deficiência/PCD
-                        # -----------------------------------------------------------------------------
+                      
                         d_e210 = res_data.get("E2.10") or res_data.get("E210") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -18803,9 +18803,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.10", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E2.10.1 - AEE na Pré-escola
-                        # -----------------------------------------------------------------------------
+                       
                         d_e2101 = res_data.get("E2.10.1") or res_data.get("E2101") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -18879,9 +18879,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E2.10.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E3.1 - Crianças Matriculadas nos Anos Iniciais
-                        # -----------------------------------------------------------------------------
+                       
                         d_e31 = res_data.get("E3.1") or res_data.get("E31") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -18954,9 +18954,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.2 - Data de Início do Ano Letivo (Anos Iniciais)
-                        # -----------------------------------------------------------------------------
+                       
                         d_e32 = res_data.get("E3.2") or res_data.get("E32") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -19017,9 +19017,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.2", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.3 - PPP Atualizado nos Anos Iniciais
-                        # -----------------------------------------------------------------------------
+                       
                         d_e33 = res_data.get("E3.3") or res_data.get("E33") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -19139,9 +19139,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E3.3", res_data, getattr(render_conteudo, "refresh", None))
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.4 - Infraestrutura Tecnológica nos Anos Iniciais
-                        # -----------------------------------------------------------------------------
+                        
                         d_e34 = res_data.get("E3.4") or res_data.get("E34") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -19366,9 +19366,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E3.4", res_data, getattr(render_conteudo, "refresh", None))
                             
-                       # -----------------------------------------------------------------------------
+                      
                         # QUESITO E3.5 - Professores dos Anos Iniciais (Efetivos vs Temporários)
-                        # -----------------------------------------------------------------------------
+                        
                         d_e35 = res_data.get("E3.5") or res_data.get("E35") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -19499,9 +19499,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.5", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.6 - Profissionais dos Anos Iniciais (Regentes e Apoio)
-                        # -----------------------------------------------------------------------------
+                        
                         d_e36 = res_data.get("E3.6") or res_data.get("E36") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -19598,9 +19598,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.6", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.7 - Taxa de Reprovação dos Anos Iniciais
-                        # -----------------------------------------------------------------------------
+                        
                         d_e37 = res_data.get("E3.7") or res_data.get("E37") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -19677,9 +19677,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.7", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.8 - Taxa de Abandono e Distorção Idade-Série
-                        # -----------------------------------------------------------------------------
+                        
                         d_e38 = res_data.get("E3.8") or res_data.get("E38") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -19872,9 +19872,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.8", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.9 - Estabelecimentos com Turmas em Tempo Integral
-                        # -----------------------------------------------------------------------------
+                       
                         d_e39 = res_data.get("E3.9") or res_data.get("E39") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -20007,9 +20007,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.9", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E3.10 - Alunos Matriculados em Tempo Integral
-                        # -----------------------------------------------------------------------------
+                        
                         d_e310 = res_data.get("E3.10") or res_data.get("E310") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -20141,9 +20141,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E3.10", res_data, getattr(render_conteudo, "refresh", None))
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.11 - Alunos Matriculados em Turmas Noturnas
-                        # -----------------------------------------------------------------------------
+                        
                         d_e311 = res_data.get("E3.11") or res_data.get("E311") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -20219,9 +20219,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.11", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.12 / E3.12.1 - Educação Especial e APE
-                        # -----------------------------------------------------------------------------
+                        
                         d_e312 = res_data.get("E3.12") or res_data.get("E312") or {}
                         d_e3121 = res_data.get("E3.12.1") or res_data.get("E3121") or {}
 
@@ -20303,9 +20303,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.12", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.13 - Participação no SAEB / Prova Brasil
-                        # -----------------------------------------------------------------------------
+                       
                         d_e313 = res_data.get("E3.13") or res_data.get("E313") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -20366,9 +20366,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.13", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.13.1 - Metas e Resultados do IDEB
-                        # -----------------------------------------------------------------------------
+                        
                         d_e3131 = res_data.get("E3.13.1") or res_data.get("E3131") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -20499,9 +20499,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E3.13.1", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E3.13.2 - Frequência de Alunos no SAEB / Prova Brasil
-                        # -----------------------------------------------------------------------------
+                        
                         d_e3132 = res_data.get("E3.13.2") or res_data.get("E3132") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -20630,9 +20630,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E3.13.2", res_data, getattr(render_conteudo, "refresh", None))
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E3.13.3 - Níveis de Desempenho no SAEB (LP e MAT - 5º Ano)
-                        # -----------------------------------------------------------------------------
+                       
                         d_e3133 = res_data.get("E3.13.3") or res_data.get("E3133") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -20777,9 +20777,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E3.13.3", res_data, getattr(render_conteudo, "refresh", None))                  
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E5 - Infraestrutura das Escolas da Rede Municipal
-                        # -----------------------------------------------------------------------------
+                        
                         d_e5 = res_data.get("E5") or res_data.get("E50") or {}
 
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
@@ -21083,9 +21083,9 @@ def container_formulario_ieduc(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("E5", res_data, getattr(render_conteudo, "refresh", None))
 
-   # =============================================================================
+  
                         # QUESITO E6 (Compartilhamento de Espaços com a Comunidade)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -21195,9 +21195,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E6", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # =============================================================================
+                        
                         # QUESITO E7 (Utilização do Entorno Escolar)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -21307,9 +21307,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E7", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # =============================================================================
+                        
                         # QUESITO E8 (Exame de Seleção para Ingresso de Alunos)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -21417,7 +21417,7 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E8", res_data, getattr(render_conteudo, "refresh", None))
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         def _carregar_valor_especial(respostas, *ids):
                             """Lê o payload dentro de registro['valor'] sem perder dados."""
                             registro = {}
@@ -21437,7 +21437,7 @@ def container_formulario_ieduc(ano=None):
                             return registro, valor
 
                         # QUESITO E9 - Aplicação de Recursos do FUNDEB
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E9 • Aplicação Geral do FUNDEB (Regra de Rebaixamento)").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Percentual de Aplicação dos Recursos do FUNDEB (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
@@ -21511,9 +21511,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E9", res_data, render_conteudo.refresh)
 
 
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO E10 - FUNDEB Profissionais da Educação
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E10 • FUNDEB - Profissionais da Educação (Regra de Rebaixamento)").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Percentual de Aplicação do FUNDEB nos Profissionais da Educação (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
@@ -21587,9 +21587,9 @@ def container_formulario_ieduc(ano=None):
                             bloco_comentarios("E10", res_data, render_conteudo.refresh)
 
 
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO E11 - Aplicação do Mínimo Constitucional em Educação (25%)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("E11 • Mínimo Constitucional em Educação (Regra de Rebaixamento)").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Percentual aplicado em educação com recursos próprios (Dados AUDESP):").classes("text-base font-bold text-black mb-4")
@@ -21673,8 +21673,7 @@ def container_formulario_ieduc(ano=None):
 
     render_conteudo()
 
-    # O card precisa ser criado antes do return; depois do return o código fica
-    # inalcançável e o botão nunca é enviado ao navegador.
+    
     try:
         ano_relatorio = int(
             app.storage.user.get("ano_referencia_global", ano or 2026)
@@ -21692,9 +21691,7 @@ def container_formulario_ieduc(ano=None):
 
     return main_container
 
-# -----------------------------------------------------------------------------
-# Suportes do relatório PDF
-# -----------------------------------------------------------------------------
+
 def converter_pontos_em_faixa_iegm(total_pts):
     """Converte a pontuação total para a faixa exibida no painel."""
     total = float(total_pts or 0)
@@ -21710,7 +21707,7 @@ def converter_pontos_em_faixa_iegm(total_pts):
 
 
 def get_all_years_data():
-    """Carrega as respostas de todos os anos disponíveis para o relatório."""
+   
     dados = {}
     try:
         with get_db_connection() as conn:
@@ -21742,9 +21739,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         'TituloCapa', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=24, leading=28, textColor=colors.HexColor("#1b4f72"), alignment=1
     )
 
-    # -------------------------------------------------------------------------
+   
     # FOLHA 1: CAPA
-    # -------------------------------------------------------------------------
+    
     elements.append(Spacer(1, 100))
 
     # O logotipo é opcional: não deixar a ausência de iegm.png interromper o PDF.
@@ -21767,9 +21764,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # 🔴 QUEBRA DE PÁGINA OBRIGATÓRIA APÓS A CAPA
     elements.append(PageBreak())
 
-# -------------------------------------------------------------------------
+
     # FOLHA 2: SUMÁRIO
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
     elements.append(Spacer(1, 4))
 
@@ -21830,9 +21827,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
     elements.append(tabela_sumario)
     elements.append(PageBreak())
-    # -------------------------------------------------------------------------
+   
     # FOLHA 3+: CONTEÚDO
-    # -------------------------------------------------------------------------
+  
     elements.append(Paragraph(f"RELATÓRIO DE VALIDAÇÃO E AUDITORIA i-EDUC - {ano}", styles["Title"]))
     elements.append(Spacer(1, 12))
 
@@ -21937,13 +21934,13 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_analise, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+  
     # 2. ANÁLISE DE DESEMPENHO POR QUESITO
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO E CONFORMIDADE POR QUESITO</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
-    # Dicionário de Pontuações Máximas Oficiais
+    
     PONTUACOES_MAX_IEDUC = {
         # 1.0 Creche
         "1.1.1": 2, "1.1.2": 3, "1.2.1.1": 5, "1.2.2": 5, "1.3": 10, "1.4": 18, "1.7.1": 7, "1.8": 3, 
@@ -21985,7 +21982,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         valor_resposta = info.get("valor", "")
         link_evidencia = info.get("link", "")
 
-        # FILTRO PRINCIPAL: Só processa quesitos que constam explicitamente no dicionário
+       
         if qid in PONTUACOES_MAX_IEDUC:
             pts_maximo = float(PONTUACOES_MAX_IEDUC[qid])
 
@@ -22006,7 +22003,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                     # Inclui tudo que estiver abaixo de 70%, inclusive notas 0.0
                     lista_pontos_fracos.append(item_data)
 
-    # Tabela de Pontos Fortes (Conformidade Alta/Máxima)
+   
     if lista_pontos_fortes:
         elements.append(Paragraph("<b>✅ Indicadores em Conformidade Alta ou Máxima (≥ 70%):</b>", styles["h3"]))
         data_fortes = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Link de Evidência"]]
@@ -22032,7 +22029,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(tabela_fortes)
         elements.append(Spacer(1, 12))
 
-    # Tabela de Pontos Fracos (Oportunidades de Melhoria)
+    
     if lista_pontos_fracos:
         elements.append(Paragraph("<b>⚠️ Oportunidades de Melhoria e Inconformidades (< 70%):</b>", styles["h3"]))
         data_fracos = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Link de Evidência"]]
@@ -22058,9 +22055,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(tabela_fracos)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)
-    # -------------------------------------------------------------------------
+  
     elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -22151,9 +22148,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(tabela_pen)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 4. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>4. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -22367,7 +22364,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(tabela_ods)
         elements.append(Spacer(1, 15))
     # 📊 5. SÉRIE HISTÓRICA DO I-EDUC (CONSOLIDADO FINAL)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>5. SÉRIE HISTÓRICA DO DESEMPENHO i-EDUC</b>", styles["h2"]))
     elements.append(Spacer(1, 10))
 
@@ -22412,9 +22409,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(desenho_grafico)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 📊 6. ANÁLISE DE INDICADORES EDUCACIONAIS (COMPARATIVO)
-    # -------------------------------------------------------------------------
+   
     import json
 
     elements.append(
@@ -22453,7 +22450,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
         return 0
 
-    # Busca o campo 'resposta' (ou 'valor' como fallback) do dicionário
+   
     item_atual = (
         dados_ano_atual.get("1.1.2", {})
         if isinstance(dados_ano_atual, dict)
@@ -22523,9 +22520,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(tabela_ind_6)
     elements.append(Spacer(1, 15))
 
-  # -------------------------------------------------------------------------
+ 
     # 📊 7. ESPAÇO POR ALUNO EM TURMAS DE CRECHE (PARECER CNE/CEB Nº 8/2010 - QUESITO 1.3)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>7. ESPAÇO POR ALUNO EM TURMAS DE CRECHE (PARECER CNE/CEB Nº 8/2010 - QUESITO 1.3)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph("<b><i>1.3 Análise Comparativa de Metragem por Aluno (Faixas F1 a F4)</i></b>", styles["Normal"]))
@@ -22647,9 +22644,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(tabela_ind_7)
     elements.append(Spacer(1, 15))
 
-   # -------------------------------------------------------------------------
+   
     # 📊 8. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 1.6)
-    # -------------------------------------------------------------------------
+    
     elements.append(
         Paragraph(
             "<b>8. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 1.6)</b>",
@@ -22814,9 +22811,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_16, style_analise))
     elements.append(Spacer(1, 15))
 
-   # -------------------------------------------------------------------------
+  
     # 📊 9. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE (QUESITO 1.8)
-    # -------------------------------------------------------------------------
+  
     elements.append(
         Paragraph(
             "<b>9. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE (QUESITO 1.8)</b>",
@@ -22998,9 +22995,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_18, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 📊 10. REGULARIDADE DE GESTORES (QUESITO 1.9)
-    # -------------------------------------------------------------------------
+   
     elements.append(
         Paragraph(
             "<b>10. REGULARIDADE DE GESTORES (QUESITO 1.9)</b>", styles["h2"]
@@ -23017,7 +23014,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Spacer(1, 6))
 
     def extrair_dados_q19(dado_ano):
-        """Extrai dados do quesito 1.9 suportando chaves G1..G6 ou F1..F6 no banco."""
+      
         import re as re_mod
 
         dados_f = {
@@ -23203,9 +23200,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_19, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 📊 11. DEMANDA POR VAGAS EM CRECHE (QUESITO 1.14)
-    # -------------------------------------------------------------------------
+   
     elements.append(
         Paragraph(
             "<b>11. DEMANDA POR VAGAS EM CRECHE (QUESITO 1.14)</b>",
@@ -23223,7 +23220,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Spacer(1, 6))
 
     def extrair_dados_q114(dado_ano):
-        """Extrai demanda e oferta do quesito 1.14 suportando múltiplos formatos do banco."""
+        
         import re as re_mod
 
         dados_d = {"demanda": 0, "oferta": 0, "deficit": 0, "pontos": 0.0}
@@ -23425,9 +23422,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_14, style_analise))
     elements.append(Spacer(1, 15))
 
-   # -------------------------------------------------------------------------
+   
     # 📊 12. QUANTIDADE DE TURMAS DE CRECHE POR FAIXA (QUESITO 1.15)
-    # -------------------------------------------------------------------------
+   
     elements.append(
         Paragraph(
             "<b>12. QUANTIDADE DE TURMAS DE CRECHE POR FAIXA (QUESITO"
@@ -23445,7 +23442,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Spacer(1, 6))
 
     def extrair_dados_q115(dado_ano):
-        """Extrai dados do quesito 1.15 contornando chaves T1..T4 ou F1..F4 no banco."""
+      
         import re as re_mod
 
         dados_f = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
@@ -23626,9 +23623,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     )
     elements.append(Paragraph(texto_desc_15, style_analise))
     elements.append(Spacer(1, 15))
-    # -------------------------------------------------------------------------
+   
     # 📊 13. MANUTENÇÃO DE BRINQUEDOS NO PÁTIO DA PRÉ-ESCOLA (QUESITO 2.1.2)
-    # -------------------------------------------------------------------------
+    
     elements.append(
         Paragraph(
             "<b>13. MANUTENÇÃO DE BRINQUEDOS NO PÁTIO DA PRÉ-ESCOLA (QUESITO"
@@ -23646,9 +23643,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     )
     elements.append(Spacer(1, 6))
 
-    # Função dedicada para extrair com segurança os quantitativos e pontuação do Quesito 2.1.2
+    
     def extrair_dados_q212(dado_ano):
-        """Extrai a situação de manutenção (2.1.2) buscando nas colunas resposta/link/valor."""
+       
         import re as re_mod
 
         dados_f = {
@@ -23668,7 +23665,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
         dados_f["pontos"] = float(info_q.get("pontos", 0.0))
 
-        # Reúne os textos das colunas onde os pares CRON, NCRON, etc. podem estar salvos
+       
         textos_para_analise = [
             str(info_q.get("resposta", "")),
             str(info_q.get("link", "")),
@@ -23825,9 +23822,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     )
     elements.append(Paragraph(texto_desc_212, style_analise))
     elements.append(Spacer(1, 15))
-    # -------------------------------------------------------------------------
+   
     # 📊 14. ESPAÇO POR ALUNO EM SALA DE AULA - PRÉ-ESCOLA (PARECER CNE/CEB Nº 8/2010 - QUESITO 2.3)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>14. ESPAÇO POR ALUNO EM SALA DE AULA - PRÉ-ESCOLA (PARECER CNE/CEB Nº 8/2010 - QUESITO 2.3)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph("<b><i>2.3 Análise Comparativa de Metragem por Aluno (Faixas F1 a F4)</i></b>", styles["Normal"]))
@@ -23950,9 +23947,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(tabela_ind_14)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 📊 15. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO 2.6)
-    # -------------------------------------------------------------------------
+  
     elements.append(
         Paragraph(
             "<b>15. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES (QUESITO"
@@ -23971,7 +23968,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Spacer(1, 6))
 
     def extrair_ausencias_q26(dado_ano):
-        """Extrai os dados de ausências da Questão 2.6 buscando nas colunas resposta/link/valor."""
+       
         import re as re_mod
 
         chaves = ["FI", "FJ", "LM", "LP", "AB", "OUT"]
@@ -24002,7 +23999,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             "OUT": ["OUTROS", "OUT", "AFASTAMENTO"],
         }
 
-        # 1. Tenta extrair diretamente se for chave do dicionário info_q
+       
         for chk, alias_list in mapa_chaves.items():
             for alias in alias_list:
                 val_encontrado = next(
@@ -24020,7 +24017,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                     except Exception:
                         pass
 
-        # 2. Varre os campos textuais (resposta, link, valor) via Regex
+        
         textos_para_analise = [
             str(info_q.get("resposta", "")),
             str(info_q.get("link", "")),
@@ -24145,9 +24142,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_26, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 📊 16. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE - PRÉ-ESCOLA (QUESITO 2.8)
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>16. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE - PRÉ-ESCOLA (QUESITO 2.8)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph("<b><i>2.8 Análise da Distribuição de Escolas por Faixa de Rotatividade Docente (Pré-Escola)</i></b>", styles["Normal"]))
@@ -24177,7 +24174,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         else:
             val_str = str(info_q)
 
-        # Extrai os pares R1:X, R2:Y, R3:Z, R4:W da string 'valor'
+       
         if val_str:
             # Captura qualquer chave (R1, R2, F1, Q1, etc) e o valor numérico após os dois pontos
             matches = re.findall(r'([RQF]\d+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
@@ -24189,7 +24186,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         calc_tot = dados_f["R1"] + dados_f["R2"] + dados_f["R3"] + dados_f["R4"]
         dados_f["TOTAL"] = calc_tot
 
-        # Recalcula a pontuação caso esteja zerada no banco mas haja escolas
+        
         if dados_f["pontos"] == 0.0 and calc_tot > 0:
             q1 = dados_f["R1"] / calc_tot
             q2 = dados_f["R2"] / calc_tot
@@ -24304,9 +24301,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_28, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 📊 17. REGULARIDADE E PERMANÊNCIA DE GESTORES - ENSINO FUNDAMENTAL (QUESITO 2.9)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>17. REGULARIDADE E PERMANÊNCIA DE GESTORES (QUESITO 2.9)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph("<b><i>2.9 Análise do Tempo de Permanência dos Diretores/Gestores nas Unidades Escolares</i></b>", styles["Normal"]))
@@ -24335,7 +24332,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         else:
             val_str = str(info_q)
 
-        # Captura os padrões G1:X, G2:Y... ou Q1:X... na string de valor
+       
         if val_str:
             matches = re.findall(r'([GQ]\d+)\s*:\s*(\d+)', val_str, re.IGNORECASE)
             for chave, val in matches:
@@ -24347,7 +24344,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                     dados_f["G4"] + dados_f["G5"] + dados_f["G6"])
         dados_f["TOTAL"] = calc_tot
 
-        # Recalculo preventivo segundo as réguas de ponderação do IEGM caso esteja 0
+      
         if dados_f["pontos"] == 0.0 and calc_tot > 0:
             q1 = dados_f["G1"] / calc_tot
             q2 = dados_f["G2"] / calc_tot
@@ -24474,9 +24471,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_29, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 📊 18. QUANTIDADE DE TURMAS DE PRÉ-ESCOLA POR FAIXA (QUESITO 2.15)
-    # -------------------------------------------------------------------------
+   
     elements.append(
         Paragraph(
             "<b>18. QUANTIDADE DE TURMAS DE PRÉ-ESCOLA POR FAIXA (QUESITO"
@@ -24495,14 +24492,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Spacer(1, 6))
 
     def extrair_dados_q215(dado_ano):
-        """Extrai os dados de turmas por faixa do quesito 2.15 tratando formatos T1/F1/Q1 nas colunas resposta ou valor."""
+        
         import re as re_mod
 
         dados_f = {"F1": 0, "F2": 0, "F3": 0, "F4": 0, "TOTAL": 0, "pontos": 0.0}
         if not isinstance(dado_ano, dict):
             return dados_f
 
-        # Localiza a chave "2.15" ignorando possíveis espaços extras
+        
         info_q = {}
         for k, v in dado_ano.items():
             if str(k).strip() == "2.15":
@@ -24512,13 +24509,13 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         if not isinstance(info_q, dict):
             return dados_f
 
-        # Pontuação vinda do banco de dados
+       
         try:
             dados_f["pontos"] = float(info_q.get("pontos", 0.0) or 0.0)
         except Exception:
             dados_f["pontos"] = 0.0
 
-        # Junta os conteúdos de 'resposta' e 'valor' para efetuar a busca
+       
         textos_para_analise = [
             str(info_q.get("resposta", "")),
             str(info_q.get("valor", "")),
@@ -24527,7 +24524,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             [t for t in textos_para_analise if t and t != "None"]
         )
 
-        # Captura padrões do tipo T1:146, F1:146, Q1:146 e variações com barra ou vírgula
+        
         if texto_completo:
             matches = re_mod.findall(
                 r"([FTQ]\d+)\s*:\s*(\d+)", texto_completo, re_mod.IGNORECASE
@@ -24544,7 +24541,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         )
         dados_f["TOTAL"] = calc_tot
 
-        # Recálculo preventivo da nota do quesito caso a pontuação não venha preenchida
+        
         if dados_f["pontos"] == 0.0 and calc_tot > 0:
             p1 = dados_f["F1"] / calc_tot
             p2 = dados_f["F2"] / calc_tot
@@ -24677,9 +24674,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_215, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 📊 19. ESPAÇO POR ALUNO EM SALA DE AULA - ANOS INICIAIS (QUESITO 3.1)
-    # -------------------------------------------------------------------------
+  
     elements.append(Paragraph("<b>19. ESPAÇO POR ALUNO EM SALA DE AULA - ANOS INICIAIS (QUESITO 3.1)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph("<b><i>3.1 Análise da Adequação do Espaço Físico por Aluno nas Salas de Aula dos Anos Iniciais</i></b>", styles["Normal"]))
@@ -24708,7 +24705,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         else:
             val_obj = info_q
 
-        # Tratamento de legados onde 'valor' era armazenado como dicionário
+       
         if isinstance(val_obj, dict):
             dados_f["F1"] = int(val_obj.get("t1", val_obj.get("F1", 0)))
             dados_f["F2"] = int(val_obj.get("t2", val_obj.get("F2", 0)))
@@ -24726,7 +24723,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         calc_tot = dados_f["F1"] + dados_f["F2"] + dados_f["F3"] + dados_f["F4"]
         dados_f["TOTAL"] = calc_tot
 
-        # Recalculo preventivo da nota ponderada (escala de 0 a 10 pts)
+        
         if dados_f["pontos"] == 0.0 and calc_tot > 0:
             p1 = dados_f["F1"] / calc_tot
             p2 = dados_f["F2"] / calc_tot
@@ -24843,9 +24840,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_31, style_analise))
     elements.append(Spacer(1, 15))
 
-   # -------------------------------------------------------------------------
+   
     # 📊 20. AUSÊNCIAS DE PROFESSORES - ANOS INICIAIS (QUESITO 3.4)
-    # -------------------------------------------------------------------------
+    
     elements.append(
         Paragraph(
             "<b>20. QUANTIDADE TOTAL DE AUSÊNCIAS DOS PROFESSORES - ANOS"
@@ -24864,7 +24861,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Spacer(1, 6))
 
     def extrair_dados_q34(dado_ano):
-        """Extrai os dados de ausências da Questão 3.4 buscando nas colunas resposta/link/valor."""
+       
         import re as re_mod
 
         chaves = ["FI", "FJ", "LM", "LMP", "AB", "OU"]
@@ -24883,7 +24880,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         if not isinstance(info_q, dict):
             return dados_f
 
-        # Mapeamento de aliases por tipo de ausência
+        
         mapa_chaves = {
             "FI": ["INJUSTIFICADAS", "INJUST", "INJ", "FI"],
             "FJ": ["JUSTIFICADAS", "JUST", "JUS", "FJ"],
@@ -24899,7 +24896,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             "OU": ["OUTROS", "OUT", "OU", "AFASTAMENTO"],
         }
 
-        # 1. Tenta extrair diretamente se for chave em info_q ou info_q.get("valor")
+        
         val_obj = info_q.get("valor", {})
         if isinstance(val_obj, dict):
             for k_motive, v_val in val_obj.items():
@@ -24911,7 +24908,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                         except Exception:
                             pass
 
-        # 2. Varre textos das colunas (resposta, link, valor) via Regex para pares CHAVE:VALOR
+       
         textos_para_analise = [
             str(info_q.get("resposta", "")),
             str(info_q.get("link", "")),
@@ -25028,9 +25025,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     )
     elements.append(Paragraph(texto_desc_34, style_analise))
     elements.append(Spacer(1, 15))
-    # -------------------------------------------------------------------------
+   
     # 📊 21. ROTATIVIDADE DOCENTE - ANOS INICIAIS (QUESITO 3.6)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>21. REGULARIDADE E ROTATIVIDADE DO CORPO DOCENTE - ANOS INICIAIS (QUESITO 3.6)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph("<b><i>3.6 Distribuição das Escolas dos Anos Iniciais por Faixa de Rotatividade de Professores</i></b>", styles["Normal"]))
@@ -25074,7 +25071,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         calc_tot = dados_f["E1"] + dados_f["E2"] + dados_f["E3"] + dados_f["E4"]
         dados_f["TOTAL"] = calc_tot
 
-        # Recálculo preventivo da nota ponderada (escala de 0 a 3,00 pts)
+        
         if dados_f["pontos"] == 0.0 and calc_tot > 0:
             q1 = dados_f["E1"] / calc_tot
             q2 = dados_f["E2"] / calc_tot
@@ -25189,9 +25186,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_36, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 📊 22. REGULARIDADE DE GESTORES - ANOS INICIAIS (QUESITO 3.7)
-    # -------------------------------------------------------------------------
+  
     elements.append(Paragraph("<b>22. REGULARIDADE E PERMANÊNCIA DE GESTORES - ANOS INICIAIS (QUESITO 3.7)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph("<b><i>3.7 Distribuição do Tempo de Permanência dos Gestores Escolares à Frente da Mesma Unidade</i></b>", styles["Normal"]))
@@ -25354,9 +25351,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_37, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 📊 23. QUANTIDADE DE TURMAS DOS ANOS INICIAIS POR FAIXA (QUESITO 3.19)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>23. QUANTIDADE DE ALUNOS POR TURMA - ANOS INICIAIS (QUESITO 3.19)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph("<b><i>3.19 Distribuição das Turmas dos Anos Iniciais por Faixa de Alunos</i></b>", styles["Normal"]))
@@ -25515,9 +25512,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_319, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 📊 24. INFRAESTRUTURA E SEGURANÇA ESCOLAR (QUESITO 5.0)
-    # -------------------------------------------------------------------------
+   
     elements.append(
         Paragraph(
             "<b>24. INFRAESTRUTURA E SEGURANÇA ESCOLAR (QUESITO 5.0)</b>",
@@ -25536,12 +25533,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Spacer(1, 6))
 
     def extrair_dados_q50(dado_ano):
-        """Extrai os dados de Infraestrutura e Segurança (Quesito 5.0).
+       
 
-        Suporta tanto os nomes de chaves antigos (TOTAL, AVCB, REPARO, SOCORRO)
-        quanto os novos gravados pelo formulário (total_escolas, qtd_avcb,
-        qtd_reparos, qtd_socorros).
-        """
+        
         import re as re_mod
 
         dados_f = {
@@ -25565,7 +25559,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         if not isinstance(info_q, dict):
             return dados_f
 
-        # Tenta obter a pontuação direta do quesito
+        
         try:
             dados_f["pontos"] = float(info_q.get("pontos", 0.0))
         except Exception:
@@ -25573,7 +25567,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
         val_obj = info_q.get("valor", {})
 
-        # Mapeamento de chaves para compatibilidade entre versões
+       
         if isinstance(val_obj, dict):
             dados_f["TOTAL"] = int(
                 val_obj.get("total_escolas")
@@ -25600,7 +25594,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                 or 0
             )
         else:
-            # Varredura via Regex em strings sanitizadas
+            
             textos_para_analise = [
                 str(info_q.get("resposta", "")),
                 str(info_q.get("link", "")),
@@ -25628,7 +25622,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                             dados_f[chk] = int(match.group(1))
                             break
 
-        # Cálculo das notas proporcionais
+       
         tot_escolas = dados_f["TOTAL"]
         if tot_escolas > 0:
             p_avcb = min(max(dados_f["AVCB"] / tot_escolas, 0.0), 1.0)
@@ -25789,9 +25783,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_50, style_analise))
     elements.append(Spacer(1, 15))
 
-     # -------------------------------------------------------------------------
+   
     # 📊 25. LIMITES CONSTITUCIONAIS E LEGAIS (INDICADORES E9, E10 E E11)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>25. LIMITES CONSTITUCIONAIS E LEGAIS (E9, E10 E E11)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph("<b><i>Aplicação de Recursos do FUNDEB e Mínimo Constitucional em Educação (Dados AUDESP)</i></b>", styles["Normal"]))
@@ -25936,13 +25930,13 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_desc_limites, style_analise))
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 📊 26. QUESITOS SEM PONTUAÇÃO DIRETA (EXERCÍCIO ATUAL)
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>26. QUESITOS SEM PONTUAÇÃO DIRETA (CONFORMIDADE OPERACIONAL)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
-    # Lista dos quesitos a serem auditados dinamicamente
+    
     lista_alvo_sp = [
         "1.0", "1.1", "1.2", "1.7", "1.12", "1.13", 
         "2.0", "2.2", "2.7", 
@@ -25953,7 +25947,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
     analise_sp = []
     
-    # Processa os dados extraídos dinamicamente do dicionário do exercício atual
+    
     for qid in lista_alvo_sp:
         info = dados_ano_atual.get(qid) or dados_ano_atual.get(f"Q_{qid}") or {}
         
@@ -26021,15 +26015,15 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(Paragraph(texto_sp, style_analise))
         elements.append(Spacer(1, 15))
      
-    # -------------------------------------------------------------------------
+   
     # CONSTRUÇÃO FINAL DO DOCUMENTO PDF
-    # -------------------------------------------------------------------------
+   
     doc.build(elements)
     buffer.seek(0)
     return buffer.getvalue()
-# -----------------------------------------------------------------------------
+
 # 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
-# -----------------------------------------------------------------------------
+
 def renderizar_card_relatorio_ieduc(res_data=None, ano_sel=2026):
     """
     Componente NiceGUI para renderizar o Card de Emissão do PDF do I-Fiscal.
