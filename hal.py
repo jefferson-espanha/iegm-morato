@@ -16,7 +16,7 @@ def _obter_database_url():
         return None
 
 def criar_conexao_direta():
-    """Conecta diretamente ao banco de dados Neon."""
+   
     try:
         conn = psycopg2.connect(_obter_database_url())
         return conn, None
@@ -30,7 +30,7 @@ class SistemaHAL:
         self.carregar_dicionarios_globais()
 
     def carregar_dicionarios_globais(self):
-        # Dicionário unificado com as dimensões operacionais
+       
         self.questoes_por_dimensao = {
             "iCidade": {
                 "1.0": (
@@ -2153,7 +2153,7 @@ class SistemaHAL:
         return []
 
     def get_resposta_municipio(self, dimensao, codigo_quesito, ano):
-        """Busca a resposta na tabela correspondente à dimensão fornecida."""
+        
 
         tabelas_map = {
             "iCidade": "respostas_icidade",
@@ -2272,7 +2272,7 @@ class SistemaHAL:
 
 
 def _texto_seguro(valor):
-    """Converte respostas JSON/listas/dicionários em texto legível."""
+   
     if valor is None:
         return "—"
     if isinstance(valor, (dict, list)):
@@ -2302,7 +2302,7 @@ def _render_resultado(resultado, container):
 
 
 def mostrar_chat_hal(ano_sel=None):
-    """Interface NiceGUI do consultor HAL, compatível com o main.py."""
+    
     hal = SistemaHAL()
     dimensoes = hal.get_dimensoes()
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
