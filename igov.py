@@ -11,6 +11,7 @@ from nicegui import app, ui
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
+# Importações do ReportLab
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.graphics.shapes import Drawing, String
 from reportlab.lib import colors
@@ -19,6 +20,9 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
 from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
+# =============================================================================
+# EXPRESSÕES REGULARES E CONFIGURAÇÃO DO BANCO DE DADOS (NEON)
+# =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
 
 DATABASE_URL = os.getenv(
@@ -31,7 +35,7 @@ def get_db_connection():
     return psycopg2.connect(DATABASE_URL, cursor_factory=RealDictCursor)
 
 def get_all_years_data():
-   
+    """Busca todas as respostas do iGov-TI agrupadas por ano para o relatório PDF."""
     all_data = {}
     query = """
         SELECT qid, ano, valor, pontos, link, comentarios
@@ -63,7 +67,7 @@ def get_all_years_data():
 
 
 def init_db():
-   
+    """Garante que a tabela respostas_igovti exista com as colunas certas."""
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
@@ -205,7 +209,9 @@ def gerar_relatorio_pdf_bytes(res_data, ano, total_pts, faixa):
     return conteudo.encode("utf-8")
 
 
-
+# =============================================================================
+# 1. PAINEL LATERAL / CONTROLE
+# =============================================================================
 def render_painel_controle(on_refresh_callback=None):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     ano_atual = app.storage.user.get("ano_referencia_global", 2026)
@@ -312,7 +318,9 @@ def render_painel_controle(on_refresh_callback=None):
             </div>
         """).classes("w-full")
 
-
+# =============================================================================
+# 2. BLOCO DE COMENTÁRIOS INTERNOS
+# =============================================================================
 FUSO_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 
@@ -446,7 +454,9 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
         )
 
 
-
+# =============================================================================
+# 3. RENDERIZADOR DE QUESITO
+# =============================================================================
 def render_quesito(
     ano,
     res_data,
@@ -536,7 +546,9 @@ def render_quesito(
                         placeholder=placeholder_link,
                     ).classes("w-full").props("outlined rows=3")
 
-                    
+                    # O link fica disponível apenas no campo de evidência,
+                    # sem renderização automática de "Links Ativos" abaixo dele.
+
             lbl_pontos = ui.html().classes("mt-3 font-bold")
 
             def atualizar_label_pontos(pts, val):
@@ -626,7 +638,9 @@ def render_quesito(
             bloco_comentarios(qid, res_data, on_save_callback=on_save_callback)
 
 
-
+# =============================================================================
+# 4. CONTAINER PRINCIPAL REFRESHABLE
+# =============================================================================
 @ui.refreshable
 def container_formulario_igov_ti():
     ano_sel = app.storage.user.get("ano_referencia_global", 2026)
@@ -666,7 +680,7 @@ def container_formulario_igov_ti():
                 )
 
             if etapa_atual == 1:
-               
+                # QUESITO 1.0
                 opcoes_10 = {
                     "Selecione...": 0.0,
                     "Sim – 30 pts": 30.0,
@@ -684,22 +698,24 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-              
+                # =============================================================================
+                # QUESITO 1.1 • COMPOSIÇÃO DA EQUIPE DE TIC
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                   
+                    # Cabeçalho do Quesito
                     ui.label("📌 Quesito 1.1 - Recursos Humanos em TIC").classes("text-lg font-bold text-blue-900 mb-1")
                     
-                   
+                    # Enunciado
                     ui.label("Informe a quantidade:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
                     
-                   
+                    # Bloco Informativo da Fórmula de Cálculo
                     with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
                         ui.label("Fórmula de cálculo:").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
                         ui.label(
                             "Funcionários concursados + Funcionários comissionados + Estagiários no suporte e atendimento de primeiro nível > 0 — 30 pontos"
                         ).classes("text-sm text-blue-800 font-medium")
 
-                    
+                    # Função local de persistência para evitar 'save_resp is not defined'
                     def salvar_no_banco_11(qid_val, valor_val, pontos_val, link_val):
                         try:
                             with get_db_connection() as conn:
@@ -719,7 +735,7 @@ def container_formulario_igov_ti():
                             print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
                             raise err_db
 
-                   
+                    # Conversor seguro para prevenir crash com strings vazias
                     def parse_int_seguro(val):
                         if val is None:
                             return 0
@@ -730,7 +746,7 @@ def container_formulario_igov_ti():
                             return 0
                         return int(val_str)
 
-                 
+                    # Recuperação do banco
                     d11 = res_data.get("1.1") or {}
                     if not isinstance(d11, dict):
                         d11 = {"valor": "0", "pontos": 0.0, "link": ""}
@@ -739,7 +755,7 @@ def container_formulario_igov_ti():
                     evidencia_11_salva = ""
                     raw_link = str(d11.get("link") or "")
 
-                   
+                    # Extração dos contadores armazenados
                     if raw_link:
                         if "|LINK:" in raw_link:
                             contadores_part, evidencia_11_salva = raw_link.split("|LINK:", 1)
@@ -757,7 +773,7 @@ def container_formulario_igov_ti():
                         v_esta_i = int(match_e.group(1)) if match_e else 0
                         v_outr_i = int(match_o.group(1)) if match_o else 0
 
-                   
+                    # Estado reativo do formulário
                     state_11 = {
                         "conc": v_conc_i,
                         "comi": v_comi_i,
@@ -766,7 +782,7 @@ def container_formulario_igov_ti():
                         "link": evidencia_11_salva
                     }
 
-                   
+                    # Callback do Botão de Salvar
                     def cb_processa_e_salva_11():
                         try:
                             c_val = parse_int_seguro(state_11["conc"])
@@ -779,10 +795,10 @@ def container_formulario_igov_ti():
                             pts_calculados = 30.0 if total_p > 0 else 0.0
                             composite_string = f"C:{c_val},Co:{co_val},E:{e_val},O:{o_val}|LINK:{lnk_val}"
 
-                            
+                            # Executa salvamento persistente no PostgreSQL
                             salvar_no_banco_11("1.1", str(total_p), pts_calculados, composite_string)
                             
-                           
+                            # Atualiza dict local em memória
                             res_data["1.1"] = {
                                 "valor": str(total_p), 
                                 "pontos": pts_calculados, 
@@ -794,7 +810,7 @@ def container_formulario_igov_ti():
                         except Exception as err:
                             ui.notify(f"Erro ao salvar Quesito 1.1: {err}", type="negative")
 
-                   
+                    # Grid com os Inputs Numéricos
                     with ui.grid(columns=2).classes("w-full gap-4 mb-4 md:grid-cols-4"):
                         ui.number(
                             "Funcionários concursados:", 
@@ -824,14 +840,14 @@ def container_formulario_igov_ti():
                             step=1
                         ).classes("w-full").bind_value(state_11, "outr")
 
-                   
+                    # Área do Link / Evidência
                     ui.textarea(
                         "Página Eletrônica (Link / Evidência da Composição):",
                         value=evidencia_11_salva,
                         placeholder="Insira o link do decreto de lotação de pessoal, relatório do setor de RH ou folha simplificada da TI..."
                     ).classes("w-full mb-4").bind_value(state_11, "link")
 
-                    
+                    # Rodapé do Quesito
                     total_pessoal = parse_int_seguro(d11.get("valor"))
                     pts_atuais_11 = float(d11.get("pontos") or 0.0)
                     cor_txt_11 = "text-green-600" if pts_atuais_11 == 30.0 else "text-gray-500"
@@ -845,6 +861,7 @@ def container_formulario_igov_ti():
 
                     ui.separator().classes("my-2")
 
+                    # Bloco de Comentários Integrado ao Quesito
                     bloco_comentarios("1.1", res_data, ano_sel)
 
                 # QUESITO 1.2
@@ -881,12 +898,14 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
- 
+    # =============================================================================
+                # QUESITO 1.3.1 • ÁREAS DE CAPACITAÇÃO EM TIC
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                   
+                    # Cabeçalho do Quesito
                     ui.label("📌 Quesito 1.3.1 - Áreas de Capacitação em TIC").classes("text-lg font-bold text-blue-900 mb-1")
                     
-                  
+                    # Enunciado
                     ui.label("Informe em quais áreas houve capacitação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
                     
                     # Bloco Informativo da Fórmula de Cálculo
@@ -902,7 +921,7 @@ def container_formulario_igov_ti():
                             "• Somente a opção 'Outros' = 0 pontos"
                         ).classes("text-xs text-blue-900 whitespace-pre-line font-mono")
 
-                    
+                    # Função local de persistência
                     def salvar_no_banco_131(qid_val, valor_val, pontos_val, link_val):
                         try:
                             with get_db_connection() as conn:
@@ -922,17 +941,17 @@ def container_formulario_igov_ti():
                             print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
                             raise err_db
 
-                   
+                    # Recuperação do Banco de Dados
                     d131 = res_data.get("1.3.1") or {}
                     if not isinstance(d131, dict):
                         d131 = {"valor": "", "pontos": 0.0, "link": ""}
 
-                   
+                    # Parse das opções previamente marcadas (armazenadas separadas por vírgula no campo 'valor')
                     valor_salvo = str(d131.get("valor") or "")
                     itens_salvos = [i.strip() for i in valor_salvo.split(",") if i.strip()]
                     evidencia_131_salva = str(d131.get("link") or "")
 
-                    
+                    # Estado Reativo das Checkboxes
                     state_131 = {
                         "infra": "Infraestrutura e Redes" in itens_salvos,
                         "dev": "Desenvolvimento e Software" in itens_salvos,
@@ -942,7 +961,7 @@ def container_formulario_igov_ti():
                         "link": evidencia_131_salva
                     }
 
-                   
+                    # Callback do Botão de Salvar
                     def cb_processa_e_salva_131():
                         try:
                             # Identifica os marcados
@@ -956,13 +975,13 @@ def container_formulario_igov_ti():
                             if state_131["gestao"]:
                                 marcados.append("Gestão e Segurança")
 
-                           
+                            # Contagem das 4 opções válidas para pontuação
                             qtd_validos = len(marcados)
 
                             if state_131["outros"]:
                                 marcados.append("Outros")
 
-                           
+                            # Cálculo de Pontuação
                             if qtd_validos >= 3:
                                 pts_calculados = 30.0
                             elif qtd_validos == 2:
@@ -975,10 +994,10 @@ def container_formulario_igov_ti():
                             valor_string = ", ".join(marcados)
                             lnk_val = str(state_131["link"] or "").strip()
 
-                            
+                            # Salva no PostgreSQL
                             salvar_no_banco_131("1.3.1", valor_string, pts_calculados, lnk_val)
 
-                           
+                            # Atualiza em memória
                             res_data["1.3.1"] = {
                                 "valor": valor_string,
                                 "pontos": pts_calculados,
@@ -990,7 +1009,7 @@ def container_formulario_igov_ti():
                         except Exception as err:
                             ui.notify(f"Erro ao salvar Quesito 1.3.1: {err}", type="negative")
 
-                  
+                    # Checkboxes
                     with ui.column().classes("w-full gap-2 mb-4"):
                         ui.checkbox("Infraestrutura e Redes").bind_value(state_131, "infra")
                         ui.checkbox("Desenvolvimento e Software").bind_value(state_131, "dev")
@@ -998,14 +1017,14 @@ def container_formulario_igov_ti():
                         ui.checkbox("Gestão e Segurança").bind_value(state_131, "gestao")
                         ui.checkbox("Outros").bind_value(state_131, "outros")
 
-                   
+                    # Campo de Link / Evidência
                     ui.textarea(
                         "Página Eletrônica (Link / Evidência das Capacitações):",
                         value=evidencia_131_salva,
                         placeholder="Insira o link dos certificados, plano de capacitação, relatório de treinamentos..."
                     ).classes("w-full mb-4").bind_value(state_131, "link")
 
-                  
+                    # Rodapé com Indicador e Botão
                     pts_atuais_131 = float(d131.get("pontos") or 0.0)
                     cor_txt_131 = "text-green-600" if pts_atuais_131 > 0 else "text-gray-500"
 
@@ -1018,10 +1037,12 @@ def container_formulario_igov_ti():
 
                     ui.separator().classes("my-2")
 
-                    
+                    # Bloco de Comentários
                     bloco_comentarios("1.3.1", res_data, ano_sel)
 
-  
+    # =============================================================================
+                # QUESITO 1.4 • PARTICIPAÇÃO DO PESSOAL DE TIC NAS LICITAÇÕES E CONTRATOS
+                # =============================================================================
                 opcoes_14 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -1037,15 +1058,17 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                
+                # =============================================================================
+                # QUESITO 1.4.1 • ETAPAS DE PARTICIPAÇÃO DO PESSOAL DE TIC
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
-                   
+                    # Cabeçalho do Quesito
                     ui.label("📌 Quesito 1.4.1 - Etapas de Participação do Pessoal de TIC").classes("text-lg font-bold text-blue-900 mb-1")
                     
-                   
+                    # Enunciado
                     ui.label("Assinale as etapas que o pessoal de TIC participa:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
                     
-                   
+                    # Bloco Informativo da Pontuação Somada
                     with ui.card().classes("w-full p-3 mb-4 bg-blue-50 border-l-4 border-blue-600 rounded-r-md shadow-none"):
                         ui.label("Critérios de pontuação (somatório dos itens marcados):").classes("text-xs font-bold text-blue-900 uppercase tracking-wide")
                         ui.label(
@@ -1054,7 +1077,7 @@ def container_formulario_igov_ti():
                             "• Recebimento / Gestão de Contrato — 15 pontos"
                         ).classes("text-xs text-blue-900 whitespace-pre-line font-mono mt-1")
 
-                  
+                    # Função local de persistência no PostgreSQL
                     def salvar_no_banco_141(qid_val, valor_val, pontos_val, link_val):
                         try:
                             with get_db_connection() as conn:
@@ -1074,17 +1097,17 @@ def container_formulario_igov_ti():
                             print(f"❌ Erro ao salvar no banco (Quesito {qid_val}): {err_db}")
                             raise err_db
 
-                   
+                    # Recuperação do Banco de Dados
                     d141 = res_data.get("1.4.1") or {}
                     if not isinstance(d141, dict):
                         d141 = {"valor": "", "pontos": 0.0, "link": ""}
 
-                    
+                    # Parse dos itens marcados armazenados no banco (separados por vírgula)
                     valor_salvo = str(d141.get("valor") or "")
                     itens_salvos = [i.strip() for i in valor_salvo.split(",") if i.strip()]
                     evidencia_141_salva = str(d141.get("link") or "")
 
-                  
+                    # Estado Reativo das Checkboxes
                     state_141 = {
                         "edital": "Elaboração do edital / Especificação técnica" in itens_salvos,
                         "comissao": "Comissão de Licitação / Equipe de Apoio" in itens_salvos,
@@ -1092,7 +1115,7 @@ def container_formulario_igov_ti():
                         "link": evidencia_141_salva
                     }
 
-                  
+                    # Callback para Calcular a Soma dos Pontos e Salvar
                     def cb_processa_e_salva_141():
                         try:
                             marcados = []
@@ -1113,7 +1136,7 @@ def container_formulario_igov_ti():
                             valor_string = ", ".join(marcados)
                             lnk_val = str(state_141["link"] or "").strip()
 
-                            
+                            # Grava persistentemente no banco
                             salvar_no_banco_141("1.4.1", valor_string, pontos_acumulados, lnk_val)
 
                             # Atualiza a estrutura na memória local da página
@@ -1128,20 +1151,20 @@ def container_formulario_igov_ti():
                         except Exception as err:
                             ui.notify(f"Erro ao salvar Quesito 1.4.1: {err}", type="negative")
 
-                    
+                    # Interface com as 3 opções do quesito
                     with ui.column().classes("w-full gap-2 mb-4"):
                         ui.checkbox("Elaboração do edital / Especificação técnica (15 pts)").bind_value(state_141, "edital")
                         ui.checkbox("Comissão de Licitação / Equipe de Apoio (10 pts)").bind_value(state_141, "comissao")
                         ui.checkbox("Recebimento / Gestão de Contrato (15 pts)").bind_value(state_141, "gestao")
 
-                   
+                    # Campo de Evidências / Links
                     ui.textarea(
                         "Página Eletrônica (Link / Evidência da Participação):",
                         value=evidencia_141_salva,
                         placeholder="Insira o link de portarias de nomeação, termos de referência assinados ou atas de comissões..."
                     ).classes("w-full mb-4").bind_value(state_141, "link")
 
-                 
+                    # Exibição dos pontos calculados no rodapé
                     pts_atuais_141 = float(d141.get("pontos") or 0.0)
                     cor_txt_141 = "text-green-600" if pts_atuais_141 > 0 else "text-gray-500"
 
@@ -1154,10 +1177,12 @@ def container_formulario_igov_ti():
 
                     ui.separator().classes("my-2")
 
-                   
+                    # Bloco de Comentários Integrado ao Quesito
                     bloco_comentarios("1.4.1", res_data, ano_sel)
 
-               
+                # =============================================================================
+                # QUESITO 1.4.2 • ANÁLISE PRÉVIA PARA CONTRATAÇÃO DE SOFTWARES
+                # =============================================================================
                 opcoes_142 = {
                     "Selecione...": 0.0,
                     "Sim, para todos os softwares (20 pts)": 20.0,
@@ -1176,7 +1201,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               
+                # =============================================================================
+                # QUESITO 2.0 • PLANO DIRETOR DE TECNOLOGIA DA INFORMAÇÃO E COMUNICAÇÃO (PDTIC)
+                # =============================================================================
                 opcoes_20 = {
                     "Selecione...": 0.0,
                     "SIM, com metas acima de 02 anos (40 pts)": 40.0,
@@ -1193,7 +1220,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
- 
+    # =============================================================================
+                # QUESITO 2.1 • PÁGINA ELETRÔNICA DO PDTIC
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 2.1 - Divulgação do PDTIC").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe a página eletrônica (link na internet) do PDTIC:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -1264,7 +1293,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("2.1", res_data, ano_sel)
 
-                
+                # =============================================================================
+                # QUESITO 2.2 • ALOCAÇÃO DE RECURSOS NO PDTIC
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 2.2 - Conteúdo do Plano de TIC").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("O plano de TIC vigente contempla:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -1366,9 +1397,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("2.2", res_data, ano_sel)
 
-                
+                # =============================================================================
                 # QUESITO 2.3 • DATA DA ÚLTIMA ATUALIZAÇÃO DO PDTIC
-              
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 2.3 - Atualização do PDTIC").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Qual a data da última atualização do PDTIC? (Se não foi atualizado, informar a data da publicação)").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -1469,9 +1500,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("2.3", res_data, ano_sel)
 
-               
+                # =============================================================================
                 # QUESITO 3.0 • POLÍTICA DE SEGURANÇA DA INFORMAÇÃO (POSI)
-              
+                # =============================================================================
                 opcoes_30 = {
                     "Selecione...": 0.0,
                     "Sim (50 pts)": 50.0,
@@ -1487,9 +1518,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-    
+    # =============================================================================
                 # QUESITO 3.1 • TERMO DE RESPONSABILIDADE / COMPROMISSO
-                
+                # =============================================================================
                 opcoes_31 = {
                     "Selecione...": 0.0,
                     "Sim (20 pts)": 20.0,
@@ -1505,9 +1536,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                
+                # =============================================================================
                 # QUESITO 3.1.1 • USO DE ASSINATURA ELETRÔNICA NO TERMO
-               
+                # =============================================================================
                 opcoes_311 = {
                     "Selecione...": 0.0,
                     "Sim (40 pts)": 40.0,
@@ -1523,9 +1554,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                
+                # =============================================================================
                 # QUESITO 3.1.1.1 • TIPO DE ASSINATURA ELETRÔNICA UTILIZADA
-              
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 3.1.1.1 - Tipo de Assinatura Eletrônica").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe o tipo de assinatura eletrônica utilizada nos documentos digitais:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -1615,9 +1646,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("3.1.1.1", res_data, ano_sel)
 
-              
+                # =============================================================================
                 # QUESITO 3.2 • IDENTIFICAÇÃO DE RISCOS (ISO/IEC 27000)
-               
+                # =============================================================================
                 opcoes_32 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -1633,9 +1664,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                
+                # =============================================================================
                 # QUESITO 3.2.1 • NORMAS ISO/IEC 27000 UTILIZADAS
-               
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 3.2.1 - Normas ISO/IEC 27000 Aplicadas").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe quais normas da família ISO/IEC 27000 são utilizadas nos processos de segurança no uso de TIC:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -1749,9 +1780,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("3.2.1", res_data, ano_sel)
 
-                
+                # =============================================================================
                 # QUESITO 3.3 • IDENTIFICAÇÃO DE RISCOS (ABNT NBR ISO/IEC 31000)
-               
+                # =============================================================================
                 opcoes_33 = {
                     "Selecione...": 0.0,
                     "Sim (30 pts)": 30.0,
@@ -1767,9 +1798,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-              
+                # =============================================================================
                 # QUESITO 3.4 • PLANO DE CONTINUIDADE DOS SERVIÇOS DE TIC
-               
+                # =============================================================================
                 opcoes_34 = {
                     "Selecione...": 0.0,
                     "Sim (30 pts)": 30.0,
@@ -1785,9 +1816,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               
+                # =============================================================================
                 # QUESITO 3.5 • POLÍTICA DE CÓPIAS DE SEGURANÇA (BACKUP)
-               
+                # =============================================================================
                 opcoes_35 = {
                     "Selecione...": 0.0,
                     "Sim (30 pts)": 30.0,
@@ -1803,9 +1834,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-    
+    # =============================================================================
                 # QUESITO 3.6 • INVENTÁRIO ATUALIZADO DOS ATIVOS DE TIC
-               
+                # =============================================================================
                 opcoes_36 = {
                     "Selecione...": 0.0,
                     "Sim (20 pts)": 20.0,
@@ -1821,9 +1852,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                
+                # =============================================================================
                 # QUESITO 3.6.1 • COMPOSIÇÃO DA BASE DE ATIVOS
-               
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 3.6.1 - Composição da Base de Ativos").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Como é composta a base de ativos:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -1903,9 +1934,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("3.6.1", res_data, ano_sel)
 
-             
+                # =============================================================================
                 # QUESITO 4.0 • REGULAMENTAÇÃO DA LEI DE ACESSO À INFORMAÇÃO (LAI)
-               
+                # =============================================================================
                 opcoes_40 = {
                     "Selecione...": 0.0,
                     "Sim (40 pts)": 40.0,
@@ -1921,9 +1952,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-              
+                # =============================================================================
                 # QUESITO 4.1 • DADOS NORMATIVOS DA LAI
-               
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 4.1 - Dados do Instrumento Normativo da LAI").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -1976,9 +2007,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("4.1", res_data, ano_sel)
 
-               
+                # =============================================================================
                 # QUESITO 4.2 • LINK DA NORMA DA LAI
-                
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 4.2 - Link do Instrumento Normativo da LAI").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Página eletrônica (link na internet) do instrumento normativo:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -2036,9 +2067,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("4.2", res_data, ano_sel)
 
-               
+                # =============================================================================
                 # QUESITO 5.0 • LEI SOBRE EFICIÊNCIA PÚBLICA (GOVERNO DIGITAL)
-               
+                # =============================================================================
                 opcoes_50 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -2054,9 +2085,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               
+                # =============================================================================
                 # QUESITO 5.1 • DADOS NORMATIVOS DO GOVERNO DIGITAL
-               
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 5.1 - Dados do Instrumento Normativo do Governo Digital").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -2109,9 +2140,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("5.1", res_data, ano_sel)
 
-                
+                # =============================================================================
                 # QUESITO 5.2 • LINK DA NORMA DO GOVERNO DIGITAL
-                
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 5.2 - Link da Norma de Governo Digital").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Página eletrônica (link na internet) do instrumento normativo:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -2169,9 +2200,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("5.2", res_data, ano_sel)
 
-               
+                # =============================================================================
                 # QUESITO 5.3 • TRÂMITE DIGITAL DE PROCESSOS ADMINISTRATIVOS
-                
+                # =============================================================================
                 opcoes_53 = {
                     "Selecione...": 0.0,
                     "Sim, para todos os processos administrativos": 0.0,
@@ -2189,9 +2220,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               
+                # =============================================================================
                 # QUESITO 6.0 • MANUTENÇÃO DO SITE DA PREFEITURA NA INTERNET
-                
+                # =============================================================================
                 opcoes_60 = {
                     "Selecione...": 0.0,
                     "Sim (20 pts)": 20.0,
@@ -2207,9 +2238,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
- 
+    # =============================================================================
                 # QUESITO 6.1 • FERRAMENTA DE PESQUISA/BUSCA INTERNA DE CONTEÚDO
-                
+                # =============================================================================
                 opcoes_61 = {
                     "Selecione...": 0.0,
                     "Sim, para todo o conteúdo do site (20 pts)": 20.0,
@@ -2227,9 +2258,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                
+                # =============================================================================
                 # QUESITO 6.2 • DOWNLOAD DE DADOS EM FORMATOS ABERTOS E NÃO PROPRIETÁRIOS
-               
+                # =============================================================================
                 opcoes_62 = {
                     "Selecione...": 0.0,
                     "Possibilita para todos os relatórios (20 pts)": 20.0,
@@ -2247,9 +2278,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               
+                # =============================================================================
                 # QUESITO 6.3 • RESPOSTAS A PERGUNTAS MAIS FREQUENTES (FAQ)
-               
+                # =============================================================================
                 opcoes_63 = {
                     "Selecione...": 0.0,
                     "Sim (10 pts)": 10.0,
@@ -2265,9 +2296,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-              
+                # =============================================================================
                 # QUESITO 6.4 • ACESSIBILIDADE DE CONTEÚDO PARA PESSOAS COM DEFICIÊNCIA
-                
+                # =============================================================================
                 opcoes_64 = {
                     "Selecione...": 0.0,
                     "Sim, para todo o conteúdo do site (30 pts)": 30.0,
@@ -2285,9 +2316,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-              
+                # =============================================================================
                 # QUESITO 7.0 • DISPONIBILIZAÇÃO DO e-SIC NO SITE
-               
+                # =============================================================================
                 opcoes_70 = {
                     "Selecione...": 0.0,
                     "Sim (25 pts)": 25.0,
@@ -2303,9 +2334,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               
+                # =============================================================================
                 # QUESITO 7.1 • SOLICITAÇÃO SIMPLIFICADA NO e-SIC
-              
+                # =============================================================================
                 opcoes_71 = {
                     "Selecione...": 0.0,
                     "Sim (10 pts)": 10.0,
@@ -2321,9 +2352,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-              
+                # =============================================================================
                 # QUESITO 7.2 • ACOMPANHAMENTO DA SOLICITAÇÃO NO e-SIC
-               
+                # =============================================================================
                 opcoes_72 = {
                     "Selecione...": 0.0,
                     "Sim (10 pts)": 10.0,
@@ -2339,9 +2370,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                
+                # =============================================================================
                 # QUESITO 7.3 • EXIGÊNCIA DE MOTIVOS PARA A SOLICITAÇÃO
-               
+                # =============================================================================
                 opcoes_73 = {
                     "Selecione...": 0.0,
                     "Sim (00 pts)": 0.0,
@@ -2357,9 +2388,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
- 
+    # =============================================================================
                 # QUESITO 8.0 • SOFTWARES PARA GESTÃO DE PROCESSOS
-               
+                # =============================================================================
                 opcoes_80 = {
                     "Selecione...": 0.0,
                     "Sim (40 pts)": 40.0,
@@ -2375,9 +2406,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-             
+                # =============================================================================
                 # QUESITO 8.1 • SETORES ENGLOBADOS PELOS SOFTWARES
-               
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 8.1 - Processos e Setores Englobados por Softwares").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Os programas de computador (softwares) englobam quais processos/setores?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -2450,9 +2481,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("8.1", res_data, ano_sel)
 
-               
+                # =============================================================================
                 # QUESITO 8.2 • SISTEMAS INTEGRADOS À CONTABILIDADE
-             
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 8.2 - Sistemas Integrados ao Sistema de Contabilidade").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe quais sistemas encontram-se integrados ao Sistema de Contabilidade do município:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -2525,9 +2556,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("8.2", res_data, ano_sel)
 
-             
+                # =============================================================================
                 # QUESITO 8.2.1 • NÍVEL DE INTEGRAÇÃO DÍVIDA ATIVA X CONTABILIDADE
-               
+                # =============================================================================
                 opcoes_821 = {
                     "Selecione...": 0.0,
                     "Totalmente integrado (Inscrição / Atualização e Baixa) (50 pts)": 50.0,
@@ -2544,9 +2575,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               
+                # =============================================================================
                 # QUESITO 8.2.2 • NÍVEL DE INTEGRAÇÃO PRECATÓRIOS X CONTABILIDADE
-              
+                # =============================================================================
                 opcoes_822 = {
                     "Selecione...": 0.0,
                     "Totalmente integrado (Provisão e Baixa) (30 pts)": 30.0,
@@ -2563,7 +2594,7 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-   
+    # Lista padrão de setores/sistemas para os quesitos 8.3 e 8.4
                 setores_padrao_8 = [
                     "Contabilidade", "Gestão de tributos (arrecadação)", "Dívida Ativa", "Precatórios",
                     "Gestão patrimonial (bens e equipamentos)", "Gestão de negócios (Business Intelligence)",
@@ -2572,9 +2603,9 @@ def container_formulario_igov_ti():
                     "Compras, licitações e contratos", "Certidões e alvarás", "Saneamento", "Cemitérios"
                 ]
 
-              
+                # =============================================================================
                 # QUESITO 8.3 • BASES DE DADOS SOB GESTÃO DIRETA DA PREFEITURA
-                
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 8.3 - Bases de Dados sob Gestão Direta").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Assinale quais bases de dados encontram-se sob gestão direta da Prefeitura:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -2660,9 +2691,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("8.3", res_data, ano_sel)
 
-             
+                # =============================================================================
                 # QUESITO 8.4 • SISTEMAS COM CONTROLE DE ACESSO À INFORMAÇÃO
-               
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 8.4 - Controle de Acesso à Informação nos Sistemas").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Assinale quais sistemas possuem controle de acesso à informação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -2748,11 +2779,11 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("8.4", res_data, ano_sel)
 
-  
+    # =============================================================================
 
             if etapa_atual == 2:
                 # QUESITO 9.0 • SERVIÇOS OFERECIDOS DE FORMA ONLINE
-               
+                # =============================================================================
                 opcoes_90 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -2768,9 +2799,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               
+               # =============================================================================
                 # QUESITO 9.1 • TIPOS DE SERVIÇOS ONLINE (7,5 PONTOS POR ITEM)
-              
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 9.1 - Tipos de Serviços Online Prestados").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Quais tipos de serviços são oferecidos de forma online?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -2804,7 +2835,7 @@ def container_formulario_igov_ti():
 
                     valor_salvo_91 = str(d91.get("valor") or "")
                     
-                 
+                    # CORREÇÃO 1: Limpeza rigorosa com strip() para evitar incompatibilidade por espaços extras
                     itens_salvos_91 = [i.strip() for i in valor_salvo_91.split(",") if i.strip()]
                     evidencia_91_salva = str(d91.get("link") or "")
 
@@ -2819,7 +2850,7 @@ def container_formulario_igov_ti():
                         "Consulta a status de protocolos de todos os atendimentos dos serviços assinalados acima"
                     ]
 
-                  
+                    # CORREÇÃO 2: Validação exata de presença do item na lista salva
                     state_91 = {item: item in itens_salvos_91 for item in opcoes_servicos_91}
                     state_91["link"] = evidencia_91_salva
 
@@ -2832,6 +2863,7 @@ def container_formulario_igov_ti():
 
                             salvar_no_banco_91("9.1", valor_string, pts_totais, lnk_val)
                             
+                            # Atualiza a memória local para renderização dinâmica
                             res_data["9.1"] = {"valor": valor_string, "pontos": pts_totais, "link": lnk_val}
                             
                             ui.notify("Quesito 9.1 salvo com sucesso!", type="positive")
@@ -2851,7 +2883,7 @@ def container_formulario_igov_ti():
 
                     pts_atuais_91 = float(d91.get("pontos") or 0.0)
 
-                   
+                    # CORREÇÃO 3: Exibição reativa puxando direto do state_91
                     marcados_atuais = [item for item in opcoes_servicos_91 if state_91.get(item, False)]
                     
                     with ui.row().classes("w-full justify-between items-center mb-4"):
@@ -2864,9 +2896,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("9.1", res_data, ano_sel)
                     
-              
+                # =============================================================================
                 # QUESITO 9.2 • FORMAS DE ATENDIMENTO À DISTÂNCIA
-                
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 9.2 - Formas de Atendimento à Distância").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Quais as formas de atendimento à distância disponibilizadas ao público pela Prefeitura?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -2936,9 +2968,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("9.2", res_data, ano_sel)
 
-               
+                # =============================================================================
                 # QUESITO 10.0 • REGULAMENTAÇÃO DA LGPD
-                
+                # =============================================================================
                 opcoes_100 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -2954,9 +2986,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                
+                # =============================================================================
                 # QUESITO 10.1 • INSTRUMENTO NORMATIVO LGPD
-               
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 10.1 - Instrumento Normativo da LGPD").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe o Instrumento normativo, Número e Data da publicação:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -3003,9 +3035,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("10.1", res_data, ano_sel)
 
-                
+                # =============================================================================
                 # QUESITO 10.2 • PÁGINA ELETRÔNICA DA NORMA LGPD
-               
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 10.2 - Link da Norma da LGPD").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe a página eletrônica (link na internet):").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -3054,9 +3086,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("10.2", res_data, ano_sel)
 
-                
+                # =============================================================================
                 # QUESITO 10.3 • CLÁUSULAS DE LGPD EM CONTRATOS
-               
+                # =============================================================================
                 opcoes_103 = {
                     "Selecione...": 0.0,
                     "Todos os contratos vigentes": 0.0,
@@ -3074,9 +3106,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               
+                # =============================================================================
                 # QUESITO 10.4 • MAPEAMENTO DE DADOS (DATA MAPPING)
-                
+                # =============================================================================
                 opcoes_104 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -3092,9 +3124,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-    
+    # =============================================================================
                 # QUESITO 10.5 • MEDIDAS DE SEGURANÇA DA LGPD
-               
+                # =============================================================================
                 opcoes_105 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -3110,9 +3142,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-                
+                # =============================================================================
                 # QUESITO 10.5.1 • INFORMAR AS MEDIDAS ADOTADAS
-                
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 10.5.1 - Descrição das Medidas Adotadas").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe as medidas técnicas e administrativas adotadas:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -3159,9 +3191,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("10.5.1", res_data, ano_sel)
 
-               
+                # =============================================================================
                 # QUESITO 11.0 • DESIGNAÇÃO DO ENCARREGADO DE DADOS (DPO)
-                
+                # =============================================================================
                 opcoes_110 = {
                     "Selecione...": 0.0,
                     "Sim": 0.0,
@@ -3177,9 +3209,9 @@ def container_formulario_igov_ti():
                     on_save_callback=container_formulario_igov_ti.refresh,
                 )
 
-               
+                # =============================================================================
                 # QUESITO 11.1 • LINK DE CONTATO DO ENCARREGADO
-                
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 11.1 - Informações de Contato do Encarregado").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Informe a página eletrônica (link no site da prefeitura) que contenha a identidade e as informações de contato do encarregado:").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -3228,9 +3260,9 @@ def container_formulario_igov_ti():
                     ui.separator().classes("my-2")
                     bloco_comentarios("11.1", res_data, ano_sel)
 
-                
+                # =============================================================================
                 # QUESITO 12.0 • IMPRESSÕES, COMENTÁRIOS E SUGESTÕES
-               
+                # =============================================================================
                 with ui.card().classes("w-full p-6 mb-6 border border-gray-200 rounded-lg shadow-sm bg-white"):
                     ui.label("📌 Quesito 12.0 - Impressões, Comentários e Sugestões").classes("text-lg font-bold text-blue-900 mb-1")
                     ui.label("Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?").classes("text-base font-semibold text-gray-800 mt-2 mb-1")
@@ -3285,7 +3317,7 @@ def container_formulario_igov_ti():
                 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT, TA_JUSTIFY
                 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 
-             
+                # --- CRIAÇÃO DO BUFFER E DO DOCUMENTO (Corrige 'doc' is not defined) ---
                 buffer = io.BytesIO()
                 doc = SimpleDocTemplate(
                     buffer,
@@ -3296,18 +3328,18 @@ def container_formulario_igov_ti():
                     bottomMargin=30
                 )
 
-                
+                # --- CONFIGURAÇÃO DE ELEMENTOS E ESTILOS REPORTLAB ---
                 elements = []
                 styles = getSampleStyleSheet()
 
-               
+                # Definindo os estilos visuais
                 style_title = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontSize=16, leading=20, alignment=TA_CENTER, textColor=colors.HexColor("#1A365D"))
                 style_th = ParagraphStyle('THStyle', parent=styles['Normal'], fontSize=9, leading=11, fontName='Helvetica-Bold', alignment=TA_CENTER, textColor=colors.white)
                 style_td = ParagraphStyle('TDStyle', parent=styles['Normal'], fontSize=8, leading=10, fontName='Helvetica', alignment=TA_LEFT)
                 style_td_center = ParagraphStyle('TDCenterStyle', parent=styles['Normal'], fontSize=8, leading=10, fontName='Helvetica', alignment=TA_CENTER)
                 style_analise = ParagraphStyle('AnaliseStyle', parent=styles['Normal'], fontSize=8, leading=11, fontName='Helvetica-Oblique', alignment=TA_LEFT, textColor=colors.HexColor("#2D3748"))
 
-               
+                # Dicionário de Pontuações Máximas (Tetos) dos Quesitos - iGovTI
                 PONTUACOES_MAX = {
                     "1.0": 30, "1.1": 30, "1.2": 30, "1.3": 30, "1.3.1": 30, "1.4.1": 40, "1.4.2": 20,
                     "2.0": 40, "2.1": 20, "2.2": 40, "2.3": 20,
@@ -3316,7 +3348,7 @@ def container_formulario_igov_ti():
                     "8.0": 40, "8.2.1": 50, "8.2.2": 30, "9.1": 120
                 }
 
-               
+                # --- CARREGAMENTO DE DADOS E VARIÁVEIS DO RELATÓRIO ---
                 all_data = get_all_years_data()
 
                 if 'ano' not in locals() and 'ano' not in globals():
@@ -3326,11 +3358,11 @@ def container_formulario_igov_ti():
                 ano_atual = int(str(ano).strip()[:4])
                 ano_ant = ano_atual - 1
 
-                
+                # Dicionários de respostas por ano
                 dados = all_data.get(ano_atual, {})
                 dados_ano_anterior = all_data.get(ano_ant, {})
 
-               
+                # Cálculo da nota do ano anterior
                 nota_anterior = 0.0
                 for qid_ant, info_ant in dados_ano_anterior.items():
                     if str(qid_ant).startswith("COM_"):
@@ -3340,7 +3372,7 @@ def container_formulario_igov_ti():
                     elif isinstance(info_ant, (int, float)):
                         nota_anterior += float(info_ant)
 
-               
+                # Identificação de reincidências
                 reincidencias_detectadas = []
                 for qid, info_atual in dados.items():
                     if str(qid).startswith("COM_"):
@@ -3360,9 +3392,9 @@ def container_formulario_igov_ti():
                                 "pontos_anterior": pts_ant,
                                 "max": p_max
                             })
-   
-   
-   
+    # =============================================================================
+    # CARD DE EMISSÃO DO RELATÓRIO PDF (4 ESPAÇOS DE INDENTAÇÃO)
+    # =============================================================================
     with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
         ui.label("📄 Emissão de Relatório Analítico - iGov TI").classes("text-xl font-bold text-blue-900 mb-1")
         ui.label("Gere o relatório completo em formato PDF contendo análises de tendência, diagnóstico de reincidências e metas ODS da Agenda 2030.").classes("text-sm text-gray-700 mb-4")
@@ -3438,7 +3470,7 @@ from reportlab.graphics.shapes import Drawing
 from reportlab.graphics.charts.barcharts import VerticalBarChart
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
-
+# Dicionário global de pontuações máximas caso não venha de fora
 PONTUACOES_MAX_DEFAULT = {
     "1.0": 30, "1.1": 30, "1.2": 30, "1.3": 30, "1.3.1": 30, "1.4.1": 40, "1.4.2": 20,
     "2.0": 40, "2.1": 20, "2.2": 40, "2.3": 20,
@@ -3448,9 +3480,9 @@ PONTUACOES_MAX_DEFAULT = {
 }
 
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
-   
-   
-   
+    # -------------------------------------------------------------------------
+    # DEFINIÇÃO DOS QUESITOS SEM PONTUAÇÃO DIRETA E SUAS REGRAS
+    # -------------------------------------------------------------------------
     LISTA_ALVO_SP = ["1.4", "3.2", "5.0", "5.3", "9.0", "10.0", "10.3", "10.4", "10.5", "11.0"]
 
     REGRAS_ADEQUACAO = {
@@ -3478,7 +3510,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements = []
     styles = getSampleStyleSheet()
 
-   
+    # Tenta usar o PONTUACOES_MAX global ou o padrão definido
     pontuacoes_ref = globals().get('PONTUACOES_MAX', PONTUACOES_MAX_DEFAULT)
 
     def converter_para_float(val):
@@ -3504,9 +3536,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         wordWrap='CJK'
     )
 
-  
+    # -------------------------------------------------------------------------
     # FOLHA 1: CAPA
-  
+    # -------------------------------------------------------------------------
     elements.append(Spacer(1, 100))
     logo_path = "iegm.png"
     if os.path.exists(logo_path):
@@ -3528,9 +3560,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(Paragraph(str(ano), style_ano_capa))
     elements.append(PageBreak())
 
-  
+    # -------------------------------------------------------------------------
     # FOLHA 2: SUMÁRIO
-    
+    # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
     elements.append(Spacer(1, 30))
 
@@ -3557,7 +3589,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_sumario)
     elements.append(PageBreak())
 
-    
+    # ESTILOS DAS TABELAS
     style_th = ParagraphStyle('Th', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.whitesmoke, alignment=1)
     style_td_ano = ParagraphStyle('TdAno', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor("#2c3e50"), alignment=1)
     style_td_pts = ParagraphStyle('TdPts', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=12, alignment=1)
@@ -3565,9 +3597,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     style_td_ods = ParagraphStyle('TdOds', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=9, alignment=1)
     style_td_sp = ParagraphStyle('TdSp', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=8, alignment=1)
 
-   
+    # -------------------------------------------------------------------------
     # 1. RESUMO EXECUTIVO
-   
+    # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
 
@@ -3642,9 +3674,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_comp)
     elements.append(Spacer(1, 12))
 
-
+    # -------------------------------------------------------------------------
     # 2. ANÁLISE DE DESEMPENHO POR QUESITO
-    
+    # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO POR QUESITO</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -3658,7 +3690,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
         qid_clean = str(qid_raw).replace("Q_", "").strip()
 
-       
+        # Ignora itens sem pontuação direta definidos na LISTA_ALVO_SP
         if qid_clean in LISTA_ALVO_SP:
             continue
 
@@ -3745,9 +3777,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tabela_fracos)
         elements.append(Spacer(1, 15))
 
-   
+    # -------------------------------------------------------------------------
     # 3. ANÁLISE DE IMPACTO E PENALIDADES
-   
+    # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES (EFICIÊNCIA PREVENTIVA)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -3790,9 +3822,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tabela_pen)
         elements.append(Spacer(1, 15))
 
-   
+    # -------------------------------------------------------------------------
     # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
-
+    # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
     if reincidencias_detectadas:
@@ -3819,9 +3851,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     
     elements.append(Spacer(1, 15))
 
-   
+    # -------------------------------------------------------------------------
     # 5. ALINHAMENTO COM A AGENDA 2030 (ODS)
-   
+    # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU)</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -3859,9 +3891,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tabela_ods)
         elements.append(Spacer(1, 15))
 
-    
+    # -------------------------------------------------------------------------
     # 6. SÉRIE HISTÓRICA DO I-GOV TI (GRÁFICO DE BARRAS)
-   
+    # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-GOV TI</b>", styles["h2"]))
     elements.append(Spacer(1, 10))
 
@@ -3921,9 +3953,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(drawing)
         elements.append(Spacer(1, 15))
 
-   
+    # -------------------------------------------------------------------------
     # 7. QUESITOS SEM PONTUAÇÃO DIRETA
-   
+    # -------------------------------------------------------------------------
     elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -3973,13 +4005,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     buffer.seek(0)
     return buffer.getvalue()
     
-
+# Ponte universal de execução para importação do main.py
 def render_igovti():
         container_formulario_igov_ti()
 
 
-
-
+# =============================================================================
+# ENTRYPOINT DA APLICAÇÃO (Execução direta deste arquivo)
+# =============================================================================
 if __name__ in {"__main__", "__mp_main__"}:
         @ui.page("/")
         def main_page():
