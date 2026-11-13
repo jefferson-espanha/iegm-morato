@@ -9,9 +9,7 @@ from nicegui import app, ui
 import psycopg2
 from psycopg2.extras import Json, RealDictCursor
 
-# =============================================================================
-# BANCO DE DADOS (NEON)
-# =============================================================================
+
 DATABASE_URL = os.getenv(
     "NEON_DATABASE_URL",
     "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
@@ -113,8 +111,7 @@ def save_resposta(
 
     link_final = link.strip() if link else ""
 
-    # Trata listas de checkbox convertendo para JSON em texto estável.
-    # A cópia evita que um refresh altere o valor depois do salvamento.
+    
     if isinstance(valor, list):
         valor_str = json.dumps(list(valor), ensure_ascii=False)
     elif isinstance(valor, dict):
@@ -189,9 +186,7 @@ def _normalizar_lista_checkbox(valor):
                     return []
     return []
 
-# =============================================================================
-# FUNÇÃO AUXILIAR DE RENDERIZAÇÃO DE QUESITOS (PADRÃO)
-# =============================================================================
+
 def render_quesito(
     ano,
     res_data,
@@ -209,7 +204,7 @@ def render_quesito(
     dados_q = res_data.get(qid, {})
     link_atual = dados_q.get("link", "")
 
-    # Trata valor inicial conforme o tipo de input
+   
     if tipo_input == "checkbox":
         valor_bruto = dados_q.get("valor", [])
         valor_atual = _normalizar_lista_checkbox(valor_bruto)
@@ -246,7 +241,7 @@ def render_quesito(
         ).classes("text-xs text-gray-400 mb-6")
 
         with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
-            # Lado Esquerdo: Checkboxes, Radio, Input Numérico ou Texto
+            
             if tipo_input == "checkbox":
                 with ui.column().classes("gap-2 w-full"):
                     chk_states = {}
@@ -272,7 +267,7 @@ def render_quesito(
                         chk_states[opt_key] = chk
 
             elif tipo_input in ["number", "float"]:
-                # Campo numérico de 0 a 250 pontos
+               
                 input_num = (
                     ui.number(
                         label="Pontuação do Quesito (0 a 250):",
@@ -287,7 +282,7 @@ def render_quesito(
                 )
 
             elif tipo_input == "text":
-                # Campo para textos/respostas dissertativas
+                
                 ui.textarea(
                     label="Resposta / Comentário:",
                     value=state["opcao"],
@@ -306,7 +301,7 @@ def render_quesito(
                     .bind_value(state, "opcao")
                 )
 
-            # Lado Direito: Textarea para o Link
+            
             ui.textarea(
                 label="Link de Evidência / Documento:",
                 value=state["link"],
@@ -315,7 +310,7 @@ def render_quesito(
                 state, "link"
             )
 
-        # Cálculo dinâmico de pontuação
+       
         def calcular_pontos(opcao_sel):
             if tipo_input in ["number", "float"]:
                 try:
@@ -339,13 +334,13 @@ def render_quesito(
                 f"📊 Impacto de Pontuação no Quesito {qid}: {novos_pts:.1f} pontos"
             )
 
-        # Eventos para atualização em tempo real
+        
         if tipo_input == "radio":
             input_radio.on("update:model-value", atualizar_impacto)
         elif tipo_input in ["number", "float"]:
             input_num.on("update:model-value", atualizar_impacto)
 
-        # Botão Salvar
+        
         def salvar_acao():
             opcao_sel = (
                 list(state["opcao"])
@@ -377,9 +372,7 @@ def render_quesito(
         ui.separator().classes("my-2")
         bloco_comentarios(qid, res_data, on_save_callback)
 
-# =============================================================================
-# PAINEL DE CONTROLE LATERAL
-# =============================================================================
+
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     res_data = load_respostas(ano_atual)
@@ -424,7 +417,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         ui.separator().classes("my-2")
         ui.label("⚙️ Gerenciamento").classes("font-bold text-sm mb-2")
 
-        # Função de atualização equivalente ao F5
+        
         def atualizar_dados():
             ui.run_javascript("window.location.reload();")
 
@@ -432,7 +425,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             "w-full bg-blue-700 text-white font-bold mb-2"
         )
 
-        # Modal de confirmação de segurança com senha para zerar
+        
         with ui.dialog() as dialog_zerar, ui.card().classes("w-96 p-4"):
             ui.label("🔒 Confirmação de Segurança").classes(
                 "text-lg font-bold text-red-600"
@@ -478,9 +471,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
         """).classes("w-full")
 
 
-# =============================================================================
-# BLOCO DE COMENTÁRIOS INTERNOS
-# =============================================================================
+
 FUSO_BRASILIA = ZoneInfo("America/Sao_Paulo")
 
 
@@ -613,9 +604,6 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
             "bg-blue-600 text-white mt-2"
         )
 
-# =============================================================================
-# MÓDULO PRINCIPAL DE REQUISITOS
-# =============================================================================
 def container_formulario_plan(ano=None):
     if "ano_referencia_global" not in app.storage.user:
         app.storage.user["ano_referencia_global"] = ano if ano else 2026
@@ -635,7 +623,7 @@ def container_formulario_plan(ano=None):
                 render_conteudo.refresh()
 
             with ui.element("div").classes("w-full grid grid-cols-1 md:grid-cols-12 gap-6 items-start"):
-                # Coluna 1: Painel Lateral (3/12)
+                
                 with ui.element("div").classes("md:col-span-4 lg:col-span-3"):
                     render_painel_controle(
                         ano_atual=ano_sel,
@@ -643,7 +631,7 @@ def container_formulario_plan(ano=None):
                         on_refresh=render_conteudo.refresh,
                     )
 
-                # Coluna 2: Formulário Principal (9/12)
+               
                 with ui.element("div").classes("md:col-span-8 lg:col-span-9 flex flex-col gap-4"):
                     with ui.card().classes("w-full p-6 border rounded-lg shadow-sm bg-white"):
                         ui.label(f"📋 Módulo i-Plan — Ano {ano_sel}").classes(
@@ -665,9 +653,9 @@ def container_formulario_plan(ano=None):
                             ui.button(str(numero), on_click=lambda n=numero: mudar_etapa(n)).props("flat dense no-caps").classes(f"{estilo} min-w-0 px-1 text-base")
 
                     if etapa_atual == 1:
-                        # ==========================================
+                       
                         # QUESITO 1.0 (Audiências Públicas)
-                        # ==========================================
+                       
                         opcoes_10 = {
                             "Selecione...": 0.0,
                             "Sim – 01 pt": 1.0,
@@ -684,9 +672,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 1.1 (Peças Orçamentárias - Checkbox)
-                        # ==========================================
+                       
+                        # QUESITO 1.1 (Peças Orçamentárias)
+                       
                         opcoes_11 = {
                             f"PPA inicial 2026-2029 – 01 pt": 1.0,
                             f"LDO {ano_sel} – 01 pt": 1.0,
@@ -712,9 +700,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 1.2 (Dia e Horário - Checkbox)
-                        # ==========================================
+                       
+                        # QUESITO 1.2 (Dia e Horário)
+                       
                         opcoes_12 = {
                             "Selecione...": 0.0,
                             "Dia de semana em horário comercial (ex: 8 as 18 horas) – 00 pts": 0.0,
@@ -733,9 +721,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                       
                         # QUESITO 1.3 (Transcrição de Audiências - Radio)
-                        # ==========================================
+                        
                         opcoes_13 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -753,10 +741,10 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                       
                         # QUESITO 1.3.1 (Página Eletrônica das Atas)
-                        # ==========================================
-                        # Nota: Este quesito valida se há link publicado. Se contiver 'XYZ' ganha 0 pts, caso contrário ganha 3 pts.
+                      
+                        
                         opcoes_131 = {
                             "Selecione...": 0.0,
                             "Link/Página eletrônica disponível – 03 pts": 3.0,
@@ -774,9 +762,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 1.4 (Planejamento e Organização - Checkbox)
-                        # ==========================================
+                       
+                        # QUESITO 1.4 (Planejamento e Organização)
+                        
                         opcoes_14 = {
                             "Selecione...": 0.0,
                             "Convocação contendo o dia, horário e local através dos jornais, rádios, Portal da Prefeitura e plataformas digitais – 0,5 pt": 0.5,
@@ -800,9 +788,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 2.0 (Consulta Pública Online - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 2.0 (Consulta Pública Online)
+                       
                         opcoes_20 = {
                             "Selecione...": 0.0,
                             "Sim – 06 pts": 6.0,
@@ -820,9 +808,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 2.1 (Glossário na Consulta - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 2.1 (Glossário na Consulta)
+                       
                         opcoes_21 = {
                             "Selecione...": 0.0,
                             "Sim – 02 pts": 2.0,
@@ -840,9 +828,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 3.0 (Diagnóstico Prévio - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 3.0 (Diagnóstico Prévio)
+                       
                         opcoes_30 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -860,9 +848,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 3.1 (Planos Federal/Estadual - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 3.1 (Planos Federal/Estadual)
+                       
                         opcoes_31 = {
                             "Selecione...": 0.0,
                             "Sim – 14 pts": 14.0,
@@ -880,9 +868,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                       
                         # QUESITO 3.1.1 (Descrição dos Programas - Text Area/Radio)
-                        # ==========================================
+                       
                         opcoes_311 = {
                             "Descrição apresentada no campo de evidências": 0.0,
                         }
@@ -898,9 +886,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 3.2 (Diagnóstico por Programa - Radio)
-                        # ==========================================
+                      
+                        # QUESITO 3.2 (Diagnóstico por Programa)
+                      
                         opcoes_32 = {
                             "Selecione...": 0.0,
                             "Sim, para todos os programas do PPA – 10 pts": 10.0,
@@ -920,9 +908,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.0 (Metas Físicas e Financeiras - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 4.0 (Metas Físicas e Financeiras)
+                        
                         opcoes_40 = {
                             "Selecione...": 0.0,
                             "Sim, com metas físicas e financeiras – 10 pts": 10.0,
@@ -942,9 +930,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.1 (Programas Finalísticos - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 4.1 (Programas Finalísticos)
+                       
                         opcoes_41 = {
                             "Selecione...": 0.0,
                             "Todos os programas finalísticos do PPA – 15 pts": 15.0,
@@ -964,9 +952,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.1.1 (Avaliação da Implementação - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 4.1.1 (Avaliação da Implementação)
+                        
                         opcoes_411 = {
                             "Selecione...": 0.0,
                             "Sim, para todos os programas finalísticos monitorados – 10 pts": 10.0,
@@ -986,9 +974,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.1.1.1 (Relatório Anual de Avaliação - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 4.1.1.1 (Relatório Anual de Avaliação)
+                        
                         opcoes_4111 = {
                             "Selecione...": 0.0,
                             "Sim, para todos os programas finalísticos do PPA – 07 pts": 7.0,
@@ -1008,9 +996,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.1.1.1.1 (Aspectos Analisados no Acompanhamento - Checkbox)
-                        # ==========================================
+                        
+                        # QUESITO 4.1.1.1.1 (Aspectos Analisados no Acompanhamento)
+                       
                         opcoes_41111 = {
                             "Selecione...": 0.0,
                             "Percepção de coerência, em todos os programas, do necessário encadeamento lógico-causal entre os insumos mobilizados, os produtos/ações gerados, os resultados provocados e os impactos esperados pela sociedade – 20 pts": 20.0,
@@ -1030,9 +1018,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.1.1.2 (Publicação dos Resultados - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 4.1.1.2 (Publicação dos Resultados)
+                       
                         opcoes_4112 = {
                             "Selecione...": 0.0,
                             "Sim, para todos os programas finalísticos avaliados do PPA – 04 pts": 4.0,
@@ -1052,9 +1040,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.1.1.2.1 (Página Eletrônica dos Resultados - Radio)
-                        # ==========================================
+                     
+                        # QUESITO 4.1.1.2.1 (Página Eletrônica dos Resultados)
+                       
                         opcoes_41121 = {
                             "Link/Página eletrônica disponível – Pontuação conforme item 4.1.1.2": 0.0,
                             "Não disponível (Texto XYZ) – 00 pts": 0.0,
@@ -1071,9 +1059,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.2 (Coerência dos Indicadores - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 4.2 (Coerência dos Indicadores)
+                        
                         opcoes_42 = {
                             "Selecione...": 0.0,
                             "Todos os indicadores do PPA – 25 pts": 25.0,
@@ -1093,9 +1081,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 4.3 (Planos Setoriais no PPA - Checkbox)
-                        # ==========================================
+                        
+                        # QUESITO 4.3 (Planos Setoriais no PPA)
+                        
                         opcoes_43 = {
                             "Plano Municipal da Educação – 2,5 pts": 2.5,
                             "Plano Municipal da Saúde – 2,5 pts": 2.5,
@@ -1120,9 +1108,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.0 (Estudo de Previsão de Receita - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 5.0 (Estudo de Previsão de Receita)
+                       
                         opcoes_50 = {
                             "Selecione...": 0.0,
                             "Sim – 06 pts": 6.0,
@@ -1140,9 +1128,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.1 (Tipos de Tributos e Repasses - Checkbox)
-                        # ==========================================
+                       
+                        # QUESITO 5.1 (Tipos de Tributos e Repasses)
+                        
                         opcoes_51 = {
                             "Imposto sobre a Propriedade Predial e Territorial Urbano (IPTU) – 0,5 pt": 0.5,
                             "Imposto sobre a Transmissão de Bens Imóveis (ITBI) – 0,5 pt": 0.5,
@@ -1165,9 +1153,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.1.1 (Previsão de Repasse do ICMS - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 5.1.1 (Previsão de Repasse do ICMS)
+                       
                         opcoes_511 = {
                             "Selecione...": 0.0,
                             "Sim, com reestimativa da receita prevista na LOA no decorrer da execução orçamentária-financeira – 02 pts": 2.0,
@@ -1186,9 +1174,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 5.2 (Metodologia de Projeção por Espécie - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 5.2 (Metodologia de Projeção por Espécie)
+                       
                         opcoes_52 = {
                             "Selecione...": 0.0,
                             "Sim – 06 pts": 6.0,
@@ -1205,9 +1193,9 @@ def container_formulario_plan(ano=None):
                             placeholder_link="Insira o link do documento metodológico detalhado por categoria de receita...",
                             on_save_callback=render_conteudo.refresh,
                         )
-                        # ==========================================
-                        # QUESITO 6.0 (Disposições da LDO - Checkbox)
-                        # ==========================================
+                        
+                        # QUESITO 6.0 (Disposições da LDO)
+                       
                         opcoes_60 = {
                             "Custos estimados, indicadores e metas físicas que se correlacionam com as ações do governo municipal – 0,5 pt": 0.5,
                             "Critérios para limitação de empenho e movimentação financeira (ressalvados dívida e inovação/desenvolvimento científico/tecnológico por fundo) – 0,5 pt": 0.5,
@@ -1233,9 +1221,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-        # ==========================================
-                        # QUESITO 7.0 (Alteração Orçamentária por Decreto - Radio)
-                        # ==========================================
+      
+                        # QUESITO 7.0 (Alteração Orçamentária por Decreto)
+                       
                         opcoes_70 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -1253,9 +1241,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 7.1 (Classificação Funcional Afetada - Checkbox)
-                        # ==========================================
+                        
+                        # QUESITO 7.1 (Classificação Funcional Afetada)
+                       
                         opcoes_71 = {
                             "Selecione...": 0.0,
                             "10 - Saúde – -05 pts": -5.0,
@@ -1277,9 +1265,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 8.0 (Anexo de Metas Fiscais - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 8.0 (Anexo de Metas Fiscais)
+                        
                         opcoes_80 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -1297,10 +1285,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 8.1 (Divulgação do Anexo de Metas Fiscais - Radio)
-                        # ==========================================
-                        # Nota: Validação de link. Se contiver 'XYZ' perde 10 pts (-10.0), caso contrário ganha 0 pts.
+                        
+                        # QUESITO 8.1 (Divulgação do Anexo de Metas Fiscais)
+                      
                         opcoes_81 = {
                             "Link/Página eletrônica disponível – 00 pts": 0.0,
                             "Não disponível (Texto XYZ) – -10 pts": -10.0,
@@ -1317,9 +1304,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-        # ==========================================
-                        # QUESITO 8.2 (Demonstrativos do Anexo de Metas Fiscais - Checkbox)
-                        # ==========================================
+       
+                        # QUESITO 8.2 (Demonstrativos do Anexo de Metas Fiscais)
+                       
                         opcoes_82 = {
                             "Metas Anuais – 0,7 pt": 0.7,
                             "Avaliação do Cumprimento das Metas Fiscais do Exercício Anterior – 0,7 pt": 0.7,
@@ -1343,9 +1330,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 9.0 (Anexo de Riscos Fiscais - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 9.0 (Anexo de Riscos Fiscais)
+                     
                         opcoes_90 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -1363,10 +1350,10 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 9.1 (Divulgação do Anexo de Riscos Fiscais - Radio)
-                        # ==========================================
-                        # Nota: Validação de link. Se contiver 'XYZ' perde 10 pts (-10.0), caso contrário ganha 0 pts.
+                      
+                        # QUESITO 9.1 (Divulgação do Anexo de Riscos Fiscais)
+                        
+                       
                         opcoes_91 = {
                             "Link/Página eletrônica disponível – 00 pts": 0.0,
                             "Não disponível (Texto XYZ) – -10 pts": -10.0,
@@ -1383,9 +1370,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 9.2 (Gerenciamento de Riscos Fiscais - Checkbox)
-                        # ==========================================
+                        
+                        # QUESITO 9.2 (Gerenciamento de Riscos Fiscais)
+                       
                         opcoes_92 = {
                             "Identificação do tipo de risco e da exposição ao risco – 0,5 pt": 0.5,
                             "Mensuração ou quantificação dessa exposição – 0,5 pt": 0.5,
@@ -1408,9 +1395,9 @@ def container_formulario_plan(ano=None):
 
 
                     if etapa_atual == 2:
-                        # ==========================================
-                        # QUESITO 10.0 (Compatibilidade LOA, PPA e LDO - Checkbox)
-                        # ==========================================
+                       
+                        # QUESITO 10.0 (Compatibilidade LOA, PPA e LDO)
+                        
                         opcoes_100 = {
                             "Programas constantes do PPA constam na LOA – 01 pt": 1.0,
                             "Programas e ações constantes da LDO constam da LOA – 02 pts": 2.0,
@@ -1435,9 +1422,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 11.0 (Previsão na LOA - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 11.0 (Previsão na LOA)
+                        
                         opcoes_110 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -1455,16 +1442,16 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                        
                         # QUESITO 11.1 (Percentual de Crédito Adicional Suplementar na LOA)
-                        # ==========================================
+                       
                         import json
                         import ast
 
                         raw_q111 = res_data.get("11.1") or res_data.get(11.1) or {}
                         q111_data = raw_q111 if isinstance(raw_q111, dict) else {}
 
-                        # Extrai e converte o campo "valor" do banco (seja dict, string JSON ou string dict do Python)
+                        
                         raw_val = q111_data.get("valor", {})
                         val_salvo = {}
 
@@ -1472,7 +1459,7 @@ def container_formulario_plan(ano=None):
                             val_salvo = raw_val
                         elif isinstance(raw_val, str) and raw_val.strip():
                             try:
-                                # Primeiro tenta converter como JSON
+                               
                                 val_salvo = json.loads(raw_val)
                             except Exception:
                                 try:
@@ -1481,7 +1468,7 @@ def container_formulario_plan(ano=None):
                                 except Exception:
                                     val_salvo = {}
 
-                        # Garante extração dos valores convertidos
+                      
                         p_aut = float(val_salvo.get("perc_autorizado", 0.0)) if isinstance(val_salvo, dict) else 0.0
                         i_per = float(val_salvo.get("inflacao_periodo", 0.0)) if isinstance(val_salvo, dict) else 0.0
 
@@ -1496,14 +1483,14 @@ def container_formulario_plan(ano=None):
                             ui.label("11.1 • Percentual Autorizado para Crédito Adicional Suplementar").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Análise do percentual autorizado na Lei Orçamentária Anual (LOA) para abertura de crédito adicional suplementar em comparação com a inflação do período:").classes("text-base font-bold text-black mb-2")
                             
-                            # Bloco Informativo de Regras
+                            
                             with ui.expansion("ℹ️ Regras de Pontuação e Cálculo Automático", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                                 ui.markdown("""
                                 * **Percentual Autorizado <= Inflação do Período:** Ganha **6,0 pontos**
                                 * **Percentual Autorizado > Inflação do Período:** Ganha **0,0 ponto**
                                 """).classes("text-sm text-gray-700 p-2")
 
-                            # Seção da Calculadora
+                            
                             with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
                                 ui.label("🧮 Calculadora Automática do Quesito 11.1").classes("font-bold text-blue-700 mb-2")
                                 
@@ -1529,7 +1516,7 @@ def container_formulario_plan(ano=None):
                                     state_111["perc_autorizado"] = perc_aut
                                     state_111["inflacao_periodo"] = inflacao
 
-                                    # Regra: Se % Autorizado <= Inflação -> 6.0 pontos, senão 0.0
+                                    
                                     if perc_aut <= inflacao:
                                         pts = 6.0
                                         lbl_resultado_comp.set_text(f"Resultado: Percentual Autorizado ({perc_aut:.2f}%) é MENOR ou IGUAL à Inflação ({inflacao:.2f}%)")
@@ -1544,14 +1531,14 @@ def container_formulario_plan(ano=None):
                                 input_inflacao.on("update:model-value", calcular_111)
                                 calcular_111()
 
-                            # Campo de Evidência / Link
+                            
                             input_link_111 = ui.textarea(
                                 label="Link de Evidência / Documento / Fonte da Inflação:",
                                 value=state_111["link"],
                                 placeholder="Insira o link com a LOA e a fonte do índice de inflação utilizado..."
                             ).classes("w-full mb-4").props("outlined rows=3")
 
-                            # Ação de Salvamento
+                          
                             def salvar_111():
                                 dict_valor = {
                                     "perc_autorizado": state_111["perc_autorizado"],
@@ -1584,9 +1571,9 @@ def container_formulario_plan(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("11.1", res_data, render_conteudo.refresh)
                             
-                        # ==========================================
+                        
                         # QUESITO 12.0 (Estrutura Administrativa de Planejamento - Radio)
-                        # ==========================================
+                       
                         opcoes_120 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -1604,9 +1591,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.1 (Recursos Humanos para Planejamento - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 12.1 (Recursos Humanos para Planejamento)
+                       
                         opcoes_121 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -1624,9 +1611,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.1.1 (Qualificação Técnica da Equipe - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 12.1.1 (Qualificação Técnica da Equipe)
+                       
                         opcoes_1211 = {
                             "Selecione...": 0.0,
                             "Sim, todos os servidores possuem qualificação técnica – 00 pts": 0.0,
@@ -1646,9 +1633,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 12.1.2 (Treinamento Específico da Equipe - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 12.1.2 (Treinamento Específico da Equipe)
+                      
                         opcoes_1212 = {
                             "Selecione...": 0.0,
                             "Sim  – 00 pts": 0.0,
@@ -1666,9 +1653,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-        # ==========================================
-                        # QUESITO 13.0 (Acompanhamento da Execução do Planejamento - Radio)
-                        # ==========================================
+       
+                        # QUESITO 13.0 (Acompanhamento da Execução do Planejamento)
+                       
                         opcoes_130 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -1686,9 +1673,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 13.1 (Audiências Públicas Quadrimestrais - Checkbox)
-                        # ==========================================
+                       
+                        # QUESITO 13.1 (Audiências Públicas Quadrimestrais)
+                       
                         opcoes_131 = {
                             "Realizou Audiência pública do 1º Quadrimestre até o final do mês de maio de 2026 – 02 pts": 2.0,
                             "Realizou Audiência pública do 2º Quadrimestre até o final do mês de setembro de 2026 – 02 pts": 2.0,
@@ -1708,9 +1695,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 13.1.1 (Relatórios Quadrimestrais das Metas Fiscais - Checkbox)
-                        # ==========================================
+                        
+                        # QUESITO 13.1.1 (Relatórios Quadrimestrais das Metas Fiscais)
+                       
                         opcoes_1311 = {
                             "Relatório da Audiência pública do 1º Quadrimestre – 01 pt": 1.0,
                             "Relatório da Audiência pública do 2º Quadrimestre – 01 pt": 1.0,
@@ -1729,10 +1716,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 13.1.1.1 (Divulgação dos Relatórios Quadrimestrais - Radio)
-                        # ==========================================
-                        # Nota: Se XYZ ganha 0 pts, se for diferente de XYZ (<> XYZ) ganha 2 pts.
+                       
+                        # QUESITO 13.1.1.1 (Divulgação dos Relatórios Quadrimestrais)
+                       
                         opcoes_13111 = {
                             "Link/Página eletrônica disponível (<> XYZ) – 02 pts": 2.0,
                             "Não disponível (Texto XYZ) – 00 pts": 0.0,
@@ -1749,9 +1735,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 13.2 (Acompanhamento Mensal com o Prefeito - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 13.2 (Acompanhamento Mensal com o Prefeito)
+                       
                         opcoes_132 = {
                             "Selecione...": 0.0,
                             "Sim – 04 pts": 4.0,
@@ -1769,9 +1755,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-        # ==========================================
-                        # QUESITO 13.3 (Retroalimentação do Replanejamento - Radio)
-                        # ==========================================
+        
+                        # QUESITO 13.3 (Retroalimentação do Replanejamento)
+                        
                         opcoes_133 = {
                             "Selecione...": 0.0,
                             "Sim, com emissão de relatórios e ciência do prefeito – 20 pts": 20.0,
@@ -1791,9 +1777,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.0 (Regulamentação do SCI - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 14.0 (Regulamentação do SCI)
+                       
                         opcoes_140 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -1811,9 +1797,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                       
                         # QUESITO 14.1 (Instrumento Normativo do SCI - Text/Info)
-                        # ==========================================
+                        
                         opcoes_141 = {
                             "Selecione...": 0.0,
                             "Instrumento informado/anexado – 00 pts": 0.0,
@@ -1830,9 +1816,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.2 (Divulgação do Instrumento do SCI - Text/Radio)
-                        # ==========================================
+                        
+                        # QUESITO 14.2 (Divulgação do Instrumento do SCI)
+                        
                         opcoes_142 = {
                             "Link/Página eletrônica disponível – 00 pts": 0.0,
                             "Não disponível (Texto XYZ) – 00 pts": 0.0,
@@ -1849,9 +1835,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.3 (Funções do Sistema de Controle Interno - Checkbox)
-                        # ==========================================
+                       
+                        # QUESITO 14.3 (Funções do Sistema de Controle Interno)
+                     
                         opcoes_143 = {
                             "Avaliar o cumprimento das metas físicas e financeiras dos planos orçamentários, bem como a eficiência de seus resultados – 01 pt": 1.0,
                             "Comprovar a legalidade da gestão orçamentária, financeira e patrimonial – 01 pt": 1.0,
@@ -1881,9 +1867,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.4 (Recursos Humanos para o SCI - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 14.4 (Recursos Humanos para o SCI
+                        
                         opcoes_144 = {
                             "Selecione...": 0.0,
                             "Sim – 0,5 pt": 0.5,
@@ -1901,9 +1887,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.4.1 (Vínculo do Responsável pela UCCI - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 14.4.1 (Vínculo do Responsável pela UCCI)
+                       
                         opcoes_1441 = {
                             "Selecione...": 0.0,
                             "Sim (Ocupa cargo efetivo) – 05 pts": 5.0,
@@ -1921,9 +1907,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-        # ==========================================
-                        # QUESITO 14.4.2 (Treinamento do Quadro do SCI - Radio)
-                        # ==========================================
+      
+                        # QUESITO 14.4.2 (Treinamento do Quadro do SCI)
+                        
                         opcoes_1442 = {
                             "Selecione...": 0.0,
                             "Sim (Treinamento periódico pelo menos 1 vez ao ano) – 06 pts": 6.0,
@@ -1941,9 +1927,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.4.3 (Segregação de Funções - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 14.4.3 (Segregação de Funções)
+                      
                         opcoes_1443 = {
                             "Selecione...": 0.0,
                             "Sim – 05 pts": 5.0,
@@ -1961,9 +1947,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.4.4 (Autonomia e Independência da UCCI - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 14.4.4 (Autonomia e Independência da UCCI)
+                        
                         opcoes_1444 = {
                             "Selecione...": 0.0,
                             "Sim – 06 pts": 6.0,
@@ -1981,9 +1967,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.4.4.1 (Subordinação da UCCI - Radio)
-                        # ==========================================
+                      
+                        # QUESITO 14.4.4.1 (Subordinação da UCCI)
+                       
                         opcoes_14441 = {
                             "Selecione...": 0.0,
                             "Gabinete do Prefeito – 00 pts": 0.0,
@@ -2004,9 +1990,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.4.4.2 (Comunicação de Irregularidade em 2026 - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 14.4.4.2 (Comunicação de Irregularidade em 2026)
+                       
                         opcoes_14442 = {
                             "Selecione...": 0.0,
                             "Sim, houve comunicação da irregularidade ou ilegalidade – 00 pts": 0.0,
@@ -2025,9 +2011,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.4.4.2.1 (Quantidade de Comunicações ao TCESP e MPSP - Radio/Text)
-                        # ==========================================
+                       
+                        # QUESITO 14.4.4.2.1 (Quantidade de Comunicações ao TCESP e MPSP)
+                       
                         opcoes_144421 = {
                             "Selecione...": 0.0,
                             "Informado / Sem pontuação aplicada – 00 pts": 0.0,
@@ -2044,9 +2030,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.4.5 (Relatórios Periódicos da UCCI - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 14.4.5 (Relatórios Periódicos da UCCI)
+                       
                         opcoes_1445 = {
                             "Selecione...": 0.0,
                             "Sim (Periodicidade mínima anual) – 05 pts": 5.0,
@@ -2064,9 +2050,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-        # ==========================================
-                        # QUESITO 14.4.5.1 (Providências do Prefeito - Radio)
-                        # ==========================================
+        
+                        # QUESITO 14.4.5.1 (Providências do Prefeito)
+                        
                         opcoes_14451 = {
                             "Selecione...": 0.0,
                             "Sim - de todos os apontamentos – 06 pts": 6.0,
@@ -2086,9 +2072,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.4.5.1.1 (Acompanhamento das Medidas pelo SCI - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 14.4.5.1.1 (Acompanhamento das Medidas pelo SCI)
+                        
                         opcoes_144511 = {
                             "Selecione...": 0.0,
                             "Sim - de todas as providências determinadas pelo Prefeito – 00 pts": 0.0,
@@ -2107,9 +2093,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.5 (Elaboração do Plano Operativo Anual - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 14.5 (Elaboração do Plano Operativo Anual)
+                       
                         opcoes_145 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -2127,10 +2113,10 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 14.5.1 (Atividades no Plano Operativo Anual - Checkbox)
-                        # ==========================================
-                        # Regra de cálculo: 1 a 5 opções = 1.0 pt; 6 a 10 opções = 3.0 pts; >= 11 opções = 5.0 pts.
+                       
+                        # QUESITO 14.5.1 (Atividades no Plano Operativo Anual)
+                       
+                        
                         import json
                         import ast
 
@@ -2163,7 +2149,7 @@ def container_formulario_plan(ano=None):
                             ui.label("14.5.1 • Atividades Previstas no Plano Operativo Anual").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale as atividades previstas no Plano Operativo Anual:").classes("text-base font-bold text-black mb-2")
                             
-                            # Bloco de Regras
+                           
                             with ui.expansion("ℹ️ Regras de Pontuação (Faixa por quantidade de itens)", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                                 ui.markdown("""
                                 * **Nenhum item assinalado:** **0,0 ponto**
@@ -2172,7 +2158,7 @@ def container_formulario_plan(ano=None):
                                 * **11 ou mais itens assinalados:** **5,0 pontos**
                                 """).classes("text-sm text-gray-700 p-2")
 
-                            # Dicionário para armazenar a referência das instâncias de ui.checkbox
+                            
                             checkboxes_dict = {}
                             
                             lbl_qtd_1451 = ui.label().classes("text-sm font-bold text-gray-800 mt-2")
@@ -2180,11 +2166,11 @@ def container_formulario_plan(ano=None):
                             state_1451 = {"pts": float(q1451_data.get("pontos", 0.0))}
 
                             def calcular_1451(_=None):
-                                # Filtra as opções que estão marcadas (value == True)
+                                
                                 marcados = [op for op, cb in checkboxes_dict.items() if cb.value]
                                 qtd = len(marcados)
                                 
-                                # Regra de cálculo por Faixa
+                               
                                 if qtd == 0:
                                     pts = 0.0
                                 elif 1 <= qtd <= 5:
@@ -2198,7 +2184,7 @@ def container_formulario_plan(ano=None):
                                 lbl_qtd_1451.set_text(f"Itens selecionados: {qtd} de {len(lista_opcoes_1451)}")
                                 lbl_pts_1451.set_text(f"📊 Pontuação Calculada: {pts:.1f} pontos")
 
-                            # Grid de Checkboxes individuais
+                            
                             with ui.grid(columns=1).classes("w-full mb-4 md:grid-cols-2 gap-2"):
                                 for opcao in lista_opcoes_1451:
                                     is_checked = opcao in marcados_salvos
@@ -2208,14 +2194,14 @@ def container_formulario_plan(ano=None):
 
                             calcular_1451()
 
-                            # Campo de Link / Evidência
+                           
                             input_link_1451 = ui.textarea(
                                 label="Link de Evidência / Documento do Plano Operativo:",
                                 value=str(q1451_data.get("link", "") or ""),
                                 placeholder="Insira o link comprovando o escopo do Plano Operativo..."
                             ).classes("w-full mb-4").props("outlined rows=3")
 
-                            # Ação de Salvamento
+                            
                             def salvar_1451():
                                 marcados = [op for op, cb in checkboxes_dict.items() if cb.value]
                                 
@@ -2244,9 +2230,9 @@ def container_formulario_plan(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.5.1", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO 15.0 (Criação da Ouvidoria Pública - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 15.0 (Criação da Ouvidoria Pública)
+                        
                         opcoes_150 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -2264,9 +2250,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 15.1 (Instrumento Normativo da Ouvidoria - Radio/Text)
-                        # ==========================================
+                        
+                        # QUESITO 15.1 (Instrumento Normativo da Ouvidoria)
+                       
                         opcoes_151 = {
                             "Selecione...": 0.0,
                             "Instrumento informado/anexado – 00 pts": 0.0,
@@ -2283,9 +2269,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 15.2 (Divulgação da Norma da Ouvidoria - Radio/Text)
-                        # ==========================================
+                       
+                        # QUESITO 15.2 (Divulgação da Norma da Ouvidoria)
+                       
                         opcoes_152 = {
                             "Link/Página eletrônica disponível – 00 pts": 0.0,
                             "Não disponível (Texto XYZ) – 00 pts": 0.0,
@@ -2302,9 +2288,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # =============================================================================
+                       
                         # QUESITO 15.3 (Características da Ouvidoria - Seleção Múltipla com Desconto)
-                        # =============================================================================
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("15.3 • Características de Execução da Ouvidoria").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale as características que a ouvidoria dispõe para a execução de suas atribuições:").classes("text-base font-bold text-black mb-1")
@@ -2317,7 +2303,7 @@ def container_formulario_plan(ano=None):
                             except Exception:
                                 sel_153_salvos = []
 
-                            # Dicionário mapeando chave: (Rótulo, Penalizável_se_não_marcado)
+                          
                             mapa_153 = {
                                 "independencia": ("Independência", True),
                                 "isencao": ("Isenção", True),
@@ -2338,7 +2324,7 @@ def container_formulario_plan(ano=None):
                                 )
                                 return -(nao_marcadas * 0.5)
 
-                            # Exibição das opções em checkboxes limpos
+                           
                             with ui.column().classes("w-full gap-2 mb-4"):
                                 for k, (rotulo, _) in mapa_153.items():
                                     ui.checkbox(rotulo).bind_value(state_153, k)
@@ -2370,9 +2356,9 @@ def container_formulario_plan(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.3", res_data, render_conteudo.refresh)
 
-                        # ==========================================
-                        # QUESITO 15.4 (Relatório de Gestão da Ouvidoria 2026 - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 15.4 (Relatório de Gestão da Ouvidoria 2026)
+                       
                         opcoes_154 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -2390,9 +2376,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # =============================================================================
-                        # QUESITO 15.4.1 (Conteúdo dos Relatórios da Ouvidoria - Seleção Múltipla com Desconto)
-                        # =============================================================================
+                       
+                        # QUESITO 15.4.1 (Conteúdo dos Relatórios da Ouvidoria)
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("15.4.1 • Informações Constantes nos Relatórios Gerenciais da Ouvidoria").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale as informações constantes nos relatórios gerenciais elaborados pela ouvidoria:").classes("text-base font-bold text-black mb-1")
@@ -2405,7 +2391,7 @@ def container_formulario_plan(ano=None):
                             except Exception:
                                 sel_1541_salvos = []
 
-                            # Dicionário mapeando chave: (Rótulo, Penalizável_se_não_marcado)
+                           
                             mapa_1541 = {
                                 "num_manifestacoes": ("Número de manifestações recebidas no exercício anterior", True),
                                 "motivos_manifestacoes": ("Motivos das Manifestações", True),
@@ -2417,14 +2403,14 @@ def container_formulario_plan(ano=None):
                             state_1541["link"] = d1541.get("link", "")
 
                             def calc_pts_1541():
-                                # Conta quantas opções penalizáveis NÃO foram assinaladas (-2.5 por item)
+                               
                                 nao_marcadas = sum(
                                     1 for k, (_, penalizavel) in mapa_1541.items()
                                     if penalizavel and not state_1541.get(k)
                                 )
                                 return -(nao_marcadas * 2.5)
 
-                            # Exibição das opções em checkboxes limpos
+                            
                             with ui.column().classes("w-full gap-2 mb-4"):
                                 for k, (rotulo, _) in mapa_1541.items():
                                     ui.checkbox(rotulo).bind_value(state_1541, k)
@@ -2456,10 +2442,10 @@ def container_formulario_plan(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.4.1", res_data, render_conteudo.refresh)
                        
-                        # ==========================================
-                        # QUESITO 15.4.2 (Divulgação do Relatório de Gestão 2026 - Radio/Text)
-                        # ==========================================
-                        # Regra de cálculo: Se XYZ perde -10 pts; Se <> XYZ ganha 0 pts.
+                       
+                        # QUESITO 15.4.2 (Divulgação do Relatório de Gestão 2026)
+                       
+                        
                         opcoes_1542 = {
                             "Link/Página eletrônica disponível (<> XYZ) – 00 pts": 0.0,
                             "Não disponível (Texto XYZ) – -10 pts": -10.0,
@@ -2476,26 +2462,26 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 15.5 (Iniciativas de Divulgação da Ouvidoria - Checkbox)
-                        # ==========================================
-                        # Regra de cálculo: Perde -0.5 pt apenas para os 2 itens digitais/página se NÃO assinalados.
+                       
+                        # QUESITO 15.5 (Iniciativas de Divulgação da Ouvidoria)
+                       
+                       
                         import json
                         import ast
 
                         raw_155 = res_data.get("15.5") or res_data.get("15.5") or {}
                         q155_data = raw_155 if isinstance(raw_155, dict) else {}
 
-                        # Recupera itens salvos do banco
+                        
                         marcados_salvos = _normalizar_lista_checkbox(q155_data.get("valor", []))
 
-                        # Apenas estes 2 itens geram penalidade (-0.5 cada) se NÃO estiverem marcados
+                       
                         itens_com_penalidade_155 = [
                             "Link da página eletrônica da ouvidoria no sítio da Prefeitura Municipal",
                             "Utilização de outras plataformas digitais para a divulgação da missão, do modo de trabalho das ouvidorias e incentivando a participação popular. Ex.: instagram, facebook, twitter etc."
                         ]
 
-                        # Lista completa das opções
+                       
                         todos_itens_155 = [
                             "Link da página eletrônica da ouvidoria no sítio da Prefeitura Municipal",
                             "Utilização de outras plataformas digitais para a divulgação da missão, do modo de trabalho das ouvidorias e incentivando a participação popular. Ex.: instagram, facebook, twitter etc.",
@@ -2508,7 +2494,7 @@ def container_formulario_plan(ano=None):
                             ui.label("15.5 • Iniciativas de Divulgação e Mobilização Social das Ouvidorias").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Assinale as iniciativas de divulgação e mobilização social das ouvidorias efetuadas:").classes("text-base font-bold text-black mb-2")
                             
-                            # Bloco Informativo de Regras
+                            
                             with ui.expansion("ℹ️ Regras de Pontuação / Penalidade", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                                 ui.markdown("""
                                 * **Itens de Página/Plataformas Digitais assinalados:** **0,0 ponto** (Sem penalidade)
@@ -2523,17 +2509,17 @@ def container_formulario_plan(ano=None):
                             def calcular_155(_=None):
                                 marcados = [op for op, cb in checkboxes_dict_155.items() if cb.value]
                                 
-                                # Avalia a ausência APENAS nos 2 primeiros itens digitais
+                              
                                 nao_marcados_alvo = sum(1 for item in itens_com_penalidade_155 if item not in marcados)
                                 
-                                # Penalidade: -0.5 por item ausente
+                               
                                 pts = nao_marcados_alvo * -0.5
 
                                 state_155["pts"] = pts
                                 lbl_penalidade_155.set_text(f"Itens digitais obrigatórios não assinalados: {nao_marcados_alvo} de {len(itens_com_penalidade_155)}")
                                 lbl_pts_155.set_text(f"📊 Pontuação / Penalidade Calculada: {pts:.1f} pontos")
 
-                            # Renderiza todos os checkboxes na tela
+                           
                             with ui.grid(columns=1).classes("w-full mb-4 gap-2"):
                                 for opcao in todos_itens_155:
                                     is_checked = opcao in marcados_salvos
@@ -2543,14 +2529,14 @@ def container_formulario_plan(ano=None):
 
                             calcular_155()
 
-                            # Campo de Link / Evidência
+                           
                             input_link_155 = ui.textarea(
                                 label="Link de Evidência / Comprovação das Ações:",
                                 value=str(q155_data.get("link", "") or ""),
                                 placeholder="Insira o link com comprovação das ações de divulgação..."
                             ).classes("w-full mb-4").props("outlined rows=3")
 
-                            # Ação de Salvamento
+                           
                             def salvar_155():
                                 marcados = [op for op, cb in checkboxes_dict_155.items() if cb.value]
                                 
@@ -2580,9 +2566,9 @@ def container_formulario_plan(ano=None):
                             bloco_comentarios("15.5", res_data, render_conteudo.refresh)
 
                     if etapa_atual == 3:
-                        # ==========================================
-                        # QUESITO 16.0 (Elaboração da Carta de Serviços ao Usuário - Radio)
-                        # ==========================================
+                        
+                        # QUESITO 16.0 (Elaboração da Carta de Serviços ao Usuário)
+                       
                         opcoes_160 = {
                             "Selecione...": 0.0,
                             "Sim – 04 pts": 4.0,
@@ -2600,10 +2586,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 16.1 (Divulgação da Carta de Serviços - Radio/Text)
-                        # ==========================================
-                        # Regra de cálculo: Se XYZ ganha 0 pts; Se <> XYZ ganha 2 pts.
+                       
+                        # QUESITO 16.1 (Divulgação da Carta de Serviços)
+                        
                         opcoes_161 = {
                             "Link/Página eletrônica disponível (<> XYZ) – 02 pts": 2.0,
                             "Não disponível (Texto XYZ) – 00 pts": 0.0,
@@ -2620,9 +2605,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-        # ==========================================
-                        # QUESITO 16.2 (Atualização da Carta de Serviços - Radio)
-                        # ==========================================
+        
+                        # QUESITO 16.2 (Atualização da Carta de Serviços)
+                        
                         opcoes_162 = {
                             "Selecione...": 0.0,
                             "Sim – 02 pts": 2.0,
@@ -2640,9 +2625,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 16.3 (Regulamentação da Carta de Serviços - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 16.3 (Regulamentação da Carta de Serviços)
+                       
                         opcoes_163 = {
                             "Selecione...": 0.0,
                             "Sim – 04 pts": 4.0,
@@ -2660,9 +2645,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 16.3.1 (Instrumento Normativo da Carta de Serviços - Radio/Text)
-                        # ==========================================
+                      
+                        # QUESITO 16.3.1 (Instrumento Normativo da Carta de Serviços)
+                       
                         opcoes_1631 = {
                             "Selecione...": 0.0,
                             "Instrumento informado/anexado – 00 pts": 0.0,
@@ -2679,9 +2664,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 16.3.2 (Divulgação da Regulamentação da Carta - Radio/Text)
-                        # ==========================================
+                       
+                        # QUESITO 16.3.2 (Divulgação da Regulamentação da Carta)
+                       
                         opcoes_1632 = {
                             "Link/Página eletrônica disponível – 00 pts": 0.0,
                             "Não disponível (Texto XYZ) – 00 pts": 0.0,
@@ -2698,9 +2683,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 17.0 (Conselho de Usuários - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 17.0 (Conselho de Usuários)
+                        
                         opcoes_170 = {
                             "Selecione...": 0.0,
                             "Sim – 04 pts": 4.0,
@@ -2718,9 +2703,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 17.1 (Instrumento Normativo do Conselho - Radio/Text)
-                        # ==========================================
+                      
+                        # QUESITO 17.1 (Instrumento Normativo do Conselho)
+                       
                         opcoes_171 = {
                             "Selecione...": 0.0,
                             "Instrumento informado/anexado – 00 pts": 0.0,
@@ -2737,9 +2722,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 17.2 (Divulgação da Norma do Conselho - Radio/Text)
-                        # ==========================================
+                        
+                        # QUESITO 17.2 (Divulgação da Norma do Conselho)
+                       
                         opcoes_172 = {
                             "Link/Página eletrônica disponível – 00 pts": 0.0,
                             "Não disponível (Texto XYZ) – 00 pts": 0.0,
@@ -2756,9 +2741,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 18.0 (Plano Diretor - Radio)
-                        # ==========================================
+                       
+                        # QUESITO 18.0 (Plano Diretor)
+                        
                         opcoes_180 = {
                             "Selecione...": 0.0,
                             "Sim – 00 pts": 0.0,
@@ -2777,10 +2762,10 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO 18.1 (Atualização do Plano Diretor - Radio)
-                        # ==========================================
-                        # Regra de cálculo: Se a data de atualização <= 31/12/2015 perde -10 pts. Se > 31/12/2015 ganha 0 pts.
+                        
+                        # QUESITO 18.1 (Atualização do Plano Diretor)
+                       
+                      
                         opcoes_181 = {
                             "Selecione...": 0.0,
                             "Data <= 31/12/2015 – -10 pts": -10.0,
@@ -2798,9 +2783,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                        
                         # QUESITO 19.0 (Impressões e Comentários - Texto)
-                        # ==========================================
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2813,9 +2798,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
+                        
                         # QUESITO P1 (Coerência Indicadores x Metas - Entrada Manual)
-                        # ==========================================
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2827,9 +2812,9 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
 
-                        # ==========================================
-                        # QUESITO P2 (Resultado Físico x Recursos Financeiros - Entrada Manual)
-                        # ==========================================
+                        
+                        # QUESITO P2 (Resultado Físico x Recursos Financeiros)
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -2841,17 +2826,17 @@ def container_formulario_plan(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
      
-                        # ==========================================
-                        # QUESITO P3 (Percentual de Alteração do Planejamento Inicial - Calculadora Monetária)
-                        # ==========================================
+                        
+                        # QUESITO P3 (Percentual de Alteração do Planejamento Inicial)
+                       
                         import json
                         import ast
 
-                        # Estado local para persistência e cálculo dos valores monetários
+                       
                         raw_p3 = res_data.get("P3") or res_data.get("p3") or {}
                         p3_data = raw_p3 if isinstance(raw_p3, dict) else {}
 
-                        # Tratamento do campo 'valor' para restaurar I e J salvos
+                       
                         raw_val_p3 = p3_data.get("valor", {})
                         val_dict_p3 = {}
 
@@ -2876,7 +2861,7 @@ def container_formulario_plan(ano=None):
                             ui.label("P3 • Percentual de Alteração do Planejamento Inicial").classes("text-xl font-semibold text-blue-500 mb-3")
                             ui.label("Total dos valores dos programas estabelecidos inicialmente na LOA comparado com os valores finais apurados para os mesmos programas (K = J / I):").classes("text-base font-bold text-black mb-2")
                             
-                            # Bloco Informativo de Regras de Pontuação
+                           
                             with ui.expansion("ℹ️ Tabela de Regras do Indicador K", icon="info").classes("w-full mb-4 bg-gray-50 border border-gray-200 rounded"):
                                 ui.markdown("""
                                 * **K >= 1,3:** Penalidade máxima (**-30,0 pontos**)
@@ -2885,7 +2870,7 @@ def container_formulario_plan(ano=None):
                                 * **K <= 0,5:** Penalidade máxima (**-30,0 pontos**)
                                 """).classes("text-sm text-gray-700 p-2")
 
-                            # Seção da Calculadora Monetária
+                            
                             with ui.card().classes("w-full p-4 mb-4 bg-blue-50 border border-blue-200 rounded-lg"):
                                 ui.label("🧮 Calculadora Automática do Indicador K").classes("font-bold text-blue-700 mb-2")
 
@@ -2933,14 +2918,14 @@ def container_formulario_plan(ano=None):
                                 input_j.on("update:model-value", calcular_k)
                                 calcular_k()
 
-                            # Campo de Evidência / Link
+                           
                             input_link_p3 = ui.textarea(
                                 label="Link de Evidência / Documento:",
                                 value=str(p3_data.get("link", "") or ""),
                                 placeholder="Insira o link ou anexo com a memória de cálculo dos valores I e J..."
                             ).classes("w-full mb-4").props("outlined rows=3")
 
-                            # Ação de Salvamento
+                            
                             def salvar_p3():
                                 # Monta o dicionário com os valores calculados
                                 valores_dict = {"I": state_p3["val_i"], "J": state_p3["val_j"]}
@@ -2954,7 +2939,7 @@ def container_formulario_plan(ano=None):
                                     "status": p3_data.get("status", "Pendente")
                                 }
 
-                                # Salva no Banco de Dados (Convertendo 'valor' para string JSON se necessário)
+                               
                                 save_resposta(
                                     ano=ano_sel,
                                     qid="P3",
@@ -2972,9 +2957,9 @@ def container_formulario_plan(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("P3", res_data, render_conteudo.refresh)
 
-                        # ==========================================
+                        
                         # QUESITO P4 (Pontualidade na Entrega de Documentos AUDESP)
-                        # ==========================================
+                       
                         opcoes_p4 = {
                             "Documentos relativos às Peças de Planejamento entregues no prazo – 150 pts": 150.0,
                             "Documentos relativos às Peças de Planejamento entregues fora do prazo ou não entregue – 00 pts": 0.0,
@@ -3024,9 +3009,9 @@ import asyncio
 from nicegui import app, ui
 from fastapi import Response
 
-# -----------------------------------------------------------------------------
+
 # 1. MAPEAMENTOS E TETOS DE PONTUAÇÃO DO I-PLAN
-# -----------------------------------------------------------------------------
+
 PONTUACOES_MAX_IPLAN = {
     "1.1": 3.0, "1.2": 4.0, "1.3.1": 3.0, "1.4": 5.0, "2.0": 6.0, "2.1": 2.0,
     "3.1": 14.0, "3.2": 10.0, "4.0": 10.0, "4.1": 15.0, "4.1.1": 10.0, "4.1.1.1": 7.0, 
@@ -3042,7 +3027,7 @@ PONTUACOES_MAX_IPLAN = {
     "P1": 250.0, "P2": 250.0, "P4": 150.0
 }
 
-# Aliases de compatibilidade para evitar NameError
+
 PONTUACOES_MAX_IAMB = PONTUACOES_MAX_IPLAN
 PONTUACOES_MAX = PONTUACOES_MAX_IPLAN
 
@@ -3051,13 +3036,13 @@ PENALIDADES_MAX = {
     "8.4.4": -30.0, "9.1": -30.0, "10.0": -100.0, "10.1": -30.0, "14.0": -30.0, "A1": -200.0
 }
 
-# String de conexão com o PostgreSQL
+
 DATABASE_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 
 
-# -----------------------------------------------------------------------------
-# 2. FUNÇÕES AUXILIARES E REGRAS DE NEGÓCIO I-AMB / I-PLAN
-# -----------------------------------------------------------------------------
+
+
+
 def get_db_connection():
     """Cria conexão segura com o Neon PostgreSQL usando linhas por nome de coluna."""
     return psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
@@ -3077,7 +3062,7 @@ def calcular_percentual_checklist(resp, total_itens):
 
 
 def obter_regra_ods_iamb(qid, resp):
-    """Mapeia os quesitos do I-AMB para as metas da Agenda 2030 (ODS) e seu status."""
+    
     resp_l = str(resp).strip().lower()
     metas = "-"
     status = "Não Atendido"
@@ -3166,7 +3151,7 @@ def obter_regra_ods_iamb(qid, resp):
 
 
 def get_all_years_data():
-    """Busca a série histórica do I-AMB/I-PLAN no PostgreSQL Neon DB."""
+    
     all_data = {}
     query = """
         SELECT qid, ano, valor, pontos, link, comentarios
@@ -3215,7 +3200,7 @@ def get_all_years_data():
 
 
 def load_respostas(ano):
-    """Carrega as respostas de um ano específico do PostgreSQL Neon DB."""
+    
     respostas = {}
     query = """
         SELECT qid, valor, pontos, link, comentarios
@@ -3281,11 +3266,10 @@ def converter_pontos_em_faixa_iegm(pontos):
         return "A"
 
 
-# -----------------------------------------------------------------------------
-# 3. GERADOR DE RELATÓRIO PDF COMPLETO (REPORTLAB)
-# -----------------------------------------------------------------------------
+
+
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
-    """Gere o relatório completo e não-resumido do I-PLAN em PDF."""
+   
     
     lista_alvo_iplan = [
         "1.0", "1.1", "5.0", "7.0", "7.6", "7.6.1", 
@@ -3318,9 +3302,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     ano_ant = ano_normalizado - 1
     todos_dados = todos_dados or {}
 
-    # -------------------------------------------------------------------------
+  
     # CAPA
-    # -------------------------------------------------------------------------
+   
     elements.append(Spacer(1, 40))
     logo_path = "iegm.png"
     if os.path.exists(logo_path):
@@ -3335,17 +3319,17 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     elements.append(Spacer(1, 40))
     
-    # Título limpo em linha única
+    
     elements.append(Paragraph("<b>Relatório I-PLAN</b>", styles['TitleCapa']))
     elements.append(Spacer(1, 15))
     
-    # Subtítulo com Ano de Referência
+   
     elements.append(Paragraph(f"Exercício de Referência: <b>{ano_normalizado}</b>", styles['SubTitleCapa']))
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+   
     # SUMÁRIO
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>SUMÁRIO DE CONTEÚDO</b>", styles["Heading1"]))
     elements.append(Spacer(1, 20))
 
@@ -3369,9 +3353,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(tabela_sumario)
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+   
     # 1. RESUMO EXECUTIVO
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>1. RESUMO EXECUTIVO E EVOLUÇÃO COMPARATIVA</b>", styles["Heading2"]))
     elements.append(Spacer(1, 8))
 
@@ -3418,9 +3402,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_exec)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 2. DESEMPENHO POR QUESITO (FORTES E FRACOS)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>2. ANÁLISE DETALHADA DE DESEMPENHO POR QUESITO</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -3465,7 +3449,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
                         "atual": pts_obt
                     })
 
-    # Tabela Pontos Fortes
+    
     if pontos_fortes:
         elements.append(Paragraph("<b>✅ Pontos Fortes (Eficiência ≥ 70%)</b>", styles["Heading3"]))
         df_fortes = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
@@ -3484,7 +3468,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(tf)
         elements.append(Spacer(1, 10))
 
-    # Tabela Pontos Fracos
+    
     if pontos_fracos:
         elements.append(Paragraph("<b>⚠️ Pontos Fracos (Eficiência < 70%)</b>", styles["Heading3"]))
         df_fracos = [["Quesito", "Nota / Teto", "Eficiência", "Resposta / Evidência"]]
@@ -3504,9 +3488,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+   
     # 3. PENALIDADES E IMPACTOS NEGATIVOS
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -3537,9 +3521,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_penal)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -3562,9 +3546,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
 
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+    
     # 5. ALINHAMENTO COM AGENDA 2030 (METAS ODS)
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS)</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -3590,9 +3574,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_ods)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 6. SÉRIE HISTÓRICA DO I-PLAN
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>6. SÉRIE HISTÓRICA DO I-PLAN</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -3614,11 +3598,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         f_a = converter_pontos_em_faixa_iegm(tot_a)
         data_hist.append([str(a), f"{tot_a:.1f} pts", f_a])
 
-        # Coleta dados para o gráfico
+        
         anos_labels.append(str(a))
         pontos_valores.append(tot_a)
 
-    # 1. Tabela
+   
     t_hist = Table(data_hist, colWidths=[120, 180, 180])
     t_hist.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2C3E50")),
@@ -3629,7 +3613,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_hist)
     elements.append(Spacer(1, 15))
 
-    # 2. Gráfico de Barras Vertical
+   
     if pontos_valores:
         d = Drawing(480, 180)
         
@@ -3640,19 +3624,19 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         bc.width = 410
         bc.data = [pontos_valores]
         
-        # Eixo X (Anos)
+        
         bc.categoryAxis.categoryNames = anos_labels
         bc.categoryAxis.labels.fontSize = 9
         bc.categoryAxis.labels.dy = -10
         
-        # Eixo Y (Pontuação)
+        
         max_v = max(pontos_valores) if pontos_valores else 100
         bc.valueAxis.valueMin = 0
         bc.valueAxis.valueMax = max(max_v * 1.15, 100)
         bc.valueAxis.valueStep = 20
         bc.valueAxis.labels.fontSize = 8
         
-        # Estilo das Barras
+      
         bc.bars[0].fillColor = colors.HexColor("#2980B9")
         bc.bars[0].strokeColor = colors.HexColor("#1B4F72")
 
@@ -3660,9 +3644,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         elements.append(d)
         elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
-    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN - CONFORMIDADE OPERACIONAL)
-    # -------------------------------------------------------------------------
+   
+    # 7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN)
+    
     elements.append(Paragraph("<b>7. QUESITOS SEM PONTUAÇÃO DIRETA (I-PLAN - CONFORMIDADE OPERACIONAL)</b>", styles["Heading2"]))
     elements.append(Spacer(1, 6))
 
@@ -3689,18 +3673,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     ]))
     elements.append(t_sp)
 
-    # Construção do Documento PDF
+    
     doc.build(elements)
     return buffer.getvalue()
 
 
-# -----------------------------------------------------------------------------
-# 4. CARD E EVENTOS DE EMISSÃO DO RELATÓRIO PDF (NICEGUI)
-# -----------------------------------------------------------------------------
+
 def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
-    """
-    Componente NiceGUI para renderizar o Card de Emissão do PDF do I-PLAN.
-    """
+   
     res_data = res_data or {}
     
     with ui.card().classes('w-full p-6 my-6 border border-blue-200 rounded-lg shadow-sm bg-blue-50'):
@@ -3760,14 +3740,12 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
         ui.button("📥 GERAR E ABRIR RELATÓRIO PDF (I-PLAN)", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
 
 
-# Alias de compatibilidade caso seja chamado com nome antigo
+
 renderizar_card_relatorio_iamb = renderizar_card_relatorio_iplan
 
 
 def _render_formulario_iplan(ano=2026):
-    """
-    Renderiza os campos do formulário do I-PLAN na interface NiceGUI.
-    """
+    
     with ui.column().classes("w-full p-4"):
         ui.label(f"Formulário do I-PLAN - Exercício {ano}").classes(
             "text-2xl font-bold text-gray-800 mb-4"
@@ -3777,17 +3755,15 @@ def _render_formulario_iplan(ano=2026):
 
 
 def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
-    """
-    Ponto de entrada público do módulo I-PLAN no NiceGUI.
-    """
+   
     ano_inicial = ano if ano is not None else ano_sel
 
-    # Container principal centralizado
+    
     with ui.container().classes("w-full max-w-5xl mx-auto p-4"):
-        # 1. Renderiza a estrutura do formulário
+       
         _render_formulario_iplan(ano=ano_inicial)
 
-        # 2. Carrega as respostas do banco de dados com tratamento de exceção seguro
+      
         dados_relatorio = res_data
         if dados_relatorio is None:
             try:
@@ -3802,7 +3778,7 @@ def container_formulario_iplan(ano=None, res_data=None, ano_sel=2026):
         else:
             ano_relatorio = ano_inicial
 
-        # 3. Renderiza o card do relatório PDF
+        
         renderizar_card_relatorio_iplan(
             res_data=dados_relatorio,
             ano_sel=ano_relatorio,
