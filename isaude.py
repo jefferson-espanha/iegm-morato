@@ -34,7 +34,7 @@ DATABASE_URL = os.getenv(
 
 
 def parse_num(val):
-    """Converte valores numéricos salvos no banco sem depender de outra etapa."""
+   
     if val is None or val == "":
         return None
     try:
@@ -47,7 +47,7 @@ def parse_num(val):
 
 
 def extrair_ano(val, default=2026):
-    """Converte ano ou rótulo do seletor (ex.: 'Ano base(2026)') em inteiro."""
+    
     if val is None or val == "":
         return int(default)
     if isinstance(val, bool):
@@ -63,12 +63,12 @@ def extrair_ano(val, default=2026):
 
 
 def agora_brasilia_formatada():
-    """Retorna data e hora atual no fuso oficial de Brasília."""
+    
     return datetime.now(ZoneInfo("America/Sao_Paulo")).strftime("%d/%m/%Y %H:%M")
 
 
 def safe_float(val, default=0.0):
-    """Converte números vindos do JSON/Banco sem deixar a tela quebrar."""
+    
     try:
         if val is None or val == "":
             return float(default)
@@ -81,7 +81,7 @@ def get_db_connection():
 
 
 def _obter_lista_comentarios(dados_ou_ano, qid=None):
-    """Trata chamadas com 1 ou 2 argumentos para evitar TypeError."""
+   
     if qid is not None and isinstance(dados_ou_ano, dict):
         dados_q = dados_ou_ano.get(str(qid), {})
         coms = dados_q.get("comentarios", [])
@@ -97,7 +97,7 @@ def _obter_lista_comentarios(dados_ou_ano, qid=None):
 
 
 def load_respostas(ano):
-    """Carrega as respostas do banco Neon utilizando a estrutura real com a coluna 'detalhes' (JSONB)."""
+   
     query = """
         SELECT id, ano, quesito, resposta, pontos, detalhes
         FROM respostas_isaude
@@ -126,7 +126,7 @@ def load_respostas(ano):
                         except Exception:
                             val_final = val_bruto
 
-                    # Extração dos dados contidos na coluna JSONB 'detalhes'
+                    
                     detalhes_raw = row.get("detalhes") or {}
                     if isinstance(detalhes_raw, str):
                         try:
@@ -138,7 +138,7 @@ def load_respostas(ano):
 
                     link_val = detalhes_raw.get("link", "")
                     
-                    # Trata variações de nomenclatura nos comentários dentro do JSON
+                    
                     comentarios_val = detalhes_raw.get("comentarios", detalhes_raw.get("comentario", []))
                     if isinstance(comentarios_val, str):
                         try:
@@ -169,7 +169,7 @@ def load_respostas(ano):
 def save_resposta(
     ano, qid, valor, pontos, link="", comentarios=None, status="Pendente"
 ):
-    """Salva/Atualiza a resposta no banco Neon na coluna 'detalhes' (JSONB)."""
+    
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(str(qid), {})
         comentarios = _obter_lista_comentarios(dados_atuais)
@@ -249,7 +249,7 @@ def render_quesito(
     dados_q = res_data.get(qid, {})
     link_atual = dados_q.get("link", "")
 
-    # Tratamento inicial do valor armazenado
+   
     if tipo_input == "checkbox":
         valor_bruto = dados_q.get("valor", [])
         if isinstance(valor_bruto, list):
@@ -392,9 +392,7 @@ def render_quesito(
         elif tipo_input in ["number", "float"]:
             input_num.on("update:model-value", atualizar_impacto)
 
-        # =====================================================================
-        # RENDER QUESITO (FUNÇÃO ÚNICA - SEM DUPLICIDADE DE LINKS)
-        # =====================================================================
+        
         def render_quesito(
             ano,
             res_data,
@@ -553,9 +551,7 @@ def render_quesito(
                 elif tipo_input in ["number", "float"]:
                     input_num.on("update:model-value", atualizar_impacto)
 
-                # =====================================================================
-                # RENDERIZAÇÃO E ATUALIZAÇÃO DINÂMICA DE LINKS VISUAIS (ÚNICA)
-                # =====================================================================
+                
                 container_links = ui.row().classes("w-full items-center my-2")
 
                 def atualizar_links_visuais(_=None):
@@ -585,9 +581,7 @@ def render_quesito(
 
                 atualizar_links_visuais()
 
-        # =====================================================================
-        # BOTÃO SALVAR
-        # =====================================================================
+        
         def salvar_acao():
             opcao_sel = state["opcao"]
             pts = calcular_pontos(opcao_sel)
@@ -617,9 +611,7 @@ def render_quesito(
         bloco_comentarios(qid, res_data, on_save_callback)
 
 
-# =============================================================================
-# PAINEL DE CONTROLE LATERAL
-# =============================================================================
+
 def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
     ano_atual = extrair_ano(ano_atual)
     anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
@@ -851,7 +843,7 @@ def bloco_comentarios(qid, res_data, on_save_callback=None):
 
 
 def get_all_years_data_isaude():
-    """Carrega o histórico de respostas para comparação no relatório."""
+   
     historico = {}
     try:
         with get_db_connection() as conn:
@@ -866,7 +858,7 @@ def get_all_years_data_isaude():
 
 
 def gerar_relatorio_pdf_isaude(dados, ano, total, todos_dados=None):
-    """Gera um relatório PDF resumido e auditável do i-Saúde."""
+   
     todos_dados = todos_dados or {}
     buffer = BytesIO()
     doc = SimpleDocTemplate(
@@ -971,7 +963,7 @@ def gerar_relatorio_pdf_isaude(dados, ano, total, todos_dados=None):
 
 
 def renderizar_card_relatorio_isaude(res_data=None, ano_sel=2026):
-    """Card NiceGUI para gerar e abrir o relatório PDF do i-Saúde."""
+    
     res_data = res_data or {}
     with ui.card().classes(
         "w-full p-5 my-6 border border-green-200 rounded-lg shadow-sm bg-green-50"
@@ -997,8 +989,7 @@ def renderizar_card_relatorio_isaude(res_data=None, ano_sel=2026):
                 historico = get_all_years_data()
                 faixa_atual = converter_pontos_em_faixa_iegm(total_pts)
 
-                # O card usa exclusivamente o relatório detalhado inserido
-                # no módulo, que contém capa, sumário e série histórica.
+                
                 pdf_bytes = gerar_relatorio_pdf(
                     dados=dados_locais,
                     ano=ano_alvo,
@@ -1075,10 +1066,10 @@ def container_formulario_saude(ano=None):
                             "text-xl font-bold text-slate-800 border-b pb-2 mb-4"
                         )
 
-                        # ==========================================
+                      
                         if etapa_atual == 1:
                             # QUESITO 1.0
-                            # ==========================================
+                           
                             opcoes_1_0 = {
                                 "Selecione...": 0.0,
                                 "Sim, com propostas para construção das diretrizes e metas da saúde municipal – 05": 5.0,
@@ -1098,9 +1089,9 @@ def container_formulario_saude(ano=None):
                                 on_save_callback=render_conteudo.refresh,
                             )
     
-                            # ==========================================
+                           
                             # QUESITO 2.0
-                            # ==========================================
+                           
                             opcoes_2_0 = {
                                 "Selecione...": 0.0,
                                 "Até prazo de envio à Câmara Municipal do projeto de lei sobre PPA 2026-2029 – 10": 10.0,
@@ -1121,9 +1112,9 @@ def container_formulario_saude(ano=None):
                                 on_save_callback=render_conteudo.refresh,
                             )
     
-                            # ==========================================
+                           
                             # QUESITO 3.0
-                            # ==========================================
+                          
                             opcoes_3_0 = {
                                 "Selecione...": 0.0,
                                 "Até prazo de envio à Câmara Municipal do projeto de lei de diretrizes orçamentárias 2026 – 10": 10.0,
@@ -1144,9 +1135,9 @@ def container_formulario_saude(ano=None):
                                 on_save_callback=render_conteudo.refresh,
                             )
     
-                            # ==========================================
+                           
                             # QUESITO 3.1
-                            # ==========================================
+                           
                             opcoes_3_1 = {
                                 "Selecione...": 0.0,
                                 "Sim, todas as ações foram executadas – 04": 4.0,
@@ -1167,9 +1158,9 @@ def container_formulario_saude(ano=None):
                                 on_save_callback=render_conteudo.refresh,
                             )
     
-                            # ==========================================
+                           
                             # QUESITO 3.2
-                            # ==========================================
+                           
                             opcoes_3_2 = {
                                 "Selecione...": 0.0,
                                 "Sim, todas as metas foram atingidas – 04": 4.0,
@@ -1190,10 +1181,10 @@ def container_formulario_saude(ano=None):
                                 on_save_callback=render_conteudo.refresh,
                             )
     
-        # ==========================================
+        
                     if etapa_atual == 1:
                         # QUESITO 4.0
-                        # ==========================================
+                        
                         opcoes_4_0 = {
                             "Para escolas – 2,5": 2.5,
                             "Para outras secretarias / entidades municipais – 01": 1.0,
@@ -1214,9 +1205,9 @@ def container_formulario_saude(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
     
-                        # ==========================================
+                        
                         # QUESITO 5.0
-                        # ==========================================
+                       
                         opcoes_5_0 = {
                             "Selecione...": 0.0,
                             "Sim – 04": 4.0,
@@ -1235,9 +1226,9 @@ def container_formulario_saude(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
     
-                        # ==========================================
+                       
                         # QUESITO 5.1
-                        # ==========================================
+                        
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1250,9 +1241,9 @@ def container_formulario_saude(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
     
-                        # ==========================================
+                       
                         # QUESITO 6.0
-                        # ==========================================
+                       
                         opcoes_6_0 = {
                             "Selecione...": 0.0,
                             "Sim, com responsabilidade específica do setor de saúde e com recursos movimentados exclusivamente pelo Fundo – 05": 5.0,
@@ -1273,9 +1264,9 @@ def container_formulario_saude(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
     
-                        # ==========================================
+                       
                         # QUESITO 7.0
-                        # ==========================================
+                      
                         opcoes_7_0 = {
                             "Relatório do 1º Quadrimestre - até o final do mês de maio de 2026 – 01": 1.0,
                             "Relatório do 2º Quadrimestre - até o final do mês de setembro de 2026 – 01": 1.0,
@@ -1296,9 +1287,9 @@ def container_formulario_saude(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
     
-                        # ==========================================
+                       
                         # QUESITO 8.0
-                        # ==========================================
+                       
                         opcoes_8_0 = {
                             "Selecione...": 0.0,
                             "Sim, meio eletrônico – 02": 2.0,
@@ -1318,9 +1309,9 @@ def container_formulario_saude(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
     
-                        # ==========================================
+                        
                         # QUESITO 9.0
-                        # ==========================================
+                      
                         opcoes_9_0 = {
                             "Selecione...": 0.0,
                             "Aprovado sem ressalvas – 18": 18.0,
@@ -1341,9 +1332,8 @@ def container_formulario_saude(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
     
-                        # ==========================================
                         # QUESITO 9.1
-                        # ==========================================
+                      
                         render_quesito(
                             ano=ano_sel,
                             res_data=res_data,
@@ -1356,9 +1346,8 @@ def container_formulario_saude(ano=None):
                             on_save_callback=render_conteudo.refresh,
                         )
     
-                        # =============================================================================
                         # QUESITO 9.2 (Parecer Conclusivo RAG 2024)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -1379,7 +1368,7 @@ def container_formulario_saude(ano=None):
                                 "link": raw_link_92,
                             }
     
-                            # --- Campo Link / Página Eletrônica ---
+                          
                             ui.textarea(
                                 label="Página eletrônica (link na internet) do Parecer Conclusivo RAG 2024:",
                                 value=raw_link_92,
@@ -1392,7 +1381,7 @@ def container_formulario_saude(ano=None):
                                 "text-sm font-bold text-green-600 mb-6"
                             )
     
-                            # --- Lógica de Cálculo de Pontuação (9.2) ---
+                           
                             def recalc_pontos_92():
                                 link_val = state_92["link"].strip()
                                 if link_val.upper() == "XYZ" or not link_val:
@@ -1403,7 +1392,7 @@ def container_formulario_saude(ano=None):
                                 lbl_pts_92.set_text(f"📊 Nota Quesito 9.2: {pts:.2f} / 5.0 pontos")
                                 return pts
     
-                            # Reação à digitação no campo
+                           
                             ui.timer(0.1, recalc_pontos_92, once=True)
     
                             def salvar_92():
@@ -1429,10 +1418,10 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("9.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                     if etapa_atual == 2:
                         # QUESITO 10.0 (Estabelecimentos de Saúde sob Gestão Municipal)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -1637,9 +1626,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("10.0", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                      
                         # QUESITO 11.0 (Existência de PCCS Específico da Saúde)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -1701,9 +1690,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("11.0", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 11.1 (Norma de Regulamentação do PCCS Específico)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -1753,10 +1742,10 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("11.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 11.2 (Divulgação do PCCS da Saúde na Internet)
-                        # =============================================================================
                         with ui.card().classes(
+
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
                             ui.label("11.2 • Divulgação do PCCS da Saúde na Internet").classes(
@@ -1813,9 +1802,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("11.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 12.0 (Adoção da Estratégia de Saúde da Família)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -1895,9 +1884,9 @@ def container_formulario_saude(ano=None):
                             bloco_comentarios("12.0", res_data, render_conteudo.refresh)
 
 
-                        # =============================================================================
+                       
                         # QUESITO 12.1 (Equipes de Saúde da Família e Atenção Primária)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2037,9 +2026,9 @@ def container_formulario_saude(ano=None):
                             bloco_comentarios("12.1", res_data, render_conteudo.refresh)
 
 
-                        # =============================================================================
+                       
                         # QUESITO 12.2 (População Cadastrada por Equipe)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2158,9 +2147,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("12.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 13.0 (Registro Eletrônico de Frequência)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2239,9 +2228,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.0", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 13.1 (Jornada de Trabalho Médica)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2318,9 +2307,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("13.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                      
                         # QUESITO 14.0 (Intervalo de Agendamento das Consultas Médicas)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2396,9 +2385,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.0", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 14.1 (Serviço de Agendamento Remoto)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2475,9 +2464,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 14.2 (Controle de Absenteísmo)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2553,9 +2542,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 14.2.1 (Taxa de Absenteísmo de Consulta Médica)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2647,7 +2636,7 @@ def container_formulario_saude(ano=None):
 
                             recalc_1421()
 
-                            # Link do documento
+                           
                             input_link_1421 = ui.textarea(
                                 label="Link de Evidência / Relatório com a Série Histórica das Taxas de Absenteísmo:",
                                 value=raw_link_1421,
@@ -2656,7 +2645,7 @@ def container_formulario_saude(ano=None):
                                 state_1421, "link"
                             )
 
-                            # Exibição dinâmica de links ativos
+                            
                             container_links_1421 = ui.row().classes("w-full items-center my-2")
 
                             def atualizar_links_visuais_1421():
@@ -2675,7 +2664,7 @@ def container_formulario_saude(ano=None):
                             input_link_1421.on("update:model-value", atualizar_links_visuais_1421)
                             atualizar_links_visuais_1421()
 
-                            # Função para salvar
+                            
                             def salvar_1421():
                                 pts = recalc_1421()
                                 save_resposta(
@@ -2702,9 +2691,9 @@ def container_formulario_saude(ano=None):
                             bloco_comentarios("14.2.1", res_data, render_conteudo.refresh)
     
                     if etapa_atual == 3:
-                        # =============================================================================
+                        
                         # QUESITO 14.2.2 (Medidas para Redução da Taxa de Absenteísmo)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2778,9 +2767,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.2.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 14.2.2.1 (Medidas Utilizadas para Redução)
-                        # =============================================================================
+                      
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2871,9 +2860,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("14.2.2.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 15.0 (Controle de Absenteísmo em Exames Laboratoriais)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -2961,9 +2950,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.0", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 15.1 (Taxa de Absenteísmo de Exames Médicos da Atenção Básica)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3085,9 +3074,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 15.2 (Medidas para Redução do Absenteísmo em Exames)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3161,9 +3150,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 15.2.1 (Tipos de Medidas para Exames Médicos)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3254,9 +3243,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("15.2.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 16.0 (Implantação do PEP na Atenção Básica)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3332,9 +3321,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("16.0", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 16.1 (Serviços Inseridos no PEP)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3450,9 +3439,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("16.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.0 (Atendimento de Atenção Especializada)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3528,9 +3517,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.0", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 17.1 (Registro Eletrônico de Frequência na Atenção Especializada)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3609,9 +3598,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.1.1 (Cumprirem Jornada Médicos Ambulatoriais da Atenção Especializada)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3688,9 +3677,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.1.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.1.2 (Jornada dos Médicos Plantonistas da Atenção Especializada)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3772,9 +3761,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.1.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.2 (Intervalo de Agendamento das Consultas Médicas)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3865,9 +3854,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 17.3 (Controle de Absenteísmo de Consultas na Atenção Especializada)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -3943,9 +3932,8 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.3", res_data, render_conteudo.refresh)
                        
-                        # =============================================================================
-                        # QUESITO 17.3.1 (Taxa de Absenteísmo na Atenção Especializada: 2024, 2025, 2026)
-                        # =============================================================================
+                        
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4061,9 +4049,9 @@ def container_formulario_saude(ano=None):
                             bloco_comentarios("17.3.1", res_data, render_conteudo.refresh)
                        
     
-                        # =============================================================================
+                       
                         # QUESITO 17.3.2 (Medidas para Redução do Absenteísmo em Consultas)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4137,9 +4125,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.3.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.3.2.1 (Medidas Utilizadas para Redução de Absenteísmo)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4239,9 +4227,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.3.2.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 17.4 (Controle de Absenteísmo para Exames Médicos da Atenção Especializada)
-                        # =============================================================================
+                      
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4317,9 +4305,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.4", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 17.4.1 (Taxa de Absenteísmo para Exames Médicos: 2024, 2025, 2026)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4434,9 +4422,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.4.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.4.2 (Medidas para Redução da Taxa de Absenteísmo em Exames)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4510,9 +4498,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.4.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.4.2.1 (Medidas Utilizadas para Redução do Absenteísmo em Exames)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4617,9 +4605,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.4.2.1", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+        
                         # QUESITO 17.5 (Sistema Informatizado de Regulação)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4698,9 +4686,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 17.5.1 (Sistemas Utilizados pela Regulação)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4795,9 +4783,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.5.2 (Conhecer Lista de Espera Nominal e Tempos de Espera)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4873,9 +4861,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.5.2.1 (Serviços Inseridos no Sistema de Regulação)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -4997,9 +4985,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5.2.1", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+       
                         # QUESITO 17.5.2.1.1 (Consultas Médicas com Maior Tempo de Espera)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -5120,9 +5108,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5.2.1.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 17.5.2.1.2 (Exames Médicos com Maior Tempo de Espera)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -5243,9 +5231,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5.2.1.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.5.2.1.3 (Terapias/Tratamentos Médicos com Maior Tempo de Espera)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -5366,9 +5354,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5.2.1.3", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+       
                         # QUESITO 17.5.2.1.4 (OPM com Maior Tempo de Espera)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -5489,9 +5477,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5.2.1.4", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.5.2.1.5 (Cirurgias Eletivas com Maior Tempo de Espera)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -5612,9 +5600,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5.2.1.5", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.5.2.1.6 (Outros Serviços da Atenção Especializada com Maior Tempo de Espera)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -5735,9 +5723,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.5.2.1.6", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+       
                         # QUESITO 17.6 (Prontuário Eletrônico do Paciente - PEP na Atenção Especializada)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -5813,9 +5801,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.6", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 17.6.1 (Serviços Inseridos no PEP)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -5952,9 +5940,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.6.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 17.7 (Mamógrafos na Rede Própria)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6024,9 +6012,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.7", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+    
                         # QUESITO 17.7.1 (Produtividade dos Mamógrafos na Rede Própria)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6135,9 +6123,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.7.1", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+       
                         # QUESITO 17.8 (Equipamentos de Ultrassom na Rede Própria)
-                        # =============================================================================
+                      
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6207,9 +6195,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.8", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 17.8.1 (Comparativo de Produtividade dos Ultrassons: 2024, 2025, 2026)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6368,9 +6356,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.8.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 17.9 (Gestão de Hospital ou Santa Casa)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6440,9 +6428,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.9", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+       
                         # QUESITO 17.9.1 (Taxa de Ocupação Hospitalar Geral)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6549,9 +6537,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.9.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 17.9.2 (Hospitais com Taxa de Ocupação Superior a 100%)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6669,10 +6657,10 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("17.9.2", res_data, render_conteudo.refresh)
     
-            # =============================================================================
+            
                     if etapa_atual == 4:
                         # QUESITO 18.0 (Demanda por Assistência em Saúde Mental / RAPS)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6742,9 +6730,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.0", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 18.1 (Plano de Ação para Inclusão na RAPS)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6833,9 +6821,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 18.2 (Integração Intersetorial da Saúde Mental)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -6918,9 +6906,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 18.2.1 (Formas de Integração dos Órgãos)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7001,9 +6989,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.2.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 18.2.1.1 (Atingimento de Metas de Saúde Mental 2026)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7075,9 +7063,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.2.1.1", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+       
                         # QUESITO 18.3 (Adesão ao Programa Recomeço)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7147,9 +7135,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.3", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 18.4 (Indicadores Específicos para Atenção Psicossocial)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7232,9 +7220,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.4", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 18.4.1 (Tipos de Indicadores da Atenção Psicossocial)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7314,9 +7302,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.4.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 18.5 (Porte Populacional > 15 mil habitantes - IBGE 2026)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7386,9 +7374,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.5", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 18.5.1 (Dimensionamento da Rede CAPS / Unidades de Acolhimento)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7458,9 +7446,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.5.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 18.5.2 (Quantidade de Estabelecimentos da RAPS)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7542,9 +7530,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.5.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 18.5.3 (Integração dos Serviços com Sistema de Regulação)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7630,9 +7618,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.5.3", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 18.5.3.1 (Quantidade de Vagas Cadastradas no Sistema de Regulação)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7714,9 +7702,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.5.3.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 18.5.4 (Suficiência da Oferta de Vagas dos CAPS)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7802,9 +7790,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.5.4", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 18.5.5 (Quantidade de Vagas Ofertadas pelo Município)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7886,9 +7874,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.5.5", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 18.6 (Adesão ao Programa De Volta para Casa - PVC)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -7958,9 +7946,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("18.6", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 19.0 (Demanda de Moradia / Serviços Residenciais Terapêuticos - SRT)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -8030,9 +8018,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("19.0", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 19.1 (Adequação da Oferta e Distribuição Geográfica de SRT)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -8102,9 +8090,7 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("19.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
-                        # QUESITO 19.2 (Quantidade de Unidades de SRT por Tipo)
-                        # =============================================================================
+                                              
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -8178,9 +8164,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("19.2", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 19.3 (Regulação de Vagas das SRTs)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -8266,9 +8252,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("19.3", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                        
                         # QUESITO 19.3.1 (Quantidade de Vagas em SRT no Sistema de Regulação)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -8342,9 +8328,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("19.3.1", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
+                       
                         # QUESITO 19.4 (Rotinas de Acompanhamento, Supervisão e Controle das SRTs)
-                        # =============================================================================
+                        
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -8427,9 +8413,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("19.4", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+        
                         # QUESITO 19.5 (Acompanhamento do Processo de Desinstitucionalização)
-                        # =============================================================================
+                       
                         with ui.card().classes(
                             "w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"
                         ):
@@ -8569,13 +8555,11 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("19.5", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+        
                         # MÓDULO DE VIGILÂNCIA EM SAÚDE - QUESITOS 20.0 A 20.3
-                        # =============================================================================
-    
-                        # -----------------------------------------------------------------------------
-                        # QUESITO 20.0 (Tipos de Insumos Geridos)
-                        # -----------------------------------------------------------------------------
+                        
+                        
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("20.0 • Insumos sob Gestão da Vigilância em Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Sobre Vigilância em Saúde, a Prefeitura realiza gestão de quais tipos de insumos?").classes("text-base font-bold text-black mb-4")
@@ -8621,9 +8605,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("20.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 20.1 (Uso de Frigobar para Imunobiológicos)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("20.1 • Armazenamento e Refrigeração de Imunobiológicos").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("A Prefeitura utiliza frigobar para refrigeração, manutenção, monitoramento e controle da temperatura dos imunobiológicos (soros, vacinas e imunoglobulinas)?").classes("text-base font-bold text-black mb-4")
@@ -8685,9 +8669,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("20.1", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 20.2 (Materiais para Coleta de Diagnóstico Laboratorial)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("20.2 • Materiais de Coleta para Diagnóstico Epidemiológico").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("A Prefeitura disponibilizou os materiais necessários para a coleta dos meios de diagnóstico laboratorial para as doenças sob monitoramento epidemiológico (sangue, saliva, secreção, suor, urina, fezes)?").classes("text-base font-bold text-black mb-4")
@@ -8748,9 +8732,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("20.2", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 20.3 (EPIs para Controle de Vetores)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("20.3 • Equipamentos de Proteção Individual (EPIs) - Controle de Vetores").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("A Prefeitura disponibilizou todos os equipamentos de proteção individual (EPIs) para o manuseio dos insumos para controle de vetores (inseticidas e pesticidas)?").classes("text-base font-bold text-black mb-4")
@@ -8811,13 +8795,13 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("20.3", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE VIGILÂNCIA DE ARBOVIROSES - QUESITOS 21.0 A 23.1
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
+                        # MÓDULO DE VIGILÂNCIA DE ARBOVIROSES - QUESITOS 21.0 A 23.1
+                        
+    
+                        
                         # QUESITO 21.0 (Análise Semanal de Tendência de Arboviroses)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("21.0 • Análise Semanal de Arboviroses").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município analisa semanalmente os dados de casos de arboviroses, acompanhando a tendência dos casos e verificando as variações entre as semanas epidemiológicas?").classes("text-base font-bold text-black mb-4")
@@ -8871,9 +8855,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("21.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 22.0 (Investigação de Casos, Surtos e Óbitos)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("22.0 • Investigação Epidemiológica de Arboviroses").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município investiga casos notificados, surtos e óbitos de arboviroses?").classes("text-base font-bold text-black mb-4")
@@ -8934,9 +8918,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("22.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 23.0 (Atribuições de Vigilância Entomológica e Controle Vetorial)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("23.0 • Exercício do Controle Vetorial em 2026").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município exerceu as atribuições relacionadas à vigilância entomológica e controle vetorial em 2026?").classes("text-base font-bold text-black mb-4")
@@ -8977,9 +8961,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("23.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 23.1 (Detalhamento das Atribuições Entomológicas)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("23.1 • Atribuições de Vigilância Entomológica Executadas").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Assinale as atribuições da vigilância entomológica e controle vetorial efetivamente realizadas pelo município:").classes("text-base font-bold text-black mb-4")
@@ -9051,9 +9035,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("23.1", res_data, render_conteudo.refresh)
     
-    # -----------------------------------------------------------------------------
+   
                         # QUESITO 24.0 (Execução de Atividades de Educação em Saúde)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("24.0 • Educação em Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município executou atividades de Educação em Saúde?").classes("text-base font-bold text-black mb-4")
@@ -9094,9 +9078,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("24.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 24.1 (Campanhas de Educação em Saúde Realizadas em 2026)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("24.1 • Campanhas Realizadas em 2026").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Assinale as campanhas de educação em saúde realizadas no município em 2026:").classes("text-base font-bold text-black mb-4")
@@ -9176,13 +9160,13 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("24.1", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE REGULAÇÃO EM SAÚDE E FILA DE ESPERA - QUESITOS 25.0 A 28.0
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
+                        # MÓDULO DE REGULAÇÃO EM SAÚDE E FILA DE ESPERA - QUESITOS 25.0 A 28.0
+                       
+    
+                       
                         # QUESITO 25.0 (Ações Reguladoras e Complexo Regulador)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("25.0 • Ações Reguladoras e Complexo Regulador").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município desenvolve ações reguladoras em seu território, operacionalizando por meio de complexo regulador municipal e/ou participando em co-gestão da operacionalização dos Complexos Reguladores Regionais?").classes("text-base font-bold text-black mb-4")
@@ -9235,9 +9219,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("25.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 26.0 (Protocolos de Regulação de Acesso Formalizados)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("26.0 • Protocolos de Regulação de Acesso").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município elaborou os protocolos de regulação de acesso formalizados?").classes("text-base font-bold text-black mb-4")
@@ -9289,9 +9273,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("26.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 27.0 (Regulação da Referência Intermunicipal)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("27.0 • Regulação da Referência Intermunicipal").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município regula a referência a ser realizada em outros municípios, de acordo com a programação pactuada e integrada, integrando-se aos fluxos regionais estabelecidos?").classes("text-base font-bold text-black mb-4")
@@ -9344,9 +9328,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("27.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 28.0 (Controle de Fila de Espera na Atenção Especializada)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.0 • Controle da Fila de Espera na Atenção Especializada").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município possui controle da fila de espera para os atendimentos da Atenção Especializada que não foram inseridos no sistema de regulação do governo estadual (Portal CROSS)?").classes("text-base font-bold text-black mb-4")
@@ -9410,13 +9394,12 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.0", res_data, render_conteudo.refresh)
     
-    # =============================================================================
+   
                         # MÓDULO DE DETALHAMENTO DAS FILAS DE ESPERA - QUESITOS 28.1 A 28.2.2
-                        # =============================================================================
-    
-                        # -----------------------------------------------------------------------------
+                        
+                       
                         # QUESITO 28.1 (Tipo de Controle da Lista de Espera)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.1 • Tipo de Controle da Lista de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Assinale o tipo de controle da lista de espera para os atendimentos da Atenção Especializada que não foram inseridos no sistema de regulação do governo estadual:").classes("text-base font-bold text-black mb-4")
@@ -9477,9 +9460,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.1", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 28.2 (Serviços com Lista de Espera Fora do Portal CROSS)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2 • Serviços Especializados com Lista de Espera Própria").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Assinale os serviços da Atenção Especializada com lista de espera que não foram inseridos no sistema de regulação do governo estadual (Portal CROSS):").classes("text-base font-bold text-black mb-4")
@@ -9530,9 +9513,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.2", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 28.2.1 (Consultas Médicas com Maior Tempo de Espera) - CORRIGIDO
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.1 • Consultas Médicas com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Informe as 3 consultas médicas com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
@@ -9597,9 +9580,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.2.1", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 28.2.2 (Exames Médicos com Maior Tempo de Espera) - CORRIGIDO
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.2 • Exames Médicos com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Informe os 3 exames médicos com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
@@ -9664,13 +9647,13 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.2.2", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE DETALHAMENTO DE TEMPOS DE ESPERA - QUESITOS 28.2.3 A 28.2.7
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
+                        # MÓDULO DE DETALHAMENTO DE TEMPOS DE ESPERA - QUESITOS 28.2.3 A 28.2.7
+                        
+    
+                       
                         # QUESITO 28.2.3 (Terapias/Tratamentos Médicos com Maior Tempo de Espera)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.3 • Terapias/Tratamentos Médicos com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Informe as 3 terapias/tratamentos médicos com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
@@ -9735,9 +9718,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.2.3", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 28.2.4 (Medicamentos com Maior Tempo de Espera)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.4 • Medicamentos com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Informe os 3 medicamentos com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
@@ -9802,9 +9785,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.2.4", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 28.2.5 (OPM com Maior Tempo de Espera)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.5 • OPM (Órteses, Próteses e Materiais) com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Informe as 3 OPM com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
@@ -9869,9 +9852,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.2.5", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 28.2.6 (Cirurgias Eletivas com Maior Tempo de Espera)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.6 • Cirurgias Eletivas com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Informe as 3 cirurgias eletivas da Atenção Especializada com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
@@ -9936,9 +9919,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.2.6", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 28.2.7 (Outros Serviços da Atenção Especializada com Maior Tempo de Espera)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("28.2.7 • Outros Serviços da Atenção Especializada com Maior Tempo de Espera").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Informe os 3 outros serviços da Atenção Especializada com maior tempo médio de espera no município:").classes("text-base font-bold text-black mb-4")
@@ -10003,14 +9986,10 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("28.2.7", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
-                        # MÓDULO DE CADASTRO, REGULAÇÃO E ATENÇÃO PRÉ-HOSPITALAR - QUESITOS 29 A 31
-                        # =============================================================================
-    
-                        # -----------------------------------------------------------------------------
+                       
                     if etapa_atual == 5:
                         # QUESITO 29.0 (Cadastro CNES)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("29.0 • Atualização do CNES").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município mantém atualizado o Cadastro de Estabelecimentos e Profissionais de Saúde (CNES)?").classes("text-base font-bold text-black mb-4")
@@ -10073,9 +10052,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("29.0", res_data, render_conteudo.refresh)
                             
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 30.0 (Complexo Regulador Municipal)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("30.0 • Complexo Regulador Municipal").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município possui Complexo Regulador Municipal?").classes("text-base font-bold text-black mb-4")
@@ -10110,9 +10089,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("30.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 30.1 (Central de Regulação) - Condicionado a 30.0 = Sim
-                        # -----------------------------------------------------------------------------
+                        
                         if state_300["opcao"] == "Sim":
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("30.1 • Central de Regulação").classes("text-xl font-semibold text-blue-600 mb-2")
@@ -10148,9 +10127,9 @@ def container_formulario_saude(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("30.1", res_data, render_conteudo.refresh)
     
-                            # -------------------------------------------------------------------------
+                            
                             # QUESITO 30.1.1 (Tipos de Central de Regulação) - Condicionado a 30.1 = Sim
-                            # -------------------------------------------------------------------------
+                            
                             if state_301["opcao"] == "Sim":
                                 with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-8"):
                                     ui.label("30.1.1 • Tipos de Central de Regulação").classes("text-xl font-semibold text-blue-600 mb-2")
@@ -10223,9 +10202,9 @@ def container_formulario_saude(ano=None):
                                     ui.separator().classes("my-2")
                                     bloco_comentarios("30.1.1", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 31.0 (Atenção Pré-Hospitalar e Central SAMU 192)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("31.0 • Atenção Pré-Hospitalar e Central SAMU 192").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município possui serviços de atenção pré-hospitalar e Central Samu 192 ou integra Central Samu 192 de abrangência regional?").classes("text-base font-bold text-black mb-4")
@@ -10260,13 +10239,13 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("31.0", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE SAMU, COMPOSIÇÃO DE EQUIPES E ESTOQUE DE INSUMOS - QUESITOS 31.1 A 32.0
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
+                        # MÓDULO DE SAMU, COMPOSIÇÃO DE EQUIPES E ESTOQUE DE INSUMOS - QUESITOS 31.1 A 32.0
+                       
+    
+                       
                         # QUESITO 31.1 (Tempo de Resposta em Minutos dos Atendimentos do SAMU) - CORRIGIDO
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("31.1 • Tempo de Resposta dos Atendimentos do SAMU (ou equivalente)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Informe os tempos de resposta (em minutos) para os anos de 2024, 2025 e 2026:").classes("text-base font-bold text-black mb-4")
@@ -10388,9 +10367,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("31.1", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 31.2 (Composição Mínima das Equipes da Central de Regulação)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("31.2 • Composição das Equipes da Central de Regulação das Urgências").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("As equipes da Central de Regulação das Urgências tiveram ao menos a composição mínima estipulada na legislação no decorrer do exercício?").classes("text-base font-bold text-black mb-4")
@@ -10454,9 +10433,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("31.2", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 31.3 (Composição Mínima das Equipes das Unidades Móveis)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("31.3 • Composição das Equipes das Unidades Móveis (Ambulâncias/USA/USB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("As equipes das Unidades Móveis tiveram ao menos a composição mínima estipulada na legislação no decorrer do exercício?").classes("text-base font-bold text-black mb-4")
@@ -10520,9 +10499,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("31.3", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 32.0 (Sistema Informatizado para Estoque de Materiais e Insumos Médicos)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("32.0 • Sistema Informatizado de Gerenciamento de Estoque de Insumos").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município utiliza sistema informatizado para gerenciar o estoque de materiais e insumos médicos?").classes("text-base font-bold text-black mb-4")
@@ -10557,13 +10536,13 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("32.0", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE INSUMOS, OUVIDORIA E AUDITORIA (SNA) - QUESITOS 32.1 A 35.2
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
+                        # MÓDULO DE INSUMOS, OUVIDORIA E AUDITORIA (SNA) - QUESITOS 32.1 A 35.2
+                        
+    
+                       
                         # QUESITO 32.1 (Funções do Sistema de Gestão de Estoque de Insumos)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("32.1 • Funções do Sistema de Gestão de Estoque").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Assinale as funções do sistema de gestão de estoque de materiais e insumos médicos:").classes("text-base font-bold text-black mb-4")
@@ -10640,9 +10619,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("32.1", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 33.0 (Ouvidoria da Saúde Implantada)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("33.0 • Ouvidoria da Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município possui Ouvidoria da Saúde implantada?").classes("text-base font-bold text-black mb-4")
@@ -10677,9 +10656,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("33.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 33.1 (Características da Ouvidoria) - Condicionado a 33.0 = Sim
-                        # -----------------------------------------------------------------------------
+                        
                         if state_330["opcao"] == "Sim":
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("33.1 • Características da Ouvidoria da Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
@@ -10757,9 +10736,9 @@ def container_formulario_saude(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("33.1", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 34.0 (Sistema OuvidorSUS ou Equivalente)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("34.0 • Sistema OuvidorSUS ou Equivalente").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município utiliza o Sistema OuvidorSUS ou sistema equivalente que, além de permitir a disseminação de informações, o registro e o encaminhamento das manifestações dos cidadãos, possibilita troca de informações entre os órgãos responsáveis pela gestão do SUS?").classes("text-base font-bold text-black mb-4")
@@ -10805,9 +10784,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("34.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO 35.0 (Componente Municipal do Sistema Nacional de Auditoria - SNA)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("35.0 • Componente Municipal do SNA").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município possui o componente municipal do Sistema Nacional de Auditoria?").classes("text-base font-bold text-black mb-4")
@@ -10842,13 +10821,13 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("35.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 35.1 E 35.2 - Condicionados a 35.0 = Sim
-                        # -----------------------------------------------------------------------------
+                        
                         if state_350["opcao"] == "Sim":
-                            # -------------------------------------------------------------------------
+                           
                             # QUESITO 35.1 (Características do SNA Municipal)
-                            # -------------------------------------------------------------------------
+                           
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("35.1 • Características do Componente Municipal do SNA").classes("text-xl font-semibold text-blue-600 mb-2")
                                 ui.label("Assinale as características do componente municipal do Sistema Nacional de Auditoria - SNA:").classes("text-base font-bold text-black mb-4")
@@ -10925,9 +10904,9 @@ def container_formulario_saude(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("35.1", res_data, render_conteudo.refresh)
     
-                            # -------------------------------------------------------------------------
+                           
                             # QUESITO 35.2 (Publicação das Auditorias Concluídas de 2026)
-                            # -------------------------------------------------------------------------
+                           
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("35.2 • Divulgação dos Relatórios de Auditoria de 2026").classes("text-xl font-semibold text-blue-600 mb-2")
                                 ui.label("As auditorias concluídas (encerradas) do exercício de 2026 pelo componente municipal do Sistema Nacional de Auditoria do SUS - SNA estão disponibilizadas em site para consulta?").classes("text-base font-bold text-black mb-4")
@@ -10973,13 +10952,12 @@ def container_formulario_saude(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("35.2", res_data, render_conteudo.refresh)
     
-    # =============================================================================
+   
                         # MÓDULO DE AUDITORIA E SISTEMA DE MEDICAMENTOS - QUESITOS 35.2.1 A 36.1
-                        # =============================================================================
-    
-                        # -----------------------------------------------------------------------------
+                       
+                        
                         # QUESITO 35.2.1 (Página Eletrônica das Auditorias Concluídas em 2026)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                             ui.label("35.2.1 • Divulgação das Auditorias de 2026").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Informe a página eletrônica (site) de divulgação dos resultados das auditorias concluídas (encerradas) em 2026:").classes("text-base font-bold text-black mb-4")
@@ -11012,9 +10990,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("35.2.1", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 36.0 (Sistema Informatizado de Estoque de Medicamentos)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("36.0 • Gestão do Estoque de Medicamentos").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("O município utiliza sistema informatizado para gerenciar o estoque de itens de medicamentos?").classes("text-base font-bold text-black mb-4")
@@ -11073,10 +11051,10 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("36.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 36.1 (Funções do Sistema Próprio de Gestão de Estoque de Medicamentos)
                         # Exibido/Pontuado principalmente quando utilizado Sistema Próprio em 36.0
-                        # -----------------------------------------------------------------------------
+                       
                         if state_360["opcao"] == "Sim, utiliza Sistema Próprio":
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("36.1 • Funcionalidades do Sistema Próprio de Medicamentos").classes("text-xl font-semibold text-blue-600 mb-2")
@@ -11193,9 +11171,9 @@ def container_formulario_saude(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("36.1", res_data, render_conteudo.refresh)
     
-    # =============================================================================
+    
                         # QUESITO 37.0 - DESABASTECIMENTO DE MEDICAMENTOS DA ASSISTÊNCIA FARMACÊUTICA
-                        # =============================================================================
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("37.0 • Índice de Desabastecimento do Componente Básico da Assistência Farmacêutica").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -11300,13 +11278,12 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("37.0", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+       
                         # MÓDULO DE TELEMEDICINA E COMENTÁRIOS FINAIS - QUESITOS 38.0 A 39.0
-                        # =============================================================================
-    
-                        # -----------------------------------------------------------------------------
+                        
+                        
                         # QUESITO 38.0 (Disponibilização do Serviço de Telemedicina)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("38.0 • Disponibilização de Serviços de Telemedicina").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label("Houve a disponibilização do serviço de telemedicina em 2026?").classes("text-base font-bold text-black mb-4")
@@ -11342,14 +11319,14 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("38.0", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # BLOCO TELEMEDICINA (38.1 a 38.3) - Exibido apenas se 38.0 == "Sim"
-                        # -----------------------------------------------------------------------------
+                       
                         if state_380["opcao"] == "Sim":
     
-                            # -------------------------------------------------------------------------
+                           
                             # QUESITO 38.1 (Serviços Disponibilizados de Telemedicina)
-                            # -------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("38.1 • Serviços Disponibilizados").classes("text-xl font-semibold text-blue-600 mb-2")
                                 ui.label("Assinale os serviços disponibilizados:").classes("text-base font-bold text-black mb-4")
@@ -11410,9 +11387,9 @@ def container_formulario_saude(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("38.1", res_data, render_conteudo.refresh)
     
-                            # -------------------------------------------------------------------------
+                            
                             # QUESITO 38.2 (Sistema Informatizado para Prescrição Eletrônica)
-                            # -------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("38.2 • Prescrição e Atestados Eletrônicos").classes("text-xl font-semibold text-blue-600 mb-2")
                                 ui.label("Foi utilizado sistema informatizado para prescrição eletrônica, que possibilitasse a emissão de receitas e atestados, assinados eletronicamente?").classes("text-base font-bold text-black mb-4")
@@ -11448,9 +11425,9 @@ def container_formulario_saude(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("38.2", res_data, render_conteudo.refresh)
     
-                            # -------------------------------------------------------------------------
+                            
                             # QUESITO 38.2.1 (Ferramentas de Prescrição Utilizadas) - Se 38.2 == Sim
-                            # -------------------------------------------------------------------------
+                           
                             if state_382["opcao"] == "Sim":
                                 with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-8"):
                                     ui.label("38.2.1 • Ferramenta Utilizada para Prescrição e Assinatura Eletrônica").classes("text-xl font-semibold text-blue-600 mb-2")
@@ -11500,9 +11477,9 @@ def container_formulario_saude(ano=None):
                                     ui.separator().classes("my-2")
                                     bloco_comentarios("38.2.1", res_data, render_conteudo.refresh)
     
-                            # -------------------------------------------------------------------------
+                            
                             # QUESITO 38.3 (Modalidades de Consultas e Registros Realizados)
-                            # -------------------------------------------------------------------------
+                            
                             with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white ml-4"):
                                 ui.label("38.3 • Modalidades de Consultas e Registros de Telemedicina").classes("text-xl font-semibold text-blue-600 mb-2")
                                 ui.label("Assinale as modalidades de consultas e registros realizados referentes aos serviços de telemedicina:").classes("text-base font-bold text-black mb-4")
@@ -11566,9 +11543,9 @@ def container_formulario_saude(ano=None):
                                 ui.separator().classes("my-2")
                                 bloco_comentarios("38.3", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO 39.0 (Espaço para Impressões, Comentários e Sugestões do Questionário)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("39.0 • Impressões, Comentários e Sugestões").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -11604,13 +11581,13 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("39.0", res_data, render_conteudo.refresh)
     
-        # =============================================================================
+        
                         # MÓDULO DE INDICADORES SUPLEMENTARES E SISTÊMICOS - QUESITOS S1 E S2
-                        # =============================================================================
+                        
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO S1 (Mínimo Constitucional em Saúde - Art. 198 CF / LC 141)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S1 • Aplicação do Mínimo Constitucional em Saúde").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -11710,9 +11687,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S1", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO S2 (Consultas Médicas por Habitante - SIA/SUS e IBGE)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S2 • Evolução das Consultas Médicas per Capita (SIA/SUS e IBGE)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -11860,13 +11837,13 @@ def container_formulario_saude(ano=None):
                             ui.button("💾 SALVAR QUESITO S2", on_click=salvar_s2).classes("bg-blue-600 text-white font-bold my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("S2", res_data, render_conteudo.refresh)
-    # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S3 (SISAB - PRÉ-NATAL)
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
+                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S3 (SISAB - PRÉ-NATAL)
+                       
+    
+                       
                         # QUESITO S3 (Acompanhamento de Gestantes / Pré-Natal - SISAB 2026)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S3 • Cobertura e Qualidade do Pré-Natal (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -12027,13 +12004,13 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S3", res_data, render_conteudo.refresh)
     
-    # =============================================================================
+   
                         # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S4 (TABWIN - EXAMES PRÉ-NATAL)
-                        # =============================================================================
+                        
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO S4 (Exames de Sífilis e HIV no Pré-Natal - Dados TABWIN)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S4 • Exames de Pré-Natal Realizados (TABWIN)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -12155,13 +12132,13 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S4", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S5 (SIA/SUS - INSPEÇÕES SANITÁRIAS)
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
+                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S5 (SIA/SUS - INSPEÇÕES SANITÁRIAS)
+                        
+    
+                        
                         # QUESITO S5 (Inspeções Sanitárias - Vigilância Sanitária no SIA/SUS)
-                        # -----------------------------------------------------------------------------
+                      
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S5 • Número de Inspeções Sanitárias (SIA/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -12269,13 +12246,13 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S5", res_data, render_conteudo.refresh)
                             
-    # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S6 (VACINAÇÃO - DATASUS/PNI)
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
+                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S6 (VACINAÇÃO - DATASUS/PNI)
+                        
+    
+                       
                         # QUESITO S6 (Cobertura Vacinal do Calendário Nacional de Vacinação)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S6 • Cobertura Vacinal (Calendário Nacional de Vacinação / PNI)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -12402,13 +12379,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S6", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITOS S7 E S8
-                        # =============================================================================
-    
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO S7 (Cobertura Vacinal contra Influenza - Idosos ≥ 60 anos)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S7 • Cobertura Vacinal de Influenza (Idosos ≥ 60 anos)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -12489,9 +12462,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S7", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO S8 (Internações por Causas Sensíveis à Atenção Básica - SIH/SUS)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S8 • Internações por Causas Sensíveis à Atenção Básica (ICSAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -12567,13 +12540,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S8", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITOS S9 E S10
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
                         # QUESITO S9 (Evolução da Quantidade de Internações - SIH/SUS)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S9 • Quantidade de Internações (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -12680,9 +12649,9 @@ def container_formulario_saude(ano=None):
                             ui.button("💾 SALVAR QUESITO S9", on_click=salvar_s9).classes("bg-blue-600 text-white font-bold my-2")
                             ui.separator().classes("my-2")
                             bloco_comentarios("S9", res_data, render_conteudo.refresh)
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO S10 (Especialidade Obstétrica - Permanência / Frequência - SIH/SUS)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S10 • Permanência em Especialidade Obstétrica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -12781,13 +12750,11 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S10", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITOS S11 E S12 (SIH/SUS)
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
+    
+                        
                         # QUESITO S11 (Especialidade Pediátrica - Permanência / Frequência - SIH/SUS)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S11 • Permanência em Especialidade Pediátrica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -12886,9 +12853,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S11", res_data, render_conteudo.refresh)
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO S12 (Especialidade Clínica Médica - Permanência / Frequência - SIH/SUS)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S12 • Permanência em Especialidade Clínica Médica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -12987,13 +12954,11 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S12", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITOS S13 E S14 (SIH/SUS)
-                        # =============================================================================
+   
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO S13 (Especialidade Cirúrgica - Permanência / Frequência - SIH/SUS)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S13 • Permanência em Especialidade Cirúrgica (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -13092,9 +13057,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S13", res_data, render_conteudo.refresh)
     
-                       # -----------------------------------------------------------------------------
+                       
                         # QUESITO S14 (Taxa de Mortalidade Hospitalar - SIH/SUS)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S14 • Taxa de Mortalidade Hospitalar (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -13205,13 +13170,10 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S14", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITOS S15 E S16
-                        # =============================================================================
-    
-                        # -----------------------------------------------------------------------------
+   
+                        
                         # QUESITO S15 (Proporção de Partos Cesarianos - SIH/SUS)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S15 • Proporção de Partos Cesarianos (SIH/SUS)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -13311,9 +13273,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S15", res_data, render_conteudo.refresh)
     
-                       # -----------------------------------------------------------------------------
+                       
                         # QUESITO S16 (Mortalidade Neonatal - SESSP-CCD/FSEADE)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S16 • Taxa de Mortalidade Neonatal (SESSP-CCD/FSEADE)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -13421,13 +13383,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S16", res_data, render_conteudo.refresh)
                             
-    # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S17 (SISAB / APS)
-                        # =============================================================================
-    
-                        # -----------------------------------------------------------------------------
+   
                         # QUESITO S17 (Exame Citopatológico na APS - SISAB)
-                        # -----------------------------------------------------------------------------
+                        
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S17 • Coleta de Exame Citopatológico em Mulheres de 25 a 64 anos (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -13557,13 +13515,10 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S17", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S18 (SISAB / APS)
-                        # =============================================================================
     
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO S18 (Acompanhamento de Hipertensos na APS - SISAB)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S18 • Acompanhamento de Pessoas com Hipertensão na APS (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -13689,13 +13644,11 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S18", res_data, render_conteudo.refresh)
     
-    # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S19 (SISAB / APS)
-                        # =============================================================================
+  
     
-                        # -----------------------------------------------------------------------------
+                        
                         # QUESITO S19 (Acompanhamento de Diabéticos na APS - SISAB)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S19 • Acompanhamento de Pessoas com Diabetes na APS (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -13821,13 +13774,9 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S19", res_data, render_conteudo.refresh)
     
-                        # =============================================================================
-                        # MÓDULO DE INDICADORES SUPLEMENTARES - QUESITO S20 (SISAB / APS)
-                        # =============================================================================
-    
-                        # -----------------------------------------------------------------------------
+                       
                         # QUESITO S20 (Atendimento Odontológico às Gestantes na APS - SISAB)
-                        # -----------------------------------------------------------------------------
+                       
                         with ui.card().classes("w-full p-6 mb-6 border border-gray-300 rounded-lg shadow-sm bg-white"):
                             ui.label("S20 • Proporção de Gestantes com Atendimento Odontológico na APS (SISAB)").classes("text-xl font-semibold text-blue-600 mb-2")
                             ui.label(
@@ -13965,7 +13914,7 @@ def container_formulario_saude(ano=None):
                             ui.separator().classes("my-2")
                             bloco_comentarios("S20", res_data, render_conteudo.refresh)
     
-    # Executa apenas a etapa selecionada na renderização inicial.
+   
     render_conteudo()
 
     try:
@@ -13981,10 +13930,7 @@ def container_formulario_saude(ano=None):
         ano_sel=ano_relatorio,
     )
 
-    
-# -----------------------------------------------------------------------------
-# Suportes do relatório PDF
-# -----------------------------------------------------------------------------
+
 def converter_pontos_em_faixa_iegm(total_pts):
     """Converte a pontuação total para a faixa exibida no painel."""
     total = float(total_pts or 0)
@@ -14000,7 +13946,7 @@ def converter_pontos_em_faixa_iegm(total_pts):
 
 
 def get_all_years_data():
-    """Carrega as respostas de todos os anos disponíveis para o relatório."""
+   
     dados = {}
     try:
         with get_db_connection() as conn:
@@ -14031,8 +13977,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements = []
     styles = getSampleStyleSheet()
 
-    # Contexto que a rotina detalhada utilizava no código original, mas que
-    # não estava sendo inicializado quando ela foi anexada a este módulo.
+    
     ano_atual = int(ano)
     ano_ant = ano_atual - 1
     all_data = all_data if isinstance(all_data, dict) else {}
@@ -14054,7 +13999,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     )
 
     def limpar_xml(valor):
-        """Limpa texto de resposta antes de inseri-lo em Paragraph do ReportLab."""
+       
         texto = "" if valor is None else str(valor)
         return (
             texto.replace("&", "&amp;")
@@ -14062,9 +14007,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             .replace(">", "&gt;")
         )
 
-    # Somente estes quesitos possuem pontuação oficial no i-Saúde.
-    # Não derivar o teto a partir dos dados salvos: isso fazia quesitos
-    # informativos ou sem pontuação entrarem indevidamente como fragilidades.
+    
     PONTUACOES_MAX_ISAUDE = {
         "1": 5, "2": 10, "3": 10, "3.1": 4, "3.2": 4, "4": 6, "5": 4, "6": 5, "7": 3, "8": 2,
         "9.0": 18, "9.2": 5, "10": 100, "11": 10, "11.2": 2, "12.0": 10, "12.1": 50, "12.2": 40,
@@ -14075,8 +14018,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         "S6": 100, "S7": 20, "S17": 25, "S18": 25, "S19": 25, "S20": 25,
     }
 
-    # Esses dados são opcionais no módulo principal. Listas vazias preservam
-    # a seção sem inventar reincidências ou subquestões.
+    
     subquestoes_saude_local = []
     resposta_condicional_na_local = False
 
@@ -14087,12 +14029,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
 
 
-    # -------------------------------------------------------------------------
+    
     # FOLHA 1: CAPA
-    # -------------------------------------------------------------------------
+    
     elements.append(Spacer(1, 20))
 
-    # --- TRATAMENTO SEGURO DA IMAGEM DA CAPA ---
+   
     logo_path = "iegm.png"
     if os.path.exists(logo_path):
         try:
@@ -14130,12 +14072,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     )
     elements.append(Paragraph(str(ano), style_ano_capa))
 
-    # FORÇA A PÁGINA 2 EXCLUSIVA PARA O SUMÁRIO
+   
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+    
     # FOLHA 2: SUMÁRIO
-    # -------------------------------------------------------------------------
+   
     elements.append(Spacer(1, 10))
     elements.append(Paragraph("<b>SUMÁRIO</b>", styles["h1"]))
     elements.append(Spacer(1, 20))
@@ -14208,12 +14150,12 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     )
     elements.append(tabela_sumario)
 
-    # VAI PARA A PÁGINA 3 (CONTEÚDO/RESUMO EXECUTIVO)
+    
     elements.append(PageBreak())
 
-    # -------------------------------------------------------------------------
+    
     # FOLHA 3+: CONTEÚDO
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph(f"RELATÓRIO DE AUDITORIA i-SAÚDE (GESTÃO EM SAÚDE) - {ano}", styles["Title"]))
     elements.append(Spacer(1, 12))
     elements.append(Paragraph("<b>1. RESUMO EXECUTIVO (ANÁLISE COMPARATIVA DE GESTÃO DA SAÚDE)</b>", styles["h2"]))
@@ -14281,9 +14223,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(Paragraph(texto_analise, style_analise))
     elements.append(Spacer(1, 15))
 
-    # =========================================================================
+    
     # 2. ANÁLISE DE DESEMPENHO POR QUESITO i-SAÚDE
-    # =========================================================================
+   
     elements.append(Paragraph("<b>2. ANÁLISE DE DESEMPENHO POR QUESITO i-SAÚDE</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
     
@@ -14397,9 +14339,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(tabela_fracos)
         elements.append(Spacer(1, 15))
 
-    # =========================================================================
+   
     # 3. ANÁLISE DE IMPACTO E PENALIDADES 
-    # =========================================================================
+    
     elements.append(Paragraph("<b>3. ANÁLISE DE IMPACTO E PENALIDADES </b>", styles["h2"]))
     elements.append(Spacer(1, 6))
     
@@ -14500,9 +14442,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(Spacer(1, 15))
 
     
-    # -------------------------------------------------------------------------
+  
     # 4. DIAGNÓSTICO DE REINCIDÊNCIAS
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>4. DIAGNÓSTICO DE REINCIDÊNCIAS</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -14534,13 +14476,11 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         valor_atual = str(info_atual.get("valor", "")).strip().lower()
         pts_obtidos_atual = float(info_atual.get("pontos", 0.0))
 
-        # Filtra apenas não preenchidos
+        
         if not valor_atual or "selecione" in valor_atual or valor_atual == "none":
             continue
 
-        # Procura o código exato (normalizado) na lista de pontuações máximas.
-        # Se houver prefixos separados por _, testa os componentes sem truncar
-        # quesitos compostos como 14.2.1 ou 30.1.1.
+        
         pontuacoes_max_norm = {
             normalizar_chave(codigo): float(pontos)
             for codigo, pontos in PONTUACOES_MAX_ISAUDE.items()
@@ -14554,14 +14494,14 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             (candidato for candidato in candidatos_qid if candidato in pontuacoes_max_norm),
             None,
         )
-        # Não classifica quesitos sem máximo cadastrado; evita assumir 10 pontos.
+        
         if chave_busca is None:
             continue
 
         pts_maximo = pontuacoes_max_norm[chave_busca]
         eficiencia_atual = (pts_obtidos_atual / pts_maximo * 100.0) if pts_maximo > 0 else 0.0
 
-        # Inclui somente quesitos com eficiência inferior a 80% no exercício atual
+        
         if eficiencia_atual < 80.0:
             info_ant = dados_ano_anterior.get(qid, {}) if isinstance(dados_ano_anterior, dict) else {}
 
@@ -14574,7 +14514,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
 
                 eficiencia_ant = (pts_obtidos_ant / pts_maximo * 100.0) if pts_maximo > 0 else 0.0
 
-                # Reincidência se também ficou abaixo de 80% no ano anterior
+                
                 if eficiencia_ant < 80.0:
                     origem = "Gestão da Saúde Geral"
                     if 'CATEGORIAS_MAP_ISAUDE' in globals():
@@ -14602,7 +14542,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                         "atual": f"{pts_obtidos_atual:.1f} / {pts_maximo:.1f} pts"
                     })
 
-    # Renderização da Tabela
+  
     if reincidencias_detectadas:
         data_reinc = [["Quesito", "Origem da Falha", "Impacto Histórico", "Exercício Anterior", "Exercício Atual"]]
         for reinc in reincidencias_detectadas: 
@@ -14626,9 +14566,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(Paragraph("<font color='#28a745'><b>Nenhuma reincidência ativa detectada.</b></font>", styles["Normal"]))
 
     elements.append(Spacer(1, 15))
-    # -------------------------------------------------------------------------
+    
     # 5. ALINHAMENTO COM A AGENDA 2030 (METAS ODS / ONU) - FORMATADO I-SAÚDE
-    # -------------------------------------------------------------------------
+  
     import reportlab.lib.colors as rl_colors
     from reportlab.lib.styles import ParagraphStyle as Alias_Style
 
@@ -14669,7 +14609,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         metas = "3.0"
         status = "Não Atendido"
 
-        # Lógica de Mapeamento do i-Saúde ajustada e flexibilizada
+        
         if qid == "1.0":
             if pts >= 5.0 or "proposta" in resp_l or "diretriz" in resp_l:
                 status = "Atendido"
@@ -14824,7 +14764,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             metas = "3.4, 16.6"
             status = "Atendido" if pts > 0 or "sim" in resp_l else "Não Atendido"
 
-        # Trata tamanho da string da diretriz para não quebrar o layout
+       
         exibicao_resp = limpar_xml(resp)
         if len(exibicao_resp) > 45:
             exibicao_resp = exibicao_resp[:45] + "..."
@@ -14881,9 +14821,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         ]))
         elements.append(tabela_ods)
         elements.append(Spacer(1, 15))
-   # =========================================================================
+  
     # 6. ANÁLISE DE TEMPO DE ESPERA 
-    # =========================================================================
+    
     elements.append(Paragraph("<b>6.ANÁLISE DE TEMPO DE ESPERA, INDICADORES DE SAÚDE E COBERTURA VACINAL</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
     
@@ -14903,7 +14843,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             return float(numeros[0])
         return None
 
-    # Busca dinamicamente todos os quesitos do grupo 17.5.2.1.x e 28.2.x no banco de dados
+    
     quesitos_alvo = sorted([
         q for q in dados.keys() 
         if str(q).startswith("17.5.2.1") or str(q).startswith("28.2")
@@ -14920,9 +14860,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elif isinstance(conteudo, str):
             valor_bruto = conteudo
 
-        # Os quesitos detalhados são salvos como JSONB, por exemplo:
-        # {"esp_1": "Pneumologia", "tempo_1": 1650.0, ...}.
-        # Antes o dict era convertido para string e nenhum par era encontrado.
+        
         if isinstance(valor_bruto, dict):
             for chave_tempo, valor_tempo in valor_bruto.items():
                 chave_tempo_str = str(chave_tempo)
@@ -14934,8 +14872,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                 if dias_val is None:
                     continue
 
-                # Localiza o campo textual correspondente: esp_1, exame_1,
-                # terapia_1, opm_1, cirurgia_1, consulta_1 etc.
+                
                 chave_label = next(
                     (
                         str(k)
@@ -14961,7 +14898,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         if not resposta_str or not resposta_str.strip():
             continue
 
-        # Se houver separador '|', normaliza e extrai todos os pares [Exame, Dias]
+        
         if "|" in resposta_str:
             # Substitui '||' por '|' e limpa fragmentos vazios
             tokens = [t.strip() for t in resposta_str.replace("||", "|").split("|") if t.strip()]
@@ -14991,10 +14928,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                     "dias": dias_val
                 })
 
-    # Ordenação decrescente: Maior tempo de espera primeiro
+   
     lista_processada.sort(key=lambda x: x["dias"] if x["dias"] is not None else -1, reverse=True)
 
-    # Montagem da Tabela
+  
     dados_tabela_prazos = [[
         Paragraph("Indicador/Consultas/Exames/Tratamentos/OPM/CIRURGIAS", style_th),
         Paragraph("Quesito", style_th),
@@ -15030,9 +14967,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(tabela_prazos)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # PARTE B: ANÁLISE DE INDICADORES COMPLETOS (37.0, S2, S6, S7, S16, S17-S20)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>6.2. Evolução de Indicadores de Saúde</b>", styles["h3"]))
     elements.append(Paragraph("Análise de coberturas vacinais e taxas de eficiência ao exercício anterior:", styles["Normal"]))
     elements.append(Spacer(1, 8))
@@ -15055,10 +14992,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         return 0
 
     def calcular_consolidado_quadrimestral(dados_escopo, qid):
-        """
-        Calcula o percentual consolidado extraindo as chaves quadrimestrais específicas
-        de numeradores e denominadores mapeadas para cada indicador.
-        """
+       
         if not dados_escopo or qid not in dados_escopo: return None
         q_data = dados_escopo[qid]
         if not isinstance(q_data, dict): return None
@@ -15105,9 +15039,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             
         return None
 
-    # -------------------------------------------------------------------------
+    
     # TABELA 1: QUESITOS GERAIS E CONSOLIDADOS (37.0, S2, S7, S16, S17, S18, S19, S20)
-    # -------------------------------------------------------------------------
+  
     dados_tabela_gerais = [[
         Paragraph("Quesito / Indicador", style_th),
         Paragraph("Métrica de Análise Real", style_th),
@@ -15209,13 +15143,13 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(tabela_gerais)
     elements.append(Spacer(1, 15))
 
-   # -------------------------------------------------------------------------
+  
     # TABELA 2: QUESITO S6 - COBERTURA IMUNOLÓGICA (APENAS EXERCÍCIO ATUAL)
-    # -------------------------------------------------------------------------
+   
     elements.append(Paragraph("<b>6.3. Detalhamento do Quesito S6 - Painel de Cobertura Vacinal</b>", styles["h3"]))
     elements.append(Spacer(1, 4))
 
-    # Ordem exata dos índices salvos no banco por barra "/"
+   
     lista_chaves_ordenadas = [
         "bcg", "rotavirus", "hepatite_b", "meningo_c", "pentavalente",
         "pneumo_10", "poliomielite", "febre_amarela", "triplice_viral", "hepatite_a", "tetra_viral"
@@ -15235,7 +15169,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         "tetra_viral": {"nome": "Tetra viral", "meta": 95.0, "fb": 72.28}
     }
 
-    # Cabeçalho ajustado (sem a coluna do ano anterior)
+    
     dados_tabela_s6 = [[
         Paragraph("Imunobiológico (Vacina)", style_th),
         Paragraph("Meta Estabelecida", style_th),
@@ -15243,7 +15177,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         Paragraph("Status / Resultado", style_th)
     ]]
 
-    # TRATAMENTO DO ANO SELECIONADO (ATUAL)
+   
     dS6_atual = dados.get("S6", {}) if isinstance(dados, dict) else {}
     if not isinstance(dS6_atual, dict): dS6_atual = {}
     valor_s6 = dS6_atual.get("valor", "")
@@ -15263,7 +15197,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         else:
             valores_atual_lista = [safe_float(v) for v in valores_atual_lista]
 
-    # Monta as linhas da tabela associando o índice correto de cada vacina
+   
     for idx, chave in enumerate(lista_chaves_ordenadas):
         info = config_vacinas_s6[chave]
         
@@ -15287,7 +15221,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             Paragraph(txt_status, style_tabela_centro)
         ])
 
-    # Larguras recalculadas para fechar o layout certinho na página (4 colunas agora)
+   
     tabela_s6 = Table(dados_tabela_s6, colWidths=[210, 90, 90, 100])
     tabela_s6.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#16a085")),
@@ -15298,9 +15232,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(tabela_s6)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 📊 7. SÉRIE HISTÓRICA DO ISAÚDE (CONSOLIDADO FINAL)
-    # -------------------------------------------------------------------------
+    
     from reportlab.graphics.charts.barcharts import VerticalBarChart
     from reportlab.graphics.shapes import Drawing, String
     import reportlab.lib.colors as rl_colors
@@ -15312,31 +15246,31 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     anos_serie = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
     valores_serie = []
 
-    # Sincroniza com a variável 'ano' recebida na assinatura da função
+    
     try:
         ano_reference = int(str(ano).strip()[:4])
     except Exception:
         ano_reference = 2026
 
-    # Sincroniza com o 'total' recebido na assinatura da função (Nota Atual)
+   
     try:
         nota_reference = float(total)
     except Exception:
         nota_reference = 0.0
 
-    # Montagem dos dados do gráfico puxando do dicionário estruturado por ano
+   
     for a in anos_serie:
         # 1. Se for o ano selecionado atualmente, usa o parâmetro 'total' direto
         if a == ano_reference:
             valores_serie.append(min(nota_reference, 1000.0))
 
-        # 2. Anos com valores fixos históricos
+       
         elif a == 2024:
             valores_serie.append(618.0)
         elif a == 2023:
             valores_serie.append(522.9)
 
-        # 3. Busca dinâmica segura no all_data (testa chave int e str)
+        
         else:
             dados_ano = None
             if all_data and isinstance(all_data, dict):
@@ -15366,7 +15300,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             else:
                 valores_serie.append(0.0)
 
-    # Configuração do Layout do Gráfico
+   
     desenho_grafico = Drawing(480, 165)
     bc = VerticalBarChart()
     bc.x = 45
@@ -15379,19 +15313,19 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     bc.categoryAxis.labels.fontName = "Helvetica-Bold"
     bc.categoryAxis.labels.dy = -10
 
-    # Régua Y travada na escala máxima de 1000 pontos
+   
     bc.valueAxis.valueMin = 0
     bc.valueAxis.valueMax = 1000
     bc.valueAxis.valueStep = 200
     bc.valueAxis.labels.fontSize = 8
 
-    # Rótulos numéricos no topo das barras
+   
     bc.barLabels.nudge = 8
     bc.barLabels.fontSize = 8
     bc.barLabels.fontName = "Helvetica-Bold"
     bc.barLabelFormat = "%.1f"
 
-    # Estilo visual
+    
     bc.bars[0].fillColor = rl_colors.HexColor("#16a085")
     bc.bars[0].strokeColor = rl_colors.HexColor("#0e6251")
     bc.bars[0].strokeWidth = 0.5
@@ -15412,9 +15346,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(desenho_grafico)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+   
     # 📊 8. MÍNIMO CONSTITUCIONAL EM SAÚDE (INDICADOR S1)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>8. MÍNIMO CONSTITUCIONAL EM SAÚDE (S1)</b>", styles["h2"]))
     elements.append(Spacer(1, 8))
     elements.append(Paragraph("<b><i>Aplicação de Recursos em Saúde - Art. 198 CF / LC 141 (Dados SIOPS)</i></b>", styles["Normal"]))
@@ -15453,7 +15387,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         if registro_s1 is None:
             registro_s1 = dado_ano
 
-        # Tenta extrair o dicionário interno dos campos 'resposta' ou 'valor'
+        
         payload = None
         if isinstance(registro_s1, dict):
             # Verifica chave 'resposta' (padrão da tabela do banco de dados)
@@ -15485,7 +15419,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         receita = numero(payload.get("receita"))
         ps = numero(payload.get("ps"))
 
-        # Recalcula a proporção PS se não veio calculada ou zerada
+        
         if ps == 0.0 and receita > 0:
             ps = (despesa / receita) * 100.0
 
@@ -15519,7 +15453,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     dados_s1_processados = extrair_dados_s1(fonte_dados)
     info_s1 = dados_s1_processados["S1"]
 
-    # Formatação de valores monetários e percentuais no padrão brasileiro
+    
     despesa_fmt = f"R$ {info_s1['despesa']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     receita_fmt = f"R$ {info_s1['receita']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
     ps_fmt = f"{info_s1['ps']:.2f}%".replace(".", ",")
@@ -15565,9 +15499,9 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     elements.append(t_s1)
     elements.append(Spacer(1, 15))
 
-    # -------------------------------------------------------------------------
+    
     # 📊 9. QUESITOS SEM PONTUAÇÃO DIRETA (i-Saúde)
-    # -------------------------------------------------------------------------
+    
     elements.append(Paragraph("<b>9. QUESITOS SEM PONTUAÇÃO DIRETA</b>", styles["h2"]))
     elements.append(Spacer(1, 6))
 
@@ -15579,7 +15513,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     # Captura o ano recebido pela função para exibição no texto final.
     ano_exibicao = ano
 
-    # Lista dos quesitos a serem auditados dinamicamente no i-Saúde
+    
     lista_alvo_sp = [
         "17.0", "17.3.2.1", "17.4.2.1", "17.5.1",
         "17.7", "17.8", "18.0", "18.3", "18.5", "18.5.1", "18.6",
@@ -15602,7 +15536,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
                 return raw
         return raw
 
-    # Processa os dados extraídos dinamicamente do dicionário do exercício atual
+   
     for qid in lista_alvo_sp:
         # Alguns registros antigos guardam quesitos inteiros sem o sufixo .0.
         chaves_candidatas = [qid, f"Q_{qid}"]
@@ -15714,16 +15648,16 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
         elements.append(Paragraph(texto_sp, style_analise))
         elements.append(Spacer(1, 15))
 
-    # Insira antes do doc.build(elements) para depurar no console/terminal:
+  
     print(f"Total de elementos no PDF: {len(elements)}")
 
-    # Fechamento do documento e geração dos bytes
+   
     doc.build(elements)
     buffer.seek(0)
     return buffer.getvalue()
 
 
-# Aliases para compatibilidade com o roteamento do main.py
+
 container_formulario_isaude = container_formulario_saude
 mostrar_formulario_saude = container_formulario_saude
 main = container_formulario_saude
