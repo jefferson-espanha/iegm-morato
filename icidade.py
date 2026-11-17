@@ -57,6 +57,16 @@ def init_db():
 init_db()
 
 
+def normalizar_qid(qid):
+    """Padroniza identificadores antigos dos quesitos C para o formato atual."""
+    qid = str(qid).strip()
+    aliases = {
+        "C1": "C.1",
+        "C1.1": "C.1.1",
+    }
+    return aliases.get(qid, qid)
+
+
 def load_respostas(ano):
     query = """
         SELECT qid, valor, pontos, link, comentarios, status
@@ -70,7 +80,7 @@ def load_respostas(ano):
                 cur.execute(query, (int(ano),))
                 rows = cur.fetchall()
                 for row in rows:
-                    respostas[row["qid"]] = {
+                    respostas[normalizar_qid(row["qid"])] = {
                         "valor": row["valor"] or "",
                         "pontos": (
                             float(row["pontos"])
@@ -122,7 +132,7 @@ def save_resposta(
                     query,
                     (
                         int(ano),
-                        str(qid),
+                        normalizar_qid(qid),
                         str(valor),
                         float(pontos),
                         link_final,
@@ -1806,7 +1816,7 @@ def container_formulario_icidade(ano=None):
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="C1",
+                        qid="C.1",
                         titulo="Inscrição no Programa Cidades Resilientes 2030 (MCR2030)",
                         pergunta="O Município estava inscrito no Programa Construindo Cidades Resilientes 2030 da ONU?",
                         opcoes=opcoes_c1,
@@ -1827,7 +1837,7 @@ def container_formulario_icidade(ano=None):
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
-                        qid="C1.1",
+                        qid="C.1.1",
                         titulo="Estágio do Município no Programa MCR2030",
                         pergunta="O Município foi classificado em qual estágio do Programa Construindo Cidades Resilientes 2030 da ONU?",
                         opcoes=opcoes_c11,
@@ -1846,7 +1856,7 @@ def container_formulario_icidade(ano=None):
                     "5.0": 200.0, "7.0": 50.0, "7.1": 5.0, "7.2": 80.0,
                     "7.4": 50.0, "7.5": 10.0,
                     "7.6": 10.0, "8.0": 50.0, "8.1.1.1": 20.0,
-                    "8.2": 50.0, "9.0": 100.0, "15.0": 50.0, "16.0": 50.0, "C1.1": 50.0
+                    "8.2": 50.0, "9.0": 100.0, "15.0": 50.0, "16.0": 50.0, "C.1.1": 50.0
                 }
 
                 def get_db_connection():
@@ -1860,7 +1870,7 @@ def container_formulario_icidade(ano=None):
                     """
                     all_data = {}
                     query = """
-                        SELECT id, ano, valor, pontos, link, comentarios
+                        SELECT qid, ano, valor, pontos, link, comentarios
                         FROM respostas_icidade
                         ORDER BY ano ASC;
                     """
@@ -1879,14 +1889,14 @@ def container_formulario_icidade(ano=None):
                             for row in rows:
                                 # Tratamento universal para Tupla (índice) ou Dict (chave)
                                 if isinstance(row, dict):
-                                    qid = str(row["id"]).strip()
+                                    qid = normalizar_qid(row["qid"])
                                     ano = int(row["ano"])
                                     valor = row["valor"] or ""
                                     pontos = float(row["pontos"]) if row["pontos"] is not None else 0.0
                                     link = row["link"] if row["link"] != "EMPTY_STRING" else ""
                                     comentarios = row["comentarios"] if isinstance(row["comentarios"], list) else []
                                 else:
-                                    qid = str(row[0]).strip()
+                                    qid = normalizar_qid(row[0])
                                     ano = int(row[1])
                                     valor = row[2] or ""
                                     pontos = float(row[3]) if row[3] is not None else 0.0
@@ -2529,9 +2539,12 @@ def container_formulario_icidade(ano=None):
                         try:
                             await ui.run_javascript('new Promise(resolve => setTimeout(resolve, 300))', timeout=5.0)
 
+                            # Recarrega o ano no momento da emissão para não usar dados antigos da tela.
+                            dados_pdf = load_respostas(ano_sel)
+
                             total_pts = float(sum(
-                                v.get("pontos", 0) 
-                                for k, v in res_data.items() 
+                                v.get("pontos", 0)
+                                for k, v in dados_pdf.items()
                                 if isinstance(v, dict) and not k.startswith("COM_")
                             ))
 
@@ -2549,7 +2562,7 @@ def container_formulario_icidade(ano=None):
                             historico_todos_anos = get_all_years_data() or {}
 
                             pdf_bytes = gerar_relatorio_pdf(
-                                dados=res_data,
+                                dados=dados_pdf,
                                 ano=ano_sel,
                                 total=total_pts,
                                 faixa=faixa,
