@@ -109,42 +109,82 @@ def load_respostas(ano):
 def save_resposta(
     ano, qid, valor, pontos, link="", comentarios=None, status="Pendente"
 ):
-    # Usa sempre o mesmo identificador canônico no carregamento e no salvamento.
+    """Salva uma resposta compatível com a tabela existente, cuja chave é id serial.
+
+    A tabela atual não tem UNIQUE(ano, qid), então não usamos ON CONFLICT(ano, qid).
+    Primeiro atualizamos o registro e, se ele não existir, inserimos um novo.
+    """
     qid_canonico = normalizar_qid(qid)
 
     if comentarios is None:
         dados_atuais = load_respostas(ano).get(qid_canonico, {})
         comentarios = dados_atuais.get("comentarios", [])
 
+    valor_final = str(valor or "")
+    pontos_final = float(pontos or 0.0)
     link_final = link.strip() if link else ""
+    comentarios_final = comentarios if isinstance(comentarios, list) else []
+    status_final = str(status or "Pendente")
 
-    query = """
-        INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (ano, qid)
-        DO UPDATE SET
-            valor = EXCLUDED.valor,
-            pontos = EXCLUDED.pontos,
-            link = EXCLUDED.link,
-            comentarios = EXCLUDED.comentarios,
-            status = EXCLUDED.status,
-            updated_at = CURRENT_TIMESTAMP;
+    update_sql = """
+        UPDATE respostas_icidade
+        SET valor = %s,
+            pontos = %s,
+            link = %s,
+            comentarios = %s,
+            status = %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE ano = %s AND qid = %s;
     """
+
+    insert_sql = """
+        INSERT INTO respostas_icidade
+            (ano, qid, valor, pontos, link, comentarios, status)
+        VALUES (%s, %s, %s, %s, %s, %s, %s);
+    """
+
     try:
         with get_db_connection() as conn:
             with conn.cursor() as cur:
-                cur.execute(
-                    query,
-                    (
-                        int(ano),
-                        qid_canonico,
-                        str(valor or ""),
-                        float(pontos or 0.0),
-                        link_final,
-                        Json(comentarios if isinstance(comentarios, list) else []),
-                        str(status or "Pendente"),
-                    ),
+                dados_sql = (
+                    valor_final,
+                    pontos_final,
+                    link_final,
+                    Json(comentarios_final),
+                    status_final,
+                    int(ano),
+                    qid_canonico,
                 )
+                cur.execute(update_sql, dados_sql)
+
+                # Compatibilidade com registros antigos salvos como C1 ou C1.1.
+                if cur.rowcount == 0 and qid_canonico in {"C.1", "C.1.1"}:
+                    qid_antigo = {"C.1": "C1", "C.1.1": "C1.1"}[qid_canonico]
+                    dados_sql_antigo = dados_sql[:-1] + (qid_antigo,)
+                    cur.execute(update_sql, dados_sql_antigo)
+                    if cur.rowcount > 0:
+                        cur.execute(
+                            """
+                            UPDATE respostas_icidade
+                            SET qid = %s, updated_at = CURRENT_TIMESTAMP
+                            WHERE ano = %s AND qid = %s;
+                            """,
+                            (qid_canonico, int(ano), qid_antigo),
+                        )
+
+                if cur.rowcount == 0:
+                    cur.execute(
+                        insert_sql,
+                        (
+                            int(ano),
+                            qid_canonico,
+                            valor_final,
+                            pontos_final,
+                            link_final,
+                            Json(comentarios_final),
+                            status_final,
+                        ),
+                    )
                 conn.commit()
         return True
     except Exception as e:
