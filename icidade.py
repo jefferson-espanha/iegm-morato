@@ -662,7 +662,7 @@ def container_formulario_icidade(ano=None):
                         placeholder_link="Insira o link do organograma ou norma que comprove a vinculação...",
                         on_save_callback=render_conteudo.refresh,
                     )
-                    
+
                     # ==========================================
                     # QUESITO 1.4 (Seleção com Pontuação)
                     # ==========================================
@@ -738,21 +738,21 @@ def container_formulario_icidade(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO 2.2 (Público-Alvo dos Treinamentos - Checkbox)
+                    # QUESITO 2.2 (Público-Alvo dos Treinamentos)
                     # ==========================================
                     opcoes_22 = {
-                        "Para escolas": 5.0,
-                        "Para outras secretarias / entidades municipais": 3.0,
-                        "Para munícipes ou empresas": 2.0,
-                        "Não ofereceu nenhum curso/treinamento no ano": 0.0,
+                        "Selecione...": 0.0,
+                        "Para escolas (5.0 pts)": 5.0,
+                        "Para outras secretarias / entidades municipais (3.0 pts)": 3.0,
+                        "Para munícipes ou empresas (2.0 pts)": 2.0,
+                        "Não ofereceu nenhum curso/treinamento no ano (0.0 pts)": 0.0,
                     }
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
                         qid="2.2",
                         titulo="Público Alvo dos Cursos e Treinamentos",
-                        pergunta="Assinale os públicos para os quais a Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil:",
-                        tipo_input="checkbox",
+                        pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
                         opcoes=opcoes_22,
                         placeholder_link="Insira o link das evidências dos treinamentos oferecidos...",
                         on_save_callback=render_conteudo.refresh,
@@ -2514,7 +2514,7 @@ def container_formulario_icidade(ano=None):
 
                         pct_sp = (total_adequados / len(analise_sp)) * 100.0
                         texto_sp = (
-                            f"A análise dos quesitos sem pontuação direta do iCidade no exercício de <b>{ano_atual}</b> apontou "
+                            f"A análise dinâmica dos quesitos de conformidade operacional do iCidade no exercício de <b>{ano_atual}</b> apontou "
                             f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
                             f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
                         )
