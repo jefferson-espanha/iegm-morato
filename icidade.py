@@ -206,12 +206,41 @@ def render_quesito(
             with ui.grid(columns=2).classes("w-full gap-6 items-start mb-4"):
                 with ui.element("div").classes("flex flex-col gap-2"):
                     checkboxes = {}
-                    for item in opcoes.keys():
+                    for item, pontos_item in opcoes.items():
+                        # Mantém o texto puro como chave salva, mas mostra a pontuação na tela.
+                        try:
+                            pontos_item = float(pontos_item or 0.0)
+                        except (TypeError, ValueError):
+                            pontos_item = 0.0
+                        texto_checkbox = f"{item} ({pontos_item:.1f} pts)"
                         chk = ui.checkbox(
-                            text=item,
+                            text=texto_checkbox,
                             value=(item in state["opcao"])
                         ).props("color=blue")
                         checkboxes[item] = chk
+
+                # Exibe e atualiza a soma dos pontos marcados no checkbox.
+                def calcular_pontos_checkbox():
+                    total_checkbox = 0.0
+                    for item, chk in checkboxes.items():
+                        if chk.value:
+                            try:
+                                total_checkbox += float(opcoes.get(item, 0.0) or 0.0)
+                            except (TypeError, ValueError):
+                                pass
+                    return total_checkbox
+
+                label_impacto_checkbox = ui.label(
+                    f"📊 Pontuação selecionada no Quesito {qid}: {calcular_pontos_checkbox():.1f} pontos"
+                ).classes("text-sm font-bold text-green-600 my-2")
+
+                def atualizar_pontos_checkbox(_=None):
+                    label_impacto_checkbox.set_text(
+                        f"📊 Pontuação selecionada no Quesito {qid}: {calcular_pontos_checkbox():.1f} pontos"
+                    )
+
+                for chk in checkboxes.values():
+                    chk.on("update:model-value", atualizar_pontos_checkbox)
 
                 ui.textarea(
                     label="Link de Evidência / Documento:",
@@ -272,7 +301,11 @@ def render_quesito(
             if tipo_input == "checkbox":
                 sel = [item for item, chk in checkboxes.items() if chk.value]
                 opcao_sel = ", ".join(sel)
-                pts = 0.0
+                # Soma os pontos de todas as alternativas selecionadas.
+                pts = sum(
+                    float(opcoes.get(item, 0.0) or 0.0)
+                    for item in sel
+                )
             else:
                 opcao_sel = state["opcao"]
                 pts = opcoes.get(opcao_sel, 0.0) if (opcoes and tipo_input == "radio") else 0.0
@@ -738,21 +771,21 @@ def container_formulario_icidade(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO 2.2 (Público-Alvo dos Treinamentos)
+                    # QUESITO 2.2 (Público-Alvo dos Treinamentos - Checkbox)
                     # ==========================================
                     opcoes_22 = {
-                        "Selecione...": 0.0,
-                        "Para escolas (5.0 pts)": 5.0,
-                        "Para outras secretarias / entidades municipais (3.0 pts)": 3.0,
-                        "Para munícipes ou empresas (2.0 pts)": 2.0,
-                        "Não ofereceu nenhum curso/treinamento no ano (0.0 pts)": 0.0,
+                        "Para escolas": 5.0,
+                        "Para outras secretarias / entidades municipais": 3.0,
+                        "Para munícipes ou empresas": 2.0,
+                        "Não ofereceu nenhum curso/treinamento no ano": 0.0,
                     }
                     render_quesito(
                         ano=ano_sel,
                         res_data=res_data,
                         qid="2.2",
                         titulo="Público Alvo dos Cursos e Treinamentos",
-                        pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
+                        pergunta="Assinale os públicos para os quais a Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil:",
+                        tipo_input="checkbox",
                         opcoes=opcoes_22,
                         placeholder_link="Insira o link das evidências dos treinamentos oferecidos...",
                         on_save_callback=render_conteudo.refresh,
