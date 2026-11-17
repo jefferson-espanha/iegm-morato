@@ -2514,7 +2514,7 @@ def container_formulario_icidade(ano=None):
 
                         pct_sp = (total_adequados / len(analise_sp)) * 100.0
                         texto_sp = (
-                            f"A análise dinâmica dos quesitos de conformidade operacional do iCidade no exercício de <b>{ano_atual}</b> apontou "
+                            f"A análise dos quesitos sem pontuação direta do iCidade no exercício de <b>{ano_atual}</b> apontou "
                             f"<b>{total_adequados} de {len(analise_sp)} itens adequados ({pct_sp:.1f}%)</b>. "
                             f"O acompanhamento dessas respostas garante a conformidade com as diretrizes operacionais estabelecidas."
                         )
