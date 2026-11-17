@@ -643,9 +643,10 @@ def container_formulario_icidade(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO 1.3 (Vinculação Subordinativa - Checkbox)
+                    # QUESITO 1.3 (Seleção com Pontuação)
                     # ==========================================
                     opcoes_13 = {
+                        "Selecione...": 0.0,
                         "Gabinete do Prefeito (5.0 pts)": 5.0,
                         "Secretaria Municipal de Segurança Pública (0.0 pts)": 0.0,
                         "Controladoria (0.0 pts)": 0.0,
@@ -656,8 +657,7 @@ def container_formulario_icidade(ano=None):
                         res_data=res_data,
                         qid="1.3",
                         titulo="Vinculação Subordinativa da COMPDEC",
-                        pergunta="Assinale a qual secretaria/diretoria a COMPDEC ou órgão similar está associada ou subordinada:",
-                        tipo_input="checkbox",
+                        pergunta="A COMPDEC ou órgão similar está associada ou subordinada a qual secretaria/diretoria?",
                         opcoes=opcoes_13,
                         placeholder_link="Insira o link do organograma ou norma que comprove a vinculação...",
                         on_save_callback=render_conteudo.refresh,
