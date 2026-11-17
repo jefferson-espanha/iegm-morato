@@ -741,10 +741,10 @@ def container_formulario_icidade(ano=None):
                     # QUESITO 2.2 (Público-Alvo dos Treinamentos - Checkbox)
                     # ==========================================
                     opcoes_22 = {
-                        "Para escolas (5.0 pts)": 5.0,
-                        "Para outras secretarias / entidades municipais (3.0 pts)": 3.0,
-                        "Para munícipes ou empresas (2.0 pts)": 2.0,
-                        "Não ofereceu nenhum curso/treinamento no ano (0.0 pts)": 0.0,
+                        "Para escolas": 5.0,
+                        "Para outras secretarias / entidades municipais": 3.0,
+                        "Para munícipes ou empresas": 2.0,
+                        "Não ofereceu nenhum curso/treinamento no ano": 0.0,
                     }
                     render_quesito(
                         ano=ano_sel,
