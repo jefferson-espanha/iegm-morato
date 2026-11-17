@@ -59,12 +59,14 @@ init_db()
 
 def normalizar_qid(qid):
     """Padroniza identificadores antigos dos quesitos C para o formato atual."""
-    qid = str(qid).strip()
+    qid = str(qid or "").strip()
     aliases = {
         "C1": "C.1",
+        "C.1": "C.1",
         "C1.1": "C.1.1",
+        "C.1.1": "C.1.1",
     }
-    return aliases.get(qid, qid)
+    return aliases.get(qid.upper(), qid)
 
 
 def load_respostas(ano):
@@ -107,8 +109,11 @@ def load_respostas(ano):
 def save_resposta(
     ano, qid, valor, pontos, link="", comentarios=None, status="Pendente"
 ):
+    # Usa sempre o mesmo identificador canônico no carregamento e no salvamento.
+    qid_canonico = normalizar_qid(qid)
+
     if comentarios is None:
-        dados_atuais = load_respostas(ano).get(str(qid), {})
+        dados_atuais = load_respostas(ano).get(qid_canonico, {})
         comentarios = dados_atuais.get("comentarios", [])
 
     link_final = link.strip() if link else ""
@@ -116,7 +121,7 @@ def save_resposta(
     query = """
         INSERT INTO respostas_icidade (ano, qid, valor, pontos, link, comentarios, status)
         VALUES (%s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (ano, qid) 
+        ON CONFLICT (ano, qid)
         DO UPDATE SET
             valor = EXCLUDED.valor,
             pontos = EXCLUDED.pontos,
@@ -132,17 +137,20 @@ def save_resposta(
                     query,
                     (
                         int(ano),
-                        normalizar_qid(qid),
-                        str(valor),
-                        float(pontos),
+                        qid_canonico,
+                        str(valor or ""),
+                        float(pontos or 0.0),
                         link_final,
-                        Json(comentarios),
-                        str(status),
+                        Json(comentarios if isinstance(comentarios, list) else []),
+                        str(status or "Pendente"),
                     ),
                 )
                 conn.commit()
+        return True
     except Exception as e:
-        print(f"❌ Erro ao salvar resposta no Neon DB: {e}")
+        logging.exception("Erro ao salvar o quesito %s do ano %s", qid_canonico, ano)
+        print(f"❌ Erro ao salvar {qid_canonico} no Neon DB: {e}")
+        return False
 
 
 def zerar_questionario_db(ano):
@@ -176,6 +184,7 @@ def render_quesito(
     placeholder_link="Insira o link da evidência...",
     on_save_callback=None,
 ):
+    qid = normalizar_qid(qid)
     dados_q = res_data.get(qid, {})
     valor_atual = dados_q.get("valor", "")
     link_atual = dados_q.get("link", "")
@@ -312,7 +321,7 @@ def render_quesito(
 
             lnk = state["link"]
 
-            save_resposta(
+            salvo = save_resposta(
                 ano=ano,
                 qid=qid,
                 valor=opcao_sel,
@@ -321,7 +330,14 @@ def render_quesito(
                 comentarios=dados_q.get("comentarios", []),
                 status=dados_q.get("status", "Pendente"),
             )
-            ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
+            if salvo:
+                ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
+            else:
+                ui.notify(
+                    f"Erro ao salvar o quesito {qid}. Verifique o terminal/log do banco.",
+                    type="negative",
+                    close_button=True,
+                )
 
             if on_save_callback:
                 try:
