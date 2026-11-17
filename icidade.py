@@ -738,10 +738,9 @@ def container_formulario_icidade(ano=None):
                     )
 
                     # ==========================================
-                    # QUESITO 2.2 (Público-Alvo dos Treinamentos)
+                    # QUESITO 2.2 (Público-Alvo dos Treinamentos - Checkbox)
                     # ==========================================
                     opcoes_22 = {
-                        "Selecione...": 0.0,
                         "Para escolas (5.0 pts)": 5.0,
                         "Para outras secretarias / entidades municipais (3.0 pts)": 3.0,
                         "Para munícipes ou empresas (2.0 pts)": 2.0,
@@ -752,7 +751,8 @@ def container_formulario_icidade(ano=None):
                         res_data=res_data,
                         qid="2.2",
                         titulo="Público Alvo dos Cursos e Treinamentos",
-                        pergunta="A Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil para qual público?",
+                        pergunta="Assinale os públicos para os quais a Prefeitura Municipal ofereceu cursos/treinamento sobre Proteção e Defesa Civil:",
+                        tipo_input="checkbox",
                         opcoes=opcoes_22,
                         placeholder_link="Insira o link das evidências dos treinamentos oferecidos...",
                         on_save_callback=render_conteudo.refresh,
