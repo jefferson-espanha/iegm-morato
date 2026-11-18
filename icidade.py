@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+import secrets
 from io import BytesIO
 from zoneinfo import ZoneInfo
 
@@ -2658,13 +2659,18 @@ def container_formulario_icidade(ano=None):
                                 todos_dados=historico_todos_anos
                             )
                             
-                            rota_pdf = f"/relatorio_temp_{ano_sel}.pdf"
-                            
+                            # Endpoint exclusivo do iCidade; URL única evita colisão com o iGovTI.
+                            token_pdf = secrets.token_urlsafe(12)
+                            rota_pdf = f"/icidade/relatorio_{ano_sel}_{token_pdf}.pdf"
+                            conteudo_pdf = bytes(pdf_bytes)
                             @app.get(rota_pdf)
-                            def relatorio_endpoint():
+                            def relatorio_icidade_endpoint():
                                 from fastapi import Response
-                                return Response(content=pdf_bytes, media_type="application/pdf")
-
+                                return Response(
+                                    content=conteudo_pdf,
+                                    media_type="application/pdf",
+                                    headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
+                                )
                             ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
                             ui.notify("Relatório aberto com sucesso!", type="positive")
 
