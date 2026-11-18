@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import re
+import secrets
 from io import BytesIO
 from zoneinfo import ZoneInfo
 
@@ -25,10 +26,9 @@ from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, S
 # =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
 
-DATABASE_URL = os.getenv(
-    "NEON_DATABASE_URL",
-    "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
-)
+DATABASE_URL = os.getenv("NEON_DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("Configure a variável de ambiente NEON_DATABASE_URL.")
 
 
 def get_db_connection():
@@ -3435,12 +3435,20 @@ def container_formulario_igov_ti():
                     todos_dados=historico_todos_anos
                 )
                 
-                rota_pdf = f"/relatorio_temp_{ano_alvo}.pdf"
-                
+                # Rota exclusiva do iGovTI e URL imprevisível para não colidir
+                # com o PDF do iCidade nem reutilizar conteúdo em cache.
+                token_pdf = secrets.token_urlsafe(12)
+                rota_pdf = f"/igovti/relatorio_{ano_alvo}_{token_pdf}.pdf"
+                conteudo_pdf = bytes(pdf_bytes)
+
                 @app.get(rota_pdf)
-                def relatorio_endpoint():
+                def relatorio_igovti_endpoint():
                     from fastapi import Response
-                    return Response(content=pdf_bytes, media_type="application/pdf")
+                    return Response(
+                        content=conteudo_pdf,
+                        media_type="application/pdf",
+                        headers={"Cache-Control": "no-store, no-cache, must-revalidate"},
+                    )
 
                 ui.run_javascript(f"window.open('{rota_pdf}', '_blank');")
                 ui.notify("Relatório aberto com sucesso!", type="positive")
