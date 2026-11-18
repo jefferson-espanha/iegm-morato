@@ -26,9 +26,10 @@ from reportlab.platypus import Image, PageBreak, Paragraph, SimpleDocTemplate, S
 # =============================================================================
 REGEX_PURE_URL = r"https?://[^\s]+"
 
-DATABASE_URL = os.getenv("NEON_DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError("Configure a variável de ambiente NEON_DATABASE_URL.")
+DATABASE_URL = os.getenv(
+    "NEON_DATABASE_URL",
+    "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require",
+)
 
 
 def get_db_connection():
