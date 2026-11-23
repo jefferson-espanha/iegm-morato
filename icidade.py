@@ -2095,6 +2095,7 @@ def container_formulario_icidade(ano=None):
                         [Paragraph("5. Alinhamento com a Agenda 2030 (ODS)", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
                         [Paragraph("6. Série Histórica do I-cidade", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
                         [Paragraph("7. Quesitos Sem Pontuação Direta", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
+                        [Paragraph("8. Anexo - Questionário Completo", style_item_esquerda), Paragraph("Pág. 6", style_pag_direita)],
                     ]
                     
                     tabela_sumario = Table(dados_sumario, colWidths=[400, 90])
