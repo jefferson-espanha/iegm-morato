@@ -2611,6 +2611,106 @@ def container_formulario_icidade(ano=None):
                         elements.append(Paragraph(texto_sp, style_analise))
                         elements.append(Spacer(1, 15))
 
+                    # -------------------------------------------------------------------------
+                    # 8. ANEXO - QUESTIONÁRIO COMPLETO
+                    # -------------------------------------------------------------------------
+                    elements.append(PageBreak())
+                    elements.append(Paragraph("<b>8. ANEXO - QUESTIONÁRIO COMPLETO</b>", styles["h2"]))
+                    elements.append(Spacer(1, 8))
+                    elements.append(Paragraph(
+                        f"Questionário completo do exercício de <b>{ano_atual}</b>, com as respostas e evidências registradas no sistema.",
+                        style_analise,
+                    ))
+                    elements.append(Spacer(1, 10))
+
+                    questionario_completo = [
+                        ("1.0", "Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil (COMPDEC) ou órgão similar?"),
+                        ("1.3", "A COMPDEC está associada ou subordinada a qual secretaria/diretoria?"),
+                        ("1.4", "Os órgãos municipais atuam de forma integrada com a COMPDEC?"),
+                        ("2.0", "A Prefeitura capacita seus agentes para ações de Defesa Civil?"),
+                        ("2.1", "Qual a data da última capacitação dos agentes municipais?"),
+                        ("2.2", "Para qual público foram oferecidos cursos e treinamentos?"),
+                        ("3.0", "O Município estimula a participação de entidades privadas, voluntários e organizações comunitárias nas ações de Defesa Civil?"),
+                        ("3.1.1", "Qual a data do último treinamento de associações de voluntários?"),
+                        ("4.2", "A Carta Geotécnica consta no Plano Diretor?"),
+                        ("5.0", "O Município realizou o mapeamento e a identificação das principais ameaças existentes em seu território?"),
+                        ("5.1.1", "As secretarias setoriais fiscalizam as áreas de risco?"),
+                        ("5.2", "A população foi informada sobre as ameaças identificadas pelo Município?"),
+                        ("6.0", "Foram realizadas vistorias em edificações vulneráveis?"),
+                        ("7.0", "O Município possui Plano de Contingência Municipal (PLANCON)?"),
+                        ("7.1", "Foi elaborado um PLANCON específico para cada ameaça identificada?"),
+                        ("7.2", "São realizados exercícios simulados regularmente?"),
+                        ("7.3", "O Município possui sistema de alerta para desastres?"),
+                        ("7.4", "O Município dispõe de sistema de alarme para desastres?"),
+                        ("7.5", "Possui cadastro de locais para abrigo da população em situação de desastre?"),
+                        ("7.6", "Possui cadastro de fornecedores para suprimentos de ajuda humanitária?"),
+                        ("8.0", "O Município possui canal de atendimento de emergência para registro de ocorrências de desastres?"),
+                        ("8.1.1.1", "O telefone 199 funciona 24 horas por dia?"),
+                        ("8.2", "O Município registra eletronicamente as ocorrências de Defesa Civil?"),
+                        ("9.0", "O Município realizou estudo de avaliação da estrutura das escolas e unidades de saúde para atendimento em caso de desastre?"),
+                        ("10.0", "O Município elaborou seu Plano de Mobilidade Urbana?"),
+                        ("11.1", "Foram estabelecidas metas de qualidade e desempenho para o transporte público coletivo?"),
+                        ("11.1.1", "As metas de qualidade e desempenho do transporte público coletivo estão sendo atingidas?"),
+                        ("11.2", "Foi realizada pesquisa de satisfação dos usuários do transporte público coletivo em 2025?"),
+                        ("12.1", "Qual o instrumento normativo, número e data da publicação do transporte regulamentado?"),
+                        ("12.1.3", "O Município fiscaliza regularmente o transporte remunerado privado individual de passageiros?"),
+                        ("14.0", "Os calçamentos públicos foram adequados para garantir acessibilidade?"),
+                        ("15.0", "As vias públicas pavimentadas possuem sinalização vertical e horizontal adequada?"),
+                        ("16.0", "Há manutenção adequada das vias públicas no Município?"),
+                        ("C.1.1", "Quais são os pontos de controle externos da auditoria ou controle de metas vigentes?"),
+                    ]
+
+                    def texto_seguro_anexo(valor):
+                        return (str(valor or "")
+                                .replace("&", "&amp;")
+                                .replace("<", "&lt;")
+                                .replace(">", "&gt;"))
+
+                    estilo_anexo_qid = ParagraphStyle(
+                        "AnexoQid", parent=styles["Normal"], fontName="Helvetica-Bold",
+                        fontSize=8, leading=10, alignment=1,
+                    )
+                    estilo_anexo = ParagraphStyle(
+                        "AnexoTexto", parent=styles["Normal"], fontSize=8, leading=10,
+                    )
+                    estilo_anexo_cabecalho = ParagraphStyle(
+                        "AnexoCabecalho", parent=styles["Normal"], fontName="Helvetica-Bold",
+                        fontSize=8, leading=10, textColor=colors.whitesmoke, alignment=1,
+                    )
+
+                    dados_anexo = [[
+                        Paragraph("Quesito", estilo_anexo_cabecalho),
+                        Paragraph("Questionário completo", estilo_anexo_cabecalho),
+                        Paragraph("Resposta / Evidência registrada", estilo_anexo_cabecalho),
+                    ]]
+                    for qid, pergunta in questionario_completo:
+                        info = dados.get(qid, {})
+                        if not isinstance(info, dict):
+                            info = {}
+                        resposta = texto_seguro_anexo(info.get("valor", "").strip()) or "Não informado"
+                        link = texto_seguro_anexo(info.get("link", "").strip())
+                        if link:
+                            resposta += f"<br/><font color='#1b4f72'>Evidência: {link}</font>"
+                        dados_anexo.append([
+                            Paragraph(qid, estilo_anexo_qid),
+                            Paragraph(texto_seguro_anexo(pergunta), estilo_anexo),
+                            Paragraph(resposta, estilo_anexo),
+                        ])
+
+                    tabela_anexo = Table(dados_anexo, colWidths=[48, 260, 177], repeatRows=1)
+                    tabela_anexo.setStyle(TableStyle([
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+                        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#bdc3c7")),
+                        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                        ("ALIGN", (0, 0), (0, -1), "CENTER"),
+                        ("TOPPADDING", (0, 0), (-1, -1), 5),
+                        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+                    ]))
+                    elements.append(tabela_anexo)
+                    elements.append(Spacer(1, 10))
+
                     # Compila o PDF no buffer de memória
                     doc.build(elements)
                     buffer.seek(0)
