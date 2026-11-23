@@ -3341,6 +3341,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         [Paragraph("5. Alinhamento com a Agenda 2030 (Metas ODS)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
         [Paragraph("6. Evolução Temporal da Série Histórica (I-PLAN)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
         [Paragraph("7. Quesitos de Conformidade Operacional (Sem Pontuação Direta)", styles['ItemEsq']), Paragraph("Pág. 6", styles['PagDir'])],
+        [Paragraph("8. Anexo - Questionário Completo", styles['ItemEsq']), Paragraph("Pág. 7", styles['PagDir'])],
     ]
 
     tabela_sumario = Table(itens_sumario, colWidths=[380, 100])
@@ -3674,6 +3675,158 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_sp)
 
     
+    # -------------------------------------------------------------------------
+    # 8. ANEXO - QUESTIONÁRIO COMPLETO
+    # -------------------------------------------------------------------------
+    elements.append(PageBreak())
+    elements.append(Paragraph("<b>8. ANEXO - QUESTIONÁRIO COMPLETO</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph(
+        f"Questionário completo do exercício de <b>{ano_normalizado}</b>, com as respostas e evidências registradas no sistema.",
+        styles["Normal"],
+    ))
+    elements.append(Spacer(1, 10))
+
+    questionario_completo = [
+        ('1.0', 'A Prefeitura realizou audiências públicas para elaboração das peças orçamentárias?'),
+        ('1.1', 'Para quais peças orçamentárias foram realizadas as audiências públicas?'),
+        ('1.2', 'Qual o dia e horário das audiências públicas?'),
+        ('1.3', 'As audiências são registradas em atas ou documentos?'),
+        ('1.3.1', 'Qual o link de divulgação das atas?'),
+        ('1.4', 'Quais elementos foram considerados no planejamento e organização das audiências?'),
+        ('2.0', 'Houve consulta pública online para elaboração do PPA 2022-2025?'),
+        ('2.1', 'Foi disponibilizado glossário explicativo na consulta pública?'),
+        ('3.0', 'Foi realizado diagnóstico prévio ao planejamento?'),
+        ('3.1', 'O diagnóstico considerou programas federais ou estaduais?'),
+        ('3.1.1', 'Quais programas foram utilizados?'),
+        ('3.2', 'Os programas do PPA tiveram diagnóstico prévio?'),
+        ('4.0', 'Há estabelecimento de metas físicas e financeiras anuais no PPA?'),
+        ('4.1', 'Os programas finalísticos possuem objetivo comum?'),
+        ('4.1.1', 'Houve avaliação dos programas finalísticos?'),
+        ('4.1.1.1', 'Houve Relatório Anual de Avaliação?'),
+        ('4.1.1.1.1', 'Quais aspectos foram analisados na avaliação?'),
+        ('4.1.1.2', 'Houve publicação dos resultados?'),
+        ('4.1.1.2.1', 'Qual o link de divulgação dos resultados?'),
+        ('4.2', 'Os indicadores são mensuráveis e coerentes?'),
+        ('4.3', 'Os Planos Setoriais foram incorporados ao PPA?'),
+        ('5.0', 'É realizado estudo ou análise para previsão de receitas?'),
+        ('5.1', 'Quais tipos de tributos e transferências são avaliados?'),
+        ('5.1.1', 'É considerada a previsão de repasse do ICMS?'),
+        ('5.2', 'A metodologia varia conforme a espécie da receita?'),
+        ('6.0', 'Quais itens estão dispostos na LDO?'),
+        ('7.0', 'Houve remanejamento, transposição ou transferência por decreto?'),
+        ('7.1', 'Qual a classificação funcional das despesas alteradas?'),
+        ('8.0', 'O Anexo de Metas Fiscais integra a LDO?'),
+        ('8.1', 'Qual o link de divulgação?'),
+        ('8.2', 'Quais itens constam do Anexo de Metas Fiscais?'),
+        ('9.0', 'O Anexo de Riscos Fiscais integra a LDO?'),
+        ('9.1', 'Qual o link de divulgação?'),
+        ('9.2', 'Quais são as etapas de gerenciamento dos riscos?'),
+        ('10.0', 'Quais itens demonstram compatibilidade entre LOA, PPA e LDO?'),
+        ('11.0', 'A LOA prevê abertura de créditos adicionais por decreto?'),
+        ('11.1', 'Qual o percentual autorizado para crédito suplementar?'),
+        ('12.0', 'Há estrutura administrativa voltada ao planejamento?'),
+        ('12.1', 'Há recursos humanos disponíveis para o planejamento?'),
+        ('12.1.1.1', 'A equipe possui qualificação técnica?'),
+        ('12.1.2', 'Os servidores recebem treinamento específico?'),
+        ('13.0', 'Há acompanhamento da execução do planejamento?'),
+        ('13.1', 'As metas fiscais são avaliadas em audiências públicas quadrimestrais?'),
+        ('13.1.1', 'Foram elaborados Relatórios Quadrimestrais?'),
+        ('13.1.1.1', 'Qual o link dos relatórios?'),
+        ('13.2', 'Há acompanhamento mensal da execução orçamentária com participação do Prefeito?'),
+        ('13.3', 'O acompanhamento subsidia o replanejamento?'),
+        ('14.0', 'Houve instituição e regulamentação do Sistema de Controle Interno?'),
+        ('14.1', 'Qual o instrumento normativo?'),
+        ('14.2', 'Qual o link de divulgação?'),
+        ('14.3', 'Quais funções foram atribuídas ao Controle Interno?'),
+        ('14.4', 'Há recursos humanos disponíveis para o sistema?'),
+        ('14.4.1', 'O responsável ocupa cargo efetivo?'),
+        ('14.4.2', 'A equipe recebe treinamento?'),
+        ('14.4.3', 'Existe segregação de funções?'),
+        ('14.4.4', 'A UCCI possui autonomia?'),
+        ('14.4.4.1', 'Qual a vinculação da UCCI?'),
+        ('14.4.4.2', 'Houve comunicação de irregularidades?'),
+        ('14.4.4.2.1', 'Qual a quantidade de irregularidades comunicadas?'),
+        ('14.4.5', 'Há relatórios periódicos?'),
+        ('14.4.5.1', 'O Prefeito determinou providências?'),
+        ('14.4.5.1.1', 'O Controle Interno acompanhou as providências?'),
+        ('14.5', 'Houve Plano Operativo Anual?'),
+        ('14.5.1', 'Quais atividades estão previstas no Plano Operativo Anual?'),
+        ('15.0', 'Houve criação da Ouvidoria Pública?'),
+        ('15.1', 'Qual o instrumento normativo de criação?'),
+        ('15.2', 'Qual o link de divulgação?'),
+        ('15.3', 'Qual o link de divulgação?'),
+        ('15.4', 'Foi elaborado Relatório de Gestão da Ouvidoria?'),
+        ('15.4.1', 'Quais informações constam dos relatórios gerenciais?'),
+        ('15.4.2', 'Qual o link do sistema?'),
+        ('15.5', 'Quais iniciativas de divulgação e mobilização social foram realizadas?'),
+        ('16.0', 'A Prefeitura elaborou a Carta de Serviços ao Usuário?'),
+        ('16.1', 'Qual o link de divulgação?'),
+        ('16.2', 'A Carta de Serviços está atualizada?'),
+        ('16.3', 'Houve regulamentação da Carta?'),
+        ('16.3.1', 'Qual o instrumento normativo?'),
+        ('16.3.2', 'Qual o link de divulgação?'),
+        ('17.0', 'A Prefeitura regulamentou e instituiu o Conselho de Usuários?'),
+        ('17.1', 'Qual o instrumento normativo?'),
+        ('17.2', 'Qual o link de divulgação?'),
+        ('18.0', 'O Município elaborou Plano Diretor?'),
+        ('18.1', 'Qual a data da última atualização?'),
+        ('19.0', 'Quais são suas impressões, comentários e sugestões sobre o questionário?')
+    ]
+
+    def texto_seguro_anexo(valor):
+        return (str(valor or "")
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;"))
+
+    estilo_anexo_qid = ParagraphStyle(
+        "AnexoQid", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=8, leading=10, alignment=1,
+    )
+    estilo_anexo = ParagraphStyle(
+        "AnexoTexto", parent=styles["Normal"], fontSize=8, leading=10,
+    )
+    estilo_anexo_cabecalho = ParagraphStyle(
+        "AnexoCabecalho", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=8, leading=10, textColor=colors.whitesmoke, alignment=1,
+    )
+
+    dados_anexo = [[
+        Paragraph("Quesito", estilo_anexo_cabecalho),
+        Paragraph("Questionário completo", estilo_anexo_cabecalho),
+        Paragraph("Resposta / Evidência registrada", estilo_anexo_cabecalho),
+    ]]
+    for qid, pergunta in questionario_completo:
+        info = dados.get(qid, {})
+        if not isinstance(info, dict):
+            info = {}
+        resposta_bruta = info.get("valor", "")
+        resposta = texto_seguro_anexo(resposta_bruta.strip() if isinstance(resposta_bruta, str) else resposta_bruta) or "Não informado"
+        link_bruto = info.get("link", "")
+        link = texto_seguro_anexo(link_bruto.strip() if isinstance(link_bruto, str) else link_bruto)
+        if link:
+            resposta += f"<br/><font color='#1b4f72'>Evidência: {link}</font>"
+        dados_anexo.append([
+            Paragraph(qid, estilo_anexo_qid),
+            Paragraph(texto_seguro_anexo(pergunta), estilo_anexo),
+            Paragraph(resposta, estilo_anexo),
+        ])
+
+    tabela_anexo = Table(dados_anexo, colWidths=[48, 260, 177], repeatRows=1)
+    tabela_anexo.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#bdc3c7")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (0, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+    ]))
+    elements.append(tabela_anexo)
+    elements.append(Spacer(1, 10))
+
     doc.build(elements)
     return buffer.getvalue()
 
