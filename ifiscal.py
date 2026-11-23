@@ -7189,6 +7189,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             ),
             Paragraph("Pág. 6", styles["PagDir"]),
         ],
+        [
+            Paragraph("8. Anexo - Questionário Completo", styles["ItemEsq"]),
+            Paragraph("Pág. 7", styles["PagDir"]),
+        ],
     ]
 
     tabela_sumario = Table(itens_sumario, colWidths=[380, 100])
@@ -7918,6 +7922,164 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_sp)
 
    
+    # -------------------------------------------------------------------------
+    # 8. ANEXO - QUESTIONÁRIO COMPLETO
+    # -------------------------------------------------------------------------
+    elements.append(PageBreak())
+    elements.append(Paragraph("<b>8. ANEXO - QUESTIONÁRIO COMPLETO</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph(
+        f"Questionário completo do exercício de <b>{ano_normalizado}</b>, com as respostas e evidências registradas no sistema.",
+        styles["Normal"],
+    ))
+    elements.append(Spacer(1, 10))
+
+    questionario_completo = [
+        ('1.0', 'Estrutura administrativa voltada à administração tributária.'),
+        ('1.1', 'Lei que define a estrutura organizacional da Administração Tributária.'),
+        ('1.2', 'Número de cargos de fiscais/auditores tributários preenchidos.'),
+        ('1.3', 'Treinamento específico para os fiscais tributários.'),
+        ('1.4', 'Plano de Cargos e Salários específico para fiscais tributários.'),
+        ('1.4.1', 'Instrumento normativo que regulamenta o Plano de Cargos e Salários.'),
+        ('1.4.2', 'Página eletrônica de divulgação do Plano de Cargos e Salários.'),
+        ('1.5', 'Segregação de funções entre lançadoria, arrecadação, fiscalização e contabilidade.'),
+        ('1.5.1', 'Segregação das permissões de acesso ao sistema, com identificação dos usuários e registro das transações.'),
+        ('2.0', 'Responsável pela contabilidade ocupa cargo efetivo.'),
+        ('3.0', 'Medidas efetivas para aumento da arrecadação.'),
+        ('3.1', 'Medidas implementadas para aumento da arrecadação.'),
+        ('4.0', 'Procedimento de revisão do cadastro imobiliário e sua periodicidade.'),
+        ('4.1', 'Instrumento normativo e endereço eletrônico do procedimento de revisão do cadastro imobiliário.'),
+        ('4.2', 'Periodicidade da revisão geral do Cadastro Imobiliário.'),
+        ('4.3', 'Atualização da revisão periódica ou geral do Cadastro Imobiliário.'),
+        ('5.0', 'Aprovação da Planta Genérica de Valores (PGV) por lei.'),
+        ('5.1', 'Instrumento normativo de aprovação da PGV.'),
+        ('5.2', 'Página eletrônica de divulgação da PGV.'),
+        ('5.3', 'Previsão de revisão periódica obrigatória da PGV no Código Tributário Municipal.'),
+        ('5.3.1', 'Instrumento normativo de revisão da PGV.'),
+        ('5.3.2', 'Página eletrônica de divulgação da revisão da PGV.'),
+        ('5.3.3', 'Data da última revisão da PGV.'),
+        ('5.3.4', 'Periodicidade de revisão da PGV.'),
+        ('5.4', 'Atualização da base de cálculo do IPTU pelos dados da PGV e do Cadastro Imobiliário.'),
+        ('6.0', 'Critérios instituídos para cobrança do IPTU.'),
+        ('7.0', 'Programa municipal de isenção do IPTU.'),
+        ('7.1', 'Instrumento normativo de regulamentação do programa de isenção do IPTU.'),
+        ('7.2', 'Página eletrônica de divulgação do programa de isenção do IPTU.'),
+        ('7.3', 'Critérios para concessão de isenção total ou parcial do IPTU.'),
+        ('8.0', 'Instituição do ISSQN no município.'),
+        ('8.1', 'Atualização da legislação municipal conforme a LC nº 157/2016.'),
+        ('8.2', 'Rotina de fiscalização para detectar sonegação do ISSQN.'),
+        ('8.3', 'Disponibilidade pública de pesquisa de autenticidade de notas fiscais eletrônicas.'),
+        ('9.0', 'Regulamentação do ITBI.'),
+        ('9.1', 'Instrumento normativo de regulamentação do ITBI.'),
+        ('9.2', 'Página eletrônica de divulgação da regulamentação do ITBI.'),
+        ('9.3', 'Forma de registro e emissão da guia de recolhimento do ITBI.'),
+        ('9.4', 'Norma para comunicação periódica dos Cartórios sobre transmissões imobiliárias.'),
+        ('9.4.1', 'Aplicação de penalidades ou multas aos Cartórios por descumprimento.'),
+        ('9.5', 'Forma de recolhimento da guia do ITBI.'),
+        ('9.6', 'Instituição de alíquotas progressivas para o ITBI.'),
+        ('10.0', 'Instituição da CIP/COSIP.'),
+        ('10.1', 'Instrumento normativo de instituição da CIP.'),
+        ('10.2', 'Página eletrônica de divulgação da CIP.'),
+        ('10.3', 'Movimentação dos recursos da CIP em contas específicas.'),
+        ('11.0', 'Regulamentação da retenção de IRRF nas contratações municipais.'),
+        ('12.0', 'Concessão de benefícios e incentivos com renúncia de receita em 2025.'),
+        ('12.1', 'Normas e procedimentos relativos à renúncia de receita.'),
+        ('12.1.1', 'Instrumento normativo de regulamentação dos procedimentos de renúncia de receita.'),
+        ('12.1.2', 'Página eletrônica de divulgação da regulamentação.'),
+        ('12.2', 'Acompanhamento e reavaliação das renúncias de receita pela Prefeitura.'),
+        ('12.3', 'Demonstrativo da estimativa e compensação da renúncia de receita no Anexo de Metas Fiscais.'),
+        ('12.3.1', 'Compatibilidade do valor da renúncia de receita de 2025 com a estimativa da LDO.'),
+        ('12.4', 'Valor das renúncias de receita no exercício de 2025.'),
+        ('12.5', 'Publicidade e transparência dos benefícios concedidos por renúncia de receitas.'),
+        ('12.5.1', 'Informações divulgadas sobre os benefícios concedidos.'),
+        ('12.5.2', 'Página eletrônica de divulgação dessas informações.'),
+        ('13.0', 'Regulamentação municipal sobre dívida ativa.'),
+        ('13.1', 'Instrumento normativo de regulamentação da dívida ativa.'),
+        ('13.2', 'Página eletrônica de divulgação da regulamentação da dívida ativa.'),
+        ('13.3', 'Critérios estabelecidos na legislação sobre dívida ativa.'),
+        ('14.0', 'Existência de dívida ativa executada judicialmente em 2025.'),
+        ('14.1', 'Valor total da dívida ativa executada judicialmente em 2025.'),
+        ('15.0', 'Cobrança extrajudicial da dívida ativa pela Prefeitura.'),
+        ('15.1', 'Valor total da dívida ativa cobrada extrajudicialmente em 2025.'),
+        ('15.2', 'Modalidades de cobrança extrajudicial da dívida ativa.'),
+        ('16.0', 'Existência de dívidas prescritas no exercício de 2025.'),
+        ('16.1', 'Valor da dívida ativa prescrita na execução judicial em 2025.'),
+        ('16.2', 'Valor da dívida ativa cobrada extrajudicialmente prescrita em 2025.'),
+        ('16.3', 'Registro da dívida ativa prescrita na conta de Provisão para Perdas de Dívida Ativa.'),
+        ('17.0', 'Controle das ações judiciais em que o Município é parte no polo passivo.'),
+        ('17.1', 'Forma de controle dessas ações judiciais.'),
+        ('17.2', 'Valor atualizado, em 31/12/2025, de todas as ações judiciais em que o Município é parte.'),
+        ('18.0', 'Divulgação dos dados de transparência na gestão fiscal no site do Município.'),
+        ('18.1', 'Itens de transparência fiscal divulgados no site municipal.'),
+        ('19.0', 'Divulgação das receitas arrecadadas em tempo real.'),
+        ('19.1', 'Itens da receita divulgados em tempo real.'),
+        ('20.0', 'Divulgação das despesas executadas em tempo real.'),
+        ('20.1', 'Itens das despesas divulgados em tempo real.'),
+        ('21.0', 'Divulgação da remuneração individualizada por nome do agente público.'),
+        ('21.1', 'Página eletrônica de divulgação da remuneração individualizada.'),
+        ('22.0', 'Divulgação de diárias e passagens por nome do favorecido.'),
+        ('22.1', 'Página eletrônica de divulgação de diárias e passagens.'),
+        ('23.0', 'Prazo de realização dos repasses ao RGPS referentes à competência de 2025.'),
+        ('24.0', 'Adesão da Prefeitura a parcelamento de encargos sociais junto ao RGPS.'),
+        ('24.1', 'Prazo de pagamento das parcelas do parcelamento com vencimento em 2025.'),
+        ('25.0', 'Compensação de encargos sociais junto à Receita Federal do Brasil.'),
+        ('25.1', 'Autorização formal da Receita Federal ou decisão judicial para realização das compensações.'),
+        ('26.0', 'Impressões, comentários e sugestões sobre o questionário.')
+    ]
+
+    def texto_seguro_anexo(valor):
+        return (str(valor or "")
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;"))
+
+    estilo_anexo_qid = ParagraphStyle(
+        "AnexoQid", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=8, leading=10, alignment=1,
+    )
+    estilo_anexo = ParagraphStyle(
+        "AnexoTexto", parent=styles["Normal"], fontSize=8, leading=10,
+    )
+    estilo_anexo_cabecalho = ParagraphStyle(
+        "AnexoCabecalho", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=8, leading=10, textColor=colors.whitesmoke, alignment=1,
+    )
+
+    dados_anexo = [[
+        Paragraph("Quesito", estilo_anexo_cabecalho),
+        Paragraph("Questionário completo", estilo_anexo_cabecalho),
+        Paragraph("Resposta / Evidência registrada", estilo_anexo_cabecalho),
+    ]]
+    for qid, pergunta in questionario_completo:
+        info = dados.get(qid, {})
+        if not isinstance(info, dict):
+            info = {}
+        resposta_bruta = info.get("valor", "")
+        resposta = texto_seguro_anexo(resposta_bruta.strip() if isinstance(resposta_bruta, str) else resposta_bruta) or "Não informado"
+        link_bruto = info.get("link", "")
+        link = texto_seguro_anexo(link_bruto.strip() if isinstance(link_bruto, str) else link_bruto)
+        if link:
+            resposta += f"<br/><font color='#1b4f72'>Evidência: {link}</font>"
+        dados_anexo.append([
+            Paragraph(qid, estilo_anexo_qid),
+            Paragraph(texto_seguro_anexo(pergunta), estilo_anexo),
+            Paragraph(resposta, estilo_anexo),
+        ])
+
+    tabela_anexo = Table(dados_anexo, colWidths=[48, 260, 177], repeatRows=1)
+    tabela_anexo.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#bdc3c7")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (0, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+    ]))
+    elements.append(tabela_anexo)
+    elements.append(Spacer(1, 10))
+
     doc.build(elements)
     return buffer.getvalue()
 
