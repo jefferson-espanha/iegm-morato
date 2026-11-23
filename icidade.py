@@ -2626,6 +2626,7 @@ def container_formulario_icidade(ano=None):
 
                     questionario_completo = [
                         ("1.0", "Foi criada a Coordenadoria Municipal de Proteção e Defesa Civil (COMPDEC) ou órgão similar?"),
+                        ("1.2", "Informe a página eletrônica (link na internet) do instrumento normativo que criou a COMPDEC ou órgão similar:"),
                         ("1.3", "A COMPDEC está associada ou subordinada a qual secretaria/diretoria?"),
                         ("1.4", "Os órgãos municipais atuam de forma integrada com a COMPDEC?"),
                         ("2.0", "A Prefeitura capacita seus agentes para ações de Defesa Civil?"),
