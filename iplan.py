@@ -3272,8 +3272,8 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
    
     
     lista_alvo_iplan = [
-        "5.0", "7.0", 
-        "8.0", "9.0", "11.0", "11.1", "12.0"
+        "1.3", "3.0", "7.0", 
+        "8.0", "9.0", "11.0", "12.0", "12.1", "13.0", "14.0", "14.5", "15.0", "18.0",
     ]
 
     buffer = BytesIO()
