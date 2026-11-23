@@ -3586,6 +3586,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         [Paragraph("5. Alinhamento com a Agenda 2030 (ODS)", style_item_esquerda), Paragraph("Pág. 4", style_pag_direita)],
         [Paragraph("6. Série Histórica do I-Gov TI", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
         [Paragraph("7. Quesitos Sem Pontuação Direta", style_item_esquerda), Paragraph("Pág. 5", style_pag_direita)],
+        [Paragraph("8. Anexo - Questionário Completo", style_item_esquerda), Paragraph("Pág. 6", style_pag_direita)],
     ]
     
     tabela_sumario = Table(dados_sumario, colWidths=[400, 90])
@@ -4009,6 +4010,133 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
             ("ALIGN", (2, 0), (2, -1), "CENTER")
         ]))
         elements.append(tabela_sp)
+
+    # -------------------------------------------------------------------------
+    # 8. ANEXO - QUESTIONÁRIO COMPLETO
+    # -------------------------------------------------------------------------
+    elements.append(PageBreak())
+    elements.append(Paragraph("<b>8. ANEXO - QUESTIONÁRIO COMPLETO</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph(
+        f"Questionário completo do exercício de <b>{ano}</b>, com as respostas e evidências registradas no sistema.",
+        styles["Normal"],
+    ))
+    elements.append(Spacer(1, 10))
+
+    questionario_completo = [
+        ('1.0', 'A Prefeitura possui área ou setor responsável por Tecnologia da Informação e Comunicação (TIC)?'),
+        ('1.1', 'Qual a quantidade de funcionários concursados, comissionados e estagiários no suporte e atendimento de primeiro nível?'),
+        ('1.2', 'A Prefeitura definiu formalmente as atribuições do pessoal do setor de TIC?'),
+        ('1.3', 'A Prefeitura disponibilizou capacitação para o pessoal da área de TIC?'),
+        ('1.3.1', 'Em quais áreas houve capacitação?'),
+        ('1.4', 'Houve participação formalizada do pessoal de TIC nas licitações e contratos que envolvam soluções de tecnologia?'),
+        ('1.4.1', 'Em quais etapas o pessoal de TIC participa?'),
+        ('1.4.2', 'Foi realizada análise ou estudo prévio dos softwares adquiridos ou licenciados nos últimos cinco anos, com participação de TIC?'),
+        ('2.0', 'A Prefeitura possui PDTIC vigente com diretrizes e metas futuras?'),
+        ('2.1', 'Qual o link de acesso ao PDTIC?'),
+        ('2.2', 'O plano de TIC contempla as metas operacionais e estratégicas municipais?'),
+        ('2.3', 'Qual a data da última atualização do PDTIC?'),
+        ('3.0', 'A Prefeitura possui Política de Segurança da Informação formalmente instituída?'),
+        ('3.1', 'A Prefeitura estabelece procedimentos e responsabilidades quanto ao uso de TI?'),
+        ('3.1.1', 'O Termo de Responsabilidade/Compromisso dispõe sobre o uso da assinatura eletrônica pelos funcionários?'),
+        ('3.1.1.1', 'Qual o tipo de assinatura eletrônica utilizada nos documentos digitais?'),
+        ('3.2', 'Os riscos de TIC são identificados conforme as normas brasileiras da família ISO/IEC 27000?'),
+        ('3.2.1', 'Quais normas ISO/IEC 27000 são utilizadas?'),
+        ('3.3', 'Os riscos de TIC são identificados conforme as normas ABNT NBR ISO/IEC 31000?'),
+        ('3.4', 'A Prefeitura possui Plano de Continuidade dos Serviços de TIC?'),
+        ('3.5', 'A Prefeitura possui política de cópias de segurança (backup) formalmente instituída?'),
+        ('3.6', 'A Prefeitura possui inventário atualizado dos ativos de TIC?'),
+        ('3.6.1', 'Como é composta a base de ativos?'),
+        ('4.0', 'O Município regulamentou a Lei de Acesso à Informação (LAI)?'),
+        ('4.1', 'Qual o instrumento normativo, número e data da publicação da LAI?'),
+        ('4.2', 'Qual o link do instrumento normativo da LAI?'),
+        ('5.0', 'O Município regulamentou a Lei do Governo Digital?'),
+        ('5.1', 'Qual o instrumento normativo, número e data da publicação do Governo Digital?'),
+        ('5.2', 'Qual o link do instrumento normativo do Governo Digital?'),
+        ('5.3', 'A Prefeitura implantou soluções digitais para tramitação de processos administrativos?'),
+        ('6.0', 'A Prefeitura mantém site na internet com informações atualizadas?'),
+        ('6.1', 'O site possui ferramenta de pesquisa ou busca interna?'),
+        ('6.2', 'O site permite download de dados e informações em formatos abertos e não proprietários?'),
+        ('6.3', 'O site disponibiliza respostas às perguntas mais frequentes da sociedade?'),
+        ('6.4', 'O site disponibiliza recursos de acessibilidade para pessoas com deficiência?'),
+        ('7.0', 'A Prefeitura disponibiliza o Serviço de Informação ao Cidadão (e-SIC) no site?'),
+        ('7.1', 'A solicitação por meio do e-SIC é simplificada?'),
+        ('7.2', 'O e-SIC permite acompanhar as solicitações?'),
+        ('7.3', 'É necessário informar os motivos para solicitar informações de interesse público?'),
+        ('8.0', 'A Prefeitura possui softwares para gestão de processos?'),
+        ('8.1', 'Quais processos ou setores são abrangidos pelos softwares?'),
+        ('8.2', 'Quais sistemas estão integrados ao Sistema de Contabilidade do Município?'),
+        ('8.2.1', 'Qual o nível de integração entre o Sistema da Dívida Ativa e o de Contabilidade?'),
+        ('8.2.2', 'Qual o nível de integração entre o Sistema de Precatórios e o de Contabilidade?'),
+        ('8.3', 'Quais bases de dados estão sob gestão direta da Prefeitura?'),
+        ('8.4', 'Quais sistemas possuem controle de acesso à informação?'),
+        ('9.0', 'A Prefeitura oferece serviços de forma online?'),
+        ('9.1', 'Quais tipos de serviços são oferecidos online?'),
+        ('9.2', 'Quais formas de atendimento a distância são disponibilizadas ao público?'),
+        ('10.0', 'A Prefeitura regulamentou o tratamento de dados pessoais conforme a LGPD?'),
+        ('10.1', 'Qual o instrumento normativo, número e data da publicação?'),
+        ('10.2', 'Qual o link de acesso ao instrumento normativo?'),
+        ('10.3', 'Os contratos com prestadores de serviços possuem cláusulas de observância à LGPD?'),
+        ('10.4', 'A Prefeitura realizou o mapeamento de dados pessoais (Data Mapping)?'),
+        ('10.5', 'Foram adotadas medidas técnicas e administrativas de segurança para proteção dos dados pessoais?'),
+        ('10.5.1', 'Quais medidas foram adotadas?'),
+        ('11.0', 'A Prefeitura designou um encarregado pelo tratamento de dados pessoais?'),
+        ('11.1', 'Qual o link com a identificação e informações de contato do encarregado?'),
+        ('12.0', 'Deseja registrar impressões, comentários ou sugestões sobre o questionário?')
+    ]
+
+    def texto_seguro_anexo(valor):
+        return (str(valor or "")
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;"))
+
+    estilo_anexo_qid = ParagraphStyle(
+        "AnexoQid", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=8, leading=10, alignment=1,
+    )
+    estilo_anexo = ParagraphStyle(
+        "AnexoTexto", parent=styles["Normal"], fontSize=8, leading=10,
+    )
+    estilo_anexo_cabecalho = ParagraphStyle(
+        "AnexoCabecalho", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=8, leading=10, textColor=colors.whitesmoke, alignment=1,
+    )
+
+    dados_anexo = [[
+        Paragraph("Quesito", estilo_anexo_cabecalho),
+        Paragraph("Questionário completo", estilo_anexo_cabecalho),
+        Paragraph("Resposta / Evidência registrada", estilo_anexo_cabecalho),
+    ]]
+    for qid, pergunta in questionario_completo:
+        info = dados.get(qid, {})
+        if not isinstance(info, dict):
+            info = {}
+        resposta_bruta = info.get("valor", "")
+        resposta = texto_seguro_anexo(resposta_bruta.strip() if isinstance(resposta_bruta, str) else resposta_bruta) or "Não informado"
+        link_bruto = info.get("link", "")
+        link = texto_seguro_anexo(link_bruto.strip() if isinstance(link_bruto, str) else link_bruto)
+        if link:
+            resposta += f"<br/><font color='#1b4f72'>Evidência: {link}</font>"
+        dados_anexo.append([
+            Paragraph(qid, estilo_anexo_qid),
+            Paragraph(texto_seguro_anexo(pergunta), estilo_anexo),
+            Paragraph(resposta, estilo_anexo),
+        ])
+
+    tabela_anexo = Table(dados_anexo, colWidths=[48, 260, 177], repeatRows=1)
+    tabela_anexo.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#bdc3c7")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (0, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+    ]))
+    elements.append(tabela_anexo)
+    elements.append(Spacer(1, 10))
 
     doc.build(elements)
     buffer.seek(0)
