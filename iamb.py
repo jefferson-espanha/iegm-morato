@@ -5498,6 +5498,7 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         [Paragraph("5. Alinhamento com a Agenda 2030 (Metas ODS)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
         [Paragraph("6. Evolução Temporal da Série Histórica (I-AMB)", styles['ItemEsq']), Paragraph("Pág. 5", styles['PagDir'])],
         [Paragraph("7. Quesitos de Conformidade Operacional (Sem Pontuação Direta)", styles['ItemEsq']), Paragraph("Pág. 6", styles['PagDir'])],
+        [Paragraph("8. Anexo - Questionário Completo", styles['ItemEsq']), Paragraph("Pág. 7", styles['PagDir'])],
     ]
 
     tabela_sumario = Table(itens_sumario, colWidths=[380, 100])
@@ -5834,6 +5835,180 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
     elements.append(t_sp)
 
    
+    # -------------------------------------------------------------------------
+    # 8. ANEXO - QUESTIONÁRIO COMPLETO
+    # -------------------------------------------------------------------------
+    elements.append(PageBreak())
+    elements.append(Paragraph("<b>8. ANEXO - QUESTIONÁRIO COMPLETO</b>", styles["Heading2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph(
+        f"Questionário completo do exercício de <b>{ano_normalizado}</b>, com as respostas e evidências registradas no sistema.",
+        styles["Normal"],
+    ))
+    elements.append(Spacer(1, 10))
+
+    questionario_completo = [
+        ('1.0', 'Existe estrutura organizacional para tratar de assuntos relacionados ao Meio Ambiente Municipal?'),
+        ('1.1', 'Qual a disponibilidade de recursos humanos para operacionalização das atividades de Meio Ambiente?'),
+        ('1.1.1', 'Quais são os detalhes e informações sobre os recursos humanos da área?'),
+        ('1.1.2', 'A Prefeitura realizou treinamento específico voltado ao Meio Ambiente em 2025?'),
+        ('1.1.3', 'Quais cursos e treinamentos de educação ambiental foram oferecidos pela Secretaria de Meio Ambiente?'),
+        ('1.2', 'Quais recursos foram disponibilizados para operacionalização das atividades de Meio Ambiente?'),
+        ('2.0', 'O Município promove a participação em Programas de Educação Ambiental?'),
+        ('2.1', 'Existem programas ou ações de educação ambiental implementados na rede escolar municipal?'),
+        ('3.0', 'O Município estimula projetos e ações para o uso racional dos recursos naturais?'),
+        ('3.1', 'Quais ações são realizadas para o uso racional dos recursos naturais?'),
+        ('4.0', 'Existe fiscalização da emissão de poluentes de combustíveis fósseis (diesel) na frota municipal?'),
+        ('5.0', 'Existe contrato vigente para prestação de serviços de poda e corte de árvores e outras plantas lenhosas?'),
+        ('5.1', 'Qual o número do contrato e o respectivo prestador de serviço?'),
+        ('5.2', 'Qual a periodicidade definida para realização de poda e manutenção das árvores?'),
+        ('5.2.1', 'Qual a destinação final dos resíduos decorrentes das podas de árvores?'),
+        ('5.3', 'Houve capacitação específica para os responsáveis pela manutenção e poda de árvores?'),
+        ('6.0', 'O Município adota ações e medidas preventivas para períodos de estiagem?'),
+        ('6.1', 'Quais ações e medidas preventivas foram executadas?'),
+        ('6.2', 'Quais setores estão envolvidos nas ações de provisão de água potável?'),
+        ('7.0', 'Existe Plano Municipal ou Regional de Saneamento Básico instituído e vigente?'),
+        ('7.1', 'Qual o instrumento normativo de aprovação do Plano?'),
+        ('7.2', 'Qual o link de acesso ao Plano?'),
+        ('7.3', 'O Plano estabelece metas específicas de abastecimento de água potável?'),
+        ('7.3.1', 'Quais são as metas estabelecidas para o abastecimento de água?'),
+        ('7.3.2', 'Qual a data prevista para universalização do abastecimento de água?'),
+        ('7.4', 'O Plano estabelece metas de coleta de esgoto sanitário?'),
+        ('7.4.1', 'Quais são as metas estabelecidas para coleta de esgoto?'),
+        ('7.4.2', 'Qual a data prevista para universalização da coleta de esgoto?'),
+        ('7.5', 'O Plano estabelece metas para tratamento do esgoto coletado?'),
+        ('7.5.1', 'Qual a data prevista para universalização do tratamento de esgoto?'),
+        ('7.6', 'O Plano contempla metas de drenagem e manejo de águas pluviais urbanas?'),
+        ('7.6.1', 'Quais são as metas estabelecidas para drenagem e manejo de águas pluviais?'),
+        ('7.7', 'O Município realiza monitoramento e avaliação das ações e metas de abastecimento de água e esgotamento sanitário?'),
+        ('7.7.1', 'Como é realizado esse monitoramento e avaliação?'),
+        ('7.8', 'Existe cronograma formalizado de metas para o saneamento básico?'),
+        ('7.8.1', 'As metas estabelecidas estão sendo cumpridas dentro do prazo?'),
+        ('7.8.1.1', 'Quais os principais motivos para o não cumprimento das metas?'),
+        ('7.9', 'O Plano prevê áreas prioritárias ou críticas para intervenções de abastecimento de água e esgotamento sanitário?'),
+        ('7.10', 'Qual a data da última revisão do Plano de Saneamento Básico?'),
+        ('8.0', 'Existe Plano Municipal ou Regional de Gestão Integrada de Resíduos Sólidos instituído?'),
+        ('8.1', 'Qual o instrumento normativo de aprovação do Plano de Resíduos Sólidos?'),
+        ('8.2', 'Qual o link de acesso ao Plano?'),
+        ('8.3', 'O Plano apresenta caracterização qualitativa e quantitativa dos resíduos sólidos urbanos?'),
+        ('8.3.1', 'Qual a metodologia utilizada para caracterização dos resíduos?'),
+        ('8.4', 'Existe cronograma formalizado de metas para gestão de resíduos sólidos?'),
+        ('8.4.1', 'Quais metas foram formalmente estabelecidas para os resíduos sólidos?'),
+        ('8.4.2', 'O Município realiza monitoramento e avaliação das ações e metas do Plano?'),
+        ('8.4.2.1', 'Como é realizado esse monitoramento e avaliação?'),
+        ('8.4.3', 'As metas estabelecidas estão sendo cumpridas dentro do prazo?'),
+        ('8.4.3.1', 'Quais os principais motivos para o não cumprimento das metas?'),
+        ('8.4.4', 'Qual a data da última revisão do Plano de Gestão Integrada de Resíduos Sólidos?'),
+        ('9.0', 'O Município realiza efetivamente a coleta seletiva de resíduos sólidos?'),
+        ('9.1', 'Existe cronograma ou planejamento de coleta seletiva?'),
+        ('9.2', 'A coleta seletiva atende a todas as regiões do Município?'),
+        ('9.3', 'São promovidas ações e campanhas institucionais de incentivo à coleta seletiva?'),
+        ('9.3.1', 'Quais ações e campanhas de conscientização foram realizadas?'),
+        ('10.0', 'O Município realiza o serviço regular de coleta de lixo doméstico?'),
+        ('10.1', 'Existe cronograma de atendimento para a coleta programada?'),
+        ('10.2', 'A coleta de lixo domiciliar atende a todas as regiões do Município?'),
+        ('10.3', 'O Município dispõe de Área de Transbordo e Triagem (ATT) para resíduos sólidos urbanos?'),
+        ('10.3.1', 'A ATT possui licença de operação ativa emitida pela CETESB?'),
+        ('10.3.1.1', 'Qual o prazo de validade da licença de operação da CETESB?'),
+        ('11.0', 'Existe Plano de Gerenciamento de Resíduos da Construção Civil (PGRCC) instituído?'),
+        ('11.1', 'Qual o instrumento normativo que regulamenta o PGRCC?'),
+        ('11.2', 'Qual o link de acesso ao PGRCC?'),
+        ('11.3', 'Existe cronograma de metas definido no âmbito do PGRCC?'),
+        ('11.3.1', 'Quais são as metas previstas no Plano de Resíduos da Construção Civil?'),
+        ('11.3.2', 'Existe monitoramento e avaliação das ações e metas do PGRCC?'),
+        ('11.3.2.1', 'Como é realizado o monitoramento e a avaliação?'),
+        ('11.3.3', 'As metas estabelecidas no PGRCC estão sendo cumpridas dentro do prazo?'),
+        ('11.3.3.1', 'Quais os motivos identificados para o não cumprimento das metas?'),
+        ('11.4', 'Quem é o agente ou setor responsável pela triagem dos resíduos da construção civil?'),
+        ('11.5', 'O Município fiscaliza as atividades relacionadas aos resíduos da construção civil?'),
+        ('11.5.1', 'Quais são as principais atividades fiscalizadas pelo órgão municipal?'),
+        ('11.6', 'Existe Área de Transbordo e Triagem (ATT) específica para resíduos da construção civil?'),
+        ('11.6.1', 'A ATT de resíduos da construção civil possui licença de operação da CETESB?'),
+        ('11.6.1.1', 'Qual o prazo de validade da licença emitida pela CETESB?'),
+        ('12.0', 'O Município adota alguma forma de processamento de resíduos antes da disposição final?'),
+        ('12.1', 'Qual a forma de processamento utilizada nos resíduos?'),
+        ('13.0', 'Existe aterro sanitário ou industrial para destinação de resíduos sólidos urbanos no território municipal ou consorciado?'),
+        ('13.1', 'Quais são as características e a situação atual do local de destinação final dos resíduos?'),
+        ('13.1.1', 'Qual a data provável para fechamento ou esgotamento do aterro?'),
+        ('13.2', 'O aterro utilizado possui licença de operação regular emitida pela CETESB?'),
+        ('13.2.1', 'Qual o prazo de validade da licença de operação?'),
+        ('14.0', 'Foram identificados pontos de descarte irregular de lixo ou entulho no Município?'),
+        ('14.1', 'Qual a quantidade total de pontos de descarte irregular identificados?'),
+        ('14.2', 'Quais são os endereços ou localizações dos pontos críticos identificados?'),
+        ('14.3', 'Quais ações práticas e fiscalizatórias foram promovidas para combater o descarte irregular?'),
+        ('15.0', 'Está definida a entidade responsável pela regulação e fiscalização dos serviços de saneamento básico?'),
+        ('15.1', 'Quais serviços municipais possuem entidade reguladora e fiscalizadora externa ou interna?'),
+        ('15.1.1', 'Qual a entidade responsável pela regulação do abastecimento de água potável?'),
+        ('15.1.2', 'Qual a entidade responsável pela regulação do esgotamento sanitário?'),
+        ('15.1.3', 'Qual a entidade responsável pela regulação da limpeza urbana e manejo de resíduos sólidos?'),
+        ('15.1.4', 'Qual a entidade responsável pela regulação da drenagem e manejo das águas pluviais urbanas?'),
+        ('16.0', 'Deseja registrar impressões, comentários e sugestões gerais sobre este bloco do questionário?'),
+        ('A1', 'O Município possui Zoneamento Ecológico-Econômico (ZEE) instituído ou em andamento?'),
+        ('A2', 'Há monitoramento sistemático da qualidade do ar nas zonas urbanas ou industriais do Município?'),
+        ('A3', 'O Município possui mapeamento atualizado e proteção ativa de suas Áreas de Preservação Permanente (APP)?'),
+        ('A4', 'Existe programa municipal voltado à proteção e ao bem-estar de animais domésticos e ao controle de zoonoses?'),
+        ('A4.1.1', 'Qual a capacidade física e operacional do abrigo ou canil municipal?'),
+        ('A4.1.1.1', 'Há veterinário responsável contratado em regime definitivo ou plantonista?'),
+        ('A4.1.2', 'O Município realiza campanhas periódicas e gratuitas de castração de cães e gatos?'),
+        ('A4.1.3', 'Qual o número de procedimentos de esterilização animal realizados no último ano de exercício?'),
+        ('A4.1.4', 'Existem parcerias ativas e registradas com ONGs e protetores independentes locais?'),
+        ('A5', 'O Município possui plano de prevenção e combate a incêndios florestais e queimadas urbanas?'),
+        ('A6', 'O órgão ambiental municipal possui equipamentos adequados para atendimento e contenção de emergências químicas ou derramamentos?')
+    ]
+
+    def texto_seguro_anexo(valor):
+        return (str(valor or "")
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;"))
+
+    estilo_anexo_qid = ParagraphStyle(
+        "AnexoQid", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=8, leading=10, alignment=1,
+    )
+    estilo_anexo = ParagraphStyle(
+        "AnexoTexto", parent=styles["Normal"], fontSize=8, leading=10,
+    )
+    estilo_anexo_cabecalho = ParagraphStyle(
+        "AnexoCabecalho", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=8, leading=10, textColor=colors.whitesmoke, alignment=1,
+    )
+
+    dados_anexo = [[
+        Paragraph("Quesito", estilo_anexo_cabecalho),
+        Paragraph("Questionário completo", estilo_anexo_cabecalho),
+        Paragraph("Resposta / Evidência registrada", estilo_anexo_cabecalho),
+    ]]
+    for qid, pergunta in questionario_completo:
+        info = dados.get(qid, {})
+        if not isinstance(info, dict):
+            info = {}
+        resposta_bruta = info.get("valor", "")
+        resposta = texto_seguro_anexo(resposta_bruta.strip() if isinstance(resposta_bruta, str) else resposta_bruta) or "Não informado"
+        link_bruto = info.get("link", "")
+        link = texto_seguro_anexo(link_bruto.strip() if isinstance(link_bruto, str) else link_bruto)
+        if link:
+            resposta += f"<br/><font color='#1b4f72'>Evidência: {link}</font>"
+        dados_anexo.append([
+            Paragraph(qid, estilo_anexo_qid),
+            Paragraph(texto_seguro_anexo(pergunta), estilo_anexo),
+            Paragraph(resposta, estilo_anexo),
+        ])
+
+    tabela_anexo = Table(dados_anexo, colWidths=[48, 260, 177], repeatRows=1)
+    tabela_anexo.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#bdc3c7")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (0, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+    ]))
+    elements.append(tabela_anexo)
+    elements.append(Spacer(1, 10))
+
     doc.build(elements)
     return buffer.getvalue()
 
