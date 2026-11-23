@@ -14137,6 +14137,10 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
             Paragraph("9. Quesitos sem Pontuação Direta", style_item_esquerda),
             Paragraph("Pág. 7", style_pag_direita),
         ],
+        [
+            Paragraph("10. Anexo - Questionário Completo", style_item_esquerda),
+            Paragraph("Pág. 8", style_pag_direita),
+        ],
     ]
 
     tabela_sumario = Table(dados_sumario, colWidths=[400, 90])
@@ -15652,6 +15656,232 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, all_data=None):
     print(f"Total de elementos no PDF: {len(elements)}")
 
    
+    # -------------------------------------------------------------------------
+    # 10. ANEXO - QUESTIONÁRIO COMPLETO
+    # -------------------------------------------------------------------------
+    elements.append(PageBreak())
+    elements.append(Paragraph("<b>10. ANEXO - QUESTIONÁRIO COMPLETO</b>", styles["h2"]))
+    elements.append(Spacer(1, 8))
+    elements.append(Paragraph(
+        f"Questionário completo do exercício de <b>{ano}</b>, com as respostas e evidências registradas no sistema.",
+        styles["Normal"],
+    ))
+    elements.append(Spacer(1, 10))
+
+    questionario_completo = [
+        ('1.0', 'O Conselho Municipal de Saúde participou da elaboração do Plano Municipal de Saúde 2022-2025?'),
+        ('2.0', 'Quando ocorreu a aprovação do Plano Municipal de Saúde 2022-2025 pelo Conselho Municipal de Saúde?'),
+        ('3.0', 'Quando ocorreu a aprovação da Programação Anual de Saúde de 2025 pelo Conselho Municipal de Saúde?'),
+        ('3.1', 'As ações previstas na Programação Anual de Saúde de 2025 foram executadas?'),
+        ('3.2', 'As metas previstas para os indicadores foram atingidas na Programação Anual de Saúde de 2025?'),
+        ('7.0', 'O gestor municipal de saúde apresentou os Relatórios Quadrimestrais de 2025 em audiência pública na Câmara Municipal?'),
+        ('8.0', 'O Relatório Anual de Gestão de 2025 foi encaminhado ao Conselho Municipal de Saúde até 30/03/2026?'),
+        ('9.0', 'Qual foi o resultado da aprovação do Parecer Conclusivo sobre o Relatório Anual de Gestão 2025?'),
+        ('9.1', 'Informe a forma e a data da publicação do Parecer Conclusivo sobre o Relatório Anual de Gestão 2025.'),
+        ('9.2', 'Informe o link de divulgação do Parecer Conclusivo sobre o Relatório Anual de Gestão 2025.'),
+        ('S1', 'Aplicação do mínimo constitucional em saúde.'),
+        ('5.0', 'Os recursos financeiros municipais (fonte 1) destinados ao SUS são movimentados em contas bancárias próprias?'),
+        ('5.1', 'Informe o Banco, Agência e número da conta.'),
+        ('6.0', 'As despesas consideradas para apuração do mínimo constitucional em saúde foram de responsabilidade específica do setor de saúde e movimentadas somente pelo Fundo Municipal de Saúde?'),
+        ('4.0', 'A Secretaria Municipal de Saúde ofereceu cursos ou treinamentos sobre saúde para qual público?'),
+        ('11.0', 'O município possui Plano de Carreira, Cargos e Salários (PCCS) específico para os profissionais de saúde?'),
+        ('11.1', 'Informe o instrumento normativo de regulamentação do PCCS específico para os profissionais de saúde.'),
+        ('11.2', 'Informe o link de divulgação do PCCS específico para os profissionais de saúde.'),
+        ('12.0', 'O município adotou a Estratégia de Saúde da Família como prioridade na organização da Atenção Básica?'),
+        ('12.1', 'Informe o total de equipes de Saúde da Família e de Atenção Primária.'),
+        ('12.2', 'Informe o detalhamento das equipes.'),
+        ('13.0', 'A Prefeitura registra eletronicamente a frequência dos profissionais de saúde da Atenção Básica?'),
+        ('13.1', 'Os médicos da Atenção Básica cumprem integralmente sua jornada de trabalho?'),
+        ('14.0', 'Qual é o intervalo de agendamento das consultas médicas na Atenção Básica?'),
+        ('14.1', 'O município disponibilizou agendamento remoto para consultas médicas na Atenção Básica?'),
+        ('14.2', 'O município possui controle de absenteísmo nas consultas médicas da Atenção Básica?'),
+        ('14.2.1', 'Informe a taxa de absenteísmo das consultas médicas nas UBSs.'),
+        ('14.2.2', 'O município realiza medidas para reduzir a taxa de absenteísmo?'),
+        ('14.2.2.1', 'Assinale as medidas utilizadas para reduzir o absenteísmo nas consultas médicas da Atenção Básica.'),
+        ('15.0', 'A Prefeitura possui controle de absenteísmo dos exames laboratoriais realizados sob sua gestão?'),
+        ('15.1', 'Informe a taxa de absenteísmo dos exames médicos da Atenção Básica.'),
+        ('15.2', 'O município realiza medidas para reduzir essa taxa de absenteísmo?'),
+        ('15.2.1', 'Assinale as medidas utilizadas para reduzir o absenteísmo dos exames médicos na Atenção Básica.'),
+        ('16.0', 'O município implantou o Prontuário Eletrônico?'),
+        ('16.1', 'Assinale os serviços da Atenção Básica inseridos no Prontuário Eletrônico do Paciente.'),
+        ('17.0', 'O município possui atendimento de Atenção Especializada (média e/ou alta complexidade)?'),
+        ('17.1', 'Os profissionais de saúde da Atenção Especializada registram sua frequência eletronicamente?'),
+        ('17.1.1', 'Os médicos ambulatoriais da Atenção Especializada cumprem integralmente sua jornada?'),
+        ('17.1.2', 'Os médicos plantonistas da Atenção Especializada cumprem integralmente sua jornada?'),
+        ('17.2', 'Qual é o intervalo de agendamento das consultas médicas da Atenção Especializada?'),
+        ('17.3', 'O município possui controle de absenteísmo das consultas médicas da Atenção Especializada?'),
+        ('17.3.1', 'Informe a taxa de absenteísmo.'),
+        ('17.3.2', 'O município realiza medidas para reduzir a taxa de absenteísmo?'),
+        ('17.3.2.1', 'Assinale as medidas utilizadas.'),
+        ('17.4', 'A Prefeitura possui controle de absenteísmo dos exames médicos da Atenção Especializada?'),
+        ('17.4.1', 'Informe a taxa de absenteísmo.'),
+        ('17.4.2', 'O município realiza medidas para reduzir a taxa de absenteísmo?'),
+        ('17.4.2.1', 'Assinale as medidas utilizadas.'),
+        ('17.5', 'O município utiliza sistema informatizado de regulação com oferta dos serviços da Atenção Especializada?'),
+        ('17.5.1', 'Assinale os sistemas utilizados pela regulação.'),
+        ('17.5.2', 'O sistema permite consultar a lista de espera dos serviços da Atenção Especializada?'),
+        ('17.5.2.1', 'Assinale os serviços inseridos no sistema de regulação.'),
+        ('17.5.2.1.1', 'Informe o serviço com maior tempo de espera (1).'),
+        ('17.5.2.1.2', 'Informe o serviço com maior tempo de espera (2).'),
+        ('17.5.2.1.3', 'Informe o serviço com maior tempo de espera (3).'),
+        ('17.5.2.1.4', 'Informe o serviço com maior tempo de espera (4).'),
+        ('17.5.2.1.5', 'Informe o serviço com maior tempo de espera (5).'),
+        ('17.5.2.1.6', 'Informe o serviço com maior tempo de espera (6).'),
+        ('17.6', 'O município implantou o Prontuário Eletrônico do Paciente na Atenção Especializada?'),
+        ('17.6.1', 'Assinale os serviços inseridos no Prontuário Eletrônico.'),
+        ('17.7', 'O município possui mamógrafos na rede própria?'),
+        ('17.7.1', 'Informe o detalhamento dos mamógrafos.'),
+        ('17.8', 'O município possui equipamentos de ultrassom convencional na rede própria?'),
+        ('17.8.1', 'Informe o detalhamento do ultrassom.'),
+        ('17.9', 'O município possui hospital ou Santa Casa sob sua gestão?'),
+        ('17.9.1', 'Informe o detalhamento hospitalar.'),
+        ('17.9.2', 'Informe o número de hospitais com taxa de ocupação superior a 100%.'),
+        ('18.0', 'Há demanda de ações e serviços voltados à assistência aos portadores de transtornos mentais e usuários de substâncias psicoativas?'),
+        ('18.1', 'O município realizou Plano de Ação para inclusão à RAPS?'),
+        ('18.2', 'A Secretaria de Saúde está integrada com outros órgãos municipais para ampliar a oferta desses serviços?'),
+        ('18.2.1', 'Assinale a forma de integração.'),
+        ('18.2.1.1', 'As metas estabelecidas para 2025 foram atingidas?'),
+        ('18.3', 'O município formalizou adesão ao Programa Recomeço?'),
+        ('18.4', 'O município possui indicadores específicos para a Atenção Psicossocial?'),
+        ('18.4.1', 'Assinale os tipos de indicadores.'),
+        ('18.5', 'O município possui população superior a 15 mil habitantes?'),
+        ('18.5.1', 'A quantidade de CAPS e Unidades de Acolhimento é adequada?'),
+        ('18.5.2', 'Informe a quantidade de estabelecimentos.'),
+        ('18.5.3', 'Todos os serviços assistenciais ofertados pelo CAPS estão disponibilizados no sistema de regulação?'),
+        ('18.5.3.1', 'Informe a quantidade de vagas cadastradas.'),
+        ('18.5.4', 'A quantidade de vagas dos CAPS é suficiente?'),
+        ('18.5.5', 'Informe a quantidade de vagas ofertadas.'),
+        ('18.6', 'O município aderiu formalmente ao Programa De Volta para Casa?'),
+        ('19.0', 'Há demanda de moradia para portadores de transtornos mentais crônicos?'),
+        ('19.1', 'A quantidade de Serviços Residenciais Terapêuticos (SRTs) ofertados é adequada?'),
+        ('19.2', 'Informe a quantidade de unidades.'),
+        ('19.3', 'As vagas dos Serviços Residenciais Terapêuticos estão cadastradas no sistema de regulação?'),
+        ('19.3.1', 'Informe a quantidade de vagas cadastradas.'),
+        ('19.4', 'A Secretaria de Saúde possui rotinas de acompanhamento e avaliação dos SRTs?'),
+        ('19.5', 'Informe detalhes dos SRTs.'),
+        ('20.0', 'Sobre Vigilância em Saúde, a Prefeitura realiza gestão de quais tipos de insumos?'),
+        ('20.1', 'A Prefeitura utiliza frigobar para armazenamento de imunobiológicos?'),
+        ('20.2', 'A Prefeitura disponibilizou os materiais necessários para coleta de meios diagnósticos?'),
+        ('20.3', 'A Prefeitura disponibilizou todos os EPIs para manuseio dos insumos de controle de vetores?'),
+        ('21.0', 'O município analisa semanalmente os dados de arboviroses?'),
+        ('22.0', 'O município investiga casos notificados, surtos e óbitos de arboviroses?'),
+        ('23.0', 'O município exerceu as atribuições relacionadas à vigilância entomológica e ao controle vetorial em 2025?'),
+        ('23.1', 'Assinale as atribuições exercidas.'),
+        ('24.0', 'O município executou atividades de Educação em Saúde?'),
+        ('24.1', 'Assinale as campanhas realizadas em 2025.'),
+        ('25.0', 'O município desenvolve ações reguladoras por meio de complexo regulador?'),
+        ('26.0', 'O município elaborou protocolos de regulação formalizados?'),
+        ('27.0', 'O município regula a referência a ser realizada em outros municípios?'),
+        ('28.0', 'O município possui controle da fila de espera para atendimentos não inseridos no Portal CROSS?'),
+        ('28.1', 'Assinale o tipo de controle utilizado.'),
+        ('28.2', 'Assinale os serviços com lista de espera fora do CROSS.'),
+        ('28.2.1', 'Informe o serviço fora do CROSS com maior tempo de espera (1).'),
+        ('28.2.2', 'Informe o serviço fora do CROSS com maior tempo de espera (2).'),
+        ('28.2.3', 'Informe o serviço fora do CROSS com maior tempo de espera (3).'),
+        ('28.2.4', 'Informe o serviço fora do CROSS com maior tempo de espera (4).'),
+        ('28.2.5', 'Informe o serviço fora do CROSS com maior tempo de espera (5).'),
+        ('28.2.6', 'Informe o serviço fora do CROSS com maior tempo de espera (6).'),
+        ('28.2.7', 'Informe o serviço fora do CROSS com maior tempo de espera (7).'),
+        ('29.0', 'O município mantém atualizado o CNES?'),
+        ('30.0', 'O município possui Complexo Regulador Municipal?'),
+        ('30.1', 'O Complexo Regulador possui Central de Regulação?'),
+        ('30.1.1', 'Assinale os tipos de central utilizados.'),
+        ('31.0', 'O município possui serviços de atenção pré-hospitalar e Central SAMU 192?'),
+        ('31.1', 'Informe o tempo de resposta do SAMU.'),
+        ('31.2', 'As equipes da Central de Regulação das Urgências tiveram composição mínima?'),
+        ('31.3', 'As equipes das Unidades Móveis tiveram composição mínima?'),
+        ('32.0', 'O município utiliza sistema informatizado para gerenciar o estoque de materiais e insumos médicos?'),
+        ('32.1', 'Assinale as funções do sistema.'),
+        ('33.0', 'O município possui Ouvidoria da Saúde implantada?'),
+        ('33.1', 'Assinale as características da Ouvidoria.'),
+        ('34.0', 'O município utiliza o Sistema OuvidorSUS ou equivalente?'),
+        ('35.0', 'O município possui componente municipal do Sistema Nacional de Auditoria?'),
+        ('35.1', 'Assinale as características do componente municipal do SNA.'),
+        ('35.2', 'As auditorias concluídas em 2025 estão disponibilizadas em site?'),
+        ('35.2.1', 'Informe o site de divulgação.'),
+        ('36.0', 'O município utiliza sistema informatizado para gerenciar o estoque de medicamentos?'),
+        ('36.1', 'Assinale as funções existentes no sistema.'),
+        ('37.0', 'Informe detalhes do estoque de medicamentos.'),
+        ('38.0', 'Houve disponibilização do serviço de telemedicina em 2025?'),
+        ('38.1', 'Assinale os serviços disponibilizados.'),
+        ('38.2', 'Foi utilizado sistema informatizado para prescrição eletrônica?'),
+        ('38.2.1', 'Assinale a ferramenta utilizada.'),
+        ('38.3', 'Assinale as modalidades de consultas e registros realizados.'),
+        ('39.0', 'Gostaria de registrar suas impressões, comentários e sugestões a respeito do presente questionário?'),
+        ('S2', 'Informe detalhamento S2.'),
+        ('S3', 'Informe detalhamento S3.'),
+        ('S4', 'Informe os exames (pré-natal) realizados nos estabelecimentos de saúde sob gestão municipal.'),
+        ('S5', 'Informe o número de inspeções sanitárias realizadas pela autoridade de vigilância sanitária.'),
+        ('S6', 'Informe o percentual de cobertura do Calendário Nacional de Vacinação.'),
+        ('S7', 'Informe o percentual de cobertura vacinal contra Influenza nos idosos acima de 60 anos.'),
+        ('S8', 'Informe o percentual de internações por causas sensíveis à atenção básica no total de internações nos estabelecimentos de saúde sob gestão municipal.'),
+        ('S9', 'Informe a quantidade de internações SUS em estabelecimentos de saúde sob gestão municipal.'),
+        ('S10', 'Informe os dados sobre a especialidade Obstétrica nos estabelecimentos de saúde sob gestão municipal em 2025.'),
+        ('S11', 'Informe os dados sobre a especialidade Pediátrica nos estabelecimentos de saúde sob gestão municipal em 2025.'),
+        ('S12', 'Informe os dados sobre a especialidade Clínica Médica nos estabelecimentos de saúde sob gestão municipal em 2025.'),
+        ('S13', 'Informe os dados sobre a especialidade Cirúrgica nos estabelecimentos de saúde sob gestão municipal em 2025.'),
+        ('S14', 'Informe os dados sobre os pacientes internados em estabelecimentos de saúde sob gestão municipal.'),
+        ('S15', 'Informe detalhamento S15.'),
+        ('S16', 'Informe detalhamento S16.'),
+        ('S17', 'Informe detalhamento S17.'),
+        ('S18', 'Informe detalhamento S18.'),
+        ('S19', 'Informe detalhamento S19.'),
+        ('S20', 'Informe detalhamento S20.')
+    ]
+
+    def texto_seguro_anexo(valor):
+        return (str(valor or "")
+                .replace("&", "&amp;")
+                .replace("<", "&lt;")
+                .replace(">", "&gt;"))
+
+    estilo_anexo_qid = ParagraphStyle(
+        "AnexoQid", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=8, leading=10, alignment=1,
+    )
+    estilo_anexo = ParagraphStyle(
+        "AnexoTexto", parent=styles["Normal"], fontSize=8, leading=10,
+    )
+    estilo_anexo_cabecalho = ParagraphStyle(
+        "AnexoCabecalho", parent=styles["Normal"], fontName="Helvetica-Bold",
+        fontSize=8, leading=10, textColor=colors.whitesmoke, alignment=1,
+    )
+
+    dados_anexo = [[
+        Paragraph("Quesito", estilo_anexo_cabecalho),
+        Paragraph("Questionário completo", estilo_anexo_cabecalho),
+        Paragraph("Resposta / Evidência registrada", estilo_anexo_cabecalho),
+    ]]
+    for qid, pergunta in questionario_completo:
+        info = dados.get(qid, {})
+        if not isinstance(info, dict):
+            info = {}
+        resposta_bruta = info.get("valor", "")
+        resposta = texto_seguro_anexo(resposta_bruta.strip() if isinstance(resposta_bruta, str) else resposta_bruta) or "Não informado"
+        link_bruto = info.get("link", "")
+        link = texto_seguro_anexo(link_bruto.strip() if isinstance(link_bruto, str) else link_bruto)
+        if link:
+            resposta += f"<br/><font color='#1b4f72'>Evidência: {link}</font>"
+        dados_anexo.append([
+            Paragraph(qid, estilo_anexo_qid),
+            Paragraph(texto_seguro_anexo(pergunta), estilo_anexo),
+            Paragraph(resposta, estilo_anexo),
+        ])
+
+    tabela_anexo = Table(dados_anexo, colWidths=[48, 260, 177], repeatRows=1)
+    tabela_anexo.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#2c3e50")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+        ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#bdc3c7")),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("ALIGN", (0, 0), (0, -1), "CENTER"),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.white),
+    ]))
+    elements.append(tabela_anexo)
+    elements.append(Spacer(1, 10))
+
     doc.build(elements)
     buffer.seek(0)
     return buffer.getvalue()
