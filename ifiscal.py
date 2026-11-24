@@ -407,7 +407,7 @@ def render_painel_controle(ano_atual, on_mudar_ano, on_refresh):
             ).classes("w-full mb-4")
 
             def executar_zerar():
-                if input_senha.value == "fidelios":
+                if input_senha.value == "pmfm1234":
                     zerar_questionario_db(ano_atual)
                     ui.notify(
                         f"✅ Questionário de {ano_atual} foi zerado!",
