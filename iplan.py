@@ -3945,7 +3945,41 @@ def renderizar_card_relatorio_iplan(res_data=None, ano_sel=2026):
                     except Exception:
                         pass
 
-        ui.button("📥 GERAR E ABRIR RELATÓRIO PDF (I-PLAN)", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
+        # Modal de proteção do relatório: a geração só é iniciada após a senha correta.
+        with ui.dialog() as dialog_senha_relatorio, ui.card().classes("w-96 p-5"):
+            ui.label("🔒 Acesso ao relatório").classes("text-lg font-bold text-blue-900")
+            ui.label("Digite a senha para gerar e abrir o relatório PDF.").classes("text-sm text-gray-600 mb-3")
+
+            input_senha_relatorio = ui.input(
+                "Senha:",
+                value="",
+                password=True,
+                password_toggle_button=True,
+            ).props('autocomplete="new-password"').classes("w-full mb-4")
+
+            async def confirmar_senha_relatorio():
+                if input_senha_relatorio.value == "fidelios":
+                    input_senha_relatorio.value = ""
+                    dialog_senha_relatorio.close()
+                    await baixar_pdf()
+                else:
+                    ui.notify("❌ Senha incorreta!", type="negative")
+                    input_senha_relatorio.value = ""
+                    input_senha_relatorio.run_method("focus")
+
+            with ui.row().classes("w-full justify-end gap-2"):
+                ui.button("Cancelar", on_click=dialog_senha_relatorio.close).props("flat")
+                ui.button("Confirmar", on_click=confirmar_senha_relatorio).classes("bg-blue-700 text-white")
+
+        def abrir_dialogo_senha_relatorio():
+            # Garante que o campo nunca seja reaberto com a senha anterior.
+            input_senha_relatorio.value = ""
+            dialog_senha_relatorio.open()
+
+        ui.button(
+            "📥 GERAR E ABRIR RELATÓRIO PDF (I-PLAN)",
+            on_click=abrir_dialogo_senha_relatorio,
+        ).classes("bg-blue-700 text-white font-bold my-2")
 
 
 
