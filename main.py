@@ -118,7 +118,6 @@ iplan = import_local_module("iplan")
 ieduc = import_local_module("ieduc")
 isaude = import_local_module("isaude")
 iegm_final = import_local_module("iegmfinal")
-estrategia_ia = import_local_module("estrategia_ia")
 
 bib_core = import_local_module("biblioteca")
 atividade = import_local_module("atividade")
@@ -293,7 +292,6 @@ DIMENSIONS_DATA = {
     "Plano de Ação": {"img": "plano_acao.png", "desc": "Plano de Ação Corretiva e Metas Estratégicas"},
     "Biblioteca": {"img": "biblioteca.png", "desc": "Biblioteca Digital"},
     "Consulta Rápida": {"img": "hal9000.png", "desc": "Consulte quesitos"},
-    "Estratégia IA": {"img": "hal9000.png", "desc": "Análise estratégica assistida por inteligência artificial."},
 }
 
 
@@ -614,19 +612,6 @@ def dimension_page():
             _executar_modulo(atividade, ["container_formulario_atividade", "mostrar_formulario_atividade", "main"], year)
         elif dimension == "Plano de Ação":
             _executar_modulo(plano_acao, ["container_formulario_plano_acao", "mostrar_formulario_plano_acao", "main"], year)
-        elif dimension == "Estratégia IA":
-            _executar_modulo(
-                estrategia_ia,
-                [
-                    "container_estrategia_ia",
-                    "container_formulario_estrategia_ia",
-                    "mostrar_estrategia_ia",
-                    "mostrar_formulario_estrategia_ia",
-                    "render_estrategia_ia",
-                    "main",
-                ],
-                year,
-            )
 
 
 if __name__ in {"__main__", "__mp_main__"}:
