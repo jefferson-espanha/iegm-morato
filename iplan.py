@@ -3268,6 +3268,44 @@ def converter_pontos_em_faixa_iegm(pontos):
 
 
 
+def resposta_foi_assinalada_no_relatorio(resp):
+    """
+    Regra exclusiva do tópico 5 do relatório.
+    Retorna True quando houver qualquer opção/resposta efetivamente
+    registrada no quesito, inclusive quando checkbox foi salvo como
+    lista ou como texto JSON no banco de dados.
+    """
+    if isinstance(resp, list):
+        return len(resp) > 0
+
+    if isinstance(resp, str):
+        texto = resp.strip()
+        if not texto:
+            return False
+
+        # Não considera o placeholder da interface como resposta.
+        if texto.lower() in ("selecione...", "selecione", "não informado"):
+            return False
+
+        try:
+            convertido = json.loads(texto)
+            if isinstance(convertido, list):
+                return len(convertido) > 0
+        except (TypeError, ValueError, json.JSONDecodeError):
+            pass
+
+        try:
+            convertido = ast.literal_eval(texto)
+            if isinstance(convertido, list):
+                return len(convertido) > 0
+        except (ValueError, SyntaxError):
+            pass
+
+        return True
+
+    return resp is not None
+
+
 def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
    
     
@@ -3562,6 +3600,23 @@ def gerar_relatorio_pdf(dados, ano, total, faixa, todos_dados=None):
         resp_c = info_k.get("valor", "") if isinstance(info_k, dict) else str(info_k)
         
         metas, status_ods = obter_regra_ods_iamb(qid_c, resp_c)
+
+        # REGRA EXCLUSIVA DO TÓPICO 5 DO RELATÓRIO:
+        # não altera perguntas, opções, pontuação ou funcionamento dos quesitos.
+        # Para estes quesitos, qualquer opção/resposta assinalada é exibida
+        # como "Atendido" no alinhamento com a Agenda 2030.
+        quesitos_com_atendimento_por_assinalamento = {
+            "1.1",
+            "6.0",
+            "10.0",
+            "14.0",
+        }
+        if (
+            qid_c in quesitos_com_atendimento_por_assinalamento
+            and resposta_foi_assinalada_no_relatorio(resp_c)
+        ):
+            status_ods = "Atendido"
+
         if metas != "-":
             data_ods.append([qid_c, str(resp_c)[:35], metas, status_ods])
 
