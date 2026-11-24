@@ -3473,9 +3473,10 @@ def container_formulario_igov_ti():
 
             input_senha_relatorio = ui.input(
                 "Senha:",
+                value="",
                 password=True,
                 password_toggle_button=True,
-            ).classes("w-full mb-4")
+            ).props('autocomplete="new-password"').classes("w-full mb-4")
 
             async def confirmar_senha_relatorio():
                 if input_senha_relatorio.value == "fidelios":
@@ -3491,9 +3492,14 @@ def container_formulario_igov_ti():
                 ui.button("Cancelar", on_click=dialog_senha_relatorio.close).props("flat")
                 ui.button("Confirmar", on_click=confirmar_senha_relatorio).classes("bg-blue-700 text-white")
 
+        def abrir_dialogo_senha_relatorio():
+            # Garante que o campo nunca seja reaberto com a senha anterior.
+            input_senha_relatorio.value = ""
+            dialog_senha_relatorio.open()
+
         ui.button(
             "📥 GERAR ABRIR RELATÓRIO PDF",
-            on_click=dialog_senha_relatorio.open,
+            on_click=abrir_dialogo_senha_relatorio,
         ).classes("bg-blue-700 text-white font-bold my-2")
 
 
