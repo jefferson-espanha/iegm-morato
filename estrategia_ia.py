@@ -1,50 +1,211 @@
-import base64
-from datetime import datetime, date
+from datetime import date
+import io
 import json
+import logging
 import os
-import sys
-import hashlib
-import hmac
-import secrets
-from contextlib import contextmanager
-from nicegui import app, ui
+from typing import List, Optional
 
-NEON_URL = "postgresql://neondb_owner:npg_beMKhVR2N4wo@ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/neondb?sslmode=require"
+from google import genai
+from google.genai import types
+from nicegui import run, ui
+from pydantic import BaseModel, Field
 
-current_dir = (
-    os.path.dirname(os.path.abspath(__file__))
-    if "__file__" in locals()
-    else os.getcwd()
+try:
+    import psycopg2
+    from psycopg2.extras import RealDictCursor
+except ImportError:
+    psycopg2 = None
+    RealDictCursor = None
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.pdfgen import canvas
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+
+logger = logging.getLogger(__name__)
+
+# String de conexão integrada (prioriza variável de ambiente se existir)
+DEFAULT_NEON_URL = (
+    "postgresql://neondb_owner:npg_beMKhVR2N4wo@"
+    "ep-divine-sky-awx1636y-pooler.c-12.us-east-1.aws.neon.tech/"
+    "neondb?sslmode=require"
 )
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
 
-def get_secret(key, default=None):
-    if key in os.environ and os.environ[key]:
-        return os.environ[key]
-    if key == "DATABASE_URL":
-        return os.environ.get("DATABASE_URL", NEON_URL)
-    return default
+DIMENSOES_IEGM = [
+    "i-Gov TI",
+    "i-Educ",
+    "i-Saúde",
+    "i-Plan",
+    "i-Amb",
+    "i-Cidade",
+    "i-Fiscal",
+]
 
 
-@contextmanager
-def db_connection():
-  
-    database_url = get_secret("DATABASE_URL")
-    if not database_url:
-        raise RuntimeError("DATABASE_URL não configurada")
+# ==============================================================================
+# 1. SCHEMAS PYDANTIC (SAÍDA ESTRUTURADA DA IA)
+# ==============================================================================
+class EstrategiaQuestao(BaseModel):
+    quesito_codigo: str = Field(
+        description="Código exato do quesito no relatório (ex: 3.3, 8.2.2, 9.1)."
+    )
+    quesito_pergunta: str = Field(
+        description="Texto completo da pergunta extraído do Anexo do relatório."
+    )
+    situacao_atual: str = Field(
+        description="Nota obtida, eficiência e resposta atual registrada."
+    )
+    diagnostico_tecnico: str = Field(
+        description="Causa raiz da perda de pontos ou reincidência."
+    )
+    estrategia_resolucao: str = Field(
+        description="Estratégia institucional e técnica para sanar a lacuna."
+    )
+    etapas_execucao: str = Field(
+        description="Passo a passo operacional (5W2H resumido) para implementação."
+    )
+    setor_responsavel: str = Field(
+        description="Secretaria, diretoria ou equipe responsável."
+    )
+    evidencia_comprobatoria: str = Field(
+        description="Documento exato exigido pelo TCE-SP para pontuar no próximo ciclo."
+    )
+    impacto_pontos: float = Field(
+        description="Quantidade de pontos possíveis de recuperar neste quesito."
+    )
+    prioridade: str = Field(
+        description="Alta, Média ou Baixa."
+    )
+
+
+class AnaliseCompletaRelatorio(BaseModel):
+    municipio: str = Field(
+        description="Nome do município identificado no relatório."
+    )
+    dimensao: str = Field(
+        description="Dimensão avaliada (ex: i-Gov TI)."
+    )
+    exercicio: int = Field(
+        description="Ano/exercício do relatório analisado."
+    )
+    pontuacao_atual: float = Field(
+        description="Pontuação total obtida no exercício."
+    )
+    faixa_atual: str = Field(
+        description="Conceito/faixa obtida (ex: B+, A, B, C)."
+    )
+    resumo_executivo: str = Field(
+        description="Síntese gerencial dos pontos críticos e potencial de evolução de faixa."
+    )
+    estrategias: List[EstrategiaQuestao] = Field(
+        description="Lista de estratégias ordenadas por maior impacto de pontos."
+    )
+
+
+# ==============================================================================
+# 2. CONEXÃO E PERSISTÊNCIA NO NEON POSTGRESQL
+# ==============================================================================
+def _conectar_banco():
+    if psycopg2 is None:
+        raise RuntimeError(
+            "O pacote 'psycopg2-binary' não está instalado. Execute: pip install psycopg2-binary"
+        )
+
+    db_url = (
+        os.getenv("NEON_DATABASE_URL")
+        or os.getenv("DATABASE_URL")
+        or DEFAULT_NEON_URL
+    )
+    return psycopg2.connect(db_url)
+
+
+def inicializar_tabelas_ia():
+    conn = _conectar_banco()
     try:
-        import psycopg
-        conn = psycopg.connect(database_url)
-    except ImportError:
-        try:
-            import psycopg2
-            conn = psycopg2.connect(database_url)
-        except ImportError as exc:
-            raise RuntimeError("Instale psycopg[binary] para conectar ao Neon") from exc
-    try:
-        yield conn
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS ia_analises_iegm (
+                    id SERIAL PRIMARY KEY,
+                    municipio VARCHAR(150),
+                    dimensao VARCHAR(50),
+                    exercicio INTEGER,
+                    pontuacao_atual NUMERIC(10, 2),
+                    faixa_atual VARCHAR(20),
+                    resumo_executivo TEXT,
+                    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS ia_estrategias_questoes (
+                    id SERIAL PRIMARY KEY,
+                    analise_id INTEGER REFERENCES ia_analises_iegm(id) ON DELETE CASCADE,
+                    quesito_codigo VARCHAR(30),
+                    quesito_pergunta TEXT,
+                    situacao_atual TEXT,
+                    diagnostico_tecnico TEXT,
+                    estrategia_resolucao TEXT,
+                    etapas_execucao TEXT,
+                    setor_responsavel VARCHAR(150),
+                    evidencia_comprobatoria TEXT,
+                    impacto_pontos NUMERIC(10, 2),
+                    prioridade VARCHAR(20),
+                    status_execucao VARCHAR(40) DEFAULT 'Pendente'
+                );
+            """)
         conn.commit()
+    finally:
+        conn.close()
+
+
+def salvar_analise_no_banco(analise: AnaliseCompletaRelatorio) -> int:
+    inicializar_tabelas_ia()
+    conn = _conectar_banco()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO ia_analises_iegm (
+                    municipio, dimensao, exercicio, pontuacao_atual, faixa_atual, resumo_executivo
+                ) VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id;
+                """,
+                (
+                    analise.municipio[:150],
+                    analise.dimensao[:50],
+                    analise.exercicio,
+                    analise.pontuacao_atual,
+                    analise.faixa_atual[:20],
+                    analise.resumo_executivo,
+                ),
+            )
+            analise_id = cur.fetchone()[0]
+
+            for est in analise.estrategias:
+                cur.execute(
+                    """
+                    INSERT INTO ia_estrategias_questoes (
+                        analise_id, quesito_codigo, quesito_pergunta, situacao_atual,
+                        diagnostico_tecnico, estrategia_resolucao, etapas_execucao,
+                        setor_responsavel, evidencia_comprobatoria, impacto_pontos, prioridade
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+                    """,
+                    (
+                        analise_id,
+                        est.quesito_codigo[:30],
+                        est.quesito_pergunta,
+                        est.situacao_atual,
+                        est.diagnostico_tecnico,
+                        est.estrategia_resolucao,
+                        est.etapas_execucao,
+                        est.setor_responsavel[:150],
+                        est.evidencia_comprobatoria,
+                        est.impacto_pontos,
+                        est.prioridade[:20],
+                    ),
+                )
+        conn.commit()
+        return analise_id
     except Exception:
         conn.rollback()
         raise
@@ -52,591 +213,569 @@ def db_connection():
         conn.close()
 
 
-def _hash_password(password, salt=None):
-    """Mantém compatibilidade com o cadastro; a senha é armazenada diretamente."""
-    return password
-
-
-def _verify_password(password, stored_password):
-    return hmac.compare_digest(password, str(stored_password or ""))
-
-def find_user(username):
-    with db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT usuario, senha
-                   FROM app_users WHERE lower(usuario) = lower(%s)""",
-                (username,),
-            )
-            row = cur.fetchone()
-            if not row:
-                return None
-            return {
-                "usuario": row[0],
-                "password_hash": row[1],
-            }
-
-
-def update_password(username, new_password):
-    with db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """UPDATE app_users
-                   SET senha = %s
-                   WHERE lower(usuario) = lower(%s)""",
-                (_hash_password(new_password), username),
-            )
-            return cur.rowcount > 0
-
-
-def create_user(username, password="pmfm1234"):
-    
-    username = username.strip().lower()
-    if not username:
-        raise ValueError("Informe o nome de usuário")
-    with db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """INSERT INTO app_users
-                   (usuario, senha)
-                   VALUES (%s, %s)""",
-                (username, _hash_password(password)),
-            )
-
-def import_local_module(module_name):
+def listar_analises_salvas() -> List[dict]:
+    inicializar_tabelas_ia()
+    conn = _conectar_banco()
     try:
-        import importlib
-        return importlib.import_module(module_name)
-    except Exception:
-        return None
-
-icidade = import_local_module("icidade_completo") or import_local_module("icidade")
-igov = import_local_module("igov")
-iamb = import_local_module("iamb")
-ifiscal = import_local_module("ifiscal")
-iplan = import_local_module("iplan")
-ieduc = import_local_module("ieduc")
-isaude = import_local_module("isaude")
-iegm_final = import_local_module("iegmfinal")
-estrategia_ia = import_local_module("estrategia_ia")
-
-bib_core = import_local_module("biblioteca")
-atividade = import_local_module("atividade")
-plano_acao = import_local_module("plano_acao")
-hal_core = import_local_module("hal")
+        cursor_factory = RealDictCursor if RealDictCursor else None
+        with conn.cursor(cursor_factory=cursor_factory) as cur:
+            cur.execute("""
+                SELECT a.*, COUNT(e.id) AS total_questoes,
+                       COALESCE(SUM(e.impacto_pontos), 0) AS pontos_recuperaveis
+                FROM ia_analises_iegm a
+                LEFT JOIN ia_estrategias_questoes e ON e.analise_id = a.id
+                GROUP BY a.id
+                ORDER BY a.id DESC;
+            """)
+            rows = cur.fetchall()
+            if rows and isinstance(rows[0], dict):
+                return [dict(r) for r in rows]
+            cols = [d[0] for d in cur.description]
+            return [dict(zip(cols, r)) for r in rows]
+    finally:
+        conn.close()
 
 
-def load_respostas(ano):
-    return app.storage.user.get(f"respostas_{ano}", {})
-
-def save_resp(qid, valor, pontos, link, comentarios, ano=2026):
-    chave_ano = f"respostas_{ano}"
-    respostas = app.storage.user.get(chave_ano, {})
-    respostas[qid] = {
-        "valor": valor,
-        "pontos": pontos,
-        "link": link,
-        "comentarios": comentarios
-    }
-    app.storage.user[chave_ano] = respostas
-
-
-def _obter_lista_comentarios(dados_banco):
-    raw = dados_banco.get("comentarios", [])
-    if isinstance(raw, str):
-        if raw in ["EMPTY_STRING", "", "null", "None"]:
-            return []
-        try:
-            raw = json.loads(raw)
-        except Exception:
-            return []
-    if isinstance(raw, list):
-        return raw
-    return []
+def carregar_estrategias_da_analise(analise_id: int) -> List[dict]:
+    conn = _conectar_banco()
+    try:
+        cursor_factory = RealDictCursor if RealDictCursor else None
+        with conn.cursor(cursor_factory=cursor_factory) as cur:
+            cur.execute(
+                """
+                SELECT * FROM ia_estrategias_questoes
+                WHERE analise_id = %s
+                ORDER BY impacto_pontos DESC, quesito_codigo ASC;
+                """,
+                (analise_id,),
+            )
+            rows = cur.fetchall()
+            if rows and isinstance(rows[0], dict):
+                return [dict(r) for r in rows]
+            cols = [d[0] for d in cur.description]
+            return [dict(zip(cols, r)) for r in rows]
+    finally:
+        conn.close()
 
 
-def cb_postar_comentario(qid, ano_sel, usuario_atual, texto_comentario, container_ref, id_chave=None):
-    texto = texto_comentario.strip()
-    if texto:
-        dados_banco = load_respostas(ano_sel).get(qid, {})
-        comentarios = _obter_lista_comentarios(dados_banco)
-        
-        status_atual = "Pendente"
-        for com in reversed(comentarios):
-            if isinstance(com, dict) and "status_definido" in com:
-                status_atual = com["status_definido"]
-                break
-                
-        nova_mensagem = {
-            "autor": usuario_atual,
-            "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "texto": texto,
-            "status_definido": status_atual
-        }
-        comentarios.append(nova_mensagem)
-        
-        save_resp(
-            qid=qid,
-            valor=dados_banco.get("valor", ""),
-            pontos=dados_banco.get("pontos", 0),
-            link=dados_banco.get("link", ""),
-            comentarios=comentarios,
-            ano=ano_sel
+def atualizar_status_questao(questao_id: int, novo_status: str):
+    conn = _conectar_banco()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "UPDATE ia_estrategias_questoes SET status_execucao = %s WHERE id = %s;",
+                (novo_status, questao_id),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def excluir_analise(analise_id: int):
+    conn = _conectar_banco()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM ia_analises_iegm WHERE id = %s;", (analise_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+# ==============================================================================
+# 3. MOTOR DE INTELIGÊNCIA ARTIFICIAL (GEMINI MULTIMODAL)
+# ==============================================================================
+def analisar_pdf_com_ia(pdf_bytes: bytes, dimensao_hint: str) -> AnaliseCompletaRelatorio:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "Variável de ambiente GEMINI_API_KEY não encontrada. Configure-a antes de analisar."
         )
-        ui.notify("Comentário publicado!", type="positive")
-        container_ref.refresh()
 
-def cb_alterar_status(qid, ano_sel, usuario_atual, novo_status, container_ref):
-    if not novo_status:
-        return
+    client = genai.Client(api_key=api_key)
 
-    dados_banco = load_respostas(ano_sel).get(qid, {})
-    comentarios = _obter_lista_comentarios(dados_banco)
-    
-    log_mudanca = {
-        "autor": "Sistema / " + usuario_atual,
-        "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-        "texto": f"ℹ️ Alterou o status do quesito para: **{novo_status.upper()}**.",
-        "status_definido": novo_status
-    }
-    comentarios.append(log_mudanca)
-    
-    save_resp(
-        qid=qid,
-        valor=dados_banco.get("valor", ""),
-        pontos=dados_banco.get("pontos", 0),
-        link=dados_banco.get("link", ""),
-        comentarios=comentarios,
-        ano=ano_sel
+    prompt = f"""
+    Você é um Consultor Sênior Especialista em Governança Pública Municipal e Auditoria do IEG-M (TCE-SP).
+    Analise integralmente o PDF do relatório anexado (Dimensão sugerida: {dimensao_hint}).
+
+    TAREFAS OBRIGATÓRIAS:
+    1. Extraia o cabeçalho: Município, Dimensão, Exercício, Pontuação Obtida e Faixa/Conceito.
+    2. Varra todo o relatório em busca de:
+       - Quesitos na seção "Pontos Fracos" ou com eficiência inferior a 100%;
+       - Quesitos listados no "Diagnóstico de Reincidências";
+       - Quesitos com penalidades aplicadas ou riscos não mitigados;
+       - Metas da Agenda 2030 (ODS) com status "Não Atendido";
+       - Perguntas no "Anexo - Questionário Completo" respondidas como "Não", parcialmente atendidas ou "Não informado".
+    3. Cruze cada código de quesito com o enunciado exato do Anexo para não perder contexto.
+    4. Calcule o impacto em pontos (Teto - Nota obtida) e ordene da maior perda para a menor.
+    5. Para cada questão crítica, elabore:
+       - Diagnóstico técnico objetivo;
+       - Estratégia institucional viável para prefeitura;
+       - Etapas práticas de execução;
+       - Setor responsável;
+       - Evidência documental exata que o TCE-SP exige para validar a resposta no próximo exercício.
+    """
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=[
+            types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf"),
+            prompt,
+        ],
+        config=types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=AnaliseCompletaRelatorio,
+            temperature=0.2,
+        ),
     )
-    ui.notify(f"Status alterado para {novo_status}", type="info")
-    container_ref.refresh()
 
-def cb_deletar_comentario(qid, ano_sel, idx, container_ref):
-    dados_banco = load_respostas(ano_sel).get(qid, {})
-    comentarios = _obter_lista_comentarios(dados_banco)
-    
-    if 0 <= idx < len(comentarios):
-        comentarios.pop(idx)
-        save_resp(
-            qid=qid,
-            valor=dados_banco.get("valor", ""),
-            pontos=dados_banco.get("pontos", 0),
-            link=dados_banco.get("link", ""),
-            comentarios=comentarios,
-            ano=ano_sel
+    return AnaliseCompletaRelatorio(**json.loads(response.text))
+
+
+# ==============================================================================
+# 4. GERADOR DE PDF EXECUTIVO DO CADERNO DE ESTRATÉGIAS
+# ==============================================================================
+class RodapeCanvas(canvas.Canvas):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._saved_page_states = []
+
+    def showPage(self):
+        self._saved_page_states.append(dict(self.__dict__))
+        self._startPage()
+
+    def save(self):
+        num_pages = len(self._saved_page_states)
+        for state in self._saved_page_states:
+            self.__dict__.update(state)
+            self._desenhar_rodape(num_pages)
+            super().showPage()
+        super().save()
+
+    def _desenhar_rodape(self, total_paginas):
+        self.saveState()
+        self.setFont("Helvetica", 8.5)
+        self.setFillColor(colors.HexColor("#64748B"))
+        self.setStrokeColor(colors.HexColor("#CBD5E1"))
+        self.setLineWidth(0.5)
+        self.line(32, 36, letter[0] - 32, 36)
+        self.drawString(32, 22, "Caderno de Estratégias IEG-M — Diagnóstico Assistido por IA")
+        self.drawRightString(letter[0] - 32, 22, f"Página {self._pageNumber} de {total_paginas}")
+        self.restoreState()
+
+
+def gerar_pdf_estrategias(analise: dict, questoes: List[dict]) -> io.BytesIO:
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=letter,
+        rightMargin=32,
+        leftMargin=32,
+        topMargin=40,
+        bottomMargin=50,
+    )
+    styles = getSampleStyleSheet()
+    story = []
+
+    st_titulo = ParagraphStyle(
+        "TituloIA",
+        parent=styles["Heading1"],
+        fontSize=20,
+        leading=24,
+        textColor=colors.HexColor("#0F172A"),
+        spaceAfter=8,
+    )
+    st_sub = ParagraphStyle(
+        "SubIA",
+        parent=styles["Normal"],
+        fontSize=10.5,
+        leading=14,
+        textColor=colors.HexColor("#475569"),
+        spaceAfter=16,
+    )
+    st_h2 = ParagraphStyle(
+        "H2IA",
+        parent=styles["Heading2"],
+        fontSize=13,
+        leading=16,
+        textColor=colors.HexColor("#1E3A8A"),
+        spaceBefore=14,
+        spaceAfter=8,
+    )
+    st_bold = ParagraphStyle(
+        "B", parent=styles["Normal"], fontSize=8.5, leading=11, fontName="Helvetica-Bold"
+    )
+    st_norm = ParagraphStyle("N", parent=styles["Normal"], fontSize=8.5, leading=11)
+    st_white = ParagraphStyle(
+        "W",
+        parent=styles["Normal"],
+        fontSize=9.5,
+        leading=12,
+        textColor=colors.white,
+        fontName="Helvetica-Bold",
+    )
+
+    story.append(
+        Paragraph(f"Caderno de Estratégias IEG-M — {analise.get('dimensao', '')}", st_titulo)
+    )
+    story.append(
+        Paragraph(
+            f"Município: <b>{analise.get('municipio', '')}</b> | Exercício Base: <b>{analise.get('exercicio', '')}</b> | "
+            f"Nota Atual: <b>{analise.get('pontuacao_atual', 0)} pts (Faixa {analise.get('faixa_atual', '-')})</b> | "
+            f"Emitido em: {date.today().strftime('%d/%m/%Y')}",
+            st_sub,
         )
-        ui.notify("Comentário removido.", type="warning")
-        container_ref.refresh()
-
-def cb_salvar_questao(qid, ano_sel, usuario_atual, novo_valor, novo_link, novos_pontos, texto_pendente, container_ref):
-    dados_banco = load_respostas(ano_sel).get(qid, {})
-    comentarios = _obter_lista_comentarios(dados_banco)
-    
-    if texto_pendente and texto_pendente.strip():
-        status_atual = "Pendente"
-        for com in reversed(comentarios):
-            if isinstance(com, dict) and "status_definido" in com:
-                status_atual = com["status_definido"]
-                break
-                
-        comentarios.append({
-            "autor": usuario_atual,
-            "data": datetime.now().strftime("%d/%m/%Y %H:%M"),
-            "texto": texto_pendente.strip(),
-            "status_definido": status_atual
-        })
-        
-    save_resp(
-        qid=qid,
-        valor=novo_valor,
-        pontos=novos_pontos,
-        link=novo_link,
-        comentarios=comentarios,
-        ano=ano_sel
-    )
-    ui.notify(f"Quesito {qid} salvo com sucesso!", type="positive")
-    container_ref.refresh()
-
-
-def get_image_base64(filename):
-    full_path = os.path.join(current_dir, filename)
-    if os.path.exists(full_path):
-        with open(full_path, "rb") as img_file:
-            return f"data:image/png;base64,{base64.b64encode(img_file.read()).decode()}"
-    return None
-
-def render_rodape():
-    ui.html(
-        """
-        <div style="text-align: center; color: #000000; font-weight: bold; font-style: italic; font-size: 12px; font-family: sans-serif; line-height: 1.5; margin-top: 20px;">
-            ⚙️ <b>Desenvolvido por:</b><br>
-            <span style="font-size: 13px;">Jefferson Espanha</span><br>
-            <span>Procuradoria do Município</span><br>
-            <span style="font-size: 10px;">© 2026 • Francisco Morato / SP</span>
-        </div>
-        """
     )
 
-AVAILABLE_YEARS = [2024, 2025, 2026, 2027, 2028, 2029, 2030]
+    story.append(Paragraph("Diagnóstico Executivo (IA)", st_h2))
+    story.append(Paragraph(str(analise.get("resumo_executivo", "")), st_norm))
+    story.append(Spacer(1, 14))
 
-DIMENSIONS_DATA = {
-    "i-Gov TI": {"img": "i_gov_ti.png", "desc": "Governança de Tecnologia da Informação."},
-    "i-Educ": {"img": "i_educ.png", "desc": "Gestão da Educação Municipal"},
-    "i-Saúde": {"img": "i_saude.png", "desc": "Gestão da Saúde municipal."},
-    "i-Plan": {"img": "i_plan.png", "desc": "Eficiência do planejamento orçamentário."},
-    "i-Amb": {"img": "i_amb.png", "desc": "Políticas de meio ambiente e sustentabilidade."},
-    "i-Cidade": {"img": "i_cidade.png", "desc": "Defesa Civil e infraestrutura urbana."},
-    "i-Fiscal": {"img": "i_fiscal.png", "desc": "Gestão fiscal e execução financeira."},
-    "ieg-m": {"img": "i_iegmfinal.png", "desc": "Dashboard"},
-    "Relatório de Atividades": {"img": "relatorio_atividade.png", "desc": "Monitoramento do PPA"},
-    "Plano de Ação": {"img": "plano_acao.png", "desc": "Plano de Ação Corretiva e Metas Estratégicas"},
-    "Biblioteca": {"img": "biblioteca.png", "desc": "Biblioteca Digital"},
-    "Consulta Rápida": {"img": "hal9000.png", "desc": "Consulte quesitos"},
-    "Estratégia IA": {"img": "hal9000.png", "desc": "Análise estratégica assistida por inteligência artificial."},
-}
+    story.append(
+        Paragraph(f"Estratégias por Quesito Crítico ({len(questoes)} questões mapeadas)", st_h2)
+    )
 
-
-@ui.refreshable
-def bloco_comentarios_ui(questao_id, res_data, sufixo=None):
-    ano_sel = app.storage.user.get("ano_referencia_global", date.today().year)
-    usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
-    id_chave = f"{questao_id}_{sufixo}" if sufixo else questao_id
-    
-    dados_questao = res_data.get(questao_id, {})
-    historico = _obter_lista_comentarios(dados_questao)
-    
-    status_global = "Pendente"
-    for com in reversed(historico):
-        if isinstance(com, dict) and "status_definido" in com:
-            status_global = com["status_definido"]
-            break
-            
-    badge_status = "🔴 PENDENTE" if status_global == "Pendente" else "🟢 RESOLVIDO"
-    
-    with ui.expansion(f"💬 Diálogo Interno {id_chave} | Status: {badge_status}", value=(status_global == "Pendente")).classes('w-full border rounded p-2'):
-        opcoes_status = ["Resolvido", "Pendente"]
-        ui.radio(
-            opcoes_status, 
-            value=status_global, 
-            on_change=lambda e: cb_alterar_status(questao_id, ano_sel, usuario_atual, e.value, bloco_comentarios_ui)
-        ).props('inline')
-
-        if historico:
-            for idx, com in enumerate(historico):
-                if isinstance(com, str):
-                    com = {"autor": "Usuário", "data": "", "texto": com}
-
-                autor = com.get('autor', 'Anônimo')
-                data_com = com.get('data', '')
-                texto_com = com.get('texto', '')
-
-                with ui.row().classes('w-full items-center justify-between no-wrap mb-2'):
-                    if "Sistema /" in autor:
-                        ui.html(
-                            f"""<div style="background-color: #f1f3f5; padding: 6px 12px; border-radius: 6px; border-left: 3px solid #ced4da; width: 100%;">
-                                <span style="font-size: 11px; color: #6c757d; font-style: italic;">{autor} - {data_com}</span>
-                                <p style="margin: 2px 0 0 0; font-size: 12px; color: #495057;">{texto_com}</p>
-                            </div>"""
-                        ).classes('w-full')
-                    else:
-                        ui.html(
-                            f"""<div style="background-color: #f8f9fa; padding: 10px 15px; border-radius: 8px; border-left: 3px solid #1e88e5; width: 100%;">
-                                <span style="font-size: 11px; color: #1e88e5; font-weight: bold;">👤 {autor}</span> 
-                                <span style="font-size: 10px; color: #999; margin-left: 10px;">{data_com}</span>
-                                <p style="margin: 4px 0 0 0; font-size: 13px; color: #333;">{texto_com}</p>
-                            </div>"""
-                        ).classes('w-full')
-                    
-                    ui.button('🗑️', on_click=lambda idx=idx: cb_deletar_comentario(questao_id, ano_sel, idx, bloco_comentarios_ui)).props('flat dense')
-
-        txt_coment = ui.textarea(placeholder="Novo comentário...").classes('w-full')
-        ui.button(
-            "Postar Comentário", 
-            on_click=lambda: cb_postar_comentario(questao_id, ano_sel, usuario_atual, txt_coment.value, bloco_comentarios_ui, id_chave)
-        ).classes('bg-blue-600 text-white mt-2')
-
-@ui.refreshable
-def renderizar_questao_ui(qid, res_data):
-    dados_q = res_data.get(qid, {})
-    ano_sel = app.storage.user.get("ano_referencia_global", date.today().year)
-    usuario_atual = app.storage.user.get("username", "Usuário Anônimo")
-    
-    val_existente = dados_q.get("valor", "")
-    pts_existente = float(dados_q.get("pontos", 0.0))
-    link_existente = dados_q.get("link", "")
-    
-    with ui.card().classes('w-full p-4 border'):
-        ui.label(f"Quesito: {qid}").classes('text-lg font-bold')
-        
-        with ui.row().classes('w-full grid grid-cols-1 md:grid-cols-4 gap-4'):
-            with ui.column().classes('col-span-3 w-full'):
-                inp_val = ui.textarea('Resposta / Evidência:', value=val_existente).classes('w-full')
-                inp_link = ui.input('Link da Evidência (opcional):', value=link_existente).classes('w-full')
-            
-            with ui.column().classes('col-span-1 w-full'):
-                inp_pts = ui.number('Pontuação:', value=pts_existente, format='%.2f').classes('w-full')
-                inp_coment = ui.textarea('Comentário Inicial').classes('w-full')
-                ui.button(
-                    f"💾 Salvar Quesito {qid}", 
-                    on_click=lambda: cb_salvar_questao(
-                        qid, ano_sel, usuario_atual, inp_val.value, inp_link.value, inp_pts.value, inp_coment.value, renderizar_questao_ui
-                    )
-                ).classes('w-full bg-blue-700 text-white mt-2')
-
-        bloco_comentarios_ui(qid, res_data)
-
-
-def _executar_modulo(mod, nome_funcoes, year=None):
-  
-    if mod is None:
-        ui.label("❌ Módulo não carregado.").classes("text-red-600 font-bold")
-        return
-
-   
-    for nome in nome_funcoes:
-        if hasattr(mod, nome):
-            fn = getattr(mod, nome)
-            try:
-                fn(year) if year is not None else fn()
-            except TypeError:
-                try:
-                    fn()
-                except Exception as e:
-                    ui.label(f"Erro ao executar {nome}: {e}").classes("text-red-600")
-            return
-
-   
-    funcs_disponiveis = [f for f in dir(mod) if not f.startswith("_") and callable(getattr(mod, f))]
-    for fn_name in funcs_disponiveis:
-        if any(fn_name.startswith(prefix) for prefix in ["container_", "mostrar_", "render_"]):
-            fn = getattr(mod, fn_name)
-            try:
-                fn(year) if year is not None else fn()
-            except TypeError:
-                fn()
-            return
-
-    ui.label(f"⚠️ Nenhuma função compatível encontrada. Funções disponíveis: {funcs_disponiveis}").classes("text-yellow-600")
-
-
-
-@ui.page('/')
-def login_page():
-    if app.storage.user.get('authenticated', False):
-        ui.navigate.to('/dashboard')
-        return
-
-    ui.query('.q-page').classes('bg-white')
-
-    with ui.column().classes('absolute-center w-full max-w-md p-4 items-center'):
-        logo_b64 = get_image_base64("iegm.png")
-        if logo_b64:
-            ui.html(f'<div style="text-align:center; margin-bottom:20px;"><img src="{logo_b64}" style="max-width:100%; height:auto;"></div>').classes('w-full')
-
-        ui.html('<div style="background: #001A4D; border: 2px solid #001A4D; border-radius: 4px; padding: 12px 20px; text-align: center; color: #FFFFFF; font-size: 16px; font-weight: bold; width: 100%;">Sistema de Preenchimento do IEG-M</div>').classes('w-full mb-4')
-
-        username_input = ui.input('👤 Usuário', placeholder='nome.sobrenome').classes('w-full')
-        password_input = ui.input('🔐 Senha', password=True, password_toggle_button=True, placeholder='senha de 8 caracteres').classes('w-full')
-
-        def tentar_login():
-            u_val = username_input.value.strip().lower() if username_input.value else ""
-            p_val = password_input.value.strip() if password_input.value else ""
-            if not u_val or not p_val:
-                ui.notify("⚠️ Preencha todos os campos!", type="warning")
-                return
-            try:
-                user_found = find_user(u_val)
-                if user_found and _verify_password(p_val, user_found["password_hash"]):
-                    app.storage.user['authenticated'] = True
-                    app.storage.user['username'] = user_found['usuario']
-                    app.storage.user['role'] = 'user'
-                    ui.navigate.to('/dashboard')
-                else:
-                    ui.notify("❌ Usuário ou senha incorretos.", type="negative")
-            except Exception as exc:
-                ui.notify(f"❌ Não foi possível acessar o Neon: {exc}", type="negative")
-
-        ui.button('🔓 ENTRAR NO SISTEMA', on_click=tentar_login).classes('w-full bg-blue-900 text-white font-bold py-2')
-
-        with ui.expansion('🔑 Redefinir senha').classes('w-full mt-2'):
-            ui.label('Informe seu usuário e escolha uma nova senha.').classes('text-sm text-gray-600')
-            reset_user = ui.input('👤 Usuário').classes('w-full')
-            reset_password = ui.input('🔐 Nova senha', password=True, password_toggle_button=True).classes('w-full')
-            reset_confirm = ui.input('🔐 Confirmar nova senha', password=True, password_toggle_button=True).classes('w-full')
-
-            def redefinir_senha():
-                username = reset_user.value.strip().lower() if reset_user.value else ""
-                new_password = reset_password.value.strip() if reset_password.value else ""
-                confirmation = reset_confirm.value.strip() if reset_confirm.value else ""
-                if not username or not new_password or not confirmation:
-                    ui.notify("⚠️ Preencha usuário, nova senha e confirmação.", type="warning")
-                elif len(new_password) < 8:
-                    ui.notify("⚠️ A nova senha deve ter pelo menos 8 caracteres.", type="warning")
-                elif new_password != confirmation:
-                    ui.notify("⚠️ As senhas não conferem.", type="warning")
-                else:
-                    try:
-                        if update_password(username, new_password):
-                            ui.notify("✅ Senha redefinida com sucesso.", type="positive")
-                            reset_password.value = ''
-                            reset_confirm.value = ''
-                        else:
-                            ui.notify("❌ Usuário não encontrado.", type="negative")
-                    except Exception as exc:
-                        ui.notify(f"❌ Não foi possível atualizar a senha: {exc}", type="negative")
-
-            ui.button('Atualizar senha', on_click=redefinir_senha).classes('w-full bg-gray-700 text-white mt-2')
-
-        render_rodape()
-
-@ui.page('/dashboard')
-def dashboard_page():
-    if not app.storage.user.get('authenticated', False):
-        ui.navigate.to('/')
-        return
-
-    username = app.storage.user.get('username', 'Usuário')
-
-    with ui.column().classes('w-full max-w-7xl mx-auto p-6 gap-6'):
-        with ui.row().classes('w-full justify-between items-center'):
-            ui.html(f'<div style="text-align: center;"><h1 style="color: #001A4D; font-size: 28px; font-weight: bold; margin:0;">IEG-M Francisco Morato</h1><p style="color: #003D99; font-weight: bold; margin:0;">Bem-vindo, {username}!</p></div>')
-            with ui.row().classes('items-center gap-2'):
-                if username.strip().lower() == 'jefferson.espanha':
-                    ui.button('👤 Cadastrar usuário', on_click=lambda: ui.navigate.to('/cadastro-usuario')).classes('bg-green-700 text-white')
-                ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
-
-        ui.label('📊 Sistema de Preenchimento').classes('text-xl font-bold text-gray-800 border-b w-full pb-2')
-
-        ui.label('Pontos Focais/responsáveis pelo preenchimento, em caso de dúvidas no uso do sistema de preenchimento, acesse o Guia de Acesso e Preenchimento.').classes('text-sm text-gray-600 w-full')
-        ui.button(
-            '📘 Acessar Guia de Acesso e Preenchimento',
-            on_click=lambda: ui.run_javascript("window.open('https://drive.google.com/file/d/1mak0-oJqcdjipkbqacHzfnRiyvOmtB3M/view?usp=sharing', '_blank')")
-        ).classes('bg-blue-700 text-white')
-        
-        with ui.grid(columns=4).classes('w-full gap-4'):
-            for dim_name, dim_info in DIMENSIONS_DATA.items():
-                img_b64 = get_image_base64(dim_info["img"])
-                img_html = f'<img src="{img_b64}" style="max-height:85px; max-width:100%; object-fit:contain;" />' if img_b64 else '<div style="font-size:42px;">📊</div>'
-                
-                with ui.card().classes('flex flex-col items-center text-center p-4 cursor-pointer hover:shadow-lg transition-all border rounded-lg h-64 justify-between'):
-                    ui.html(img_html)
-                    ui.label(dim_name).classes('text-blue-900 font-bold text-base')
-                    ui.label(dim_info["desc"]).classes('text-gray-500 text-xs')
-                    
-                    def abrir_dimensao(nome=dim_name):
-                        app.storage.user['selected_dimension'] = nome
-                        ui.navigate.to('/dimension')
-
-                    ui.button('Acessar', on_click=abrir_dimensao).classes('w-full bg-blue-800 text-white')
-
-
-@ui.page('/cadastro-usuario')
-def cadastro_usuario_page():
-    if not app.storage.user.get('authenticated', False):
-        ui.navigate.to('/')
-        return
-    if app.storage.user.get('username', '').strip().lower() != 'jefferson.espanha':
-        ui.notify('❌ Apenas jefferson.espanha pode cadastrar usuários.', type='negative')
-        ui.navigate.to('/dashboard')
-        return
-
-    with ui.column().classes('w-full max-w-xl mx-auto p-6 gap-4'):
-        with ui.row().classes('w-full justify-between items-center border-b pb-4'):
-            ui.button('⬅️ Voltar', on_click=lambda: ui.navigate.to('/dashboard')).classes('bg-gray-600 text-white')
-            ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
-
-        ui.label('👤 Cadastro de usuário').classes('text-2xl font-bold text-blue-900')
-        ui.label('Somente o perfil jefferson.espanha pode acessar esta tela.').classes('text-gray-600')
-        ui.label('A senha inicial de todo novo usuário será: pmfm1234').classes('font-bold text-green-700')
-
-        novo_usuario = ui.input('Nome de usuário', placeholder='ex.: maria.silva').classes('w-full')
-
-        def cadastrar():
-            username = novo_usuario.value.strip().lower() if novo_usuario.value else ''
-            if not username:
-                ui.notify('⚠️ Informe o nome de usuário.', type='warning')
-                return
-            if len(username) < 3:
-                ui.notify('⚠️ O usuário deve ter pelo menos 3 caracteres.', type='warning')
-                return
-            try:
-                create_user(username)
-                ui.notify(f'✅ Usuário {username} cadastrado. Senha inicial: pmfm1234', type='positive')
-                novo_usuario.value = ''
-            except Exception as exc:
-                if 'unique' in str(exc).lower() or 'duplicate' in str(exc).lower():
-                    ui.notify('❌ Esse usuário já está cadastrado.', type='negative')
-                else:
-                    ui.notify(f'❌ Não foi possível cadastrar o usuário: {exc}', type='negative')
-
-        ui.button('Cadastrar usuário', on_click=cadastrar).classes('w-full bg-green-700 text-white font-bold py-2')
-
-@ui.page('/dimension')
-def dimension_page():
-    if not app.storage.user.get('authenticated', False):
-        ui.navigate.to('/')
-        return
-
-    dimension = app.storage.user.get('selected_dimension', 'Módulo')
-    year = app.storage.user.get('ano_referencia_global', 2026)
-
-    with ui.column().classes('w-full max-w-7xl mx-auto p-6 gap-6'):
-        with ui.row().classes('w-full justify-between items-center border-b pb-4'):
-            ui.button('⬅️ Voltar', on_click=lambda: ui.navigate.to('/dashboard')).classes('bg-gray-600 text-white')
-            ui.html(f'<h2 style="color: #001A4D; font-weight: bold; font-size: 24px; margin: 0;">{dimension} - {year}</h2>')
-            ui.button('🚪 Sair', on_click=lambda: (app.storage.user.clear(), ui.navigate.to('/'))).classes('bg-red-700 text-white')
-
-       
-        if dimension == "Biblioteca":
-            ui.label("📚 Biblioteca de Documentos").classes('text-xl font-bold')
-            ui.label("Acesse o acervo documental completo e referências diretamente no Google Drive.")
-            ui.link("🔗 Acessar Biblioteca no Google Drive", "https://drive.google.com/drive/folders/1iwiuHHbQYZ-p6aEMB9oSjugDEvdB8GVK?usp=drive_link", new_tab=True).classes('bg-blue-600 text-white p-3 rounded text-center w-full block')
-        elif dimension in ["Consulta Rápida", "HAL 9000"]:
-            _executar_modulo(hal_core, ["mostrar_chat_hal", "container_chat_hal", "main"])
-        elif dimension == "i-Cidade":
-            _executar_modulo(icidade, ["container_formulario_icidade", "mostrar_formulario_icidade", "mostrar_formulario_cidade", "main"], year)
-        elif dimension == "i-Gov TI":
-            _executar_modulo(igov, ["container_formulario_igovti", "render_igovti", "mostrar_formulario_igovti", "main"], year)
-        elif dimension == "i-Amb":
-            _executar_modulo(iamb, ["container_formulario_iamb", "mostrar_formulario_iamb", "main"], year)
-        elif dimension == "i-Fiscal":
-            _executar_modulo(ifiscal, ["container_formulario_ifiscal", "mostrar_formulario_ifiscal", "main"], year)
-        elif dimension == "i-Plan":
-            _executar_modulo(iplan, ["container_formulario_plan", "mostrar_formulario_plan", "main"], year)
-        elif dimension == "i-Educ":
-            _executar_modulo(ieduc, ["container_formulario_educ", "mostrar_formulario_educ", "main"], year)
-        elif dimension == "i-Saúde":
-            _executar_modulo(isaude, ["container_formulario_saude", "mostrar_formulario_saude", "main"], year)
-        elif dimension == "ieg-m":
-            _executar_modulo(iegm_final, ["container_painel_iegm_final", "mostrar_painel_iegm_final", "main"], year)
-        elif dimension == "Relatório de Atividades":
-            _executar_modulo(atividade, ["container_formulario_atividade", "mostrar_formulario_atividade", "main"], year)
-        elif dimension == "Plano de Ação":
-            _executar_modulo(plano_acao, ["container_formulario_plano_acao", "mostrar_formulario_plano_acao", "main"], year)
-        elif dimension == "Estratégia IA":
-            _executar_modulo(
-                estrategia_ia,
+    for q in questoes:
+        cabecalho = Table(
+            [
                 [
-                    "container_estrategia_ia",
-                    "container_formulario_estrategia_ia",
-                    "mostrar_estrategia_ia",
-                    "mostrar_formulario_estrategia_ia",
-                    "render_estrategia_ia",
-                    "main",
+                    Paragraph(
+                        f"QUESITO {q['quesito_codigo']} — Prioridade {q['prioridade']} (+{q['impacto_pontos']} pts)",
+                        st_white,
+                    ),
+                    Paragraph(f"Status: {q.get('status_execucao', 'Pendente')}", st_white),
+                ]
+            ],
+            colWidths=[400, 148],
+        )
+        cabecalho.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (-1, -1), colors.HexColor("#1E3A8A")),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 8),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+                    ("TOPPADDING", (0, 0), (-1, -1), 6),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
+                ]
+            )
+        )
+        story.append(cabecalho)
+
+        corpo = Table(
+            [
+                [
+                    Paragraph("Pergunta do Questionário:", st_bold),
+                    Paragraph(str(q["quesito_pergunta"]), st_norm),
                 ],
-                year,
+                [
+                    Paragraph("Situação Atual / Nota:", st_bold),
+                    Paragraph(str(q["situacao_atual"]), st_norm),
+                ],
+                [
+                    Paragraph("Diagnóstico Técnico:", st_bold),
+                    Paragraph(str(q["diagnostico_tecnico"]), st_norm),
+                ],
+                [
+                    Paragraph("Estratégia Recomendada:", st_bold),
+                    Paragraph(str(q["estrategia_resolucao"]), st_norm),
+                ],
+                [
+                    Paragraph("Etapas de Execução:", st_bold),
+                    Paragraph(str(q["etapas_execucao"]), st_norm),
+                ],
+                [
+                    Paragraph("Responsável:", st_bold),
+                    Paragraph(str(q["setor_responsavel"]), st_norm),
+                ],
+                [
+                    Paragraph("Evidência Exigida (TCE):", st_bold),
+                    Paragraph(str(q["evidencia_comprobatoria"]), st_norm),
+                ],
+            ],
+            colWidths=[135, 413],
+        )
+        corpo.setStyle(
+            TableStyle(
+                [
+                    ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#F1F5F9")),
+                    ("BACKGROUND", (1, 0), (1, -1), colors.white),
+                    ("BOX", (0, 0), (-1, -1), 0.8, colors.HexColor("#CBD5E1")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#E2E8F0")),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ]
+            )
+        )
+        story.append(corpo)
+        story.append(Spacer(1, 12))
+
+    doc.build(story, canvasmaker=RodapeCanvas)
+    buffer.seek(0)
+    return buffer
+
+
+# ==============================================================================
+# 5. INTERFACE NICEGUI AUTÔNOMA (PÁGINA DEDICADA /ia-estrategias)
+# ==============================================================================
+@ui.page("/ia-estrategias")
+def pagina_ia_estrategias():
+    try:
+        inicializar_tabelas_ia()
+        banco_ok = True
+        erro_banco_msg = ""
+    except Exception as exc:
+        logger.exception("Falha ao conectar no Neon PostgreSQL")
+        banco_ok = False
+        erro_banco_msg = str(exc)
+
+    estado = {"pdf_bytes": None, "analise_selecionada_id": None}
+
+    with ui.header().classes("bg-slate-900 text-white px-6 py-3 items-center justify-between"):
+        with ui.row().classes("items-center gap-3"):
+            ui.icon("psychology", size="md").classes("text-emerald-400")
+            ui.label("Inteligência Estratégica IEG-M").classes("text-lg font-bold")
+        with ui.row().classes("items-center gap-2"):
+            ui.badge(
+                "Neon DB Conectado" if banco_ok else "Erro de Banco",
+                color="emerald" if banco_ok else "red",
             )
 
+    if not banco_ok:
+        with ui.card().classes("max-w-4xl mx-auto mt-8 p-6 bg-red-50 border-l-4 border-red-600"):
+            ui.label("Erro ao conectar ao Neon PostgreSQL").classes("text-lg font-bold text-red-900")
+            ui.label(erro_banco_msg).classes("text-sm text-red-700 mt-1")
+        return
 
+    with ui.row().classes("w-full max-w-7xl mx-auto p-6 gap-6 no-wrap items-start"):
+        # COLUNA ESQUERDA: UPLOAD E HISTÓRICO DE ANÁLISES
+        with ui.column().classes("w-1/3 gap-4"):
+            with ui.card().classes("w-full p-4 border-t-4 border-emerald-600"):
+                ui.label("1. Novo Diagnóstico por IA").classes("text-base font-bold text-slate-800")
+                ui.label(
+                    "Envie o PDF exportado pelo sistema para mapear falhas e gerar estratégias."
+                ).classes("text-xs text-slate-500 mb-2")
+
+                sel_dim = ui.select(
+                    DIMENSOES_IEGM, value="i-Gov TI", label="Dimensão do Relatório"
+                ).classes("w-full")
+
+                def ao_carregar_pdf(e):
+                    estado["pdf_bytes"] = e.content.read()
+                    btn_processar.enable()
+                    ui.notify(f"PDF '{e.name}' carregado.", type="info")
+
+                ui.upload(
+                    label="Selecionar Relatório PDF",
+                    auto_upload=True,
+                    on_upload=ao_carregar_pdf,
+                ).props("accept=.pdf max-file-size=20971520").classes("w-full")
+
+                async def rodar_ia():
+                    if not estado["pdf_bytes"]:
+                        return
+                    btn_processar.disable()
+                    spinner_box.visible = True
+                    try:
+                        resultado = await run.io_bound(
+                            analisar_pdf_com_ia,
+                            estado["pdf_bytes"],
+                            sel_dim.value,
+                        )
+                        novo_id = await run.io_bound(salvar_analise_no_banco, resultado)
+                        estado["analise_selecionada_id"] = novo_id
+                        ui.notify("Análise concluída e gravada no Neon DB!", type="positive")
+                        atualizar_lista_historico()
+                        renderizar_detalhes_analise(novo_id)
+                    except Exception as exc:
+                        logger.exception("Erro no processamento IA")
+                        ui.notify(f"Erro ao analisar relatório: {exc}", type="negative")
+                    finally:
+                        spinner_box.visible = False
+                        btn_processar.enable()
+
+                with ui.row().classes("w-full items-center gap-2 mt-2") as spinner_box:
+                    ui.spinner(size="sm")
+                    ui.label("Lendo questionário e cruzando evidências...").classes(
+                        "text-xs text-blue-700"
+                    )
+                spinner_box.visible = False
+
+                btn_processar = ui.button(
+                    "Gerar Estratégias com IA",
+                    icon="auto_awesome",
+                    on_click=rodar_ia,
+                ).props("color=emerald").classes("w-full mt-2")
+                btn_processar.disable()
+
+            # HISTÓRICO DE DIAGNÓSTICOS SALVOS NO NEON
+            with ui.card().classes("w-full p-4"):
+                ui.label("2. Diagnósticos Salvos (Neon)").classes(
+                    "text-base font-bold text-slate-800 mb-2"
+                )
+                lista_historico = ui.column().classes("w-full gap-2")
+
+        # COLUNA DIREITA: PAINEL DE ESTRATÉGIAS POR QUESTÃO
+        with ui.column().classes("w-2/3"):
+            painel_detalhes = ui.column().classes("w-full gap-4")
+
+    def atualizar_lista_historico():
+        lista_historico.clear()
+        analises = listar_analises_salvas()
+        with lista_historico:
+            if not analises:
+                ui.label("Nenhum relatório analisado ainda.").classes("text-xs text-slate-400")
+                return
+            for a in analises:
+                ativo = a["id"] == estado["analise_selecionada_id"]
+                borda = (
+                    "border-blue-600 bg-blue-50"
+                    if ativo
+                    else "border-slate-200 hover:bg-slate-50"
+                )
+                with ui.card().classes(f"w-full p-3 cursor-pointer border {borda}").on(
+                    "click", lambda _, aid=a["id"]: selecionar_analise(aid)
+                ):
+                    with ui.row().classes("w-full justify-between items-center"):
+                        ui.label(f"{a['dimensao']} ({a['exercicio']})").classes(
+                            "font-bold text-sm text-slate-800"
+                        )
+                        ui.badge(f"Faixa {a['faixa_atual']}", color="blue")
+                    ui.label(f"{a['municipio']} — {a['pontuacao_atual']} pts").classes(
+                        "text-xs text-slate-600"
+                    )
+                    ui.label(
+                        f"{a['total_questoes']} questões críticas (+{a['pontos_recuperaveis']} pts recuperáveis)"
+                    ).classes("text-xs font-medium text-emerald-700 mt-1")
+
+    def selecionar_analise(analise_id: Optional[int]):
+        estado["analise_selecionada_id"] = analise_id
+        atualizar_lista_historico()
+        renderizar_detalhes_analise(analise_id)
+
+    def renderizar_detalhes_analise(analise_id: Optional[int]):
+        painel_detalhes.clear()
+        analises = listar_analises_salvas()
+        analise = next((a for a in analises if a["id"] == analise_id), None)
+
+        with painel_detalhes:
+            if not analise:
+                with ui.card().classes("w-full p-8 items-center text-center bg-slate-50"):
+                    ui.icon("analytics", size="xl").classes("text-slate-400")
+                    ui.label(
+                        "Envie um relatório PDF ao lado ou selecione um diagnóstico salvo."
+                    ).classes("text-slate-500 mt-2")
+                return
+
+            questoes = carregar_estrategias_da_analise(analise_id)
+
+            # Cabeçalho do Diagnóstico
+            with ui.card().classes("w-full p-5 bg-white border-l-4 border-blue-800"):
+                with ui.row().classes("w-full justify-between items-start"):
+                    with ui.column().classes("gap-1"):
+                        ui.label(
+                            f"{analise['municipio']} — {analise['dimensao']} ({analise['exercicio']})"
+                        ).classes("text-xl font-bold text-slate-900")
+                        ui.label(
+                            f"Pontuação Atual: {analise['pontuacao_atual']} pts | Faixa: {analise['faixa_atual']} | "
+                            f"Potencial de Ganho: +{analise['pontos_recuperaveis']} pts"
+                        ).classes("text-sm font-semibold text-emerald-700")
+
+                    with ui.row().classes("gap-2"):
+
+                        def baixar_pdf_atual():
+                            buf = gerar_pdf_estrategias(analise, questoes)
+                            caminho = f"/tmp/estrategias_iegm_{analise['id']}.pdf"
+                            with open(caminho, "wb") as f:
+                                f.write(buf.getvalue())
+                            ui.download(caminho)
+
+                        ui.button(
+                            "Exportar Caderno PDF",
+                            icon="picture_as_pdf",
+                            on_click=baixar_pdf_atual,
+                        ).props("color=primary")
+                        ui.button(
+                            icon="delete",
+                            on_click=lambda: (
+                                excluir_analise(analise_id),
+                                selecionar_analise(None),
+                                ui.notify("Diagnóstico removido.", type="warning"),
+                            ),
+                        ).props("flat color=negative")
+
+                ui.separator().classes("my-3")
+                ui.label("Síntese Executiva da IA").classes(
+                    "text-xs font-bold uppercase text-slate-500"
+                )
+                ui.label(analise["resumo_executivo"]).classes("text-sm text-slate-700 mt-1")
+
+            # Cards individuais por questão
+            for q in questoes:
+                cor_prio = (
+                    "red"
+                    if q["prioridade"] == "Alta"
+                    else ("amber" if q["prioridade"] == "Média" else "blue")
+                )
+                with ui.card().classes("w-full p-4 border border-slate-200"):
+                    with ui.row().classes("w-full justify-between items-center"):
+                        with ui.row().classes("items-center gap-2"):
+                            ui.badge(f"Quesito {q['quesito_codigo']}", color="slate-800")
+                            ui.badge(f"Prioridade {q['prioridade']}", color=cor_prio)
+                            ui.badge(f"+{q['impacto_pontos']} pts", color="emerald")
+
+                        ui.select(
+                            ["Pendente", "Em Execução", "Evidência Pronta", "Concluído"],
+                            value=q.get("status_execucao") or "Pendente",
+                            on_change=lambda e, qid=q["id"]: (
+                                atualizar_status_questao(qid, e.value),
+                                ui.notify("Status atualizado no Neon DB.", type="positive"),
+                            ),
+                        ).props("dense outlined").classes("w-44")
+
+                    ui.label(q["quesito_pergunta"]).classes(
+                        "font-bold text-sm text-slate-900 mt-2"
+                    )
+                    ui.label(f"Situação atual: {q['situacao_atual']}").classes(
+                        "text-xs text-rose-700 font-medium"
+                    )
+
+                    with ui.grid(columns=2).classes("w-full gap-4 mt-3 bg-slate-50 p-3 rounded"):
+                        with ui.column().classes("gap-1"):
+                            ui.label("Diagnóstico Técnico").classes(
+                                "text-xs font-bold text-slate-600"
+                            )
+                            ui.label(q["diagnostico_tecnico"]).classes("text-xs text-slate-800")
+
+                            ui.label("Estratégia Recomendada").classes(
+                                "text-xs font-bold text-blue-800 mt-2"
+                            )
+                            ui.label(q["estrategia_resolucao"]).classes("text-xs text-slate-800")
+
+                        with ui.column().classes("gap-1"):
+                            ui.label("Etapas de Execução").classes(
+                                "text-xs font-bold text-slate-600"
+                            )
+                            ui.label(q["etapas_execucao"]).classes("text-xs text-slate-800")
+
+                            ui.label("Evidência Comprobatória (TCE-SP)").classes(
+                                "text-xs font-bold text-emerald-800 mt-2"
+                            )
+                            ui.label(q["evidencia_comprobatoria"]).classes(
+                                "text-xs text-slate-800"
+                            )
+
+                    ui.label(f"Setor Responsável: {q['setor_responsavel']}").classes(
+                        "text-xs font-semibold text-slate-600 mt-2"
+                    )
+
+    # Inicialização da tela
+    analises_iniciais = listar_analises_salvas()
+    if analises_iniciais:
+        estado["analise_selecionada_id"] = analises_iniciais[0]["id"]
+    atualizar_lista_historico()
+    renderizar_detalhes_analise(estado["analise_selecionada_id"])
+
+
+# Permite rodar o arquivo diretamente para teste isolado
 if __name__ in {"__main__", "__mp_main__"}:
-    port = int(os.environ.get("PORT", 8080))
-    storage_secret = os.environ.get("STORAGE_SECRET", "secret_key_iegm_morato_2026")
-
-    ui.run(
-        host='0.0.0.0',
-        port=port,
-        title="IEG-M Francisco Morato",
-        storage_secret=storage_secret,
-        reload=False
-    )
+    ui.run(title="Inteligência Estratégica IEG-M", port=8080)
