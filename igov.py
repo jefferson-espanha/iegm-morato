@@ -3466,7 +3466,35 @@ def container_formulario_igov_ti():
                     except Exception:
                         pass
 
-        ui.button("📥 GERAR ABRIR RELATÓRIO PDF", on_click=baixar_pdf).classes("bg-blue-700 text-white font-bold my-2")
+        # Modal de proteção do relatório: a geração só é iniciada após a senha correta.
+        with ui.dialog() as dialog_senha_relatorio, ui.card().classes("w-96 p-5"):
+            ui.label("🔒 Acesso ao relatório").classes("text-lg font-bold text-blue-900")
+            ui.label("Digite a senha para gerar e abrir o relatório PDF.").classes("text-sm text-gray-600 mb-3")
+
+            input_senha_relatorio = ui.input(
+                "Senha:",
+                password=True,
+                password_toggle_button=True,
+            ).classes("w-full mb-4")
+
+            async def confirmar_senha_relatorio():
+                if input_senha_relatorio.value == "fidelios":
+                    input_senha_relatorio.value = ""
+                    dialog_senha_relatorio.close()
+                    await baixar_pdf()
+                else:
+                    ui.notify("❌ Senha incorreta!", type="negative")
+                    input_senha_relatorio.value = ""
+                    input_senha_relatorio.run_method("focus")
+
+            with ui.row().classes("w-full justify-end gap-2"):
+                ui.button("Cancelar", on_click=dialog_senha_relatorio.close).props("flat")
+                ui.button("Confirmar", on_click=confirmar_senha_relatorio).classes("bg-blue-700 text-white")
+
+        ui.button(
+            "📥 GERAR ABRIR RELATÓRIO PDF",
+            on_click=dialog_senha_relatorio.open,
+        ).classes("bg-blue-700 text-white font-bold my-2")
 
 
 import os
