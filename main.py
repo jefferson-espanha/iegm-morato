@@ -104,32 +104,11 @@ def create_user(username, password="pmfm1234"):
             )
 
 def import_local_module(module_name):
-    """Importa módulos locais sempre a partir da pasta do main."""
-    import importlib
-    import importlib.util
-
     try:
+        import importlib
         return importlib.import_module(module_name)
-    except Exception as primeiro_erro:
-        module_path = os.path.join(current_dir, f"{module_name}.py")
-        if not os.path.isfile(module_path):
-            print(f"⚠️ Módulo local não encontrado: {module_path}")
-            return None
-
-        try:
-            spec = importlib.util.spec_from_file_location(module_name, module_path)
-            if spec is None or spec.loader is None:
-                raise ImportError(f"Não foi possível criar o carregador para {module_path}")
-            modulo = importlib.util.module_from_spec(spec)
-            sys.modules[module_name] = modulo
-            spec.loader.exec_module(modulo)
-            return modulo
-        except Exception as segundo_erro:
-            print(
-                f"⚠️ Erro ao carregar {module_name}.py: {segundo_erro}. "
-                f"Erro inicial: {primeiro_erro}"
-            )
-            return None
+    except Exception:
+        return None
 
 icidade = import_local_module("icidade_completo") or import_local_module("icidade")
 igov = import_local_module("igov")
@@ -139,7 +118,6 @@ iplan = import_local_module("iplan")
 ieduc = import_local_module("ieduc")
 isaude = import_local_module("isaude")
 iegm_final = import_local_module("iegmfinal")
-estrategia_ia = import_local_module("estrategia_ia")
 
 bib_core = import_local_module("biblioteca")
 atividade = import_local_module("atividade")
@@ -314,7 +292,6 @@ DIMENSIONS_DATA = {
     "Plano de Ação": {"img": "plano_acao.png", "desc": "Plano de Ação Corretiva e Metas Estratégicas"},
     "Biblioteca": {"img": "biblioteca.png", "desc": "Biblioteca Digital"},
     "Consulta Rápida": {"img": "hal9000.png", "desc": "Consulte quesitos"},
-    "Estratégia IA": {"img": "hal9000.png", "desc": "Análise estratégica assistida por inteligência artificial."},
 }
 
 
@@ -535,24 +512,21 @@ def dashboard_page():
             on_click=lambda: ui.run_javascript("window.open('https://drive.google.com/file/d/1mak0-oJqcdjipkbqacHzfnRiyvOmtB3M/view?usp=sharing', '_blank')")
         ).classes('bg-blue-700 text-white')
         
-        # Menu responsivo: reduz o número de colunas em telas menores e
-        # habilita rolagem vertical quando a quantidade de módulos não couber.
-        with ui.element('div').classes('w-full max-h-[calc(100vh-260px)] overflow-y-auto pr-2'):
-            with ui.grid(columns=4).classes('w-full gap-4'):
-                for dim_name, dim_info in DIMENSIONS_DATA.items():
-                    img_b64 = get_image_base64(dim_info["img"])
-                    img_html = f'<img src="{img_b64}" style="max-height:85px; max-width:100%; object-fit:contain;" />' if img_b64 else '<div style="font-size:42px;">📊</div>'
+        with ui.grid(columns=4).classes('w-full gap-4'):
+            for dim_name, dim_info in DIMENSIONS_DATA.items():
+                img_b64 = get_image_base64(dim_info["img"])
+                img_html = f'<img src="{img_b64}" style="max-height:85px; max-width:100%; object-fit:contain;" />' if img_b64 else '<div style="font-size:42px;">📊</div>'
+                
+                with ui.card().classes('flex flex-col items-center text-center p-4 cursor-pointer hover:shadow-lg transition-all border rounded-lg h-64 justify-between'):
+                    ui.html(img_html)
+                    ui.label(dim_name).classes('text-blue-900 font-bold text-base')
+                    ui.label(dim_info["desc"]).classes('text-gray-500 text-xs')
                     
-                    with ui.card().classes('min-w-0 flex flex-col items-center text-center p-4 cursor-pointer hover:shadow-lg transition-all border rounded-lg h-64 justify-between'):
-                        ui.html(img_html).classes('max-w-full')
-                        ui.label(dim_name).classes('text-blue-900 font-bold text-base text-center break-words')
-                        ui.label(dim_info["desc"]).classes('text-gray-500 text-xs text-center')
-                        
-                        def abrir_dimensao(nome=dim_name):
-                            app.storage.user['selected_dimension'] = nome
-                            ui.navigate.to('/dimension')
+                    def abrir_dimensao(nome=dim_name):
+                        app.storage.user['selected_dimension'] = nome
+                        ui.navigate.to('/dimension')
 
-                        ui.button('Acessar', on_click=abrir_dimensao).classes('w-full bg-blue-800 text-white')
+                    ui.button('Acessar', on_click=abrir_dimensao).classes('w-full bg-blue-800 text-white')
 
 
 @ui.page('/cadastro-usuario')
@@ -638,19 +612,6 @@ def dimension_page():
             _executar_modulo(atividade, ["container_formulario_atividade", "mostrar_formulario_atividade", "main"], year)
         elif dimension == "Plano de Ação":
             _executar_modulo(plano_acao, ["container_formulario_plano_acao", "mostrar_formulario_plano_acao", "main"], year)
-        elif dimension == "Estratégia IA":
-            _executar_modulo(
-                estrategia_ia,
-                [
-                    "container_estrategia_ia",
-                    "container_formulario_estrategia_ia",
-                    "mostrar_estrategia_ia",
-                    "mostrar_formulario_estrategia_ia",
-                    "render_estrategia_ia",
-                    "main",
-                ],
-                year,
-            )
 
 
 if __name__ in {"__main__", "__mp_main__"}:
