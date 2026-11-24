@@ -515,10 +515,9 @@ def gerar_pdf_estrategias(analise: dict, questoes: List[dict]) -> io.BytesIO:
 
 
 # ==============================================================================
-# 5. INTERFACE NICEGUI AUTÔNOMA (PÁGINA DEDICADA /ia-estrategias)
+# 5. INTERFACE NICEGUI (COMPATÍVEL COM /dimension E ROTA DEDICADA /ia-estrategias)
 # ==============================================================================
-@ui.page("/ia-estrategias")
-def pagina_ia_estrategias():
+def pagina_ia_estrategias(year=None, *, incluir_cabecalho: bool = False):
     try:
         inicializar_tabelas_ia()
         banco_ok = True
@@ -530,11 +529,26 @@ def pagina_ia_estrategias():
 
     estado = {"pdf_bytes": None, "analise_selecionada_id": None}
 
-    with ui.header().classes("bg-slate-900 text-white px-6 py-3 items-center justify-between"):
-        with ui.row().classes("items-center gap-3"):
-            ui.icon("psychology", size="md").classes("text-emerald-400")
-            ui.label("Inteligência Estratégica IEG-M").classes("text-lg font-bold")
-        with ui.row().classes("items-center gap-2"):
+    if incluir_cabecalho:
+        with ui.header().classes("bg-slate-900 text-white px-6 py-3 items-center justify-between"):
+            with ui.row().classes("items-center gap-3"):
+                ui.button(
+                    "Voltar",
+                    icon="arrow_back",
+                    on_click=lambda: ui.navigate.to("/dashboard"),
+                ).props("flat dense text-color=white")
+                ui.icon("psychology", size="md").classes("text-emerald-400")
+                ui.label("Inteligência Estratégica IEG-M").classes("text-lg font-bold")
+            with ui.row().classes("items-center gap-2"):
+                ui.badge(
+                    "Neon DB Conectado" if banco_ok else "Erro de Banco",
+                    color="emerald" if banco_ok else "red",
+                )
+    else:
+        with ui.row().classes("w-full items-center justify-between bg-slate-900 text-white px-4 py-3 rounded"):
+            with ui.row().classes("items-center gap-3"):
+                ui.icon("psychology", size="md").classes("text-emerald-400")
+                ui.label("Inteligência Estratégica IEG-M").classes("text-base font-bold")
             ui.badge(
                 "Neon DB Conectado" if banco_ok else "Erro de Banco",
                 color="emerald" if banco_ok else "red",
@@ -774,6 +788,11 @@ def pagina_ia_estrategias():
         estado["analise_selecionada_id"] = analises_iniciais[0]["id"]
     atualizar_lista_historico()
     renderizar_detalhes_analise(estado["analise_selecionada_id"])
+
+
+@ui.page("/ia-estrategias")
+def rota_ia_estrategias():
+    pagina_ia_estrategias(incluir_cabecalho=True)
 
 
 # Permite rodar o arquivo diretamente para teste isolado
