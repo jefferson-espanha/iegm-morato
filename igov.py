@@ -3479,7 +3479,7 @@ def container_formulario_igov_ti():
             ).props('autocomplete="new-password"').classes("w-full mb-4")
 
             async def confirmar_senha_relatorio():
-                if input_senha_relatorio.value == "fidelios":
+                if input_senha_relatorio.value == "pmfm1234":
                     input_senha_relatorio.value = ""
                     dialog_senha_relatorio.close()
                     await baixar_pdf()
